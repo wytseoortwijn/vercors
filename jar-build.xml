@@ -1,0 +1,32 @@
+<!-- -*- tab-width:2 ; indent-tabs-mode:nil -*- -->
+<!-- this ant build file is shared between eclipse and command line building -->
+
+<project name="VerCors Tool" default="jar">
+
+	<target name="jar" description="Generate the jar file">
+		<jar destfile="vct-core.jar" >
+      <manifest>
+        <!--
+        <attribute name="Main-Class" value="slc.main.Main"/>
+        -->
+        <attribute name="Built-By" value="${user.name}"/>
+      </manifest>
+		  <fileset dir="bin">
+		  	<include name="**" />
+		  </fileset>
+		  <!--
+		  <zipfileset src="${libs}/commons-cli-1.2.jar" excludes="META-INF/*" />
+		  <zipfileset src="${libs}/antlr3-runtime.jar" excludes="META-INF/**/*" />
+		  <zipfileset src="libs/aterm.jar" excludes="META-INF/**/*,**/*.java" />
+		  <zipfileset src="${libs}/asm.jar" excludes="META-INF/*" />
+		  <zipfileset src="${libs}/asm-commons-3.3.1.jar" excludes="META-INF/*" />
+		  -->
+		  <fileset dir="src">
+		  	<include name="vct/boogie/boogie-prelude.bpl" />
+		  </fileset>
+		</jar>
+	</target>
+
+</project>
+
+

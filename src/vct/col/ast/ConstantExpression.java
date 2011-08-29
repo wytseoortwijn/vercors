@@ -1,0 +1,57 @@
+// -*- tab-width:2 ; indent-tabs-mode:nil -*-
+package vct.col.ast;
+
+import hre.ast.Origin;
+
+import java.util.*;
+
+import vct.col.ast.PrimitiveType.Sort;
+
+/**
+ * AST node for wrapping constant values.
+ * 
+ * @author sccblom
+ *
+ */
+public class ConstantExpression extends ASTNode {
+
+  /** the value should have type value rather than int! */
+  public final Value value;
+
+  public ConstantExpression(int i,Origin origin){
+    this.value=new IntegerValue(i);
+    setType(new PrimitiveType(Sort.Integer));
+    setOrigin(origin);
+  }
+  public ConstantExpression(int i){
+    this.value=new IntegerValue(i);
+    setType(new PrimitiveType(Sort.Integer));
+  }
+  
+  public ConstantExpression(Value v,Type t,Origin origin){
+    this.value=v;
+    setType(t);
+    setOrigin(origin);
+  }
+
+  public ConstantExpression(boolean b,Origin origin){
+    this.value=new BooleanValue(b);
+    setType(new PrimitiveType(Sort.Boolean));
+    setOrigin(origin);
+  }
+  public ConstantExpression(boolean b){
+    this.value=new BooleanValue(b);
+    setType(new PrimitiveType(Sort.Boolean));
+  }
+  public void accept_simple(ASTVisitor visitor){
+    visitor.visit(this);
+  }
+
+  public Value getValue(){
+    return value;
+  }
+  public String toString(){
+    return value.toString();
+  }
+}
+
