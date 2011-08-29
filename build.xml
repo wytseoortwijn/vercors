@@ -1,0 +1,114 @@
+<!-- -*- tab-width:2 ; indent-tabs-mode:nil -*- -->
+<!-- this file is used for command line building,
+     somehow eclipse is unable to parse this file,
+     so we use jar-build.xml to include thte shared
+     jar building target.
+  -->
+
+<project name="VerCors Tool" default="jar">
+
+  <property name="src"          value="${basedir}/src"/>
+  <property name="doc"          value="${basedir}/doc"/>
+  <property name="bin"          value="${basedir}/bin"/>
+  <property name="libs"         value="${basedir}/libs"/>
+  <property name="dist"         value="${basedir}/dist"/>
+  <property name="libpath"      value="${basedir}/../core/vct-core.jar:${basedir}/../options/vct-options.jar:${basedir}/../java-parser/vct-java-parser.jar:${libs}/commons-cli-1.2.jar"/>
+  <property environment="env"/>
+
+  <target name="clean">
+    <delete dir="${bin}"/>
+    <delete file="vct-tool.jar"/>
+  </target>
+  
+  <target name="core-jar">
+    <ant antfile="build.xml" dir="${basedir}/../core" inheritAll="false" target="jar"/>
+  </target>
+  <target name="core-doc">
+    <ant antfile="build.xml" dir="${basedir}/../core" inheritAll="false" target="doc"/>
+  </target>
+  <target name="options-jar">
+    <ant antfile="build.xml" dir="${basedir}/../options" inheritAll="false" target="jar"/>
+  </target>
+  <target name="options-doc">
+    <ant antfile="build.xml" dir="${basedir}/../options" inheritAll="false" target="doc"/>
+  </target>
+  <target name="java-parser-jar">
+    <ant antfile="build.xml" dir="${basedir}/../java-parser" inheritAll="false" target="jar"/>
+  </target>
+  <target name="java-parser-doc">
+    <ant antfile="build.xml" dir="${basedir}/../java-parser" inheritAll="false" target="doc"/>
+  </target>
+
+  <target name="compile" depends="core-jar,options-jar">
+    <mkdir dir="${bin}"/>
+    <javac srcdir="${src}"
+           destdir="${bin}"
+           classpath="${bin}:${libpath}"
+           debug="on"
+           includeAntRuntime="false"
+           source="1.6"
+           target="1.6">
+      <include name="**/*.java"/>
+    </javac>
+  </target>
+	
+  <target name="jar" description="Generate the jar file" depends="compile">
+		<jar destfile="vct-tool.jar" >
+      <manifest>
+        <attribute name="Main-Class" value="vct.main.Main"/>
+        <attribute name="Built-By" value="${user.name}"/>
+      </manifest>
+		  <fileset dir="bin">
+		  	<include name="**" />
+		  </fileset>
+		  <zipfileset src="../core/vct-core.jar" excludes="META-INF/*" />
+		  <zipfileset src="../options/vct-options.jar" excludes="META-INF/*" />
+		  <zipfileset src="../options/libs/clops-0.3.1.jar" excludes="META-INF/*" />
+		  <!--
+		  <zipfileset src="${libs}/antlr3-runtime.jar" excludes="META-INF/**/*" />
+		  <zipfileset src="libs/aterm.jar" excludes="META-INF/**/*,**/*.java" />
+		  <zipfileset src="${libs}/asm.jar" excludes="META-INF/*" />
+		  <zipfileset src="${libs}/asm-commons-3.3.1.jar" excludes="META-INF/*" />
+		  -->
+		</jar>
+	</target>
+
+  <target name="doc" depends="jar,core-doc">
+    <mkdir dir="${doc}"/>
+    <!-- overview="${src}/overview.html" -->
+    <javadoc
+           classpath="${basedir}/vct-tool.jar"
+           destdir="${doc}"
+           author="true"
+           version="true"
+           use="true"
+           windowtitle="VerCors Tool API">
+
+      <fileset dir="${src}" defaultexcludes="yes">
+        <include name="**/*.java"/>
+        <!-- <exclude name="**/*.g"/>
+        <exclude name="**/*.jjt"/> -->
+      </fileset>
+      <!-- the parsers generate crappy pages....
+      <fileset dir="${gensrc}" defaultexcludes="yes">
+        <include name="slc/txt/PVAnnotatedParser.java"/>
+        <include name="slc/java/parser/JavaParser.java"/>
+      </fileset>
+      -->
+
+      <doctitle><![CDATA[<h1>VerCors Tool Core API</h1>]]></doctitle>
+      <bottom><![CDATA[<i>Copyright &#169; 2011 Stefan Blom. All Rights Reserved.</i>]]></bottom>
+      <!--
+      <tag name="todo" scope="all" description="To do:"/>
+      <group title="Group 1 Packages" packages="com.dummy.test.a*"/>
+      <group title="Group 2 Packages" packages="com.dummy.test.b*:com.dummy.test.c*"/>
+      <link offline="true" href="http://download.oracle.com/javase/6/docs/api/" packagelistLoc="C:\tmp"/>
+      <link href="http://developer.java.sun.com/developer/products/xml/docs/api/"/>
+      -->
+      <link href="../../core/doc/"/>
+    </javadoc>
+  </target>
+
+</project>
+
+
