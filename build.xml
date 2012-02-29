@@ -12,7 +12,6 @@
   <property name="bin"          value="${basedir}/bin"/>
   <property name="libs"         value="${basedir}/libs"/>
   <property name="dist"         value="${basedir}/dist"/>
-  <property name="libpath"      value="${libs}/aterm.jar"/>
   <property environment="env"/>
 
   <target name="clean">
@@ -20,11 +19,15 @@
     <delete file="vct-core.jar"/>
   </target>
 
-  <target name="compile">
+  <target name="options-jar">
+    <ant antfile="build.xml" dir="${basedir}/../options" inheritAll="false" target="jar"/>
+  </target>
+
+  <target name="compile" depends="options-jar">
     <mkdir dir="${bin}"/>
     <javac srcdir="${src}"
            destdir="${bin}"
-           classpath="${bin}:${libpath}"
+           classpath="${bin}:${basedir}/../options/vct-options.jar"
            debug="on"
            includeAntRuntime="false"
            source="1.6"
