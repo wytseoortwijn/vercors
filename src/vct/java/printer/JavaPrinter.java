@@ -230,6 +230,15 @@ public class JavaPrinter extends AbstractPrinter {
         out.lnprintf(";");
         break;
       }
+      case HoareCut:{
+          out.printf("/*{ ");
+          current_precedence=0;
+          setExpr();
+          ASTNode prop=e.getArg(0);
+          prop.accept(this);
+          out.lnprintf(" }*/");
+          break;    	  
+      }
       case Lock:{
         ASTNode lock=e.getArg(0);
         setExpr();

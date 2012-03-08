@@ -212,7 +212,7 @@ public class ResolveAndMerge extends AbstractRewriter {
       result=e;
       return;
     }
-    if (e.getKind()==NameExpression.Kind.Reserved && name.equals("\\result")){
+    if (e.getKind()==NameExpression.Kind.Reserved && (name.equals("\\result"))){
       result=create.reserved_name("\\result");
       if (currentmethod==null) Abort("current method is not set");
       result.setType(currentmethod.getType().getResult());
