@@ -38,7 +38,12 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
     if (in_class) throw new Error("illegal nested class "+class_name);
     if (c.getStaticCount()>0) throw new Error("illegal static entries in "+class_name);
     in_class=true;
-    out.lnprintf("class %s {",class_name);
+    String long_name[]=c.getFullName();
+    out.printf("class %s",long_name[0]);
+    for(int i=1;i<long_name.length;i++){
+      out.printf("__%s",long_name[i]);
+    }
+    out.lnprintf(" {");
     out.incrIndent();
     int N=c.getDynamicCount();
     for(int i=0;i<N;i++) c.getDynamic(i).accept(this);
@@ -150,7 +155,11 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
         out.printf("method %s",name);
         print_arguments(m,false);
         if (contract!=null) visit(contract,false);
-        body.accept(this);
+        if (body==null){
+          out.lnprintf("{ assume false ; /* skip body check for abstract method. */ }");
+        } else {
+          body.accept(this);
+        }
         break;
       }
     }

@@ -81,26 +81,48 @@ public class Main {
    * @param chalice Location of the Chalice verifier.
    *
    */
-  public static void TestChalice(ASTClass program,boolean check,String chalice){
+  public static void TestChalice(final ASTClass program,boolean check,String chalice){
     System.err.println("Checking with Chalice");
     if (program.getDynamicCount()>0) throw new Error("chalice program with dynamic top level.");
+    if (program.getStaticCount()==1){
+      ASTNode tmp=program.getStatic(0);
+      if (!(tmp instanceof ASTClass)){
+        throw new Error("unexpected entity: "+tmp.getClass());
+      }
+      ASTClass class_def=(ASTClass)tmp;
+      if (class_def.isPackage()){
+        TestChalice(class_def,check,chalice);
+        return;
+      }
+    }
     try {
       final PrintStream chalice_input=new PrintStream("chalice-input.chalice");
       final TrackingOutput chalice_code=new TrackingOutput(chalice_input);
       final ChalicePrinter printer=new ChalicePrinter(chalice_code);
       
-      int N=program.getStaticCount();
-      for(int i=0;i<N;i++){
-        ASTNode tmp=program.getStatic(i);
-        if (!(tmp instanceof ASTClass)){
-          throw new Error("unexpected entity: "+tmp.getClass());
+      Runnable local=new Runnable(){
+        public void run(){find_classes(program);}
+        private void find_classes(ASTClass pkg){
+          if (pkg.getDynamicCount()>0) throw new Error("package with dynamic entries");
+          int N=pkg.getStaticCount();
+          for(int i=0;i<N;i++){
+            ASTNode tmp=pkg.getStatic(i);
+            if (!(tmp instanceof ASTClass)){
+              throw new Error("unexpected entity: "+tmp.getClass());
+            }
+            ASTClass class_def=(ASTClass)tmp;
+            if (class_def.isPackage()){
+              find_classes(class_def);
+            } else if (class_def.getStaticCount()>0){
+              throw new Error("class "+class_def.getName()+" has static entries");
+            } else {
+              class_def.accept(printer);
+            }
+          }
         }
-        ASTClass class_def=(ASTClass)tmp;
-        if (class_def.getStaticCount()>0){
-          throw new Error("class "+class_def.getName()+" has static entries");
-        }
-        class_def.accept(printer);
-      }
+      };
+      local.run();
+      
       TrackingTree tree=chalice_code.close();
       if (check){
         if (chalice==null) throw new Error("please set location of chalice binary");
