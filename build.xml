@@ -36,7 +36,8 @@
     </javac>
   </target>
 	
-	<target name="jar" description="Generate the jar file" depends="compile">
+  <target name="jar-build" description="Generate the jar file">
+    <!-- This target has no dependencies to allow calling from eclipse. -->
 		<jar destfile="vct-core.jar" >
       <manifest>
         <!--
@@ -58,6 +59,11 @@
 		  	<include name="vct/boogie/boogie-prelude.bpl" />
 		  </fileset>
 		</jar>
+	</target>
+
+	<target name="jar" description="Compile and Generate the jar file" depends="compile">
+	  <!-- do not inline! -->
+		<antcall target="jar-build"/>
 	</target>
 
   <target name="doc" depends="jar">
