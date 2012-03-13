@@ -52,7 +52,7 @@
     </javac>
   </target>
 	
-  <target name="jar" description="Generate the jar file" depends="compile">
+  <target name="jar-build" description="Generate the jar file">
 		<jar destfile="vct-tool.jar" >
       <manifest>
         <attribute name="Main-Class" value="vct.main.Main"/>
@@ -72,6 +72,12 @@
 		  -->
 		</jar>
 	</target>
+	
+  <target name="jar" description="Compile and Generate the jar file" depends="compile">
+  	<!-- do not inline! -->
+		<antcall target="jar-build"/>
+	</target>
+
 
   <target name="doc" depends="jar,core-doc">
     <mkdir dir="${doc}"/>
