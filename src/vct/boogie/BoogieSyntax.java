@@ -29,6 +29,7 @@ public class BoogieSyntax {
     syntax.addInfix(NEQ,"!=",80);
     syntax.addLeftFix(Star,"&&",40);
     syntax.addLeftFix(And,"&&",40);
+    syntax.addLeftFix(Or,"||",30);
     syntax.addLeftFix(Implies, "==>", 30);
     syntax.addLeftFix(IFF, "<==>", 30);
     syntax.addRightFix(Assign,"=",10);
