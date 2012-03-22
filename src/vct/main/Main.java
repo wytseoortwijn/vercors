@@ -8,6 +8,8 @@ import hre.io.PrefixPrintStream;
 import hre.util.TestReport;
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 
 import vct.col.ast.*;
 import vct.col.rewrite.AssignmentRewriter;
@@ -72,9 +74,26 @@ class Main
       cnt++;
     }
     System.err.println("Parsed " + cnt + " files in: " + (System.currentTimeMillis() - l)+"ms");
+    List<String> passes=null;
     if (options.isPassesSet()){
-      System.err.println("Rewriting AST");
-      for(String pass:options.getPasses()){
+    	passes=options.getPasses();
+    } else if (options.isBoogieSet()) {
+    	passes=new ArrayList<String>();
+    	passes.add("assign");
+    	passes.add("boogie");
+    } else if (options.isChaliceSet()) {
+    	passes=new ArrayList<String>();
+    	passes.add("jdefaults");
+    	passes.add("resolv");
+    	passes.add("assign");
+    	passes.add("expand");
+    	passes.add("chalice");
+    } else {
+    	Abort("no back-end or passes specified");
+    }
+    {
+      TestReport res=null;
+      for(String pass:passes){
         System.err.printf("Applying %s%n", pass);
         l = System.currentTimeMillis();
         if (pass.equals("exit")) {
@@ -82,8 +101,7 @@ class Main
         } else if(pass.equals("dump")){
           HeapDump.tree_dump(out,program,ASTNode.class);
         } else if (pass.equals("check")){
-          SimpleTypeCheck check=new SimpleTypeCheck(program);
-          check.check(program);
+          new SimpleTypeCheck(program).check(program);
         } else if(pass.equals("resolv")){
           program=(ASTClass)program.apply(new ResolveAndMerge());
         } else if(pass.equals("assign")){
@@ -94,25 +112,19 @@ class Main
           program=(ASTClass)program.apply(new ReferenceEncoding());
         } else if(pass.equals("expand")){
           program=(ASTClass)program.apply(new GuardedCallExpander());
+        } else if(pass.equals("boogie-fol")){
+          Z3FOL.test();
+          BoogieFOL.main(program);
+        } else if(pass.equals("boogie")){
+          res=vct.boogie.Main.TestBoogie(program);
+        } else if(pass.equals("chalice")){
+          vct.boogie.Main.TestChalice(program,true,options.getRawChaliceTool());
+        } else if(pass.equals("java")){
+          vct.java.printer.JavaPrinter.dump(System.out,program);
         } else {
-          System.err.println("unknown pass "+pass);
-          System.exit(1);
+          Abort("unknown pass %s",pass);
         }
         System.err.println("pass took " + (System.currentTimeMillis() - l)+"ms");
-      }
-    }
-    System.out.printf("Chalice tool is %s%n",options.getRawChaliceTool() );
-    System.out.printf("Boogie tool is %s%n",options.getRawBoogieTool() );
-    {
-      TestReport res=null;
-      if (options.isChaliceSet()){
-        vct.boogie.Main.TestChalice(program,true,options.getRawChaliceTool());
-      } else if (options.isBoogieSet()){
-        res=vct.boogie.Main.TestBoogie(program);
-      } else if (options.isBoogieFOLSet()){
-        BoogieFOL.main(program);
-      } else if (options.isZ3FOLSet()){
-        Z3FOL.test();
       }
       if (res!=null) {
         System.out.printf("The overall verdict is %s%n",res.getVerdict());
