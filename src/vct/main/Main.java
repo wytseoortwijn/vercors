@@ -103,9 +103,7 @@ class Main
     }
     System.out.printf("Chalice tool is %s%n",options.getRawChaliceTool() );
     System.out.printf("Boogie tool is %s%n",options.getRawBoogieTool() );
-    if (options.isJavaSet()){
-      vct.java.printer.JavaPrinter.dump(System.out,program);
-    } else {
+    {
       TestReport res=null;
       if (options.isChaliceSet()){
         vct.boogie.Main.TestChalice(program,true,options.getRawChaliceTool());
