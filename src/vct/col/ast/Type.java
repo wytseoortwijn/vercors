@@ -20,5 +20,9 @@ public abstract  class Type extends ASTNode {
 
   public abstract boolean supertypeof(Type t);
 
+  public boolean isInteger() {
+    return false;
+  }
+
 }
 

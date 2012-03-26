@@ -288,6 +288,23 @@ public class ASTFactory<E> implements FrameControl {
   public NameExpression field_name(String name) {
     return field_name(origin_stack.get(),name);
   }
+  
+  /**
+   * Create a name expression that refers to a local variable.
+   */
+  public NameExpression local_name(Origin origin,String name) {
+    NameExpression res=new NameExpression(name);
+    res.setKind(NameExpression.Kind.Local);
+    res.setOrigin(origin);
+    res.accept_if(post);
+    return res;
+  }
+  public NameExpression local_name(E origin,String name) {
+    return local_name(origin_source.create(origin),name);
+  }
+  public NameExpression local_name(String name) {
+    return local_name(origin_stack.get(),name);
+  }
 
   /**
    * Create a name expression referring to an arbitrary name.

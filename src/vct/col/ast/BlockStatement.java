@@ -25,5 +25,17 @@ public class BlockStatement extends ASTNode {
     return block.isEmpty();
   }
 
+  /*
+  public void add_or_merge(ASTNode body) {
+    if (body instanceof BlockStatement){
+      for(ASTNode node:((BlockStatement)body).block){
+        node.resetParent();
+        add_statement(body);
+      }
+    } else {
+      add_statement(body);
+    }
+  }
+  */
 }
 

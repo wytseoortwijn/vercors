@@ -146,8 +146,18 @@ public abstract class AbstractScanner implements ASTVisitor<Boolean> {
 
   @Override
   public void visit(LoopStatement s) {
-    // TODO Auto-generated method stub
-    throw new Error("missing case in Abstract Scanner: "+s.getClass());
+    for(ASTNode inv:s.getInvariants()){
+      inv.accept(this);
+    }
+    ASTNode tmp;
+    tmp=s.getInitBlock();
+    if (tmp!=null) tmp.accept(this);
+    tmp=s.getEntryGuard();
+    if (tmp!=null) tmp.accept(this);
+    tmp=s.getBody();
+    if (tmp!=null) tmp.accept(this);
+    tmp=s.getExitGuard();
+    if (tmp!=null) tmp.accept(this);
   }
 
   @Override

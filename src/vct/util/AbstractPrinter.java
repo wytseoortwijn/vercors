@@ -72,8 +72,13 @@ public class AbstractPrinter extends AbstractVisitor {
   }
 
   public void visit(NameExpression e){
+    boolean statement=!in_expr;
+    setExpr();
     String s=e.toString();
     out.print(s);
+    if (statement) {
+      out.lnprintf(";");
+    }
   }
 
   public void visit(MethodInvokation e){

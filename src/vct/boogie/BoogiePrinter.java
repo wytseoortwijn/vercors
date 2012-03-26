@@ -11,6 +11,7 @@ import vct.col.ast.*;
  *
  */
 public class BoogiePrinter extends AbstractBoogiePrinter {
+  
   public BoogiePrinter(TrackingOutput out){
     super(BoogieSyntax.getBoogie(),out);
   }
@@ -41,6 +42,7 @@ public class BoogiePrinter extends AbstractBoogiePrinter {
     Contract contract=m.getContract();
     if (contract!=null){
       visit(contract);
+      post_condition=contract.post_condition;
     }
 //    if (all_fields!=null){
 //      out.lnprintf("modifies %s;",all_fields);
@@ -48,6 +50,7 @@ public class BoogiePrinter extends AbstractBoogiePrinter {
     ASTNode body=m.getBody();
     body.accept(this);
     out.lnprintf("//end procedure %s",name);
+    post_condition=null;
   }
   public void visit(OperatorExpression e){
     switch(e.getOperator()){

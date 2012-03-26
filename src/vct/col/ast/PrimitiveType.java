@@ -22,6 +22,9 @@ public final class PrimitiveType extends Type {
   public boolean isBoolean() {
     return sort==Sort.Boolean;
   }
+  public boolean isInteger() {
+    return sort==Sort.Integer;
+  }
 
   public void accept_simple(ASTVisitor visitor){
     visitor.visit(this);

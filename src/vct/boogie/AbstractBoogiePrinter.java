@@ -13,6 +13,7 @@ import vct.util.*;
  */
 public abstract class AbstractBoogiePrinter extends AbstractPrinter {
   protected boolean in_clause=false;
+  protected ASTNode post_condition=null;
   
   public AbstractBoogiePrinter(Syntax syntax,TrackingOutput out){
     super(syntax,out);
@@ -195,10 +196,19 @@ public abstract class AbstractBoogiePrinter extends AbstractPrinter {
   }
 
   public void visit(ReturnStatement s){
-    out.printf("__result := ");
-    nextExpr();
-    s.getExpression().accept(this);
-    out.lnprintf(";");
+    if (s.getExpression()!=null) {
+      out.printf("__result := ");
+      nextExpr();
+      s.getExpression().accept(this);
+      out.lnprintf(";");
+    }
+    if (post_condition!=null){
+      out.printf("assert ");
+      nextExpr();
+      post_condition.accept(this);
+      out.lnprintf(";");      
+    }
+    out.lnprintf("assume false; // return;");   
   }
   
 }

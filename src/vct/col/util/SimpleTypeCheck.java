@@ -132,6 +132,7 @@ public class SimpleTypeCheck extends AbstractVisitor<Type> {
     switch(op){
     case And:
     case Star:
+    case Or:
     case Implies:
     case IFF:
     {
@@ -161,6 +162,18 @@ public class SimpleTypeCheck extends AbstractVisitor<Type> {
       e.setType(decl.getType());
       break;
     }
+    case Assign:
+    {
+      Type t1=e.getArg(0).getType();
+      if (t1==null) Abort("type of left argument unknown");
+      Type t2=e.getArg(1).getType();
+      if (t2==null) Abort("type of right argument unknown");
+      if (t1.getClass()!=t2.getClass()) {
+        Abort("Types of left and right-hand side arguments in assignment are incomparable");
+      }
+      e.setType(t1);
+      break;
+    }    
     case EQ:
     case NEQ:
     {
@@ -178,6 +191,20 @@ public class SimpleTypeCheck extends AbstractVisitor<Type> {
     {
       Type t=e.getArg(0).getType();
       if (!t.isBoolean()){
+        Abort("Argument of negation must be boolean at "+e.getOrigin());
+      }
+      e.setType(t);
+      break;
+    }
+    case PreIncr:
+    case PreDecr:
+    case PostIncr:
+    case PostDecr:
+    case UMinus:
+    case UPlus:
+    {
+      Type t=e.getArg(0).getType();
+      if (!t.isInteger()){
         Abort("Argument of negation must be boolean at "+e.getOrigin());
       }
       e.setType(t);
@@ -202,6 +229,24 @@ public class SimpleTypeCheck extends AbstractVisitor<Type> {
       e.setType(res);      
       break;
     }
+    case GTE:
+    case LTE:
+    case LT:
+    case GT:
+    {
+      Type res=new PrimitiveType(Sort.Integer);
+      Type t1=e.getArg(0).getType();
+      if (t1==null) Abort("type of left argument unknown");
+      if (!res.supertypeof(t1)) Abort("type of first argument is wrong at %s",e.getOrigin());
+      Type t2=e.getArg(1).getType();
+      if (t2==null) Abort("type of right argument unknown");
+      if (!res.supertypeof(t1)) Abort("type of second argument is wrong at %s",e.getOrigin());
+      if (t1.getClass()!=t2.getClass()) {
+        Abort("Types of left and right-hand side argument are uncomparable");
+      }
+      e.setType(new PrimitiveType(Sort.Boolean));      
+      break;
+    }    
     case Assert:
     case Fold:
     case Unfold:
@@ -236,4 +281,29 @@ public class SimpleTypeCheck extends AbstractVisitor<Type> {
   public void visit(ASTClass c){
     // TODO: type checks on class.
   }
+  
+  public void visit(LoopStatement s) {
+    for(ASTNode inv:s.getInvariants()){
+      Type t=inv.getType();
+      if (t==null || !(t instanceof PrimitiveType) || (((PrimitiveType)t).sort!=Sort.Boolean)){
+        Abort("loop invariant is not a boolean");
+      }
+    }
+    ASTNode tmp;
+    tmp=s.getEntryGuard();
+    if (tmp!=null) {
+      Type t=tmp.getType();
+      if (t==null || !(t instanceof PrimitiveType) || (((PrimitiveType)t).sort!=Sort.Boolean)){
+        Abort("loop entry guard is not a boolean");
+      }
+    }
+    tmp=s.getExitGuard();
+    if (tmp!=null) {
+      Type t=tmp.getType();
+      if (t==null || !(t instanceof PrimitiveType) || (((PrimitiveType)t).sort!=Sort.Boolean)){
+        Abort("loop exit guard is not a boolean");
+      }      
+    }
+  }
+
 }

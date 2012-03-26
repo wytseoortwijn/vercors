@@ -62,5 +62,16 @@ public class NameExpression extends ASTNode {
 
   public String toString(){ return name; }
 
+  public boolean equals(Object o){
+    if (o instanceof NameExpression){
+      NameExpression other=(NameExpression)o;
+      return name.equals(other.name);
+    }
+    return false;
+  }
+  
+  public int hashCode(){
+    return name.hashCode();
+  }
 }
 
