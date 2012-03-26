@@ -72,6 +72,23 @@ public class BoogiePrinter extends AbstractBoogiePrinter {
         a1.accept(this);
         break;
       }
+      case HoareCut:{
+          if (in_expr) throw new Error("Hoare Cut is a statement");
+          in_clause=true;
+          out.printf("assert ");
+          current_precedence=0;
+          setExpr();
+          ASTNode prop=e.getArg(0);
+          prop.accept(this);
+          out.lnprintf(";");
+          out.printf("assume ");
+          current_precedence=0;
+          setExpr();
+          prop.accept(this);
+          out.lnprintf(";");          
+          in_clause=false;
+          break;
+      }
       default:{
         super.visit(e);
       }
