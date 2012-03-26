@@ -13,10 +13,14 @@ import java.util.List;
 
 import vct.col.ast.*;
 import vct.col.rewrite.AssignmentRewriter;
+import vct.col.rewrite.FinalizeArguments;
+import vct.col.rewrite.Flatten;
 import vct.col.rewrite.GuardedCallExpander;
 import vct.col.rewrite.JavaDefaultsRewriter;
+import vct.col.rewrite.ReorderAssignments;
 import vct.col.rewrite.ResolveAndMerge;
 import vct.col.rewrite.ReferenceEncoding;
+import vct.col.rewrite.SimplifyCalls;
 import vct.col.util.SimpleTypeCheck;
 import vct.col.util.XMLDump;
 import vct.options.VerCorsToolOptionStore;
@@ -79,7 +83,13 @@ class Main
     	passes=options.getPasses();
     } else if (options.isBoogieSet()) {
     	passes=new ArrayList<String>();
-    	passes.add("assign");
+      passes.add("resolv");
+      passes.add("check");
+      passes.add("flatten");
+      passes.add("assign");
+      passes.add("finalize_args");
+      passes.add("reorder");
+      passes.add("simplify_calls");
     	passes.add("boogie");
     } else if (options.isChaliceSet()) {
     	passes=new ArrayList<String>();
@@ -100,14 +110,22 @@ class Main
           System.exit(0);
         } else if(pass.equals("dump")){
           HeapDump.tree_dump(out,program,ASTNode.class);
+        } else if (pass.equals("finalize_args")){
+          program=(ASTClass)program.apply(new FinalizeArguments());
         } else if (pass.equals("check")){
           new SimpleTypeCheck(program).check(program);
+        } else if(pass.equals("flatten")){
+          program=(ASTClass)program.apply(new Flatten());
         } else if(pass.equals("resolv")){
           program=(ASTClass)program.apply(new ResolveAndMerge());
+        } else if(pass.equals("reorder")){
+          program=(ASTClass)program.apply(new ReorderAssignments());
         } else if(pass.equals("assign")){
           program=(ASTClass)program.apply(new AssignmentRewriter());
         } else if(pass.equals("jdefaults")){
           program=(ASTClass)program.apply(new JavaDefaultsRewriter());
+        } else if(pass.equals("simplify_calls")){
+          program=(ASTClass)program.apply(new SimplifyCalls());
         } else if(pass.equals("refenc")){
           program=(ASTClass)program.apply(new ReferenceEncoding());
         } else if(pass.equals("expand")){
