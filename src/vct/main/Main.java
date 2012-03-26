@@ -104,6 +104,10 @@ class Main
     {
       TestReport res=null;
       for(String pass:passes){
+        if (res!=null){
+          System.out.printf("Intermediate verdict is %s%n",res.getVerdict());
+          res=null;
+        }
         System.err.printf("Applying %s%n", pass);
         l = System.currentTimeMillis();
         if (pass.equals("exit")) {
@@ -136,7 +140,7 @@ class Main
         } else if(pass.equals("boogie")){
           res=vct.boogie.Main.TestBoogie(program);
         } else if(pass.equals("chalice")){
-          vct.boogie.Main.TestChalice(program,true,options.getRawChaliceTool());
+          res=vct.boogie.Main.TestChalice(program);
         } else if(pass.equals("java")){
           vct.java.printer.JavaPrinter.dump(System.out,program);
         } else {
@@ -145,9 +149,9 @@ class Main
         System.err.println("pass took " + (System.currentTimeMillis() - l)+"ms");
       }
       if (res!=null) {
-        System.out.printf("The overall verdict is %s%n",res.getVerdict());
+        System.out.printf("The final verdict is %s%n",res.getVerdict());
       } else {
-        System.out.printf("No overall verdict has been set. Check the output carefully!%n");
+        Abort("No overall verdict has been set. Check the output carefully!");
       }
     }
   }
