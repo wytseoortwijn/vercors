@@ -16,12 +16,12 @@ import vct.util.*;
  * @author sccblom
  *
  */
-public class ChaliceOutput {
+public class ChaliceReport extends hre.util.TestReport {
 
   private boolean boogie_started;
   private boolean boogie_completed;
   
-  public ChaliceOutput(InputStream stream,TrackingTree tree) throws IOException {
+  public ChaliceReport(InputStream stream,TrackingTree tree) throws IOException {
     //tree.print("");
     BufferedReader in=new BufferedReader(new InputStreamReader(stream));
     PrintStream out=new PrintStream("chalice-output.txt");
@@ -59,6 +59,12 @@ public class ChaliceOutput {
       }
       if (line.startsWith("Boogie program verifier finished")){
         boogie_completed=true;
+        if (line.contains("verified, 0 errors")){
+          setVerdict(Verdict.Pass);
+        } else {
+          setVerdict(Verdict.Fail);
+        }
+        continue;
       }
       System.err.println("chalice: "+line);
     }

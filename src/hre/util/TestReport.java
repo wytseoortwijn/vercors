@@ -10,7 +10,7 @@ public class TestReport {
 
   public static enum Verdict { Pass, Fail, Inconclusive, Error };
   
-  private static Verdict verdict;
+  private Verdict verdict=Verdict.Error;
   
   public void setVerdict(Verdict verdict){
     this.verdict=verdict;

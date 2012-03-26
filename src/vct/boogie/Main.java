@@ -5,6 +5,8 @@ import hre.ast.MessageOrigin;
 import hre.ast.Origin;
 import hre.ast.TrackingOutput;
 import hre.ast.TrackingTree;
+import hre.util.CompositeReport;
+import hre.util.TestReport.Verdict;
 
 import java.io.*;
 import java.util.*;
@@ -81,7 +83,10 @@ public class Main {
    * @param chalice Location of the Chalice verifier.
    *
    */
-  public static void TestChalice(final ASTClass program,boolean check,String chalice){
+  public static CompositeReport TestChalice(final ASTClass program){
+    VerCorsToolOptionStore store=VerCorsToolSettings.getOptionStore();
+    String chalice=store.getChaliceTool();
+    CompositeReport report=new CompositeReport();
     System.err.println("Checking with Chalice");
     if (program.getDynamicCount()>0) throw new Error("chalice program with dynamic top level.");
     if (program.getStaticCount()==1){
@@ -91,8 +96,7 @@ public class Main {
       }
       ASTClass class_def=(ASTClass)tmp;
       if (class_def.isPackage()){
-        TestChalice(class_def,check,chalice);
-        return;
+        return TestChalice(class_def);
       }
     }
     try {
@@ -124,17 +128,22 @@ public class Main {
       local.run();
       
       TrackingTree tree=chalice_code.close();
-      if (check){
+      if (true){
         if (chalice==null) throw new Error("please set location of chalice binary");
         Process child = Runtime.getRuntime().exec(chalice+" chalice-input.chalice");
-        ChaliceOutput output=new ChaliceOutput(child.getInputStream(),tree);
+        ChaliceReport output=new ChaliceReport(child.getInputStream(),tree);
         int result=child.waitFor();
-        if (result!=0) throw new Exception("unexpected exit code "+result);
+        if (result!=0) {
+          ///("unexpected exit code "+result);
+          output.setVerdict(Verdict.Error);
+        }
+        report.addReport(output);
       }
     } catch (Exception e) {
       System.out.println("error: ");
       e.printStackTrace();
     }
+    return report;
   }
 
 }
