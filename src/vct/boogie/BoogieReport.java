@@ -21,7 +21,12 @@ import java.io.*;
 import java.util.*;
 
 import vct.col.ast.*;
+import vct.options.VerCorsToolOptionStore;
+import vct.options.VerCorsToolSettings;
 import vct.util.*;
+
+import static hre.System.Abort;
+import static hre.System.Progress;
 
 public class BoogieReport extends hre.util.TestReport {
 
@@ -80,14 +85,15 @@ public class BoogieReport extends hre.util.TestReport {
     } else {
       setVerdict(Verdict.Pass);
     }
-    System.err.printf("parsing %s\n",filename);
+    Progress("parsing %s\n",filename);
     Document dom=parseXmlFile(filename);
-    System.err.printf("interpreting %s\n",filename);
+    Progress("interpreting %s\n",filename);
     parseDocument(dom,tree);
-    System.err.printf("finished %s\n",filename);
+    Progress("finished %s\n",filename);
   }
   
   private void parseDocument(Document dom,TrackingTree tree){
+    VerCorsToolOptionStore store=VerCorsToolSettings.getOptionStore();
 		//get the root elememt
 		Element docEle = dom.getDocumentElement();
 		
@@ -96,41 +102,51 @@ public class BoogieReport extends hre.util.TestReport {
 		for(int i = 0 ; i < method_list.getLength();i++) {	
 			Element method = (Element)method_list.item(i);
 			NodeList error_list = method.getElementsByTagName("error");
-			System.err.printf("method %s: %d error(s)\n",method.getAttribute("name"),error_list.getLength());
-			for(int j=0;j<error_list.getLength();j++){
-			  Element error = (Element)error_list.item(j);
-			  String message=error.getAttribute("message");
-			  int line=Integer.parseInt(error.getAttribute("line"));
-			  int column=Integer.parseInt(error.getAttribute("column"));
-			  //System.err.printf("  at boogie input line %d, column %d: %s\n",line,column,message);
-			  //System.err.printf("  origin: %s\n",tree.getOrigin(line,column));
-			  System.err.printf("  %s at %s\n",message,tree.getOrigin(line,column));
-			  NodeList related_list = error.getElementsByTagName("related");
-			  for(int k=0;k<related_list.getLength();k++){
-			    Element related = (Element)related_list.item(k);
-			    line=Integer.parseInt(related.getAttribute("line"));
-			    column=Integer.parseInt(related.getAttribute("column"));
-			    //System.err.printf("    related to boogie input line %d, column %d\n",line,column);
-		  	  //System.err.printf("    origin: %s\n",tree.getOrigin(line,column));
-		  	  System.err.printf("  see also %s\n",tree.getOrigin(line,column));
-		    }
-		    NodeList trace_list = error.getElementsByTagName("trace");
-		    if (trace_list.getLength()>1) throw new Error("more than one trace");
-		    if (trace_list.getLength()==0) throw new Error("missing trace");
-		    System.err.printf("    trace is:\n");
-		    Element trace=(Element)trace_list.item(0);
-		    NodeList step_list = error.getElementsByTagName("traceNode");
-		    for(int k=0;k<step_list.getLength();k++){
-		      Element step = (Element)step_list.item(k);
-		      String attr=step.getAttribute("line");
-		      if(attr!=null && !attr.equals("")){
-			      line=Integer.parseInt(attr);
-			      column=Integer.parseInt(step.getAttribute("column"));
-		        //System.err.printf("    - boogie input line %d, column %d\n",line,column);
-  		  	  //System.err.printf("      origin: %s\n",tree.getOrigin(line,column));
-  		  	  System.err.printf("      -> %s\n",tree.getOrigin(line,column));
-		      }
-		    }
+			if (!store.isDetailedErrorsSet()){
+			  if (error_list.getLength()>0){
+			    Element error = (Element)error_list.item(0);
+          String message=error.getAttribute("message");
+			    System.err.printf("method %s: Fail (%s)%n",method.getAttribute("name"),message);
+			  } else {
+			    System.err.printf("method %s: Pass%n",method.getAttribute("name"));
+			  }
+	    } else {  
+ 			  System.err.printf("method %s: %d error(s)\n",method.getAttribute("name"),error_list.getLength());
+  			for(int j=0;j<error_list.getLength();j++){
+  			  Element error = (Element)error_list.item(j);
+  			  String message=error.getAttribute("message");
+  			  int line=Integer.parseInt(error.getAttribute("line"));
+  			  int column=Integer.parseInt(error.getAttribute("column"));
+  			  //System.err.printf("  at boogie input line %d, column %d: %s\n",line,column,message);
+  			  //System.err.printf("  origin: %s\n",tree.getOrigin(line,column));
+  			  System.err.printf("  %s at %s\n",message,tree.getOrigin(line,column));
+  			  NodeList related_list = error.getElementsByTagName("related");
+  			  for(int k=0;k<related_list.getLength();k++){
+  			    Element related = (Element)related_list.item(k);
+  			    line=Integer.parseInt(related.getAttribute("line"));
+  			    column=Integer.parseInt(related.getAttribute("column"));
+  			    //System.err.printf("    related to boogie input line %d, column %d\n",line,column);
+  		  	  //System.err.printf("    origin: %s\n",tree.getOrigin(line,column));
+  		  	  System.err.printf("  see also %s\n",tree.getOrigin(line,column));
+  		    }
+  		    NodeList trace_list = error.getElementsByTagName("trace");
+  		    if (trace_list.getLength()>1) throw new Error("more than one trace");
+  		    if (trace_list.getLength()==0) throw new Error("missing trace");
+  		    System.err.printf("    trace is:\n");
+  		    Element trace=(Element)trace_list.item(0);
+  		    NodeList step_list = error.getElementsByTagName("traceNode");
+  		    for(int k=0;k<step_list.getLength();k++){
+  		      Element step = (Element)step_list.item(k);
+  		      String attr=step.getAttribute("line");
+  		      if(attr!=null && !attr.equals("")){
+  			      line=Integer.parseInt(attr);
+  			      column=Integer.parseInt(step.getAttribute("column"));
+  		        //System.err.printf("    - boogie input line %d, column %d\n",line,column);
+    		  	  //System.err.printf("      origin: %s\n",tree.getOrigin(line,column));
+    		  	  System.err.printf("      -> %s\n",tree.getOrigin(line,column));
+  		      }
+  		    }
+  			}
 			}
 		}
 	}

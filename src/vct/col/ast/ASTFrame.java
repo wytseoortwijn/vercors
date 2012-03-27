@@ -1,6 +1,7 @@
 package vct.col.ast;
 
 import java.util.Stack;
+import static hre.System.Debug;
 
 public abstract class ASTFrame {
   private Stack<ASTNode> node_stack;
@@ -20,7 +21,7 @@ public abstract class ASTFrame {
     if (node instanceof ASTClass){
       ASTClass cl=(ASTClass)node;
       if (!cl.isPackage()){
-        System.err.printf("entering frame of class %s%n",cl.getName());
+        Debug("entering frame of class %s%n",cl.getName());
         class_stack.push(cl); 
       }
     }
@@ -30,7 +31,7 @@ public abstract class ASTFrame {
     if (node instanceof ASTClass){
       ASTClass cl=(ASTClass)node;
       if (!cl.isPackage()){
-        System.err.printf("leaving frame of class %s%n",cl.getName());
+        Debug("leaving frame of class %s%n",cl.getName());
         class_stack.pop(); 
       }
     }

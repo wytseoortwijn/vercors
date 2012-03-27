@@ -8,6 +8,8 @@ import java.io.*;
 import java.util.*;
 
 import vct.col.ast.*;
+import vct.options.VerCorsToolOptionStore;
+import vct.options.VerCorsToolSettings;
 import vct.util.*;
 
 /**
@@ -22,7 +24,7 @@ public class ChaliceReport extends hre.util.TestReport {
   private boolean boogie_completed;
   
   public ChaliceReport(InputStream stream,TrackingTree tree) throws IOException {
-    //tree.print("");
+    VerCorsToolOptionStore store=VerCorsToolSettings.getOptionStore();
     BufferedReader in=new BufferedReader(new InputStreamReader(stream));
     PrintStream out=new PrintStream("chalice-output.txt");
     String line;
@@ -37,20 +39,27 @@ public class ChaliceReport extends hre.util.TestReport {
         int line_no=Integer.parseInt(line.substring(2,dot));
         int col_no=Integer.parseInt(line.substring(dot+1,colon));
         Origin origin=tree.getOrigin(line_no,col_no);
-        String parts[]=line.substring(colon+2).split("[0-9]+[.][0-9]+");
-        System.out.printf("error at %s: %s",origin,parts[0]);
-        int current=colon+2+parts[0].length();
-        for(int i=1;i<parts.length;i++){
-          int end=line.indexOf(parts[i],current);
-          dot=line.indexOf(".",current);
-          line_no=Integer.parseInt(line.substring(current,dot));
-          col_no=Integer.parseInt(line.substring(dot+1,end));
-          Origin msg_origin=tree.getOrigin(line_no,col_no);
-          //System.out.printf("[%d.%d/%s]%s",line_no,col_no,msg_origin,parts[i]);
-          System.out.printf("%s%s",msg_origin,parts[i]);
-          current=end+parts[i].length();
+        if (!store.isDetailedErrorsSet()){
+          int sentence=line.indexOf(". ");
+          String message=line.substring(colon+2,sentence+1);
+          message=message.replaceAll(" at [0-9]+[.][0-9]+ "," ");
+          System.out.printf("error at %s:%n%s%n",origin,message);
+        } else {
+          String parts[]=line.substring(colon+2).split("[0-9]+[.][0-9]+");
+          System.out.printf("error at %s: %s",origin,parts[0]);
+          int current=colon+2+parts[0].length();
+          for(int i=1;i<parts.length;i++){
+            int end=line.indexOf(parts[i],current);
+            dot=line.indexOf(".",current);
+            line_no=Integer.parseInt(line.substring(current,dot));
+            col_no=Integer.parseInt(line.substring(dot+1,end));
+            Origin msg_origin=tree.getOrigin(line_no,col_no);
+            //System.out.printf("[%d.%d/%s]%s",line_no,col_no,msg_origin,parts[i]);
+            System.out.printf("%s%s",msg_origin,parts[i]);
+            current=end+parts[i].length();
+          }
+          System.out.println("");
         }
-        System.out.println("");
         continue;
       }
       if (line.startsWith("Boogie program verifier version")){

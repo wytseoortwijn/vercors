@@ -3,6 +3,9 @@ package vct.boogie;
 
 import hre.ast.TrackingOutput;
 import vct.col.ast.*;
+import static hre.System.Abort;
+import static hre.System.Debug;
+import static hre.System.Fail;
 
 /**
  * This class contains a pretty printer for Boogie programs.
@@ -73,6 +76,12 @@ public class BoogiePrinter extends AbstractBoogiePrinter {
         break;
       }
       case HoareCut:{
+          Fail("Hoare Logic is not supported in this release.");
+          /* TODO: solve at least two remaining problems:
+           *  1. havoc'ing all variables that must be havoc'ed.
+           *  2. the assume false after a return makes weakening
+           *     of the last result difficult.
+           */
           if (in_expr) throw new Error("Hoare Cut is a statement");
           in_clause=true;
           out.printf("assert ");

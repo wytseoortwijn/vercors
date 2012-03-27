@@ -47,8 +47,11 @@ public abstract class AbstractScanner implements ASTVisitor<Boolean> {
 
   @Override
   public void visit(Instantiation i) {
-    // TODO Auto-generated method stub
-    throw new Error("missing case in Abstract Scanner: "+i.getClass());
+    i.getSort().accept(this);
+    int N=i.getArity();
+    for(int j=0;j<N && ! abort;j++){
+      i.getArg(j).accept(this);
+    }
   }
 
   @Override

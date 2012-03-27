@@ -5,6 +5,7 @@ import hre.ast.TrackingOutput;
 import vct.col.ast.*;
 import vct.col.ast.PrimitiveType.Sort;
 import static hre.System.Abort;
+import static hre.System.Debug;
 
 /**
  * This class contains the pretty printer for Chalice code, which is
@@ -104,7 +105,7 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
       kind=Method.Kind.Pure;
     }
     ASTNode body=m.getBody();
-    System.err.printf("method %s of kind %s\n", name, kind);
+    Debug("method %s of kind %s", name, kind);
     switch(kind){
       case Constructor:{
         out.printf("method %s",name);
@@ -298,7 +299,7 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
     int N=e.getArity();
     // TODO: check site rather than rely on N==0 assumption.
     if (in_clause && N==0) {
-      System.err.printf("invokation kind is %s%n", e.method.getKind());
+      Debug("invokation kind is %s", e.method.getKind());
       if (e.object!=null) {
         e.object.accept(this);
         out.print(".");

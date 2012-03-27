@@ -4,6 +4,7 @@ import vct.col.ast.*;
 import vct.col.ast.NameExpression.Kind;
 import vct.col.ast.PrimitiveType.Sort;
 import static hre.System.Abort;
+import static hre.System.Debug;
 
 public class SimpleTypeCheck extends AbstractVisitor<Type> {
 
@@ -26,6 +27,14 @@ public class SimpleTypeCheck extends AbstractVisitor<Type> {
     t.setType(t);
   }
   
+  public void visit(Instantiation i) {
+    if (!(i.getSort() instanceof ClassType)) Abort("Sort in instantiation is not a class type.");
+    ClassType sort=(ClassType)i.getSort();
+    i.setType(sort);
+    int N=i.getArity();
+    if (N>0) Abort("TODO: instantiation with arguments.");
+  }
+ 
   public void visit(MethodInvokation e){
     if (e.object==null) Abort("unresolved method invokation at "+e.getOrigin());
     if (e.object.getType()==null) Abort("object has no type at %s",e.object.getOrigin());
@@ -143,9 +152,15 @@ public class SimpleTypeCheck extends AbstractVisitor<Type> {
       e.setType(new PrimitiveType(Sort.Boolean));
       break;
     }
+    case PointsTo:
     case Perm:
       // TODO: check arguments
       e.setType(new PrimitiveType(Sort.Boolean));
+      break;
+    case Fork:
+    case Join:
+      // TODO: check arguments
+      e.setType(new PrimitiveType(Sort.Void));
       break;
     case Select:
     {
@@ -153,10 +168,10 @@ public class SimpleTypeCheck extends AbstractVisitor<Type> {
       Type object_type=e.getArg(0).getType();
       if (object_type==null) Abort("type of object unknown");
       if (!(object_type instanceof ClassType)) Abort("cannot select members of non-object type.");
-      System.err.println("resolving class "+((ClassType)object_type).getFullName()+" "+((ClassType)object_type).name.length);
+      Debug("resolving class "+((ClassType)object_type).getFullName()+" "+((ClassType)object_type).name.length);
       ASTClass cl=namespace.find(((ClassType)object_type).name);
       if (cl==null) Abort("could not find class %s",((ClassType)object_type).getFullName());
-      System.err.println("looking in class "+cl.getName());
+      Debug("looking in class "+cl.getName());
       DeclarationStatement decl=cl.find_field(field.getName());
       if (decl==null) Abort("Field %s not found in class %s",field.getName(),((ClassType)object_type).getFullName());
       e.setType(decl.getType());
@@ -249,12 +264,22 @@ public class SimpleTypeCheck extends AbstractVisitor<Type> {
     }    
     case Assert:
     case Fold:
+    case HoareCut:
     case Unfold:
     {
       Type t=e.getArg(0).getType();
+      if (t==null) Abort("type of argument is unknown at %s",e.getOrigin());
       if (!t.isBoolean()){
         Abort("Argument of %s must be boolean at %s",op,e.getOrigin());
       }
+      e.setType(new PrimitiveType(Sort.Void));      
+      break;
+    }
+    case Old:
+    {
+      Type t=e.getArg(0).getType();
+      if (t==null) Abort("type of argument is unknown at %s",e.getOrigin());
+      e.setType(t);      
       break;
     }
     default:

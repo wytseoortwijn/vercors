@@ -4,6 +4,7 @@ import vct.col.ast.ASTNode;
 import vct.col.ast.AssignmentStatement;
 import vct.col.ast.BlockStatement;
 import vct.col.ast.OperatorExpression;
+import static hre.System.Debug;
 
 /**
  * This rewriter changes assignment expressions to assignment statements.
@@ -13,7 +14,7 @@ import vct.col.ast.OperatorExpression;
 public class AssignmentRewriter extends AbstractRewriter {
 
   public void visit(BlockStatement s) {
-    System.err.println("rewriting block");
+    Debug("rewriting block");
     BlockStatement res=new BlockStatement();
     res.setOrigin(s.getOrigin());
     int N=s.getLength();

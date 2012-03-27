@@ -28,6 +28,7 @@ import vct.col.ast.StandardProcedure;
 import vct.col.ast.Type;
 import vct.col.util.ASTFactory;
 import vct.col.util.ASTPermission;
+import static hre.System.Debug;
 
 /**
  * This abstract rewriter copies the AST it is applied to.
@@ -89,7 +90,7 @@ public abstract class AbstractRewriter extends AbstractVisitor<ASTNode> {
     //checkPermission(c);
     String name=c.getName();
     if (name==null) {
-      System.err.println("rewriting root class");
+      Debug("rewriting root class");
       if (c.getDynamicCount()>0) throw new Error("root class with dynamic content");
       ASTClass res=new ASTClass();
       res.setOrigin(c.getOrigin());
@@ -99,7 +100,7 @@ public abstract class AbstractRewriter extends AbstractVisitor<ASTNode> {
       }
       result=res;
     } else {
-      System.err.println("rewriting class "+name);
+      Debug("rewriting class "+name);
       ASTClass res=new ASTClass(name);
       res.setOrigin(c.getOrigin());
       int N=c.getStaticCount();
@@ -123,7 +124,7 @@ public abstract class AbstractRewriter extends AbstractVisitor<ASTNode> {
   @Override
   public void visit(BlockStatement s) {
     //checkPermission(s);
-    System.err.println("rewriting block");
+    Debug("rewriting block");
     BlockStatement res=new BlockStatement();
     res.setOrigin(s.getOrigin());
     int N=s.getLength();

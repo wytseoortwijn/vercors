@@ -24,6 +24,8 @@ import vct.col.util.LocalDefinition;
 import vct.col.util.MethodDefinition;
 import vct.col.util.NameSpace;
 import static hre.System.Abort;
+import static hre.System.Debug;
+import static hre.System.Fail;
 
 /**
  * This rewriter changes assignment expressions to assignment statements.
@@ -68,7 +70,7 @@ public class ResolveAndMerge extends AbstractRewriter {
       return;
     }
     if (name==null) {
-      System.err.println("rewriting dummy package");
+      Debug("rewriting dummy package");
       if (c.getDynamicCount()>0) throw new Error("package with dynamic content");
       int N=c.getStaticCount();
       for(int i=0;i<N;i++){
@@ -78,7 +80,7 @@ public class ResolveAndMerge extends AbstractRewriter {
       return;
     }
     if (c.isPackage()){
-      System.err.printf("rewriting %s package\n",name);
+      Debug("rewriting %s package",name);
       if (c.getDynamicCount()>0) throw new Error("package with dynamic content");
       currentstack.push(currentclass);
       currentclass=currentclass.getStaticClass(name);
@@ -90,7 +92,7 @@ public class ResolveAndMerge extends AbstractRewriter {
       currentclass=currentstack.pop();
       return;      
     } else {
-      System.err.println("rewriting class "+name);
+      Debug("rewriting class "+name);
       ASTClass res=new ASTClass(name);
       res.setOrigin(c.getOrigin());
       res.setParentClass(currentclass);
@@ -101,7 +103,7 @@ public class ResolveAndMerge extends AbstractRewriter {
       method_names.enter();
       ClassDefinition def=defs.lookupClass(res.getFullName());
       if (def==null) throw new Error("could not get def of current class.");
-      System.err.printf("adding %s\n",name);
+      Debug("adding %s",name);
       type_names.add(name, def);
       for(ClassDefinition cldef:def.getClasses()){
         type_names.add(cldef.name,cldef);
@@ -121,7 +123,7 @@ public class ResolveAndMerge extends AbstractRewriter {
         res.add_dynamic(c.getDynamic(i).apply(this));
       }
       currentclass=currentstack.pop();
-      System.err.printf("leaving %s\n",name);
+      Debug("leaving %s",name);
       type_names.leave();
       var_names.leave();
       method_names.leave();
@@ -186,7 +188,7 @@ public class ResolveAndMerge extends AbstractRewriter {
         throw new Error("the name "+t.name[0]+" is " + tmp.getClass() + " instead of class at " + t.getOrigin());
       }
     }
-    System.err.println("could not resolve class type "+t.getFullName());
+    Fail("could not resolve class type "+t.getFullName());
     result=t;
   }
   
@@ -208,7 +210,7 @@ public class ResolveAndMerge extends AbstractRewriter {
   public void visit(NameExpression e) {
     String name=e.getName();
     if (name.equals("null")){
-      System.err.println("passing null");
+      Debug("passing null");
       result=e;
       return;
     }
@@ -222,7 +224,7 @@ public class ResolveAndMerge extends AbstractRewriter {
     if (name.equals("this")){
       ClassType t=new ClassType(currentclass.getFullName());
       e.setType(t);
-      System.err.println("passing this ("+t.getFullName()+")");
+      Debug("passing this ("+t.getFullName()+")");
       result=e;
       return;
     }

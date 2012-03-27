@@ -10,6 +10,7 @@ import vct.col.util.DeclarationFilter;
 import vct.col.util.MethodFilter;
 
 import static hre.System.Abort;
+import static hre.System.Debug;
 
 /** This class is the main container for declarations.
  *  For Java it contains both classes and packages.
@@ -32,14 +33,11 @@ public class ASTClass extends ASTNode {
   
   private void getFullName(ArrayList<String> fullname){
     if (parent_class!=null) parent_class.getFullName(fullname);
-    System.err.print(" "+name);
     if (name!=null) fullname.add(name); 
   }
   public String[] getFullName(){
     ArrayList<String> fullname=new ArrayList();
-    System.err.print("getting full name ");
     getFullName(fullname);
-    System.err.println("");
     return fullname.toArray(new String[0]);
   }
 
@@ -247,12 +245,12 @@ public class ASTClass extends ASTNode {
       if (n instanceof Method){
         Method m=(Method)n;
         if (m.getName().equals(name)){
-          System.err.printf("checking type of method %s%n",name);
+          Debug("checking type of method %s%n",name);
           FunctionType t=m.getType();
           if (t.getArity()==type.length){
             for(int i=0;i<type.length;i++){
               if (!t.getArgument(i).supertypeof(type[i])){
-                System.err.printf("type of argument %d does not match (%s)%n",i,t.getArgument(i));
+                Debug("type of argument %d does not match (%s)%n",i,t.getArgument(i));
                 continue node;
               }
             }
@@ -277,18 +275,18 @@ public class ASTClass extends ASTNode {
         if (d.getName().equals(name)){
           return d;
         } else {
-          System.err.println("skipping field "+d.getName());
+          Debug("skipping field "+d.getName());
         }
       }
       if (n instanceof Method){
         Method m=(Method)n;
-        System.err.println("skipping method "+m.getName());
+        Debug("skipping method "+m.getName());
       }
     }
     return null;
   }
   public DeclarationStatement find_field(String name) {
-    System.err.println("looking for field "+name);
+    Debug("looking for field "+name);
     DeclarationStatement stat=find_field(static_entries,name);
     DeclarationStatement dyn=find_field(dynamic_entries,name);
     if (dyn==null) {

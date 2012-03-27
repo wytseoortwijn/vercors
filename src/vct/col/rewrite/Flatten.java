@@ -58,6 +58,14 @@ public class Flatten extends AbstractRewriter {
       result=create.local_name(name);
       return;
     }
+    case Assert:
+    case Fold:
+    case HoareCut:
+    case Unfold:
+    {
+      result=e.apply(copy_pure);
+      return;      
+    }
     default:
       super.visit(e);
       return;
