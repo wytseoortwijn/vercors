@@ -41,9 +41,9 @@ class Main
       Fail("cannot deduce language of %s",name);
     }
     String lang=name.substring(dot+1);
-    System.err.printf("Parsing %s file %s%n",lang,name);
+    Progress("Parsing %s file %s",lang,name);
     program.add_static(Parser.parse(lang,name));
-    System.err.printf("Read %s succesfully\n",name);
+    Progress("Read %s succesfully",name);
   }
 
   private static int parseFilesFromFileList(String fileName)
@@ -70,14 +70,21 @@ class Main
     PrefixPrintStream out=new PrefixPrintStream(System.out);
     VerCorsToolSettings.parse(args);
     VerCorsToolOptionStore options = VerCorsToolSettings.getOptionStore();
-    System.err.println("parsing inputs...");
+    if(options.isDebugSet()){
+      for(String name:options.getDebug()){
+        hre.System.EnableDebug(name,java.lang.System.err,"vct("+name+")");
+      }
+    }
+    hre.System.setProgressReporting(options.isProgressSet());
+    
+    Progress("parsing inputs...");
     int cnt = 0;
-    long l = System.currentTimeMillis();
+    long startTime = System.currentTimeMillis();
     for(File f : options.getFiles()){
       parseFile(f.getPath());
       cnt++;
     }
-    System.err.println("Parsed " + cnt + " files in: " + (System.currentTimeMillis() - l)+"ms");
+    Progress("Parsed %d files in: %dms",cnt,System.currentTimeMillis() - startTime);
     List<String> passes=null;
     if (options.isPassesSet()){
     	passes=options.getPasses();
@@ -95,6 +102,8 @@ class Main
     	passes=new ArrayList<String>();
     	passes.add("jdefaults");
     	passes.add("resolv");
+      passes.add("check");
+      passes.add("flatten");
     	passes.add("assign");
     	passes.add("expand");
     	passes.add("chalice");
@@ -105,11 +114,11 @@ class Main
       TestReport res=null;
       for(String pass:passes){
         if (res!=null){
-          System.out.printf("Intermediate verdict is %s%n",res.getVerdict());
+          Progress("Ignoring intermediate verdict %s",res.getVerdict());
           res=null;
         }
-        System.err.printf("Applying %s%n", pass);
-        l = System.currentTimeMillis();
+        Progress("Applying %s ...", pass);
+        startTime = System.currentTimeMillis();
         if (pass.equals("exit")) {
           System.exit(0);
         } else if(pass.equals("dump")){
@@ -144,14 +153,14 @@ class Main
         } else if(pass.equals("java")){
           vct.java.printer.JavaPrinter.dump(System.out,program);
         } else {
-          Abort("unknown pass %s",pass);
+          Fail("unknown pass %s",pass);
         }
-        System.err.println("pass took " + (System.currentTimeMillis() - l)+"ms");
+        Progress(" ... pass took %d ms",System.currentTimeMillis()-startTime);
       }
       if (res!=null) {
-        System.out.printf("The final verdict is %s%n",res.getVerdict());
+        Output("The final verdict is %s",res.getVerdict());
       } else {
-        Abort("No overall verdict has been set. Check the output carefully!");
+        Fail("No overall verdict has been set. Check the output carefully!");
       }
     }
   }
