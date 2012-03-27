@@ -51,6 +51,8 @@ public interface ASTVisitor<T> {
 
   public void visit(ASTWith astWith);
 
+  public void visit(BindingExpression e);
+
 }
 
 

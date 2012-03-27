@@ -103,7 +103,8 @@ public abstract class AbstractVisitor<T> extends ASTFrame implements ASTVisitor<
   public void visit(ASTClass c){ visit_any(c); }
   
   public void visit(ASTWith with){ visit_any(with); }
-
+  
+  public void visit(BindingExpression e){ visit_any(e); }
 }
 
 

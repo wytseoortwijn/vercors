@@ -7,6 +7,8 @@ import vct.col.ast.ASTVisitor;
 import vct.col.ast.ASTWith.Kind;
 import vct.col.ast.ASTWith;
 import vct.col.ast.AssignmentStatement;
+import vct.col.ast.BindingExpression;
+import vct.col.ast.BindingExpression.Binder;
 import vct.col.ast.ClassType;
 import vct.col.ast.ConstantExpression;
 import vct.col.ast.Contract;
@@ -575,6 +577,22 @@ public class ASTFactory<E> implements FrameControl {
   }
   public ASTNode with(String[] from, Kind kind, boolean all, ASTNode body) {
     return with(origin_stack.get(),from,kind,all,body);
+  }
+
+  /**
+   * Create a new binding expression.
+   */
+  public ASTNode binder(Origin origin,Binder b,BlockStatement decls,ASTNode selection,ASTNode main) {
+    ASTNode res=new BindingExpression(b,decls,selection,main);
+    res.setOrigin(origin);
+    res.accept_if(post);
+    return res;
+  }
+  public ASTNode binder(E origin,Binder b,BlockStatement decls,ASTNode selection,ASTNode main) {
+    return binder(origin_source.create(origin),b,decls,selection,main);
+  }
+  public ASTNode binder(Binder b,BlockStatement decls,ASTNode selection,ASTNode main) {
+    return binder(origin_stack.get(),b,decls,selection,main);      
   }
 
 }

@@ -67,4 +67,9 @@ public class System {
     String message=String.format(format,args);
     java.lang.System.out.printf("%s%n",message);    
   }
+  
+  public static void Warning(String format,Object...args){
+    String message=String.format(format,args);
+    java.lang.System.err.printf("WARNING: %s%n",message);    
+  }
 }

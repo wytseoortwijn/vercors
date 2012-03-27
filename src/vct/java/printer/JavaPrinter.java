@@ -7,6 +7,7 @@ import java.io.PrintStream;
 import vct.col.ast.*;
 import vct.col.ast.PrimitiveType.Sort;
 import vct.util.*;
+import static hre.System.Abort;
 
 /** 
  * This class contains a pretty printer for Java code.
@@ -21,6 +22,28 @@ public class JavaPrinter extends AbstractPrinter {
 
   public void visit(ClassType t){
     out.print(t.getFullName());
+  }
+  
+  public void visit(BindingExpression e){
+    switch(e.binder){
+      case FORALL:
+      {
+        setExpr();
+        out.printf("(\\forall ");
+        int N=e.getDeclCount();
+        if (N!=1) Abort("cannot deal with multiple variables in binder (yet)");
+        DeclarationStatement decl=e.getDeclaration(0);
+        decl.getType().accept(this);
+        out.printf(" %s;",decl.getName());
+        e.select.accept(this);
+        out.printf(";");
+        e.main.accept(this);
+        out.printf(")");
+        return;
+      }
+      default:
+        Abort("binder %s unimplemented",e.binder);
+    }
   }
   
   public void visit(BlockStatement block){

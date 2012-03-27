@@ -196,5 +196,11 @@ public abstract class AbstractScanner implements ASTVisitor<Boolean> {
   public void visit(ASTWith w) {
     w.body.accept(this);
   }
+  
+  public void visit(BindingExpression e){
+    e.select.accept(this);
+    if (abort) return;
+    e.main.accept(this);
+  }
 
 }
