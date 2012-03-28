@@ -13,6 +13,7 @@ import java.util.List;
 
 import vct.col.ast.*;
 import vct.col.rewrite.AssignmentRewriter;
+import vct.col.rewrite.DefineDouble;
 import vct.col.rewrite.FinalizeArguments;
 import vct.col.rewrite.Flatten;
 import vct.col.rewrite.GuardedCallExpander;
@@ -103,6 +104,9 @@ class Main
     	passes.add("jdefaults");
     	passes.add("resolv");
       passes.add("check");
+      passes.add("define_double");
+      passes.add("resolv");
+      passes.add("check");     
       passes.add("flatten");
     	passes.add("assign");
     	passes.add("expand");
@@ -148,6 +152,8 @@ class Main
           BoogieFOL.main(program);
         } else if(pass.equals("boogie")){
           res=vct.boogie.Main.TestBoogie(program);
+        } else if(pass.equals("define_double")){
+          program=DefineDouble.rewrite(program);
         } else if(pass.equals("chalice")){
           res=vct.boogie.Main.TestChalice(program);
         } else if(pass.equals("java")){
