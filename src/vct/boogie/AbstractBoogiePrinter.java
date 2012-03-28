@@ -4,6 +4,7 @@ package vct.boogie;
 import hre.ast.TrackingOutput;
 import vct.col.ast.*;
 import vct.util.*;
+import static hre.System.Fail;
 
 
 /**
@@ -81,6 +82,7 @@ public abstract class AbstractBoogiePrinter extends AbstractPrinter {
   
   public void visit(PrimitiveType t){
     switch (t.sort){
+    case Long:
     case Integer:
       out.printf("int");
       break;
@@ -91,7 +93,7 @@ public abstract class AbstractBoogiePrinter extends AbstractPrinter {
       out.printf("bool");
       break;
     default:
-      throw new Error("cannot show "+t.sort);
+      Fail("Primitive type %s is not supported, please use an encoding.",t.sort);
     }
   }
 

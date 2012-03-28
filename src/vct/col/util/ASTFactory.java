@@ -191,6 +191,21 @@ public class ASTFactory<E> implements FrameControl {
   }
 
   /**
+   * Create a new string constant.
+   */
+  public ConstantExpression constant(Origin origin, String s) {
+    ConstantExpression res=new ConstantExpression(s,origin);
+    res.accept_if(post);
+    return res;    
+  }
+  public ConstantExpression constant(E origin,String s) {
+    return constant(origin_source.create(origin),s);
+  }
+  public ConstantExpression constant(String s) {
+    return constant(origin_stack.get(),s);
+  }
+
+  /**
    * Create a new boolean constant.
    */
   public ConstantExpression constant(Origin origin, boolean b) {
@@ -217,6 +232,35 @@ public class ASTFactory<E> implements FrameControl {
     return constant(origin_source.create(origin),i);
   }
   public ConstantExpression constant(int i) {
+    return constant(origin_stack.get(),i);
+  }
+  
+  /**
+   * Create a new long constant.
+   */
+  public ConstantExpression constant(Origin origin, long i) {
+    ConstantExpression res=new ConstantExpression(i,origin);
+    res.accept_if(post);
+    return res;    
+  }
+  public ConstantExpression constant(E origin,long i) {
+    return constant(origin_source.create(origin),i);
+  }
+  public ConstantExpression constant(long i) {
+    return constant(origin_stack.get(),i);
+  }
+  /**
+   * Create a new double constant.
+   */
+  public ConstantExpression constant(Origin origin, double i) {
+    ConstantExpression res=new ConstantExpression(i,origin);
+    res.accept_if(post);
+    return res;    
+  }
+  public ConstantExpression constant(E origin,double i) {
+    return constant(origin_source.create(origin),i);
+  }
+  public ConstantExpression constant(double i) {
     return constant(origin_stack.get(),i);
   }
 
@@ -453,17 +497,17 @@ public class ASTFactory<E> implements FrameControl {
    * this method returns ASTNode on purpose. E.g. null might
    * yield a constant expression instead of a name expression.
    */
-  public ASTNode reserved_name(Origin origin,String name){
+  public NameExpression reserved_name(Origin origin,String name){
     NameExpression res=new NameExpression(name);
     res.setKind(NameExpression.Kind.Reserved);
     res.setOrigin(origin);
     res.accept_if(post);
     return res;
   }
-  public ASTNode reserved_name(E origin,String name) {
+  public NameExpression reserved_name(E origin,String name) {
     return reserved_name(origin_source.create(origin),name);
   }
-  public ASTNode reserved_name(String name) {
+  public NameExpression reserved_name(String name) {
     return reserved_name(origin_stack.get(),name);
   }
 

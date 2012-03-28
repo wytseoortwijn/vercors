@@ -43,7 +43,33 @@ public class ConstantExpression extends ASTNode {
     this.value=new BooleanValue(b);
     setType(new PrimitiveType(Sort.Boolean));
   }
-  public void accept_simple(ASTVisitor visitor){
+
+  public ConstantExpression(String s, Origin origin) {
+    this.value=new StringValue(s);
+    setType(new PrimitiveType(Sort.String));
+    setOrigin(origin);
+  }
+  public ConstantExpression(String s){
+    this.value=new StringValue(s);
+    setType(new PrimitiveType(Sort.String));
+  }
+
+  public ConstantExpression(long i, Origin origin) {
+    this.value=new LongValue(i);
+    setType(new PrimitiveType(Sort.Long));
+    setOrigin(origin);
+  }
+  public ConstantExpression(long i) {
+    this.value=new LongValue(i);
+    setType(new PrimitiveType(Sort.Long));
+  }
+
+  public ConstantExpression(double i, Origin origin) {
+    this.value=new DoubleValue(i);
+    setType(new PrimitiveType(Sort.Long));
+    setOrigin(origin);
+  }
+  public <T> void accept_simple(ASTVisitor<T> visitor){
     visitor.visit(this);
   }
 

@@ -43,7 +43,7 @@ public class ChaliceReport extends hre.util.TestReport {
           int sentence=line.indexOf(". ");
           String message=line.substring(colon+2,sentence+1);
           message=message.replaceAll(" at [0-9]+[.][0-9]+ "," ");
-          System.out.printf("error at %s:%n%s%n",origin,message);
+          System.out.printf("error at %s: %s%n",origin,message);
         } else {
           String parts[]=line.substring(colon+2).split("[0-9]+[.][0-9]+");
           System.out.printf("error at %s: %s",origin,parts[0]);

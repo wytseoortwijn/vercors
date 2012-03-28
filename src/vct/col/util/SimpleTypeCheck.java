@@ -77,7 +77,8 @@ public class SimpleTypeCheck extends AbstractVisitor<Type> {
     String name=s.getName();
     Type t=s.getType();
     ASTNode e=s.getInit();
-    if (e!=null && !t.equals(e.getType())) Abort("type of %s does not match its initialization",name);
+    if (e!=null && !t.equals(e.getType())) Abort("type of %s (%s) does not match its initialization (%s)",name,
+        t,e.getType());
   }
   
   public void visit(Method m){

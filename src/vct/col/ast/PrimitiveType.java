@@ -1,7 +1,7 @@
 package vct.col.ast;
 
 public final class PrimitiveType extends Type {
-  public static enum Sort {Boolean,Byte,Short,Integer,Long,Float,Double,Char,Fraction,Void};
+  public static enum Sort {Boolean,Byte,Short,Integer,Long,Float,Double,Char,Fraction,Void, String};
   public final Sort sort;
   public PrimitiveType(Sort sort){
     this.sort=sort;
@@ -24,6 +24,9 @@ public final class PrimitiveType extends Type {
   }
   public boolean isInteger() {
     return sort==Sort.Integer;
+  }
+  public boolean isDouble() {
+    return sort==Sort.Double;
   }
 
   public void accept_simple(ASTVisitor visitor){

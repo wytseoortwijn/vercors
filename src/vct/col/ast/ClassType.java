@@ -47,4 +47,15 @@ public class ClassType extends Type {
     return getFullName();
   }
   
+  public int hashCode(){
+    return getFullName().hashCode();
+  }
+  public boolean equals(Object o){
+    if (o instanceof ClassType) {
+      return getFullName().equals(((ClassType)o).getFullName());
+    } else {
+      return false;
+    }
+  }
+  
 }

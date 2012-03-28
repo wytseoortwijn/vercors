@@ -24,5 +24,9 @@ public abstract  class Type extends ASTNode {
     return false;
   }
 
+  public boolean isDouble() {
+    return false;
+  }
+
 }
 

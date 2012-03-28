@@ -24,6 +24,7 @@ import vct.col.ast.PrimitiveType;
 import vct.col.ast.PrimitiveType.Sort;
 import vct.col.ast.StandardOperator;
 import vct.col.ast.Type;
+import static hre.System.Fail;
 
 /**
  * This rewriter adds the Java default specifications explicitly.
@@ -122,13 +123,29 @@ public class JavaDefaultsRewriter extends AbstractRewriter {
             tmp.setOrigin(o);
             zero=new OperatorExpression(StandardOperator.Star,zero,tmp);
             zero.setOrigin(o);
-          } else {
-            tmp=new ConstantExpression(0);
-            tmp.setOrigin(o);
-            tmp=new OperatorExpression(StandardOperator.EQ,var,tmp);
-            tmp.setOrigin(o);
+          } else if (d.getType() instanceof PrimitiveType){
+            PrimitiveType.Sort sort=((PrimitiveType)d.getType()).sort;
+            switch(sort){
+            case Integer:
+              tmp=create.constant(o,0);
+              break;
+            case Long:
+              tmp=create.constant(o,(long)0);
+              break;
+            case Double:
+              /* TODO: fix the problem that the correct value is
+              tmp=create.constant(o,(double)0);
+              but chalice doesn't know about doubles, so we use */
+              tmp=var;
+              break;
+            default:
+              Fail("sort %s not supported yet",sort);
+            }
+            tmp=create.expression(o,StandardOperator.EQ,var,tmp);
             zero=new OperatorExpression(StandardOperator.Star,zero,tmp);
             zero.setOrigin(o);
+          } else {
+            Fail("java default value for %s unknown",d.getType().getClass());
           }
         }
       }
