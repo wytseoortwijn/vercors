@@ -28,6 +28,12 @@ import vct.util.*;
 import static hre.System.Abort;
 import static hre.System.Progress;
 
+/**
+ * Create a test report for a Boogie run from the output file.
+ * 
+ * @author sccblom
+ *
+ */
 public class BoogieReport extends hre.util.TestReport {
 
   private boolean finished=false;

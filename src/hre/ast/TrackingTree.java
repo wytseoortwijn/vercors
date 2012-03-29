@@ -5,6 +5,16 @@ import vct.col.ast.*;
 
 import java.util.ArrayList;
 
+/**
+ * Provides a mapping from positions in a file to Origins.
+ * 
+ * If the origins of generated code are stored in the data structures
+ * then error messages using positions in the generated code can be translated
+ * to error messages using the correct origins.
+ * 
+ * @author sccblom
+ *
+ */
 public class TrackingTree {
 
   private Origin origin;

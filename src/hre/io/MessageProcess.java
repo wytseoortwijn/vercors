@@ -5,15 +5,29 @@ import java.io.PrintStream;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
+/**
+ * Provides communication with a interactive external process.
+ * 
+ * @author sccblom
+ *
+ */
 public class MessageProcess {
 
   private PrintStream process_input;
   private Process process;
   private BlockingQueue<Message> queue;
   
+  /**
+   * Wraps a system process as an interactive resources.
+   * Every input message is printed to the input of the process.
+   * Every line on the standard error and standard output is returned
+   * as a reply message.
+   * 
+   * @param command_line
+   */
   public MessageProcess(String ... command_line){
     Runtime runtime=Runtime.getRuntime();
-    queue=new LinkedBlockingQueue();
+    queue=new LinkedBlockingQueue<Message>();
     try {
       process=runtime.exec(command_line);
     } catch (IOException e){

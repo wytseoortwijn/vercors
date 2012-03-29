@@ -6,8 +6,22 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+/**
+ * Provides methods that can execute an external program.
+ * 
+ * @author Stefan Blom
+ *
+ */
 public class Exec {
   
+	/**
+	 * Execute an external program with IO from and to files.
+	 * @param stdin Optional input file.
+	 * @param stdout File for storing standard output.
+	 * @param stderr File for storing standard error.
+	 * @param command_line An array of strings comprising the command line.
+	 * @return
+	 */
   public static int exec(File stdin,File stdout,File stderr,String ... command_line){
     Runtime runtime=Runtime.getRuntime();
     Process process;

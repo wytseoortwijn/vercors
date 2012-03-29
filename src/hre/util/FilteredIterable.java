@@ -2,6 +2,13 @@ package hre.util;
 
 import java.util.Iterator;
 
+/**
+ * Factory interface for mapping and selecting iterators.
+ * @author sccblom
+ *
+ * @param <S>
+ * @param <T>
+ */
 public class FilteredIterable<S,T> implements Iterable<T> {
 
   private Iterable<S> iterable;

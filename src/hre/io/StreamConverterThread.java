@@ -6,6 +6,12 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Queue;
 
+/**
+ * Convert the lines in a stream to a stream of messages.
+ * 
+ * @author sccblom
+ *
+ */
 public class StreamConverterThread extends Thread {
 
   private BufferedReader in;

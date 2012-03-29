@@ -1,7 +1,11 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 package hre.ast;
 
-
+/**
+ * Origin that denotes a range of characters in a File.
+ * @author sccblom
+ *
+ */
 public class FileOrigin implements Origin {
 
     private String file_name;

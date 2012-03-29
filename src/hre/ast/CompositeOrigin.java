@@ -4,6 +4,11 @@ package hre.ast;
 
 import java.util.Arrays;
 
+/**
+ * Origin that encapsulates other origins.
+ * @author sccblom
+ *
+ */
 public class CompositeOrigin implements Origin {
 
     private Origin origins[];

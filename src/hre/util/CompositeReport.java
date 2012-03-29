@@ -2,6 +2,12 @@ package hre.util;
 
 import java.util.ArrayList;
 
+/**
+ * Test report that aggregates the results of several other tests.
+ * 
+ * @author sccblom
+ *
+ */
 public class CompositeReport extends TestReport {
 
   private ArrayList<TestReport> reports=new ArrayList<TestReport>();

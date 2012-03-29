@@ -2,6 +2,13 @@ package hre.util;
 
 import java.util.Stack;
 
+/**
+ * A stack of references with frame control.
+ * 
+ * @author sccblom
+ *
+ * @param <T>
+ */
 public class FrameReference<T> implements FrameControl {
 
   private Stack<T> stack=new Stack<T>();

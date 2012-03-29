@@ -8,6 +8,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+/**
+ * Simple asynchronous copy between two streams or one stream and a file.
+ * 
+ * @author sccblom
+ *
+ */
 public class CopyThread extends Thread {
 
   private InputStream input;
@@ -16,18 +22,35 @@ public class CopyThread extends Thread {
   private boolean close_out=false;
   private IOException err=null;
   
+  /**
+   * Create a copying thread from a file to a stream.
+   * @param input The input File.
+   * @param output The output stream.
+   * @throws FileNotFoundException If the file cannot be opened for reading.
+   */
   public CopyThread(File input, OutputStream output) throws FileNotFoundException {
     this.input=new FileInputStream(input);
     close_in=true;
     this.output=output;
     setDaemon(true);
   }
+  /**
+   * Create a copying thread from a stream to a file.
+   * @param input The input stream.
+   * @param output The output File.
+   * @throws FileNotFoundException If the output file cannot be opened for writing.
+   */
   public CopyThread(InputStream input, File output) throws FileNotFoundException {
     this.input=input;
     this.output=new FileOutputStream(output);
     close_out=true;
     setDaemon(true);
   }
+  /**
+   * Create a copying thread from a stream to a stream.
+   * @param input The input stream.
+   * @param output The output Stream.
+   */
   public CopyThread(InputStream input, OutputStream output) {
     this.input=input;
     this.output=output;
@@ -56,6 +79,11 @@ public class CopyThread extends Thread {
     }
   }
 
+  /**
+   * Retrieve error status.
+   * @return Upon successfull competion null is returned. If
+   *         the thread was terminated due to an exception then
+   *         that exception will be returned.   */
   public IOException getError(){
     return err;
   }

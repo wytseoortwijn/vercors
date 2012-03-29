@@ -5,6 +5,14 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Stack;
 
+/**
+ * A name space with frame control.
+ * 
+ * @author sccblom
+ *
+ * @param <Key>
+ * @param <Data>
+ */
 public class NameSpace <Key,Data> implements FrameControl {
 
   private final class List {

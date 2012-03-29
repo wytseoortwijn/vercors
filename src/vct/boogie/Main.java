@@ -27,8 +27,6 @@ public class Main {
   /**
    * Generate Boogie code and optionally verify a class.
    * @param cl The class for which code must be generated.
-   * @param check If true, execute boogie with the generated code as input.
-   * @param boogie Location of the Boogie binary.
    */
   public static BoogieReport TestBoogie(ASTClass cl){
     VerCorsToolOptionStore store=VerCorsToolSettings.getOptionStore();
@@ -79,8 +77,6 @@ public class Main {
    * Pretty print a Chalice program and optionally verify it.
    * 
    * @param program AST of the Chalice program.
-   * @param check If true, the verifier must be executed.
-   * @param chalice Location of the Chalice verifier.
    *
    */
   public static CompositeReport TestChalice(final ASTClass program){
