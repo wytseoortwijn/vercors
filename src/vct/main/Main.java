@@ -104,10 +104,12 @@ class Main
     	passes.add("jdefaults");
     	passes.add("resolv");
       passes.add("check");
+      passes.add("flatten");
+      passes.add("resolv");
+      passes.add("check");
       passes.add("define_double");
       passes.add("resolv");
       passes.add("check");     
-      passes.add("flatten");
     	passes.add("assign");
     	passes.add("expand");
     	passes.add("chalice");
