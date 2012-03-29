@@ -61,7 +61,6 @@ public class BoogieFOL {
   /** find all assertions in the given program and check them 
    * with Boogie as if they were first order logic formulas.
    * @param program The program to scan for assertions.
-   * @param rawBoogieTool The location of the Boogie binary to be used.
    */
   public static void main(ASTClass program) {
     MethodFinder finder=new MethodFinder();
@@ -70,7 +69,6 @@ public class BoogieFOL {
 
   /**
    * Check a formula using Boogie.
-   * @param boogie The location of the Boogie binary to be used.
    * @param args The variables used in the formula. These are implicitly universally quantified.
    * @param formula The formula to be checked.
    */
