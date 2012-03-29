@@ -1,15 +1,25 @@
 package vct.col.rewrite;
 
+import hre.ast.MessageOrigin;
+
 import java.util.Stack;
 
 import vct.col.ast.ASTNode;
 import vct.col.ast.BlockStatement;
+import vct.col.ast.Contract;
 import vct.col.ast.DeclarationStatement;
+import vct.col.ast.FunctionType;
 import vct.col.ast.IfStatement;
+import vct.col.ast.Method;
+import vct.col.ast.MethodInvokation;
+import vct.col.ast.NameExpression;
 import vct.col.ast.OperatorExpression;
+import vct.col.ast.ReturnStatement;
 import vct.col.ast.StandardOperator;
 import vct.col.ast.Type;
 import static hre.System.Abort;
+import static hre.System.Debug;
+import static hre.System.Warning;
 
 public class Flatten extends AbstractRewriter {
 
@@ -28,7 +38,30 @@ public class Flatten extends AbstractRewriter {
     result=current_block;
     current_block=block_stack.pop();
   }
-  
+
+  public void visit(MethodInvokation e) {
+    Debug("call to %s",e.method.getName());
+    ASTNode object=rewrite_nullable(e.object);
+    NameExpression method=rewrite_and_cast(e.method);
+    int N=e.getArity();
+    ASTNode args[]=new ASTNode[N];
+    for(int i=0;i<N;i++){
+      args[i]=e.getArg(i).apply(this);
+    }
+    String name="__flatten_"+(++counter);
+    if (e.getType()==null){
+      Abort("result type of call unknown at %s",e.getOrigin());
+    }
+    Debug("declaring variable %s (%s)",name,e.getType());
+    ASTNode n=create.field_decl(name,e.getType());
+    Debug("inserting in %s",current_block);
+    current_block.add_statement(n);
+    Debug("assigning resutl of call");
+    current_block.add_statement(create.assignment(create.local_name(name),create.invokation(object,e.guarded,method,args)));
+    Debug("return variable name");
+    result=create.local_name(name);
+  }
+ 
   public void visit(OperatorExpression e){
     if (e.getType()==null) Abort("untyped operator %s in clause at %s",e.getOperator(),e.getOrigin());
     switch(e.getOperator()){
@@ -91,12 +124,48 @@ public class Flatten extends AbstractRewriter {
     }
   }
   
+  private ASTNode add_as_var(ASTNode e){
+    String name="__flatten_"+(++counter);
+    if (e.getType()==null){
+      Abort("result type unknown at %s",e.getOrigin());
+    }
+    Type t=e.getType();
+    if (t.getOrigin()==null){
+      Warning("fixing null origin near %s",e.getOrigin());
+      t.setOrigin(new MessageOrigin("Flatten.add_as_var fix near %s",e.getOrigin()));
+    }
+    ASTNode n=create.field_decl(name,t);
+    current_block.add_statement(n);
+    ASTNode ee=e.apply(this);
+    current_block.add_statement(create.assignment(create.local_name(name),ee));
+    return create.local_name(name);
+  }
+
+  public void visit(ReturnStatement s){
+    ASTNode e=s.getExpression();
+    if (e!=null){
+      e=add_as_var(e);
+      result=create.return_statement(e);
+    } else {
+      result=create.return_statement();
+    }
+  }
   private void visit_body(ASTNode body){
     if (body instanceof BlockStatement){
       BlockStatement s=(BlockStatement)body;
       int N=s.getLength();
       for(int i=0;i<N;i++){
-        visit_body(s.getStatement(i));
+        ASTNode stat=s.getStatement(i);
+        if (stat instanceof ReturnStatement){
+          // TODO: properly implement this with exec before and exec after.
+          ASTNode last=stat.apply(this);
+          for(i++;i<N;i++){
+            visit_body(s.getStatement(i));
+          }
+          current_block.add_statement(last);
+        } else {
+          visit_body(s.getStatement(i));
+        }
       }
     } else {
       current_block.add_statement(body.apply(this));
@@ -118,6 +187,38 @@ public class Flatten extends AbstractRewriter {
     }
     result=res; return ;
   }
-  
+
+  public void visit(Method m) {
+    String name=m.getName();
+    int N=m.getArity();
+    String args[]=new String[N];
+    for(int i=0;i<N;i++){
+      args[i]=m.getArgument(i);
+    }
+    FunctionType t=m.getType();
+    Contract mc=m.getContract();
+    Contract c=null;
+    if (mc!=null){
+      ASTNode pre=mc.pre_condition.apply(copy_pure);
+      ASTNode post=mc.post_condition.apply(copy_pure);
+      c=new Contract(pre,post,mc.modifiers);
+    }
+    Method.Kind kind=m.kind;
+    Method res=new Method(kind,name,args,t);
+    res.setOrigin(m.getOrigin());
+    if (c!=null) res.setContract(c);
+    ASTNode body=m.getBody();
+    if (body!=null) {
+      if (body instanceof BlockStatement) {
+        // if block
+        res.setBody(body.apply(this));
+      } else {
+        // if expression (pure function or predicate!)
+        res.setBody(body.apply(copy_pure));
+      }
+    }
+    result=res;
+  }
+ 
   
 }

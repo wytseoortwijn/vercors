@@ -207,8 +207,10 @@ public abstract class AbstractBoogiePrinter extends AbstractPrinter {
     if (post_condition!=null){
       out.printf("assert ");
       nextExpr();
+      in_clause=true;
       post_condition.accept(this);
-      out.lnprintf(";");      
+      out.lnprintf(";");
+      in_clause=false;
     }
     out.lnprintf("assume false; // return;");   
   }

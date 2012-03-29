@@ -101,6 +101,7 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
     FunctionType t=m.getType();
     int N=t.getArity();
     Contract contract=m.getContract();
+    if (contract!=null) post_condition=contract.post_condition;
     if (N>0 && kind==Method.Kind.Predicate){
       kind=Method.Kind.Pure;
     }

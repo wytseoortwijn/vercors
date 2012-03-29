@@ -5,6 +5,7 @@ import vct.col.ast.NameExpression.Kind;
 import vct.col.ast.PrimitiveType.Sort;
 import static hre.System.Abort;
 import static hre.System.Debug;
+import static hre.System.Fail;
 
 public class SimpleTypeCheck extends AbstractVisitor<Type> {
 
@@ -23,7 +24,7 @@ public class SimpleTypeCheck extends AbstractVisitor<Type> {
   }
   public void visit(ClassType t){
     ASTClass cl=namespace.find(t.name);
-    if (cl==null) throw new Error("type error: class "+t.getFullName()+" not found"); 
+    if (cl==null) Fail("type error: class "+t.getFullName()+" not found"); 
     t.setType(t);
   }
   
@@ -47,7 +48,7 @@ public class SimpleTypeCheck extends AbstractVisitor<Type> {
       if (type[i]==null) Abort("argument %d has no type.",i);
     }
     ASTClass cl=namespace.find(object_type.name);
-    if (cl==null) Abort("could not find class %s",object_type.getFullName());
+    if (cl==null) Fail("could not find class %s",object_type.getFullName());
     Method m=cl.find(e.method.getName(),type);
     if (m==null) {
       String tmp="";
@@ -57,7 +58,7 @@ public class SimpleTypeCheck extends AbstractVisitor<Type> {
           tmp=tmp+","+type[i].toString();
         }
       }
-      Abort("could not find method %s(%s) in class %s at %s",e.method.getName(),tmp,object_type.getFullName(),e.getOrigin());
+      Fail("could not find method %s(%s) in class %s at %s",e.method.getName(),tmp,object_type.getFullName(),e.getOrigin());
     }
     FunctionType t=m.getType();
     e.setType(t.getResult());
@@ -171,10 +172,10 @@ public class SimpleTypeCheck extends AbstractVisitor<Type> {
       if (!(object_type instanceof ClassType)) Abort("cannot select members of non-object type.");
       Debug("resolving class "+((ClassType)object_type).getFullName()+" "+((ClassType)object_type).name.length);
       ASTClass cl=namespace.find(((ClassType)object_type).name);
-      if (cl==null) Abort("could not find class %s",((ClassType)object_type).getFullName());
+      if (cl==null) Fail("could not find class %s",((ClassType)object_type).getFullName());
       Debug("looking in class "+cl.getName());
       DeclarationStatement decl=cl.find_field(field.getName());
-      if (decl==null) Abort("Field %s not found in class %s",field.getName(),((ClassType)object_type).getFullName());
+      if (decl==null) Fail("Field %s not found in class %s",field.getName(),((ClassType)object_type).getFullName());
       e.setType(decl.getType());
       break;
     }

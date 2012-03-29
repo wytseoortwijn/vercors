@@ -11,6 +11,7 @@ import vct.col.ast.*;
 import vct.options.VerCorsToolOptionStore;
 import vct.options.VerCorsToolSettings;
 import vct.util.*;
+import static hre.System.Debug;
 
 /**
  * This class contains a parser for the output of the Chalice tool.
@@ -40,7 +41,8 @@ public class ChaliceReport extends hre.util.TestReport {
         int col_no=Integer.parseInt(line.substring(dot+1,colon));
         Origin origin=tree.getOrigin(line_no,col_no);
         if (!store.isDetailedErrorsSet()){
-          int sentence=line.indexOf(". ");
+          Debug("line is [%s]",line);
+          int sentence=line.indexOf(".",colon);
           String message=line.substring(colon+2,sentence+1);
           message=message.replaceAll(" at [0-9]+[.][0-9]+ "," ");
           System.out.printf("error at %s: %s%n",origin,message);
