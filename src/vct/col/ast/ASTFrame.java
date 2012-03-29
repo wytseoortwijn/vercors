@@ -41,7 +41,7 @@ public abstract class ASTFrame {
     return node_stack.peek();
   }
 
-  public ASTNode current_class(){
+  public ASTClass current_class(){
     return class_stack.peek();
   }
 

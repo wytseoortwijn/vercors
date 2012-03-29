@@ -63,7 +63,8 @@ public class JavaPrinter extends AbstractPrinter {
     out.incrIndent();
     N=cl.getStaticCount();
     for(int i=0;i<N;i++){
-      out.printf("static ");
+      if (cl.getStatic(i) instanceof DeclarationStatement) out.printf("static ");
+      else out.println("/* static */");
       cl.getStatic(i).accept(this);
     }
     N=cl.getDynamicCount();

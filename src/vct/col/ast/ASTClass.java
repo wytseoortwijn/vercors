@@ -151,72 +151,28 @@ public class ASTClass extends ASTNode {
     }
     return true;
   }
-/***************************************************************************/
-/* below this line is the legacy part that must be reviewed and rewritten. */
-/***************************************************************************/
 
-//  private Package pkg;
-//  private HashMap<String,DeclarationStatement> fields=new HashMap();
-//  private HashMap<String,Method> methods=new HashMap();
-//  private ASTNode body=null;
-
-//  public ASTClass(Package p,String name){
-//    this.name=name;
-//    pkg=p;
-//    p.addClass(name,this);
-//  }
-
+  /** Create a new class without putting it in a hierarchy. */
   public ASTClass(String name){
     this.name=name;
   }
   
-//  public Package getPackage(){ return pkg; }
-
-  protected void addField(String name,DeclarationStatement d){
-//    fields.put(name,d);
-  }
-
-  protected void addMethod(String name,Method m){
-//    methods.put(name,m);
-  }
-  
-  public Set<String> getMethods(){
-//    return methods.keySet();
-    return null;
-  }
-  
-  public Set<String> getFields(){
-//    return fields.keySet();
-    return null;
-  }
-  
-  public DeclarationStatement getField(String name){
-//    return fields.get(name);
-    return null;
-  }
-
-  public Method getMethod(String name){
-//    return methods.get(name);
-    return null;
-  }
-  
+  /** Accept a visitor.
+   * @see ASTVisitor 
+   */
   public void accept_simple(ASTVisitor visitor){
     visitor.visit(this);
   }
 
-  private class BlockScanner extends AbstractVisitor {
-    public void visit(Method m){
-      addMethod(m.getName(),m);
-    }
-    public void visit(DeclarationStatement d){
-      addField(d.getName(),d);
-    }
-  }
-
+  /** Perform a lookup of a full class name in a hierarchy.
+   */
   public ASTClass find(String[] name){
     return find(name,0);
   }
   
+  /** 
+   * Auxiliary function for class lookup.
+   */
   private ASTClass find(String[] name,int pos) {
     for(ASTNode n:static_entries){
       if (n instanceof ASTClass){
@@ -296,10 +252,22 @@ public class ASTClass extends ASTNode {
     }
   }
 
+  /** Get an iterator for the static fields of the class. */
+  public Iterable<DeclarationStatement> staticFields() {
+    return new FilteredIterable<ASTNode,DeclarationStatement>(static_entries,new DeclarationFilter());
+  }
+  
+  /** Get an iterator for the dynamic fields of the class. */
   public Iterable<DeclarationStatement> dynamicFields() {
     return new FilteredIterable<ASTNode,DeclarationStatement>(dynamic_entries,new DeclarationFilter());
   }
   
+  /** Get an iterator for the static methods of the class. */
+  public Iterable<Method> staticMethods() {
+    return new FilteredIterable<ASTNode,Method>(static_entries,new MethodFilter());
+  }
+
+  /** Get an iterator for the dynamic methods of the class. */
   public Iterable<Method> dynamicMethods() {
     return new FilteredIterable<ASTNode,Method>(dynamic_entries,new MethodFilter());
   }

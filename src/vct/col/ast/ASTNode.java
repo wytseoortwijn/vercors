@@ -1,8 +1,8 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 package vct.col.ast;
 import java.io.PrintStream;
-
 import hre.ast.Origin;
+import static hre.System.Abort;
 
 /** common features of all AST nodes. */
 public abstract class ASTNode {
@@ -11,14 +11,17 @@ public abstract class ASTNode {
 
 
   /** Even though some nodes cannot be static, they can all
-      occur in a block, and thus their status must be esy to get. */
+      occur in a block, and thus their status must be easy to get. */
   private boolean is_static=false;
+  private boolean valid_static=false;
 
   public boolean isStatic(){
+    if (!valid_static) Abort("static flag has not been set");
     return is_static;
   }
 
   public void setStatic(boolean val){
+    valid_static=true;
     is_static=val;
   }
 

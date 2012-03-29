@@ -43,6 +43,11 @@ public class ResolveAndMerge extends AbstractRewriter {
   private NameSpace var_names;
   private NameSpace method_names;
   
+  private boolean static_context=true;
+  private boolean StaticContext(){
+    return static_context;
+  }
+  
   public void visit(ASTClass c) {
     String name=c.getName();
     if (c.getParentClass()==null){
@@ -61,6 +66,7 @@ public class ResolveAndMerge extends AbstractRewriter {
       if (c.getDynamicCount()>0) throw new Error("root class with dynamic content");
       int N=c.getStaticCount();
       for(int i=0;i<N;i++){
+        static_context=true;
         ASTNode res=c.getStatic(i).apply(this);
         if (res!=null && res.getParent()==null) rootclass.add_static(res);
       }
@@ -74,6 +80,7 @@ public class ResolveAndMerge extends AbstractRewriter {
       if (c.getDynamicCount()>0) throw new Error("package with dynamic content");
       int N=c.getStaticCount();
       for(int i=0;i<N;i++){
+        static_context=true;
         ASTNode res=c.getStatic(i).apply(this);
         if (res!=null && res.getParent()==null) currentclass.add_static(res);
       }
@@ -86,6 +93,7 @@ public class ResolveAndMerge extends AbstractRewriter {
       currentclass=currentclass.getStaticClass(name);
       int N=c.getStaticCount();
       for(int i=0;i<N;i++){
+        static_context=true;
         ASTNode res=c.getStatic(i).apply(this);
         if (res!=null && res.getParent()==null) currentclass.add_static(res);
       }
@@ -116,10 +124,12 @@ public class ResolveAndMerge extends AbstractRewriter {
       }
       int N=c.getStaticCount();
       for(int i=0;i<N;i++){
+        static_context=true;
         res.add_static(c.getStatic(i).apply(this));
       }
       int M=c.getDynamicCount();
       for(int i=0;i<M;i++){
+        static_context=false;
         res.add_dynamic(c.getDynamic(i).apply(this));
       }
       currentclass=currentstack.pop();
@@ -231,9 +241,14 @@ public class ResolveAndMerge extends AbstractRewriter {
     AnyDefinition def=var_names.lookup(name);
     if(def!=null){
       if (def instanceof FieldDefinition) {
-        FieldDefinition fdef=(FieldDefinition)def;
-        ClassType t=new ClassType(fdef.getParent().full_name);
-        ASTNode space=create.this_expression(t);
+        FieldDefinition fdef=(FieldDefinition)def;      
+        ClassType t=create.class_type(fdef.getParent().full_name);
+        ASTNode space;
+        if(fdef.is_static){
+          space=t;
+        } else {
+          space=create.this_expression(t);
+        }
         ASTNode new_name=create.field_name(name);
         result=create.expression(StandardOperator.Select,space,new_name);
         return;
@@ -308,9 +323,16 @@ public class ResolveAndMerge extends AbstractRewriter {
     NameExpression method=e.method;
     String name=method.getName();
     if (object==null){
-      object=create.reserved_name("this");
-      ClassType t=new ClassType(currentclass.getFullName());
-      object.setType(t);
+      // TODO: check for static import.
+      if (StaticContext()){
+        ClassType t=create.class_type(currentclass.getFullName());
+        object=t;
+        object.setType(t); 
+      } else {
+        object=create.reserved_name("this");
+        ClassType t=new ClassType(currentclass.getFullName());
+        object.setType(t);
+      }
     } else {
       object=object.apply(this);
     }

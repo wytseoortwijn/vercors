@@ -44,9 +44,16 @@ public class System {
   public static void Debug(String format,Object...args){
     StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
     int N=stackTraceElements.length;
-    MessageStream out=debug_map.get(stackTraceElements[N-2].getClassName());
-    if (out!=null){
-      out.say(format,args);
+    String name=stackTraceElements[2].getClassName();
+    for(;;){
+      MessageStream out=debug_map.get(name);
+      if (out!=null){
+        out.say(format,args);
+        return;
+      }
+      int lastdot=name.lastIndexOf(".");
+      if (lastdot<0) return;
+      name=name.substring(0,lastdot);
     }
   }
   

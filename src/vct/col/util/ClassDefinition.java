@@ -30,10 +30,10 @@ public class ClassDefinition extends AnyDefinition {
     full_name[N]=name;
   }
   
-  public void addField(String name){
+  public void addField(String name,boolean is_static){
     FieldDefinition res=field_map.get(name);
     if (res==null){
-      res=new FieldDefinition(name,this);
+      res=new FieldDefinition(name,is_static,this);
       field_map.put(name,res);
       Debug("new field %s.%s\n",this.fullName(),name);
     }

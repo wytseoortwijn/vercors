@@ -12,6 +12,7 @@ public class DefinitionScanner extends AbstractScanner {
 
   private ClassDefinition root;
   private ClassDefinition current;
+  private boolean static_context;
   
   public DefinitionScanner(ClassDefinition root){
     this.root=root;
@@ -28,11 +29,13 @@ public class DefinitionScanner extends AbstractScanner {
     int N;
     N=c.getStaticCount();
     for(int i=0;i<N;i++){
+      static_context=true;
       ASTNode n=c.getStatic(i);
       n.accept(this);
     }
     N=c.getDynamicCount();
     for(int i=0;i<N;i++){
+      static_context=false;
       ASTNode n=c.getDynamic(i);
       n.accept(this);
     }
@@ -42,7 +45,7 @@ public class DefinitionScanner extends AbstractScanner {
   }
 
   public void visit(DeclarationStatement s){
-    current.addField(s.getName());
+    current.addField(s.getName(),static_context);
   }
 
   public void visit(AssignmentStatement s){
