@@ -22,11 +22,14 @@ public final class PrimitiveType extends Type {
   public boolean isBoolean() {
     return sort==Sort.Boolean;
   }
+  public boolean isDouble() {
+    return sort==Sort.Double;
+  }
   public boolean isInteger() {
     return sort==Sort.Integer;
   }
-  public boolean isDouble() {
-    return sort==Sort.Double;
+  public boolean isVoid() {
+    return sort==Sort.Void;
   }
 
   public void accept_simple(ASTVisitor visitor){

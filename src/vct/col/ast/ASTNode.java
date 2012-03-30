@@ -3,6 +3,8 @@ package vct.col.ast;
 import java.io.PrintStream;
 import hre.ast.Origin;
 import static hre.System.Abort;
+import static hre.System.Debug;
+import static hre.System.Warning;
 
 /** common features of all AST nodes. */
 public abstract class ASTNode {
@@ -92,8 +94,14 @@ public abstract class ASTNode {
     if (parent==null){
       throw new Error("illegal null parent");
     }
+    if (this.parent==parent){
+      Warning("setting the same parent twice");
+    }
     if (this.parent!=null){
-      throw new Error("modifying parent");
+      Warning("modifying parent of %s from %s",this.getClass(),this.getOrigin());
+      Warning("original parent is %s",this.getParent().getOrigin());
+      Warning("new parent is %s",parent.getOrigin());
+      Abort("modifying parent of %s from %s",this.getClass(),this.getOrigin());
     }
     this.parent=parent;
   }

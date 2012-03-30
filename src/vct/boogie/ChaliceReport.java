@@ -42,8 +42,13 @@ public class ChaliceReport extends hre.util.TestReport {
         Origin origin=tree.getOrigin(line_no,col_no);
         if (!store.isDetailedErrorsSet()){
           Debug("line is [%s]",line);
-          int sentence=line.indexOf(".",colon);
-          String message=line.substring(colon+2,sentence+1);
+          int sentence=line.indexOf(". ",colon);
+          String message;
+          if (sentence >0){
+            message=line.substring(colon+2,sentence+1);
+          } else {
+            message=line.substring(colon+2);
+          }
           message=message.replaceAll(" at [0-9]+[.][0-9]+ "," ");
           System.out.printf("error at %s: %s%n",origin,message);
         } else {

@@ -129,7 +129,9 @@ public abstract class AbstractRewriter extends AbstractVisitor<ASTNode> {
     res.setOrigin(s.getOrigin());
     int N=s.getLength();
     for (int i=0;i<N;i++){
-      res.add_statement(s.getStatement(i).apply(this));
+      ASTNode n=s.getStatement(i).apply(this);
+      Debug("adding %s",n.getClass());
+      res.add_statement(n);
     }
     result=res; return ;
   }

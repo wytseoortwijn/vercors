@@ -28,6 +28,7 @@ public class Flatten extends AbstractRewriter {
   
   private Stack<BlockStatement> block_stack=new Stack<BlockStatement>();
   private BlockStatement current_block=null;
+  private BlockStatement declaration_block=null;
   private long counter=0;
   
   public void visit(BlockStatement s){
@@ -52,14 +53,18 @@ public class Flatten extends AbstractRewriter {
     if (e.getType()==null){
       Abort("result type of call unknown at %s",e.getOrigin());
     }
-    Debug("declaring variable %s (%s)",name,e.getType());
-    ASTNode n=create.field_decl(name,e.getType());
-    Debug("inserting in %s",current_block);
-    current_block.add_statement(n);
-    Debug("assigning resutl of call");
-    current_block.add_statement(create.assignment(create.local_name(name),create.invokation(object,e.guarded,method,args)));
-    Debug("return variable name");
-    result=create.local_name(name);
+    if (e.getType().isVoid()){
+      result=create.invokation(object,e.guarded,method,args);
+    } else {
+      Debug("declaring variable %s (%s)",name,e.getType());
+      ASTNode n=create.field_decl(name,e.getType());
+      Debug("inserting in %s",declaration_block);
+      declaration_block.add_statement(n);
+      Debug("assigning resutl of call");
+      current_block.add_statement(create.assignment(create.local_name(name),create.invokation(object,e.guarded,method,args)));
+      Debug("return variable name");
+      result=create.local_name(name);
+    }
   }
  
   public void visit(OperatorExpression e){
@@ -72,7 +77,7 @@ public class Flatten extends AbstractRewriter {
       ASTNode arg=e.getArg(0);
       ASTNode arg_out=arg.apply(this);
       String name="__flatten_"+(++counter);
-      current_block.add_statement(create.field_decl(name,e.getType(),null));
+      declaration_block.add_statement(create.field_decl(name,e.getType(),null));
       current_block.add_statement(create.assignment(arg_out,create.expression(op,arg_out,create.constant(1))));
       current_block.add_statement(create.assignment(create.local_name(name),arg_out));
       result=create.local_name(name);
@@ -85,7 +90,7 @@ public class Flatten extends AbstractRewriter {
       ASTNode arg=e.getArg(0);
       ASTNode arg_out=arg.apply(this);
       String name="__flatten_"+(++counter);
-      current_block.add_statement(create.field_decl(name,e.getType(),null));
+      declaration_block.add_statement(create.field_decl(name,e.getType(),null));
       current_block.add_statement(create.assignment(create.local_name(name),arg_out));
       current_block.add_statement(create.assignment(arg_out,create.expression(op,arg_out,create.constant(1))));
       result=create.local_name(name);
@@ -135,7 +140,7 @@ public class Flatten extends AbstractRewriter {
       t.setOrigin(new MessageOrigin("Flatten.add_as_var fix near %s",e.getOrigin()));
     }
     ASTNode n=create.field_decl(name,t);
-    current_block.add_statement(n);
+    declaration_block.add_statement(n);
     ASTNode ee=e.apply(this);
     current_block.add_statement(create.assignment(create.local_name(name),ee));
     return create.local_name(name);
@@ -211,7 +216,12 @@ public class Flatten extends AbstractRewriter {
     if (body!=null) {
       if (body instanceof BlockStatement) {
         // if block
-        res.setBody(body.apply(this));
+        block_stack.push(current_block);
+        current_block=create.block();
+        declaration_block=current_block;
+        visit_body(body);
+        res.setBody(current_block);
+        current_block=block_stack.pop();
       } else {
         // if expression (pure function or predicate!)
         res.setBody(body.apply(copy_pure));

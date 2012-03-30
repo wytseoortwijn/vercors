@@ -28,5 +28,9 @@ public abstract  class Type extends ASTNode {
     return false;
   }
 
+  public boolean isVoid() {
+    return false;
+  }
+
 }
 

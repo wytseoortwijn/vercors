@@ -71,7 +71,9 @@ public class SimpleTypeCheck extends AbstractVisitor<Type> {
     if (loc_type==null) Abort("Location has no type.");
     Type val_type=val.getType();
     if (val_type==null) Abort("Value has no type has no type.");
-    if (!loc_type.supertypeof(val_type)) Abort("Types of location and value do not match.");
+    if (!(loc_type.equals(val_type) || loc_type.supertypeof(val_type))) {
+      Abort("Types of location (%s) and value (%s) do not match at %s.",loc_type,val_type,s.getOrigin());
+    }
   }
   
   public void visit(DeclarationStatement s){
