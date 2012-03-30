@@ -17,7 +17,12 @@ public class Parser {
     //System.err.printf("home is %s%n",home);
     ClassLoader loader=null;
     try {
-      loader = new JarClassLoader(new File(new File(home,language+"-parser"),"vct-parser.jar"));
+      File f=new File(new File(home,language+"-parser"),"vct-parser.jar");
+      if (!f.exists()){
+        f=new File(new File(home,"plugins"),language+"-parser.jar");
+      }
+      Warning("loading %s parser from %s",language,f);
+      loader = new JarClassLoader(f);
     } catch (IOException e) {
       Fail("could not load parser for %s",language);
     }
