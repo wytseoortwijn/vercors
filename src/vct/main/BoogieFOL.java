@@ -2,6 +2,7 @@ package vct.main;
 
 import vct.boogie.BoogieReport;
 import vct.col.ast.ASTClass;
+import vct.col.ast.ASTClass.ClassKind;
 import vct.col.ast.ASTNode;
 import vct.col.ast.AbstractScanner;
 import vct.col.ast.BlockStatement;
@@ -78,7 +79,7 @@ public class BoogieFOL {
     
     AbstractRewriter copy_rw=new AbstractRewriter(){};
     
-    ASTClass program=create.ast_class("dummy");
+    ASTClass program=create.ast_class("dummy",ClassKind.Plain);
     for (ASTNode n:args){
       program.add_static(n.apply(copy_rw));
     }

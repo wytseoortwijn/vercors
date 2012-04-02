@@ -111,7 +111,10 @@ class Main
       passes.add("resolv");
       passes.add("check");     
     	passes.add("assign");
+      passes.add("reorder");
     	passes.add("expand");
+    	passes.add("resolv");
+    	passes.add("check");
     	passes.add("chalice");
     } else {
     	Abort("no back-end or passes specified");
