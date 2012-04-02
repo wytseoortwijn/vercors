@@ -42,6 +42,10 @@ class Main
       Fail("cannot deduce language of %s",name);
     }
     String lang=name.substring(dot+1);
+    if (lang.equals("pvl")){
+      //TODO: fix this kludge.
+      vct.col.ast.ASTNode.pvl_mode=true;
+    }
     Progress("Parsing %s file %s",lang,name);
     program.add_static(Parser.parse(lang,name));
     Progress("Read %s succesfully",name);
