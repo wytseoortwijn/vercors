@@ -101,7 +101,7 @@ public abstract class AbstractRewriter extends AbstractVisitor<ASTNode> {
       result=res;
     } else {
       Debug("rewriting class "+name);
-      ASTClass res=new ASTClass(name);
+      ASTClass res=new ASTClass(name,c.kind);
       res.setOrigin(c.getOrigin());
       int N=c.getStaticCount();
       for(int i=0;i<N;i++){

@@ -160,11 +160,16 @@ public abstract class AbstractBoogiePrinter extends AbstractPrinter {
     }
   }
   public void visit(OperatorExpression e){
+    String keyword=null;
     switch(e.getOperator()){
-      case Assert:{
-        if (in_expr) throw new Error("assert is a statement");
+      case Assume:
+        if (keyword==null) keyword="assume";
+      case Assert:
+      {
+        if (keyword==null) keyword="assert";
+        if (in_expr) Fail("%s is a statement",keyword);
         in_clause=true;
-        out.printf("assert ");
+        out.printf("%s ",keyword);
         current_precedence=0;
         setExpr();
         ASTNode prop=e.getArg(0);

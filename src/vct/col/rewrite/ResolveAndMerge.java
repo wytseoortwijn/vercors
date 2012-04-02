@@ -3,6 +3,7 @@ package vct.col.rewrite;
 import java.util.Stack;
 
 import vct.col.ast.ASTClass;
+import vct.col.ast.ASTClass.ClassKind;
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTWith;
 import vct.col.ast.AssignmentStatement;
@@ -90,7 +91,7 @@ public class ResolveAndMerge extends AbstractRewriter {
       Debug("rewriting %s package",name);
       if (c.getDynamicCount()>0) throw new Error("package with dynamic content");
       currentstack.push(currentclass);
-      currentclass=currentclass.getStaticClass(name);
+      currentclass=currentclass.getStaticClass(name,ClassKind.Package);
       int N=c.getStaticCount();
       for(int i=0;i<N;i++){
         static_context=true;
@@ -101,7 +102,7 @@ public class ResolveAndMerge extends AbstractRewriter {
       return;      
     } else {
       Debug("rewriting class "+name);
-      ASTClass res=new ASTClass(name);
+      ASTClass res=new ASTClass(name,c.kind);
       res.setOrigin(c.getOrigin());
       res.setParentClass(currentclass);
       currentstack.push(currentclass);
@@ -260,7 +261,7 @@ public class ResolveAndMerge extends AbstractRewriter {
         result=e;
         return;
       }
-      throw new Error("bad kind of variables name "+def.getClass());
+      Fail("bad kind of variables name "+def.getClass()+" at "+e.getOrigin());
     }
     def=type_names.lookup(name);
     if(def!=null){
@@ -270,7 +271,7 @@ public class ResolveAndMerge extends AbstractRewriter {
         result=t;
         return;
       }
-      throw new Error("bad kind of type name "+def.getClass());
+      Fail("bad kind of type name "+def.getClass()+" at "+e.getOrigin());
     }
     def=method_names.lookup(name);
     if(def!=null){
@@ -279,9 +280,9 @@ public class ResolveAndMerge extends AbstractRewriter {
         result=e;
         return;
       }
-      throw new Error("bad kind of method name "+def.getClass());
+      Fail("bad kind of method name "+def.getClass()+" at "+e.getOrigin());
     }
-    throw new Error("could not resolve name "+e.getName()+" at "+e.getOrigin());
+    Fail("could not resolve name "+e.getName()+" at "+e.getOrigin());
   }
 
   @Override

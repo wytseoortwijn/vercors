@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import vct.col.ast.ASTClass;
+import vct.col.ast.ASTClass.ClassKind;
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTVisitor;
 import vct.col.ast.BlockStatement;
@@ -74,7 +75,7 @@ public class ReferenceEncoding extends AbstractRewriter {
       active=true;
       String name=c.getName();
       if (c.getStaticCount()>0) throw new Error("class "+name+" has static content, which is future work");
-      ASTClass res=new ASTClass(name+"_data");
+      ASTClass res=new ASTClass(name+"_data",ClassKind.Plain);
       res.setOrigin(c.getOrigin());
       int M=c.getDynamicCount();
       for(int i=0;i<M;i++){
@@ -253,7 +254,7 @@ public class ReferenceEncoding extends AbstractRewriter {
       String name=c.getName();
       if (c.getStaticCount()>0) throw new Error("class "+name+" has static content");
       
-      ASTClass res=create.ast_class(name+"_ref");
+      ASTClass res=create.ast_class(name+"_ref",ClassKind.Plain);
       ClassType data_type=create.class_type(append_suffix(c.getFullName(),"_data"));
       ClassType ref_type=create.class_type(append_suffix(c.getFullName(),"_ref"));
       
@@ -689,7 +690,7 @@ public class ReferenceEncoding extends AbstractRewriter {
       return;
     } else {
       System.err.println("rewriting class "+name);
-      ASTClass res=new ASTClass(name);
+      ASTClass res=new ASTClass(name,c.kind);
       res.setOrigin(c.getOrigin());
       int N=c.getStaticCount();
       for(int i=0;i<N;i++){

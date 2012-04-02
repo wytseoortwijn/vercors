@@ -20,9 +20,22 @@ import static hre.System.Debug;
  *
  */
 public class ASTClass extends ASTNode {
-
+  /**
+   * Enumeration of the kinds of classes that are considered.
+   * 
+   * @author sccblom
+   */
+  public static enum ClassKind {
+    Package,
+    Interface,
+    Abstract,
+    Plain
+  };
+  
+  /** contains the kind of class. */
+  public final ClassKind kind;
   /** contains the name of the class/module/package. */
-  private final String name;
+  public final String name;
   /** contains the parent of this unit */
   private ASTClass parent_class;
   /** contains the static entries */
@@ -43,10 +56,12 @@ public class ASTClass extends ASTNode {
 
   /** Create an empty root class. */
   public ASTClass(){
+    kind=ClassKind.Package;
     name=null;
   }
   /** Create a root class from a given block statement. */
   public ASTClass(BlockStatement node) {
+    kind=ClassKind.Package;
     name=null;
     int N=node.getLength();
     for(int i=0;i<N;i++){
@@ -55,7 +70,8 @@ public class ASTClass extends ASTNode {
   }
 
   /** Create a new class in a hierarchy. */
-  public ASTClass(String name,ASTClass parent,boolean is_static){
+  public ASTClass(String name,ASTClass parent,boolean is_static,ClassKind kind){
+    this.kind=kind;
     this.name=name;
     this.parent_class=parent;
     if(is_static){
@@ -65,7 +81,7 @@ public class ASTClass extends ASTNode {
     }
   }
   /** Return a static child, which is created if necessary. */
-  public ASTClass getStaticClass(String name){
+  public ASTClass getStaticClass(String name,ClassKind kind){
     int N;
     N=dynamic_entries.size();
     for(int i=0;i<N;i++){
@@ -81,7 +97,7 @@ public class ASTClass extends ASTNode {
         if (cl.name.equals(name)) return cl;
       }
     }
-    ASTClass res=new ASTClass(name,this,true);
+    ASTClass res=new ASTClass(name,this,true,kind);
     res.setOrigin(new MessageOrigin("get static class"));
     return res;
   }
@@ -89,7 +105,8 @@ public class ASTClass extends ASTNode {
   /** Create a new named class from two block statements
    *  Do not forget to set the parent later! 
    */
-  public ASTClass(String name,BlockStatement static_part,BlockStatement dynamic_part){
+  public ASTClass(String name,BlockStatement static_part,BlockStatement dynamic_part,ClassKind kind){
+    this.kind=kind;
     this.name=name;
     int N=static_part.getLength();
     for(int i=0;i<N;i++){
@@ -153,7 +170,8 @@ public class ASTClass extends ASTNode {
   }
 
   /** Create a new class without putting it in a hierarchy. */
-  public ASTClass(String name){
+  public ASTClass(String name,ClassKind kind){
+    this.kind=kind;
     this.name=name;
   }
   

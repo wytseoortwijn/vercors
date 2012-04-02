@@ -2,6 +2,7 @@
 package vct.col.util;
 
 import vct.col.ast.ASTClass;
+import vct.col.ast.ASTClass.ClassKind;
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTVisitor;
 import vct.col.ast.ASTWith.Kind;
@@ -140,17 +141,17 @@ public class ASTFactory<E> implements FrameControl {
   /**
    * Create a new class.
    */
-  public ASTClass ast_class(Origin origin,String name) {
-    ASTClass res=new ASTClass(name);
+  public ASTClass ast_class(Origin origin,String name,ClassKind kind) {
+    ASTClass res=new ASTClass(name,kind);
     res.setOrigin(origin);
     res.accept_if(post);
     return res;    
   }
-  public ASTClass ast_class(String name) {
-    return ast_class(origin_stack.get(),name);
+  public ASTClass ast_class(String name,ClassKind kind) {
+    return ast_class(origin_stack.get(),name,kind);
   }
-  public ASTClass ast_class(E origin,String name) {
-    return ast_class(origin_source.create(origin),name);
+  public ASTClass ast_class(E origin,String name,ClassKind kind) {
+    return ast_class(origin_source.create(origin),name,kind);
   }
   
 
@@ -554,7 +555,7 @@ public class ASTFactory<E> implements FrameControl {
    * Create a sub-package.
    */
   public ASTClass sub_package(Origin origin,String name){
-    ASTClass res=new ASTClass(name);
+    ASTClass res=new ASTClass(name,ClassKind.Package);
     res.setOrigin(origin);
     res.accept_if(post);
     return res;

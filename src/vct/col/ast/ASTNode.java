@@ -4,6 +4,7 @@ import java.io.PrintStream;
 import hre.ast.Origin;
 import static hre.System.Abort;
 import static hre.System.Debug;
+import static hre.System.Fail;
 import static hre.System.Warning;
 
 /** common features of all AST nodes. */
@@ -110,4 +111,21 @@ public abstract class ASTNode {
     if (v!=null) accept(v);
   }
   
+  public ASTClass getClass(Type t){
+    if (t instanceof ClassType) {
+      return getClass((ClassType)t);
+    } else {
+      Fail("not a class type");
+      return null;
+    }
+  }
+
+  public ASTClass getClass(ClassType t){
+    ASTNode tmp=this;
+    while(tmp.getParent()!=null){
+      tmp=tmp.getParent();
+    }
+    ASTClass root=(ASTClass)tmp;
+    return root.find(t.name);
+  }
 }

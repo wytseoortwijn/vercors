@@ -6,6 +6,7 @@ import vct.col.ast.*;
 import vct.col.ast.PrimitiveType.Sort;
 import static hre.System.Abort;
 import static hre.System.Debug;
+import static hre.System.Fail;
 
 /**
  * This class contains the pretty printer for Chalice code, which is
@@ -117,40 +118,49 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
         break;
       }
       case Predicate:{
-        out.lnprintf("predicate %s",name);
-        // no arguments allowed for predicate!
-        out.lnprintf("{");
-        out.incrIndent();
-        in_clause=true;
-        nextExpr();
-        body.accept(this);
-        out.decrIndent();
-        out.lnprintf("");
-        out.lnprintf("}");
-        in_clause=false;
+        if (body==null) {
+          out.lnprintf("function %s_abstract():bool",name);
+          out.lnprintf("predicate %s { %s_abstract() }",name,name);
+        } else {
+          out.lnprintf("predicate %s",name);
+          // no arguments allowed for predicate!
+          out.lnprintf("{");
+          out.incrIndent();
+          in_clause=true;
+          nextExpr();
+          body.accept(this);
+          out.decrIndent();
+          out.lnprintf("");
+          out.lnprintf("}");
+          in_clause=false;
+        }
         break;
       }
       case Pure:{
         out.printf("function %s",name);
         print_arguments(m,true);
         if (contract!=null) visit(contract,true);
-        out.lnprintf("{");
-        out.incrIndent();
-        in_clause=true;
-        if (contract!=null && contract.pre_condition!=ContractBuilder.default_true) {
-          // this is an unsafe trick!
-          out.printf("unfolding ");
+        if (body !=null) {
+          out.lnprintf("{");
+          out.incrIndent();
+          in_clause=true;
+          if (contract!=null && contract.pre_condition!=ContractBuilder.default_true) {
+            // this is an unsafe trick!
+            out.printf("unfolding ");
+            nextExpr();
+            current_precedence=0;
+            contract.pre_condition.accept(this);
+            out.printf(" in ");
+          }
           nextExpr();
-          current_precedence=0;
-          contract.pre_condition.accept(this);
-          out.printf(" in ");
+          body.accept(this);
+          out.decrIndent();
+          out.lnprintf("");
+          out.lnprintf("}");
+          in_clause=false;
+        } else {
+          out.lnprintf("// abstract! ");
         }
-        nextExpr();
-        body.accept(this);
-        out.decrIndent();
-        out.lnprintf("");
-        out.lnprintf("}");
-        in_clause=false;
         break;
       }
       case Plain:{
@@ -282,8 +292,26 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
       name.accept(this);
       out.lnprintf(";");
       if (e.getArity()>0){
-        Abort("Chalice does not allow instantiation with arguments");
+        Fail("Chalice does not allow instantiation with arguments");
       }
+      Debug("assignment type is %s",s.getLocation().getType());
+      //TODO: an instantiation should be zero or random!
+      ASTClass cl=current_class().getClass(s.getLocation().getType());
+      for(DeclarationStatement field:cl.dynamicFields()){
+        Debug("field %s",field.getName());
+        s.getLocation().accept(this);
+        String zero;
+        if (field.getType() instanceof ClassType){
+          zero="null";
+        } else {
+          //TODO: check for all types.
+          zero="0";
+        }
+        out.lnprintf(".%s := %s;",field.getName(),"0");
+      }
+      out.printf("fold ");
+      s.getLocation().accept(this);
+      out.lnprintf(".init_zero;");
     } else {
       if (expr instanceof MethodInvokation){
         out.printf("call ");

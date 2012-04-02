@@ -58,6 +58,8 @@ public enum StandardOperator {
   Unfold(1,"unfold","hint that the prover should unfold"),
   Unlock(1,"unlock","unlock the given object"),
   Assert(1,"assert","assert the argument"),
+  Assume(1,"assume","assume the argument"),
+  Havoc(1,"havoc","forget everything about the argument"),
   HoareCut(1,"/*{ . }*/","cut statement of a Hoare logic proof."),
   Old(1,"old","evaluate argument in old state rather than current state");
 

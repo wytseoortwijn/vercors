@@ -15,6 +15,7 @@ import vct.col.ast.Contract;
 import vct.col.ast.ContractBuilder;
 import vct.col.ast.DeclarationStatement;
 import vct.col.ast.FunctionType;
+import vct.col.ast.Instantiation;
 import vct.col.ast.Method;
 import vct.col.ast.Method.Kind;
 import vct.col.ast.MethodInvokation;
@@ -52,23 +53,36 @@ public class JavaDefaultsRewriter extends AbstractRewriter {
         args[i]=m.getArgument(i);
       }
       FunctionType t=m.getType();
-      Contract mc=m.getContract();
-      Contract c=null;
-      if (mc!=null){
-        ASTNode pre=create.expression(StandardOperator.Star,mc.pre_condition.apply(this),init_zero());
-        ASTNode post=mc.post_condition.apply(this);
-        c=new Contract(pre,post,mc.modifiers);
+      N=t.getArity();
+      Type t_args[]=new Type[N];
+      for(int i=0;i<N;i++){
+        t_args[i]=t.getArgument(i);
       }
+      Type cl_type=create.class_type(((ASTClass)m.getParent()).getFullName());
+      FunctionType init_type=new FunctionType(t_args,cl_type);
+      Contract mc=m.getContract();
+      ContractBuilder cb=new ContractBuilder();
+      cb.requires(init_zero());
+      if (mc!=null){
+        cb.requires(mc.pre_condition.apply(this));
+        cb.ensures(mc.post_condition.apply(this));
+      }
+      cb.ensures(create.expression(StandardOperator.EQ,
+          create.this_expression(create.class_type(((ASTClass)m.getParent()).getFullName())),
+          create.reserved_name("\\result")
+          ));
+
       Method.Kind kind=m.kind;
-      Method res=new Method(Method.Kind.Plain,name+"_init",args,t);
+      Method res=new Method(Method.Kind.Plain,name+"_init",args,init_type);
       res.setOrigin(m.getOrigin());
-      if (c!=null) res.setContract(c);
+      res.setContract(cb.getContract());
       ASTNode oldbody=m.getBody();
       if (oldbody!=null) {
         BlockStatement body=new BlockStatement();
         body.setOrigin(m);
         body.add_statement(create.expression(StandardOperator.Unfold,init_zero()));
         body.add_statement(oldbody.apply(this));
+        body.add_statement(create.return_statement(create.this_expression(create.class_type(((ASTClass)m.getParent()).getFullName()))));
         res.setBody(body);
       }
       result=res;
@@ -165,15 +179,35 @@ public class JavaDefaultsRewriter extends AbstractRewriter {
          */
         Type void_type=new PrimitiveType(Sort.Void);
         void_type.setOrigin(o);
-        ASTNode body=new BlockStatement();
+        BlockStatement body=new BlockStatement();
         body.setOrigin(o);
-        Method constructor=new Method(Kind.Plain, name+"_init" , void_type, null, new ASTNode[0], body);
+        body.add_statement(create.return_statement(o,create.this_expression(o,create.class_type(o,cl.getFullName()))));
+        Method constructor=new Method(Kind.Plain, name+"_init" , create.class_type(o,cl.getFullName()), null, new ASTNode[0], body);
         constructor.setOrigin(o);
         ContractBuilder cb=new ContractBuilder();
         cb.requires(init_zero());
+        cb.ensures(create.expression(o,StandardOperator.EQ,
+            create.this_expression(o,create.class_type(o,cl.getFullName())),
+            create.reserved_name(o,"\\result")
+            ));
         constructor.setContract(cb.getContract());
         res.add_dynamic(constructor);
       }
     }
   }
+  
+  public void visit(Instantiation i) {
+    ASTNode sort=i.getSort().apply(this);
+    String name=i.getSort().toString();
+    Instantiation inst=new Instantiation(sort);
+    inst.setOrigin(i.getOrigin());
+    int N=i.getArity();
+    ASTNode args[]=new ASTNode[N];
+    for(int j=0;j<N;j++){
+      args[j]=i.getArg(j).apply(this);
+    }
+    result=create.invokation(i.getOrigin(),inst,false,create.method_name(name+"_init"), args);
+    return ;
+  }
+
 }

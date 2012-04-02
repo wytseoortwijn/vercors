@@ -270,6 +270,7 @@ public class SimpleTypeCheck extends AbstractVisitor<Type> {
     case Fold:
     case HoareCut:
     case Unfold:
+    case Assume:
     {
       Type t=e.getArg(0).getType();
       if (t==null) Abort("type of argument is unknown at %s",e.getOrigin());

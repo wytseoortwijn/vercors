@@ -10,6 +10,7 @@ import vct.col.ast.Contract;
 import vct.col.ast.DeclarationStatement;
 import vct.col.ast.FunctionType;
 import vct.col.ast.IfStatement;
+import vct.col.ast.Instantiation;
 import vct.col.ast.Method;
 import vct.col.ast.MethodInvokation;
 import vct.col.ast.NameExpression;
@@ -19,6 +20,7 @@ import vct.col.ast.StandardOperator;
 import vct.col.ast.Type;
 import static hre.System.Abort;
 import static hre.System.Debug;
+import static hre.System.Fail;
 import static hre.System.Warning;
 
 public class Flatten extends AbstractRewriter {
@@ -97,6 +99,7 @@ public class Flatten extends AbstractRewriter {
       return;
     }
     case Assert:
+    case Assume:
     case Fold:
     case HoareCut:
     case Unfold:
@@ -229,6 +232,28 @@ public class Flatten extends AbstractRewriter {
     }
     result=res;
   }
- 
+  
+  public void visit(Instantiation i) {
+    if (i.getArity()>0) Fail("instantiation has arguments");
+    ASTNode sort=i.getSort().apply(this);
+
+    Instantiation res=new Instantiation(sort);
+    res.setOrigin(i.getOrigin());
+
+    String name="__flatten_"+(++counter);
+    if (i.getType()==null){
+      Abort("result type unknown at %s",i.getOrigin());
+    }
+    Type t=i.getType();
+    if (t.getOrigin()==null){
+      Warning("fixing null origin near %s",i.getOrigin());
+      t.setOrigin(new MessageOrigin("Flatten.add_as_var fix near %s",i.getOrigin()));
+    }
+    ASTNode n=create.field_decl(name,t);
+    declaration_block.add_statement(n);
+    current_block.add_statement(create.assignment(create.local_name(name),res));
+    result=create.local_name(name);
+  }
+
   
 }

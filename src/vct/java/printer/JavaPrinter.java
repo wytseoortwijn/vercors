@@ -91,7 +91,7 @@ public class JavaPrinter extends AbstractPrinter {
   public void visit(Instantiation s){
     int N=s.getArity();
     setExpr();
-    out.printf("new ");
+    out.printf("(new ");
     s.getSort().accept(this);
     out.printf("(");
     if (N>0) {
@@ -101,7 +101,7 @@ public class JavaPrinter extends AbstractPrinter {
         s.getArg(i).accept(this);
       }
     }
-    out.printf(")");
+    out.printf("))");
   }
 
   public void visit(Method m){
@@ -162,7 +162,9 @@ public class JavaPrinter extends AbstractPrinter {
     }
     out.printf(")");
     ASTNode body=m.getBody();
-    if (body instanceof BlockStatement) {
+    if (body==null) {
+      out.lnprintf(";");
+    } else if (body instanceof BlockStatement) {
       body.accept(this);
     } else {
       out.printf("=");
@@ -247,6 +249,15 @@ public class JavaPrinter extends AbstractPrinter {
       }
       case Assert:{
         out.printf("assert ");
+        current_precedence=0;
+        setExpr();
+        ASTNode prop=e.getArg(0);
+        prop.accept(this);
+        out.lnprintf(";");
+        break;
+      }
+      case Assume:{
+        out.printf("assume ");
         current_precedence=0;
         setExpr();
         ASTNode prop=e.getArg(0);
