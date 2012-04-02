@@ -16,7 +16,7 @@ import static hre.System.Fail;
  *
  */
 public class ChalicePrinter extends AbstractBoogiePrinter {
-
+  
   boolean in_class=false;
   public ChalicePrinter(TrackingOutput out){
     super(BoogieSyntax.getChalice(),out);
@@ -296,22 +296,24 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
       }
       Debug("assignment type is %s",s.getLocation().getType());
       //TODO: an instantiation should be zero or random!
-      ASTClass cl=current_class().getClass(s.getLocation().getType());
-      for(DeclarationStatement field:cl.dynamicFields()){
-        Debug("field %s",field.getName());
-        s.getLocation().accept(this);
-        String zero;
-        if (field.getType() instanceof ClassType){
-          zero="null";
-        } else {
-          //TODO: check for all types.
-          zero="0";
+      if (!ASTNode.pvl_mode){
+        ASTClass cl=current_class().getClass(s.getLocation().getType());
+        for(DeclarationStatement field:cl.dynamicFields()){
+          Debug("field %s : %s",field.getName(),field.getType());
+          s.getLocation().accept(this);
+          String zero;
+          if (field.getType() instanceof ClassType){
+            zero="null";
+          } else {
+            //TODO: check for all types.
+            zero="0";
+          }
+          out.lnprintf(".%s := %s;",field.getName(),zero);
         }
-        out.lnprintf(".%s := %s;",field.getName(),"0");
+        out.printf("fold ");
+        s.getLocation().accept(this);
+        out.lnprintf(".init_zero;");
       }
-      out.printf("fold ");
-      s.getLocation().accept(this);
-      out.lnprintf(".init_zero;");
     } else {
       if (expr instanceof MethodInvokation){
         out.printf("call ");

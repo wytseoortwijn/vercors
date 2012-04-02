@@ -10,6 +10,12 @@ import static hre.System.Warning;
 /** common features of all AST nodes. */
 public abstract class ASTNode {
 
+  /**
+   * This variable works around the problem that PVL and Java have different
+   * constructor definitions.
+   */
+  public static boolean pvl_mode=false;
+
   private static long next_id=0;
 
 

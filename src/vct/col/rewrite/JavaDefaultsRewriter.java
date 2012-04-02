@@ -206,7 +206,11 @@ public class JavaDefaultsRewriter extends AbstractRewriter {
     for(int j=0;j<N;j++){
       args[j]=i.getArg(j).apply(this);
     }
-    result=create.invokation(i.getOrigin(),inst,false,create.method_name(name+"_init"), args);
+    if (ASTNode.pvl_mode){
+      result=inst; 
+    } else {
+      result=create.invokation(i.getOrigin(),inst,false,create.method_name(name+"_init"), args);
+    }
     return ;
   }
 
