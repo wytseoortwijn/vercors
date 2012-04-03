@@ -259,6 +259,16 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
         out.print(")");
         break;
       }
+      case Value:{
+        assert in_expr;
+        ASTNode a0=e.getArg(0);
+        out.print("rd*(");
+        //out.print("rd(");
+        a0.accept(this);
+        out.print(")");
+        //out.print(",*)");
+        break;
+      }
       default:{
         super.visit(e);
       }
@@ -329,8 +339,8 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
   public void visit(MethodInvokation e){
     int N=e.getArity();
     // TODO: check site rather than rely on N==0 assumption.
-    if (in_clause && N==0) {
-      Debug("invokation kind is %s", e.method.getKind());
+    if (in_clause && N==0 && e.getType().isBoolean()) {
+      Debug("invoking %s of kind %s",e.method,e.method.getKind());
       if (e.object!=null) {
         e.object.accept(this);
         out.print(".");

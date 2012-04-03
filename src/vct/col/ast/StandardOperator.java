@@ -44,6 +44,7 @@ public enum StandardOperator {
   Wand(2,"-*","separating implication"),
   Perm(2,"Perm","Fractional acces permission"),
   PointsTo(3,"PointsTo","Fractional access permission and contents"),
+  Value(1,"Value","Access permission on immutable value"),
   FullAcc(1,"acc(.)","Full access"),
   PartialAcc(2,"acc(.,.)","Partial access based on percentage"),
   Select(2,".","select a member (x.y)"),

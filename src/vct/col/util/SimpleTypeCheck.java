@@ -158,6 +158,7 @@ public class SimpleTypeCheck extends AbstractVisitor<Type> {
     }
     case PointsTo:
     case Perm:
+    case Value:
       // TODO: check arguments
       e.setType(new PrimitiveType(Sort.Boolean));
       break;
@@ -224,7 +225,7 @@ public class SimpleTypeCheck extends AbstractVisitor<Type> {
     {
       Type t=e.getArg(0).getType();
       if (!t.isInteger()){
-        Abort("Argument of negation must be boolean at "+e.getOrigin());
+        Fail("Argument of %s must be boolean at %s",op,e.getOrigin());
       }
       e.setType(t);
       break;

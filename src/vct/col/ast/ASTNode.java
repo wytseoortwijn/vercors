@@ -59,7 +59,7 @@ public abstract class ASTNode {
     return origin;
   }
   
-  public abstract <T> void accept_simple(ASTVisitor<T> visitor);
+  protected abstract <T> void accept_simple(ASTVisitor<T> visitor);
   
   public final <T> void accept(ASTVisitor<T> visitor){
     if (visitor instanceof ASTFrame) {
