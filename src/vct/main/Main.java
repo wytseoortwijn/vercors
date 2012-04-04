@@ -16,6 +16,7 @@ import vct.col.rewrite.AssignmentRewriter;
 import vct.col.rewrite.DefineDouble;
 import vct.col.rewrite.FinalizeArguments;
 import vct.col.rewrite.Flatten;
+import vct.col.rewrite.GlobalizeStatics;
 import vct.col.rewrite.GuardedCallExpander;
 import vct.col.rewrite.JavaDefaultsRewriter;
 import vct.col.rewrite.ReorderAssignments;
@@ -142,6 +143,8 @@ class Main
           new SimpleTypeCheck(program).check(program);
         } else if(pass.equals("flatten")){
           program=(ASTClass)program.apply(new Flatten());
+        } else if(pass.equals("globalize")){
+          program=(ASTClass)program.apply(new GlobalizeStatics());
         } else if(pass.equals("resolv")){
           program=(ASTClass)program.apply(new ResolveAndMerge());
         } else if(pass.equals("reorder")){
