@@ -99,6 +99,9 @@ public class Method extends ASTNode {
     }
     return decls;
   }
+  public Type getReturnType() {
+    return t.getResult();
+  }
 
 }
 

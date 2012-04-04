@@ -178,16 +178,16 @@ public class ASTFactory<E> implements FrameControl {
   /**
    * Create a new class type node.
    */
-  public ClassType class_type(Origin origin,String name[]){
+  public ClassType class_type(Origin origin,String ... name){
     ClassType res=new ClassType(name);
     res.setOrigin(origin);
     res.accept_if(post);
     return res;
   }
-  public ClassType class_type(E origin,String name[]){
+  public ClassType class_type(E origin,String ... name){
     return class_type(origin_source.create(origin),name);
   }
-  public ClassType class_type(String name[]){
+  public ClassType class_type(String ... name){
     return class_type(origin_stack.get(),name);
   }
 

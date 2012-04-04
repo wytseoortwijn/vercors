@@ -53,6 +53,21 @@ public abstract class AbstractRewriter extends AbstractVisitor<ASTNode> {
     create.leave();
   }
 
+  public Contract rewrite(Contract c){
+    return new Contract(rewrite(c.pre_condition),rewrite(c.post_condition));
+  }
+
+  public ASTNode rewrite(ASTNode node){
+    return node.apply(this);
+  }
+  
+  public ASTNode[] rewrite(ASTNode array[]){
+    ASTNode[] res=new ASTNode[array.length];
+    for(int i=0;i<array.length;i++){
+      res[i]=array[i].apply(this);
+    }
+    return res;
+  }
   public <E extends ASTNode> E rewrite_and_cast(E node){
     ASTNode tmp=node.apply(this);
     try {

@@ -17,5 +17,15 @@ public class ClassName {
     }
     return true;
   }
+
+  public String toString(String separator) {
+    StringBuilder builder=new StringBuilder();
+    builder.append(name[0]);
+    for(int i=1;i<name.length;i++){
+      builder.append(separator);
+      builder.append(name[i]);
+    }
+    return builder.toString();
+  }
   
 }

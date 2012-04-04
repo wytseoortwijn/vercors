@@ -56,6 +56,10 @@ public class MethodInvokation extends ASTNode {
     }
     return res;
   }
+
+  public ASTNode[] getArgs() {
+    return Arrays.copyOf(args,args.length);
+  }
     
 }
 
