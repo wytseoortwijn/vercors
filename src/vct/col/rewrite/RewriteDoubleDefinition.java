@@ -27,6 +27,9 @@ public class RewriteDoubleDefinition extends AbstractRewriter {
     case Plus:
       name=create.method_name("plus");
       break;
+    case Mult:
+      name=create.method_name("mult");
+      break;
     default:
       super.visit(e);
       return;
@@ -34,6 +37,6 @@ public class RewriteDoubleDefinition extends AbstractRewriter {
     int N=e.getOperator().arity();
     ASTNode args[]=new ASTNode[N];
     for(int i=0;i<N;i++) args[i]=e.getArg(i).apply(this);
-    result=create.invokation(null, false, create.method_name("plus"),args);
+    result=create.invokation(null, false, name ,args);
   }
 }

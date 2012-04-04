@@ -259,7 +259,7 @@ public abstract class AbstractRewriter extends AbstractVisitor<ASTNode> {
       args[i]=m.getArgument(i);
     }
     //public ASTClass getParent(){ return cl; }
-    FunctionType t=m.getType();
+    FunctionType t=rewrite_and_cast(m.getType());
     Contract mc=m.getContract();
     Contract c=null;
     if (mc!=null){
