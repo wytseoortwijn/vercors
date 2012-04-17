@@ -11,6 +11,7 @@ import vct.col.util.MethodFilter;
 
 import static hre.System.Abort;
 import static hre.System.Debug;
+import static hre.System.Warning;
 
 /** This class is the main container for declarations.
  *  For Java it contains both classes and packages.
@@ -158,14 +159,16 @@ public class ASTClass extends ASTNode {
   public boolean isPackage(){
     if (name==null) return true;
     if (kind!=ClassKind.Package) return false;
-    if (dynamic_entries.size()>0) Abort("package with dynamic entries.");
+    if (dynamic_entries.size()>0) {
+      Abort("alleged package %s has dynamic entries.",name);
+    }
     int N=static_entries.size();
     for(int i=0;i<N;i++){
       ASTNode tmp=static_entries.get(i);
       while (tmp instanceof ASTWith){
         tmp=((ASTWith)tmp).body;
       }
-      if (!(tmp instanceof ASTClass)) Abort("package with non-class entries.");
+      if (!(tmp instanceof ASTClass)) Abort("package %s has non-class entries.",name);
     }
     return true;
   }
