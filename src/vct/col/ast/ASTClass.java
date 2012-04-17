@@ -157,14 +157,15 @@ public class ASTClass extends ASTNode {
   }
   public boolean isPackage(){
     if (name==null) return true;
-    if (dynamic_entries.size()>0) return false;
+    if (kind!=ClassKind.Package) return false;
+    if (dynamic_entries.size()>0) Abort("package with dynamic entries.");
     int N=static_entries.size();
     for(int i=0;i<N;i++){
       ASTNode tmp=static_entries.get(i);
       while (tmp instanceof ASTWith){
         tmp=((ASTWith)tmp).body;
       }
-      if (!(tmp instanceof ASTClass)) return false;
+      if (!(tmp instanceof ASTClass)) Abort("package with non-class entries.");
     }
     return true;
   }
