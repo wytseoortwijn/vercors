@@ -112,6 +112,9 @@ class Main
       passes.add("flatten");
       passes.add("resolv");
       passes.add("check");
+      passes.add("globalize");
+      passes.add("resolv");
+      passes.add("check");
       passes.add("define_double");
       passes.add("resolv");
       passes.add("check");     
