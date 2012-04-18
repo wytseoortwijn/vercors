@@ -71,7 +71,7 @@ public class SimpleTypeCheck extends AbstractVisitor<Type> {
     if (loc_type==null) Abort("Location has no type.");
     Type val_type=val.getType();
     if (val_type==null) Abort("Value has no type has no type.");
-    if (!(loc_type.equals(val_type) || loc_type.supertypeof(val_type))) {
+    if (!(loc_type.equals(val_type) || val_type.supertypeof(loc_type))) {
       Abort("Types of location (%s) and value (%s) do not match at %s.",loc_type,val_type,s.getOrigin());
     }
   }
@@ -124,7 +124,7 @@ public class SimpleTypeCheck extends AbstractVisitor<Type> {
           if (e.getType()==null) Abort("type of this has not been set");
           break;
         } else if (name.equals("null")){
-          e.setType(new ClassType(new String[0]));
+          e.setType(new ClassType("<<null>>"));
           break;
         } else if (name.equals("\\result")){
           if (e.getType()==null) Abort("type of result has not been set");
@@ -150,9 +150,10 @@ public class SimpleTypeCheck extends AbstractVisitor<Type> {
     case IFF:
     {
       Type t1=e.getArg(0).getType();
-      if (t1==null || !t1.isBoolean()) Abort("type of left argument unknown");
+      if (t1==null || !t1.isBoolean()) Fail("type of left argument unknown at "+e.getOrigin());
       Type t2=e.getArg(1).getType();
-      if (t2==null || !t2.isBoolean()) Abort("type of right argument unknown");
+      if (t2==null) Fail("type of right argument unknown at %s",e.getOrigin());
+      if (!t2.isBoolean()) Fail("type of right argument is %s rather than boolean at %s",t2,e.getOrigin());
       e.setType(new PrimitiveType(Sort.Boolean));
       break;
     }
@@ -171,7 +172,7 @@ public class SimpleTypeCheck extends AbstractVisitor<Type> {
     {
       NameExpression field=(NameExpression)e.getArg(1);
       Type object_type=e.getArg(0).getType();
-      if (object_type==null) Abort("type of object unknown");
+      if (object_type==null) Fail("type of object unknown at "+e.getOrigin());
       if (!(object_type instanceof ClassType)) Abort("cannot select members of non-object type.");
       Debug("resolving class "+((ClassType)object_type).getFullName()+" "+((ClassType)object_type).name.length);
       ASTClass cl=namespace.find(((ClassType)object_type).name);
@@ -185,11 +186,11 @@ public class SimpleTypeCheck extends AbstractVisitor<Type> {
     case Assign:
     {
       Type t1=e.getArg(0).getType();
-      if (t1==null) Abort("type of left argument unknown");
+      if (t1==null) Fail("type of left argument unknown at "+e.getOrigin());
       Type t2=e.getArg(1).getType();
-      if (t2==null) Abort("type of right argument unknown");
+      if (t2==null) Fail("type of right argument unknown at "+e.getOrigin());
       if (t1.getClass()!=t2.getClass()) {
-        Abort("Types of left and right-hand side arguments in assignment are incomparable");
+        Fail("Types of left and right-hand side arguments in assignment are incomparable at "+e.getOrigin());
       }
       e.setType(t1);
       break;
@@ -198,11 +199,11 @@ public class SimpleTypeCheck extends AbstractVisitor<Type> {
     case NEQ:
     {
       Type t1=e.getArg(0).getType();
-      if (t1==null) Abort("type of left argument unknown");
+      if (t1==null) Fail("type of left argument unknown at "+e.getOrigin());
       Type t2=e.getArg(1).getType();
-      if (t2==null) Abort("type of right argument unknown");
+      if (t2==null) Fail("type of right argument unknown at "+e.getOrigin());
       if (t1.getClass()!=t2.getClass()) {
-        Abort("Types of left and right-hand side argument are uncomparable");
+        Fail("Types of left and right-hand side argument are uncomparable at "+e.getOrigin());
       }
       e.setType(new PrimitiveType(Sort.Boolean));
       break;
@@ -238,13 +239,13 @@ public class SimpleTypeCheck extends AbstractVisitor<Type> {
     {
       Type res=new PrimitiveType(Sort.Integer);
       Type t1=e.getArg(0).getType();
-      if (t1==null) Abort("type of left argument unknown");
+      if (t1==null) Fail("type of left argument unknown at %s",e.getOrigin());
       if (!res.supertypeof(t1)) Abort("type of first argument is wrong at %s",e.getOrigin());
       Type t2=e.getArg(1).getType();
-      if (t2==null) Abort("type of right argument unknown");
+      if (t2==null) Fail("type of right argument unknown at %s",e.getOrigin());
       if (!res.supertypeof(t1)) Abort("type of second argument is wrong at %s",e.getOrigin());
       if (t1.getClass()!=t2.getClass()) {
-        Abort("Types of left and right-hand side argument are uncomparable");
+        Fail("Types of left and right-hand side argument are uncomparable at %s",e.getOrigin());
       }
       e.setType(res);      
       break;
@@ -256,13 +257,13 @@ public class SimpleTypeCheck extends AbstractVisitor<Type> {
     {
       Type res=new PrimitiveType(Sort.Integer);
       Type t1=e.getArg(0).getType();
-      if (t1==null) Abort("type of left argument unknown");
+      if (t1==null) Fail("type of left argument unknown at %s",e.getOrigin());
       if (!res.supertypeof(t1)) Abort("type of first argument is wrong at %s",e.getOrigin());
       Type t2=e.getArg(1).getType();
-      if (t2==null) Abort("type of right argument unknown");
-      if (!res.supertypeof(t1)) Abort("type of second argument is wrong at %s",e.getOrigin());
+      if (t2==null) Fail("type of right argument unknown at %s",e.getOrigin());
+      if (!res.supertypeof(t1)) Fail("type of second argument is wrong at %s",e.getOrigin());
       if (t1.getClass()!=t2.getClass()) {
-        Abort("Types of left and right-hand side argument are uncomparable");
+        Fail("Types of left and right-hand side argument are uncomparable at %s",e.getOrigin());
       }
       e.setType(new PrimitiveType(Sort.Boolean));      
       break;
@@ -274,9 +275,9 @@ public class SimpleTypeCheck extends AbstractVisitor<Type> {
     case Assume:
     {
       Type t=e.getArg(0).getType();
-      if (t==null) Abort("type of argument is unknown at %s",e.getOrigin());
+      if (t==null) Fail("type of argument is unknown at %s",e.getOrigin());
       if (!t.isBoolean()){
-        Abort("Argument of %s must be boolean at %s",op,e.getOrigin());
+        Fail("Argument of %s must be boolean at %s",op,e.getOrigin());
       }
       e.setType(new PrimitiveType(Sort.Void));      
       break;
@@ -284,7 +285,7 @@ public class SimpleTypeCheck extends AbstractVisitor<Type> {
     case Old:
     {
       Type t=e.getArg(0).getType();
-      if (t==null) Abort("type of argument is unknown at %s",e.getOrigin());
+      if (t==null) Fail("type of argument is unknown at %s",e.getOrigin());
       e.setType(t);      
       break;
     }
@@ -301,7 +302,7 @@ public class SimpleTypeCheck extends AbstractVisitor<Type> {
     for(int i=0;i<N;i++){
       Type t=s.getGuard(i).getType();
       if (t==null || !(t instanceof PrimitiveType) || (((PrimitiveType)t).sort!=Sort.Boolean)){
-        Abort("Guard %d of if statement is not a boolean",i);
+        Fail("Guard %d of if statement is not a boolean at %s",i,s.getOrigin());
       }
     }
     // TODO: consider if this can be an if expression.... 

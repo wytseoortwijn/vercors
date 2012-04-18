@@ -228,7 +228,7 @@ public class ASTClass extends ASTNode {
           if (t.getArity()==type.length){
             for(int i=0;i<type.length;i++){
               if (!t.getArgument(i).supertypeof(type[i])){
-                Debug("type of argument %d does not match (%s)%n",i,t.getArgument(i));
+                Debug("type of argument %d does not match method (cannot pass %s as %s)%n",i,type[i],t.getArgument(i));
                 continue node;
               }
             }

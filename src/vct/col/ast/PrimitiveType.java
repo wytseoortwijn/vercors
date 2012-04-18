@@ -1,5 +1,7 @@
 package vct.col.ast;
 
+import static hre.System.Fail;
+
 public final class PrimitiveType extends Type {
   public static enum Sort {Boolean,Byte,Short,Integer,Long,Float,Double,Char,Fraction,Void, String};
   public final Sort sort;
@@ -43,15 +45,22 @@ public final class PrimitiveType extends Type {
   public boolean supertypeof(Type t){
     if (t instanceof PrimitiveType){
       PrimitiveType pt=(PrimitiveType)t;
+      if (this.sort==pt.sort) return true;
       switch(this.sort){
       case Fraction:
         switch(pt.sort){
-        case Fraction:
         case Integer:
           return true;
         }
         break;
       case Integer:
+        switch(pt.sort){
+        case Short:
+        case Byte:
+          return true;
+        }        
+        break;
+      case Long:
         switch(pt.sort){
         case Integer:
         case Short:
@@ -60,7 +69,7 @@ public final class PrimitiveType extends Type {
         }        
         break;
       default:
-        break;
+        Fail("missing case in PrimitiveType.supertypeof");
       }
     }
     return false;

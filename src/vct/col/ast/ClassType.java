@@ -1,5 +1,7 @@
 package vct.col.ast;
 
+import static hre.System.Abort;
+
 public class ClassType extends Type {
 
   public final String name[];
@@ -8,6 +10,7 @@ public class ClassType extends Type {
     this.name[0]=name;
   }
   public ClassType(String name[]) {
+    if (name.length==0) Abort("illegal name of length 0");
     this.name=name;
   }
   public String getName(){
@@ -28,8 +31,11 @@ public class ClassType extends Type {
   public boolean supertypeof(Type t){
     if (t instanceof ClassType) {
       ClassType ct=(ClassType)t;
-      // catch universal type
-      if (ct.name.length==0) return true;
+      // java.lang.Object is supertype of everything.
+      if (name.length==3 && name[0].equals("java") &&
+          name[1].equals("lang") && name[2].equals("Object")) return true;
+      // Everything is a supertype of <<null>>.
+      if (ct.name.length==1 && ct.name[0].equals("<<null>>")) return true;
       if (ct.name.length==name.length){
         int i=0;
         while(i<name.length){
