@@ -141,17 +141,50 @@ public class ASTFactory<E> implements FrameControl {
   /**
    * Create a new class.
    */
-  public ASTClass ast_class(Origin origin,String name,ClassKind kind) {
-    ASTClass res=new ASTClass(name,kind);
+  public ASTClass ast_class(Origin origin,String name,ClassKind kind,ClassType bases[],ClassType supports[]) {
+    if (bases==null) bases=new ClassType[0];
+    if (supports==null) supports=new ClassType[0];
+    ASTClass res=new ASTClass(name,kind,bases,supports);
     res.setOrigin(origin);
     res.accept_if(post);
     return res;    
   }
-  public ASTClass ast_class(String name,ClassKind kind) {
-    return ast_class(origin_stack.get(),name,kind);
+  public ASTClass ast_class(String name,ClassKind kind,ClassType bases[],ClassType supports[]) {
+    return ast_class(origin_stack.get(),name,kind,bases,supports);
   }
-  public ASTClass ast_class(E origin,String name,ClassKind kind) {
-    return ast_class(origin_source.create(origin),name,kind);
+  public ASTClass ast_class(E origin,String name,ClassKind kind,ClassType bases[],ClassType supports[]) {
+    return ast_class(origin_source.create(origin),name,kind,bases,supports);
+  }
+  
+  /**
+   * Create a new plain class.
+   */
+  public ASTClass new_class(Origin origin,String name,ClassType super_class,ClassType ... supports) {
+    ClassType bases[]={super_class};
+    if (super_class==null) bases=null;
+    return ast_class(origin,name,ClassKind.Plain,bases,supports);
+  }
+  public ASTClass new_class(String name,ClassType super_class,ClassType ... supports) {
+    return new_class(origin_stack.get(),name,super_class,supports);
+  }
+  public ASTClass plain_class(E origin,String name,ClassType super_class,ClassType ... supports) {
+    return new_class(origin_source.create(origin),name,super_class,supports);
+  }
+  
+  
+  /**
+   * Create a new abstract class.
+   */
+  public ASTClass abstract_class(Origin origin,String name,ClassType super_class,ClassType ... supports) {
+    ClassType bases[]={super_class};
+    if (super_class==null) bases=null;
+    return ast_class(origin,name,ClassKind.Abstract,bases,supports);
+  }
+  public ASTClass abstract_class(String name,ClassType super_class,ClassType ... supports) {
+    return abstract_class(origin_stack.get(),name,super_class,supports);
+  }
+  public ASTClass abstract_class(E origin,String name,ClassType super_class,ClassType ... supports) {
+    return abstract_class(origin_source.create(origin),name,super_class,supports);
   }
   
 
@@ -555,10 +588,7 @@ public class ASTFactory<E> implements FrameControl {
    * Create a sub-package.
    */
   public ASTClass sub_package(Origin origin,String name){
-    ASTClass res=new ASTClass(name,ClassKind.Package);
-    res.setOrigin(origin);
-    res.accept_if(post);
-    return res;
+    return ast_class(name,ClassKind.Package,null,null);
   }
   public ASTClass sub_package(E origin,String name){
     return sub_package(origin_source.create(origin),name);
@@ -566,23 +596,6 @@ public class ASTFactory<E> implements FrameControl {
   public ASTClass sub_package(String name){
     return sub_package(origin_stack.get(),name);
   }
-
-  /**
-   * Create a sub-package.
-   */
-  public ASTClass new_class(Origin origin,String name){
-    ASTClass res=new ASTClass(name,ClassKind.Plain);
-    res.setOrigin(origin);
-    res.accept_if(post);
-    return res;
-  }
-  public ASTClass new_class(E origin,String name){
-    return new_class(origin_source.create(origin),name);
-  }
-  public ASTClass new_class(String name){
-    return new_class(origin_stack.get(),name);
-  }
-
   
   /**
    * Create a reserved name this that also refers to the given class type.

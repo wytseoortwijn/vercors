@@ -23,7 +23,7 @@ public class GlobalizeStatics extends AbstractRewriter {
   
   public void visit(ASTClass cl){
     if (cl.getParent()==null){
-      global_class=create.ast_class(new MessageOrigin("filtered globals"),"Global",ClassKind.Plain);
+      global_class=create.ast_class(new MessageOrigin("filtered globals"),"Global",ClassKind.Plain,null,null);
     }
     switch(cl.kind){
     case Package:{
@@ -43,7 +43,7 @@ public class GlobalizeStatics extends AbstractRewriter {
     }
     case Plain:{
       int N;
-      ASTClass res=create.ast_class(cl.name,ClassKind.Plain);
+      ASTClass res=create.ast_class(cl.name,ClassKind.Plain,null,null);
       res.add_dynamic(create.field_decl("global",create.class_type("Global")));
       N=cl.getStaticCount();
       prefix=new ClassName(cl.getFullName()).toString("_");

@@ -101,8 +101,13 @@ public class ResolveAndMerge extends AbstractRewriter {
       currentclass=currentstack.pop();
       return;      
     } else {
-      Debug("rewriting class "+name);
-      ASTClass res=new ASTClass(name,c.kind);
+      Debug("rewriting class %s",name);
+      ASTClass res=new ASTClass(
+        name,
+        c.kind,
+        rewrite_and_cast(c.super_classes),
+        rewrite_and_cast(c.implemented_classes)
+      );
       res.setOrigin(c.getOrigin());
       res.setParentClass(currentclass);
       currentstack.push(currentclass);

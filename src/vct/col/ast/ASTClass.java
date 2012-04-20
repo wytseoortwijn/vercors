@@ -37,6 +37,10 @@ public class ASTClass extends ASTNode {
   public final ClassKind kind;
   /** contains the name of the class/module/package. */
   public final String name;
+  /** contains the classes extended by this class */
+  public final ClassType super_classes[];
+  /** contains the interfaces(classes) implemented by this class */
+  public final ClassType implemented_classes[];
   /** contains the parent of this unit */
   private ASTClass parent_class;
   /** contains the static entries */
@@ -59,6 +63,8 @@ public class ASTClass extends ASTNode {
   public ASTClass(){
     kind=ClassKind.Package;
     name=null;
+    super_classes=new ClassType[0];
+    implemented_classes=new ClassType[0];
   }
   /** Create a root class from a given block statement. */
   public ASTClass(BlockStatement node) {
@@ -68,6 +74,8 @@ public class ASTClass extends ASTNode {
     for(int i=0;i<N;i++){
       static_entries.add(node.getStatement(i));
     }
+    super_classes=new ClassType[0];
+    implemented_classes=new ClassType[0];
   }
 
   /** Create a new class in a hierarchy. */
@@ -80,6 +88,8 @@ public class ASTClass extends ASTNode {
     } else {
       parent.add_dynamic(this);
     }
+    super_classes=new ClassType[0];
+    implemented_classes=new ClassType[0];
   }
   /** Return a static child, which is created if necessary. */
   public ASTClass getStaticClass(String name,ClassKind kind){
@@ -117,6 +127,8 @@ public class ASTClass extends ASTNode {
     for(int i=0;i<N;i++){
       dynamic_entries.add(dynamic_part.getStatement(i));
     }    
+    super_classes=new ClassType[0];
+    implemented_classes=new ClassType[0];
   }
 
   public String getName(){
@@ -172,11 +184,19 @@ public class ASTClass extends ASTNode {
     }
     return true;
   }
+  
+  public ASTClass(String name,ClassKind kind){
+    this(name,kind,new ClassType[0],new ClassType[0]);
+  }
 
   /** Create a new class without putting it in a hierarchy. */
-  public ASTClass(String name,ClassKind kind){
+  public ASTClass(String name,ClassKind kind,ClassType bases[],ClassType supports[]){
+    if (bases==null) Abort("super class array may not be null");
+    if (supports==null) Abort("implemented array may not be null");
     this.kind=kind;
     this.name=name;
+    super_classes=Arrays.copyOf(bases,bases.length);
+    implemented_classes=Arrays.copyOf(supports,supports.length);
   }
   
   /** Accept a visitor.

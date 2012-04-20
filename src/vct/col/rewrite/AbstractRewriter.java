@@ -1,5 +1,7 @@
 package vct.col.rewrite;
 
+import java.util.Arrays;
+
 import hre.util.FrameControl;
 import vct.col.ast.ASTClass;
 import vct.col.ast.ASTNode;
@@ -76,6 +78,13 @@ public abstract class AbstractRewriter extends AbstractVisitor<ASTNode> {
      throw new Error("Expected "+node.getClass()+ " got " + tmp.getClass()); 
     }
   }
+  public <E extends ASTNode> E[] rewrite_and_cast(E node[]){
+    E res[]=Arrays.copyOf(node, node.length);
+    for(int i=0;i<res.length;i++){
+      res[i]=rewrite_and_cast(res[i]);
+    }
+    return res;
+  }
   public <E extends ASTNode> E rewrite_nullable(E node){
     if (node==null) return null;
     return rewrite_and_cast(node);
@@ -116,7 +125,7 @@ public abstract class AbstractRewriter extends AbstractVisitor<ASTNode> {
       result=res;
     } else {
       Debug("rewriting class "+name);
-      ASTClass res=new ASTClass(name,c.kind);
+      ASTClass res=new ASTClass(name,c.kind,c.super_classes,c.implemented_classes);
       res.setOrigin(c.getOrigin());
       int N=c.getStaticCount();
       for(int i=0;i<N;i++){

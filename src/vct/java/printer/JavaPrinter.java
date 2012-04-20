@@ -59,7 +59,34 @@ public class JavaPrinter extends AbstractPrinter {
 
   public void visit(ASTClass cl){
     int N;
-    out.lnprintf("class %s {",cl.getName());
+    switch(cl.kind){
+    case Plain:
+      out.lnprintf("class %s",cl.getName());
+      break;
+    case Abstract:
+      out.lnprintf("abstract class %s",cl.getName());
+      break;
+    case Interface:
+      out.lnprintf("interface %s",cl.getName());
+      break;
+    default:
+      Abort("unexpected class kind %s",cl.kind);
+    }
+    if (cl.super_classes.length>0) {
+      out.printf("  extends %s",cl.super_classes[0]);
+      for(int i=1;i<cl.super_classes.length;i++){
+        out.printf(", %s",cl.super_classes[i]);
+      }
+      out.lnprintf("");
+    }
+    if (cl.implemented_classes.length>0) {
+      out.printf("  implements %s",cl.implemented_classes[0]);
+      for(int i=1;i<cl.implemented_classes.length;i++){
+        out.printf(", %s",cl.implemented_classes[i]);
+      }
+      out.lnprintf("");
+    }
+    out.lnprintf("{");
     out.incrIndent();
     N=cl.getStaticCount();
     for(int i=0;i<N;i++){

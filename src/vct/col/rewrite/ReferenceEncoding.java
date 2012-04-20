@@ -254,7 +254,7 @@ public class ReferenceEncoding extends AbstractRewriter {
       String name=c.getName();
       if (c.getStaticCount()>0) throw new Error("class "+name+" has static content");
       
-      ASTClass res=create.ast_class(name+"_ref",ClassKind.Plain);
+      ASTClass res=create.ast_class(name+"_ref",ClassKind.Plain,null,null);
       ClassType data_type=create.class_type(append_suffix(c.getFullName(),"_data"));
       ClassType ref_type=create.class_type(append_suffix(c.getFullName(),"_ref"));
       
