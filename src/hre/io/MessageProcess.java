@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import static hre.System.Debug;
 
 /**
  * Provides communication with a interactive external process.
@@ -43,11 +44,9 @@ public class MessageProcess {
   }
 
   public void send(String format,Object ... args){
-    System.err.print("sending ");
-    System.err.printf(format,args);
-    System.err.println();
-    process_input.printf(format,args);
-    process_input.println();
+    String message=String.format(format,args);
+    Debug("sending \"%s\"",message);
+    process_input.printf("%s%n",message);
     process_input.flush();
   }
 
