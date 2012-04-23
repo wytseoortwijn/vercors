@@ -11,6 +11,7 @@ public class TestReport {
   public static enum Verdict { Pass, Fail, Inconclusive, Error };
   
   private Verdict verdict=Verdict.Error;
+  private static Exception e;
   
   public void setVerdict(Verdict verdict){
     this.verdict=verdict;
@@ -18,6 +19,11 @@ public class TestReport {
   
   public Verdict getVerdict(){
     return verdict;
+  }
+  
+  public void setException(Exception e){
+    this.verdict=Verdict.Error;
+    this.e=e;
   }
 
 }
