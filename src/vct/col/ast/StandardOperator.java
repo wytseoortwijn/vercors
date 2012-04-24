@@ -1,79 +1,119 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 package vct.col.ast;
 
-import java.util.Map;
-import java.util.EnumMap;
-import java.util.HashMap;
-
 public enum StandardOperator {
-
-  UPlus(1,"+.","positive"),
-  UMinus(1,"-.","negative"),
-  Plus(2,"+","addition"),
-  Minus(2,"-","subtraction"),
-  Mult(2,"x","multiplication"),
-  Div(2,"/","division"),
-  Mod(2,"%","remainder"),
-  BitAnd(2,"&","bitwise and"),
-  BitOr(2,"|","bitwise or"),
-  BitXor(2,"^","bitwise xor"),
-  BitNot(2,"~","bitwise negation"),
-  And(2,"/\\","logical and"),
-  Or(2,"\\/","logical or"),
-  Not(1,"!","negation"),
-  Implies(2,"->","logical implication"),
-  IFF(2,"<=>","if and only if"),
-  EQ(2,"==","equals"),
-  NEQ(2,"!=","not equals"),
-  GT(2,">","greater than"),
-  GTE(2,">=","greater than or equal"),
-  LT(2,"<","lesser than"),
-  LTE(2,"<=","lesser than or equal"),
-  ITE(3,".<|.|>.","if then else"),
-  Instance(2,"<:","instance of"),
-  Assign(2,":=","assignment"),
-  Modify(3,":?=","modifying assignment"),
-  PreIncr(1,"++.","increment return new"),
-  PreDecr(1,"--.","decrement return new"),
-  PostIncr(1,".++","increment return old"),
-  PostDecr(1,".--","decrement return old"),
-  LeftShift(2,"<<","shift left"),
-  RightShift(2,">>","shift right"),
-  UnsignedRightShift(2,">>>","signed shift right"),
-  Star(2,"*","separating and"),
-  Wand(2,"-*","separating implication"),
-  Perm(2,"Perm","Fractional acces permission"),
-  PointsTo(3,"PointsTo","Fractional access permission and contents"),
-  Value(1,"Value","Access permission on immutable value"),
-  FullAcc(1,"acc(.)","Full access"),
-  PartialAcc(2,"acc(.,.)","Partial access based on percentage"),
-  Select(2,".","select a member (x.y)"),
-  GuardedSelect(2,"->","guarded select"),
-  Subscript(2,"[.]","array subscription x[y]"),
-  Requires(1,"requires","pre condition in contract"),
-  Ensures(1,"ensures","post condition in contract"),
-  Fork(1,"fork","start executing the given thread"),
-  Join(1,"join","join with the given thread"),
-  Lock(1,"lock","lock the given object"),
-  Fold(1,"fold","hint that the prover should fold"),
-  Unfold(1,"unfold","hint that the prover should unfold"),
-  Unlock(1,"unlock","unlock the given object"),
-  Assert(1,"assert","assert the argument"),
-  Assume(1,"assume","assume the argument"),
-  Havoc(1,"havoc","forget everything about the argument"),
-  HoareCut(1,"/*{ . }*/","cut statement of a Hoare logic proof."),
-  Old(1,"old","evaluate argument in old state rather than current state");
+  /** Unary plus. */
+  UPlus(1),
+  /** Unary minus. */
+  UMinus(1),
+  /** Addition. */
+  Plus(2),
+  /** Binary minus or subtraction. */
+  Minus(2),
+  /** Multiplication. */
+  Mult(2),
+  /** Division. */
+  Div(2),
+  /** Modulo or remainder. */
+  Mod(2),
+  /** Bitwise and. */
+  BitAnd(2),
+  /** Bitwise or. */
+  BitOr(2),
+  /** Bitwise eXclusive OR. */
+  BitXor(2),
+  /** Bitwise negation or complement. */
+  BitNot(2),
+  /** Logical and. May or may not mean 'and also' */
+  And(2),
+  /** Logical or. May or may not mean 'or else' */
+  Or(2),
+  /** Logical negation. */
+  Not(1),
+  /** Logical implication. */
+  Implies(2),
+  /** Logical if and only if. */
+  IFF(2),
+  /** Equality test. */
+  EQ(2),
+  /** Inequality test. */
+  NEQ(2),
+  /** Greater Than test. */
+  GT(2),
+  /** Greater Than or Equal test. */
+  GTE(2),
+  /** Lesss Than test. */
+  LT(2),
+  /** Lesss Than or Equal test. */
+  LTE(2),
+  /** If then else operator or conditional. */
+  ITE(3),
+  /** Instance of test. */
+  Instance(2),
+  /** Simple assignment operator. */
+  Assign(2),
+  /** Modifying assignment operator. The second argument is intended to be a binary function. */ 
+  Modify(3),
+  /** Increment and return new value. */
+  PreIncr(1),
+  /** Decrement and return new value. */
+  PreDecr(1),
+  /** Increment and return old value. */
+  PostIncr(1),
+  /** Decrement and return old value. */
+  PostDecr(1),
+  /** Shift left. */
+  LeftShift(2),
+  /** (signed) shift right. */
+  RightShift(2),
+  /** Unsigned shift right. */
+  UnsignedRightShift(2),
+  /** Separating conjunction. */
+  Star(2),
+  /** Separating implication. */
+  Wand(2),
+  /** Fractional permission predicate. */
+  Perm(2),
+  /** Fractional permission predicate with value access. */ 
+  PointsTo(3),
+  /** Immutable permission predicate.  */
+  Value(1),
+  /** Member selection. */
+  Select(2),
+  /** Guarded member selection. (Selection with built-in null test.) */
+  GuardedSelect(2),
+  /** Array subscript. */
+  Subscript(2),
+  /** Fork statement. */
+  Fork(1),
+  /** Join statement. */
+  Join(1),
+  /** Lock statement. */
+  Lock(1),
+  /** Unfold statement. */
+  Unlock(1),
+  /** Fold statement. */
+  Fold(1),
+  /** Unfold statement. */
+  Unfold(1),
+  /** Assert Statement. */
+  Assert(1),
+  /** Assume statement. */
+  Assume(1),
+  /** Havoc statement. */
+  Havoc(1),
+  /** Hoare Cut statement. This is the main ingredient of a Hoare Logic proof. */
+  HoareCut(1),
+  /** Evaluate argument in pre-execution(old) state. */
+  Old(1);
 
   private final int arity;
-  private final String description;
   
-  StandardOperator(int arity,String afun,String description){
+  StandardOperator(int arity){
     this.arity=arity;
-    this.description=description;
   }
   
   public int arity(){ return arity; }
-  public String description(){ return description; }
 
 /*
 Java Operators 	Precedence
