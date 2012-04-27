@@ -24,7 +24,6 @@ import vct.col.rewrite.ResolveAndMerge;
 import vct.col.rewrite.ReferenceEncoding;
 import vct.col.rewrite.SimplifyCalls;
 import vct.col.util.SimpleTypeCheck;
-import vct.col.util.XMLDump;
 import vct.options.VerCorsToolOptionStore;
 import vct.options.VerCorsToolSettings;
 import static hre.System.*;
