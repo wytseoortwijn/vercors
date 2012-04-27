@@ -144,7 +144,7 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
           out.lnprintf("{");
           out.incrIndent();
           in_clause=true;
-          if (contract!=null && contract.pre_condition!=ContractBuilder.default_true) {
+          if (contract!=null && !contract.pre_condition.equals(ContractBuilder.default_true)) {
             // this is an unsafe trick!
             out.printf("unfolding ");
             nextExpr();

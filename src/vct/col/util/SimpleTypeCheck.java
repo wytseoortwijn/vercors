@@ -208,6 +208,22 @@ public class SimpleTypeCheck extends AbstractVisitor<Type> {
       e.setType(new PrimitiveType(Sort.Boolean));
       break;
     }
+    case ITE:
+    {
+      Type t=e.getArg(0).getType();
+      if (!t.isBoolean()){
+        Abort("First argument of if-the-else must be boolean at "+e.getOrigin());
+      }
+      Type t1=e.getArg(1).getType();
+      if (t1==null) Fail("type of left argument unknown at "+e.getOrigin());
+      Type t2=e.getArg(2).getType();
+      if (t2==null) Fail("type of right argument unknown at "+e.getOrigin());
+      if (t1.getClass()!=t2.getClass()) {
+        Fail("Types of left and right-hand side argument are uncomparable at "+e.getOrigin());
+      }
+      e.setType(t1);      
+      break;
+    }
     case Not:
     {
       Type t=e.getArg(0).getType();
