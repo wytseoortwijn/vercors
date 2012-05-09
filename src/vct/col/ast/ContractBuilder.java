@@ -19,6 +19,7 @@ public class ContractBuilder {
   private static int modifiers=0;
   private ArrayList<DeclarationStatement> given=new ArrayList<DeclarationStatement>();
   private ArrayList<DeclarationStatement> yields=new ArrayList<DeclarationStatement>();
+  private HashSet<ASTNode> modifiable;
   
   private static final void scan_to(ArrayList<DeclarationStatement> list,BlockStatement decls){
     int N=decls.getLength();
@@ -65,9 +66,20 @@ public class ContractBuilder {
   }
 
   public Contract getContract(){
-    return new Contract(pre_condition,post_condition,
-        given.toArray(new DeclarationStatement[0]),
-        yields.toArray(new DeclarationStatement[0]),modifiers);
+    DeclarationStatement[] decls=new DeclarationStatement[0];
+    ASTNode[] mods=null;
+    if (modifiable!=null){
+      mods=modifiable.toArray(new ASTNode[0]);
+    }
+    return new Contract(mods,pre_condition,post_condition,
+        given.toArray(decls),
+        yields.toArray(decls),modifiers);
+  }
+  public void modifies(ASTNode ... locs) {
+    if (modifiable==null) modifiable=new HashSet<ASTNode>();
+    for (ASTNode loc : locs){
+      modifiable.add(loc);
+    }
   }
 
 }

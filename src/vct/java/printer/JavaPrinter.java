@@ -168,6 +168,19 @@ public class JavaPrinter extends AbstractPrinter {
       nextExpr();
       contract.post_condition.accept(this);
       out.lnprintf(";");
+      if (contract.modifies!=null){
+        out.printf("modifies ");
+        if (contract.modifies.length==0){
+          out.lnprintf("\\nothing;");
+        } else {
+          contract.modifies[0].accept(this);
+          for(int i=1;i<contract.modifies.length;i++){
+            out.printf(", ");
+            contract.modifies[i].accept(this);
+          }
+          out.lnprintf(";");
+        }
+      }
       out.decrIndent();
       if (!predicate) out.lnprintf("@*/");
     }
