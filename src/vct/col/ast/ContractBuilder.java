@@ -71,9 +71,7 @@ public class ContractBuilder {
     if (modifiable!=null){
       mods=modifiable.toArray(new ASTNode[0]);
     }
-    return new Contract(mods,pre_condition,post_condition,
-        given.toArray(decls),
-        yields.toArray(decls),modifiers);
+    return new Contract(mods,pre_condition,post_condition,modifiers);
   }
   public void modifies(ASTNode ... locs) {
     if (modifiable==null) modifiable=new HashSet<ASTNode>();

@@ -76,6 +76,17 @@ public abstract class AbstractBoogiePrinter extends AbstractPrinter {
       contract.post_condition.accept(this);
       out.lnprintf(";");
     }
+    if (contract.modifies!=null){
+      out.printf("modifies ");
+      nextExpr();
+      contract.modifies[0].accept(this);
+      for(int i=1;i<contract.modifies.length;i++){
+        out.printf(", ");
+        nextExpr();
+        contract.modifies[i].accept(this);
+      }
+      out.lnprintf(";");
+    }
     out.decrIndent();
     in_clause=false;
   }

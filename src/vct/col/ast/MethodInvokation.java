@@ -16,6 +16,7 @@ public class MethodInvokation extends ASTNode {
 
   public final ASTNode object;
   public final NameExpression method;
+  private Method definition;
   private ASTNode args[];
   public final boolean guarded;
   
@@ -60,6 +61,12 @@ public class MethodInvokation extends ASTNode {
   public ASTNode[] getArgs() {
     return Arrays.copyOf(args,args.length);
   }
-    
+  
+  public void setDefinition(Method m){
+    definition=m;
+  }
+  public Method getDefinition(){
+    return definition;
+  }
 }
 

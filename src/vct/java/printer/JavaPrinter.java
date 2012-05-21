@@ -150,20 +150,10 @@ public class JavaPrinter extends AbstractPrinter {
     if (contract!=null && !predicate){
       out.lnprintf("/*@");
       out.incrIndent();
-      for(int i=0;i<contract.given.length;i++){
-        out.print("given ");
-        contract.given[i].getType().accept(this);
-        out.lnprintf(" %s;",contract.given[i].getName());
-      }
       out.printf("requires ");
       nextExpr();
       contract.pre_condition.accept(this);
       out.lnprintf(";");
-      for(int i=0;i<contract.yields.length;i++){
-        out.print("yields ");
-        contract.yields[i].getType().accept(this);
-        out.lnprintf(" %s;",contract.yields[i].getName());
-      }
       out.printf("ensures ");
       nextExpr();
       contract.post_condition.accept(this);
@@ -173,9 +163,11 @@ public class JavaPrinter extends AbstractPrinter {
         if (contract.modifies.length==0){
           out.lnprintf("\\nothing;");
         } else {
+          nextExpr();
           contract.modifies[0].accept(this);
           for(int i=1;i<contract.modifies.length;i++){
             out.printf(", ");
+            nextExpr();
             contract.modifies[i].accept(this);
           }
           out.lnprintf(";");

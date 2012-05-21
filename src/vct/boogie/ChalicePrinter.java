@@ -61,13 +61,6 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
     Contract contract=m.getContract();
     out.printf("(");
     String next="";
-    if (contract !=null) {
-      for(int i=0;i<contract.given.length;i++){
-        out.printf("%s%s: ",next,contract.given[i].getName());
-        contract.given[i].getType().accept(this);
-        next=",";
-      }
-    }    
     for(int i=0;i<N;i++){
       out.printf("%s%s: ",next,m.getArgument(i));
       t.getArgument(i).accept(this);
@@ -80,13 +73,6 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
     } else {
       out.printf(") returns (");
       next="";
-      if (contract !=null) {
-        for(int i=0;i<contract.yields.length;i++){
-          out.printf("%s%s: ",next,contract.yields[i].getName());
-          contract.yields[i].getType().accept(this);
-          next=",";
-        }
-      }
       if (result_type.equals(Sort.Void)){
         out.lnprintf(")");
       } else {

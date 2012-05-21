@@ -62,6 +62,7 @@ public class SimpleTypeCheck extends AbstractVisitor<Type> {
     }
     FunctionType t=m.getType();
     e.setType(t.getResult());
+    e.setDefinition(m);
   }
   
   public void visit(AssignmentStatement s){
