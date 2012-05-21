@@ -11,6 +11,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import vct.col.annotate.DeriveModifies;
 import vct.col.ast.*;
 import vct.col.rewrite.AssignmentRewriter;
 import vct.col.rewrite.DefineDouble;
@@ -102,6 +103,11 @@ class Main
       passes.add("finalize_args");
       passes.add("reorder");
       passes.add("simplify_calls");
+      if (options.isInferModifiesSet()) {
+        passes.add("resolv");
+        passes.add("check");
+        passes.add("modifies");
+      }
     	passes.add("boogie");
     } else if (options.isChaliceSet()) {
     	passes=new ArrayList<String>();
@@ -172,6 +178,8 @@ class Main
           res=vct.boogie.Main.TestChalice(program);
         } else if(pass.equals("java")){
           vct.java.printer.JavaPrinter.dump(System.out,program);
+        } else if(pass.equals("modifies")){
+          new DeriveModifies().annotate(program);
         } else {
           Fail("unknown pass %s",pass);
         }
