@@ -8,6 +8,8 @@ import vct.col.ast.*;
 import vct.col.ast.PrimitiveType.Sort;
 import vct.util.*;
 import static hre.System.Abort;
+import static hre.System.Debug;
+import static hre.System.Warning;
 
 /** 
  * This class contains a pretty printer for Java code.
@@ -374,22 +376,36 @@ public class JavaPrinter extends AbstractPrinter {
       out.lnprintf(")");      
     }
   }
+  
+  public static TrackingTree dump_expr(PrintStream out,ASTNode node){
+    TrackingOutput track_out=new TrackingOutput(out,false);
+    JavaPrinter printer=new JavaPrinter(track_out);
+    printer.setExpr();
+    node.accept(printer);
+    return track_out.close();
+  }
 
-  public static TrackingTree dump(PrintStream out,ASTClass program){
-    System.err.println("Dumping Java code...");
+  public static TrackingTree dump(PrintStream out,ASTNode node){
+    Debug("Dumping Java code...");
     try {
       TrackingOutput track_out=new TrackingOutput(out,false);
       JavaPrinter printer=new JavaPrinter(track_out);
-      String name=program.getName();
-      if (name==null){
-        System.err.println("multiple class program");
-        int N=program.getStaticCount();
-        for(int i=0;i<N;i++){
-          program.getStatic(i).accept(printer);
+      if(node instanceof ASTClass){
+        ASTClass program=(ASTClass)node;
+        String name=program.getName();
+        if (name==null){
+          Debug("multiple class program");
+          int N=program.getStaticCount();
+          for(int i=0;i<N;i++){
+            program.getStatic(i).accept(printer);
+          }
+        } else {
+          Debug("single class");
+          program.accept(printer);
         }
       } else {
-        System.err.println("single class");
-        program.accept(printer);
+        Debug("non-class");
+        node.accept(printer);
       }
       return track_out.close();
     } catch (Exception e) {
@@ -398,5 +414,6 @@ public class JavaPrinter extends AbstractPrinter {
       throw new Error("abort");
     }
   }
+  
 }
 
