@@ -46,5 +46,22 @@ public class FileOrigin implements Origin {
       this.last_col=-1;
       if (file_name==null) throw new Error("null file name");      
     }
+    
+    public String getName(){
+      return file_name;
+    }
+    
+    public int getFirstLine(){
+      return first_line;
+    }
+    public int getFirstColumn(){
+      return first_col;
+    }
+    public int getLastLine(){
+      return last_line;
+    }
+    public int getLastColumn(){
+      return last_col;
+    }
 }
 
