@@ -1,7 +1,7 @@
 package hre.io;
 
 import java.util.Queue;
-import java.util.concurrent.BlockingQueue;
+import static hre.System.*;
 
 /**
  * This class implements a thread that waits for the completion
@@ -42,7 +42,7 @@ public class ProcessWatcher extends Thread {
     for (;;) try {
       // wait for process and output.
       exitcode=process.waitFor();
-      System.err.println("got exit");
+      Debug("got exit");
       break;
     } catch (InterruptedException e){
       // if the process is interrupted, we kill it and wait.
@@ -51,11 +51,11 @@ public class ProcessWatcher extends Thread {
     for(int i=0;i<threads.length;i++){
       // once the process had died, we wait for the otehr threads,
       // most likely the threads that process output.
-      for (;;) try { System.err.printf("wait for %d%n", i) ; threads[i].join(); System.err.println("completed"); break; } catch (InterruptedException e){}
+      for (;;) try { Debug("wait for %d", i) ; threads[i].join(); Debug("completed"); break; } catch (InterruptedException e){}
     }
     // thus we try to make sure that the exit message is the last message.
-    System.err.println("queueing exit");
+    Debug("queueing exit");
     queue.add(new Message("exit %d",exitcode));
-    System.err.println("process cleanup complete");
+    Debug("process cleanup complete");
   }
 }
