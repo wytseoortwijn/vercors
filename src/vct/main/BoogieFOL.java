@@ -1,5 +1,8 @@
 package vct.main;
 
+import hre.io.PrefixPrintStream;
+import hre.util.CompositeReport;
+import hre.util.TestReport;
 import vct.boogie.BoogieReport;
 import vct.col.ast.ASTClass;
 import vct.col.ast.ASTClass.ClassKind;
@@ -13,6 +16,7 @@ import vct.col.ast.PrimitiveType;
 import vct.col.ast.StandardOperator;
 import vct.col.rewrite.AbstractRewriter;
 import vct.col.util.ASTFactory;
+import vct.col.util.ASTUtils;
 
 /**
  * This class scans a given AST for assertions and checks each assertion as if it were
@@ -32,6 +36,8 @@ public class BoogieFOL {
    */
   private static class MethodFinder extends AbstractScanner {
     
+    CompositeReport report=new CompositeReport();
+    
     /** 
      * Executed when the abstract scanner finds a method.
      */
@@ -46,12 +52,24 @@ public class BoogieFOL {
         for(int i=0;i<N;i++){
           if (block.getStatement(i) instanceof OperatorExpression){
             OperatorExpression e=(OperatorExpression)block.getStatement(i);
-            System.err.printf("checking formula at %s%n",e.getOrigin());
-            if (e.getOperator()==StandardOperator.Assert);
+            if (e.getOperator()!=StandardOperator.Assert) continue;
             DeclarationStatement args[]=m.getArgs();
             ASTNode formula=e.getArg(0);
+            System.err.printf("checking formula at %s%n",formula.getOrigin());
+            vct.java.printer.JavaPrinter.dump(System.out,formula);
+            for(ASTNode part:ASTUtils.conjuncts(formula)){
+              System.err.print("conjuct: ");
+              vct.java.printer.JavaPrinter.dump(System.out,part);
+            }
             BoogieReport res=check_boogie(args,formula);
-            System.err.printf("formula at %s:%s%n",e.getOrigin(),res);
+            System.err.printf("formula at %s: %s%n",e.getOrigin(),res.getVerdict());
+            report.addReport(res);
+            for(ASTNode part:ASTUtils.conjuncts(formula)){
+              System.err.print("conjuct ");
+              vct.java.printer.JavaPrinter.dump_expr(System.out,part);
+              System.err.println();
+              res=check_boogie(args,part);
+            }
           }
         }
       } else {
@@ -62,10 +80,12 @@ public class BoogieFOL {
   /** find all assertions in the given program and check them 
    * with Boogie as if they were first order logic formulas.
    * @param program The program to scan for assertions.
+   * @return 
    */
-  public static void main(ASTClass program) {
+  public static TestReport main(ASTClass program) {
     MethodFinder finder=new MethodFinder();
     program.accept(finder);
+    return finder.report;
   }
 
   /**

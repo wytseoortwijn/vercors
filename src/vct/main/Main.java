@@ -14,16 +14,18 @@ import java.util.List;
 import vct.col.annotate.DeriveModifies;
 import vct.col.ast.*;
 import vct.col.rewrite.AssignmentRewriter;
+import vct.col.rewrite.ConstructorRewriter;
 import vct.col.rewrite.DefineDouble;
+import vct.col.rewrite.ExplicitPermissionEncoding;
 import vct.col.rewrite.FinalizeArguments;
 import vct.col.rewrite.Flatten;
 import vct.col.rewrite.GlobalizeStatics;
 import vct.col.rewrite.GuardedCallExpander;
-import vct.col.rewrite.JavaDefaultsRewriter;
 import vct.col.rewrite.ReorderAssignments;
 import vct.col.rewrite.ResolveAndMerge;
 import vct.col.rewrite.ReferenceEncoding;
 import vct.col.rewrite.SimplifyCalls;
+import vct.col.rewrite.VoidCalls;
 import vct.col.util.SimpleTypeCheck;
 import vct.options.VerCorsToolOptionStore;
 import vct.options.VerCorsToolSettings;
@@ -108,15 +110,36 @@ class Main
         passes.add("check");
         passes.add("modifies");
       }
-    	passes.add("boogie");
-    } else if (options.isChaliceSet()) {
-    	passes=new ArrayList<String>();
-    	passes.add("jdefaults");
-    	passes.add("resolv");
+      passes.add("resolv");
+      passes.add("check");
+      passes.add("voidcalls");
+      passes.add("resolv");
       passes.add("check");
       passes.add("flatten");
       passes.add("resolv");
       passes.add("check");
+    	passes.add("boogie");
+    } else if (options.isChaliceSet()) {
+    	passes=new ArrayList<String>();
+    	passes.add("resolv");
+    	passes.add("check");
+      if (options.isExplicitPermissionsSet()){
+        passes.add("java");
+        passes.add("explicit_encoding");
+        passes.add("java");
+        passes.add("resolv");
+        passes.add("check");
+      }
+      passes.add("flatten");
+      passes.add("resolv");
+      passes.add("check");
+      if (options.isReferenceEncodingSet()){
+        passes.add("java");
+        passes.add("refenc");
+        passes.add("resolv");
+        passes.add("java");
+        passes.add("check");
+      }
       passes.add("globalize");
       passes.add("resolv");
       passes.add("check");
@@ -128,6 +151,16 @@ class Main
     	passes.add("expand");
     	passes.add("resolv");
     	passes.add("check");
+      passes.add("rm_cons");
+      passes.add("resolv");
+      passes.add("check");
+      passes.add("voidcalls");
+      passes.add("resolv");
+      passes.add("java");
+      passes.add("check");
+      passes.add("flatten");
+      passes.add("resolv");
+      passes.add("check");
     	passes.add("chalice");
     } else {
     	Abort("no back-end or passes specified");
@@ -147,6 +180,8 @@ class Main
           HeapDump.tree_dump(out,program,ASTNode.class);
         } else if (pass.equals("finalize_args")){
           program=(ASTClass)program.apply(new FinalizeArguments());
+        } else if (pass.equals("explicit_encoding")){
+          program=(ASTClass)program.apply(new ExplicitPermissionEncoding());          
         } else if (pass.equals("check")){
           new SimpleTypeCheck(program).check(program);
         } else if(pass.equals("flatten")){
@@ -159,8 +194,6 @@ class Main
           program=(ASTClass)program.apply(new ReorderAssignments());
         } else if(pass.equals("assign")){
           program=(ASTClass)program.apply(new AssignmentRewriter());
-        } else if(pass.equals("jdefaults")){
-          program=(ASTClass)program.apply(new JavaDefaultsRewriter());
         } else if(pass.equals("simplify_calls")){
           program=(ASTClass)program.apply(new SimplifyCalls());
         } else if(pass.equals("refenc")){
@@ -168,8 +201,8 @@ class Main
         } else if(pass.equals("expand")){
           program=(ASTClass)program.apply(new GuardedCallExpander());
         } else if(pass.equals("boogie-fol")){
-          Z3FOL.test();
-          BoogieFOL.main(program);
+          //Z3FOL.test();
+          res=BoogieFOL.main(program);
         } else if(pass.equals("boogie")){
           res=vct.boogie.Main.TestBoogie(program);
         } else if(pass.equals("define_double")){
@@ -180,6 +213,10 @@ class Main
           vct.java.printer.JavaPrinter.dump(System.out,program);
         } else if(pass.equals("modifies")){
           new DeriveModifies().annotate(program);
+        } else if(pass.equals("rm_cons")){
+          program=(ASTClass)program.apply(new ConstructorRewriter());
+        } else if(pass.equals("voidcalls")){
+          program=(ASTClass)program.apply(new VoidCalls());
         } else {
           Fail("unknown pass %s",pass);
         }
