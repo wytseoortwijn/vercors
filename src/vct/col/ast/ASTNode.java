@@ -1,6 +1,10 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 package vct.col.ast;
 import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
+
 import hre.ast.Origin;
 import static hre.System.Abort;
 import static hre.System.Debug;
@@ -8,32 +12,79 @@ import static hre.System.Fail;
 import static hre.System.Warning;
 
 /** common features of all AST nodes. */
-public abstract class ASTNode {
+public abstract class ASTNode implements ASTFlags {
 
+  /**
+   * Contains the labels used to mark this node.
+   */
+  private ArrayList<NameExpression> labelset=new ArrayList<NameExpression>();
+  
+  /**
+   * Contains the set of flags set for this node as a bitset.
+   */
+  private int flags=0;
+  /**
+   * Contains the valid flags for this node as a bitset.
+   */
+  private int valid_flags=0;
+  
   /**
    * This variable works around the problem that PVL and Java have different
    * constructor definitions.
    */
   public static boolean pvl_mode=false;
 
+  /**
+   * Auxiliary variable to help assign unique sequence numbers for AST nodes.
+   */
   private static long next_id=0;
 
+  public void copyMissingFlags(ASTNode node){
+    int missing_flags=node.valid_flags & (~valid_flags);
+    valid_flags=valid_flags|missing_flags;
+    flags=flags|(node.flags&missing_flags);
+  }
 
-  /** Even though some nodes cannot be static, they can all
-      occur in a block, and thus their status must be easy to get. */
-  private boolean is_static=false;
-  private boolean valid_static=false;
+  public boolean getFlag(int flag){
+    if ((valid_flags & flag)!=flag) Abort("flag %d has not been set",flag);
+    return (flags & flag)!=0 ;    
+  }
 
   public boolean isStatic(){
-    if (!valid_static) Abort("static flag has not been set");
-    return is_static;
+    return getFlag(STATIC);
   }
 
+  public boolean isValidFlag(int flag){
+    return (valid_flags&flag)==flag;
+  }
+  
   public void setStatic(boolean val){
-    valid_static=true;
-    is_static=val;
+    setFlag(STATIC,val);
+  }
+  
+  public void setFlag(int flag,boolean val){
+    valid_flags |= flag;
+    if (val) {
+      flags |= flag;
+    } else {
+      flags &= ~flag;
+    }
   }
 
+  public boolean isGhost(){
+    if ((valid_flags & GHOST)==0) Abort("static flag has not been set");
+    return (flags & GHOST)!=0 ;
+  }
+
+  public void setGhost(boolean val){
+    valid_flags |= GHOST;
+    if (val) {
+      flags |= GHOST;
+    } else {
+      flags &= ~GHOST;
+    }
+  }
+  
   private long id;
 
   public ASTNode() {
@@ -133,5 +184,35 @@ public abstract class ASTNode {
     }
     ASTClass root=(ASTClass)tmp;
     return root.find(t.name);
+  }
+  
+  /**
+   * Add a label to this node.
+   * 
+   * Examples of labels are 
+   * <ul>
+   *   <li>Statement labels used for jumps.</li>
+   *   <li>Predicate labels.</li>
+   * </ul>
+   */
+  public void addLabel(NameExpression label){
+    if (label.getKind()!=NameExpression.Kind.Label) {
+      Abort("cannot label with %s of kind %s",label,label.getKind());
+    }
+    labelset.add(label);
+  }
+  
+  /**
+   * Allow iteration over the set of labels.
+   */
+  public Iterable<NameExpression> getLabels(){
+    return labelset;
+  }
+
+  public NameExpression getLabel(int i){
+    return labelset.get(i);
+  }
+  public int labels() {
+    return labelset.size();
   }
 }

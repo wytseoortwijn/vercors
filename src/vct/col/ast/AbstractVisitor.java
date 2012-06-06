@@ -66,8 +66,6 @@ public abstract class AbstractVisitor<T> extends ASTFrame implements ASTVisitor<
   
   public void visit(StandardProcedure p){ visit_any(p); }
 
-  public void visit(Instantiation i){ visit_any(i); }
-  
   public void visit(ConstantExpression e){ visit_any(e); }
   
   public void visit(OperatorExpression e){ visit_any(e); }

@@ -13,11 +13,15 @@ import static hre.System.Fail;
  * @author Stefan Blom
  */
 public abstract class AbstractBoogiePrinter extends AbstractPrinter {
+  
+  private boolean boogie;
+  
   protected boolean in_clause=false;
   protected ASTNode post_condition=null;
   
-  public AbstractBoogiePrinter(Syntax syntax,TrackingOutput out){
+  public AbstractBoogiePrinter(Syntax syntax,TrackingOutput out,boolean boogie){
     super(syntax,out);
+    this.boogie=boogie;
   }
   public void visit(MethodInvokation e){
     boolean statement=!in_expr;
@@ -25,15 +29,54 @@ public abstract class AbstractBoogiePrinter extends AbstractPrinter {
       out.printf("call ");
     }
     setExpr();
-    super.visit(e);
+    DeclarationStatement types[]=e.getDefinition().getArgs();
+    ASTNode args[]=e.getArgs();
+    String next="";
+    for(int i=0;i<args.length;i++){
+      if (types[i].isValidFlag(ASTFlags.OUT_ARG)&&types[i].getFlag(ASTFlags.OUT_ARG)) {
+        out.printf("%s",next);
+        args[i].accept(this);
+        next=",";
+      }
+    }
+    for(int i=args.length;i<types.length;i++){
+      if (types[i].isValidFlag(ASTFlags.OUT_ARG)&&types[i].getFlag(ASTFlags.OUT_ARG)) {
+        out.printf("%s__",next);
+        next=",";
+      }
+    }
+    if (next.equals(",")) {
+      out.printf(" := ");
+    }
+    if (e.object!=null && !boogie){
+      e.object.accept(this);
+      out.printf(".");
+    }
+    e.method.accept(this);
+    out.printf("(");
+    next="";
+    for(int i=0;i<args.length;i++){
+      if (types[i].isValidFlag(ASTFlags.OUT_ARG)&&types[i].getFlag(ASTFlags.OUT_ARG)) continue;
+      out.printf("%s",next);
+      args[i].accept(this);
+      next=",";
+    }
+    for(int i=args.length;i<types.length;i++){
+      if (types[i].isValidFlag(ASTFlags.OUT_ARG)&&types[i].getFlag(ASTFlags.OUT_ARG)) continue;
+      if (types[i].getInit()==null){
+        Fail("Missing argument without default");
+      }
+      out.printf("%s",next);
+      types[i].getInit().accept(this);
+      next=",";
+        
+    }
+    out.printf(")");
     if(statement) out.lnprintf(";");
   }
   public void visit(AssignmentStatement s){
     if (in_expr) throw new Error("assignment is a statement in chalice");
     ASTNode expr=s.getExpression();
-    if (expr instanceof MethodInvokation){
-      out.printf("call ");
-    }
     nextExpr();
     s.getLocation().accept(this);
     out.printf(" := ");

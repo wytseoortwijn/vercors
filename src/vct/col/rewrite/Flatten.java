@@ -10,7 +10,6 @@ import vct.col.ast.Contract;
 import vct.col.ast.DeclarationStatement;
 import vct.col.ast.FunctionType;
 import vct.col.ast.IfStatement;
-import vct.col.ast.Instantiation;
 import vct.col.ast.Method;
 import vct.col.ast.MethodInvokation;
 import vct.col.ast.NameExpression;
@@ -31,7 +30,7 @@ public class Flatten extends AbstractRewriter {
   private Stack<BlockStatement> block_stack=new Stack<BlockStatement>();
   private BlockStatement current_block=null;
   private BlockStatement declaration_block=null;
-  private long counter=0;
+  private static long counter=0;
   
   public void visit(BlockStatement s){
     int N=s.getLength();
@@ -101,7 +100,7 @@ public class Flatten extends AbstractRewriter {
     case Assert:
     case Assume:
     case Fold:
-    case HoareCut:
+    case HoarePredicate:
     case Unfold:
     {
       result=e.apply(copy_pure);
@@ -199,22 +198,17 @@ public class Flatten extends AbstractRewriter {
   public void visit(Method m) {
     String name=m.getName();
     int N=m.getArity();
-    String args[]=new String[N];
-    for(int i=0;i<N;i++){
-      args[i]=m.getArgument(i);
-    }
-    FunctionType t=m.getType();
+    DeclarationStatement args[]=copy_pure.rewrite_and_cast(m.getArgs());
     Contract mc=m.getContract();
     Contract c=null;
     if (mc!=null){
       ASTNode pre=mc.pre_condition.apply(copy_pure);
       ASTNode post=mc.post_condition.apply(copy_pure);
-      c=new Contract(pre,post,mc.modifiers);
+      c=new Contract(copy_pure.rewrite_nullable(mc.modifies),pre,post);
     }
     Method.Kind kind=m.kind;
-    Method res=new Method(kind,name,args,t);
+    Method res=new Method(kind,name,rewrite_and_cast(m.getReturnType()),c,args,null);
     res.setOrigin(m.getOrigin());
-    if (c!=null) res.setContract(c);
     ASTNode body=m.getBody();
     if (body!=null) {
       if (body instanceof BlockStatement) {
@@ -232,28 +226,5 @@ public class Flatten extends AbstractRewriter {
     }
     result=res;
   }
-  
-  public void visit(Instantiation i) {
-    if (i.getArity()>0) Fail("instantiation has arguments");
-    ASTNode sort=i.getSort().apply(this);
-
-    Instantiation res=new Instantiation(sort);
-    res.setOrigin(i.getOrigin());
-
-    String name="__flatten_"+(++counter);
-    if (i.getType()==null){
-      Abort("result type unknown at %s",i.getOrigin());
-    }
-    Type t=i.getType();
-    if (t.getOrigin()==null){
-      Warning("fixing null origin near %s",i.getOrigin());
-      t.setOrigin(new MessageOrigin("Flatten.add_as_var fix near %s",i.getOrigin()));
-    }
-    ASTNode n=create.field_decl(name,t);
-    declaration_block.add_statement(n);
-    current_block.add_statement(create.assignment(create.local_name(name),res));
-    result=create.local_name(name);
-  }
-
   
 }

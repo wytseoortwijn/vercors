@@ -2,6 +2,8 @@ package vct.col.ast;
 
 import static hre.System.Abort;
 
+import java.util.Arrays;
+
 public class ClassType extends Type {
 
   public final String name[];
@@ -11,7 +13,7 @@ public class ClassType extends Type {
   }
   public ClassType(String name[]) {
     if (name.length==0) Abort("illegal name of length 0");
-    this.name=name;
+    this.name=Arrays.copyOf(name,name.length);
   }
   public String getName(){
     return name[name.length-1];

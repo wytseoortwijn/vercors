@@ -24,11 +24,14 @@ public class FinalizeArguments extends AbstractRewriter {
     int N=m.getArity();
     String old_args[]=new String[N];
     String new_args[]=new String[N];
+    Type  type_args[]=new Type[N];
     for(int i=0;i<N;i++){
       old_args[i]=m.getArgument(i);
       new_args[i]="__"+old_args[i];
+      type_args[i]=m.getArgType(i);
     }
-    FunctionType t=m.getType();
+    FunctionType t=new FunctionType(type_args,m.getReturnType());
+    t.setOrigin(m);
     Method.Kind kind=m.kind;
     Method res=new Method(kind,name,new_args,t);
     res.setOrigin(m.getOrigin());
@@ -50,7 +53,7 @@ public class FinalizeArguments extends AbstractRewriter {
       Substitution sigma=new Substitution(subst);
       ASTNode pre=mc.pre_condition.apply(sigma);
       ASTNode post=mc.post_condition.apply(sigma);
-      c=new Contract(pre,post,mc.modifiers);
+      c=new Contract(rewrite_nullable(mc.modifies),pre,post);
     }
     if (c!=null) res.setContract(c);
     { // this flattening could also be done by a generic pass.

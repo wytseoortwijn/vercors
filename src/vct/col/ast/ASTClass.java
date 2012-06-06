@@ -141,6 +141,7 @@ public class ASTClass extends ASTNode {
     this.parent_class=parent;
   }
   public void add_static(ASTNode n){
+    if (n==null) return;
     static_entries.add(n);
     n.setParent(this);
     n.setStatic(true);
@@ -152,9 +153,16 @@ public class ASTClass extends ASTNode {
     }
   }
   public void add_dynamic(ASTNode n){
+    if (n==null) return;
     n.setParent(this);
     n.setStatic(false);
     dynamic_entries.add(n);
+    while (n instanceof ASTWith){
+      n=((ASTWith)n).body;
+    }
+    if (n instanceof ASTClass) {
+      ((ASTClass)n).setParentClass(this);
+    }
   }
   public int getStaticCount(){
     return static_entries.size();
@@ -243,12 +251,19 @@ public class ASTClass extends ASTNode {
       if (n instanceof Method){
         Method m=(Method)n;
         if (m.getName().equals(name)){
-          Debug("checking type of method %s%n",name);
-          FunctionType t=m.getType();
-          if (t.getArity()==type.length){
+          Debug("checking type of method %s",name);
+          DeclarationStatement args[]=m.getArgs();
+          if (args.length>=type.length){
+            Debug("attempting match");
             for(int i=0;i<type.length;i++){
-              if (!t.getArgument(i).supertypeof(type[i])){
-                Debug("type of argument %d does not match method (cannot pass %s as %s)%n",i,type[i],t.getArgument(i));
+              if (!m.getArgType(i).supertypeof(type[i])){
+                Debug("type of argument %d does not match method (cannot pass %s as %s)%n",i,type[i],m.getArgType(i));
+                continue node;
+              }
+            }
+            for(int i=type.length;i<args.length;i++){
+              if (!args[i].isValidFlag(ASTFlags.GHOST) || !args[i].getFlag(ASTFlags.GHOST)) {
+                Debug("omitted argument is not ghost - no match");
                 continue node;
               }
             }

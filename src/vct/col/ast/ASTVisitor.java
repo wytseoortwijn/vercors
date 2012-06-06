@@ -13,8 +13,6 @@ public interface ASTVisitor<T> {
   
   public void visit(StandardProcedure p);
   
-  public void visit(Instantiation i);
-  
   public void visit(ConstantExpression e);
   
   public void visit(OperatorExpression e);

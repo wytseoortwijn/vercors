@@ -145,7 +145,8 @@ public class ReferenceEncoding extends AbstractRewriter {
       NameExpression tmp;
       
       // First, we create a call to the generated valid predicate.
-      tmp=new NameExpression(name+"_valid");
+      //tmp=new NameExpression(name+"_valid");
+      tmp=new NameExpression("valid");
       tmp.setOrigin(pred.getOrigin());
       MethodInvokation valid=new MethodInvokation(object,e.guarded,tmp,new ASTNode[0]);
       valid.setOrigin(e.getOrigin());
@@ -190,10 +191,12 @@ public class ReferenceEncoding extends AbstractRewriter {
    */
   private ASTVisitor<ASTNode> reference_rw=new AbstractRewriter(){
 
-    /**
-     * Default origin for generated code.
-     */
-    private Origin generated=new MessageOrigin("generated during reference encoding");
+    private Origin generated(String what,ASTNode where){
+      return new MessageOrigin("generated during reference encoding "+what+" at "+where.getOrigin());
+    }
+    private Origin generated(String what){
+      return new MessageOrigin("generated during reference encoding "+what);
+    }
 
     /**
      * Type of a *_valid predicate. 
@@ -201,9 +204,9 @@ public class ReferenceEncoding extends AbstractRewriter {
     private FunctionType valid_type;
     {
       PrimitiveType bool_type=new PrimitiveType(Sort.Boolean);
-      bool_type.setOrigin(generated);
+      bool_type.setOrigin(generated("type"));
       valid_type=new FunctionType(new Type[0],bool_type);
-      valid_type.setOrigin(generated);
+      valid_type.setOrigin(generated("type"));
     }
     /**
      * Zero for use in permission range.
@@ -211,7 +214,7 @@ public class ReferenceEncoding extends AbstractRewriter {
     private ConstantExpression zero_permission;
     {
       zero_permission=new ConstantExpression(0);
-      zero_permission.setOrigin(generated);
+      zero_permission.setOrigin(generated("zero"));
     }
     
     /**
@@ -222,7 +225,7 @@ public class ReferenceEncoding extends AbstractRewriter {
     private ConstantExpression full_permission;
     {
       full_permission=new ConstantExpression(100);
-      full_permission.setOrigin(generated);
+      full_permission.setOrigin(generated("full"));
     }
 
     /**
@@ -244,9 +247,9 @@ public class ReferenceEncoding extends AbstractRewriter {
     }
 
     private ASTNode field_permission(ClassType type,ASTNode name,ASTNode perm){
-      ASTNode _this=create.this_expression(generated,type);
-      ASTNode field=create.expression(generated,StandardOperator.Select,_this,name);
-      return create.expression(generated,StandardOperator.Perm,field,perm);
+      ASTNode _this=create.this_expression(generated("field",name),type);
+      ASTNode field=create.expression(generated("field",name),StandardOperator.Select,_this,name);
+      return create.expression(generated("field",name),StandardOperator.Perm,field,perm);
     }
     
     public void visit(ASTClass c) {
@@ -269,7 +272,7 @@ public class ReferenceEncoding extends AbstractRewriter {
       int M=c.getDynamicCount();
       ArrayList<Method> predicates=new ArrayList<Method>();
       
-      ASTNode valid_base=field_permission(ref_type,create.field_name(generated,"ref"),full_permission);
+      ASTNode valid_base=field_permission(ref_type,create.field_name(generated("valid_base",c),"ref"),full_permission);
       ASTNode simple_base=IfStatement.else_guard;
       
       for(int i=0;i<M;i++){
@@ -284,11 +287,11 @@ public class ReferenceEncoding extends AbstractRewriter {
             decl=create.field_decl(o,decl.getName(),ref_ct);
             res.add_dynamic(decl);
             ASTNode decl_name=new NameExpression(decl.getName());
-            decl_name.setOrigin(generated);
+            decl_name.setOrigin(generated("valid_base",c));
             ASTNode decl_perm=new OperatorExpression(StandardOperator.Perm,decl_name,full_permission);
-            decl_perm.setOrigin(generated);
+            decl_perm.setOrigin(generated("valid_base",c));
             valid_base=new OperatorExpression(StandardOperator.Star,valid_base,decl_perm);
-            valid_base.setOrigin(generated);  
+            valid_base.setOrigin(generated("valid_base",c));  
           } else {
             System.err.printf("skipping type %s\n",node.getClass());
           }
@@ -296,30 +299,29 @@ public class ReferenceEncoding extends AbstractRewriter {
           Method m=(Method)node;
           if (m.getKind()==Kind.Predicate) {
             String method_name=m.getName();
-            FunctionType t=m.getType();
             int N=m.getArity();
             String args[]=new String[N];
             for(int j=0;j<N;j++){
               args[j]=m.getArgument(j);
-              DeclarationStatement decl=new DeclarationStatement(method_name+"_"+m.getArgument(j),t.getArgument(j));
-              decl.setOrigin(generated);
+              DeclarationStatement decl=new DeclarationStatement(method_name+"_"+m.getArgument(j),m.getArgType(j));
+              decl.setOrigin(generated("valid_base",c));
               res.add_dynamic(decl);
               ASTNode decl_name=new NameExpression(method_name+"_"+m.getArgument(j));
-              decl_name.setOrigin(generated);
+              decl_name.setOrigin(generated("valid_base",c));
               ASTNode decl_perm=new OperatorExpression(StandardOperator.Perm,decl_name,full_permission);
-              decl_perm.setOrigin(generated);
+              decl_perm.setOrigin(generated("valid_base",c));
               valid_base=new OperatorExpression(StandardOperator.Star,valid_base,decl_perm);
-              valid_base.setOrigin(generated);
+              valid_base.setOrigin(generated("valid_base",c));
               simple_base=new OperatorExpression(StandardOperator.Star,simple_base,decl_perm);
-              simple_base.setOrigin(generated);
+              simple_base.setOrigin(generated("valid_base",c));
               ASTNode low=new OperatorExpression(StandardOperator.LT,zero_permission,decl_name);
-              low.setOrigin(generated);
+              low.setOrigin(generated("valid_base",c));
               valid_base=new OperatorExpression(StandardOperator.Star,valid_base,low);
-              valid_base.setOrigin(generated);
+              valid_base.setOrigin(generated("valid_base",c));
               ASTNode high=new OperatorExpression(StandardOperator.LTE,decl_name,full_permission);
-              high.setOrigin(generated);
+              high.setOrigin(generated("valid_base",c));
               valid_base=new OperatorExpression(StandardOperator.Star,valid_base,high);
-              valid_base.setOrigin(generated);
+              valid_base.setOrigin(generated("valid_base",c));
             }
             predicates.add(m);
           } else {
@@ -329,38 +331,37 @@ public class ReferenceEncoding extends AbstractRewriter {
           res.add_dynamic(node.apply(this));
         }
       }
-      ASTNode _this=create.this_expression(generated,ref_type);
+      ASTNode _this=create.this_expression(generated("valid_base",c),ref_type);
       ASTNode valid_body=valid_base;
       
       NameExpression valid_name=new NameExpression("valid");
-      valid_name.setOrigin(generated);
+      valid_name.setOrigin(generated("valid_base",c));
       
       for (Method m:predicates){
         String method_name=m.getName();
-        FunctionType t=m.getType();
         int N=m.getArity();
         Type type_args[]=new Type[N];
         String args[]=new String[N];
         ASTNode check_body=IfStatement.else_guard;
-        BlockStatement setargs_body=create.block(generated);
-        BlockStatement unfold_body=create.block(generated);
-        BlockStatement fold_body=create.block(generated);
+        BlockStatement setargs_body=create.block(generated("valid_base",c));
+        BlockStatement unfold_body=create.block(generated("valid_base",c));
+        BlockStatement fold_body=create.block(generated("valid_base",c));
         for(int j=0;j<N;j++){
-          type_args[j]=(Type)t.getArgument(j).apply(copy_rw);
+          type_args[j]=(Type)m.getArgType(j).apply(copy_rw);
           args[j]=m.getArgument(j);
           ASTNode arg_name=new NameExpression(m.getArgument(j));
-          arg_name.setOrigin(generated);
+          arg_name.setOrigin(generated("valid_base",c));
           ASTNode var_name=new NameExpression(method_name+"_"+m.getArgument(j));
-          var_name.setOrigin(generated);
+          var_name.setOrigin(generated("valid_base",c));
           ASTNode test=new OperatorExpression(StandardOperator.EQ,arg_name,var_name);
-          test.setOrigin(generated);
+          test.setOrigin(generated("valid_base",c));
           if (check_body==IfStatement.else_guard){
             check_body=test;
           } else {
             check_body=new OperatorExpression(StandardOperator.And,check_body,test);
-            check_body.setOrigin(generated);
+            check_body.setOrigin(generated("valid_base",c));
           }
-          setargs_body.add_statement(create.assignment(generated,var_name,arg_name));
+          setargs_body.add_statement(create.assignment(generated("valid_base",c),var_name,arg_name));
         }
         //Method valid=new Method(Kind.Predicate,method_name+"_valid",new String[0],valid_type);
         ASTNode body=m.getBody();
@@ -374,17 +375,17 @@ public class ReferenceEncoding extends AbstractRewriter {
         //res.add_dynamic(valid);        
         
         // append predicate body to valid body.
-        valid_body=create.expression(generated,StandardOperator.Star,valid_body,body);
+        valid_body=create.expression(generated("valid_base",c),StandardOperator.Star,valid_body,body);
         
         
         // emit ???_check function
         ASTNode check_maintained=new MethodInvokation(null,valid_name);
-        check_maintained.setOrigin(generated);
-        Method check=new Method(Kind.Pure,method_name+"_check",args,t);
-        check.setBody(check_body);
-        check.setContract(new Contract(check_maintained,check_maintained));
-        check.setOrigin(m.getOrigin());
-        res.add_dynamic(check);
+        check_maintained.setOrigin(generated("valid_base",c));
+        //Method check=new Method(Kind.Pure,method_name+"_check",args,t);
+        //check.setBody(check_body);
+        //check.setContract(new Contract(check_maintained,check_maintained));
+        //check.setOrigin(m.getOrigin());
+        //res.add_dynamic(check);
         
         // create void(args) type.
         Type void_type=new PrimitiveType(PrimitiveType.Sort.Void);
@@ -451,7 +452,7 @@ public class ReferenceEncoding extends AbstractRewriter {
       if (mc!=null){
         ASTNode pre=mc.pre_condition.apply(clause_rw);
         ASTNode post=mc.post_condition.apply(clause_rw);
-        c=new Contract(pre,post,mc.modifiers);
+        c=new Contract(rewrite_nullable(mc.modifies),pre,post);
       }
       Method.Kind kind=m.kind;
       if (kind==Method.Kind.Constructor){
@@ -469,7 +470,7 @@ public class ReferenceEncoding extends AbstractRewriter {
     public void visit(NameExpression e) {
       String name=e.getName();
       super.visit(e);
-      if (name.equals("null")) return;
+      //if (name.equals("null")) return;
       switch(e.getKind()){
         case Argument:
           return;
@@ -484,6 +485,13 @@ public class ReferenceEncoding extends AbstractRewriter {
           result=new OperatorExpression(StandardOperator.Select,tmp,result);
           result.setOrigin(e.getOrigin());
           return;
+        }
+        case Reserved:{
+          if (name.equals("null")){
+            return;
+          } else if(name.equals("this")) {
+            return;
+          }
         }
         default: throw new Error("name "+name+" has unhandled kind "+e.getKind()+" at "+e.getOrigin());
       }

@@ -2,7 +2,7 @@
 package vct.col.ast;
 
 import java.util.*;
-
+import static hre.System.*;
 import vct.col.rewrite.AbstractRewriter;
 
 /**
@@ -67,6 +67,16 @@ public class MethodInvokation extends ASTNode {
   }
   public Method getDefinition(){
     return definition;
+  }
+
+  /**
+   * Check if this invokation is an instantiation.
+   */
+  public boolean isInstantiation() {
+    if (definition==null){
+      Abort("invokation of unknown method");
+    }
+    return definition.kind==Method.Kind.Constructor;
   }
 }
 

@@ -2,11 +2,10 @@
 package vct.util;
 
 import hre.ast.TrackingOutput;
-
 import java.util.*;
-
 import vct.col.ast.*;
 import vct.util.Syntax.Associativity;
+import static hre.System.*;
 
 /**
  * This class contains the generic code for pretty printing expressions
@@ -42,6 +41,7 @@ public class AbstractPrinter extends AbstractVisitor {
   }
    
   public void pre_visit(ASTNode node){
+    super.pre_visit(node);
     if (in_expr) {
       expr_level++;
     }
@@ -57,6 +57,7 @@ public class AbstractPrinter extends AbstractVisitor {
       expr_level--;
       in_expr=(expr_level>0);
     }
+    super.post_visit(node);
   }
 
   public AbstractPrinter(Syntax syntax,TrackingOutput out){
@@ -159,7 +160,7 @@ public class AbstractPrinter extends AbstractVisitor {
   }
 
   public void visit(ConstantExpression ce){
-    if (!in_expr) throw new Error("constant outside of expression");
+    if (!in_expr) Abort("constant %s outside of expression for %s",ce,ce.getOrigin());
     out.print(ce.toString());
   }
 }

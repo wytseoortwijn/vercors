@@ -9,6 +9,7 @@ import vct.col.ast.ASTWith;
 import vct.col.ast.AssignmentStatement;
 import vct.col.ast.BlockStatement;
 import vct.col.ast.ClassType;
+import vct.col.ast.Contract;
 import vct.col.ast.DeclarationStatement;
 import vct.col.ast.FunctionType;
 import vct.col.ast.Method;
@@ -24,9 +25,7 @@ import vct.col.util.FieldDefinition;
 import vct.col.util.LocalDefinition;
 import vct.col.util.MethodDefinition;
 import vct.col.util.NameSpace;
-import static hre.System.Abort;
-import static hre.System.Debug;
-import static hre.System.Fail;
+import static hre.System.*;
 
 /**
  * This rewriter changes assignment expressions to assignment statements.
@@ -230,10 +229,18 @@ public class ResolveAndMerge extends AbstractRewriter {
       result=e;
       return;
     }
+    switch(e.getKind()){
+      case Label:
+      Warning("skipping resolving of label %s",name);
+      result=create.label(name);
+      return;
+    default:
+      break;
+    }
     if (e.getKind()==NameExpression.Kind.Reserved && (name.equals("\\result"))){
       result=create.reserved_name("\\result");
       if (currentmethod==null) Abort("current method is not set");
-      result.setType(currentmethod.getType().getResult());
+      result.setType(currentmethod.getReturnType());
       return;
     }
     if (name.equals("super")) throw new Error("super not supported yet.");
@@ -287,6 +294,13 @@ public class ResolveAndMerge extends AbstractRewriter {
       }
       Fail("bad kind of method name "+def.getClass()+" at "+e.getOrigin());
     }
+    if (currentmethod!=null && currentmethod.getContract()!=null){
+      Contract c=currentmethod.getContract();
+      if (c.hasLabel(name)){
+        result=create.label(name);
+        return;
+      }
+    }
     Fail("could not resolve name "+e.getName()+" at "+e.getOrigin());
   }
 
@@ -295,7 +309,7 @@ public class ResolveAndMerge extends AbstractRewriter {
     String name=s.getName();
     ASTNode parent=s.getParent();
     if (parent==null) throw new Error("parent of declaration statement must be set.");
-    if (parent instanceof ASTClass){
+    if (parent instanceof ASTClass ||parent instanceof Method){
       // has already been added.
     } else if (parent instanceof BlockStatement){
       var_names.add(name,new LocalDefinition(name,s.getType()));
@@ -312,10 +326,9 @@ public class ResolveAndMerge extends AbstractRewriter {
     var_names.enter();
     method_names.enter();
     int N=m.getArity();
-    FunctionType t=m.getType();
     for(int i=0;i<N;i++){
       String name=m.getArgument(i);
-      var_names.add(name,new LocalDefinition(name,t.getArgument(i)));
+      var_names.add(name,new LocalDefinition(name,m.getArgType(i)));
     }
     super.visit(m);
     type_names.leave();
@@ -328,6 +341,10 @@ public class ResolveAndMerge extends AbstractRewriter {
     ASTNode object=e.object;
     NameExpression method=e.method;
     String name=method.getName();
+    Debug("invokation %s",name); 
+    for (NameExpression lbl:e.getLabels()){
+      Debug("invokation %s has label %s",name,lbl);
+    }
     if (object==null){
       // TODO: check for static import.
       if (StaticContext()){

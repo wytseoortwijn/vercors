@@ -16,7 +16,6 @@ public class ContractBuilder {
   public final static ASTNode default_true=new ConstantExpression(true,origin);
   private ASTNode pre_condition=default_true;
   private ASTNode post_condition=default_true;
-  private static int modifiers=0;
   private ArrayList<DeclarationStatement> given=new ArrayList<DeclarationStatement>();
   private ArrayList<DeclarationStatement> yields=new ArrayList<DeclarationStatement>();
   private HashSet<ASTNode> modifiable;
@@ -60,18 +59,14 @@ public class ContractBuilder {
       pre_condition.setOrigin(new CompositeOrigin(tmp.getOrigin(),condition.getOrigin()));
     }
   }
-  
-  public void addModifiers(int mod){
-    modifiers|=mod;
-  }
-
+ 
   public Contract getContract(){
     DeclarationStatement[] decls=new DeclarationStatement[0];
     ASTNode[] mods=null;
     if (modifiable!=null){
       mods=modifiable.toArray(new ASTNode[0]);
     }
-    return new Contract(mods,pre_condition,post_condition,modifiers);
+    return new Contract(mods,pre_condition,post_condition);
   }
   public void modifies(ASTNode ... locs) {
     if (modifiable==null) modifiable=new HashSet<ASTNode>();

@@ -16,30 +16,39 @@ import static hre.System.Fail;
 public class BoogiePrinter extends AbstractBoogiePrinter {
   
   public BoogiePrinter(TrackingOutput out){
-    super(BoogieSyntax.getBoogie(),out);
+    super(BoogieSyntax.getBoogie(),out,true);
   }
 
   public void visit(Method m){
-    FunctionType t=m.getType();
-    int N=t.getArity();
-    String result_type=t.getResult().toString();
-    String name=m.getName();
-    if (result_type.equals("pred")){
-      throw new Error("Boogie does not allow predicates");
+    if (m.kind==Method.Kind.Constructor) {
+      Debug("skipping constructor");
+      return;
     }
+    DeclarationStatement args[]=m.getArgs();
+    int N=args.length;
+    Type result_type=m.getReturnType();
+    if (!result_type.equals(PrimitiveType.Sort.Void)) Fail("illegal return type %s",result_type);
+    String name=m.getName();
+    //TODO:
+    //if (result_type.equals("pred")){
+    //  throw new Error("Boogie does not allow predicates");
+    //}
     out.printf("procedure %s(",name);
-    if (N>0) {
-      out.printf("%s: ",m.getArgument(0));
-      t.getArgument(0).accept(this);
-      for(int i=1;i<N;i++){
-        out.printf(",%s: ",m.getArgument(i));
-        t.getArgument(i).accept(this);
-      }
+    String next="";
+    for(int i=0;i<N;i++){
+      if (args[i].isValidFlag(ASTFlags.OUT_ARG)&&args[i].getFlag(ASTFlags.OUT_ARG)) continue;
+      out.printf("%s%s: ",next,args[i].getName());
+      args[i].getType().accept(this);
+      next=",";
     }
     out.printf(") returns (");
-    if (!result_type.equals("Void")){
-        out.printf("__result: ");
-        t.getResult().accept(this);
+    next="";
+    for(int i=0;i<args.length;i++){
+      if (args[i].isValidFlag(ASTFlags.OUT_ARG)&&args[i].getFlag(ASTFlags.OUT_ARG)) {
+        out.printf("%s%s: ",next,args[i].getName());
+        args[i].getType().accept(this);
+        next=",";
+      }
     }
     out.lnprintf(")");
     Contract contract=m.getContract();
@@ -75,7 +84,7 @@ public class BoogiePrinter extends AbstractBoogiePrinter {
         a1.accept(this);
         break;
       }
-      case HoareCut:{
+      case HoarePredicate:{
           Fail("Hoare Logic is not supported in this release.");
           /* TODO: solve at least two remaining problems:
            *  1. havoc'ing all variables that must be havoc'ed.
@@ -119,7 +128,13 @@ public class BoogiePrinter extends AbstractBoogiePrinter {
   public void print(ASTClass cl){
     int N=cl.getStaticCount();
     int M=cl.getDynamicCount();
-    if (N>0 && M>0) throw new Error("mixed static/dynamic "+N+"/"+M+" in boogie");
+    if (M==1 && cl.getDynamic(0) instanceof Method){
+      Method m=(Method)cl.getDynamic(0);
+      if (m.kind==Method.Kind.Constructor) M=0;
+    }
+    if (N>0 && M>0) {
+      throw new Error("mixed static/dynamic "+N+"/"+M+" in boogie");
+    }
     if (N==1 && cl.getStatic(0) instanceof ASTClass){
       print((ASTClass)cl.getStatic(0));
     } else for(int i=0;i<N;i++){

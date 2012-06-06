@@ -77,8 +77,10 @@ public class JavaSyntax {
       // not just the legal ones in Java.
       syntax.addOperator(Modify,10,"","","=","");
       
+      syntax.addPrimitiveType(Double,"double");
       syntax.addPrimitiveType(Integer,"int");
       syntax.addPrimitiveType(Fraction,"frac");
+      syntax.addPrimitiveType(Long,"long");
       syntax.addPrimitiveType(Void,"void");
       syntax.addPrimitiveType(Boolean,"boolean");
       

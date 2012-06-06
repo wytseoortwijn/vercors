@@ -46,15 +46,6 @@ public abstract class AbstractScanner implements ASTVisitor<Boolean> {
   }
 
   @Override
-  public void visit(Instantiation i) {
-    i.getSort().accept(this);
-    int N=i.getArity();
-    for(int j=0;j<N && ! abort;j++){
-      i.getArg(j).accept(this);
-    }
-  }
-
-  @Override
   public void visit(ConstantExpression e) {
     // Constants have no children.
   }

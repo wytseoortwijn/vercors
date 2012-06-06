@@ -19,7 +19,7 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
   
   boolean in_class=false;
   public ChalicePrinter(TrackingOutput out){
-    super(BoogieSyntax.getChalice(),out);
+    super(BoogieSyntax.getChalice(),out,false);
   }
   
   public void visit(ClassType t){
@@ -55,15 +55,14 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
   }
 
   private void print_arguments(Method m,boolean function){
-    FunctionType t=m.getType();
-    int N=t.getArity();
-    Type result_type=t.getResult();
-    Contract contract=m.getContract();
+    DeclarationStatement args[]=m.getArgs();
+    Type result_type=m.getReturnType();
     out.printf("(");
     String next="";
-    for(int i=0;i<N;i++){
-      out.printf("%s%s: ",next,m.getArgument(i));
-      t.getArgument(i).accept(this);
+    for(int i=0;i<args.length;i++){
+      if (args[i].isValidFlag(ASTFlags.OUT_ARG)&&args[i].getFlag(ASTFlags.OUT_ARG)) continue;
+      out.printf("%s%s: ",next,args[i].getName());
+      args[i].getType().accept(this);
       next=",";
     }
     if (function) {
@@ -72,21 +71,27 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
       out.lnprintf("");
     } else {
       out.printf(") returns (");
-      next="";
       if (result_type.equals(Sort.Void)){
-        out.lnprintf(")");
+        next="";
       } else {
-        out.printf("%s__result: ",next);
+        out.printf("__result: ");
         result_type.accept(this);
-        out.lnprintf(")");
+        next=",";
       }
+      for(int i=0;i<args.length;i++){
+        if (args[i].isValidFlag(ASTFlags.OUT_ARG)&&args[i].getFlag(ASTFlags.OUT_ARG)) {
+          out.printf("%s%s: ",next,args[i].getName());
+          args[i].getType().accept(this);
+          next=",";
+        }
+      }
+      out.lnprintf(")");
     }
   }
   public void visit(Method m){
     String name=m.getName();
     Method.Kind kind=m.getKind();
-    FunctionType t=m.getType();
-    int N=t.getArity();
+    int N=m.getArity();
     Contract contract=m.getContract();
     if (contract!=null) post_condition=contract.post_condition;
     if (N>0 && kind==Method.Kind.Predicate){
@@ -255,6 +260,12 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
         //out.print(",*)");
         break;
       }
+      case New:{
+        assert in_expr;
+        out.print("new ");
+        e.getArg(0).accept(this);
+        break;
+      }
       default:{
         super.visit(e);
       }
@@ -272,60 +283,10 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
     }
   }
 
-  public void visit(Instantiation e){
-    throw new Error("instantiation is limited to right-hand side of an assignment!");
-  }
-
-  public void visit(AssignmentStatement s){
-    if (in_expr) throw new Error("assignment is a statement in chalice");
-    ASTNode expr=s.getExpression();
-    if (expr instanceof Instantiation){
-      Instantiation e=(Instantiation)expr;
-      ASTNode name=e.getSort();
-      setExpr();
-      s.getLocation().accept(this);
-      out.printf(" := new ");
-      name.accept(this);
-      out.lnprintf(";");
-      if (e.getArity()>0){
-        Fail("Chalice does not allow instantiation with arguments");
-      }
-      Debug("assignment type is %s",s.getLocation().getType());
-      //TODO: an instantiation should be zero or random!
-      if (!ASTNode.pvl_mode){
-        ASTClass cl=current_class().getClass(s.getLocation().getType());
-        for(DeclarationStatement field:cl.dynamicFields()){
-          Debug("field %s : %s",field.getName(),field.getType());
-          s.getLocation().accept(this);
-          String zero;
-          if (field.getType() instanceof ClassType){
-            zero="null";
-          } else {
-            //TODO: check for all types.
-            zero="0";
-          }
-          out.lnprintf(".%s := %s;",field.getName(),zero);
-        }
-        out.printf("fold ");
-        s.getLocation().accept(this);
-        out.lnprintf(".init_zero;");
-      }
-    } else {
-      if (expr instanceof MethodInvokation){
-        out.printf("call ");
-      }
-      nextExpr();
-      s.getLocation().accept(this);
-      out.printf(" := ");
-      nextExpr();
-      s.getExpression().accept(this);
-      out.lnprintf(";");
-    }
-  }
   public void visit(MethodInvokation e){
     int N=e.getArity();
     // TODO: check site rather than rely on N==0 assumption.
-    if (in_clause && N==0 && e.getType().isBoolean()) {
+    if (in_clause && N==0 && (e.getType()==null || e.getType().isBoolean())) {
       Debug("invoking %s of kind %s",e.method,e.method.getKind());
       if (e.object!=null) {
         e.object.accept(this);

@@ -53,5 +53,8 @@ public class OperatorExpression extends ASTNode {
     res.mergeOrigins();
     return res;
   }
+  public ASTNode[] getArguments() {
+    return Arrays.copyOf(args,args.length);
+  }
 }
 

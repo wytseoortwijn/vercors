@@ -102,10 +102,14 @@ public enum StandardOperator {
   Assume(1),
   /** Havoc statement. */
   Havoc(1),
-  /** Hoare Cut statement. This is the main ingredient of a Hoare Logic proof. */
-  HoareCut(1),
+  /** Hoare Predicate statement. This is the main ingredient of a Hoare Logic proof. */
+  HoarePredicate(1),
   /** Evaluate argument in pre-execution(old) state. */
-  Old(1);
+  Old(1),
+  /** Continue with next value in loop */
+  Continue(1),
+  /** Create a new uninitialized object */
+  New(1);
 
   private final int arity;
   

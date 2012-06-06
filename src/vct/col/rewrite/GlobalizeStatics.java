@@ -85,7 +85,7 @@ public class GlobalizeStatics extends AbstractRewriter {
           rewrite_and_cast(m.getReturnType()),
           rewrite(m.getContract()),
           save+"_"+m.getName(),
-          rewrite(m.getArgs()),
+          rewrite_and_cast(m.getArgs()),
           rewrite(m.getBody()));
       prefix=save;
     } else {
@@ -93,7 +93,7 @@ public class GlobalizeStatics extends AbstractRewriter {
     }
   }
   public void visit(MethodInvokation m){
-    if (m.object instanceof ClassType){
+    if (m.object instanceof ClassType && !m.isInstantiation()){
       String prefix=new ClassName(((ClassType)m.object).name).toString("_");
       if (processing_static){
         result=create.invokation(

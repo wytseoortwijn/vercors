@@ -21,7 +21,9 @@ public class NameExpression extends ASTNode {
     /** a method in a class */
     Method,
     /** for the reserved names: null, this, and super. */
-    Reserved;
+    Reserved,
+    /** for labels, such as statement labels and predicate labels. */
+    Label;
   }
   
   /** The name that this AST node is referencing. */

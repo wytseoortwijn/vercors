@@ -34,7 +34,7 @@ public final class PrimitiveType extends Type {
     return sort==Sort.Void;
   }
 
-  public void accept_simple(ASTVisitor visitor){
+  public <T> void accept_simple(ASTVisitor<T> visitor){
     visitor.visit(this);
   }
 
@@ -50,6 +50,8 @@ public final class PrimitiveType extends Type {
       case Fraction:
         switch(pt.sort){
         case Integer:
+        case Short:
+        case Byte:
           return true;
         }
         break;
@@ -74,5 +76,21 @@ public final class PrimitiveType extends Type {
     }
     return false;
   }
+  
+  public boolean isPrimitive(Sort sort) {
+    return this.sort==sort;
+  }
 
+  public ASTNode zero(){
+    switch(sort){
+    case Integer:
+      return new ConstantExpression(0);
+    case Long:
+      return new ConstantExpression((long)0);
+    case Double:
+      return new ConstantExpression((double)0);
+    default:
+      return super.zero();
+    }
+  }
 }

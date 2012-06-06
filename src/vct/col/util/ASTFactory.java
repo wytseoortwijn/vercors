@@ -13,9 +13,9 @@ import vct.col.ast.BindingExpression.Binder;
 import vct.col.ast.ClassType;
 import vct.col.ast.ConstantExpression;
 import vct.col.ast.Contract;
+import vct.col.ast.ContractBuilder;
 import vct.col.ast.DeclarationStatement;
 import vct.col.ast.IfStatement;
-import vct.col.ast.Instantiation;
 import vct.col.ast.LoopStatement;
 import vct.col.ast.Method;
 import vct.col.ast.MethodInvokation;
@@ -30,7 +30,7 @@ import vct.col.ast.BlockStatement;
 import hre.ast.Origin;
 import hre.util.FrameControl;
 import hre.util.FrameReference;
-import static hre.System.Abort;
+import static hre.System.*;
 
 /**
  * This class provides a factory for ASTNodes, that can be
@@ -370,6 +370,23 @@ public class ASTFactory<E> implements FrameControl {
   }
   
   /**
+   * Create a name expression that refers to a label.
+   */
+  public NameExpression label(Origin origin,String name) {
+    NameExpression res=new NameExpression(name);
+    res.setKind(NameExpression.Kind.Label);
+    res.setOrigin(origin);
+    res.accept_if(post);
+    return res;
+  }
+  public NameExpression label(E origin,String name) {
+    return label(origin_source.create(origin),name);
+  }
+  public NameExpression label(String name) {
+    return label(origin_stack.get(),name);
+  }
+  
+  /**
    * Create a name expression that refers to a local variable.
    */
   public NameExpression local_name(Origin origin,String name) {
@@ -442,17 +459,33 @@ public class ASTFactory<E> implements FrameControl {
   /**
    * Create a method declaration
    */
-  public Method method_decl(Origin origin,Type returns,Contract contract,String name,ASTNode args[],ASTNode body){
+  public Method method_decl(Origin origin,Type returns,Contract contract,String name,DeclarationStatement args[],ASTNode body){
     Method res=new Method(Method.Kind.Plain,name,returns,contract,args,body);
     res.setOrigin(origin);
     res.accept_if(post);
     return res;
   }
-  public Method method_decl(E origin,Type returns,Contract contract,String name,ASTNode args[],ASTNode body){
+  public Method method_decl(E origin,Type returns,Contract contract,String name,DeclarationStatement args[],ASTNode body){
     return method_decl(origin_source.create(origin),returns,contract,name,args,body);
   }
-  public Method method_decl(Type returns,Contract contract,String name,ASTNode args[],ASTNode body){
+  public Method method_decl(Type returns,Contract contract,String name,DeclarationStatement args[],ASTNode body){
     return method_decl(origin_stack.get(),returns,contract,name,args,body);
+  }
+  
+  /**
+   * Create a function declaration
+   */
+  public Method function_decl(Origin origin,Type returns,Contract contract,String name,DeclarationStatement args[],ASTNode body){
+    Method res=new Method(Method.Kind.Pure,name,returns,contract,args,body);
+    res.setOrigin(origin);
+    res.accept_if(post);
+    return res;
+  }
+  public Method function_decl(E origin,Type returns,Contract contract,String name,DeclarationStatement args[],ASTNode body){
+    return function_decl(origin_source.create(origin),returns,contract,name,args,body);
+  }
+  public Method function_decl(Type returns,Contract contract,String name,DeclarationStatement args[],ASTNode body){
+    return function_decl(origin_stack.get(),returns,contract,name,args,body);
   }
   
 
@@ -476,23 +509,26 @@ public class ASTFactory<E> implements FrameControl {
   /**
    * Create an instantiation of a new object.
    */
-  public Instantiation new_object(Origin origin,Type type,ASTNode ... args){
-    Instantiation res=new Instantiation(type,args); 
-    res.setOrigin(origin);
-    res.accept_if(post);
-    return res;        
+  public MethodInvokation new_object(Origin origin,Type type,ASTNode ... args){
+    String name=null;
+    if (type instanceof ClassType){
+      name=((ClassType)type).getName();
+    } else {
+      Fail("cannot instantiate type %s",type);
+    }
+    return invokation(origin, type, false, method_name(origin,name) , args);
   }
-  public Instantiation new_object(E origin,Type type,ASTNode ... args){
+  public MethodInvokation new_object(E origin,Type type,ASTNode ... args){
     return new_object(origin_source.create(origin),type,args); 
   }
-  public Instantiation new_object(Type type,ASTNode ... args){
+  public MethodInvokation new_object(Type type,ASTNode ... args){
     return new_object(origin_stack.get(),type,args); 
   }
   
   /**
    * Create a predicate declaration.
    */
-  public Method predicate(Origin origin, String name, ASTNode body,ASTNode ... args) {
+  public Method predicate(Origin origin, String name, ASTNode body,DeclarationStatement ... args) {
     Type bool=new PrimitiveType(Sort.Boolean);
     bool.setOrigin(origin);
     Method res=new Method(Method.Kind.Predicate, name, bool, null, args, body);
@@ -500,10 +536,10 @@ public class ASTFactory<E> implements FrameControl {
     res.accept_if(post);
     return res;    
   }
-  public Method predicate(E origin,String name, ASTNode body, ASTNode ... args) {
+  public Method predicate(E origin,String name, ASTNode body, DeclarationStatement ... args) {
     return predicate(origin_source.create(origin),name,body,args);
   }
-  public Method predicate(String name, ASTNode body, ASTNode ... args) {
+  public Method predicate(String name, ASTNode body, DeclarationStatement ... args) {
     return predicate(origin_stack.get(),name,body,args);
   }
   
@@ -667,6 +703,50 @@ public class ASTFactory<E> implements FrameControl {
   }
   public ASTNode binder(Binder b,BlockStatement decls,ASTNode selection,ASTNode main) {
     return binder(origin_stack.get(),b,decls,selection,main);      
+  }
+
+  public void addRandomConstructor(ASTClass cl){
+    enter();
+    setOrigin(cl.getOrigin());
+    ContractBuilder cb=new ContractBuilder();
+    for(DeclarationStatement field : cl.dynamicFields()){
+      cb.requires(expression(
+          StandardOperator.Perm,
+          field_name(field.getName()),
+          constant(100)
+      ));
+      cb.ensures(expression(
+          StandardOperator.Perm,
+          field_name(field.getName()),
+          constant(100)
+     ));
+    }
+    Method cons=new Method(Method.Kind.Constructor, cl.getName(),primitive_type(PrimitiveType.Sort.Void), cb.getContract(), new DeclarationStatement[0],block());
+    cons.setOrigin(cl.getOrigin());
+    cl.add_dynamic(cons);
+    leave();
+  }
+
+  public void addZeroConstructor(ASTClass cl){
+    enter();
+    setOrigin(cl.getOrigin());
+    ContractBuilder cb=new ContractBuilder();
+    BlockStatement body=block();
+    for(DeclarationStatement field : cl.dynamicFields()){
+      ASTNode zero=field.getType().zero();
+      zero.setOrigin(cl.getOrigin());
+      cb.ensures(expression(
+           StandardOperator.PointsTo,
+           field_name(field.getName()),
+           constant(100),
+           zero
+      ));
+      body.add_statement(assignment(field_name(field.getName()),zero));
+    }
+    Method cons=new Method(Method.Kind.Constructor, cl.getName(),primitive_type(PrimitiveType.Sort.Void), cb.getContract(), new DeclarationStatement[0],body);
+    cons.setOrigin(cl.getOrigin());
+    cl.add_dynamic(cons);
+    leave();
   }
 
 }

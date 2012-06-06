@@ -1,6 +1,7 @@
 package vct.col.rewrite;
 
 import vct.col.ast.ASTNode;
+import vct.col.ast.ConstantExpression;
 import vct.col.ast.NameExpression;
 import vct.col.ast.OperatorExpression;
 import vct.col.ast.PrimitiveType;
@@ -38,5 +39,12 @@ public class RewriteDoubleDefinition extends AbstractRewriter {
     ASTNode args[]=new ASTNode[N];
     for(int i=0;i<N;i++) args[i]=e.getArg(i).apply(this);
     result=create.invokation(null, false, name ,args);
+  }
+  public void visit(ConstantExpression e){
+    if(e.getType().isDouble()){
+      result=create.reserved_name("null");
+    } else {
+      super.visit(e);
+    }
   }
 }

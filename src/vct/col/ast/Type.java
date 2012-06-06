@@ -3,6 +3,9 @@ package vct.col.ast;
 
 import java.util.*;
 
+import vct.col.ast.PrimitiveType.Sort;
+import static hre.System.*;
+
 /**
  * Subclass of ASTNode meant for holding all type expressions.
  * 
@@ -30,6 +33,15 @@ public abstract  class Type extends ASTNode {
 
   public boolean isVoid() {
     return false;
+  }
+
+  public boolean isPrimitive(Sort fraction) {
+    return false;
+  }
+
+  public ASTNode zero() {
+    Abort("zero unimplemented for %s",getClass());
+    return null;
   }
 
 }

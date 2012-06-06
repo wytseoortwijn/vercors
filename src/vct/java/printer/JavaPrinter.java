@@ -22,6 +22,21 @@ public class JavaPrinter extends AbstractPrinter {
     super(JavaSyntax.get(),out);
   }
 
+  public void pre_visit(ASTNode node){
+    super.pre_visit(node);
+    for(NameExpression lbl:node.getLabels()){
+      nextExpr();
+      lbl.accept(this);
+      out.printf(":");
+      //out.printf("[");
+    }
+  }
+  public void post_visit(ASTNode node){
+    //for(NameExpression lbl:node.getLabels()){
+    //  out.printf("]");
+    //}
+    super.post_visit(node);
+  }
   public void visit(ClassType t){
     out.print(t.getFullName());
   }
@@ -71,6 +86,9 @@ public class JavaPrinter extends AbstractPrinter {
     case Interface:
       out.lnprintf("interface %s",cl.getName());
       break;
+    case Package:
+      out.lnprintf("PACKAGE[%s]",cl.getName());
+      break;
     default:
       Abort("unexpected class kind %s",cl.kind);
     }
@@ -114,29 +132,12 @@ public class JavaPrinter extends AbstractPrinter {
       nextExpr();
       expr.accept(this);
     }
-    out.lnprintf(";");
-  }
-
-  public void visit(Instantiation s){
-    int N=s.getArity();
-    setExpr();
-    out.printf("(new ");
-    s.getSort().accept(this);
-    out.printf("(");
-    if (N>0) {
-      s.getArg(0).accept(this);
-      out.printf(",");
-      for(int i=1;i<N;i++){
-        s.getArg(i).accept(this);
-      }
-    }
-    out.printf("))");
+    if (!in_expr) out.lnprintf(";");
   }
 
   public void visit(Method m){
-    FunctionType t=m.getType();
-    int N=t.getArity();
-    Type result_type=t.getResult();
+    int N=m.getArity();
+    Type result_type=m.getReturnType();
     String name=m.getName();
     Contract contract=m.getContract();
     boolean predicate=m.getKind()==Method.Kind.Predicate;
@@ -186,11 +187,16 @@ public class JavaPrinter extends AbstractPrinter {
     }
     out.printf(" %s(",name);
     if (N>0) {
-      t.getArgument(0).accept(this);
+      DeclarationStatement args[]=m.getArgs();
+      if (args[0].isValidFlag(ASTNode.GHOST) && args[0].isGhost()){ out.printf("/*@ ghost */"); }
+      if (args[0].isValidFlag(ASTFlags.OUT_ARG) && args[0].getFlag(ASTFlags.OUT_ARG)){ out.printf("/*@ out */"); }
+      m.getArgType(0).accept(this);
       out.printf(" %s",m.getArgument(0));
       for(int i=1;i<N;i++){
         out.printf(",");
-        t.getArgument(i).accept(this);
+        if (args[i].isValidFlag(ASTNode.GHOST) && args[i].isGhost()){ out.printf("/*@ ghost */"); }
+        if (args[i].isValidFlag(ASTFlags.OUT_ARG) && args[i].getFlag(ASTFlags.OUT_ARG)){ out.printf("/*@ out */"); }
+        m.getArgType(i).accept(this);
         out.printf(" %s",m.getArgument(i));
       }
     }
@@ -244,7 +250,7 @@ public class JavaPrinter extends AbstractPrinter {
     s.getLocation().accept(this);
     out.printf("=");
     s.getExpression().accept(this);
-    out.lnprintf(";");
+    if (in_expr) out.lnprintf(";");
   }
   public void visit(ReturnStatement s){
     ASTNode expr=s.getExpression();
@@ -290,6 +296,17 @@ public class JavaPrinter extends AbstractPrinter {
         out.lnprintf(";");
         break;
       }
+      case Continue:{
+        out.printf("continue ");
+        current_precedence=0;
+        ASTNode lbl=e.getArg(0);
+        if (lbl!=null){
+          setExpr();
+          lbl.accept(this);
+        }
+        out.lnprintf(";");
+        break;
+      }
       case Assume:{
         out.printf("assume ");
         current_precedence=0;
@@ -299,7 +316,7 @@ public class JavaPrinter extends AbstractPrinter {
         out.lnprintf(";");
         break;
       }
-      case HoareCut:{
+      case HoarePredicate:{
           out.printf("/*{ ");
           current_precedence=0;
           setExpr();
@@ -340,6 +357,12 @@ public class JavaPrinter extends AbstractPrinter {
         out.lnprintf(";");
         break;
       }
+      case New:{
+        out.printf("new ");
+        e.getArg(0).accept(this);
+        out.printf("()");
+        break;
+      }
       default:{
         super.visit(e);
       }
@@ -347,8 +370,6 @@ public class JavaPrinter extends AbstractPrinter {
   }
 
   public void visit(LoopStatement s){
-    if (s.getInitBlock()!=null) throw new Error("cannot do init blocks yet.");
-    if (s.getUpdateBlock()!=null) throw new Error("cannot do update blocks yet.");
     for(ASTNode inv:s.getInvariants()){
       out.printf("/*@ loop_invariant ");
       nextExpr();
@@ -356,14 +377,24 @@ public class JavaPrinter extends AbstractPrinter {
       out.lnprintf("; */");
     }
     ASTNode tmp;
-    tmp=s.getEntryGuard();
-    if (tmp==null) {
-      out.printf("do");
-    } else {
+    if (s.getInitBlock()!=null){
+      out.printf("for(");
+      nextExpr();
+      ((BlockStatement)s.getInitBlock()).getStatement(0).accept(this);
+      out.printf(";");
+      nextExpr();
+      s.getEntryGuard().accept(this);
+      out.printf(";");
+      nextExpr();
+      ((BlockStatement)s.getUpdateBlock()).getStatement(0).accept(this);
+      out.printf(")");
+    } else if ((tmp=s.getEntryGuard())!=null) {
       out.printf("while(");
       nextExpr();
       tmp.accept(this);
-      out.printf(")");
+      out.printf(")");      
+    } else {
+      out.printf("do");
     }
     tmp=s.getBody();
     if (!(tmp instanceof BlockStatement)) { out.printf(" "); }

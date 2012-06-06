@@ -15,7 +15,6 @@ import vct.col.ast.PrimitiveType.Sort;
  */
 public class ConstantExpression extends ASTNode {
 
-  /** the value should have type value rather than int! */
   public final Value value;
 
   public ConstantExpression(int i,Origin origin){
@@ -64,11 +63,16 @@ public class ConstantExpression extends ASTNode {
     setType(new PrimitiveType(Sort.Long));
   }
 
-  public ConstantExpression(double i, Origin origin) {
-    this.value=new DoubleValue(i);
-    setType(new PrimitiveType(Sort.Long));
+  public ConstantExpression(double d, Origin origin) {
+    this.value=new DoubleValue(d);
+    setType(new PrimitiveType(Sort.Double));
     setOrigin(origin);
   }
+  public ConstantExpression(double d) {
+    this.value=new DoubleValue(d);
+    setType(new PrimitiveType(Sort.Double));
+  }
+  
   public <T> void accept_simple(ASTVisitor<T> visitor){
     visitor.visit(this);
   }

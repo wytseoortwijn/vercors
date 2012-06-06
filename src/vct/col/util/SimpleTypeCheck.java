@@ -6,6 +6,7 @@ import vct.col.ast.PrimitiveType.Sort;
 import static hre.System.Abort;
 import static hre.System.Debug;
 import static hre.System.Fail;
+import static hre.System.Warning;
 
 public class SimpleTypeCheck extends AbstractVisitor<Type> {
 
@@ -27,14 +28,6 @@ public class SimpleTypeCheck extends AbstractVisitor<Type> {
     if (cl==null) Fail("type error: class "+t.getFullName()+" not found"); 
     t.setType(t);
   }
-  
-  public void visit(Instantiation i) {
-    if (!(i.getSort() instanceof ClassType)) Abort("Sort in instantiation is not a class type.");
-    ClassType sort=(ClassType)i.getSort();
-    i.setType(sort);
-    int N=i.getArity();
-    if (N>0) Abort("TODO: instantiation with arguments.");
-  }
  
   public void visit(MethodInvokation e){
     if (e.object==null) Abort("unresolved method invokation at "+e.getOrigin());
@@ -42,6 +35,15 @@ public class SimpleTypeCheck extends AbstractVisitor<Type> {
     if (!(e.object.getType() instanceof ClassType)) Abort("invokation on non-class");
     ClassType object_type=(ClassType)e.object.getType();
     int N=e.getArity();
+    for(int i=0;i<N;i++){
+      if (e.getArg(i).labels()>0) {
+        for(int j=i+1;j<N;j++){
+          if (e.getArg(j).labels()==0) Fail("positional argument following named argument");
+        }
+        N=i;
+        break;
+      }
+    }
     Type type[]=new Type[N];
     for(int i=0;i<N;i++){
       type[i]=e.getArg(i).getType();
@@ -60,8 +62,14 @@ public class SimpleTypeCheck extends AbstractVisitor<Type> {
       }
       Fail("could not find method %s(%s) in class %s at %s",e.method.getName(),tmp,object_type.getFullName(),e.getOrigin());
     }
-    FunctionType t=m.getType();
-    e.setType(t.getResult());
+    switch(m.kind){
+    case Constructor:
+      e.setType((Type)e.object);
+      break;
+    default:
+      e.setType(m.getReturnType());
+      break;
+    }
     e.setDefinition(m);
   }
   
@@ -72,7 +80,7 @@ public class SimpleTypeCheck extends AbstractVisitor<Type> {
     if (loc_type==null) Abort("Location has no type.");
     Type val_type=val.getType();
     if (val_type==null) Abort("Value has no type has no type.");
-    if (!(loc_type.equals(val_type) || val_type.supertypeof(loc_type))) {
+    if (!(loc_type.equals(val_type) || loc_type.supertypeof(val_type))) {
       Abort("Types of location (%s) and value (%s) do not match at %s.",loc_type,val_type,s.getOrigin());
     }
   }
@@ -81,13 +89,13 @@ public class SimpleTypeCheck extends AbstractVisitor<Type> {
     String name=s.getName();
     Type t=s.getType();
     ASTNode e=s.getInit();
-    if (e!=null && !t.equals(e.getType())) Abort("type of %s (%s) does not match its initialization (%s)",name,
-        t,e.getType());
+    if (e!=null && !t.equals(e.getType())) {
+      Abort("type of %s (%s) does not match its initialization (%s)",name,t,e.getType());
+    }
   }
   
   public void visit(Method m){
     String name=m.getName();
-    FunctionType t=m.getType();
     ASTNode body=m.getBody();
     Contract contract=m.getContract();
     if (contract!=null){
@@ -101,7 +109,7 @@ public class SimpleTypeCheck extends AbstractVisitor<Type> {
     if (body!=null) {
       Type bt=body.getType();
       if (bt==null) Abort("untyped body of %s has class %s",name,body.getClass());
-      if (!bt.equals(t.getResult()))
+      if (!bt.equals(m.getReturnType()))
       Abort("body of %s does not match result type",name);
     }
   }
@@ -135,6 +143,9 @@ public class SimpleTypeCheck extends AbstractVisitor<Type> {
         break;
       case Unresolved:
         Abort("unresolved name %s found during type check at %s",name,e.getOrigin());
+        break;
+      case Label:
+        // labels have no type!
         break;
       default:
         Abort("missing case for kind %s",kind);
@@ -186,6 +197,10 @@ public class SimpleTypeCheck extends AbstractVisitor<Type> {
     }
     case Assign:
     {
+      if (e.getArg(0) instanceof NameExpression){
+        NameExpression name=(NameExpression)e.getArg(0);
+        if (name.getKind()==NameExpression.Kind.Label) break;
+      }
       Type t1=e.getArg(0).getType();
       if (t1==null) Fail("type of left argument unknown at "+e.getOrigin());
       Type t2=e.getArg(1).getType();
@@ -260,7 +275,7 @@ public class SimpleTypeCheck extends AbstractVisitor<Type> {
       if (!res.supertypeof(t1)) Abort("type of first argument is wrong at %s",e.getOrigin());
       Type t2=e.getArg(1).getType();
       if (t2==null) Fail("type of right argument unknown at %s",e.getOrigin());
-      if (!res.supertypeof(t1)) Abort("type of second argument is wrong at %s",e.getOrigin());
+      if (!res.supertypeof(t2)) Abort("type of second argument is wrong at %s",e.getOrigin());
       if (t1.getClass()!=t2.getClass()) {
         Fail("Types of left and right-hand side argument are uncomparable at %s",e.getOrigin());
       }
@@ -272,13 +287,13 @@ public class SimpleTypeCheck extends AbstractVisitor<Type> {
     case LT:
     case GT:
     {
-      Type res=new PrimitiveType(Sort.Integer);
+      Type res=new PrimitiveType(Sort.Byte);
       Type t1=e.getArg(0).getType();
       if (t1==null) Fail("type of left argument unknown at %s",e.getOrigin());
-      if (!res.supertypeof(t1)) Abort("type of first argument is wrong at %s",e.getOrigin());
+      if (!t1.supertypeof(res)) Fail("type of first argument of %s is wrong at %s",op,e.getOrigin());
       Type t2=e.getArg(1).getType();
       if (t2==null) Fail("type of right argument unknown at %s",e.getOrigin());
-      if (!res.supertypeof(t1)) Fail("type of second argument is wrong at %s",e.getOrigin());
+      if (!t2.supertypeof(res)) Fail("type of second argument of %s is wrong at %s",op,e.getOrigin());
       if (t1.getClass()!=t2.getClass()) {
         Fail("Types of left and right-hand side argument are uncomparable at %s",e.getOrigin());
       }
@@ -287,7 +302,7 @@ public class SimpleTypeCheck extends AbstractVisitor<Type> {
     }    
     case Assert:
     case Fold:
-    case HoareCut:
+    case HoarePredicate:
     case Unfold:
     case Assume:
     {
@@ -304,6 +319,20 @@ public class SimpleTypeCheck extends AbstractVisitor<Type> {
       Type t=e.getArg(0).getType();
       if (t==null) Fail("type of argument is unknown at %s",e.getOrigin());
       e.setType(t);      
+      break;
+    }
+    case Continue:
+    {
+      Type t=e.getArg(0).getType();
+      if (t!=null) Fail("argument of %s should not have type %s",op,t);
+      e.setType(new PrimitiveType(Sort.Void));  
+      break;
+    }
+    case New:
+    {
+      ASTNode t=e.getArg(0);
+      if (!(t instanceof ClassType)) Fail("argument to new is not a class type");
+      e.setType((Type)t);
       break;
     }
     default:
