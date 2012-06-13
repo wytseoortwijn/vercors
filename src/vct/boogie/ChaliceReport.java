@@ -1,6 +1,7 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 package vct.boogie;
 
+import hre.ast.FileOrigin;
 import hre.ast.Origin;
 import hre.ast.TrackingTree;
 
@@ -13,6 +14,7 @@ import vct.options.VerCorsToolSettings;
 import vct.util.*;
 import static hre.System.Debug;
 import static hre.System.Warning;
+import static hre.ast.Context.globalContext;
 
 /**
  * This class contains a parser for the output of the Chalice tool.
@@ -52,10 +54,14 @@ public class ChaliceReport extends hre.util.TestReport {
               message=line.substring(colon+2);
             }
             message=message.replaceAll(" at [0-9]+[.][0-9]+ "," ");
-            System.out.printf("error at %s: %s%n",origin,message);
+            Debug("error at %s: %s%n",origin,message);
+            globalContext.report("error",origin,message);
           } else {
+            ArrayList<String> error=new ArrayList<String>();
             String parts[]=line.substring(colon+2).split("[0-9]+[.][0-9]+");
-            System.out.printf("error at %s: %s",origin,parts[0]);
+            error.add(parts[0]);
+            //System.out.printf
+            Debug("error at %s: %s",origin,parts[0]);
             int current=colon+2+parts[0].length();
             for(int i=1;i<parts.length;i++){
               int end=line.indexOf(parts[i],current);
@@ -64,10 +70,13 @@ public class ChaliceReport extends hre.util.TestReport {
               col_no=Integer.parseInt(line.substring(dot+1,end));
               Origin msg_origin=tree.getOrigin(line_no,col_no);
               //System.out.printf("[%d.%d/%s]%s",line_no,col_no,msg_origin,parts[i]);
-              System.out.printf("%s%s",msg_origin,parts[i]);
+              //System.out.printf
+              Debug("%s%s",msg_origin,parts[i]);
+              error.add(msg_origin+parts[i]);
               current=end+parts[i].length();
             }
-            System.out.println("");
+            //System.out.println("");
+            globalContext.report("error",origin,error);
           }
           continue;
         }

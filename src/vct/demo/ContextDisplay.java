@@ -13,6 +13,6 @@ public class ContextDisplay {
     int end=Integer.parseInt(args[2]);
     FileOrigin o=new FileOrigin(args[0],begin,1,end,1);
     System.out.printf("origin %s is%n",o);
-    c.printContext(System.out,o,2);
+    c.printContext(System.out,o,2,2);
   }
 }
