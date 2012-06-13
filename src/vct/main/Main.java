@@ -2,6 +2,7 @@
 
 package vct.main;
 
+import hre.ast.Context;
 import hre.ast.MessageOrigin;
 import hre.debug.HeapDump;
 import hre.io.PrefixPrintStream;
@@ -30,9 +31,10 @@ import vct.col.util.SimpleTypeCheck;
 import vct.options.VerCorsToolOptionStore;
 import vct.options.VerCorsToolSettings;
 import static hre.System.*;
+import static hre.ast.Context.globalContext;
 
 class Main
-{
+{  
   private static ASTClass program;
   static {
     program=new ASTClass();
@@ -89,6 +91,9 @@ class Main
     int cnt = 0;
     long startTime = System.currentTimeMillis();
     for(File f : options.getFiles()){
+      if (!options.isSkipContextSet()){
+        globalContext.add(f.toString());
+      }
       parseFile(f.getPath());
       cnt++;
     }
