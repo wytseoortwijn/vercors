@@ -126,11 +126,13 @@ public class Main {
       TrackingTree tree=chalice_code.close();
       if (true){
         if (chalice==null) throw new Error("please set location of chalice binary");
-        Process child = Runtime.getRuntime().exec(chalice+" chalice-input.chalice");
-        ChaliceReport output=new ChaliceReport(child.getInputStream(),tree);
-        int result=child.waitFor();
+        File chalice_out=File.createTempFile("chalice-out","txt");
+        chalice_out.deleteOnExit();
+        File chalice_err=File.createTempFile("chalice-err","txt");
+        chalice_err.deleteOnExit();
+        int result=hre.Exec.exec(null, chalice_out, chalice_err,chalice,"chalice-input.chalice");
+        ChaliceReport output=new ChaliceReport(new FileInputStream(chalice_out),tree);
         if (result!=0) {
-          ///("unexpected exit code "+result);
           output.setVerdict(Verdict.Error);
         }
         report.addReport(output);

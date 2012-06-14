@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import static hre.System.*;
 
 /**
  * Provides methods that can execute an external program.
@@ -24,6 +25,14 @@ public class Exec {
 	 */
   public static int exec(File stdin,File stdout,File stderr,String ... command_line){
     Runtime runtime=Runtime.getRuntime();
+    String OS=java.lang.System.getProperty("os.name");
+    Warning("OS is %s%n",OS);
+    if (OS.startsWith("Windows")){
+      File tmp=new File(command_line[0]);
+      if (!tmp.exists()){
+        command_line[0]=command_line[0]+".bat";
+      }
+    }
     Process process;
     try {
       process=runtime.exec(command_line);
