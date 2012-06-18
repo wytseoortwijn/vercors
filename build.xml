@@ -27,7 +27,7 @@
     <mkdir dir="${bin}"/>
     <javac srcdir="${src}"
            destdir="${bin}"
-           classpath="${bin}:${basedir}/../options/vct-options.jar"
+           classpath="${bin}:${basedir}/../options/libs:${basedir}/../options/vct-options.jar:"
            debug="on"
            includeAntRuntime="false"
            source="1.6"
@@ -40,21 +40,11 @@
     <!-- This target has no dependencies to allow calling from eclipse. -->
 		<jar destfile="vct-core.jar" >
       <manifest>
-        <!--
-        <attribute name="Main-Class" value="slc.main.Main"/>
-        -->
         <attribute name="Built-By" value="${user.name}"/>
       </manifest>
 		  <fileset dir="bin">
 		  	<include name="**" />
 		  </fileset>
-		  <!--
-		  <zipfileset src="${libs}/commons-cli-1.2.jar" excludes="META-INF/*" />
-		  <zipfileset src="${libs}/antlr3-runtime.jar" excludes="META-INF/**/*" />
-		  <zipfileset src="libs/aterm.jar" excludes="META-INF/**/*,**/*.java" />
-		  <zipfileset src="${libs}/asm.jar" excludes="META-INF/*" />
-		  <zipfileset src="${libs}/asm-commons-3.3.1.jar" excludes="META-INF/*" />
-		  -->
 		  <fileset dir="src">
 		  	<include name="vct/boogie/boogie-prelude.bpl" />
 		  </fileset>
