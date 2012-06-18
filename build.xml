@@ -12,7 +12,7 @@
   <property name="bin"          value="${basedir}/bin"/>
   <property name="libs"         value="${basedir}/libs"/>
   <property name="dist"         value="${basedir}/dist"/>
-  <property name="libpath"      value="${basedir}/../core/vct-core.jar:${basedir}/../options/vct-options.jar:${basedir}/../java-parser/vct-java-parser.jar:${libs}/commons-cli-1.2.jar"/>
+  <property name="libpath"      value="${basedir}/../options/vct-options.jar:${basedir}/../core/vct-core.jar"/>
   <property environment="env"/>
 
   <target name="clean">
@@ -31,12 +31,6 @@
   </target>
   <target name="options-doc">
     <ant antfile="build.xml" dir="${basedir}/../options" inheritAll="false" target="doc"/>
-  </target>
-  <target name="java-parser-jar">
-    <ant antfile="build.xml" dir="${basedir}/../java-parser" inheritAll="false" target="jar"/>
-  </target>
-  <target name="java-parser-doc">
-    <ant antfile="build.xml" dir="${basedir}/../java-parser" inheritAll="false" target="doc"/>
   </target>
 
   <target name="compile" depends="core-jar,options-jar">
@@ -61,15 +55,6 @@
 		  <fileset dir="bin">
 		  	<include name="**" />
 		  </fileset>
-		  <zipfileset src="../core/vct-core.jar" excludes="META-INF/*" />
-		  <zipfileset src="../options/vct-options.jar" excludes="META-INF/*" />
-		  <zipfileset src="../options/libs/clops-0.3.1.jar" excludes="META-INF/*" />
-		  <!--
-		  <zipfileset src="${libs}/antlr3-runtime.jar" excludes="META-INF/**/*" />
-		  <zipfileset src="libs/aterm.jar" excludes="META-INF/**/*,**/*.java" />
-		  <zipfileset src="${libs}/asm.jar" excludes="META-INF/*" />
-		  <zipfileset src="${libs}/asm-commons-3.3.1.jar" excludes="META-INF/*" />
-		  -->
 		</jar>
 	</target>
 	
@@ -78,8 +63,7 @@
 		<antcall target="jar-build"/>
 	</target>
 
-
-  <target name="doc" depends="jar,core-doc">
+  <target name="doc" depends="jar,options-doc,core-doc">
     <mkdir dir="${doc}"/>
     <!-- overview="${src}/overview.html" -->
     <javadoc
