@@ -161,7 +161,7 @@ class Main
       passes.add("check");
       passes.add("voidcalls");
       passes.add("resolv");
-      passes.add("java");
+      //passes.add("java");
       passes.add("check");
       passes.add("flatten");
       passes.add("resolv");
