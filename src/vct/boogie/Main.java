@@ -38,18 +38,18 @@ public class Main {
       }
       PrintStream boogie_input=new PrintStream("boogie-input.bpl");
       TrackingOutput boogie_code=new TrackingOutput(boogie_input);
-      InputStream pre_s=ClassLoader.getSystemResourceAsStream("vct/boogie/boogie-prelude.bpl");
-      if (pre_s==null) throw new Error("missing boogie-prelude.bpl");
-      BufferedReader pre=new BufferedReader(new InputStreamReader(pre_s));
-      Origin origin=new MessageOrigin("Boogie Prelude");
-      boogie_code.enter(origin);
-      for(;;) {
-        String line=pre.readLine();
-        if (line==null) break;
-        boogie_code.println(line);
-      }
-      boogie_code.leave(origin);
-      pre.close();
+      //InputStream pre_s=ClassLoader.getSystemResourceAsStream("vct/boogie/boogie-prelude.bpl");
+      //if (pre_s==null) throw new Error("missing boogie-prelude.bpl");
+      //BufferedReader pre=new BufferedReader(new InputStreamReader(pre_s));
+      //Origin origin=new MessageOrigin("Boogie Prelude");
+      //boogie_code.enter(origin);
+      //for(;;) {
+      //  String line=pre.readLine();
+      //  if (line==null) break;
+      //  boogie_code.println(line);
+      //}
+      //boogie_code.leave(origin);
+      //pre.close();
       BoogiePrinter printer=new BoogiePrinter(boogie_code);
       printer.print(cl);
       TrackingTree tree=boogie_code.close();
