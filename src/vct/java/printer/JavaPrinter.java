@@ -219,30 +219,61 @@ public class JavaPrinter extends AbstractPrinter {
   }
 
   public void visit(IfStatement s){
-    int N=s.getCount();
-    out.printf("if (");
-    nextExpr();
-    s.getGuard(0).accept(this);
-    out.lnprintf("){");
-    out.incrIndent();
-    s.getStatement(0).accept(this);
-    out.decrIndent();
-    out.lnprintf("}");
-    for(int i=1;i<N;i++){
-      if (i==N-1 && s.getGuard(i)==IfStatement.else_guard){
-        out.lnprintf(" else {");
-      } else {
-        out.printf(" else if (");
+    if (s.isValidFlag(ASTNode.GHOST) && s.getFlag(ASTNode.GHOST)){
+      int N=s.getCount();
+      out.printf ("/*@ CaseSet[");
+      for(int i=0;i<N;i++){
+        if (i>0) out.printf ("  @         ");
+        out.printf("(");
         nextExpr();
         s.getGuard(i).accept(this);
-        out.lnprintf("){");
+        out.printf(",");
+        ASTNode n=s.getStatement(i);
+        if (n instanceof BlockStatement){
+          BlockStatement block=(BlockStatement)n;
+          int M=block.getLength();
+          for(int j=0;j<M;j++){
+            if(j>0) out.printf(";");
+            nextExpr();
+            block.getStatement(j).accept(this);
+          }
+        } else {
+          Abort("statement in caseset is not a block at %s",n.getOrigin());
+        }
+        out.printf(")");
+        if(i==N-1){
+          out.lnprintf("];");
+        } else {
+          out.lnprintf(",");
+        }
       }
+      out.lnprintf("  @*/");
+    } else {
+      int N=s.getCount();
+      out.printf("if (");
+      nextExpr();
+      s.getGuard(0).accept(this);
+      out.lnprintf("){");
       out.incrIndent();
-      s.getStatement(i).accept(this);
+      s.getStatement(0).accept(this);
       out.decrIndent();
       out.lnprintf("}");
+      for(int i=1;i<N;i++){
+        if (i==N-1 && s.getGuard(i)==IfStatement.else_guard){
+          out.lnprintf(" else {");
+        } else {
+          out.printf(" else if (");
+          nextExpr();
+          s.getGuard(i).accept(this);
+          out.lnprintf("){");
+        }
+        out.incrIndent();
+        s.getStatement(i).accept(this);
+        out.decrIndent();
+        out.lnprintf("}");
+      }
+      out.lnprintf("");
     }
-    out.lnprintf("");
   }
 
   public void visit(AssignmentStatement s){
