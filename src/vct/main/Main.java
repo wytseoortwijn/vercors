@@ -10,7 +10,9 @@ import hre.util.TestReport;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Hashtable;
 import java.util.List;
+import java.util.Map.Entry;
 
 import vct.col.annotate.DeriveModifies;
 import vct.col.ast.*;
@@ -86,7 +88,118 @@ class Main
       }
     }
     hre.System.setProgressReporting(options.isProgressSet());
-    
+    Hashtable<String,CompilerPass> defined_passes=new Hashtable<String,CompilerPass>();
+    Hashtable<String,ValidationPass> defined_checks=new Hashtable<String,ValidationPass>();
+    defined_passes.put("java",new CompilerPass("print AST in java syntax"){
+      public ASTClass apply(ASTClass arg){
+        vct.java.printer.JavaPrinter.dump(System.out,arg);
+        return arg;
+      }
+    });
+    defined_passes.put("dump",new CompilerPass("dump AST"){
+      public ASTClass apply(ASTClass arg){
+        PrefixPrintStream out=new PrefixPrintStream(System.out);
+        HeapDump.tree_dump(out,arg,ASTNode.class);
+        return arg;
+      }
+    });
+    defined_passes.put("assign",new CompilerPass("change inline assignments to statements"){
+      public ASTClass apply(ASTClass arg){
+        return (ASTClass)arg.apply(new AssignmentRewriter());
+      }
+    });
+    defined_checks.put("boogie",new ValidationPass("verify with Boogie"){
+      public TestReport apply(ASTClass arg){
+        return vct.boogie.Main.TestBoogie(arg);
+      }
+    });
+    defined_checks.put("chalice",new ValidationPass("verify with Chalice"){
+      public TestReport apply(ASTClass arg){
+        return vct.boogie.Main.TestChalice(arg);
+      }
+    });
+    defined_passes.put("check",new CompilerPass("run a type check"){
+      public ASTClass apply(ASTClass arg){
+        new SimpleTypeCheck(arg).check(arg);
+        return arg;
+      }
+    });
+    defined_passes.put("define_double",new CompilerPass("Rewrite double as a non-native data type."){
+      public ASTClass apply(ASTClass arg){
+        return DefineDouble.rewrite(arg);
+      }
+    });
+    defined_passes.put("expand",new CompilerPass("expand guarded method calls"){
+      public ASTClass apply(ASTClass arg){
+        return (ASTClass)arg.apply(new GuardedCallExpander());
+      }
+    });
+    defined_passes.put("explicit_encoding",new CompilerPass("encode required and ensured permission as ghost arguments"){
+      public ASTClass apply(ASTClass arg){
+        return (ASTClass)arg.apply(new ExplicitPermissionEncoding());
+      }
+    });
+    defined_passes.put("finalize_args",new CompilerPass("???"){
+      public ASTClass apply(ASTClass arg){
+        return (ASTClass)arg.apply(new FinalizeArguments());
+      }
+    });
+    defined_passes.put("flatten",new CompilerPass("remove nesting of expression"){
+      public ASTClass apply(ASTClass arg){
+        return (ASTClass)arg.apply(new Flatten());
+      }
+    });
+    defined_passes.put("globalize",new CompilerPass("split classes into static and dynamic parts"){
+      public ASTClass apply(ASTClass arg){
+        return (ASTClass)arg.apply(new GlobalizeStatics());
+      }
+    });
+    defined_passes.put("modifies",new CompilerPass("Derive modifies clauses for all contracts"){
+      public ASTClass apply(ASTClass arg){
+        new DeriveModifies().annotate(arg);
+        return arg;
+      }
+    });
+    defined_passes.put("reorder",new CompilerPass("reorder statements (e.g. all declarations at the start of a bock"){
+      public ASTClass apply(ASTClass arg){
+        return (ASTClass)arg.apply(new ReorderAssignments());
+      }
+    });
+    defined_passes.put("refenc",new CompilerPass("apply reference encoding"){
+      public ASTClass apply(ASTClass arg){
+        return (ASTClass)arg.apply(new ReferenceEncoding());
+      }
+    });
+    defined_passes.put("resolv",new CompilerPass("resolv all names"){
+      public ASTClass apply(ASTClass arg){
+        return (ASTClass)arg.apply(new ResolveAndMerge());
+      }
+    });
+    defined_passes.put("rm_cons",new CompilerPass("???"){
+      public ASTClass apply(ASTClass arg){
+        return (ASTClass)arg.apply(new ConstructorRewriter());
+      }
+    });
+    defined_passes.put("simplify_calls",new CompilerPass("???"){
+      public ASTClass apply(ASTClass arg){
+        return (ASTClass)arg.apply(new SimplifyCalls());
+      }
+    });
+    defined_passes.put("voidcalls",new CompilerPass("???"){
+      public ASTClass apply(ASTClass arg){
+        return (ASTClass)arg.apply(new VoidCalls());
+      }
+    });
+    if (options.isHelpPassesSet()) {
+      System.out.println("The following passes are available:"); 
+      for (Entry<String, CompilerPass> entry:defined_passes.entrySet()){
+        System.out.printf(" %-12s : %s%n",entry.getKey(),entry.getValue().getDescripion());
+      }
+      for (Entry<String, ValidationPass> entry:defined_checks.entrySet()){
+        System.out.printf(" %-12s : %s%n",entry.getKey(),entry.getValue().getDescripion());
+      }
+      System.exit(0);
+    }
     Progress("parsing inputs...");
     int cnt = 0;
     long startTime = System.currentTimeMillis();
@@ -177,55 +290,23 @@ class Main
           Progress("Ignoring intermediate verdict %s",res.getVerdict());
           res=null;
         }
-        Progress("Applying %s ...", pass);
-        startTime = System.currentTimeMillis();
-        if (pass.equals("exit")) {
-          System.exit(0);
-        } else if(pass.equals("dump")){
-          HeapDump.tree_dump(out,program,ASTNode.class);
-        } else if (pass.equals("finalize_args")){
-          program=(ASTClass)program.apply(new FinalizeArguments());
-        } else if (pass.equals("explicit_encoding")){
-          program=(ASTClass)program.apply(new ExplicitPermissionEncoding());          
-        } else if (pass.equals("check")){
-          new SimpleTypeCheck(program).check(program);
-        } else if(pass.equals("flatten")){
-          program=(ASTClass)program.apply(new Flatten());
-        } else if(pass.equals("globalize")){
-          program=(ASTClass)program.apply(new GlobalizeStatics());
-        } else if(pass.equals("resolv")){
-          program=(ASTClass)program.apply(new ResolveAndMerge());
-        } else if(pass.equals("reorder")){
-          program=(ASTClass)program.apply(new ReorderAssignments());
-        } else if(pass.equals("assign")){
-          program=(ASTClass)program.apply(new AssignmentRewriter());
-        } else if(pass.equals("simplify_calls")){
-          program=(ASTClass)program.apply(new SimplifyCalls());
-        } else if(pass.equals("refenc")){
-          program=(ASTClass)program.apply(new ReferenceEncoding());
-        } else if(pass.equals("expand")){
-          program=(ASTClass)program.apply(new GuardedCallExpander());
-        } else if(pass.equals("boogie-fol")){
-          //Z3FOL.test();
-          res=BoogieFOL.main(program);
-        } else if(pass.equals("boogie")){
-          res=vct.boogie.Main.TestBoogie(program);
-        } else if(pass.equals("define_double")){
-          program=DefineDouble.rewrite(program);
-        } else if(pass.equals("chalice")){
-          res=vct.boogie.Main.TestChalice(program);
-        } else if(pass.equals("java")){
-          vct.java.printer.JavaPrinter.dump(System.out,program);
-        } else if(pass.equals("modifies")){
-          new DeriveModifies().annotate(program);
-        } else if(pass.equals("rm_cons")){
-          program=(ASTClass)program.apply(new ConstructorRewriter());
-        } else if(pass.equals("voidcalls")){
-          program=(ASTClass)program.apply(new VoidCalls());
+        CompilerPass task=defined_passes.get(pass);
+        if (task!=null){
+          Progress("Applying %s ...", pass);
+          startTime = System.currentTimeMillis();
+          program=task.apply(program);
+          Progress(" ... pass took %d ms",System.currentTimeMillis()-startTime);
         } else {
-          Fail("unknown pass %s",pass);
+          ValidationPass check=defined_checks.get(pass);
+          if (check!=null){
+            Progress("Applying %s ...", pass);
+            startTime = System.currentTimeMillis();
+            res=check.apply(program);
+            Progress(" ... pass took %d ms",System.currentTimeMillis()-startTime);
+          } else {
+            Fail("unknown pass %s",pass);
+          }
         }
-        Progress(" ... pass took %d ms",System.currentTimeMillis()-startTime);
       }
       if (res!=null) {
         Output("The final verdict is %s",res.getVerdict());
