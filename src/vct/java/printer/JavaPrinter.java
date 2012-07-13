@@ -62,16 +62,21 @@ public class JavaPrinter extends AbstractPrinter {
         Abort("binder %s unimplemented",e.binder);
     }
   }
-  
+
   public void visit(BlockStatement block){
-    out.lnprintf("{");
-    out.incrIndent();
+    boolean nested=(block.getParent() instanceof IfStatement);
+    if (!nested){
+      out.lnprintf("{");
+      out.incrIndent();
+    }
     int N=block.getLength();
     for(int i=0;i<N;i++){
       block.getStatement(i).accept(this);
     }
-    out.decrIndent();
-    out.lnprintf("}");
+    if (!nested) {
+      out.decrIndent();
+      out.lnprintf("}");
+    }
   }
 
   public void visit(ASTClass cl){
@@ -257,7 +262,7 @@ public class JavaPrinter extends AbstractPrinter {
       out.incrIndent();
       s.getStatement(0).accept(this);
       out.decrIndent();
-      out.lnprintf("}");
+      out.printf("}");
       for(int i=1;i<N;i++){
         if (i==N-1 && s.getGuard(i)==IfStatement.else_guard){
           out.lnprintf(" else {");
@@ -270,7 +275,7 @@ public class JavaPrinter extends AbstractPrinter {
         out.incrIndent();
         s.getStatement(i).accept(this);
         out.decrIndent();
-        out.lnprintf("}");
+        out.printf("}");
       }
       out.lnprintf("");
     }

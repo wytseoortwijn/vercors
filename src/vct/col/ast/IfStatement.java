@@ -31,7 +31,11 @@ public class IfStatement extends ASTNode {
   public void addClause(ASTNode guard,ASTNode s){
     Case clause=new Case();
     clause.guard=guard;
+    if (guard != else_guard) {
+      guard.setParent(this);
+    }
     clause.statement=s;
+    s.setParent(this);
     cases.add(clause);
   }
 
