@@ -1,5 +1,6 @@
 package vct.main;
 
+import hre.debug.HeapDump;
 import hre.io.PrefixPrintStream;
 import hre.util.CompositeReport;
 import hre.util.TestReport;
@@ -9,6 +10,7 @@ import vct.col.ast.ASTClass.ClassKind;
 import vct.col.ast.ASTNode;
 import vct.col.ast.AbstractScanner;
 import vct.col.ast.BlockStatement;
+import vct.col.ast.Contract;
 import vct.col.ast.DeclarationStatement;
 import vct.col.ast.Method;
 import vct.col.ast.OperatorExpression;
@@ -17,6 +19,10 @@ import vct.col.ast.StandardOperator;
 import vct.col.rewrite.AbstractRewriter;
 import vct.col.util.ASTFactory;
 import vct.col.util.ASTUtils;
+
+import static hre.System.Abort;
+import static hre.System.Fail;
+import static hre.System.Warning;
 
 /**
  * This class scans a given AST for assertions and checks each assertion as if it were
@@ -30,7 +36,8 @@ public class BoogieFOL {
   /**
    * This class extends the abstract scanner to scan for methods.
    * It will then scan those methods for assertions.
-   *  
+   *  vct --passes="resolv,boogie-fol" BoogieTemp.java 
+   *
    * @author Stefan Blom
    *
    */
@@ -42,7 +49,14 @@ public class BoogieFOL {
      * Executed when the abstract scanner finds a method.
      */
     public void visit(Method m){
+      PrefixPrintStream out=new PrefixPrintStream(System.out);
       ASTNode body=m.getBody();
+      Contract c=m.getContract();
+      out.printf("starting%n");
+      if (c==null) Fail("method %s has no contract",m.getName());
+      out.printf("begin precondition%n");
+      HeapDump.tree_dump(out,c.pre_condition,ASTNode.class);
+      out.printf("end precondition%n");
       if (body instanceof BlockStatement){
         /* In Java the body of a method always is a block.
          * However, the AST also allows expressions as Method bodies.
@@ -50,6 +64,9 @@ public class BoogieFOL {
         BlockStatement block=(BlockStatement)body;
         int N=block.getLength();
         for(int i=0;i<N;i++){
+          out.printf("========%d=======%n",i);
+          HeapDump.tree_dump(out,block.getStatement(i),ASTNode.class);
+          out.printf("end block%n");
           if (block.getStatement(i) instanceof OperatorExpression){
             OperatorExpression e=(OperatorExpression)block.getStatement(i);
             if (e.getOperator()!=StandardOperator.Assert) continue;
@@ -75,8 +92,12 @@ public class BoogieFOL {
       } else {
         System.err.printf("skipping non-block body of method %s at %s%n",m.getName(),m.getOrigin());
       }
+      out.printf("begin precondition2%n");
+      HeapDump.tree_dump(out,c.pre_condition,ASTNode.class);
+      out.printf("end precondition2%n");
     }
   }
+
   /** find all assertions in the given program and check them 
    * with Boogie as if they were first order logic formulas.
    * @param program The program to scan for assertions.
@@ -87,6 +108,7 @@ public class BoogieFOL {
     program.accept(finder);
     return finder.report;
   }
+
 
   /**
    * Check a formula using Boogie.

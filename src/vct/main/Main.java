@@ -154,6 +154,12 @@ class Main
         return (ASTClass)arg.apply(new GlobalizeStatics());
       }
     });
+    defined_checks.put("hoare_logic",new ValidationPass("Check Hoare Logic Proofs"){
+      public TestReport apply(ASTClass arg){
+        Brain.main(arg);
+        return null;
+      }
+    });
     defined_passes.put("modifies",new CompilerPass("Derive modifies clauses for all contracts"){
       public ASTClass apply(ASTClass arg){
         new DeriveModifies().annotate(arg);
@@ -220,7 +226,9 @@ class Main
       passes.add("check");
       passes.add("flatten");
       passes.add("assign");
-      passes.add("finalize_args");
+      if (!options.isHoareLogicSet()) {
+        passes.add("finalize_args");
+      }
       passes.add("reorder");
       passes.add("simplify_calls");
       if (options.isInferModifiesSet()) {
@@ -280,6 +288,11 @@ class Main
       passes.add("resolv");
       passes.add("check");
     	passes.add("chalice");
+    } else if (options.isHoareLogicSet()) {
+    	passes=new ArrayList<String>();
+    	passes.add("resolv");
+    	passes.add("assign");
+    	passes.add("hoare_logic");
     } else {
     	Abort("no back-end or passes specified");
     }
@@ -316,5 +329,4 @@ class Main
     }
   }
 }
-
 
