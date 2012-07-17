@@ -2,14 +2,12 @@ package vct.main;
 
 import hre.io.Message;
 import hre.io.MessageProcess;
-import vct.options.VerCorsToolOptionStore;
-import vct.options.VerCorsToolSettings;
+
 
 public class Z3FOL {
   
   public static void test(){
-    VerCorsToolOptionStore store=VerCorsToolSettings.getOptionStore();
-    MessageProcess z3=new MessageProcess(store.getZ3Tool(),"/smt2","/in");
+    MessageProcess z3=new MessageProcess("vct-z3","/smt2","/in");
     z3.send("(set-option :produce-models true)");
     z3.send("(set-option :print-success false)");
     // TODO: replace by String logic argument

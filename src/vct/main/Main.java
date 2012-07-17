@@ -2,8 +2,10 @@
 
 package vct.main;
 
-import hre.ast.Context;
 import hre.ast.MessageOrigin;
+import hre.config.BooleanSetting;
+import hre.config.OptionParser;
+import hre.config.StringListSetting;
 import hre.debug.HeapDump;
 import hre.io.PrefixPrintStream;
 import hre.util.TestReport;
@@ -30,8 +32,6 @@ import vct.col.rewrite.ReferenceEncoding;
 import vct.col.rewrite.SimplifyCalls;
 import vct.col.rewrite.VoidCalls;
 import vct.col.util.SimpleTypeCheck;
-import vct.options.VerCorsToolOptionStore;
-import vct.options.VerCorsToolSettings;
 import static hre.System.*;
 import static hre.ast.Context.globalContext;
 
@@ -80,14 +80,43 @@ class Main
   public static void main(String[] args) throws Throwable
   {
     PrefixPrintStream out=new PrefixPrintStream(System.out);
-    VerCorsToolSettings.parse(args);
-    VerCorsToolOptionStore options = VerCorsToolSettings.getOptionStore();
-    if(options.isDebugSet()){
-      for(String name:options.getDebug()){
-        hre.System.EnableDebug(name,java.lang.System.err,"vct("+name+")");
-      }
+    OptionParser clops=new OptionParser();
+    clops.add(clops.getHelpOption(),"help");
+
+    BooleanSetting boogie=new BooleanSetting(false);
+    clops.add(boogie.getEnable("select Boogie backend"),"boogie");
+    BooleanSetting chalice=new BooleanSetting(false);
+    clops.add(chalice.getEnable("select Chalice backend"),"chalice");
+    BooleanSetting help_passes=new BooleanSetting(false);
+    clops.add(help_passes.getEnable("print help on available passes"),"help-passes");
+    BooleanSetting hoare_check=new BooleanSetting(false);
+    clops.add(hoare_check.getEnable("select Hoare Logic Checker backend"),"hlc");
+    StringListSetting pass_list=new StringListSetting();
+    clops.add(pass_list.getAppendOption("add to the custom list of compilation passes"),"passes");
+    
+    BooleanSetting explicit_encoding=new BooleanSetting(false);
+    clops.add(explicit_encoding.getEnable("explicit encoding"),"explicit");
+    BooleanSetting reference_encoding=new BooleanSetting(false);
+    clops.add(reference_encoding.getEnable("reference encoding"),"refenc");
+    
+    BooleanSetting infer_modifies=new BooleanSetting(false);
+    clops.add(infer_modifies.getEnable("infer modifies clauses"),"infer-modifies");
+    BooleanSetting no_context=new BooleanSetting(false);
+    clops.add(no_context.getEnable("disable context ???"),"no-context");
+    
+    StringListSetting debug_list=new StringListSetting();
+    clops.add(debug_list.getAppendOption("print debug message for given classes and/or packages"),"debug");
+    
+    BooleanSetting progress=new BooleanSetting(false);
+    clops.add(progress.getEnable("print progress messages"),"progress");
+
+    String input[]=clops.parse(args);
+    hre.System.setProgressReporting(progress.get());
+    
+    for(String name:debug_list){
+      hre.System.EnableDebug(name,java.lang.System.err,"vct("+name+")");
     }
-    hre.System.setProgressReporting(options.isProgressSet());
+
     Hashtable<String,CompilerPass> defined_passes=new Hashtable<String,CompilerPass>();
     Hashtable<String,ValidationPass> defined_checks=new Hashtable<String,ValidationPass>();
     defined_passes.put("java",new CompilerPass("print AST in java syntax"){
@@ -196,7 +225,7 @@ class Main
         return (ASTClass)arg.apply(new VoidCalls());
       }
     });
-    if (options.isHelpPassesSet()) {
+    if (help_passes.get()) {
       System.out.println("The following passes are available:"); 
       for (Entry<String, CompilerPass> entry:defined_passes.entrySet()){
         System.out.printf(" %-12s : %s%n",entry.getKey(),entry.getValue().getDescripion());
@@ -209,29 +238,26 @@ class Main
     Progress("parsing inputs...");
     int cnt = 0;
     long startTime = System.currentTimeMillis();
-    for(File f : options.getFiles()){
-      if (!options.isSkipContextSet()){
-        globalContext.add(f.toString());
+    for(String name : input){
+      File f=new File(name);
+      if (!no_context.get()){
+        globalContext.add(name);
       }
       parseFile(f.getPath());
       cnt++;
     }
     Progress("Parsed %d files in: %dms",cnt,System.currentTimeMillis() - startTime);
     List<String> passes=null;
-    if (options.isPassesSet()){
-    	passes=options.getPasses();
-    } else if (options.isBoogieSet()) {
+    if (boogie.get()) {
     	passes=new ArrayList<String>();
       passes.add("resolv");
       passes.add("check");
       passes.add("flatten");
       passes.add("assign");
-      if (!options.isHoareLogicSet()) {
-        passes.add("finalize_args");
-      }
+      passes.add("finalize_args");
       passes.add("reorder");
       passes.add("simplify_calls");
-      if (options.isInferModifiesSet()) {
+      if (infer_modifies.get()) {
         passes.add("resolv");
         passes.add("check");
         passes.add("modifies");
@@ -245,11 +271,11 @@ class Main
       passes.add("resolv");
       passes.add("check");
     	passes.add("boogie");
-    } else if (options.isChaliceSet()) {
+    } else if (chalice.get()) {
     	passes=new ArrayList<String>();
     	passes.add("resolv");
     	passes.add("check");
-      if (options.isExplicitPermissionsSet()){
+      if (explicit_encoding.get()){
         passes.add("java");
         passes.add("explicit_encoding");
         passes.add("java");
@@ -259,7 +285,7 @@ class Main
       passes.add("flatten");
       passes.add("resolv");
       passes.add("check");
-      if (options.isReferenceEncodingSet()){
+      if (reference_encoding.get()){
         passes.add("java");
         passes.add("refenc");
         passes.add("resolv");
@@ -288,7 +314,7 @@ class Main
       passes.add("resolv");
       passes.add("check");
     	passes.add("chalice");
-    } else if (options.isHoareLogicSet()) {
+    } else if (hoare_check.get()) {
     	passes=new ArrayList<String>();
     	passes.add("resolv");
     	passes.add("assign");
@@ -298,7 +324,7 @@ class Main
     }
     {
       TestReport res=null;
-      for(String pass:passes){
+      for(String pass:passes!=null?passes:pass_list){
         if (res!=null){
           Progress("Ignoring intermediate verdict %s",res.getVerdict());
           res=null;

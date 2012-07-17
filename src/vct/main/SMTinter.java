@@ -4,8 +4,7 @@ import java.util.*;
 
 import hre.io.Message;
 import hre.io.MessageProcess;
-import vct.options.VerCorsToolOptionStore;
-import vct.options.VerCorsToolSettings;
+
 /**
  * @author Remco Swenker
  * this class controls the interaction towards the SMTsolver. at the moment only Z3 tool is supported.
@@ -32,8 +31,7 @@ public class SMTinter {
 	 * @return the output form the SMT Solver in the form of a SMTresult class
 	 */
 	public SMTresult checkTripleZ3(String[] smtTriple, String[] variables, String logicType){
-		VerCorsToolOptionStore store=VerCorsToolSettings.getOptionStore();
-		MessageProcess z3=new MessageProcess(store.getZ3Tool(),"/smt2","/in");
+		MessageProcess z3=new MessageProcess("vct-z3","/smt2","/in");
 		List<String> ans = new ArrayList<String>();
 		boolean keepgoing = true;
 		boolean satisfied = false;
