@@ -21,8 +21,6 @@ import java.io.*;
 import java.util.*;
 
 import vct.col.ast.*;
-import vct.options.VerCorsToolOptionStore;
-import vct.options.VerCorsToolSettings;
 import vct.util.*;
 
 import static hre.System.Abort;
@@ -99,7 +97,6 @@ public class BoogieReport extends hre.util.TestReport {
   }
   
   private void parseDocument(Document dom,TrackingTree tree){
-    VerCorsToolOptionStore store=VerCorsToolSettings.getOptionStore();
 		//get the root elememt
 		Element docEle = dom.getDocumentElement();
 		
@@ -108,7 +105,7 @@ public class BoogieReport extends hre.util.TestReport {
 		for(int i = 0 ; i < method_list.getLength();i++) {	
 			Element method = (Element)method_list.item(i);
 			NodeList error_list = method.getElementsByTagName("error");
-			if (!store.isDetailedErrorsSet()){
+			if (/*!store.isDetailedErrorsSet()*/true) {
 			  if (error_list.getLength()>0){
 			    Element error = (Element)error_list.item(0);
           String message=error.getAttribute("message");

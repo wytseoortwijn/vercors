@@ -9,8 +9,6 @@ import java.io.*;
 import java.util.*;
 
 import vct.col.ast.*;
-import vct.options.VerCorsToolOptionStore;
-import vct.options.VerCorsToolSettings;
 import vct.util.*;
 import static hre.System.Debug;
 import static hre.System.Warning;
@@ -29,7 +27,6 @@ public class ChaliceReport extends hre.util.TestReport {
   
   public ChaliceReport(InputStream stream,TrackingTree tree){
     try {
-      VerCorsToolOptionStore store=VerCorsToolSettings.getOptionStore();
       BufferedReader in=new BufferedReader(new InputStreamReader(stream));
       PrintStream out=new PrintStream("chalice-output.txt");
       String line;
@@ -44,7 +41,7 @@ public class ChaliceReport extends hre.util.TestReport {
           int line_no=Integer.parseInt(line.substring(2,dot));
           int col_no=Integer.parseInt(line.substring(dot+1,colon));
           Origin origin=tree.getOrigin(line_no,col_no);
-          if (!store.isDetailedErrorsSet()){
+          if (/*!store.isDetailedErrorsSet()*/ true ){
             Debug("line is [%s]",line);
             int sentence=line.indexOf(". ",colon);
             String message;

@@ -19,15 +19,11 @@
     <delete file="vct-core.jar"/>
   </target>
 
-  <target name="options-jar">
-    <ant antfile="build.xml" dir="${basedir}/../options" inheritAll="false" target="jar"/>
-  </target>
-
-  <target name="compile" depends="options-jar">
+  <target name="compile">
     <mkdir dir="${bin}"/>
     <javac srcdir="${src}"
            destdir="${bin}"
-           classpath="${bin}:${basedir}/../options/libs:${basedir}/../options/vct-options.jar:"
+           classpath="${bin}:${basedir}/../hre/hre.jar"
            debug="on"
            includeAntRuntime="false"
            source="1.6"
@@ -45,9 +41,6 @@
 		  <fileset dir="bin">
 		  	<include name="**" />
 		  </fileset>
-		  <fileset dir="src">
-		  	<include name="vct/boogie/boogie-prelude.bpl" />
-		  </fileset>
 		</jar>
 	</target>
 
@@ -55,41 +48,6 @@
 	  <!-- do not inline! -->
 		<antcall target="jar-build"/>
 	</target>
-
-  <target name="doc" depends="jar">
-    <mkdir dir="${doc}"/>
-    <!-- overview="${src}/overview.html" -->
-    <javadoc
-           classpath="${basedir}/vct-core.jar"
-           destdir="${doc}"
-           author="true"
-           version="true"
-           use="true"
-           windowtitle="VerCors Tool API">
-
-      <fileset dir="${src}" defaultexcludes="yes">
-        <include name="**/*.java"/>
-        <!-- <exclude name="**/*.g"/>
-        <exclude name="**/*.jjt"/> -->
-      </fileset>
-      <!-- the parsers generate crappy pages....
-      <fileset dir="${gensrc}" defaultexcludes="yes">
-        <include name="slc/txt/PVAnnotatedParser.java"/>
-        <include name="slc/java/parser/JavaParser.java"/>
-      </fileset>
-      -->
-
-      <doctitle><![CDATA[<h1>VerCors Tool Core API</h1>]]></doctitle>
-      <bottom><![CDATA[<i>Copyright &#169; 2011 Stefan Blom. All Rights Reserved.</i>]]></bottom>
-      <!--
-      <tag name="todo" scope="all" description="To do:"/>
-      <group title="Group 1 Packages" packages="com.dummy.test.a*"/>
-      <group title="Group 2 Packages" packages="com.dummy.test.b*:com.dummy.test.c*"/>
-      <link offline="true" href="http://download.oracle.com/javase/6/docs/api/" packagelistLoc="C:\tmp"/>
-      <link href="http://developer.java.sun.com/developer/products/xml/docs/api/"/>
-      -->
-    </javadoc>
-  </target>
 
 </project>
 

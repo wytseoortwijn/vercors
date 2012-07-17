@@ -12,8 +12,6 @@ import java.io.*;
 import java.util.*;
 
 import vct.col.ast.*;
-import vct.options.VerCorsToolOptionStore;
-import vct.options.VerCorsToolSettings;
 import vct.util.*;
 
 /**
@@ -29,9 +27,8 @@ public class Main {
    * @param cl The class for which code must be generated.
    */
   public static BoogieReport TestBoogie(ASTClass cl){
-    VerCorsToolOptionStore store=VerCorsToolSettings.getOptionStore();
-    int timeout=store.getTimeOut();
-    String boogie=store.getBoogieTool();
+    int timeout=15;
+    String boogie="vct-boogie";
     try {
       if (cl.getDynamicCount()>0 && cl.getStaticCount()>0) {
         throw new Error("mixed static/dynamic boogie program.");
@@ -80,8 +77,7 @@ public class Main {
    *
    */
   public static CompositeReport TestChalice(final ASTClass program){
-    VerCorsToolOptionStore store=VerCorsToolSettings.getOptionStore();
-    String chalice=store.getChaliceTool();
+    String chalice="vct-chalice";
     CompositeReport report=new CompositeReport();
     System.err.println("Checking with Chalice");
     if (program.getDynamicCount()>0) throw new Error("chalice program with dynamic top level.");
