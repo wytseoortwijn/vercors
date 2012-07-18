@@ -1,5 +1,11 @@
 package vct.main;
 
+import hre.io.Container;
+import hre.io.UnionContainer;
+import hre.io.DirContainer;
+import hre.io.JarContainer;
+import hre.util.ContainerClassLoader;
+
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -17,12 +23,37 @@ public class Parser {
     //System.err.printf("home is %s%n",home);
     ClassLoader loader=null;
     try {
-      File f=new File(new File(home,language+"-parser"),"vct-parser.jar");
-      if (!f.exists()){
-        f=new File(new File(home,"plugins"),language+"-parser.jar");
+      File f=new File(new File(home,language+"-parser"),"bin");
+      if (f.exists() && f.isDirectory()){
+        Warning("loading %s parser from %s",language,f);
+        Container main=new DirContainer(f);
+        f=new File(new File(home,language+"-parser"),"lib");
+        if (!f.exists() || !f.isDirectory()){
+          f=new File(new File(home,language+"-parser"),"libs");
+        }
+        if (f.exists() && f.isDirectory()){
+          File libs[]=f.listFiles();
+          Container path[]=new Container[libs.length+1];
+          path[0]=main;
+          for(int i=0;i<libs.length;i++){
+            path[i+1]=new JarContainer(libs[i]);
+          }
+          loader = new ContainerClassLoader(new UnionContainer(path));
+        } else {
+          loader = new ContainerClassLoader(main);
+        }
+        
+      } else {
+        f=new File(new File(home,language+"-parser"),"vct-parser.jar");
+        if (!f.exists()){
+          f=new File(new File(home,"plugins"),language+"-parser.jar");
+        }
+        if (!f.exists()){
+          Fail("could not find parser for %s",language);
+        }
+        Warning("loading %s parser from %s",language,f);
+        loader = new ContainerClassLoader(new JarContainer(f));
       }
-      Warning("loading %s parser from %s",language,f);
-      loader = new JarClassLoader(f);
     } catch (IOException e) {
       Fail("could not load parser for %s",language);
     }
@@ -61,4 +92,5 @@ public class Parser {
     }
     return (ASTNode)result;
   }
+
 }
