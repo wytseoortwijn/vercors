@@ -24,6 +24,7 @@ import vct.col.rewrite.DefineDouble;
 import vct.col.rewrite.ExplicitPermissionEncoding;
 import vct.col.rewrite.FinalizeArguments;
 import vct.col.rewrite.Flatten;
+import vct.col.rewrite.ForallRule;
 import vct.col.rewrite.GlobalizeStatics;
 import vct.col.rewrite.GuardedCallExpander;
 import vct.col.rewrite.ReorderAssignments;
@@ -96,6 +97,8 @@ class Main
     
     BooleanSetting explicit_encoding=new BooleanSetting(false);
     clops.add(explicit_encoding.getEnable("explicit encoding"),"explicit");
+    BooleanSetting apply_forall_rule=new BooleanSetting(false);
+    clops.add(apply_forall_rule.getEnable("apply forall rule"),"apply-forall");
     BooleanSetting reference_encoding=new BooleanSetting(false);
     clops.add(reference_encoding.getEnable("reference encoding"),"refenc");
     
@@ -176,6 +179,11 @@ class Main
     defined_passes.put("flatten",new CompilerPass("remove nesting of expression"){
       public ASTClass apply(ASTClass arg){
         return (ASTClass)arg.apply(new Flatten());
+      }
+    });
+    defined_passes.put("forall_rule",new CompilerPass("Apply the forall rule to predicates"){
+      public ASTClass apply(ASTClass arg){
+        return (ASTClass)arg.apply(new ForallRule());
       }
     });
     defined_passes.put("globalize",new CompilerPass("split classes into static and dynamic parts"){
@@ -275,6 +283,12 @@ class Main
     	passes=new ArrayList<String>();
     	passes.add("resolv");
     	passes.add("check");
+      if (apply_forall_rule.get()){
+        passes.add("forall_rule");
+        passes.add("java");
+        passes.add("resolv");
+        passes.add("check");       
+      }
       if (explicit_encoding.get()){
         passes.add("java");
         passes.add("explicit_encoding");
@@ -320,7 +334,7 @@ class Main
     	passes.add("assign");
     	passes.add("hoare_logic");
     } else {
-    	Abort("no back-end or passes specified");
+    	if (!pass_list.iterator().hasNext()) Abort("no back-end or passes specified");
     }
     {
       TestReport res=null;
