@@ -158,6 +158,14 @@ public class JavaPrinter extends AbstractPrinter {
     if (contract!=null && !predicate){
       out.lnprintf("/*@");
       out.incrIndent();
+      for (DeclarationStatement d:contract.given){
+        out.printf("given ");
+        d.accept(this);
+      }
+      for (DeclarationStatement d:contract.yields){
+        out.printf("yields ");
+        d.accept(this);
+      }
       out.printf("requires ");
       nextExpr();
       contract.pre_condition.accept(this);

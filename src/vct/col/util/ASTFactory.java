@@ -692,16 +692,16 @@ public class ASTFactory<E> implements FrameControl {
   /**
    * Create a new binding expression.
    */
-  public ASTNode binder(Origin origin,Binder b,BlockStatement decls,ASTNode selection,ASTNode main) {
+  public ASTNode binder(Origin origin,Binder b,DeclarationStatement decls[],ASTNode selection,ASTNode main) {
     ASTNode res=new BindingExpression(b,decls,selection,main);
     res.setOrigin(origin);
     res.accept_if(post);
     return res;
   }
-  public ASTNode binder(E origin,Binder b,BlockStatement decls,ASTNode selection,ASTNode main) {
+  public ASTNode binder(E origin,Binder b,DeclarationStatement decls[],ASTNode selection,ASTNode main) {
     return binder(origin_source.create(origin),b,decls,selection,main);
   }
-  public ASTNode binder(Binder b,BlockStatement decls,ASTNode selection,ASTNode main) {
+  public ASTNode binder(Binder b,DeclarationStatement decls[],ASTNode selection,ASTNode main) {
     return binder(origin_stack.get(),b,decls,selection,main);      
   }
 

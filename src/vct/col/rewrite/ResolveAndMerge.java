@@ -10,6 +10,7 @@ import vct.col.ast.AssignmentStatement;
 import vct.col.ast.BlockStatement;
 import vct.col.ast.ClassType;
 import vct.col.ast.Contract;
+import vct.col.ast.ContractBuilder;
 import vct.col.ast.DeclarationStatement;
 import vct.col.ast.FunctionType;
 import vct.col.ast.Method;
@@ -330,7 +331,34 @@ public class ResolveAndMerge extends AbstractRewriter {
       String name=m.getArgument(i);
       var_names.add(name,new LocalDefinition(name,m.getArgType(i)));
     }
-    super.visit(m);
+
+    String name=m.getName();
+    DeclarationStatement args[]=rewrite_and_cast(m.getArgs());
+    Contract mc=m.getContract();
+    ContractBuilder cb=new ContractBuilder();
+    if (mc!=null){
+      var_names.enter();
+      for(DeclarationStatement d:mc.given){
+        String var=d.getName();
+        var_names.add(var,new LocalDefinition(var,d.getType()));
+        cb.given(rewrite_and_cast(d));
+      }
+      cb.requires(rewrite(mc.pre_condition));
+      for(DeclarationStatement d:mc.yields){
+        String var=d.getName();
+        var_names.add(var,new LocalDefinition(var,d.getType()));
+        cb.yields(rewrite_and_cast(d));
+      }
+      cb.ensures(rewrite(mc.post_condition));
+      var_names.leave();      
+    }
+    Method.Kind kind=m.kind;
+    Type rt=rewrite_and_cast(m.getReturnType());
+    ASTNode body=rewrite_nullable(m.getBody());
+    Method res=new Method(kind,name,rt,cb.getContract(),args,body);
+    res.setOrigin(m.getOrigin());
+    result=res;
+    
     type_names.leave();
     var_names.leave();
     method_names.leave();

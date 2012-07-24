@@ -12,18 +12,12 @@ public class BindingExpression extends ASTNode {
   public final ASTNode main;
   private ArrayList<DeclarationStatement> decls=new ArrayList<DeclarationStatement>();
   
-  public BindingExpression(Binder binder,BlockStatement decls,ASTNode select,ASTNode main){
+  public BindingExpression(Binder binder,DeclarationStatement decls[],ASTNode select,ASTNode main){
     this.binder=binder;
     this.select=select;
     this.main=main;
-    int N=decls.getLength();
-    for(int i=0;i<N;i++){
-      ASTNode n=decls.getStatement(i);
-      if (n instanceof DeclarationStatement){
-        this.decls.add((DeclarationStatement)n);
-      } else {
-        Abort("found %s among declarations for binding expression",n.getClass());
-      }
+    for (DeclarationStatement decl:decls){
+      this.decls.add(decl);
     }
   }
   

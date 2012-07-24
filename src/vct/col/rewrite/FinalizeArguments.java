@@ -53,7 +53,7 @@ public class FinalizeArguments extends AbstractRewriter {
       Substitution sigma=new Substitution(subst);
       ASTNode pre=mc.pre_condition.apply(sigma);
       ASTNode post=mc.post_condition.apply(sigma);
-      c=new Contract(rewrite_nullable(mc.modifies),pre,post);
+      c=new Contract(mc.given,mc.yields,rewrite_nullable(mc.modifies),pre,post);
     }
     if (c!=null) res.setContract(c);
     { // this flattening could also be done by a generic pass.

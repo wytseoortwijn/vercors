@@ -51,9 +51,9 @@ public class Method extends ASTNode {
     for(int i=0;i<args.length;i++){
       if (this.args[i].getParent()==null) this.args[i].setParent(this);
     }
-    this.contract=contract;
     this.body=body;
     this.kind=kind;
+    if (contract!=null) setContract(contract);
   }
 
   public Kind getKind(){ return kind; }
@@ -68,6 +68,12 @@ public class Method extends ASTNode {
 
   public void setContract(Contract contract){
     this.contract=contract;
+    for(DeclarationStatement d:contract.given){
+      d.setParent(this);
+    }
+    for(DeclarationStatement d:contract.yields){
+      d.setParent(this);
+    }
   }
   public Contract getContract(){
     return contract;

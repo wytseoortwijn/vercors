@@ -404,14 +404,14 @@ public class ReferenceEncoding extends AbstractRewriter {
         Method unfold=new Method(Kind.Plain,method_name+"_unfold",args,tv);
         unfold.setBody(unfold_body);
         //TODO: fix contract
-        unfold.setContract(new Contract(IfStatement.else_guard,body));
+        unfold.setContract(new Contract(new DeclarationStatement[0],new DeclarationStatement[0],IfStatement.else_guard,body));
         unfold.setOrigin(m.getOrigin());
         res.add_dynamic(unfold);
         
         Method fold=new Method(Kind.Plain,method_name+"_fold",args,tv);
         fold.setBody(fold_body);
         //TODO: fix contract
-        fold.setContract(new Contract(body,IfStatement.else_guard));
+        fold.setContract(new Contract(new DeclarationStatement[0],new DeclarationStatement[0],body,IfStatement.else_guard));
         fold.setOrigin(m.getOrigin());
         res.add_dynamic(fold);
         
@@ -452,7 +452,7 @@ public class ReferenceEncoding extends AbstractRewriter {
       if (mc!=null){
         ASTNode pre=mc.pre_condition.apply(clause_rw);
         ASTNode post=mc.post_condition.apply(clause_rw);
-        c=new Contract(rewrite_nullable(mc.modifies),pre,post);
+        c=new Contract(new DeclarationStatement[0],new DeclarationStatement[0],rewrite_nullable(mc.modifies),pre,post);
       }
       Method.Kind kind=m.kind;
       if (kind==Method.Kind.Constructor){

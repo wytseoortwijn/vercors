@@ -8,20 +8,26 @@ import vct.col.util.ASTUtils;
 public class Contract {
   public final ASTNode pre_condition;
   public final ASTNode post_condition;
+  public final DeclarationStatement given[];
+  public final DeclarationStatement yields[];
   public final ASTNode modifies[];
   
   private HashSet<String> labels=new HashSet<String>();
     
-  public Contract(ASTNode pre_condition,ASTNode post_condition){
+  public Contract(DeclarationStatement given[],DeclarationStatement yields[],ASTNode pre_condition,ASTNode post_condition){
     this. pre_condition= pre_condition;
     this.post_condition=post_condition;
+    this.given=given;
+    this.yields=yields;
     modifies=null;
     build_labels();
   }
   
-  public Contract(ASTNode modifies[],ASTNode pre_condition,ASTNode post_condition){
+  public Contract(DeclarationStatement given[],DeclarationStatement yields[],ASTNode modifies[],ASTNode pre_condition,ASTNode post_condition){
       this. pre_condition= pre_condition;
       this.post_condition=post_condition;
+      this.given=given;
+      this.yields=yields;
       this.modifies=modifies;
       build_labels();
     }

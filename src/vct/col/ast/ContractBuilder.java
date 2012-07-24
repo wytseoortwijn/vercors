@@ -33,11 +33,34 @@ public class ContractBuilder {
       }
     }
   }
+  
+  /**
+   * Add the given declarations to the list of given variables.
+   * @param decls A block consisting of declaration statement only.
+   */
   public void given(BlockStatement decls){
     scan_to(given,decls);
   }
+  /**
+   * Add the given declarations to the list of yielded variables.
+   * @param decls
+   */
   public void yields(BlockStatement decls){
     scan_to(yields,decls);    
+  }
+  /**
+   * Add the given declarations to the list of given variables.
+   * @param decls Any number of declarations.
+   */
+  public void given(DeclarationStatement ... decls){
+    for(DeclarationStatement d:decls) given.add(d);
+  }
+  /**
+   * Add the given declarations to the list of yielded variables.
+   * @param decls Any number of declarations.
+   */
+  public void yields(DeclarationStatement ... decls){
+    for(DeclarationStatement d:decls) yields.add(d);
   }
   public void ensures(ASTNode condition){
     if (condition.getOrigin()==null) throw new Error("condition "+condition.getClass()+" without origin");
@@ -66,7 +89,7 @@ public class ContractBuilder {
     if (modifiable!=null){
       mods=modifiable.toArray(new ASTNode[0]);
     }
-    return new Contract(mods,pre_condition,post_condition);
+    return new Contract(given.toArray(decls),yields.toArray(decls),mods,pre_condition,post_condition);
   }
   public void modifies(ASTNode ... locs) {
     if (modifiable==null) modifiable=new HashSet<ASTNode>();

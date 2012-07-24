@@ -39,8 +39,19 @@ import static hre.System.*;
  */ 
 public abstract class AbstractRewriter extends AbstractVisitor<ASTNode> {
 
+  /**
+   * Refers to the resulting package of the current package being rewritten.
+   */
   protected ASTClass currentPackage=null;
+  /**
+   * Refers to the resulting class of the current class being rewritten.
+   */
+  protected ASTClass currentClass=null;
   
+  /**
+   * This variable references an AST factory, whose Origin is set to
+   * the origin of the current node being rewritten.
+   */
   public final ASTFactory create;
       
   public AbstractRewriter(){
@@ -73,7 +84,7 @@ public abstract class AbstractRewriter extends AbstractVisitor<ASTNode> {
   }
 
   public Contract rewrite(Contract c){
-    return new Contract(rewrite_nullable(c.modifies),rewrite(c.pre_condition),rewrite(c.post_condition));
+    return new Contract(rewrite_and_cast(c.given),rewrite_and_cast(c.yields),rewrite_nullable(c.modifies),rewrite(c.pre_condition),rewrite(c.post_condition));
   }
 
   public ASTNode rewrite(ASTNode node){
@@ -155,6 +166,8 @@ public abstract class AbstractRewriter extends AbstractVisitor<ASTNode> {
       res.setOrigin(c.getOrigin());
       if (c.isPackage()) {
         currentPackage.add_static(res);
+      } else {
+        currentClass=res;
       }
       int N=c.getStaticCount();
       for(int i=0;i<N;i++){
@@ -169,6 +182,7 @@ public abstract class AbstractRewriter extends AbstractVisitor<ASTNode> {
         result=null;
       } else{
         result=res;
+        currentClass=null;
       }
     }
   }
