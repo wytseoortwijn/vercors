@@ -62,7 +62,7 @@ public class OptionParser {
         String arg=null;
         if (arg_idx >= 0) {
           arg=name.substring(arg_idx+1);
-          name=name.substring(0,arg_idx-1);
+          name=name.substring(0,arg_idx);
         }
         Option opt=long_options.get(name);
         if (opt==null){
