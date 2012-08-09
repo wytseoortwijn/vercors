@@ -202,7 +202,8 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
       } else {
         throw new Error("fork/join are limited to name expressions");
       }
-      out.lnprintf("fork tok_%s := %s.run();",name,name);
+      //TODO: fix assumed global argument!
+      out.lnprintf("fork tok_%s := %s.run(global);",name,name);
       break;
     }
       case Join:{

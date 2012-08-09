@@ -459,6 +459,22 @@ public class ASTFactory<E> implements FrameControl {
   /**
    * Create a method declaration
    */
+  public Method method_kind(Origin origin,Method.Kind kind,Type returns,Contract contract,String name,DeclarationStatement args[],ASTNode body){
+    Method res=new Method(kind,name,returns,contract,args,body);
+    res.setOrigin(origin);
+    res.accept_if(post);
+    return res;
+  }
+  public Method method_kind(E origin,Method.Kind kind,Type returns,Contract contract,String name,DeclarationStatement args[],ASTNode body){
+    return method_kind(origin_source.create(origin),kind,returns,contract,name,args,body);
+  }
+  public Method method_kind(Method.Kind kind,Type returns,Contract contract,String name,DeclarationStatement args[],ASTNode body){
+    return method_kind(origin_stack.get(),kind,returns,contract,name,args,body);
+  }
+  
+  /**
+   * Create a method declaration
+   */
   public Method method_decl(Origin origin,Type returns,Contract contract,String name,DeclarationStatement args[],ASTNode body){
     Method res=new Method(Method.Kind.Plain,name,returns,contract,args,body);
     res.setOrigin(origin);
@@ -660,7 +676,7 @@ public class ASTFactory<E> implements FrameControl {
     res.setEntryGuard(test);
     res.setBody(body);
     res.setOrigin(origin);
-    for (ASTNode inv:invariant) res.addInvariant(inv);
+    for (ASTNode inv:invariant) res.appendInvariant(inv);
     res.accept_if(post);
     return res;    
   }

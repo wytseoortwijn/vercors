@@ -22,6 +22,7 @@ public class JavaSyntax {
       syntax.addInfix(IFF,"<==>",30);
       syntax.addLeftFix(Wand,"-*",30);
       syntax.addFunction(Perm,"Perm");
+      syntax.addFunction(Value,"Value");
       syntax.addFunction(PointsTo,"PointsTo");
       syntax.addFunction(Old,"\\old");
       

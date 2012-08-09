@@ -51,7 +51,11 @@ public class LoopStatement extends ASTNode {
     visitor.visit(this);
   }
 
-  public void addInvariant(ASTNode inv){
+  public void prependInvariant(ASTNode inv){
+    invariants.add(0,inv);
+  }
+  
+  public void appendInvariant(ASTNode inv){
     invariants.add(inv);
   }
   

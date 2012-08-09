@@ -285,7 +285,7 @@ public abstract class AbstractRewriter extends AbstractVisitor<ASTNode> {
     tmp=s.getExitGuard();
     if (tmp!=null) res.setExitGuard(tmp.apply(this));
     for(ASTNode inv:s.getInvariants()){
-      res.addInvariant(inv.apply(this));
+      res.appendInvariant(inv.apply(this));
     }
     tmp=s.getBody();
     res.setBody(tmp.apply(this));

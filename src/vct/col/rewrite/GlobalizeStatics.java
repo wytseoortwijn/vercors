@@ -3,7 +3,10 @@ package vct.col.rewrite;
 import hre.ast.MessageOrigin;
 import vct.col.ast.ASTClass;
 import vct.col.ast.ASTClass.ClassKind;
+import vct.col.ast.ASTNode;
 import vct.col.ast.ClassType;
+import vct.col.ast.Contract;
+import vct.col.ast.ContractBuilder;
 import vct.col.ast.DeclarationStatement;
 import vct.col.ast.Method;
 import vct.col.ast.MethodInvokation;
@@ -16,10 +19,26 @@ import static hre.System.Debug;
 import static hre.System.Fail;
 import static hre.System.Warning;
 
-public class GlobalizeStatics extends AbstractRewriter {
-  private ASTClass global_class;
-  String prefix;
-  boolean processing_static;
+/**
+ * Base class for rewriting all static entries as a single Global class.
+ * This base class will do all of the rewriting, except the creation
+ * of the name global that refers to the global entries. The class
+ * {@link GlobalizeStaticsParameter} adds a parameter global to all
+ * non-static methods. The class {@link GlobalizeStaticsField} adds
+ * a field global to every class.
+ * 
+ * An advantage of adding a field is that it allows non-static predicates
+ * to refer to static variables without adding an argument.
+ * A disadvantage is that it requires generating contracts to make it work.
+ * 
+ * @author sccblom
+ *
+ */
+public abstract class GlobalizeStatics extends AbstractRewriter {
+  
+  protected ASTClass global_class;
+  protected String prefix;
+  protected boolean processing_static;
   
   public void visit(ASTClass cl){
     if (cl.getParent()==null){
@@ -44,7 +63,6 @@ public class GlobalizeStatics extends AbstractRewriter {
     case Plain:{
       int N;
       ASTClass res=create.ast_class(cl.name,ClassKind.Plain,null,null);
-      res.add_dynamic(create.field_decl("global",create.class_type("Global")));
       N=cl.getStaticCount();
       prefix=new ClassName(cl.getFullName()).toString("_");
       processing_static=true;
@@ -92,6 +110,7 @@ public class GlobalizeStatics extends AbstractRewriter {
       super.visit(m);
     }
   }
+
   public void visit(MethodInvokation m){
     if (m.object instanceof ClassType && !m.isInstantiation()){
       String prefix=new ClassName(((ClassType)m.object).name).toString("_");
