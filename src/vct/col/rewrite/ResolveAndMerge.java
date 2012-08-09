@@ -350,6 +350,7 @@ public class ResolveAndMerge extends AbstractRewriter {
         cb.yields(rewrite_and_cast(d));
       }
       cb.ensures(rewrite(mc.post_condition));
+      if (mc.modifies!=null) cb.modifies(rewrite(mc.modifies));
       var_names.leave();      
     }
     Method.Kind kind=m.kind;
