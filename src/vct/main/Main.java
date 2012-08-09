@@ -25,7 +25,8 @@ import vct.col.rewrite.ExplicitPermissionEncoding;
 import vct.col.rewrite.FinalizeArguments;
 import vct.col.rewrite.Flatten;
 import vct.col.rewrite.ForallRule;
-import vct.col.rewrite.GlobalizeStatics;
+import vct.col.rewrite.GlobalizeStaticsField;
+import vct.col.rewrite.GlobalizeStaticsParameter;
 import vct.col.rewrite.GuardedCallExpander;
 import vct.col.rewrite.ReorderAssignments;
 import vct.col.rewrite.ResolveAndMerge;
@@ -101,11 +102,13 @@ class Main
     clops.add(apply_forall_rule.getEnable("apply forall rule"),"apply-forall");
     BooleanSetting reference_encoding=new BooleanSetting(false);
     clops.add(reference_encoding.getEnable("reference encoding"),"refenc");
+    BooleanSetting global_with_field=new BooleanSetting(false);
+    clops.add(global_with_field.getEnable("Encode global access with a field rather than a parameter. (expert option)"),"global-with-field");
     
     BooleanSetting infer_modifies=new BooleanSetting(false);
     clops.add(infer_modifies.getEnable("infer modifies clauses"),"infer-modifies");
     BooleanSetting no_context=new BooleanSetting(false);
-    clops.add(no_context.getEnable("disable context ???"),"no-context");
+    clops.add(no_context.getEnable("disable printing the context of errors"),"no-context");
     
     StringListSetting debug_list=new StringListSetting();
     clops.add(debug_list.getAppendOption("print debug message for given classes and/or packages"),"debug");
@@ -186,11 +189,20 @@ class Main
         return (ASTClass)arg.apply(new ForallRule());
       }
     });
-    defined_passes.put("globalize",new CompilerPass("split classes into static and dynamic parts"){
-      public ASTClass apply(ASTClass arg){
-        return (ASTClass)arg.apply(new GlobalizeStatics());
-      }
-    });
+    if (global_with_field.get()){
+      Warning("Using the incomplete and experimental field access for globals.");
+      defined_passes.put("globalize",new CompilerPass("split classes into static and dynamic parts"){
+        public ASTClass apply(ASTClass arg){
+          return (ASTClass)arg.apply(new GlobalizeStaticsField());
+        }
+      });      
+    } else {
+      defined_passes.put("globalize",new CompilerPass("split classes into static and dynamic parts"){
+        public ASTClass apply(ASTClass arg){
+          return (ASTClass)arg.apply(new GlobalizeStaticsParameter());
+        }
+      });
+    }
     defined_checks.put("hoare_logic",new ValidationPass("Check Hoare Logic Proofs"){
       public TestReport apply(ASTClass arg){
         Brain.main(arg);
