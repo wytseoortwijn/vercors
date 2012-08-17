@@ -302,6 +302,9 @@ class Main
         passes.add("check");       
       }
       if (explicit_encoding.get()){
+        passes.add("expand");
+        passes.add("resolv");
+        passes.add("check");
         passes.add("java");
         passes.add("explicit_encoding");
         passes.add("java");
@@ -334,7 +337,6 @@ class Main
       passes.add("check");
       passes.add("voidcalls");
       passes.add("resolv");
-      //passes.add("java");
       passes.add("check");
       passes.add("flatten");
       passes.add("resolv");
