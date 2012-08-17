@@ -24,6 +24,12 @@ public abstract class AbstractBoogiePrinter extends AbstractPrinter {
     this.boogie=boogie;
   }
   public void visit(MethodInvokation e){
+    String tag;
+    if (e.labels()==1){
+      tag=e.getLabel(0).getName();
+    } else {
+      tag="_";
+    }
     boolean statement=!in_expr;
     if(!in_expr) {
       out.printf("call ");
@@ -41,7 +47,7 @@ public abstract class AbstractBoogiePrinter extends AbstractPrinter {
     }
     for(int i=args.length;i<types.length;i++){
       if (types[i].isValidFlag(ASTFlags.OUT_ARG)&&types[i].getFlag(ASTFlags.OUT_ARG)) {
-        out.printf("%s__",next);
+        out.printf("%s%s_%s",next,tag,types[i].getName());
         next=",";
       }
     }
@@ -216,6 +222,11 @@ public abstract class AbstractBoogiePrinter extends AbstractPrinter {
   public void visit(OperatorExpression e){
     String keyword=null;
     switch(e.getOperator()){
+      case DirectProof:{
+        out.printf("%s",((StringValue)((ConstantExpression)e.getArg(0)).value).getStripped());
+        out.lnprintf(";");
+        break;
+      }
       case Assume:
         if (keyword==null) keyword="assume";
       case Assert:

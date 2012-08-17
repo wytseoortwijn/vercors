@@ -92,6 +92,8 @@ public enum StandardOperator {
   Lock(1),
   /** Unfold statement. */
   Unlock(1),
+  /** Direct proof statement. */
+  DirectProof(1),
   /** Fold statement. */
   Fold(1),
   /** Unfold statement. */

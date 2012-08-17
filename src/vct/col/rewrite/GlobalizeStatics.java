@@ -113,7 +113,7 @@ public abstract class GlobalizeStatics extends AbstractRewriter {
 
   public void visit(MethodInvokation m){
     if (m.object instanceof ClassType && !m.isInstantiation()){
-      String prefix=new ClassName(((ClassType)m.object).name).toString("_");
+      String prefix=new ClassName(((ClassType)m.object).getNameFull()).toString("_");
       if (processing_static){
         result=create.invokation(
           create.this_expression(create.class_type("Global")),
@@ -135,7 +135,7 @@ public abstract class GlobalizeStatics extends AbstractRewriter {
   public void visit(OperatorExpression e){
     if (e.getOperator()==StandardOperator.Select && (e.getArg(0) instanceof ClassType)){
       NameExpression var=(NameExpression)e.getArg(1);
-      String var_name=new ClassName(((ClassType)e.getArg(0)).name).toString("_")+"_"+var.getName();
+      String var_name=new ClassName(((ClassType)e.getArg(0)).getNameFull()).toString("_")+"_"+var.getName();
       if (!processing_static){
         result=create.expression(
             StandardOperator.Select,

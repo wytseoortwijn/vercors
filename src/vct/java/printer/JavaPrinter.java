@@ -383,6 +383,15 @@ public class JavaPrinter extends AbstractPrinter {
         out.lnprintf(".unlock()");
         break;        
       }
+      case DirectProof:{
+        out.printf("//@ proof ");
+        current_precedence=0;
+        setExpr();
+        ASTNode string=e.getArg(0);
+        string.accept(this);
+        out.lnprintf(";");        
+        break;
+      }
       case Unfold:{
         out.printf("//@ unfold ");
         current_precedence=0;

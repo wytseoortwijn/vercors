@@ -50,7 +50,7 @@ public class GlobalizeStaticsParameter extends GlobalizeStatics {
             rewrite(m.getContract()),
             m.getName(),
             args,
-            rewrite(m.getBody()));
+            rewrite_nullable(m.getBody()));
         break;
       }
       default:
@@ -92,6 +92,7 @@ public class GlobalizeStaticsParameter extends GlobalizeStatics {
         );
         break;
       }
+      case Pure:
       case Predicate:
         super.visit(m);
         break;

@@ -14,4 +14,8 @@ public class StringValue implements Value {
   public String toString(){
     return value;
   }
+  public String getStripped(){
+    String res=value.substring(1,value.length()-1);
+    return res;
+  }
 }

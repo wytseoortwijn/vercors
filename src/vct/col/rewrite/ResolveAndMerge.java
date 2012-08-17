@@ -176,22 +176,23 @@ public class ResolveAndMerge extends AbstractRewriter {
   }
 
   public void visit(ClassType t){
-    ClassDefinition def=defs.lookupClass(t.name);
+    String t_name[]=t.getNameFull();
+    ClassDefinition def=defs.lookupClass(t_name);
     if (def!=null) {
       result=t;
       return;
     }
-    AnyDefinition tmp=type_names.lookup(t.name[0]);
+    AnyDefinition tmp=type_names.lookup(t_name[0]);
     if (tmp!=null){
       if (tmp instanceof ClassDefinition){
         def=(ClassDefinition)tmp;
-        String new_name[]=new String[def.full_name.length+t.name.length-1];
+        String new_name[]=new String[def.full_name.length+t_name.length-1];
         for(int i=0;i<def.full_name.length;i++){
           new_name[i]=def.full_name[i];
         }
         int ofs=def.full_name.length-1;
-        for(int i=1;i<t.name.length;i++){
-          new_name[ofs+i]=t.name[i];
+        for(int i=1;i<t_name.length;i++){
+          new_name[ofs+i]=t_name[i];
         }
         def=defs.lookupClass(new_name);
         if(def!=null){
@@ -201,7 +202,7 @@ public class ResolveAndMerge extends AbstractRewriter {
           return;
         }
       } else {
-        throw new Error("the name "+t.name[0]+" is " + tmp.getClass() + " instead of class at " + t.getOrigin());
+        throw new Error("the name "+t_name[0]+" is " + tmp.getClass() + " instead of class at " + t.getOrigin());
       }
     }
     Fail("could not resolve class type "+t.getFullName());

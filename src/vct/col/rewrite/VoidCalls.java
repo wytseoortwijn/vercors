@@ -48,6 +48,9 @@ public class VoidCalls extends AbstractRewriter {
         Substitution subst=new Substitution(map);
         cb.requires(c.pre_condition.apply(subst));
         cb.ensures(c.post_condition.apply(subst));
+        if (c.given!=null){
+          cb.given(rewrite_and_cast(c.given));
+        }
       }
       result=create.method_decl(
           create.primitive_type(PrimitiveType.Sort.Void),
@@ -97,7 +100,12 @@ public class VoidCalls extends AbstractRewriter {
         args[i+1]=rewrite(e.getArg(i));
       }
       args[0]=rewrite(s.getLocation());
-      result=create.invokation(rewrite(e.object), e.guarded , rewrite_and_cast(e.method), args );
+      ASTNode res=create.invokation(rewrite(e.object), e.guarded , rewrite_and_cast(e.method), args );
+      for(NameExpression lbl:e.getLabels()){
+        Debug("VOIDCALLS: copying label %s",lbl);
+        res.addLabel(rewrite_and_cast(lbl));
+      }
+      result=res;
     } else {
       super.visit(s);
     }

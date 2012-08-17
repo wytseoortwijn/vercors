@@ -97,7 +97,7 @@ public class ReferenceEncoding extends AbstractRewriter {
       Type t=s.getType();
       if (t instanceof ClassType) {
         ClassType ct=(ClassType)t;
-        t=create.class_type(t.getOrigin(),append_suffix(ct.name,"_data"));
+        t=create.class_type(t.getOrigin(),append_suffix(ct.getNameFull(),"_data"));
       } else {
         t=this.rewrite_and_cast(t);
       }
@@ -283,7 +283,7 @@ public class ReferenceEncoding extends AbstractRewriter {
           Type t=decl.getType();
           if (t instanceof ClassType){
             ClassType ct=(ClassType)t;
-            ClassType ref_ct=create.class_type(o,append_suffix(ct.name,"_ref"));
+            ClassType ref_ct=create.class_type(o,append_suffix(ct.getNameFull(),"_ref"));
             decl=create.field_decl(o,decl.getName(),ref_ct);
             res.add_dynamic(decl);
             ASTNode decl_name=new NameExpression(decl.getName());
@@ -428,10 +428,9 @@ public class ReferenceEncoding extends AbstractRewriter {
     }
 
     public void visit(ClassType t){
-      String name[]=new String[t.name.length];
-      int N=t.name.length-1;
-      for(int i=0;i<N;i++)name[i]=t.name[i];
-      name[N]=t.name[N]+"_ref";
+      String name[]=t.getNameFull();
+      int N=name.length-1;
+      name[N]=name[N]+"_ref";
       ClassType res=new ClassType(name);
       res.setOrigin(t.getOrigin());
       result=res;    

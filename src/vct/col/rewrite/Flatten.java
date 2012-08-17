@@ -62,9 +62,15 @@ public class Flatten extends AbstractRewriter {
       Debug("inserting in %s",declaration_block);
       declaration_block.add_statement(n);
       Debug("assigning resutl of call");
-      current_block.add_statement(create.assignment(create.local_name(name),create.invokation(object,e.guarded,method,args)));
+      ASTNode call=create.invokation(object,e.guarded,method,args);
+      for(NameExpression lbl:e.getLabels()){
+        Debug("FLATTEN: copying label %s",lbl);
+        call.addLabel(lbl);
+      }
+      current_block.add_statement(create.assignment(create.local_name(name),call));
       Debug("return variable name");
       result=create.local_name(name);
+      auto_labels=false;
     }
   }
  

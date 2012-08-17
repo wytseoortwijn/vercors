@@ -6,7 +6,12 @@ import java.util.Arrays;
 
 public class ClassType extends Type {
 
-  public final String name[];
+  private final String name[];
+  
+  public String[] getNameFull(){
+    return Arrays.copyOf(name,name.length);
+  }
+  
   public ClassType(String name) {
     this.name=new String[1];
     this.name[0]=name;
@@ -65,5 +70,7 @@ public class ClassType extends Type {
       return false;
     }
   }
-  
+  public ASTNode zero(){
+    return new NameExpression(NameExpression.Kind.Reserved,"null");
+  }
 }

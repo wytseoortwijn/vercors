@@ -17,7 +17,7 @@ public class SimplifyCalls extends AbstractRewriter {
       }
     } else if (object instanceof ClassType) {
       ClassType t=(ClassType)object;
-      if (ClassName.equal(t.name,current_class().getFullName())){
+      if (ClassName.equal(t.getNameFull(),current_class().getFullName())){
         object=null;
       }
     }

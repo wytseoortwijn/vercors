@@ -49,6 +49,11 @@ public abstract class AbstractRewriter extends AbstractVisitor<ASTNode> {
   protected ASTClass currentClass=null;
   
   /**
+   * Prevent automatic copying of labels.
+   */
+  protected boolean auto_labels=true;
+  
+  /**
    * This variable references an AST factory, whose Origin is set to
    * the origin of the current node being rewritten.
    */
@@ -63,6 +68,7 @@ public abstract class AbstractRewriter extends AbstractVisitor<ASTNode> {
     for(NameExpression lbl:n.getLabels()){
       Debug("enter %s with label %s",n.getClass(),lbl);
     }
+    auto_labels=true;
     create.enter();
     create.setOrigin(n.getOrigin());
     result=null;
@@ -71,14 +77,20 @@ public abstract class AbstractRewriter extends AbstractVisitor<ASTNode> {
   public void post_visit(ASTNode n){
     if (result==n) Debug("rewriter linked instead of making a copy"); 
     if (result!=null && result!=n) {
-      ASTNode tmp=result;
-      for(NameExpression lbl:n.getLabels()){
-        Debug("leave %s with label %s",n.getClass(),lbl);
-        tmp.addLabel(rewrite_and_cast(lbl));
+      if (auto_labels){
+        ASTNode tmp=result;
+        for(NameExpression lbl:n.getLabels()){
+          Debug("leave %s with label %s",n.getClass(),lbl);
+          NameExpression copy=new NameExpression(lbl.getName());
+          copy.setKind(NameExpression.Kind.Label);
+          copy.setOrigin(lbl.getOrigin());
+          tmp.addLabel(copy);
+        }
+        result=tmp;
       }
-      result=tmp;
       result.copyMissingFlags(n);
     }
+    auto_labels=true;
     create.leave();
     super.post_visit(n);
   }
@@ -89,6 +101,15 @@ public abstract class AbstractRewriter extends AbstractVisitor<ASTNode> {
 
   public ASTNode rewrite(ASTNode node){
     return node.apply(this);
+  }
+  
+  public <E extends ASTNode> E[] rewrite(E head,E[] tail){
+    E[] res=Arrays.copyOf(tail, tail.length+1);
+    res[0]=rewrite_and_cast(head);
+    for(int i=0;i<tail.length;i++){
+      res[i+1]=rewrite_and_cast(tail[i]);
+    }
+    return res;
   }
   
   public ASTNode[] rewrite(ASTNode array[]){
@@ -211,7 +232,7 @@ public abstract class AbstractRewriter extends AbstractVisitor<ASTNode> {
 
   public void visit(ClassType t){
     //checkPermission(t);
-    ClassType res=new ClassType(t.name);
+    ClassType res=new ClassType(t.getNameFull());
     res.setOrigin(t.getOrigin());
     result=res; return ;    
   }

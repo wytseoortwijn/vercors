@@ -25,11 +25,14 @@ public class GuardedCallExpander extends AbstractRewriter {
       OperatorExpression guard=new OperatorExpression(StandardOperator.NEQ,object,null_expression);
       guard.setOrigin(e.getOrigin());
       
-      ASTNode call=new MethodInvokation(object,method,args);
-      call.setOrigin(e.getOrigin());
-      
+      ASTNode call=create.invokation(object,false,method,args);
+      for(NameExpression lbl:e.getLabels()){
+        call.addLabel(rewrite_and_cast(lbl));
+      }
+
       result=new OperatorExpression(StandardOperator.Implies,guard,call);
       result.setOrigin(e.getOrigin());
+      auto_labels=false;
     }
   }
 

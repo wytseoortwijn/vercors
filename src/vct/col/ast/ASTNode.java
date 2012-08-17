@@ -183,7 +183,7 @@ public abstract class ASTNode implements ASTFlags {
       tmp=tmp.getParent();
     }
     ASTClass root=(ASTClass)tmp;
-    return root.find(t.name);
+    return root.find(t.getNameFull());
   }
   
   /**

@@ -24,7 +24,7 @@ public class SimpleTypeCheck extends AbstractVisitor<Type> {
     if (e.getType()==null) Abort("untyped constant %s",e);
   }
   public void visit(ClassType t){
-    ASTClass cl=namespace.find(t.name);
+    ASTClass cl=namespace.find(t.getNameFull());
     if (cl==null) Fail("type error: class "+t.getFullName()+" not found"); 
     t.setType(t);
   }
@@ -49,7 +49,7 @@ public class SimpleTypeCheck extends AbstractVisitor<Type> {
       type[i]=e.getArg(i).getType();
       if (type[i]==null) Abort("argument %d has no type.",i);
     }
-    ASTClass cl=namespace.find(object_type.name);
+    ASTClass cl=namespace.find(object_type.getNameFull());
     if (cl==null) Fail("could not find class %s",object_type.getFullName());
     Method m=cl.find(e.method.getName(),type);
     if (m==null) {
@@ -145,7 +145,7 @@ public class SimpleTypeCheck extends AbstractVisitor<Type> {
         Abort("unresolved name %s found during type check at %s",name,e.getOrigin());
         break;
       case Label:
-        // labels have no type!
+        e.setType(new ClassType("<<label>>"));
         break;
       default:
         Abort("missing case for kind %s",kind);
@@ -186,8 +186,13 @@ public class SimpleTypeCheck extends AbstractVisitor<Type> {
       Type object_type=e.getArg(0).getType();
       if (object_type==null) Fail("type of object unknown at "+e.getOrigin());
       if (!(object_type instanceof ClassType)) Abort("cannot select members of non-object type.");
-      Debug("resolving class "+((ClassType)object_type).getFullName()+" "+((ClassType)object_type).name.length);
-      ASTClass cl=namespace.find(((ClassType)object_type).name);
+      if (((ClassType)object_type).getFullName().equals("<<label>>")){
+        //TODO: avoid this kludge to not typing labeled arguments
+        e.setType(object_type);
+        break;
+      }
+      Debug("resolving class "+((ClassType)object_type).getFullName()+" "+((ClassType)object_type).getNameFull().length);
+      ASTClass cl=namespace.find(((ClassType)object_type).getNameFull());
       if (cl==null) Fail("could not find class %s",((ClassType)object_type).getFullName());
       Debug("looking in class "+cl.getName());
       DeclarationStatement decl=cl.find_field(field.getName());
@@ -299,7 +304,11 @@ public class SimpleTypeCheck extends AbstractVisitor<Type> {
       }
       e.setType(new PrimitiveType(Sort.Boolean));      
       break;
-    }    
+    }
+    case DirectProof:{
+      e.setType(new PrimitiveType(Sort.Void));
+      break;
+    }
     case Assert:
     case Fold:
     case HoarePredicate:
