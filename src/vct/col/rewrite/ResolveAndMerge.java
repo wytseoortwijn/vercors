@@ -374,6 +374,8 @@ public class ResolveAndMerge extends AbstractRewriter {
     Debug("invokation %s",name); 
     for (NameExpression lbl:e.getLabels()){
       Debug("invokation %s has label %s",name,lbl);
+      String var=lbl.getName();
+      var_names.add(var,new LocalDefinition(var,new ClassType("<<label>>")));
     }
     if (object==null){
       // TODO: check for static import.
