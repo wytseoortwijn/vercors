@@ -25,4 +25,8 @@ public class StringListSetting implements Iterable<String> {
       }
     }
   }
+
+  public boolean contains(String item) {
+    return list.contains(item);
+  }
 }
