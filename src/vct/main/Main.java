@@ -33,6 +33,7 @@ import vct.col.rewrite.ResolveAndMerge;
 import vct.col.rewrite.ReferenceEncoding;
 import vct.col.rewrite.SimplifyCalls;
 import vct.col.rewrite.VoidCalls;
+import vct.col.util.FeatureScanner;
 import vct.col.util.SimpleTypeCheck;
 import static hre.System.*;
 import static hre.ast.Context.globalContext;
@@ -95,7 +96,11 @@ class Main
     clops.add(hoare_check.getEnable("select Hoare Logic Checker backend"),"hlc");
     StringListSetting pass_list=new StringListSetting();
     clops.add(pass_list.getAppendOption("add to the custom list of compilation passes"),"passes");
-    
+    StringListSetting show_before=new StringListSetting();
+    clops.add(show_before.getAppendOption("Show source code before given passes"),"show-before");
+    StringListSetting show_after=new StringListSetting();
+    clops.add(show_after.getAppendOption("Show source code after given passes"),"show-after");
+   
     BooleanSetting explicit_encoding=new BooleanSetting(false);
     clops.add(explicit_encoding.getEnable("explicit encoding"),"explicit");
     BooleanSetting apply_forall_rule=new BooleanSetting(false);
@@ -267,11 +272,15 @@ class Main
       cnt++;
     }
     Progress("Parsed %d files in: %dms",cnt,System.currentTimeMillis() - startTime);
+    startTime = System.currentTimeMillis();
+    program=new ResolveAndMerge().rewrite_and_cast(program);
+    new SimpleTypeCheck(program).check(program);
+    Progress("Initial type check took %dms",System.currentTimeMillis() - startTime);
+    FeatureScanner features=new FeatureScanner();
+    program.accept(features);
     List<String> passes=null;
     if (boogie.get()) {
     	passes=new ArrayList<String>();
-      passes.add("resolv");
-      passes.add("check");
       passes.add("flatten");
       passes.add("assign");
       passes.add("finalize_args");
@@ -293,21 +302,22 @@ class Main
     	passes.add("boogie");
     } else if (chalice.get()) {
     	passes=new ArrayList<String>();
-    	passes.add("resolv");
-    	passes.add("check");
       if (apply_forall_rule.get()){
         passes.add("forall_rule");
-        passes.add("java");
         passes.add("resolv");
         passes.add("check");       
+      }
+      if (features.hasStaticItems()){
+        Warning("Encoding globals by means of an argument.");
+        passes.add("globalize");
+        passes.add("resolv");
+        passes.add("check");
       }
       if (explicit_encoding.get()){
         passes.add("expand");
         passes.add("resolv");
         passes.add("check");
-        passes.add("java");
         passes.add("explicit_encoding");
-        passes.add("java");
         passes.add("resolv");
         passes.add("check");
       }
@@ -315,18 +325,16 @@ class Main
       passes.add("resolv");
       passes.add("check");
       if (reference_encoding.get()){
-        passes.add("java");
         passes.add("refenc");
         passes.add("resolv");
-        passes.add("java");
         passes.add("check");
       }
-      passes.add("globalize");
-      passes.add("resolv");
-      passes.add("check");
-      passes.add("define_double");
-      passes.add("resolv");
-      passes.add("check");     
+      if (features.usesDoubles()){
+        Warning("defining Double");
+        passes.add("define_double");
+        passes.add("resolv");
+        passes.add("check");
+      }
     	passes.add("assign");
       passes.add("reorder");
     	passes.add("expand");
@@ -358,6 +366,9 @@ class Main
           res=null;
         }
         CompilerPass task=defined_passes.get(pass);
+        if (show_before.contains(pass)){
+          vct.java.printer.JavaPrinter.dump(System.out,program);
+        }
         if (task!=null){
           Progress("Applying %s ...", pass);
           startTime = System.currentTimeMillis();
@@ -373,6 +384,9 @@ class Main
           } else {
             Fail("unknown pass %s",pass);
           }
+        }
+        if (show_after.contains(pass)){
+          vct.java.printer.JavaPrinter.dump(System.out,program);
         }
       }
       if (res!=null) {
