@@ -7,10 +7,12 @@ import vct.col.ast.ASTClass;
 import vct.col.ast.ASTClass.ClassKind;
 import vct.col.ast.ASTFlags;
 import vct.col.ast.ASTNode;
+import vct.col.ast.BlockStatement;
 import vct.col.ast.ClassType;
 import vct.col.ast.Contract;
 import vct.col.ast.ContractBuilder;
 import vct.col.ast.DeclarationStatement;
+import vct.col.ast.LoopStatement;
 import vct.col.ast.Method;
 import vct.col.ast.MethodInvokation;
 import vct.col.ast.NameExpression;
@@ -85,6 +87,44 @@ public class ExplicitPermissionEncoding extends AbstractRewriter {
       result=res;
       current_method=null;
     }
+  }
+  
+  public void visit(final LoopStatement s){
+    final BlockStatement block=create.block();
+    AbstractRewriter clause_rw=new ClauseEncoding(){
+      public void visit(MethodInvokation i){
+        if (i.labels()==1){
+          NameExpression lbl=i.getLabel(0);
+          String label_name=lbl.getName();
+          String pred_name=i.method.getName();
+          String class_name=((ASTClass)i.getDefinition().getParent()).getName();
+          Type t=create.class_type(class_name+"_"+pred_name);
+          DeclarationStatement decl=new DeclarationStatement(lbl.getName(),t);
+          decl.setOrigin(s);
+          decl.setFlag(ASTFlags.GHOST, true);
+          block.add_statement(decl);
+        }
+        super.visit(i);
+      }        
+    };
+    LoopStatement res=new LoopStatement();
+    ASTNode tmp;
+    tmp=s.getInitBlock();
+    if (tmp!=null) res.setInitBlock(tmp.apply(this));
+    tmp=s.getUpdateBlock();
+    if (tmp!=null) res.setUpdateBlock(tmp.apply(this));
+    tmp=s.getEntryGuard();
+    if (tmp!=null) res.setEntryGuard(tmp.apply(this));
+    tmp=s.getExitGuard();
+    if (tmp!=null) res.setExitGuard(tmp.apply(this));
+    for(ASTNode inv:s.getInvariants()){
+      res.appendInvariant(inv.apply(clause_rw));
+    }
+    tmp=s.getBody();
+    res.setBody(tmp.apply(this));
+    res.setOrigin(s.getOrigin());
+    block.add_statement(res);
+    result=block;
   }
   
   private Method current_method;

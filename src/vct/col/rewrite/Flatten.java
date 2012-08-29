@@ -10,6 +10,7 @@ import vct.col.ast.Contract;
 import vct.col.ast.DeclarationStatement;
 import vct.col.ast.FunctionType;
 import vct.col.ast.IfStatement;
+import vct.col.ast.LoopStatement;
 import vct.col.ast.Method;
 import vct.col.ast.MethodInvokation;
 import vct.col.ast.NameExpression;
@@ -234,4 +235,26 @@ public class Flatten extends AbstractRewriter {
     result=res;
   }
   
+  @Override
+  public void visit(LoopStatement s) {
+    //checkPermission(s);
+    LoopStatement res=new LoopStatement();
+    ASTNode tmp;
+    tmp=s.getInitBlock();
+    if (tmp!=null) res.setInitBlock(tmp.apply(copy_pure));
+    tmp=s.getUpdateBlock();
+    if (tmp!=null) res.setUpdateBlock(tmp.apply(copy_pure));
+    tmp=s.getEntryGuard();
+    if (tmp!=null) res.setEntryGuard(tmp.apply(copy_pure));
+    tmp=s.getExitGuard();
+    if (tmp!=null) res.setExitGuard(tmp.apply(copy_pure));
+    for(ASTNode inv:s.getInvariants()){
+      res.appendInvariant(inv.apply(copy_pure));
+    }
+    tmp=s.getBody();
+    res.setBody(tmp.apply(this));
+    res.setOrigin(s.getOrigin());
+    result=res; return ;
+  }
+
 }

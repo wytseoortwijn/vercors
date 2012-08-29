@@ -189,10 +189,14 @@ public abstract class AbstractBoogiePrinter extends AbstractPrinter {
   }
 
   public void visit(LoopStatement s){
+    ASTNode init_block=s.getInitBlock();
     ASTNode entry_guard=s.getEntryGuard();
     ASTNode exit_guard=s.getExitGuard();
     ASTNode body=s.getBody();
     if (exit_guard!=null) throw new Error("cannot generate for exit condition yet");
+    if (init_block!=null){
+      init_block.accept(this);
+    }
     if (entry_guard!=null) {
       out.printf("while(");
       nextExpr();
@@ -203,10 +207,12 @@ public abstract class AbstractBoogiePrinter extends AbstractPrinter {
     }
     out.incrIndent();
     for(ASTNode inv:s.getInvariants()){
+      in_clause=true;
       out.printf("invariant ");
       nextExpr();
       inv.accept(this);
       out.lnprintf(";");
+      in_clause=false;
     }
     out.decrIndent();
     if (body instanceof BlockStatement) {
