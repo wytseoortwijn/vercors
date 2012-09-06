@@ -438,8 +438,10 @@ public class JavaPrinter extends AbstractPrinter {
       nextExpr();
       s.getEntryGuard().accept(this);
       out.printf(";");
-      nextExpr();
-      ((BlockStatement)s.getUpdateBlock()).getStatement(0).accept(this);
+      if (((BlockStatement)s.getUpdateBlock())!=null){
+        nextExpr();
+        ((BlockStatement)s.getUpdateBlock()).getStatement(0).accept(this);
+      }
       out.printf(")");
     } else if ((tmp=s.getEntryGuard())!=null) {
       out.printf("while(");

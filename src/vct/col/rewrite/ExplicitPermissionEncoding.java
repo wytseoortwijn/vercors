@@ -141,8 +141,7 @@ public class ExplicitPermissionEncoding extends AbstractRewriter {
   
   public void visit(OperatorExpression e){
     switch (e.getOperator()){
-    case Unfold:
-    case Fold:
+    case Unfold:{
       ASTNode arg1=e.getArg(0);
       if (arg1.labels()==1){
         for(NameExpression lbl:arg1.getLabels()){
@@ -155,6 +154,33 @@ public class ExplicitPermissionEncoding extends AbstractRewriter {
         super.visit(e);
       }
       break;
+    }
+    case Fold:{
+      ASTNode arg1=e.getArg(0);
+      if (arg1.labels()==1){
+        NameExpression lbl=arg1.getLabel(0);
+        MethodInvokation pred=(MethodInvokation)arg1;
+        String pred_name=pred.method.getName();
+        String class_name=((ASTClass)pred.getDefinition().getParent()).getName();
+        Type t=create.class_type(class_name+"_"+pred_name);
+        ArrayList<ASTNode> args=new ArrayList();
+        args.add(pred.object.apply(copy_rw));
+        for (ASTNode arg:pred.getArgs()){
+          args.add(arg.apply(copy_rw));
+        }
+        result=create.assignment(create.local_name(lbl.getName()),
+                create.new_object(t,args.toArray(new ASTNode[0])));
+        result.setGhost(true);
+          //    create.new_object(type, args));
+          //result=create.expression(e.getOperator(),
+          //    create.invokation(create.local_name(lbl.getName()), false, create.method_name("valid"))
+          //    );
+        return;
+      } else {
+        super.visit(e);
+      }
+      break;
+    }
     default:
       super.visit(e);
       break;
@@ -216,72 +242,24 @@ class PredicateClassGenerator extends AbstractRewriter {
     // Start with ref field:
     pred_class.add_dynamic(create.field_decl("ref",class_type));
     DeclarationStatement args[]=m.getArgs();
-    ASTNode valid_body=create.expression(StandardOperator.NEQ,create.field_name("ref"),create.reserved_name("null"));
+    ASTNode cons_req=create.expression(StandardOperator.NEQ,create.field_name("ref"),create.reserved_name("null"));
     // Note that permission for fields will be added later.
     
     // Add arguments as fields:
     for (int i=0;i<args.length;i++){
       pred_class.add_dynamic(args[i].apply(copy_rw));
       if (args[i].getType().isPrimitive(PrimitiveType.Sort.Fraction)){
-        valid_body=create.expression(StandardOperator.Star,valid_body,
+        cons_req=create.expression(StandardOperator.Star,cons_req,
             create.expression(StandardOperator.LT,create.constant(0),create.field_name(args[i].getName()))
             );
-        valid_body=create.expression(StandardOperator.Star,valid_body,
+        cons_req=create.expression(StandardOperator.Star,cons_req,
             create.expression(StandardOperator.LTE,create.field_name(args[i].getName()),create.constant(100))
             );
       }
     }
-/*
-    // Rewrite the body of the predicate:
-    for(ASTNode part:ASTUtils.conjuncts(m.getBody())){
-      if (part instanceof MethodInvokation){
-        MethodInvokation call=(MethodInvokation)part;
-        String name=((NameExpression)((OperatorExpression)call.object).getArg(1)).getName();
-        if (pred_class.find_field(name)==null){
-          pred_class.add_dynamic(create.field_decl(name,pred_type));
-          valid_body=create.expression(StandardOperator.Star,valid_body,
-              create.expression(StandardOperator.Perm,create.field_name(name),create.constant(100))
-              );
-          ASTNode ref_name=create.expression(StandardOperator.Select,create.field_name("ref"),create.field_name(name));
-          valid_body=create.expression(StandardOperator.Star,valid_body,
-              create.expression(StandardOperator.IFF,
-                  create.expression(StandardOperator.EQ,create.field_name(name),create.reserved_name("null")),
-                  create.expression(StandardOperator.EQ,ref_name,create.reserved_name("null"))
-              )
-          );
-          ASTNode temp_body=create.invokation(create.field_name(name), false, create.method_name("valid"));
-          temp_body=create.expression(StandardOperator.Star,temp_body,
-              create.expression(StandardOperator.EQ,
-                  ref_name,
-                  create.invokation(create.field_name(name),false ,create.method_name("get_ref"))
-              )
-          );
-          DeclarationStatement decls[]=call.getDefinition().getArgs();
-          ASTNode call_args[]=call.getArgs();
-          for(int j=0;j<call_args.length;j++){
-            temp_body=create.expression(StandardOperator.Star,temp_body,
-                create.expression(StandardOperator.EQ,
-                    create.invokation(create.field_name(name), false, create.method_name("get_"+decls[j].getName())),
-                    call_args[j].apply(copy_rw)
-                )
-            );      
-          }
-
-          valid_body=create.expression(StandardOperator.Star,valid_body,
-              create.expression(StandardOperator.Implies,
-                  create.expression(StandardOperator.NEQ,create.field_name(name),create.reserved_name("null")),
-                  temp_body
-              )
-          );         
-        }
-      } else {
-        valid_body=create.expression(StandardOperator.Star,valid_body,part.apply(this));
-      }
-    }    
-*/
-
-    // Rewrite the body, which will cause field to be created.
-    valid_body=create.expression(StandardOperator.Star,valid_body,rewrite(m.getBody()));
+    
+    // Rewrite the body, which will cause fields to be created.
+    ASTNode valid_body=create.expression(StandardOperator.Star,cons_req,rewrite(m.getBody()));
     // Add permissions to read/write all fields:
     for(DeclarationStatement field:pred_class.dynamicFields()){
       valid_body=create.expression(StandardOperator.Star,
@@ -309,6 +287,65 @@ class PredicateClassGenerator extends AbstractRewriter {
         "check",
         check_decls,
         check_body
+    ));
+    
+    // Prepare constructor
+    final BlockStatement cons_body=create.block();
+    final ArrayList<DeclarationStatement> cons_decls=new ArrayList();
+    cb=new ContractBuilder();
+    cb.ensures(create.invokation(null,false, create.method_name("valid"), new ASTNode[0]));
+    int N=m.getArity();
+    ASTNode check_args[]=new ASTNode[N+1];
+    {
+      cons_decls.add(create.field_decl("ref",class_type));
+      ASTNode field=create.expression(StandardOperator.Select,create.reserved_name("this"),
+          create.field_name("ref"));
+      check_args[0]=create.local_name("ref");
+      cons_body.add_statement(create.assignment(field, check_args[0]));
+    }
+    for(int i=0;i<N;i++){
+      cons_decls.add(create.field_decl(m.getArgument(i),m.getArgType(i)));
+      ASTNode field=create.expression(StandardOperator.Select,create.reserved_name("this"),
+          create.field_name(m.getArgument(i)));
+      check_args[i+1]=create.local_name(m.getArgument(i));
+      cons_body.add_statement(create.assignment(field, check_args[i+1]));
+    }
+    cb.requires(cons_req);
+    cb.requires(m.getBody().apply(new ClauseEncoding(){
+      public void visit(NameExpression e){
+        if (e.getKind()==NameExpression.Kind.Reserved && e.getName()=="this"){
+          result=create.local_name("ref");
+        } else {
+          super.visit(e);
+        }
+      }
+      public void visit(MethodInvokation i){
+        super.visit(i);
+        if (i.labels()==1){
+          String name=i.getLabel(0).getName();
+          ClassType type=(ClassType)i.object.getType();
+          String type_name[]=type.getNameFull();
+          type_name[type_name.length-1]+="_"+i.method.getName();
+          type=create.class_type(type_name);
+          DeclarationStatement decl=create.field_decl(name,type);
+          decl.setGhost(true);
+          cons_decls.add(decl);
+          ASTNode field=create.expression(StandardOperator.Select,create.reserved_name("this"),
+              create.field_name(name));
+          cons_body.add_statement(create.assignment(field, create.local_name(name)));
+        }
+      }
+    }));
+    cb.ensures(create.invokation(null,false, create.method_name("check"), check_args));
+    cons_body.add_statement(create.expression(StandardOperator.Fold,
+        create.invokation(create.reserved_name("this"),false, create.method_name("valid"), new ASTNode[0])));
+    // Add constructor;
+    pred_class.add_dynamic(create.method_kind(Method.Kind.Constructor,
+        create.primitive_type(Sort.Void),
+        cb.getContract(),
+        pred_class_name,
+        cons_decls.toArray(new DeclarationStatement[0]),
+        cons_body
     ));
     
     // Add getters;
