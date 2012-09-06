@@ -12,6 +12,8 @@ import vct.col.ast.Method;
 import vct.col.ast.PrimitiveType.Sort;
 import vct.col.ast.Type;
 
+import static hre.System.*;
+
 public class FeatureScanner extends AbstractScanner {
 
   private boolean has_statics=false;
@@ -54,7 +56,6 @@ public class FeatureScanner extends AbstractScanner {
       node.accept(this);
     }    
     N=c.getDynamicCount();
-    if (N>0) has_statics=true;
     for(int i=0;i<N;i++){
       c.getDynamic(i).accept(this);
     }
