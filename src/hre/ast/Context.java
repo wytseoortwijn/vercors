@@ -31,7 +31,7 @@ public class Context {
   public void add(String file){
     data.put(file,new FileContext(file));
   }
-  public void report(String level, Origin origin, Iterable<String> message) {
+  public synchronized void report(String level, Origin origin, Iterable<String> message) {
     if (origin instanceof FileOrigin){
       printContext(System.out,(FileOrigin)origin,linesBefore,linesAfter);     
     } else {
