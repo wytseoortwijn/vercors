@@ -328,7 +328,21 @@ public class ASTClass extends ASTNode {
   public Iterable<Method> dynamicMethods() {
     return new FilteredIterable<ASTNode,Method>(dynamic_entries,new MethodFilter());
   }
-
+  
+  public List<String[]> class_names(){
+    ArrayList<String[]>res=new ArrayList();
+    find_class_names(res);
+    return res;
+  }
+  private void find_class_names(ArrayList<String[]> res) {
+    if (isPackage()){
+      for(int i=0;i<static_entries.size();i++){
+        ((ASTClass)static_entries.get(i)).find_class_names(res);
+      }
+    } else {
+      res.add(getFullName());
+    }    
+  }
 
 }
 
