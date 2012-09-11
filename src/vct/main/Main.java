@@ -8,6 +8,7 @@ import hre.config.OptionParser;
 import hre.config.StringListSetting;
 import hre.debug.HeapDump;
 import hre.io.PrefixPrintStream;
+import hre.util.CompositeReport;
 import hre.util.TestReport;
 
 import java.io.*;
@@ -15,6 +16,11 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import vct.col.annotate.DeriveModifies;
 import vct.col.ast.*;
@@ -22,6 +28,7 @@ import vct.col.rewrite.AssignmentRewriter;
 import vct.col.rewrite.ConstructorRewriter;
 import vct.col.rewrite.DefineDouble;
 import vct.col.rewrite.ExplicitPermissionEncoding;
+import vct.col.rewrite.FilterClass;
 import vct.col.rewrite.FinalizeArguments;
 import vct.col.rewrite.Flatten;
 import vct.col.rewrite.ForallRule;
@@ -35,6 +42,7 @@ import vct.col.rewrite.SimplifyCalls;
 import vct.col.rewrite.VoidCalls;
 import vct.col.util.FeatureScanner;
 import vct.col.util.SimpleTypeCheck;
+import vct.util.ClassName;
 import static hre.System.*;
 import static hre.ast.Context.globalContext;
 
@@ -61,28 +69,37 @@ class Main
     Progress("Read %s succesfully",name);
   }
 
-  private static int parseFilesFromFileList(String fileName)
-  {
-      LineNumberReader str = null;
-      int cnt = 0;
-      try
-      {
-         str = new LineNumberReader(new FileReader(new File(fileName)));
-         String s;
+  private static List<String[]> classes;
+  
+  static class ChaliceTask implements Callable<TestReport> {
+    private String[] class_name;
+    private ASTClass arg;
 
-         while ((s = str.readLine()) != null) {
-          cnt++;
-          parseFile(s);
-         }
+    public ChaliceTask(String[] class_name,ASTClass arg){
+      this.class_name=class_name;
+      this.arg=arg;
+    }
+    @Override
+    public TestReport call() throws Exception {
+      System.err.print("Validating class ");
+      for(String part:class_name){
+        System.err.printf("%s.", part);
       }
-      catch(Exception e) { e.printStackTrace(); }
-      finally { if (str != null) try { str.close(); } catch(Exception e) {}  }
-      return cnt;
-   }
+      System.err.printf("..%n");
+      long start=System.currentTimeMillis();
+      ASTClass task=(ASTClass)arg.apply(new FilterClass(class_name));
+      task=(ASTClass)task.apply(new ResolveAndMerge());
+      new SimpleTypeCheck(task).check(task);
+      TestReport report=vct.boogie.Main.TestChalice(task);
+      System.err.printf("%s: result is %s (%dms)%n",new ClassName(class_name).toString("."),
+          report.getVerdict(),System.currentTimeMillis()-start);
+      return report;
+    }
+    
+  }
 
   public static void main(String[] args) throws Throwable
   {
-    PrefixPrintStream out=new PrefixPrintStream(System.out);
     OptionParser clops=new OptionParser();
     clops.add(clops.getHelpOption(),"help");
 
@@ -154,8 +171,32 @@ class Main
       }
     });
     defined_checks.put("chalice",new ValidationPass("verify with Chalice"){
-      public TestReport apply(ASTClass arg){
-        return vct.boogie.Main.TestChalice(arg);
+      public TestReport apply(final ASTClass arg){
+        long start=System.currentTimeMillis();
+        CompositeReport res=new CompositeReport();
+        ExecutorService queue=Executors.newFixedThreadPool(4);
+        ArrayList<Future<TestReport>> list=new ArrayList<Future<TestReport>>();
+        for(String[] class_name:classes){
+            Callable<TestReport> task=new ChaliceTask(class_name,arg);
+            System.err.printf("submitting verification of %s%n",new ClassName(class_name).toString("."));
+            list.add(queue.submit(task));
+        }
+        queue.shutdown();
+        for(Future<TestReport> future:list){
+          try {
+            res.addReport(future.get());
+          } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            Abort("%s",e);
+          } catch (ExecutionException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            Abort("%s",e);
+          }
+        }
+        System.err.printf("verification took %dms%n", System.currentTimeMillis()-start);
+        return res;
       }
     });
     defined_passes.put("check",new CompilerPass("run a type check"){
@@ -278,6 +319,7 @@ class Main
     Progress("Initial type check took %dms",System.currentTimeMillis() - startTime);
     FeatureScanner features=new FeatureScanner();
     program.accept(features);
+    classes=program.class_names();
     List<String> passes=null;
     if (boogie.get()) {
     	passes=new ArrayList<String>();
