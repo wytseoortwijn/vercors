@@ -33,6 +33,20 @@ public class Flatten extends AbstractRewriter {
   private BlockStatement declaration_block=null;
   private static long counter=0;
   
+  public void post_visit(ASTNode n){
+    if (n.get_before()!=null && result.get_before()==null){
+      ASTNode tmp=result;
+      tmp.set_before(copy_pure.rewrite_and_cast(n.get_before()));
+      result=tmp;
+    }
+    if (n.get_after()!=null && result.get_after()==null){
+      ASTNode tmp=result;
+      tmp.set_after(copy_pure.rewrite_and_cast(n.get_after()));
+      result=tmp;
+    }
+    super.post_visit(n);
+  }
+  
   public void visit(BlockStatement s){
     int N=s.getLength();
     block_stack.push(current_block);
@@ -64,6 +78,8 @@ public class Flatten extends AbstractRewriter {
       declaration_block.add_statement(n);
       Debug("assigning resutl of call");
       ASTNode call=create.invokation(object,e.guarded,method,args);
+      call.set_before(copy_pure.rewrite_nullable(e.get_before()));
+      call.set_after(copy_pure.rewrite_nullable(e.get_after()));
       for(NameExpression lbl:e.getLabels()){
         Debug("FLATTEN: copying label %s",lbl);
         call.addLabel(lbl);

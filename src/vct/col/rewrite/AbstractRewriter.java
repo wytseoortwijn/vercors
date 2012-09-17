@@ -8,6 +8,7 @@ import vct.col.ast.ASTClass;
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTWith;
 import vct.col.ast.AbstractVisitor;
+import vct.col.ast.ContractBuilder;
 import vct.col.ast.MethodInvokation;
 import vct.col.ast.ArrayType;
 import vct.col.ast.AssignmentStatement;
@@ -54,6 +55,11 @@ public abstract class AbstractRewriter extends AbstractVisitor<ASTNode> {
   protected boolean auto_labels=true;
   
   /**
+   * Prevent automatic copying of before and after blocks.
+   */
+  protected boolean auto_proof=true;
+  
+  /**
    * This variable references an AST factory, whose Origin is set to
    * the origin of the current node being rewritten.
    */
@@ -88,13 +94,34 @@ public abstract class AbstractRewriter extends AbstractVisitor<ASTNode> {
         }
         result=tmp;
       }
+      if (auto_proof){
+        if (n.get_before()!=null && result.get_before()==null){
+          ASTNode tmp=result;
+          tmp.set_before(rewrite_and_cast(n.get_before()));
+          result=tmp;
+        }
+        if (n.get_after()!=null && result.get_after()==null){
+          ASTNode tmp=result;
+          tmp.set_after(rewrite_and_cast(n.get_after()));
+          result=tmp;
+        }
+      }
       result.copyMissingFlags(n);
     }
+    auto_proof=true;
     auto_labels=true;
     create.leave();
     super.post_visit(n);
   }
 
+  /** Rewrite contract while adding to a contract builder. */
+  public void rewrite(Contract c,ContractBuilder cb){
+    cb.given(rewrite_and_cast(c.given));
+    cb.yields(rewrite_and_cast(c.yields));
+    if (c.modifies!=null) cb.modifies(rewrite_and_cast(c.modifies));
+    cb.requires(rewrite(c.pre_condition));
+    cb.ensures(rewrite(c.post_condition));
+  }
   public Contract rewrite(Contract c){
     return new Contract(rewrite_and_cast(c.given),rewrite_and_cast(c.yields),rewrite_nullable(c.modifies),rewrite(c.pre_condition),rewrite(c.post_condition));
   }

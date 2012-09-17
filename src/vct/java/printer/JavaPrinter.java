@@ -32,15 +32,37 @@ public class JavaPrinter extends AbstractPrinter {
     }
   }
   public void post_visit(ASTNode node){
-    //for(NameExpression lbl:node.getLabels()){
-    //  out.printf("]");
-    //}
+    if (node.get_before()!=null || node.get_after()!=null){
+      out.printf("/*@ ");
+      ASTNode tmp=node.get_before();
+      if (tmp!=null) {
+        out.printf("with ");
+        tmp.accept(this);
+      }
+      tmp=node.get_after();
+      if (tmp!=null) {
+        out.printf("then ");
+        tmp.accept(this);      
+      }
+      out.printf(" */");
+    }
     super.post_visit(node);
   }
   public void visit(ClassType t){
     out.print(t.getFullName());
   }
-  
+  public void visit(FunctionType t){
+    int N=t.getArity();
+    N--;
+    for(int i=0;i<N;i++){
+      t.getArgument(i).accept(this);
+      out.print("#");
+    }
+    t.getArgument(N).accept(this);
+    out.print("->");
+    t.getResult().accept(this);
+  }
+
   public void visit(BindingExpression e){
     switch(e.binder){
       case FORALL:
@@ -66,21 +88,45 @@ public class JavaPrinter extends AbstractPrinter {
   public void visit(BlockStatement block){
     boolean nested=(block.getParent() instanceof IfStatement);
     if (!nested){
-      out.lnprintf("{");
+      if (in_expr) {
+        out.printf("{");
+      } else {
+        out.lnprintf("{");
+      }
       out.incrIndent();
     }
     int N=block.getLength();
     for(int i=0;i<N;i++){
       block.getStatement(i).accept(this);
+      if (in_expr) out.printf(";");
     }
     if (!nested) {
       out.decrIndent();
-      out.lnprintf("}");
+      if (in_expr) {
+        out.printf("}");
+      } else {
+        out.lnprintf("}");
+      }
     }
   }
 
   public void visit(ASTClass cl){
     int N;
+    Contract contract=cl.getContract();
+    if (contract!=null){
+      out.lnprintf("/*@");
+      out.incrIndent();
+      for (DeclarationStatement d:contract.given){
+        out.printf("given ");
+        d.accept(this);
+      }
+      for (DeclarationStatement d:contract.yields){
+        out.printf("yields ");
+        d.accept(this);
+      }
+      out.decrIndent();
+      out.lnprintf("*/");
+    }
     switch(cl.kind){
     case Plain:
       out.lnprintf("class %s",cl.getName());
@@ -294,7 +340,7 @@ public class JavaPrinter extends AbstractPrinter {
     s.getLocation().accept(this);
     out.printf("=");
     s.getExpression().accept(this);
-    if (in_expr) out.lnprintf(";");
+    //if (in_expr) out.lnprintf(";");
   }
   public void visit(ReturnStatement s){
     ASTNode expr=s.getExpression();

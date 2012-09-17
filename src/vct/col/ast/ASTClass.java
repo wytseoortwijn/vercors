@@ -343,6 +343,18 @@ public class ASTClass extends ASTNode {
       res.add(getFullName());
     }    
   }
-
+  private Contract contract;
+  public Contract getContract(){
+    return contract;
+  }
+  public void setContract(Contract contract){
+    this.contract=contract;
+    for(DeclarationStatement d:contract.given){
+      d.setParent(this);
+    }
+    for(DeclarationStatement d:contract.yields){
+      d.setParent(this);
+    }
+  }
 }
 

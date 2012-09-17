@@ -21,6 +21,14 @@ public class ClassDefinition extends AnyDefinition {
     full_name=new String[0];
   }
   
+  /** kludge for adding type parameter. */
+  public ClassDefinition(String name){
+    super(name);
+    parent=this;
+    full_name=new String[1];
+    full_name[0]=name;
+  }
+  
   private ClassDefinition(String name,ClassDefinition parent){
     super(name);
     this.parent=parent;

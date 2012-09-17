@@ -1,6 +1,8 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 package vct.boogie;
 
+import java.util.HashMap;
+
 import hre.ast.TrackingOutput;
 import vct.col.ast.*;
 import vct.util.*;
@@ -51,6 +53,13 @@ public abstract class AbstractBoogiePrinter extends AbstractPrinter {
         next=",";
       }
     }
+    Contract c=e.getDefinition().getContract();
+    if (c!=null){
+      for(int i=0;i<c.yields.length;i++){
+        out.printf("%s%s_%s",next,tag,c.yields[i].getName());
+        next=",";        
+      }
+    }
     if (next.equals(",")) {
       out.printf(" := ");
     }
@@ -70,15 +79,49 @@ public abstract class AbstractBoogiePrinter extends AbstractPrinter {
     for(int i=args.length;i<types.length;i++){
       if (types[i].isValidFlag(ASTFlags.OUT_ARG)&&types[i].getFlag(ASTFlags.OUT_ARG)) continue;
       if (types[i].getInit()==null){
-        Fail("Missing argument without default");
+        Fail("Missing argument without default at %s",e.getOrigin());
       }
       out.printf("%s",next);
       types[i].getInit().accept(this);
       next=",";
-        
+    }
+    if (c!=null){
+      HashMap<String,ASTNode> map=new HashMap();
+      BlockStatement before=e.get_before();
+      if (before !=null){
+        int N=before.getLength();
+        for(int i=0;i<N;i++){
+          ASTNode item=before.getStatement(i);
+          if (item instanceof AssignmentStatement){
+            AssignmentStatement arg=(AssignmentStatement)item;
+            map.put(((NameExpression)arg.getLocation()).getName(),arg.getExpression());
+          }
+        }
+      }
+      for(int i=0;i<c.given.length;i++){
+        ASTNode arg=map.get(c.given[i].getName());
+        if (arg==null) Fail("parameter %s is not given at %s",c.given[i].getName(),e.getOrigin());
+        out.printf("%s",next);
+        arg.accept(this);
+        next=",";
+      }
     }
     out.printf(")");
-    if(statement) out.lnprintf(";");
+    if(statement) {
+      out.lnprintf(";");
+      if(e.get_after()!=null){
+        BlockStatement after=e.get_after();
+        int N=after.getLength();
+        for(int i=0;i<N;i++){
+          ASTNode item=after.getStatement(i);
+          if (item instanceof AssignmentStatement){
+            AssignmentStatement hint=(AssignmentStatement)item;
+            hint.getLocation().accept(this);
+            out.lnprintf(" := %s_%s;",tag,((NameExpression)hint.getExpression()).getName());
+          }
+        }        
+      } 
+    }
   }
   public void visit(AssignmentStatement s){
     if (in_expr) throw new Error("assignment is a statement in chalice");
@@ -197,6 +240,9 @@ public abstract class AbstractBoogiePrinter extends AbstractPrinter {
     if (init_block!=null){
       init_block.accept(this);
     }
+    if (s.get_before()!=null){
+      s.get_before().accept(this);
+    }
     if (entry_guard!=null) {
       out.printf("while(");
       nextExpr();
@@ -279,6 +325,9 @@ public abstract class AbstractBoogiePrinter extends AbstractPrinter {
       nextExpr();
       s.getExpression().accept(this);
       out.lnprintf(";");
+    }
+    if (s.get_before()!=null){
+      s.get_before().accept(this);
     }
     if (post_condition!=null){
       out.printf("assert ");

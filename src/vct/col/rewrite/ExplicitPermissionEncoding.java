@@ -41,7 +41,7 @@ public class ExplicitPermissionEncoding extends AbstractRewriter {
     } else {
       current_method=m;
       Contract c=m.getContract();
-      ContractBuilder cb=new ContractBuilder();
+      final ContractBuilder cb=new ContractBuilder();
       if (c!=null && c.given!=null){
         cb.given(rewrite_and_cast(c.given));
       }
@@ -58,8 +58,9 @@ public class ExplicitPermissionEncoding extends AbstractRewriter {
             Type t=create.class_type(class_name+"_"+i.method.getName());
             DeclarationStatement decl=new DeclarationStatement(lbl.getName(),t,create.reserved_name("null"));
             decl.setOrigin(i);
-            decl.setFlag(ASTFlags.GHOST, true);
-            args.add(decl);
+            //decl.setFlag(ASTFlags.GHOST, true);
+            //args.add(decl);
+            cb.given(decl);
           }
           super.visit(i);
         }        
@@ -73,9 +74,10 @@ public class ExplicitPermissionEncoding extends AbstractRewriter {
             Type t=create.class_type(class_name+"_"+i.method.getName());
             DeclarationStatement decl=new DeclarationStatement(lbl.getName(),t,create.reserved_name("null"));
             decl.setOrigin(i);
-            decl.setFlag(ASTFlags.GHOST, true);
-            decl.setFlag(ASTFlags.OUT_ARG, true);
-            args.add(decl);
+            //decl.setFlag(ASTFlags.GHOST, true);
+            //decl.setFlag(ASTFlags.OUT_ARG, true);
+            //args.add(decl);
+            cb.yields(decl);
           }
           super.visit(i);
         }
@@ -123,7 +125,10 @@ public class ExplicitPermissionEncoding extends AbstractRewriter {
     tmp=s.getBody();
     res.setBody(tmp.apply(this));
     res.setOrigin(s.getOrigin());
+    res.set_before(copy_rw.rewrite_nullable(s.get_before()));
+    res.set_after(copy_rw.rewrite_nullable(s.get_after()));
     block.add_statement(res);
+    auto_proof=false;
     result=block;
   }
   

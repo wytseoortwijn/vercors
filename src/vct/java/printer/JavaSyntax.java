@@ -84,6 +84,7 @@ public class JavaSyntax {
       syntax.addPrimitiveType(Long,"long");
       syntax.addPrimitiveType(Void,"void");
       syntax.addPrimitiveType(Boolean,"boolean");
+      syntax.addPrimitiveType(Class,"classtype");
       
     }
     return syntax;

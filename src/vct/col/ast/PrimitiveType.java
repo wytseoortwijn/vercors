@@ -3,7 +3,7 @@ package vct.col.ast;
 import static hre.System.Fail;
 
 public final class PrimitiveType extends Type {
-  public static enum Sort {Boolean,Byte,Short,Integer,Long,Float,Double,Char,Fraction,Void, String};
+  public static enum Sort {Boolean,Byte,Short,Integer,Long,Float,Double,Char,Fraction,Void, String,Class};
   public final Sort sort;
   public PrimitiveType(Sort sort){
     this.sort=sort;

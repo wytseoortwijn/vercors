@@ -35,6 +35,7 @@ import static hre.System.*;
  */ 
 public class ResolveAndMerge extends AbstractRewriter {
 
+  private AbstractRewriter copy_rw=new AbstractRewriter(){};
   private ASTClass rootclass=null;
   private ClassDefinition defs;
   private Stack<ASTClass> currentstack;
@@ -49,6 +50,19 @@ public class ResolveAndMerge extends AbstractRewriter {
     return static_context;
   }
   
+  public void post_visit(ASTNode n){
+    if (n.get_before()!=null && result.get_before()==null){
+      ASTNode tmp=result;
+      tmp.set_before(copy_rw.rewrite_and_cast(n.get_before()));
+      result=tmp;
+    }
+    if (n.get_after()!=null && result.get_after()==null){
+      ASTNode tmp=result;
+      tmp.set_after(copy_rw.rewrite_and_cast(n.get_after()));
+      result=tmp;
+    }
+    super.post_visit(n);
+  }
   public void visit(ASTClass c) {
     String name=c.getName();
     if (c.getParentClass()==null){
@@ -128,6 +142,14 @@ public class ResolveAndMerge extends AbstractRewriter {
       for(MethodDefinition cldef:def.getMethods()){
         method_names.add(cldef.name,cldef);
       }
+      Contract contract=c.getContract();
+      if (contract !=null){
+        for (DeclarationStatement decl:contract.given){
+          Warning("adding type argument %s",decl.getName());
+          type_names.add(decl.getName(),new ClassDefinition(decl.getName()));
+        }
+        res.setContract(rewrite(contract));
+      }
       int N=c.getStaticCount();
       for(int i=0;i<N;i++){
         static_context=true;
@@ -195,7 +217,10 @@ public class ResolveAndMerge extends AbstractRewriter {
           new_name[ofs+i]=t_name[i];
         }
         def=defs.lookupClass(new_name);
-        if(def!=null){
+        if(def==null){
+          Warning("assuming %s is a type parameter",t_name[0]);
+        }
+        {
           ClassType res=new ClassType(new_name);
           res.setOrigin(t.getOrigin());
           result=res;
@@ -338,7 +363,6 @@ public class ResolveAndMerge extends AbstractRewriter {
     Contract mc=m.getContract();
     ContractBuilder cb=new ContractBuilder();
     if (mc!=null){
-      var_names.enter();
       for(DeclarationStatement d:mc.given){
         String var=d.getName();
         var_names.add(var,new LocalDefinition(var,d.getType()));
@@ -352,7 +376,6 @@ public class ResolveAndMerge extends AbstractRewriter {
       }
       cb.ensures(rewrite(mc.post_condition));
       if (mc.modifies!=null) cb.modifies(rewrite(mc.modifies));
-      var_names.leave();      
     }
     Method.Kind kind=m.kind;
     Type rt=rewrite_and_cast(m.getReturnType());

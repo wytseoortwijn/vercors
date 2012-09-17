@@ -11,6 +11,10 @@ public class FunctionType extends Type {
     this.args=Arrays.copyOf(args,args.length);
     this.result=result;
   }
+  public FunctionType(ArrayList<Type> args,Type result){
+    this.args=args.toArray(new Type[0]);
+    this.result=result;
+  }
 
   public int getArity(){ return args.length; }
   

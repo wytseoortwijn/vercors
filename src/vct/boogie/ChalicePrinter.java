@@ -56,6 +56,7 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
 
   private void print_arguments(Method m,boolean function){
     DeclarationStatement args[]=m.getArgs();
+    Contract c=m.getContract();
     Type result_type=m.getReturnType();
     out.printf("(");
     String next="";
@@ -64,6 +65,13 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
       out.printf("%s%s: ",next,args[i].getName());
       args[i].getType().accept(this);
       next=",";
+    }
+    if (c!=null){
+      for(int i=0;i<c.given.length;i++){
+        out.printf("%s%s: ",next,c.given[i].getName());
+        c.given[i].getType().accept(this);
+        next=",";
+      }      
     }
     if (function) {
       out.printf("):");
@@ -83,6 +91,13 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
           out.printf("%s%s: ",next,args[i].getName());
           args[i].getType().accept(this);
           next=",";
+        }
+      }
+      if (c!=null){
+        for(int i=0;i<c.yields.length;i++){
+          out.printf("%s%s: ",next,c.yields[i].getName());
+          c.yields[i].getType().accept(this);
+          next=",";          
         }
       }
       out.lnprintf(")");
