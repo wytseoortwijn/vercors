@@ -131,6 +131,7 @@ public class Main {
         chalice_err.deleteOnExit();
         int result=hre.Exec.exec(null, chalice_out, chalice_err,chalice,chalice_input_file.toString());
         ChaliceReport output=new ChaliceReport(new FileInputStream(chalice_out),tree);
+        System.err.printf("File: %s%n",chalice_input_file);
         if (result!=0) {
           output.setVerdict(Verdict.Error);
         }

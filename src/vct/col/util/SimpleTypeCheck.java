@@ -274,17 +274,17 @@ public class SimpleTypeCheck extends AbstractVisitor<Type> {
     case Div:
     case Mod:
     {
-      Type res=new PrimitiveType(Sort.Integer);
       Type t1=e.getArg(0).getType();
       if (t1==null) Fail("type of left argument unknown at %s",e.getOrigin());
-      if (!res.supertypeof(t1)) Abort("type of first argument is wrong at %s",e.getOrigin());
       Type t2=e.getArg(1).getType();
       if (t2==null) Fail("type of right argument unknown at %s",e.getOrigin());
-      if (!res.supertypeof(t2)) Abort("type of second argument is wrong at %s",e.getOrigin());
-      if (t1.getClass()!=t2.getClass()) {
+      if (t1.supertypeof(t2)){
+        e.setType(t1);
+      } else if (t2.supertypeof(t1)){
+        e.setType(t1);
+      } else {
         Fail("Types of left and right-hand side argument are uncomparable at %s",e.getOrigin());
       }
-      e.setType(res);      
       break;
     }
     case GTE:

@@ -275,8 +275,18 @@ public abstract class AbstractBoogiePrinter extends AbstractPrinter {
     String keyword=null;
     switch(e.getOperator()){
       case DirectProof:{
-        out.printf("%s",((StringValue)((ConstantExpression)e.getArg(0)).value).getStripped());
-        out.lnprintf(";");
+        if (e.getArg(0) instanceof ConstantExpression){
+          out.printf("%s",((StringValue)((ConstantExpression)e.getArg(0)).value).getStripped());
+          out.lnprintf(";");
+        } else if (e.getArg(0) instanceof BlockStatement) {
+          BlockStatement block=(BlockStatement)e.getArg(0);
+          int N=block.getLength();
+          for(int i=0;i<N;i++){
+            block.getStatement(i).accept(this);
+          }
+        } else {
+          Fail("unimplement kind of proof.");
+        }
         break;
       }
       case Assume:

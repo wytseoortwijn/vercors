@@ -33,6 +33,28 @@ import static hre.System.*;
 public class ExplicitPermissionEncoding extends AbstractRewriter {
   public AbstractRewriter copy_rw=new AbstractRewriter(){};
   
+  public void visit(DeclarationStatement s) {
+    Type t=s.getType();
+    ASTNode tmp;
+    if (t instanceof ClassType) {
+      ClassType ct=(ClassType)t;
+      String name[]=ct.getNameFull();
+      switch(name.length){
+      case 2 : tmp=create.class_type(name[0]+"_"+name[1]); break;
+      default : tmp=create.class_type(name); break;
+      }
+    } else {
+      tmp=t.apply(copy_rw);
+    }
+    t=(Type)tmp;
+    String name=s.getName();
+    ASTNode init=s.getInit();
+    if (init!=null) init=init.apply(this);
+    DeclarationStatement res=new DeclarationStatement(name,t,init);
+    res.setOrigin(s.getOrigin());
+    result=res; return ;
+  }
+
   public void visit(Method m){
     final String class_name=((ASTClass)m.getParent()).getName();
     if (m.kind==Method.Kind.Predicate){
@@ -375,6 +397,11 @@ class PredicateClassGenerator extends AbstractRewriter {
     String field_name=null;
     if (call.object instanceof OperatorExpression) {
       field_name=((NameExpression)((OperatorExpression)call.object).getArg(1)).getName();
+    } else if (call.object instanceof NameExpression){
+      field_name=((NameExpression)call.object).getName();
+      if (!field_name.equals("this")) {
+        Abort("unexpected field name %s",field_name);
+      }
     } else {
       Abort("could not get field name at %s",call.object.getOrigin());
     }

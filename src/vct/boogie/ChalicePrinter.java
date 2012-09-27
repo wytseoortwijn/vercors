@@ -23,6 +23,10 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
   }
   
   public void visit(ClassType t){
+    String name[]=t.getNameFull();
+    if (name.length>1){
+      Abort("cannot deal with class name of length %d",name.length);
+    }
     out.print(t.getName());
   }
   public void visit(PrimitiveType t){
