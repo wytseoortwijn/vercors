@@ -286,7 +286,14 @@ class PredicateClassGenerator extends AbstractRewriter {
     }
     
     // Rewrite the body, which will cause fields to be created.
-    ASTNode valid_body=create.expression(StandardOperator.Star,cons_req,rewrite(m.getBody()));
+    ASTNode valid_body;
+    if (m.getBody()==null){
+      pred_class.add_dynamic(create.predicate("abstract_valid", null , new DeclarationStatement[0] ));
+      valid_body=create.invokation(null,false, create.method_name("abstract_valid"), new DeclarationStatement[0]);
+    } else {
+      valid_body=rewrite(m.getBody());
+    }
+    valid_body=create.expression(StandardOperator.Star,cons_req,valid_body);
     // Add permissions to read/write all fields:
     for(DeclarationStatement field:pred_class.dynamicFields()){
       valid_body=create.expression(StandardOperator.Star,
@@ -338,31 +345,36 @@ class PredicateClassGenerator extends AbstractRewriter {
       cons_body.add_statement(create.assignment(field, check_args[i+1]));
     }
     cb.requires(cons_req);
-    cb.requires(m.getBody().apply(new ClauseEncoding(){
-      public void visit(NameExpression e){
-        if (e.getKind()==NameExpression.Kind.Reserved && e.getName()=="this"){
-          result=create.local_name("ref");
-        } else {
-          super.visit(e);
+    if (m.getBody()!=null) {
+      cb.requires(m.getBody().apply(new ClauseEncoding(){
+        public void visit(NameExpression e){
+          if (e.getKind()==NameExpression.Kind.Reserved && e.getName()=="this"){
+            result=create.local_name("ref");
+          } else {
+            super.visit(e);
+          }
         }
-      }
-      public void visit(MethodInvokation i){
-        super.visit(i);
-        if (i.labels()==1){
-          String name=i.getLabel(0).getName();
-          ClassType type=(ClassType)i.object.getType();
-          String type_name[]=type.getNameFull();
-          type_name[type_name.length-1]+="_"+i.method.getName();
-          type=create.class_type(type_name);
-          DeclarationStatement decl=create.field_decl(name,type);
-          decl.setGhost(true);
-          cons_decls.add(decl);
-          ASTNode field=create.expression(StandardOperator.Select,create.reserved_name("this"),
-              create.field_name(name));
-          cons_body.add_statement(create.assignment(field, create.local_name(name)));
+        public void visit(MethodInvokation i){
+          super.visit(i);
+          if (i.labels()==1){
+            String name=i.getLabel(0).getName();
+            ClassType type=(ClassType)i.object.getType();
+            String type_name[]=type.getNameFull();
+            type_name[type_name.length-1]+="_"+i.method.getName();
+            type=create.class_type(type_name);
+            DeclarationStatement decl=create.field_decl(name,type);
+            decl.setGhost(true);
+            cons_decls.add(decl);
+            ASTNode field=create.expression(StandardOperator.Select,create.reserved_name("this"),
+                create.field_name(name));
+            cons_body.add_statement(create.assignment(field, create.local_name(name)));
+          }
         }
-      }
-    }));
+      }));
+    } else {
+      cons_body.add_statement(create.expression(StandardOperator.Assume,
+          create.invokation(create.reserved_name("this"),false, create.method_name("abstract_valid"), new ASTNode[0])));
+    }
     cb.ensures(create.invokation(null,false, create.method_name("check"), check_args));
     cons_body.add_statement(create.expression(StandardOperator.Fold,
         create.invokation(create.reserved_name("this"),false, create.method_name("valid"), new ASTNode[0])));

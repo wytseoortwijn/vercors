@@ -239,6 +239,24 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
         out.lnprintf("join tok_%s;",name);
         break;
       }
+      case Assume:{
+        if (e.getArg(0) instanceof MethodInvokation) {
+          MethodInvokation i=(MethodInvokation)e.getArg(0);
+          Method m=i.getDefinition();
+          if (m!=null && m.kind==Method.Kind.Predicate && m.getBody()==null){
+            setExpr();
+            out.printf("assume ");
+            i.object.accept(this);
+            out.lnprintf(".%s_abstract();",i.method.getName());
+            out.printf("fold ");
+            i.object.accept(this);
+            out.lnprintf(".%s ;",i.method.getName());            
+            break;
+          }
+        }
+        super.visit(e);
+        break;
+      }
       /*
       case Perm:{
         assert in_expr;
