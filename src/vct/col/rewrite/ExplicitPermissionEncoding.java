@@ -224,7 +224,7 @@ class ClauseEncoding extends AbstractRewriter {
       result=copy_rw.rewrite(i);
     } else {
       if (i.labels()==0){
-        Abort("Every predicate invokation must be labeled.");
+        Abort("At %s: every predicate invokation must be labeled.",i.getOrigin());
       }
       NameExpression lbl=i.getLabel(0);
       ASTNode body=create.expression(StandardOperator.NEQ,create.method_name(lbl.getName()),create.reserved_name("null"));
