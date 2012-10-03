@@ -217,6 +217,10 @@ public abstract class AbstractRewriter extends AbstractVisitor<ASTNode> {
       } else {
         currentClass=res;
       }
+      Contract contract=c.getContract();
+      if (contract!=null){
+        res.setContract(rewrite(contract));
+      }
       int N=c.getStaticCount();
       for(int i=0;i<N;i++){
         if (c.isPackage()) currentPackage=res;

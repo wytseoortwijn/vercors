@@ -5,8 +5,10 @@ import vct.col.ast.ASTNode;
 import vct.col.ast.ASTWith;
 import vct.col.ast.AbstractScanner;
 import vct.col.ast.AssignmentStatement;
+import vct.col.ast.Contract;
 import vct.col.ast.DeclarationStatement;
 import vct.col.ast.Method;
+import vct.col.ast.PrimitiveType.Sort;
 
 public class DefinitionScanner extends AbstractScanner {
 
@@ -25,6 +27,12 @@ public class DefinitionScanner extends AbstractScanner {
     ClassDefinition tmp=current;
     if (c.getName()!=null) {
       current=current.addNested(c.getName());
+    }
+    Contract contract=c.getContract();
+    if (contract!=null){
+      for (DeclarationStatement decl : contract.given){
+        decl.accept(this);
+      }
     }
     int N;
     N=c.getStaticCount();
@@ -45,7 +53,11 @@ public class DefinitionScanner extends AbstractScanner {
   }
 
   public void visit(DeclarationStatement s){
-    current.addField(s.getName(),static_context);
+    if (s.getType().isPrimitive(Sort.Class)){
+      current.addNested(s.getName());
+    } else {
+      current.addField(s.getName(),static_context);
+    }
   }
 
   public void visit(AssignmentStatement s){

@@ -43,6 +43,14 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
     String class_name=c.getName();
     if (in_class) throw new Error("illegal nested class "+class_name);
     if (c.getStaticCount()>0) throw new Error("illegal static entries in "+class_name);
+    Contract contract=c.getContract();
+    if (contract!=null){
+      for(DeclarationStatement decl:contract.given){
+        if (decl.getType().isPrimitive(Sort.Class)){
+          out.lnprintf("class %s { }",decl.getName());
+        }
+      }
+    }
     in_class=true;
     String long_name[]=c.getFullName();
     out.printf("class %s",long_name[0]);
