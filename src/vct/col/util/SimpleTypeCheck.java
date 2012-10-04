@@ -117,7 +117,8 @@ public class SimpleTypeCheck extends AbstractVisitor<Type> {
     Kind kind = e.getKind();
     String name=e.getName();
     switch(kind){
-      case Local:
+    case Argument:
+    case Local:
         if (e.getType()==null) {
           Abort("type of local variable %s has not been set",name);
         }

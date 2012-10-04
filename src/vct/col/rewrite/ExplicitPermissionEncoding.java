@@ -31,7 +31,16 @@ import static hre.System.*;
  *
  */
 public class ExplicitPermissionEncoding extends AbstractRewriter {
-  public AbstractRewriter copy_rw=new AbstractRewriter(){};
+  public AbstractRewriter copy_rw=new AbstractRewriter(){
+    public void visit(NameExpression name){
+      if (name.getKind()==NameExpression.Kind.Label){
+        result=new NameExpression(name.getName());
+        result.setOrigin(create.getOrigin());
+      } else {
+        super.visit(name);
+      }
+    }
+  };
   
   public void visit(DeclarationStatement s) {
     Type t=s.getType();
@@ -162,10 +171,14 @@ public class ExplicitPermissionEncoding extends AbstractRewriter {
   
   public void visit(NameExpression name){
     if (name.getKind()==NameExpression.Kind.Label){
-      if (current_method!=null && current_method.getContract().hasLabel(name.getName())){
-        result=create.local_name(name.getName());
-        return;
-      }
+      result=new NameExpression(name.getName());
+      result.setOrigin(create.getOrigin());
+//      if (current_method!=null && current_method.getContract().hasLabel(name.getName())){
+//        result=new NameExpression(name.getName());
+//        result.setOrigin(create.getOrigin());
+//        return;
+ //     }
+      return;
     }
     super.visit(name);
   }
@@ -221,7 +234,16 @@ public class ExplicitPermissionEncoding extends AbstractRewriter {
 
 class ClauseEncoding extends AbstractRewriter {
 
-  public AbstractRewriter copy_rw=new AbstractRewriter(){};
+  public AbstractRewriter copy_rw=new AbstractRewriter(){
+    public void visit(NameExpression name){
+      if (name.getKind()==NameExpression.Kind.Label){
+        result=new NameExpression(name.getName());
+        result.setOrigin(create.getOrigin());
+      } else {
+        super.visit(name);
+      }
+    }
+  };
 
   public void visit(MethodInvokation i) {
     if (i.getDefinition().getKind()!=Method.Kind.Predicate){

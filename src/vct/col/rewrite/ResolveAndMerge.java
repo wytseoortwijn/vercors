@@ -53,12 +53,56 @@ public class ResolveAndMerge extends AbstractRewriter {
   public void post_visit(ASTNode n){
     if (n.get_before()!=null && result.get_before()==null){
       ASTNode tmp=result;
-      tmp.set_before(copy_rw.rewrite_and_cast(n.get_before()));
+      BlockStatement orig=n.get_before();
+      BlockStatement modified=create.block();
+      int N=orig.getLength();
+      for(int i=0;i<N;i++){
+        ASTNode s=orig.getStatement(i);
+        if (s instanceof AssignmentStatement) {
+          AssignmentStatement a=(AssignmentStatement)s;
+          modified.add_statement(create.assignment(s.getOrigin(),
+                  a.getLocation().apply(copy_rw),
+                  a.getExpression().apply(this)));
+        } else if (s instanceof OperatorExpression) {
+          OperatorExpression a=(OperatorExpression)s;
+          if (a.getOperator()!=StandardOperator.Assign){
+            Abort("bad expression in with block at %s",s.getOrigin());
+          }
+          modified.add_statement(create.assignment(s.getOrigin(),
+                a.getArg(0).apply(copy_rw),
+                a.getArg(1).apply(this)));            
+        } else {
+          Abort("unexpected %s in with block at %s",s.getClass(),s.getOrigin());
+        }
+      }
+      tmp.set_before(modified);
       result=tmp;
     }
     if (n.get_after()!=null && result.get_after()==null){
       ASTNode tmp=result;
-      tmp.set_after(copy_rw.rewrite_and_cast(n.get_after()));
+      BlockStatement orig=n.get_after();
+      BlockStatement modified=create.block();
+      int N=orig.getLength();
+      for(int i=0;i<N;i++){
+        ASTNode s=orig.getStatement(i);
+        if (s instanceof AssignmentStatement) {
+          AssignmentStatement a=(AssignmentStatement)s;
+          modified.add_statement(create.assignment(s.getOrigin(),
+                  a.getLocation().apply(this),
+                  a.getExpression().apply(copy_rw)));
+        } else if (s instanceof OperatorExpression) {
+          OperatorExpression a=(OperatorExpression)s;
+          if (a.getOperator()!=StandardOperator.Assign){
+            Abort("bad expression in with block at %s",s.getOrigin());
+          }
+          modified.add_statement(create.assignment(s.getOrigin(),
+                a.getArg(0).apply(this),
+                a.getArg(1).apply(copy_rw)));            
+        } else {
+          Abort("unexpected %s in with block at %s",s.getClass(),s.getOrigin());
+        }
+      }
+      tmp.set_after(modified);
       result=tmp;
     }
     super.post_visit(n);
@@ -295,7 +339,7 @@ public class ResolveAndMerge extends AbstractRewriter {
       }
       if (def instanceof LocalDefinition) {
         LocalDefinition ldef=(LocalDefinition)def;
-        e.setKind(NameExpression.Kind.Local);
+        e.setKind(ldef.getKind());
         e.setType(ldef.getType());
         result=e;
         return;
@@ -339,7 +383,7 @@ public class ResolveAndMerge extends AbstractRewriter {
     if (parent instanceof ASTClass ||parent instanceof Method){
       // has already been added.
     } else if (parent instanceof BlockStatement){
-      var_names.add(name,new LocalDefinition(name,s.getType()));
+      var_names.add(name,new LocalDefinition(name,NameExpression.Kind.Local,s.getType()));
     } else {
       throw new Error("unexpected parent "+parent.getClass());
     }
@@ -355,7 +399,7 @@ public class ResolveAndMerge extends AbstractRewriter {
     int N=m.getArity();
     for(int i=0;i<N;i++){
       String name=m.getArgument(i);
-      var_names.add(name,new LocalDefinition(name,m.getArgType(i)));
+      var_names.add(name,new LocalDefinition(name,NameExpression.Kind.Argument,m.getArgType(i)));
     }
 
     String name=m.getName();
@@ -365,13 +409,13 @@ public class ResolveAndMerge extends AbstractRewriter {
     if (mc!=null){
       for(DeclarationStatement d:mc.given){
         String var=d.getName();
-        var_names.add(var,new LocalDefinition(var,d.getType()));
+        var_names.add(var,new LocalDefinition(var,NameExpression.Kind.Argument,d.getType()));
         cb.given(rewrite_and_cast(d));
       }
       cb.requires(rewrite(mc.pre_condition));
       for(DeclarationStatement d:mc.yields){
         String var=d.getName();
-        var_names.add(var,new LocalDefinition(var,d.getType()));
+        var_names.add(var,new LocalDefinition(var,NameExpression.Kind.Argument,d.getType()));
         cb.yields(rewrite_and_cast(d));
       }
       cb.ensures(rewrite(mc.post_condition));
@@ -398,7 +442,7 @@ public class ResolveAndMerge extends AbstractRewriter {
     for (NameExpression lbl:e.getLabels()){
       Debug("invokation %s has label %s",name,lbl);
       String var=lbl.getName();
-      var_names.add(var,new LocalDefinition(var,new ClassType("<<label>>")));
+      var_names.add(var,new LocalDefinition(var,NameExpression.Kind.Label,new ClassType("<<label>>")));
     }
     if (object==null){
       // TODO: check for static import.

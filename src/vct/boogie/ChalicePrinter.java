@@ -9,6 +9,7 @@ import vct.col.ast.PrimitiveType.Sort;
 import static hre.System.Abort;
 import static hre.System.Debug;
 import static hre.System.Fail;
+import static hre.System.Warning;
 
 /**
  * This class contains the pretty printer for Chalice code, which is
@@ -203,6 +204,21 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
   }
   public void visit(OperatorExpression e){
     switch(e.getOperator()){
+    case Select:{
+      // label.field should be printed as label_field, for now. 
+      if (e.getArg(0) instanceof NameExpression){
+        NameExpression arg1=(NameExpression)e.getArg(0);
+        Debug("kind of %s is %s at %s",arg1.getName(),arg1.getKind(),arg1.getOrigin());
+        if (arg1.getKind()==NameExpression.Kind.Label){
+          arg1.accept(this);
+          out.printf("_");
+          e.getArg(1).accept(this);
+          break;
+        }
+      }
+      super.visit(e);
+      break;
+    }
     case Fold:{
       if (in_expr) throw new Error("fold is a statement");
       in_clause=true;
