@@ -43,6 +43,7 @@ import vct.col.rewrite.VoidCalls;
 import vct.col.util.FeatureScanner;
 import vct.col.util.SimpleTypeCheck;
 import vct.util.ClassName;
+import vct.util.Configuration;
 import static hre.System.*;
 import static hre.ast.Context.globalContext;
 
@@ -137,7 +138,8 @@ class Main
     
     BooleanSetting progress=new BooleanSetting(false);
     clops.add(progress.getEnable("print progress messages"),"progress");
-
+    Configuration.add_options(clops);
+    
     String input[]=clops.parse(args);
     hre.System.setProgressReporting(progress.get());
     
