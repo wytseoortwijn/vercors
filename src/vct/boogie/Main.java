@@ -5,6 +5,8 @@ import hre.ast.MessageOrigin;
 import hre.ast.Origin;
 import hre.ast.TrackingOutput;
 import hre.ast.TrackingTree;
+import hre.config.BooleanSetting;
+import hre.config.StringSetting;
 import hre.util.CompositeReport;
 import hre.util.TestReport.Verdict;
 
@@ -22,13 +24,16 @@ import vct.util.*;
  */
 public class Main {
 
+  public static StringSetting boogie_location=new StringSetting("vct-boogie");
+  public static StringSetting chalice_location=new StringSetting("vct-chalice");
+  
   /**
    * Generate Boogie code and optionally verify a class.
    * @param cl The class for which code must be generated.
    */
   public static BoogieReport TestBoogie(ASTClass cl){
     int timeout=15;
-    String boogie="vct-boogie";
+    String boogie=boogie_location.get();
     try {
       if (cl.getDynamicCount()>0 && cl.getStaticCount()>0) {
         throw new Error("mixed static/dynamic boogie program.");
@@ -77,7 +82,7 @@ public class Main {
    *
    */
   public static CompositeReport TestChalice(final ASTClass program){
-    String chalice="vct-chalice";
+    String chalice=chalice_location.get();
     CompositeReport report=new CompositeReport();
     System.err.println("Checking with Chalice");
     if (program.getDynamicCount()>0) throw new Error("chalice program with dynamic top level.");
@@ -93,7 +98,9 @@ public class Main {
     }
     try {
       File chalice_input_file=File.createTempFile("chalice-input",".chalice",new File("."));
-      //chalice_input_file.deleteOnExit();
+      if (!vct.util.Configuration.keep_temp_files.get()){
+        chalice_input_file.deleteOnExit();
+      }
 
       final PrintStream chalice_input=new PrintStream(chalice_input_file);
       final TrackingOutput chalice_code=new TrackingOutput(chalice_input);
@@ -131,7 +138,9 @@ public class Main {
         chalice_err.deleteOnExit();
         int result=hre.Exec.exec(null, chalice_out, chalice_err,chalice,chalice_input_file.toString());
         ChaliceReport output=new ChaliceReport(new FileInputStream(chalice_out),tree);
-        System.err.printf("File: %s%n",chalice_input_file);
+        if (vct.util.Configuration.keep_temp_files.get()){
+          System.err.printf("Input file was kept as: %s%n",chalice_input_file);
+        }
         if (result!=0) {
           output.setVerdict(Verdict.Error);
         }

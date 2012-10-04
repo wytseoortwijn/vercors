@@ -41,7 +41,7 @@ public class ChaliceReport extends hre.util.TestReport {
           int line_no=Integer.parseInt(line.substring(2,dot));
           int col_no=Integer.parseInt(line.substring(dot+1,colon));
           Origin origin=tree.getOrigin(line_no,col_no);
-          if (/*!store.isDetailedErrorsSet()*/ true ){
+          if (!vct.util.Configuration.detailed_errors.get()){
             Debug("line is [%s]",line);
             int sentence=line.indexOf(". ",colon);
             String message;
