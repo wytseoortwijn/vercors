@@ -59,6 +59,10 @@ public class ExplicitPermissionEncoding extends AbstractRewriter {
     final String class_name=((ASTClass)m.getParent()).getName();
     if (m.kind==Method.Kind.Predicate){
       ASTClass pred_class=(ASTClass)(new PredicateClassGenerator()).rewrite(m);
+      Contract c=((ASTClass)m.getParent()).getContract();
+      if (c!=null){
+        pred_class.setContract(copy_rw.rewrite(c));
+      }
       currentPackage.add_static(pred_class);
     } else {
       current_method=m;
@@ -77,7 +81,7 @@ public class ExplicitPermissionEncoding extends AbstractRewriter {
           if (i.labels()==1){
             NameExpression lbl=i.getLabel(0);
             String pred_name=lbl.getName();
-            Type t=create.class_type(class_name+"_"+i.method.getName());
+            Type t=create.class_type(i.object.getType()+"_"+i.method.getName());
             DeclarationStatement decl=new DeclarationStatement(lbl.getName(),t,create.reserved_name("null"));
             decl.setOrigin(i);
             //decl.setFlag(ASTFlags.GHOST, true);
@@ -93,7 +97,7 @@ public class ExplicitPermissionEncoding extends AbstractRewriter {
           if (i.labels()==1){
             NameExpression lbl=i.getLabel(0);
             String pred_name=lbl.getName();
-            Type t=create.class_type(class_name+"_"+i.method.getName());
+            Type t=create.class_type(i.object.getType()+"_"+i.method.getName());
             DeclarationStatement decl=new DeclarationStatement(lbl.getName(),t,create.reserved_name("null"));
             decl.setOrigin(i);
             //decl.setFlag(ASTFlags.GHOST, true);

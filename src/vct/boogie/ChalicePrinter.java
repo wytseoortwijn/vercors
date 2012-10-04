@@ -1,6 +1,8 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 package vct.boogie;
 
+import java.util.HashSet;
+
 import hre.ast.TrackingOutput;
 import vct.col.ast.*;
 import vct.col.ast.PrimitiveType.Sort;
@@ -18,6 +20,8 @@ import static hre.System.Fail;
 public class ChalicePrinter extends AbstractBoogiePrinter {
   
   boolean in_class=false;
+  HashSet<String> classParameters=new HashSet();
+  
   public ChalicePrinter(TrackingOutput out){
     super(BoogieSyntax.getChalice(),out,false);
   }
@@ -47,7 +51,10 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
     if (contract!=null){
       for(DeclarationStatement decl:contract.given){
         if (decl.getType().isPrimitive(Sort.Class)){
-          out.lnprintf("class %s { }",decl.getName());
+          if (!classParameters.contains(decl.getName())){
+            classParameters.add(decl.getName());
+            out.lnprintf("class %s { }",decl.getName());
+          }
         }
       }
     }

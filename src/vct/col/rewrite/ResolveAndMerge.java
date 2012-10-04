@@ -230,7 +230,7 @@ public class ResolveAndMerge extends AbstractRewriter {
         throw new Error("the name "+t_name[0]+" is " + tmp.getClass() + " instead of class at " + t.getOrigin());
       }
     }
-    Fail("could not resolve class type "+t.getFullName());
+    Fail("could not resolve class type %s at %s",t.getFullName(),t.getOrigin());
     result=t;
   }
   
