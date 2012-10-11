@@ -3,7 +3,12 @@ package vct.demo;
 import hre.ast.Context;
 import hre.ast.FileContext;
 import hre.ast.FileOrigin;
-
+/**
+ * This class demonstrates how to use the context class.
+ * 
+ * @author sccblom
+ *
+ */
 public class ContextDisplay {
 
   public static void main(String args[]){

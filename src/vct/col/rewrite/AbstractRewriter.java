@@ -2,7 +2,6 @@ package vct.col.rewrite;
 
 import java.util.Arrays;
 
-import hre.util.FieldStack;
 import hre.util.FrameControl;
 import vct.col.ast.ASTClass;
 import vct.col.ast.ASTNode;
