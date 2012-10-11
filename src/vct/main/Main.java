@@ -108,6 +108,8 @@ class Main
     clops.add(boogie.getEnable("select Boogie backend"),"boogie");
     BooleanSetting chalice=new BooleanSetting(false);
     clops.add(chalice.getEnable("select Chalice backend"),"chalice");
+    final BooleanSetting separate_checks=new BooleanSetting(false);
+    clops.add(separate_checks.getEnable("validate classes separately"),"separate");
     BooleanSetting help_passes=new BooleanSetting(false);
     clops.add(help_passes.getEnable("print help on available passes"),"help-passes");
     BooleanSetting hoare_check=new BooleanSetting(false);
@@ -174,31 +176,38 @@ class Main
     });
     defined_checks.put("chalice",new ValidationPass("verify with Chalice"){
       public TestReport apply(final ASTClass arg){
-        long start=System.currentTimeMillis();
-        CompositeReport res=new CompositeReport();
-        ExecutorService queue=Executors.newFixedThreadPool(4);
-        ArrayList<Future<TestReport>> list=new ArrayList<Future<TestReport>>();
-        for(String[] class_name:classes){
-            Callable<TestReport> task=new ChaliceTask(class_name,arg);
-            System.err.printf("submitting verification of %s%n",new ClassName(class_name).toString("."));
-            list.add(queue.submit(task));
-        }
-        queue.shutdown();
-        for(Future<TestReport> future:list){
-          try {
-            res.addReport(future.get());
-          } catch (InterruptedException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-            Abort("%s",e);
-          } catch (ExecutionException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-            Abort("%s",e);
+        if (separate_checks.get()) {
+          long start=System.currentTimeMillis();
+          CompositeReport res=new CompositeReport();
+          ExecutorService queue=Executors.newFixedThreadPool(4);
+          ArrayList<Future<TestReport>> list=new ArrayList<Future<TestReport>>();
+          for(String[] class_name:classes){
+              Callable<TestReport> task=new ChaliceTask(class_name,arg);
+              System.err.printf("submitting verification of %s%n",new ClassName(class_name).toString("."));
+              list.add(queue.submit(task));
           }
+          queue.shutdown();
+          for(Future<TestReport> future:list){
+            try {
+              res.addReport(future.get());
+            } catch (InterruptedException e) {
+              // TODO Auto-generated catch block
+              e.printStackTrace();
+              Abort("%s",e);
+            } catch (ExecutionException e) {
+              // TODO Auto-generated catch block
+              e.printStackTrace();
+              Abort("%s",e);
+            }
+          }
+          System.err.printf("verification took %dms%n", System.currentTimeMillis()-start);
+          return res;
+        } else {
+          long start=System.currentTimeMillis();
+          TestReport report=vct.boogie.Main.TestChalice(program);
+          System.err.printf("verification took %dms%n", System.currentTimeMillis()-start);
+          return report;
         }
-        System.err.printf("verification took %dms%n", System.currentTimeMillis()-start);
-        return res;
       }
     });
     defined_passes.put("check",new CompilerPass("run a type check"){
