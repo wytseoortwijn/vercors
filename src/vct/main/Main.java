@@ -102,7 +102,7 @@ class Main
   public static void main(String[] args) throws Throwable
   {
     OptionParser clops=new OptionParser();
-    clops.add(clops.getHelpOption(),"help");
+    clops.add(clops.getHelpOption(),'h',"help");
 
     BooleanSetting boogie=new BooleanSetting(false);
     clops.add(boogie.getEnable("select Boogie backend"),"boogie");

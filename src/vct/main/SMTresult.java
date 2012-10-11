@@ -33,8 +33,7 @@ public class SMTresult {
 	public boolean getSatisfying(){
 		return satisfying;
 	}
-	/**
-	 * @require this.getSatisfying() == true
+	/** Return an example. Requires that this.getSatisfying() == true
 	 * @return a satisfying interpretation from the SMT solver.
 	 */
 	public List<String> getExample(){

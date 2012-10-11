@@ -101,7 +101,7 @@ public class BoogieFOL {
   /** find all assertions in the given program and check them 
    * with Boogie as if they were first order logic formulas.
    * @param program The program to scan for assertions.
-   * @return 
+   * @return The result of checking assertions in the form of a test report.
    */
   public static TestReport main(ASTClass program) {
     MethodFinder finder=new MethodFinder();
