@@ -2,6 +2,8 @@ package hre.config;
 
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Map.Entry;
 
 import static hre.System.*;
@@ -16,12 +18,17 @@ public class OptionParser {
   /**
    * Mapping from single characters to options.
    */
-  private Hashtable<Character,Option> short_options=new Hashtable<Character,Option>();
+  private Map<Character,Option> short_options=new Hashtable<Character,Option>();
   
   /**
    * Mapping from names to options.
    */
-  private Hashtable<String,Option> long_options=new Hashtable<String,Option>();
+  private Map<String,Option> long_options=new Hashtable<String,Option>();
+  
+  /**
+   * Mapping from options to names.
+   */
+  private Map<Option,String> option_list=new LinkedHashMap<Option,String>();
   
   /**
    * Add an option to the parser under one or more names.
@@ -30,18 +37,23 @@ public class OptionParser {
    * @param names List of names for this option. To add a short name, a Character should be used. to add a long name, a String must be used.
    */
   public void add(Option option,Object...names){
+    String namelist=null;
     for(Object name:names){
+      if(namelist!=null) namelist+=", "; else namelist="";
       if (name instanceof Character){
+        namelist+="-"+name;
         if (option.needsArgument()){
           Fail("Short options cannot have an argument.");
         }
         short_options.put((Character)name, option);
       } else if (name instanceof String){
+        namelist+="--"+name;
         long_options.put((String)name,option);
       } else {
         Fail("illegal options name: %s",name.getClass());
       }
     }
+    option_list.put(option,namelist);
   }
 
   /**
@@ -112,11 +124,8 @@ public class OptionParser {
 
     public void pass(){
       Output("Options are:");
-      for(Entry<Character,Option> entry : short_options.entrySet()){
-        Output(" -%-20s  : %s",entry.getKey(),entry.getValue().getHelp());
-      }
-      for(Entry<String,Option> entry : long_options.entrySet()){
-        Output(" --%-20s : %s",entry.getKey(),entry.getValue().getHelp());       
+      for(Entry<Option,String> entry : option_list.entrySet()){
+        Output(" %-20s  : %s",entry.getValue(),entry.getKey().getHelp());
       }
       System.exit(0);
     }

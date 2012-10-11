@@ -21,7 +21,7 @@ public class Exec {
 	 * @param stdout File for storing standard output.
 	 * @param stderr File for storing standard error.
 	 * @param command_line An array of strings comprising the command line.
-	 * @return
+	 * @return The exit code of the process, or -1 if interrupted.
 	 */
   public static int exec(File stdin,File stdout,File stderr,String ... command_line){
     Runtime runtime=Runtime.getRuntime();
