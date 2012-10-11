@@ -28,10 +28,8 @@ public class ChaliceReport extends hre.util.TestReport {
   public ChaliceReport(InputStream stream,TrackingTree tree){
     try {
       BufferedReader in=new BufferedReader(new InputStreamReader(stream));
-      PrintStream out=new PrintStream("chalice-output.txt");
       String line;
       while((line=in.readLine())!=null){
-        out.println(line);
         if (line.equals("")) continue;
         if (line.startsWith("  ")){
           //System.out.println("processing:"+line);
@@ -92,7 +90,6 @@ public class ChaliceReport extends hre.util.TestReport {
         }
         System.err.println("chalice: "+line);
       }
-      out.close();
     } catch (Exception e) {
       Warning("unexpected exception %s",e);
       setException(e);
