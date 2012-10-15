@@ -10,6 +10,12 @@ public class ClassName {
     this.name=Arrays.copyOf(name,name.length);
   }
   
+  public ClassName(String[] fullName, String name2) {
+    name=new String[fullName.length+1];
+    for(int i=0;i<fullName.length;i++) name[i]=fullName[i];
+    name[fullName.length]=name2;
+  }
+
   public static boolean equal(String name1[],String name2[]){
     if (name1.length!=name2.length) return false;
     for(int i=0;i<name1.length;i++){
@@ -42,4 +48,14 @@ public class ClassName {
     return name2[N].startsWith(name1[N]);
   }
 
+  public int hashCode(){
+    return toString(".").hashCode();
+  }
+  public boolean equals(Object o){
+    if (o instanceof ClassName){
+      return equal(name,((ClassName)o).name);
+    } else {
+      return false;
+    }
+  }
 }

@@ -1,5 +1,7 @@
 package vct.col.rewrite;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.Stack;
 
 import vct.col.ast.ASTClass;
@@ -26,6 +28,8 @@ import vct.col.util.FieldDefinition;
 import vct.col.util.LocalDefinition;
 import vct.col.util.MethodDefinition;
 import vct.col.util.NameSpace;
+import vct.col.util.PredicateScanner;
+import vct.util.ClassName;
 import static hre.System.*;
 
 /**
@@ -44,6 +48,7 @@ public class ResolveAndMerge extends AbstractRewriter {
   private NameSpace type_names;
   private NameSpace var_names;
   private NameSpace method_names;
+  private Set<ClassName> predicates=new HashSet();
   
   private boolean static_context=true;
   private boolean StaticContext(){
@@ -119,6 +124,11 @@ public class ResolveAndMerge extends AbstractRewriter {
       defs=new ClassDefinition();
       DefinitionScanner scanner=new DefinitionScanner(defs);
       c.accept(scanner);
+//      Warning("scanning for predicates");
+      c.accept(new PredicateScanner(predicates));
+//      for(ClassName cl:predicates){
+//        Warning("predicate %s",cl.toString("."));
+//      }
       type_names=new NameSpace();
       var_names=new NameSpace();
       method_names=new NameSpace();
@@ -274,8 +284,10 @@ public class ResolveAndMerge extends AbstractRewriter {
         throw new Error("the name "+t_name[0]+" is " + tmp.getClass() + " instead of class at " + t.getOrigin());
       }
     }
-    Fail("could not resolve class type %s at %s",t.getFullName(),t.getOrigin());
-    result=t;
+    if (!predicates.contains(new ClassName(t.getNameFull()))){
+      Fail("could not resolve class type %s at %s",t.getFullName(),t.getOrigin());
+    }
+    result=create.class_type(t.getNameFull());
   }
   
   public void visit(OperatorExpression e){
