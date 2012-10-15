@@ -2,6 +2,7 @@ package vct.col.rewrite;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 
 import vct.col.ast.ASTClass;
 import vct.col.ast.ASTClass.ClassKind;
@@ -67,12 +68,13 @@ public class ExplicitPermissionEncoding extends AbstractRewriter {
   public void visit(Method m){
     final String class_name=((ASTClass)m.getParent()).getName();
     if (m.kind==Method.Kind.Predicate){
-      ASTClass pred_class=(ASTClass)(new PredicateClassGenerator()).rewrite(m);
+      ASTClass pred_class=(ASTClass)(new PredicateClassGenerator(currentClass)).rewrite(m);
       Contract c=((ASTClass)m.getParent()).getContract();
       if (c!=null){
         pred_class.setContract(copy_rw.rewrite(c));
       }
       currentPackage.add_static(pred_class);
+      result=null;
     } else {
       current_method=m;
       Contract c=m.getContract();
@@ -246,7 +248,10 @@ class ClauseEncoding extends AbstractRewriter {
   };
 
   public void visit(MethodInvokation i) {
-    if (i.getDefinition().getKind()!=Method.Kind.Predicate){
+    if (i.getDefinition()==null){
+      Warning("Ignoring missing definition of %s",i.method.getName());
+      result=copy_rw.rewrite(i);
+    } else if (i.getDefinition().getKind()!=Method.Kind.Predicate){
       result=copy_rw.rewrite(i);
     } else {
       if (i.labels()==0){
@@ -276,12 +281,21 @@ class PredicateClassGenerator extends AbstractRewriter {
   private String pred_name;
   private ASTClass pred_class;
   private boolean in_use=false;
- 
+  private int condition_level=0;
+  private Method pred_decl;
+  private ASTClass master;
+  private HashSet<String> protected_fields=new HashSet<String>();
+  
+  public PredicateClassGenerator(ASTClass master){
+    this.master=master;
+  }
+  
   public void visit(Method m){
     if (in_use) {
       Abort("Predicate class generator already in use.");
     }
     in_use=true;
+    pred_decl=m;
     
     class_name=((ASTClass)m.getParent()).getName();
     pred_name=m.getName();
@@ -404,6 +418,28 @@ class PredicateClassGenerator extends AbstractRewriter {
     cb.ensures(create.invokation(null,false, create.method_name("check"), check_args));
     cons_body.add_statement(create.expression(StandardOperator.Fold,
         create.invokation(create.reserved_name("this"),false, create.method_name("valid"), new ASTNode[0])));
+    for(String field_name:protected_fields){
+      ASTNode getter_args[]=new ASTNode[N+1];
+      for(int i=0;i<N;i++){
+        getter_args[i]=create.local_name(pred_decl.getArgument(i));
+        getter_args[i].addLabel(create.label(pred_decl.getArgument(i)));
+      }
+      getter_args[N]=create.reserved_name("this");
+      getter_args[N].addLabel(create.label("req"));
+      cb.ensures(create.expression(StandardOperator.EQ,
+          create.invokation(
+              create.local_name("ref"),
+              false ,
+              create.method_name(pred_name+"_get_"+field_name),
+              getter_args
+          ),
+          create.expression(StandardOperator.Old,
+              create.expression(StandardOperator.Select,
+                  create.local_name("ref"),create.field_name(field_name)
+              )
+          )
+      ));
+    }
     // Add constructor;
     pred_class.add_dynamic(create.method_kind(Method.Kind.Constructor,
         create.primitive_type(Sort.Void),
@@ -520,6 +556,78 @@ class PredicateClassGenerator extends AbstractRewriter {
       result=create.field_name("ref");
     } else {
       super.visit(e);
+    }
+  }
+  
+  public void visit(OperatorExpression e){
+    switch(e.getOperator()){
+      case Perm:
+      case PointsTo:
+        if (condition_level==0){
+          ASTNode tmp=e.getArg(0);
+          if (tmp instanceof OperatorExpression){
+            OperatorExpression field=(OperatorExpression)tmp;
+            tmp=field.getArg(0);
+            if (tmp instanceof NameExpression && ((NameExpression)tmp).getName().equals("this")){
+              tmp=field.getArg(1);
+              if (tmp instanceof NameExpression){
+                NameExpression name=(NameExpression)tmp;
+                Warning("adding getter %s_get_%s",pred_name,name.getName());
+                ContractBuilder cb=new ContractBuilder();
+                cb.given(copy_rw.rewrite_and_cast(pred_decl.getArgs()));
+                cb.given(create.field_decl("req",create.class_type(class_name+"_"+pred_name)));
+                cb.requires(create.expression(StandardOperator.NEQ,
+                    create.local_name("req"),create.reserved_name("null")));
+                cb.requires(
+                    create.invokation(
+                        create.local_name("req"),false,
+                        create.method_name("valid"),new ASTNode[0]
+                    )
+                );
+                int N=pred_decl.getArity();
+                ASTNode args[]=new ASTNode[N+1];
+                args[0]=create.reserved_name("this");
+                for(int i=0;i<N;i++){
+                  args[i+1]=create.local_name(pred_decl.getArgument(i));
+                }
+                cb.requires(
+                    create.invokation(
+                        create.local_name("req"),false,
+                        create.method_name("check"),
+                        args
+                    )
+                );
+                protected_fields.add(name.getName());
+                Method getter=create.function_decl(
+                    field.getType(),
+                    cb.getContract(),
+                    pred_name+"_get_"+name.getName(),
+                    new DeclarationStatement[0],
+                    create.block(
+                        create.expression(StandardOperator.Unfold,
+                            create.invokation(
+                                create.local_name("req"),false,
+                                create.method_name("valid"),new ASTNode[0]
+                            )
+                        ),
+                        create.return_statement(copy_rw.rewrite(field))
+                    )
+                );
+                master.add_dynamic(getter);
+              }
+            }
+          }
+        }
+        super.visit(e);
+        return;
+      case Implies:
+        condition_level++;
+        super.visit(e);
+        condition_level--;
+        return;        
+      default:
+        super.visit(e);
+        return;
     }
   }
 }

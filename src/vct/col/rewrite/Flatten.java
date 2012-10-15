@@ -219,6 +219,14 @@ public class Flatten extends AbstractRewriter {
   }
 
   public void visit(Method m) {
+    switch(m.kind){
+    case Predicate:
+    case Pure:
+      result=copy_pure.rewrite(m);
+      return;
+    default:
+      break;
+    }
     String name=m.getName();
     int N=m.getArity();
     DeclarationStatement args[]=copy_pure.rewrite_and_cast(m.getArgs());

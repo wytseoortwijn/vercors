@@ -167,23 +167,59 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
         print_arguments(m,true);
         if (contract!=null) visit(contract,true);
         if (body !=null) {
-          out.lnprintf("{");
-          out.incrIndent();
-          in_clause=true;
-          if (contract!=null && !contract.pre_condition.equals(ContractBuilder.default_true)) {
-            // this is an unsafe trick!
-            out.printf("unfolding ");
+          if (body instanceof BlockStatement){
+            out.lnprintf("{");
+            out.incrIndent();
+            BlockStatement block=(BlockStatement)body;
+            int L=block.getLength()-1;
+            ASTNode tmp;
+            for(int i=0;i<L;i++){
+              tmp=block.getStatement(i);
+              if (tmp instanceof OperatorExpression &&
+                  ((OperatorExpression)tmp).getOperator()==StandardOperator.Unfold)
+              {
+                in_clause=true;
+                nextExpr();
+                current_precedence=0;
+                out.printf("unfolding ");
+                ((OperatorExpression)tmp).getArg(0).accept(this);
+                out.lnprintf(" in");
+                in_clause=false;
+              } else {
+                Fail("statement that is not unfold in pure method at %s",m.getOrigin());
+              }
+            }
+            tmp=block.getStatement(L);
+            if (tmp instanceof ReturnStatement){
+              tmp=((ReturnStatement)tmp).getExpression();
+              nextExpr();
+              current_precedence=0;
+              tmp.accept(this);
+            } else {
+              Fail("last statement of pure method is not an expression at %s",m.getOrigin());
+            }
+            out.decrIndent();
+            out.lnprintf("");
+            out.lnprintf("}");
+          } else {
+            out.lnprintf("{");
+            out.incrIndent();
+            in_clause=true;
+            if (contract!=null && !contract.pre_condition.equals(ContractBuilder.default_true)) {
+              // this is an unsafe trick!
+              out.printf("unfolding ");
+              nextExpr();
+              current_precedence=0;
+              contract.pre_condition.accept(this);
+              out.printf(" in ");
+            }
             nextExpr();
-            current_precedence=0;
-            contract.pre_condition.accept(this);
-            out.printf(" in ");
+            body.accept(this);
+            out.decrIndent();
+            out.lnprintf("");
+            out.lnprintf("}");
+            in_clause=false;
           }
-          nextExpr();
-          body.accept(this);
-          out.decrIndent();
-          out.lnprintf("");
-          out.lnprintf("}");
-          in_clause=false;
         } else {
           out.lnprintf("// abstract! ");
         }

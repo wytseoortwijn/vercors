@@ -71,7 +71,7 @@ public final class PrimitiveType extends Type {
         }        
         break;
       default:
-        Fail("missing case in PrimitiveType.supertypeof");
+        Fail("missing case in PrimitiveType.supertypeof (%s/%s)",this.sort,pt.sort);
       }
     }
     return false;

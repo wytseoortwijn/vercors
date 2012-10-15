@@ -53,6 +53,16 @@ public class SimpleTypeCheck extends AbstractVisitor<Type> {
     if (cl==null) Fail("could not find class %s",object_type.getFullName());
     Method m=cl.find(e.method.getName(),type);
     if (m==null) {
+      String parts[]=e.method.getName().split("_");
+      if (parts.length==3 && parts[1].equals("get")){
+        // TODO: check if parts[0] is a predicate.
+        DeclarationStatement field=cl.find_field(parts[2]);
+        if (field!=null) {
+          Warning("assuming %s is implicit getter function",e.method.getName());
+          e.setType(field.getType());
+        }
+        return;
+      }
       String tmp="";
       if (N>0){
         tmp=type[0].toString();

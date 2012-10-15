@@ -41,14 +41,14 @@ public abstract class AbstractBoogiePrinter extends AbstractPrinter {
     ASTNode args[]=e.getArgs();
     String next="";
     for(int i=0;i<args.length;i++){
-      if (types[i].isValidFlag(ASTFlags.OUT_ARG)&&types[i].getFlag(ASTFlags.OUT_ARG)) {
+      if (i<types.length&&types[i].isValidFlag(ASTFlags.OUT_ARG)&&types[i].getFlag(ASTFlags.OUT_ARG)) {
         out.printf("%s",next);
         args[i].accept(this);
         next=",";
       }
     }
     for(int i=args.length;i<types.length;i++){
-      if (types[i].isValidFlag(ASTFlags.OUT_ARG)&&types[i].getFlag(ASTFlags.OUT_ARG)) {
+      if (i<types.length&&types[i].isValidFlag(ASTFlags.OUT_ARG)&&types[i].getFlag(ASTFlags.OUT_ARG)) {
         out.printf("%s%s_%s",next,tag,types[i].getName());
         next=",";
       }
@@ -70,8 +70,15 @@ public abstract class AbstractBoogiePrinter extends AbstractPrinter {
     e.method.accept(this);
     out.printf("(");
     next="";
+    HashMap<String,ASTNode> map=new HashMap();
     for(int i=0;i<args.length;i++){
-      if (types[i].isValidFlag(ASTFlags.OUT_ARG)&&types[i].getFlag(ASTFlags.OUT_ARG)) continue;
+      if (args[i].labels()>0) {
+        if (i>=types.length || types[i].getInit()!=null){
+          map.put(args[i].getLabel(0).getName(),args[i]);
+          continue;
+        }
+      }
+      if (i<types.length&&types[i].isValidFlag(ASTFlags.OUT_ARG)&&types[i].getFlag(ASTFlags.OUT_ARG)) continue;
       out.printf("%s",next);
       args[i].accept(this);
       next=",";
@@ -86,7 +93,6 @@ public abstract class AbstractBoogiePrinter extends AbstractPrinter {
       next=",";
     }
     if (c!=null){
-      HashMap<String,ASTNode> map=new HashMap();
       BlockStatement before=e.get_before();
       if (before !=null){
         int N=before.getLength();

@@ -18,11 +18,13 @@ import vct.col.ast.ReturnStatement;
 
 public class VoidCalls extends AbstractRewriter {
 
+  private AbstractRewriter copy_rw=new AbstractRewriter(){};
+  
   public void visit(Method m){
     switch(m.kind){
     case Predicate:
     case Pure:
-      super.visit(m);
+      result=copy_rw.rewrite(m);
       return;
     default:
       break;
