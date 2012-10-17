@@ -97,9 +97,14 @@ public class Main {
       }
     }
     try {
-      File chalice_input_file=File.createTempFile("chalice-input",".chalice",new File("."));
-      if (!vct.util.Configuration.keep_temp_files.get()){
-        chalice_input_file.deleteOnExit();
+      File chalice_input_file;
+      if (vct.util.Configuration.backend_file.get()==null){
+        chalice_input_file=File.createTempFile("chalice-input",".chalice",new File("."));
+        if (!vct.util.Configuration.keep_temp_files.get()){
+          chalice_input_file.deleteOnExit();
+        }
+      } else {
+        chalice_input_file=new File(vct.util.Configuration.backend_file.get());
       }
 
       final PrintStream chalice_input=new PrintStream(chalice_input_file);
