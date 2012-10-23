@@ -312,6 +312,9 @@ class Main
       }
       System.exit(0);
     }
+    if (!(boogie.get() || chalice.get() || hoare_check.get() || pass_list.iterator().hasNext())) {
+      Fail("no back-end or passes specified");
+    }
     Progress("parsing inputs...");
     int cnt = 0;
     long startTime = System.currentTimeMillis();
