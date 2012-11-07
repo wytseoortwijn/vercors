@@ -81,7 +81,7 @@ class Main
       this.arg=arg;
     }
     @Override
-    public TestReport call() throws Exception {
+    public TestReport call() {
       System.err.print("Validating class ");
       for(String part:class_name){
         System.err.printf("%s.", part);
