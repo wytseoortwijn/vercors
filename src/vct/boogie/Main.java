@@ -15,6 +15,7 @@ import java.util.*;
 
 import vct.col.ast.*;
 import vct.util.*;
+import static hre.System.*;
 
 /**
  * This class contains the main procedures of the Boogie/Chalice back ends.
@@ -56,14 +57,14 @@ public class Main {
       printer.print(cl);
       TrackingTree tree=boogie_code.close();
 
-      if (boogie==null) throw new Error("please set location of boogie binary");
+      if (boogie==null) Fail("please set location of boogie binary");
       File boogie_out=File.createTempFile("boogie-out","txt");
       boogie_out.deleteOnExit();
       File boogie_err=File.createTempFile("boogie-err","txt");
       boogie_err.deleteOnExit();
       int res=hre.Exec.exec(null, boogie_out, boogie_err, boogie,"/timeLimit:"+timeout, "/xml:boogie-output.xml","boogie-input.bpl");
       if (res<0){
-        hre.System.Abort("boogie execution failed");
+        Fail("boogie execution failed with exit code %d",res);
       }
       BoogieReport output=new BoogieReport(new FileInputStream(boogie_out),"boogie-output.xml",tree);
       return output;
@@ -125,7 +126,7 @@ public class Main {
             if (class_def.isPackage()){
               find_classes(class_def);
             } else if (class_def.getStaticCount()>0){
-              throw new Error("class "+class_def.getName()+" has static entries");
+              Fail("class "+class_def.getName()+" has static entries");
             } else {
               class_def.accept(printer);
             }
@@ -147,13 +148,15 @@ public class Main {
           System.err.printf("Input file was kept as: %s%n",chalice_input_file);
         }
         if (result!=0) {
+          Warning("Unexpected return value from Chalice: %d",result);
           output.setVerdict(Verdict.Error);
         }
         report.addReport(output);
       }
     } catch (Exception e) {
-      System.out.println("error: ");
+      Warning("error: ");
       e.printStackTrace();
+      report.setVerdict(Verdict.Error);
     }
     return report;
   }

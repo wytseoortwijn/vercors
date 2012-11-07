@@ -129,9 +129,6 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
     int N=m.getArity();
     Contract contract=m.getContract();
     if (contract!=null) post_condition=contract.post_condition;
-    if (N>0 && kind==Method.Kind.Predicate){
-      kind=Method.Kind.Pure;
-    }
     ASTNode body=m.getBody();
     Debug("method %s of kind %s", name, kind);
     switch(kind){
@@ -144,6 +141,9 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
         break;
       }
       case Predicate:{
+        if (N>0){
+          Fail("predicate %s (%s) has arguments",name,m.getOrigin());
+        }
         if (body==null) {
           out.lnprintf("function %s_abstract():bool",name);
           out.lnprintf("predicate %s { %s_abstract() }",name,name);
