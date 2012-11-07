@@ -320,10 +320,22 @@ public class SimpleTypeCheck extends AbstractVisitor<Type> {
       e.setType(new PrimitiveType(Sort.Void));
       break;
     }
-    case Assert:
     case Fold:
-    case HoarePredicate:
     case Unfold:
+    {
+      ASTNode arg=e.getArg(0);
+      if (!(arg instanceof MethodInvokation)){
+        Fail("At %s: argument of (un)fold must be a predicate invokation.",arg.getOrigin());
+      }
+      MethodInvokation prop=(MethodInvokation)arg;
+      if (prop.getDefinition().kind != Method.Kind.Predicate){
+        Fail("At %s: argument of (un)fold must be predicate and not %s",arg.getOrigin(),prop.getDefinition().kind);
+      }
+      e.setType(new PrimitiveType(Sort.Void));      
+      break;
+    }
+    case Assert:
+    case HoarePredicate:
     case Assume:
     {
       Type t=e.getArg(0).getType();
