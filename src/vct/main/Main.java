@@ -35,10 +35,12 @@ import vct.col.rewrite.ForallRule;
 import vct.col.rewrite.GlobalizeStaticsField;
 import vct.col.rewrite.GlobalizeStaticsParameter;
 import vct.col.rewrite.GuardedCallExpander;
+import vct.col.rewrite.InheritanceRewriter;
 import vct.col.rewrite.ReorderAssignments;
 import vct.col.rewrite.ResolveAndMerge;
 import vct.col.rewrite.ReferenceEncoding;
 import vct.col.rewrite.SimplifyCalls;
+import vct.col.rewrite.StripConstructors;
 import vct.col.rewrite.VoidCalls;
 import vct.col.util.FeatureScanner;
 import vct.col.util.SimpleTypeCheck;
@@ -49,11 +51,7 @@ import static hre.ast.Context.globalContext;
 
 class Main
 {  
-  private static ASTClass program;
-  static {
-    program=new ASTClass();
-    program.setOrigin(new MessageOrigin("root class"));
-  }
+  private static ProgramUnit program=new ProgramUnit();
   
   private static void parseFile(String name){
     int dot=name.lastIndexOf('.');
@@ -66,33 +64,30 @@ class Main
       vct.col.ast.ASTNode.pvl_mode=true;
     }
     Progress("Parsing %s file %s",lang,name);
-    program.add_static(Parser.parse(lang,name));
+    ProgramUnit unit=Parser.parse(lang,name);
+    program.merge(unit);
     Progress("Read %s succesfully",name);
   }
 
-  private static List<String[]> classes;
+  private static List<ClassName> classes;
   
   static class ChaliceTask implements Callable<TestReport> {
-    private String[] class_name;
-    private ASTClass arg;
+    private ClassName class_name;
+    private ProgramUnit program;
 
-    public ChaliceTask(String[] class_name,ASTClass arg){
+    public ChaliceTask(ProgramUnit program,ClassName class_name){
+      this.program=program;
       this.class_name=class_name;
-      this.arg=arg;
     }
     @Override
     public TestReport call() {
-      System.err.print("Validating class ");
-      for(String part:class_name){
-        System.err.printf("%s.", part);
-      }
-      System.err.printf("..%n");
+      System.err.printf("Validating class %s...%n",class_name.toString("."));
       long start=System.currentTimeMillis();
-      ASTClass task=(ASTClass)arg.apply(new FilterClass(class_name));
-      task=(ASTClass)task.apply(new ResolveAndMerge());
-      new SimpleTypeCheck(task).check(task);
+      ProgramUnit task=new FilterClass(program,class_name.name).rewriteAll();
+      task=new ResolveAndMerge(task).rewriteAll();
+      new SimpleTypeCheck(task).check();
       TestReport report=vct.boogie.Main.TestChalice(task);
-      System.err.printf("%s: result is %s (%dms)%n",new ClassName(class_name).toString("."),
+      System.err.printf("%s: result is %s (%dms)%n",class_name.toString("."),
           report.getVerdict(),System.currentTimeMillis()-start);
       return report;
     }
@@ -152,38 +147,38 @@ class Main
     Hashtable<String,CompilerPass> defined_passes=new Hashtable<String,CompilerPass>();
     Hashtable<String,ValidationPass> defined_checks=new Hashtable<String,ValidationPass>();
     defined_passes.put("java",new CompilerPass("print AST in java syntax"){
-      public ASTClass apply(ASTClass arg){
+      public ProgramUnit apply(ProgramUnit arg){
         vct.java.printer.JavaPrinter.dump(System.out,arg);
         return arg;
       }
     });
     defined_passes.put("dump",new CompilerPass("dump AST"){
-      public ASTClass apply(ASTClass arg){
+      public ProgramUnit apply(ProgramUnit arg){
         PrefixPrintStream out=new PrefixPrintStream(System.out);
         HeapDump.tree_dump(out,arg,ASTNode.class);
         return arg;
       }
     });
     defined_passes.put("assign",new CompilerPass("change inline assignments to statements"){
-      public ASTClass apply(ASTClass arg){
-        return (ASTClass)arg.apply(new AssignmentRewriter());
+      public ProgramUnit apply(ProgramUnit arg){
+        return new AssignmentRewriter(arg).rewriteAll();
       }
     });
     defined_checks.put("boogie",new ValidationPass("verify with Boogie"){
-      public TestReport apply(ASTClass arg){
+      public TestReport apply(ProgramUnit arg){
         return vct.boogie.Main.TestBoogie(arg);
       }
     });
     defined_checks.put("chalice",new ValidationPass("verify with Chalice"){
-      public TestReport apply(final ASTClass arg){
+      public TestReport apply(ProgramUnit arg){
         if (separate_checks.get()) {
           long start=System.currentTimeMillis();
           CompositeReport res=new CompositeReport();
           ExecutorService queue=Executors.newFixedThreadPool(4);
           ArrayList<Future<TestReport>> list=new ArrayList<Future<TestReport>>();
-          for(String[] class_name:classes){
-              Callable<TestReport> task=new ChaliceTask(class_name,arg);
-              System.err.printf("submitting verification of %s%n",new ClassName(class_name).toString("."));
+          for(ClassName class_name:arg.classNames()){
+              Callable<TestReport> task=new ChaliceTask(arg,class_name);
+              System.err.printf("submitting verification of %s%n",class_name.toString("."));
               list.add(queue.submit(task));
           }
           queue.shutdown();
@@ -204,102 +199,114 @@ class Main
           return res;
         } else {
           long start=System.currentTimeMillis();
-          TestReport report=vct.boogie.Main.TestChalice(program);
+          TestReport report=vct.boogie.Main.TestChalice(arg);
           System.err.printf("verification took %dms%n", System.currentTimeMillis()-start);
           return report;
         }
       }
     });
     defined_passes.put("check",new CompilerPass("run a type check"){
-      public ASTClass apply(ASTClass arg){
-        new SimpleTypeCheck(arg).check(arg);
+      public ProgramUnit apply(ProgramUnit arg){
+        new SimpleTypeCheck(arg).check();
         return arg;
       }
     });
     defined_passes.put("define_double",new CompilerPass("Rewrite double as a non-native data type."){
-      public ASTClass apply(ASTClass arg){
+      public ProgramUnit apply(ProgramUnit arg){
         return DefineDouble.rewrite(arg);
       }
     });
     defined_passes.put("expand",new CompilerPass("expand guarded method calls"){
-      public ASTClass apply(ASTClass arg){
-        return (ASTClass)arg.apply(new GuardedCallExpander());
+      public ProgramUnit apply(ProgramUnit arg){
+        return new GuardedCallExpander(arg).rewriteAll();
       }
     });
     defined_passes.put("explicit_encoding",new CompilerPass("encode required and ensured permission as ghost arguments"){
-      public ASTClass apply(ASTClass arg){
-        return (ASTClass)arg.apply(new ExplicitPermissionEncoding());
+      public ProgramUnit apply(ProgramUnit arg){
+        return new ExplicitPermissionEncoding(arg).rewriteAll();
       }
     });
     defined_passes.put("finalize_args",new CompilerPass("???"){
-      public ASTClass apply(ASTClass arg){
-        return (ASTClass)arg.apply(new FinalizeArguments());
+      public ProgramUnit apply(ProgramUnit arg){
+        return new FinalizeArguments(arg).rewriteAll();
       }
     });
     defined_passes.put("flatten",new CompilerPass("remove nesting of expression"){
-      public ASTClass apply(ASTClass arg){
-        return (ASTClass)arg.apply(new Flatten());
+      public ProgramUnit apply(ProgramUnit arg){
+        return new Flatten(arg).rewriteAll();
       }
     });
     defined_passes.put("forall_rule",new CompilerPass("Apply the forall rule to predicates"){
-      public ASTClass apply(ASTClass arg){
-        return (ASTClass)arg.apply(new ForallRule());
+      public ProgramUnit apply(ProgramUnit arg){
+        return new ForallRule(arg).rewriteAll();
       }
     });
     if (global_with_field.get()){
       Warning("Using the incomplete and experimental field access for globals.");
       defined_passes.put("globalize",new CompilerPass("split classes into static and dynamic parts"){
-        public ASTClass apply(ASTClass arg){
-          return (ASTClass)arg.apply(new GlobalizeStaticsField());
+        public ProgramUnit apply(ProgramUnit arg){
+          return new GlobalizeStaticsField(arg).rewriteAll();
         }
       });      
     } else {
       defined_passes.put("globalize",new CompilerPass("split classes into static and dynamic parts"){
-        public ASTClass apply(ASTClass arg){
-          return (ASTClass)arg.apply(new GlobalizeStaticsParameter());
+        public ProgramUnit apply(ProgramUnit arg){
+          return new GlobalizeStaticsParameter(arg).rewriteAll();
         }
       });
     }
     defined_checks.put("hoare_logic",new ValidationPass("Check Hoare Logic Proofs"){
-      public TestReport apply(ASTClass arg){
-        Brain.main(arg);
+      public TestReport apply(ProgramUnit arg){
+        for(ASTClass cl:arg.classes()){
+          Brain.main(cl);
+        }
         return null;
       }
     });
+    defined_passes.put("inheritance",new CompilerPass("rewrite contract to reflect inheritance"){
+      public ProgramUnit apply(ProgramUnit arg){
+        return new InheritanceRewriter(arg).rewriteOrdered();
+      }
+    });
     defined_passes.put("modifies",new CompilerPass("Derive modifies clauses for all contracts"){
-      public ASTClass apply(ASTClass arg){
+      public ProgramUnit apply(ProgramUnit arg){
         new DeriveModifies().annotate(arg);
         return arg;
       }
     });
     defined_passes.put("reorder",new CompilerPass("reorder statements (e.g. all declarations at the start of a bock"){
-      public ASTClass apply(ASTClass arg){
-        return (ASTClass)arg.apply(new ReorderAssignments());
+      public ProgramUnit apply(ProgramUnit arg){
+        return new ReorderAssignments(arg).rewriteAll();
       }
     });
     defined_passes.put("refenc",new CompilerPass("apply reference encoding"){
-      public ASTClass apply(ASTClass arg){
-        return (ASTClass)arg.apply(new ReferenceEncoding());
+      public ProgramUnit apply(ProgramUnit arg){
+        return new ReferenceEncoding(arg).rewriteAll();
       }
     });
     defined_passes.put("resolv",new CompilerPass("resolv all names"){
-      public ASTClass apply(ASTClass arg){
-        return (ASTClass)arg.apply(new ResolveAndMerge());
+      public ProgramUnit apply(ProgramUnit arg){
+        return new ResolveAndMerge(arg).rewriteAll();
       }
     });
     defined_passes.put("rm_cons",new CompilerPass("???"){
-      public ASTClass apply(ASTClass arg){
-        return (ASTClass)arg.apply(new ConstructorRewriter());
+      public ProgramUnit apply(ProgramUnit arg){
+        return new ConstructorRewriter(arg).rewriteAll();
       }
     });
     defined_passes.put("simplify_calls",new CompilerPass("???"){
-      public ASTClass apply(ASTClass arg){
-        return (ASTClass)arg.apply(new SimplifyCalls());
+      public ProgramUnit apply(ProgramUnit arg){
+        return new SimplifyCalls(arg).rewriteAll();
+      }
+    });
+    defined_passes.put("strip_constructors",new CompilerPass("Strip constructors from classes"){
+      public ProgramUnit apply(ProgramUnit arg){
+        return new StripConstructors(arg).rewriteAll();
       }
     });
     defined_passes.put("voidcalls",new CompilerPass("???"){
-      public ASTClass apply(ASTClass arg){
-        return (ASTClass)arg.apply(new VoidCalls());
+      public ProgramUnit apply(ProgramUnit arg){
+        return new VoidCalls(arg).rewriteAll();
       }
     });
     if (help_passes.get()) {
@@ -328,12 +335,15 @@ class Main
     }
     Progress("Parsed %d files in: %dms",cnt,System.currentTimeMillis() - startTime);
     startTime = System.currentTimeMillis();
-    program=new ResolveAndMerge().rewrite_and_cast(program);
-    new SimpleTypeCheck(program).check(program);
+    program=new ResolveAndMerge(program).rewriteAll();
+    new SimpleTypeCheck(program).check();
     Progress("Initial type check took %dms",System.currentTimeMillis() - startTime);
     FeatureScanner features=new FeatureScanner();
     program.accept(features);
-    classes=program.class_names();
+    classes=new ArrayList();
+    for (ClassName name:program.classNames()){
+      classes.add(name);
+    }
     List<String> passes=null;
     if (boogie.get()) {
     	passes=new ArrayList<String>();
@@ -355,6 +365,9 @@ class Main
       passes.add("flatten");
       passes.add("resolv");
       passes.add("check");
+      passes.add("strip_constructors");
+      passes.add("resolv");
+      passes.add("check");
     	passes.add("boogie");
     } else if (chalice.get()) {
     	passes=new ArrayList<String>();
@@ -368,6 +381,11 @@ class Main
         passes.add("globalize");
         passes.add("resolv");
         passes.add("check");
+      }
+      if (features.usesInheritance()){
+        passes.add("inheritance");
+        passes.add("resolv");
+        passes.add("check");       
       }
       if (explicit_encoding.get()){
         passes.add("expand");

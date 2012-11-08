@@ -418,7 +418,7 @@ public class Translator {
 			String name = "__"+((NameExpression) location).getName();
 			ASTNode newName = astfactory.field_name(location.getOrigin(), name);
 			map.put(((NameExpression) location), newName);
-			Substitution sub = new Substitution(map);
+			Substitution sub = new Substitution(null,map);
 			ans = ans.apply(sub);
 			if(!variablelenLijst.contains(name)){
 				int i = variablelenLijst.indexOf(((NameExpression) location).getName());

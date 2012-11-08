@@ -1,6 +1,6 @@
 package vct.main;
 
-import vct.col.ast.ASTClass;
+import vct.col.ast.ProgramUnit;
 import hre.util.TestReport;
 
 public abstract class ValidationPass {
@@ -15,6 +15,6 @@ public abstract class ValidationPass {
     this.description=description;
   }
   
-  public abstract TestReport apply(ASTClass arg);
+  public abstract TestReport apply(ProgramUnit arg);
 
 }

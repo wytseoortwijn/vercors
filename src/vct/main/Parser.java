@@ -14,9 +14,11 @@ import java.lang.reflect.Method;
 import static hre.System.*;
 
 import vct.col.ast.ASTNode;
+import vct.col.ast.ProgramUnit;
 
 public class Parser {
-  public static ASTNode parse(String language,String file){
+
+  public static ProgramUnit parse(String language,String file){
     String vct_home=System.getenv("VCT_HOME");
     //System.err.printf("home is %s%n",vct_home);
     File home=new File(System.getenv("VCT_HOME"));
@@ -41,8 +43,7 @@ public class Parser {
           loader = new ContainerClassLoader(new UnionContainer(path));
         } else {
           loader = new ContainerClassLoader(main);
-        }
-        
+        }        
       } else {
         f=new File(new File(home,language+"-parser"),"vct-parser.jar");
         if (!f.exists()){
@@ -57,40 +58,34 @@ public class Parser {
     } catch (IOException e) {
       Fail("could not load parser for %s",language);
     }
-    Class parser=null;
+    Class parser_class=null;
     try {
-      parser = Class.forName("vct.parser.Parser", true, loader);
+      parser_class = Class.forName("vct."+language+".parser.Parser", true, loader);
     } catch (ClassNotFoundException e) {
       Fail("jar did not contain parser");
     }
-    Method main=null;
+    vct.col.util.Parser parser=null;
     try {
-      main=parser.getMethod("parse",String.class);
-    } catch (SecurityException e) {
-      Fail("permission denied");
-    } catch (NoSuchMethodException e) {
-      Fail("method not found");
-    }
-    Object args[]=new Object[1];
-    args[0]=file;
-    Object result=null;
-    try {
-      result=main.invoke(null, args);
-    } catch (IllegalArgumentException e) {
-      Fail("IllegalArgumentException");
+      Object tmp = parser_class.newInstance();
+      if (tmp==null){
+        Fail("could not instantiate parser");
+      }
+      if (!(tmp instanceof vct.col.util.Parser)){
+        Fail("jar did not contain parser of correct type");
+      }
+      parser=(vct.col.util.Parser)tmp;
+    } catch (InstantiationException e) {
+      e.printStackTrace();
+      Fail("could not instantiate parser");
     } catch (IllegalAccessException e) {
-      Fail("IllegalAccessException");
-    } catch (InvocationTargetException e) {
-      e.getCause().printStackTrace();
-      Fail("parser throws exception: %s",e.getCause());
+      e.printStackTrace();
+      Fail("could not instantiate parser");
     }
+    ProgramUnit result=parser.parse(new File(file));
     if (result==null){
       Fail("parser returned null");
     }
-    if (!(result instanceof ASTNode)){
-      Fail("parser result is not an AST");
-    }
-    return (ASTNode)result;
+    return result;
   }
 
 }

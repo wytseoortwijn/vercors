@@ -1,6 +1,6 @@
 package vct.main;
 
-import vct.col.ast.ASTClass;
+import vct.col.ast.ProgramUnit;
 
 public abstract class CompilerPass {
 
@@ -14,6 +14,6 @@ public abstract class CompilerPass {
     this.description=description;
   }
   
-  public abstract ASTClass apply(ASTClass arg);
+  public abstract ProgramUnit apply(ProgramUnit arg);
 
 }

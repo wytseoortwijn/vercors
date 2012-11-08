@@ -15,6 +15,7 @@ import vct.col.ast.DeclarationStatement;
 import vct.col.ast.Method;
 import vct.col.ast.OperatorExpression;
 import vct.col.ast.PrimitiveType;
+import vct.col.ast.ProgramUnit;
 import vct.col.ast.StandardOperator;
 import vct.col.rewrite.AbstractRewriter;
 import vct.col.util.ASTFactory;
@@ -119,7 +120,7 @@ public class BoogieFOL {
     ASTFactory create=new ASTFactory();
     create.setOrigin(formula.getOrigin());
     
-    AbstractRewriter copy_rw=new AbstractRewriter(){};
+    AbstractRewriter copy_rw=new AbstractRewriter(null);
     
     ASTClass program=create.ast_class("dummy",ClassKind.Plain,null,null);
     for (ASTNode n:args){
@@ -134,6 +135,8 @@ public class BoogieFOL {
         new DeclarationStatement[0],
         body));
     //hre.debug.HeapDump.tree_dump(new hre.io.PrefixPrintStream(System.err),program,ASTNode.class);
-    return vct.boogie.Main.TestBoogie(program);
+    ProgramUnit pgm=new ProgramUnit();
+    pgm.addClass(new String[]{"main"}, program);
+    return vct.boogie.Main.TestBoogie(pgm);
   }
 }
