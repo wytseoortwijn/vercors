@@ -14,11 +14,14 @@ import vct.col.ast.Method;
 import vct.col.ast.MethodInvokation;
 import vct.col.ast.NameExpression;
 import vct.col.ast.PrimitiveType;
+import vct.col.ast.ProgramUnit;
 import vct.col.ast.ReturnStatement;
 
 public class VoidCalls extends AbstractRewriter {
 
-  private AbstractRewriter copy_rw=new AbstractRewriter(){};
+  public VoidCalls(ProgramUnit source) {
+    super(source);
+  }
   
   public void visit(Method m){
     switch(m.kind){
@@ -35,11 +38,11 @@ public class VoidCalls extends AbstractRewriter {
       DeclarationStatement m_args[]=m.getArgs();
       int N=m_args.length;
       DeclarationStatement args[]=new DeclarationStatement[N+1];
-      args[0]=new DeclarationStatement("__result",rewrite_and_cast(m.getReturnType()));
+      args[0]=new DeclarationStatement("__result",rewrite(m.getReturnType()));
       args[0].setOrigin(m);
       args[0].setFlag(ASTFlags.OUT_ARG, true);
       for(int i=0;i<N;i++){
-        args[i+1]=rewrite_and_cast(m_args[i]);
+        args[i+1]=rewrite(m_args[i]);
       }
 
       ContractBuilder cb=new ContractBuilder();
@@ -47,14 +50,14 @@ public class VoidCalls extends AbstractRewriter {
       if(c!=null){
         HashMap<NameExpression,ASTNode>map=new HashMap<NameExpression,ASTNode>();
         map.put(create.reserved_name("\\result"),create.local_name("__result"));
-        Substitution subst=new Substitution(map);
+        Substitution subst=new Substitution(source(),map);
         cb.requires(c.pre_condition.apply(subst));
         cb.ensures(c.post_condition.apply(subst));
         if (c.given!=null){
-          cb.given(rewrite_and_cast(c.given));
+          cb.given(rewrite(c.given));
         }
         if (c.yields!=null){
-          cb.yields(rewrite_and_cast(c.yields));
+          cb.yields(rewrite(c.yields));
         }
       }
       result=create.method_decl(
@@ -62,7 +65,7 @@ public class VoidCalls extends AbstractRewriter {
           cb.getContract(),
           m.getName(),
           args,
-          rewrite_nullable(m.getBody()));
+          rewrite(m.getBody()));
     }
   }
   
@@ -105,13 +108,13 @@ public class VoidCalls extends AbstractRewriter {
         args[i+1]=rewrite(e.getArg(i));
       }
       args[0]=rewrite(s.getLocation());
-      ASTNode res=create.invokation(rewrite(e.object), e.guarded , rewrite_and_cast(e.method), args );
+      ASTNode res=create.invokation(rewrite(e.object), e.guarded , rewrite(e.method), args );
       for(NameExpression lbl:e.getLabels()){
         Debug("VOIDCALLS: copying label %s",lbl);
-        res.addLabel(rewrite_and_cast(lbl));
+        res.addLabel(rewrite(lbl));
       }
-      res.set_before(rewrite_nullable(e.get_before()));
-      res.set_after(rewrite_nullable(e.get_after()));
+      res.set_before(rewrite(e.get_before()));
+      res.set_after(rewrite(e.get_after()));
       result=res;
     } else {
       super.visit(s);

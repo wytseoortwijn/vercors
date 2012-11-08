@@ -24,6 +24,7 @@ import vct.col.ast.NameExpression;
 import vct.col.ast.OperatorExpression;
 import vct.col.ast.PrimitiveType;
 import vct.col.ast.PrimitiveType.Sort;
+import vct.col.ast.ProgramUnit;
 import vct.col.ast.StandardOperator;
 import vct.col.ast.Type;
 import static hre.System.Abort;
@@ -35,6 +36,10 @@ import static hre.System.Abort;
  *
  */
 public class ReferenceEncoding extends AbstractRewriter {
+
+  public ReferenceEncoding(ProgramUnit source) {
+    super(source);
+  }
 
   /**
    * Add a suffix to the last part of a composite name.
@@ -55,12 +60,12 @@ public class ReferenceEncoding extends AbstractRewriter {
    *  This is necessary to ensure that the AST returned is completely
    *  disjoint from the AST the main rewriter was applied to.
    */
-  private AbstractRewriter copy_rw=new AbstractRewriter(){};
+  private AbstractRewriter copy_rw=new AbstractRewriter(source());
 
   /** This rewriter is applied to a class to generate the data part
    *  of the reference encoding.
    */
-  private AbstractRewriter data_rw=new AbstractRewriter(){
+  private AbstractRewriter data_rw=new AbstractRewriter(source()){
     /**
      * Main method for the class.
      * 
@@ -99,7 +104,7 @@ public class ReferenceEncoding extends AbstractRewriter {
         ClassType ct=(ClassType)t;
         t=create.class_type(t.getOrigin(),append_suffix(ct.getNameFull(),"_data"));
       } else {
-        t=this.rewrite_and_cast(t);
+        t=this.rewrite(t);
       }
       String name=s.getName();
       local_map.put(name,t);
@@ -115,7 +120,7 @@ public class ReferenceEncoding extends AbstractRewriter {
   };
   
   /** This rewriter transforms clauses to the reference encoding format. */
-  private AbstractRewriter clause_rw=new AbstractRewriter(){
+  private AbstractRewriter clause_rw=new AbstractRewriter(source()){
     
     /**
      * this function should be at the top level, which requries that
@@ -139,7 +144,7 @@ public class ReferenceEncoding extends AbstractRewriter {
      */
     public void visit(MethodInvokation e) {
       // TODO: check if this method is a predicate and just copy if it is not.
-      ASTNode object=rewrite_nullable(e.object);
+      ASTNode object=rewrite(e.object);
       NameExpression pred=e.method;
       String name=pred.getName();
       NameExpression tmp;
@@ -189,7 +194,7 @@ public class ReferenceEncoding extends AbstractRewriter {
   /** This rewriter generates the reference part of the encoding of a
    *  given class.
    */
-  private ASTVisitor<ASTNode> reference_rw=new AbstractRewriter(){
+  private ASTVisitor<ASTNode> reference_rw=new AbstractRewriter(source()){
 
     private Origin generated(String what,ASTNode where){
       return new MessageOrigin("generated during reference encoding "+what+" at "+where.getOrigin());
@@ -253,7 +258,6 @@ public class ReferenceEncoding extends AbstractRewriter {
     }
     
     public void visit(ASTClass c) {
-      if (c.isPackage()) Abort("cannot create reference class for package");
       String name=c.getName();
       if (c.getStaticCount()>0) throw new Error("class "+name+" has static content");
       
@@ -451,7 +455,7 @@ public class ReferenceEncoding extends AbstractRewriter {
       if (mc!=null){
         ASTNode pre=mc.pre_condition.apply(clause_rw);
         ASTNode post=mc.post_condition.apply(clause_rw);
-        c=new Contract(new DeclarationStatement[0],new DeclarationStatement[0],rewrite_nullable(mc.modifies),pre,post);
+        c=new Contract(new DeclarationStatement[0],new DeclarationStatement[0],rewrite(mc.modifies),pre,post);
       }
       Method.Kind kind=m.kind;
       if (kind==Method.Kind.Constructor){
@@ -548,7 +552,7 @@ public class ReferenceEncoding extends AbstractRewriter {
    * This rewriter generates the Chalice valid predicate, when applied
    * to a predicate method body.
    */
-  private AbstractRewriter valid_rw=new AbstractRewriter(){
+  private AbstractRewriter valid_rw=new AbstractRewriter(source()){
 
     private ASTNode insert_ref(ASTNode expr){
       if (!(expr instanceof OperatorExpression)) Abort("cannot insert ref in %s",expr.getClass());
@@ -668,33 +672,10 @@ public class ReferenceEncoding extends AbstractRewriter {
 
   private HashMap<String, Type> local_map;
 
-  /** create a reference encoding generator. */
-  public ReferenceEncoding(){
-    // The main rewriter works on ASTClass nodes only:
-    //allow(ASTClass.class);
-  }
   public void visit(ASTClass c) {
     String name=c.getName();
     if (name==null) {
-      System.err.println("rewriting root class");
-      if (c.getDynamicCount()>0) throw new Error("root class with dynamic content");
-      ASTClass res=new ASTClass();
-      res.setOrigin(c.getOrigin());
-      int N=c.getStaticCount();
-      for(int i=0;i<N;i++){
-        ASTNode node=c.getStatic(i);
-        if (node instanceof ASTClass){
-          local_map=new HashMap<String,Type>();
-          System.err.println("class is "+node.getClass());
-          res.add_static(node.apply(data_rw));
-          System.err.println("class is OK");
-          res.add_static(node.apply(reference_rw));
-        } else {
-          res.add_static(node.apply(this));
-        }
-      }
-      result=res;
-      return;
+      Abort("illegal class without name");
     } else {
       System.err.println("rewriting class "+name);
       ASTClass res=new ASTClass(name,c.kind);

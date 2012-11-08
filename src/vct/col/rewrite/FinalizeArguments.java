@@ -9,9 +9,14 @@ import vct.col.ast.Contract;
 import vct.col.ast.FunctionType;
 import vct.col.ast.Method;
 import vct.col.ast.NameExpression;
+import vct.col.ast.ProgramUnit;
 import vct.col.ast.Type;
 
 public class FinalizeArguments extends AbstractRewriter {
+
+  public FinalizeArguments(ProgramUnit source) {
+    super(source);
+  }
 
   public void visit(Method m) {
     HashMap<NameExpression,ASTNode> subst=new HashMap<NameExpression, ASTNode>();
@@ -50,10 +55,10 @@ public class FinalizeArguments extends AbstractRewriter {
     Contract mc=m.getContract();
     Contract c=null;
     if (mc!=null){
-      Substitution sigma=new Substitution(subst);
+      Substitution sigma=new Substitution(source(),subst);
       ASTNode pre=mc.pre_condition.apply(sigma);
       ASTNode post=mc.post_condition.apply(sigma);
-      c=new Contract(mc.given,mc.yields,rewrite_nullable(mc.modifies),pre,post);
+      c=new Contract(mc.given,mc.yields,rewrite(mc.modifies),pre,post);
     }
     if (c!=null) res.setContract(c);
     { // this flattening could also be done by a generic pass.

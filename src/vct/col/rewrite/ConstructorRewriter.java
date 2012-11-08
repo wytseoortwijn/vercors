@@ -10,10 +10,15 @@ import vct.col.ast.Method;
 import vct.col.ast.MethodInvokation;
 import vct.col.ast.NameExpression;
 import vct.col.ast.PrimitiveType;
+import vct.col.ast.ProgramUnit;
 import vct.col.ast.StandardOperator;
 import static hre.System.*;
 
 public class ConstructorRewriter extends AbstractRewriter {
+
+  public ConstructorRewriter(ProgramUnit source) {
+    super(source);
+  }
 
   public void visit(MethodInvokation e){
     if (e.getDefinition().kind==Method.Kind.Constructor) {
@@ -38,7 +43,7 @@ public class ConstructorRewriter extends AbstractRewriter {
   public void visit(Method m){
     if (m.kind==Method.Kind.Constructor){
       String name=m.getName()+"_init";
-      DeclarationStatement args[]=rewrite_and_cast(m.getArgs());
+      DeclarationStatement args[]=rewrite(m.getArgs());
       ASTNode body=rewrite(m.getBody());
       ContractBuilder cb=new ContractBuilder();
       Contract c=m.getContract();

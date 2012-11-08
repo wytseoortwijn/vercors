@@ -123,7 +123,6 @@ public class AbstractPrinter extends AbstractVisitor {
     }
     int N=op.arity();
     int precedence=current_precedence;
-    boolean statement=!in_expr;
     setExpr();
     if (syntax.isOperator(op)){
       int op_precedence=syntax.getPrecedence(op);
@@ -152,9 +151,6 @@ public class AbstractPrinter extends AbstractVisitor {
         e.getArg(i).accept(this);
       }
       out.print(op_syntax[N]);
-    }
-    if (statement) {
-      out.println(";");
     }
     current_precedence=precedence;
   }

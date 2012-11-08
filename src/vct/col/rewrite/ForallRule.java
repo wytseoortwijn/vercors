@@ -5,11 +5,16 @@ import vct.col.ast.Contract;
 import vct.col.ast.DeclarationStatement;
 import vct.col.ast.Method;
 import vct.col.ast.MethodInvokation;
+import vct.col.ast.ProgramUnit;
 
 import static vct.col.ast.StandardOperator.Perm;
 import static vct.col.ast.StandardOperator.Star;
 
 public class ForallRule extends AbstractRewriter {
+
+  public ForallRule(ProgramUnit source) {
+    super(source);
+  }
 
   public void visit(Method m){
     boolean predicate=m.getKind()==Method.Kind.Predicate;

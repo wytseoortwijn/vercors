@@ -13,6 +13,7 @@ import vct.col.ast.Method;
 import vct.col.ast.MethodInvokation;
 import vct.col.ast.NameExpression;
 import vct.col.ast.OperatorExpression;
+import vct.col.ast.ProgramUnit;
 import vct.col.ast.StandardOperator;
 import vct.util.ClassName;
 import static hre.System.Abort;
@@ -29,6 +30,10 @@ import static hre.System.Warning;
  *
  */
 public class GlobalizeStaticsField extends GlobalizeStatics {
+
+  public GlobalizeStaticsField(ProgramUnit source) {
+    super(source);
+  }
 
   /**
    * Add the global field to every class.
@@ -68,10 +73,10 @@ public class GlobalizeStaticsField extends GlobalizeStatics {
           cb.ensures(rewrite(c.post_condition));
         }
         result=create.method_decl(
-            rewrite_and_cast(m.getReturnType()),
+            rewrite(m.getReturnType()),
             rewrite(cb.getContract()),
             m.getName(),
-            rewrite_and_cast(m.getArgs()),
+            rewrite(m.getArgs()),
             rewrite(m.getBody()));
         break;
       }

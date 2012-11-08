@@ -9,20 +9,22 @@ import vct.col.ast.ASTNode;
 import vct.col.ast.ClassType;
 import vct.col.ast.DeclarationStatement;
 import vct.col.ast.Method;
+import vct.col.ast.ProgramUnit;
 import vct.col.util.ASTFactory;
+import vct.util.ClassName;
 
 public class DefineDouble {
 
   public static final String double_name[]={"Double"};
   
-  public static ASTClass rewrite(ASTClass program){
-    AbstractRewriter rw=new RewriteDoubleDefinition();
-    program=(ASTClass)program.apply(rw);
-    program.add_static(generate_double_spec());
+  public static ProgramUnit rewrite(ProgramUnit program){
+    AbstractRewriter rw=new RewriteDoubleDefinition(program);
+    program=rw.rewriteAll();
+    program.addClass(new ClassName("Double"),generate_double_spec());
     return program;
   }
 
-  private static ASTNode generate_double_spec() {
+  private static ASTClass generate_double_spec() {
     final ASTFactory create=new ASTFactory();
     Origin origin=new MessageOrigin("Generated during fake double pass");
     create.setOrigin(origin);

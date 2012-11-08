@@ -12,6 +12,8 @@ import static vct.col.ast.StandardOperator.And;
 
 public class ContractBuilder {
 
+  private boolean empty=true;
+  
   private final static Origin origin=new MessageOrigin("contract builder default true");
   public final static ASTNode default_true=new ConstantExpression(true,origin);
   private ASTNode pre_condition=default_true;
@@ -39,6 +41,7 @@ public class ContractBuilder {
    * @param decls A block consisting of declaration statement only.
    */
   public void given(BlockStatement decls){
+    empty=false;
     scan_to(given,decls);
   }
   /**
@@ -46,6 +49,7 @@ public class ContractBuilder {
    * @param decls
    */
   public void yields(BlockStatement decls){
+    empty=false;
     scan_to(yields,decls);    
   }
   /**
@@ -53,6 +57,7 @@ public class ContractBuilder {
    * @param decls Any number of declarations.
    */
   public void given(DeclarationStatement ... decls){
+    empty=false;
     for(DeclarationStatement d:decls) given.add(d);
   }
   /**
@@ -60,9 +65,11 @@ public class ContractBuilder {
    * @param decls Any number of declarations.
    */
   public void yields(DeclarationStatement ... decls){
+    empty=false;
     for(DeclarationStatement d:decls) yields.add(d);
   }
   public void ensures(ASTNode condition){
+    empty=false;
     if (condition.getOrigin()==null) throw new Error("condition "+condition.getClass()+" without origin");
     if (post_condition==default_true) {
       post_condition=condition;
@@ -73,6 +80,7 @@ public class ContractBuilder {
     }
   }
   public void requires(ASTNode condition){
+    empty=false;
     if (condition.getOrigin()==null) throw new Error("condition "+condition.getClass()+" without origin");
     if (pre_condition==default_true) {
       pre_condition=condition;
@@ -84,6 +92,7 @@ public class ContractBuilder {
   }
  
   public Contract getContract(){
+    if (empty) return null;
     DeclarationStatement[] decls=new DeclarationStatement[0];
     ASTNode[] mods=null;
     if (modifiable!=null){
@@ -92,10 +101,15 @@ public class ContractBuilder {
     return new Contract(given.toArray(decls),yields.toArray(decls),mods,pre_condition,post_condition);
   }
   public void modifies(ASTNode ... locs) {
+    empty=false;
     if (modifiable==null) modifiable=new HashSet<ASTNode>();
     for (ASTNode loc : locs){
       modifiable.add(loc);
     }
+  }
+
+  public static Contract emptyContract() {
+    return new Contract(new DeclarationStatement[0],new DeclarationStatement[0],default_true,default_true);
   }
 
 }

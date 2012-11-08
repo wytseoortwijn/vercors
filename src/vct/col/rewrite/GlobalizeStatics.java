@@ -12,6 +12,7 @@ import vct.col.ast.Method;
 import vct.col.ast.MethodInvokation;
 import vct.col.ast.NameExpression;
 import vct.col.ast.OperatorExpression;
+import vct.col.ast.ProgramUnit;
 import vct.col.ast.StandardOperator;
 import vct.util.ClassName;
 import static hre.System.Abort;
@@ -36,30 +37,18 @@ import static hre.System.Warning;
  */
 public abstract class GlobalizeStatics extends AbstractRewriter {
   
+  public GlobalizeStatics(ProgramUnit source) {
+    super(source);
+    global_class=create.ast_class(new MessageOrigin("filtered globals"),"Global",ClassKind.Plain,null,null);
+    target().addClass(global_class.getFullName(),global_class);
+  }
+
   protected ASTClass global_class;
   protected String prefix;
   protected boolean processing_static;
   
   public void visit(ASTClass cl){
-    if (cl.getParent()==null){
-      global_class=create.ast_class(new MessageOrigin("filtered globals"),"Global",ClassKind.Plain,null,null);
-    }
     switch(cl.kind){
-    case Package:{
-      int N=cl.getStaticCount();
-      ASTClass res;
-      if (cl.getParent()==null){
-        res=create.root_package();
-        res.add_static(global_class);
-      } else {
-        res=create.sub_package(cl.name);
-      }
-      for(int i=0;i<N;i++){
-        res.add_static(cl.getStatic(i).apply(this));
-      }
-      result=res;
-      break;
-    }
     case Plain:{
       int N;
       ASTClass res=create.ast_class(cl.name,ClassKind.Plain,null,null);
@@ -88,8 +77,8 @@ public abstract class GlobalizeStatics extends AbstractRewriter {
       String save=prefix;
       prefix=null;
       result=create.field_decl(save+"_"+s.getName(),
-           rewrite_and_cast(s.getType()), 
-           rewrite_nullable(s.getInit()));
+           rewrite(s.getType()), 
+           rewrite(s.getInit()));
       prefix=save;
     } else {
       super.visit(s);
@@ -100,10 +89,10 @@ public abstract class GlobalizeStatics extends AbstractRewriter {
       String save=prefix;
       prefix=null;
       result=create.method_decl(
-          rewrite_and_cast(m.getReturnType()),
+          rewrite(m.getReturnType()),
           rewrite(m.getContract()),
           save+"_"+m.getName(),
-          rewrite_and_cast(m.getArgs()),
+          rewrite(m.getArgs()),
           rewrite(m.getBody()));
       prefix=save;
     } else {

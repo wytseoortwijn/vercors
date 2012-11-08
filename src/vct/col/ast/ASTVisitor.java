@@ -2,8 +2,6 @@
 package vct.col.ast;
 
 public interface ASTVisitor<T> {
-
-  public void setResult(T result);
   
   public T getResult();
   

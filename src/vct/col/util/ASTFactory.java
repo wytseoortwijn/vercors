@@ -619,36 +619,7 @@ public class ASTFactory<E> implements FrameControl {
   public ReturnStatement return_statement(ASTNode ... value){
     return return_statement(origin_stack.get(),value);
   }
-  
-  /**
-   * Create an empty root package.
-   */
-  public ASTClass root_package(Origin origin){
-    ASTClass res=new ASTClass();
-    res.setOrigin(origin);
-    res.accept_if(post);
-    return res;
-  }
-  public ASTClass root_package(E origin){
-    return root_package(origin_source.create(origin));
-  }
-  public ASTClass root_package(){
-    return root_package(origin_stack.get());
-  }
-  
-  /**
-   * Create a sub-package.
-   */
-  public ASTClass sub_package(Origin origin,String name){
-    return ast_class(name,ClassKind.Package,null,null);
-  }
-  public ASTClass sub_package(E origin,String name){
-    return sub_package(origin_source.create(origin),name);
-  }
-  public ASTClass sub_package(String name){
-    return sub_package(origin_stack.get(),name);
-  }
-  
+
   /**
    * Create a reserved name this that also refers to the given class type.
    */

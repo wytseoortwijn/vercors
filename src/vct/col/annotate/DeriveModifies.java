@@ -12,6 +12,7 @@ import vct.col.ast.Contract;
 import vct.col.ast.ContractBuilder;
 import vct.col.ast.Method;
 import vct.col.ast.OperatorExpression;
+import vct.col.ast.ProgramUnit;
 import vct.col.rewrite.AbstractRewriter;
 
 import static hre.System.Debug;
@@ -33,6 +34,9 @@ public class DeriveModifies extends AbstractScanner {
   
   public void visit(Method m) {
     Contract c=m.getContract();
+    if (c==null){
+      c=ContractBuilder.emptyContract();
+    }
     HashSet<ASTNode> old_mods=new HashSet();
     if (c.modifies!=null) for(ASTNode n:c.modifies) old_mods.add(n);
     ContractBuilder builder=new ContractBuilder();
@@ -59,6 +63,12 @@ public class DeriveModifies extends AbstractScanner {
       dirty=false;
       System.err.printf("modifies annotation pass %d%n",pass);
       program.accept(this);
+    }
+  }
+
+  public void annotate(ProgramUnit arg) {
+    for(ASTClass cl:arg.classes()){
+      annotate(cl);
     }
   }
 

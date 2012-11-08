@@ -4,13 +4,13 @@ import java.util.Map;
 
 import vct.col.ast.ASTNode;
 import vct.col.ast.NameExpression;
+import vct.col.ast.ProgramUnit;
 
 public class Substitution extends AbstractRewriter {
   Map<NameExpression,ASTNode> map;
-  
-  private AbstractRewriter copy_rw=new AbstractRewriter(){};
-  
-  public Substitution(Map<NameExpression,ASTNode> map){
+    
+  public Substitution(ProgramUnit source,Map<NameExpression,ASTNode> map){
+    super(source);
    this.map=map;
   }
   

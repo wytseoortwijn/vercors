@@ -19,6 +19,7 @@ import vct.col.ast.Method;
 import vct.col.ast.MethodInvokation;
 import vct.col.ast.NameExpression;
 import vct.col.ast.OperatorExpression;
+import vct.col.ast.ProgramUnit;
 import vct.col.ast.StandardOperator;
 import vct.col.ast.Type;
 import vct.col.util.AnyDefinition;
@@ -39,15 +40,28 @@ import static hre.System.*;
  */ 
 public class ResolveAndMerge extends AbstractRewriter {
 
-  private AbstractRewriter copy_rw=new AbstractRewriter(){};
-  private ASTClass rootclass=null;
+  public ResolveAndMerge(ProgramUnit source) {
+    super(source);
+    currentstack=new Stack();
+    currentclass=null;
+    defs=new ClassDefinition();
+    DefinitionScanner scanner=new DefinitionScanner(defs);
+    source.accept(scanner);
+    source.accept(new PredicateScanner(predicates));
+    type_names=new NameSpace();
+    var_names=new NameSpace();
+    method_names=new NameSpace();
+  }
+
+  private AbstractRewriter copy_rw=new AbstractRewriter(source(),target());
+  
   private ClassDefinition defs;
   private Stack<ASTClass> currentstack;
   private ASTClass currentclass;
   private Method currentmethod;
-  private NameSpace type_names;
-  private NameSpace var_names;
-  private NameSpace method_names;
+  private NameSpace<String,Type> type_names;
+  private NameSpace<String,AnyDefinition> var_names;
+  private NameSpace<String,AnyDefinition> method_names;
   private Set<ClassName> predicates=new HashSet();
   
   private boolean static_context=true;
@@ -114,114 +128,60 @@ public class ResolveAndMerge extends AbstractRewriter {
   }
   public void visit(ASTClass c) {
     String name=c.getName();
-    if (c.getParentClass()==null){
-      if (name!=null) throw new Error("root class with name "+name);
-      if (rootclass!=null) throw new Error("nested class without parent");
-      rootclass=new ASTClass();
-      rootclass.setOrigin(c.getOrigin());
-      currentstack=new Stack();
-      currentclass=rootclass;
-      defs=new ClassDefinition();
-      DefinitionScanner scanner=new DefinitionScanner(defs);
-      c.accept(scanner);
-//      Warning("scanning for predicates");
-      c.accept(new PredicateScanner(predicates));
-//      for(ClassName cl:predicates){
-//        Warning("predicate %s",cl.toString("."));
-//      }
-      type_names=new NameSpace();
-      var_names=new NameSpace();
-      method_names=new NameSpace();
-      if (c.getDynamicCount()>0) throw new Error("root class with dynamic content");
-      int N=c.getStaticCount();
-      for(int i=0;i<N;i++){
-        static_context=true;
-        ASTNode res=c.getStatic(i).apply(this);
-        if (res!=null && res.getParent()==null) rootclass.add_static(res);
-      }
-      ASTNode tmp=rootclass;
-      rootclass=null;
-      result=tmp;
-      return;
+    Debug("rewriting class %s",name);
+    ASTClass res=new ASTClass(
+      name,
+      c.kind,
+      rewrite(c.super_classes),
+      rewrite(c.implemented_classes)
+    );
+    res.setOrigin(c.getOrigin());
+    res.setParentClass(currentclass);
+    currentstack.push(currentclass);
+    currentclass=res;
+    type_names.enter();
+    var_names.enter();
+    method_names.enter();
+    ClassDefinition def=defs.lookupClass(res.getFullName());
+    if (def==null) throw new Error("could not get def of current class.");
+    Debug("adding %s",name);
+    type_names.add(name,create.class_type(current_class.name));
+    // nested classes?
+    //for(ClassDefinition cldef:def.getClasses()){
+    //  type_names.add(cldef.name,cldef);
+    //}
+    for(FieldDefinition cldef:def.getFields()){
+      var_names.add(cldef.name,cldef);
     }
-    if (name==null) {
-      Debug("rewriting dummy package");
-      if (c.getDynamicCount()>0) throw new Error("package with dynamic content");
-      int N=c.getStaticCount();
-      for(int i=0;i<N;i++){
-        static_context=true;
-        ASTNode res=c.getStatic(i).apply(this);
-        if (res!=null && res.getParent()==null) currentclass.add_static(res);
-      }
-      return;
+    for(MethodDefinition cldef:def.getMethods()){
+      method_names.add(cldef.name,cldef);
     }
-    if (c.isPackage()){
-      Debug("rewriting %s package",name);
-      if (c.getDynamicCount()>0) throw new Error("package with dynamic content");
-      currentstack.push(currentclass);
-      currentclass=currentclass.getStaticClass(name,ClassKind.Package);
-      int N=c.getStaticCount();
-      for(int i=0;i<N;i++){
-        static_context=true;
-        ASTNode res=c.getStatic(i).apply(this);
-        if (res!=null && res.getParent()==null) currentclass.add_static(res);
-      }
-      currentclass=currentstack.pop();
-      return;      
-    } else {
-      Debug("rewriting class %s",name);
-      ASTClass res=new ASTClass(
-        name,
-        c.kind,
-        rewrite_and_cast(c.super_classes),
-        rewrite_and_cast(c.implemented_classes)
-      );
-      res.setOrigin(c.getOrigin());
-      res.setParentClass(currentclass);
-      currentstack.push(currentclass);
-      currentclass=res;
-      type_names.enter();
-      var_names.enter();
-      method_names.enter();
-      ClassDefinition def=defs.lookupClass(res.getFullName());
-      if (def==null) throw new Error("could not get def of current class.");
-      Debug("adding %s",name);
-      type_names.add(name, def);
-      for(ClassDefinition cldef:def.getClasses()){
-        type_names.add(cldef.name,cldef);
-      }
-      for(FieldDefinition cldef:def.getFields()){
-        var_names.add(cldef.name,cldef);
-      }
-      for(MethodDefinition cldef:def.getMethods()){
-        method_names.add(cldef.name,cldef);
-      }
-      Contract contract=c.getContract();
-      if (contract !=null){
-        for (DeclarationStatement decl:contract.given){
-          Warning("adding type argument %s",decl.getName());
-          type_names.add(decl.getName(),new ClassDefinition(decl.getName()));
-        }
-        res.setContract(rewrite(contract));
-      }
-      int N=c.getStaticCount();
-      for(int i=0;i<N;i++){
-        static_context=true;
-        res.add_static(c.getStatic(i).apply(this));
-      }
-      int M=c.getDynamicCount();
-      for(int i=0;i<M;i++){
-        static_context=false;
-        res.add_dynamic(c.getDynamic(i).apply(this));
-      }
-      currentclass=currentstack.pop();
-      Debug("leaving %s",name);
-      type_names.leave();
-      var_names.leave();
-      method_names.leave();
-      result=res;
-      return;
+    Contract contract=c.getContract();
+    if (contract !=null){
+      // TODO: filter type arguments.
+      //for (DeclarationStatement decl:contract.given){
+      //  Warning("adding type argument %s",decl.getName());
+      //  type_names.add(decl.getName(),new ClassDefinition(decl.getName()));
+      //}
+      res.setContract(rewrite(contract));
     }
+    int N=c.getStaticCount();
+    for(int i=0;i<N;i++){
+      static_context=true;
+      res.add_static(c.getStatic(i).apply(this));
+    }
+    int M=c.getDynamicCount();
+    for(int i=0;i<M;i++){
+      static_context=false;
+      res.add_dynamic(c.getDynamic(i).apply(this));
+    }
+    currentclass=currentstack.pop();
+    Debug("leaving %s",name);
+    type_names.leave();
+    var_names.leave();
+    method_names.leave();
+    result=res;
+    return;
   }
 
   public void visit(ASTWith t){
@@ -234,10 +194,10 @@ public class ResolveAndMerge extends AbstractRewriter {
         if (def==null) throw new Error("cannot resolve import "+t.fromString()+" at "+t.getOrigin());
         if (t.all){
           for(ClassDefinition cldef:def.getClasses()){
-            type_names.add(cldef.name,cldef);
+            type_names.add(cldef.name,new ClassType(cldef.full_name));
           }
         } else {
-          type_names.add(t.from[t.from.length-1],def);
+          type_names.add(t.from[t.from.length-1],new ClassType(def.full_name));
         }
         break;
       }
@@ -253,26 +213,24 @@ public class ResolveAndMerge extends AbstractRewriter {
 
   public void visit(ClassType t){
     String t_name[]=t.getNameFull();
-    ClassDefinition def=defs.lookupClass(t_name);
-    if (def!=null) {
-      result=t;
-      return;
+    {
+      ClassDefinition def=defs.lookupClass(t_name);
+      if (def!=null) {
+        result=t;
+        return;
+      }
     }
-    AnyDefinition tmp=type_names.lookup(t_name[0]);
+    Type tmp=type_names.lookup(t_name[0]);
     if (tmp!=null){
-      if (tmp instanceof ClassDefinition){
-        def=(ClassDefinition)tmp;
-        String new_name[]=new String[def.full_name.length+t_name.length-1];
-        for(int i=0;i<def.full_name.length;i++){
-          new_name[i]=def.full_name[i];
+      if (tmp instanceof ClassType){
+        String full_name[]=((ClassType)tmp).getNameFull();
+        String new_name[]=new String[full_name.length+t_name.length-1];
+        for(int i=0;i<full_name.length;i++){
+          new_name[i]=full_name[i];
         }
-        int ofs=def.full_name.length-1;
+        int ofs=full_name.length-1;
         for(int i=1;i<t_name.length;i++){
           new_name[ofs+i]=t_name[i];
-        }
-        def=defs.lookupClass(new_name);
-        if(def==null){
-          Warning("assuming %s is a type parameter",t_name[0]);
         }
         {
           ClassType res=new ClassType(new_name);
@@ -358,15 +316,15 @@ public class ResolveAndMerge extends AbstractRewriter {
       }
       Fail("bad kind of variables name "+def.getClass()+" at "+e.getOrigin());
     }
-    def=type_names.lookup(name);
-    if(def!=null){
-      if (def instanceof ClassDefinition) {
-        ClassType t=new ClassType(((ClassDefinition)def).full_name);
+    Type cl_name=type_names.lookup(name);
+    if(cl_name!=null){
+      if (cl_name instanceof ClassType) {
+        ClassType t=new ClassType(((ClassType)cl_name).getNameFull());
         t.setOrigin(e);
         result=t;
         return;
       }
-      Fail("bad kind of type name "+def.getClass()+" at "+e.getOrigin());
+      Fail("cannot use type "+cl_name.getClass()+" as name at "+e.getOrigin());
     }
     def=method_names.lookup(name);
     if(def!=null){
@@ -391,7 +349,7 @@ public class ResolveAndMerge extends AbstractRewriter {
   public void visit(DeclarationStatement s) {
     String name=s.getName();
     ASTNode parent=s.getParent();
-    if (parent==null) throw new Error("parent of declaration statement must be set.");
+    if (parent==null) throw new Error("parent of declaration statement must be set at "+s.getOrigin());
     if (parent instanceof ASTClass ||parent instanceof Method){
       // has already been added.
     } else if (parent instanceof BlockStatement){
@@ -415,27 +373,27 @@ public class ResolveAndMerge extends AbstractRewriter {
     }
 
     String name=m.getName();
-    DeclarationStatement args[]=rewrite_and_cast(m.getArgs());
+    DeclarationStatement args[]=rewrite(m.getArgs());
     Contract mc=m.getContract();
     ContractBuilder cb=new ContractBuilder();
     if (mc!=null){
       for(DeclarationStatement d:mc.given){
         String var=d.getName();
         var_names.add(var,new LocalDefinition(var,NameExpression.Kind.Argument,d.getType()));
-        cb.given(rewrite_and_cast(d));
+        cb.given(rewrite(d));
       }
       cb.requires(rewrite(mc.pre_condition));
       for(DeclarationStatement d:mc.yields){
         String var=d.getName();
         var_names.add(var,new LocalDefinition(var,NameExpression.Kind.Argument,d.getType()));
-        cb.yields(rewrite_and_cast(d));
+        cb.yields(rewrite(d));
       }
       cb.ensures(rewrite(mc.post_condition));
       if (mc.modifies!=null) cb.modifies(rewrite(mc.modifies));
     }
     Method.Kind kind=m.kind;
-    Type rt=rewrite_and_cast(m.getReturnType());
-    ASTNode body=rewrite_nullable(m.getBody());
+    Type rt=rewrite(m.getReturnType());
+    ASTNode body=rewrite(m.getBody());
     Method res=new Method(kind,name,rt,cb.getContract(),args,body);
     res.setOrigin(m.getOrigin());
     result=res;

@@ -5,16 +5,21 @@ import vct.col.ast.ASTNode;
 import vct.col.ast.MethodInvokation;
 import vct.col.ast.NameExpression;
 import vct.col.ast.OperatorExpression;
+import vct.col.ast.ProgramUnit;
 import vct.col.ast.StandardOperator;
 
 public class GuardedCallExpander extends AbstractRewriter {
+
+  public GuardedCallExpander(ProgramUnit source) {
+    super(source);
+  }
 
   public void visit(MethodInvokation e) {
     if (!e.guarded) {
       super.visit(e);    
     } else {
       ASTNode object=e.object.apply(this);
-      NameExpression method=rewrite_and_cast(e.method);
+      NameExpression method=rewrite(e.method);
       int N=e.getArity();
       ASTNode args[]=new ASTNode[N];
       for(int i=0;i<N;i++){
@@ -27,7 +32,7 @@ public class GuardedCallExpander extends AbstractRewriter {
       
       ASTNode call=create.invokation(object,false,method,args);
       for(NameExpression lbl:e.getLabels()){
-        call.addLabel(rewrite_and_cast(lbl));
+        call.addLabel(rewrite(lbl));
       }
 
       result=new OperatorExpression(StandardOperator.Implies,guard,call);

@@ -10,21 +10,22 @@ import static hre.System.Warning;
 
 public class SimpleTypeCheck extends AbstractVisitor<Type> {
 
-  public void check(ASTNode node){
+  public void check(){
     ASTVisitor checker=new PostVisit(this);
-    node.accept(checker);
+    for(ASTClass cl:source().classes()){
+      cl.accept(checker);
+    }
   }
   
-  private ASTClass namespace;
-  
-  public SimpleTypeCheck(ASTClass namespace){
-    this.namespace=namespace;
+  public SimpleTypeCheck(ProgramUnit arg){
+    super(arg);
   }
+
   public void visit(ConstantExpression e){
     if (e.getType()==null) Abort("untyped constant %s",e);
   }
   public void visit(ClassType t){
-    ASTClass cl=namespace.find(t.getNameFull());
+    ASTClass cl=source().find(t.getNameFull());
     if (cl==null) Fail("type error: class "+t.getFullName()+" not found"); 
     t.setType(t);
   }
@@ -49,9 +50,13 @@ public class SimpleTypeCheck extends AbstractVisitor<Type> {
       type[i]=e.getArg(i).getType();
       if (type[i]==null) Abort("argument %d has no type.",i);
     }
-    ASTClass cl=namespace.find(object_type.getNameFull());
+    ASTClass cl=source().find(object_type.getNameFull());
     if (cl==null) Fail("could not find class %s",object_type.getFullName());
     Method m=cl.find(e.method.getName(),type);
+    while(m==null && cl.super_classes.length>0){
+      cl=source().find(cl.super_classes[0].getNameFull());
+      m=cl.find(e.method.getName(),type);
+    }
     if (m==null) {
       String parts[]=e.method.getName().split("_");
       if (parts.length==3 && parts[1].equals("get")){
@@ -203,7 +208,7 @@ public class SimpleTypeCheck extends AbstractVisitor<Type> {
         break;
       }
       Debug("resolving class "+((ClassType)object_type).getFullName()+" "+((ClassType)object_type).getNameFull().length);
-      ASTClass cl=namespace.find(((ClassType)object_type).getNameFull());
+      ASTClass cl=source().find(((ClassType)object_type).getNameFull());
       if (cl==null) Fail("could not find class %s",((ClassType)object_type).getFullName());
       Debug("looking in class "+cl.getName());
       DeclarationStatement decl=cl.find_field(field.getName());

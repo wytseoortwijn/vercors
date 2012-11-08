@@ -20,6 +20,7 @@ import vct.col.ast.NameExpression;
 import vct.col.ast.OperatorExpression;
 import vct.col.ast.PrimitiveType;
 import vct.col.ast.PrimitiveType.Sort;
+import vct.col.ast.ProgramUnit;
 import vct.col.ast.StandardOperator;
 import vct.col.ast.Type;
 import vct.col.util.ASTUtils;
@@ -32,7 +33,11 @@ import static hre.System.*;
  *
  */
 public class ExplicitPermissionEncoding extends AbstractRewriter {
-  public AbstractRewriter copy_rw=new AbstractRewriter(){
+  public ExplicitPermissionEncoding(ProgramUnit source) {
+    super(source);
+  }
+
+  public AbstractRewriter copy_rw=new AbstractRewriter(source()){
     public void visit(NameExpression name){
       if (name.getKind()==NameExpression.Kind.Label){
         result=new NameExpression(name.getName());
@@ -68,26 +73,25 @@ public class ExplicitPermissionEncoding extends AbstractRewriter {
   public void visit(Method m){
     final String class_name=((ASTClass)m.getParent()).getName();
     if (m.kind==Method.Kind.Predicate){
-      ASTClass pred_class=(ASTClass)(new PredicateClassGenerator(currentClass)).rewrite(m);
+      ASTClass pred_class=(ASTClass)(new PredicateClassGenerator(source(),currentClass)).rewrite((ASTNode)m);
       Contract c=((ASTClass)m.getParent()).getContract();
       if (c!=null){
         pred_class.setContract(copy_rw.rewrite(c));
       }
-      currentPackage.add_static(pred_class);
+      target().addClass(pred_class.getFullName(),pred_class);
       result=null;
     } else {
       current_method=m;
       Contract c=m.getContract();
+      if (c==null) c=ContractBuilder.emptyContract();
       final ContractBuilder cb=new ContractBuilder();
-      if (c!=null && c.given!=null){
-        cb.given(rewrite_and_cast(c.given));
-      }
+      cb.given(rewrite(c.given));
       final ArrayList<DeclarationStatement> args=new ArrayList<DeclarationStatement>();
       for(DeclarationStatement arg:m.getArgs()){
-        args.add(rewrite_and_cast(arg));
+        args.add(rewrite(arg));
       }
       ClauseEncoding clause_rw;
-      clause_rw=new ClauseEncoding(){
+      clause_rw=new ClauseEncoding(source()){
         public void visit(MethodInvokation i){
           if (i.labels()==1){
             NameExpression lbl=i.getLabel(0);
@@ -103,7 +107,7 @@ public class ExplicitPermissionEncoding extends AbstractRewriter {
         }        
       };
       cb.requires(c.pre_condition.apply(clause_rw));
-      clause_rw=new ClauseEncoding(){
+      clause_rw=new ClauseEncoding(source()){
         public void visit(MethodInvokation i){
           if (i.labels()==1){
             NameExpression lbl=i.getLabel(0);
@@ -120,7 +124,7 @@ public class ExplicitPermissionEncoding extends AbstractRewriter {
         }
       };
       cb.ensures(c.post_condition.apply(clause_rw));
-      ASTNode body=rewrite_nullable(m.getBody());
+      ASTNode body=rewrite(m.getBody());
       Method res=new Method(m.kind,m.getName(),m.getReturnType(), cb.getContract(), args.toArray(new DeclarationStatement[0]), body);
       res.setOrigin(m);
       result=res;
@@ -130,7 +134,7 @@ public class ExplicitPermissionEncoding extends AbstractRewriter {
   
   public void visit(final LoopStatement s){
     final BlockStatement block=create.block();
-    AbstractRewriter clause_rw=new ClauseEncoding(){
+    AbstractRewriter clause_rw=new ClauseEncoding(source()){
       public void visit(MethodInvokation i){
         if (i.labels()==1){
           NameExpression lbl=i.getLabel(0);
@@ -162,8 +166,8 @@ public class ExplicitPermissionEncoding extends AbstractRewriter {
     tmp=s.getBody();
     res.setBody(tmp.apply(this));
     res.setOrigin(s.getOrigin());
-    res.set_before(copy_rw.rewrite_nullable(s.get_before()));
-    res.set_after(copy_rw.rewrite_nullable(s.get_after()));
+    res.set_before(copy_rw.rewrite(s.get_before()));
+    res.set_after(copy_rw.rewrite(s.get_after()));
     block.add_statement(res);
     auto_proof=false;
     result=block;
@@ -236,7 +240,11 @@ public class ExplicitPermissionEncoding extends AbstractRewriter {
 
 class ClauseEncoding extends AbstractRewriter {
 
-  public AbstractRewriter copy_rw=new AbstractRewriter(){
+  public ClauseEncoding(ProgramUnit source) {
+    super(source);
+  }
+
+  public AbstractRewriter copy_rw=new AbstractRewriter(source()){
     public void visit(NameExpression name){
       if (name.getKind()==NameExpression.Kind.Label){
         result=new NameExpression(name.getName());
@@ -276,7 +284,7 @@ class ClauseEncoding extends AbstractRewriter {
 }
 
 class PredicateClassGenerator extends AbstractRewriter {
-  public AbstractRewriter copy_rw=new AbstractRewriter(){};
+  public AbstractRewriter copy_rw=new AbstractRewriter(source()){};
   private String class_name;
   private String pred_name;
   private ASTClass pred_class;
@@ -286,7 +294,8 @@ class PredicateClassGenerator extends AbstractRewriter {
   private ASTClass master;
   private HashSet<String> protected_fields=new HashSet<String>();
   
-  public PredicateClassGenerator(ASTClass master){
+  public PredicateClassGenerator(ProgramUnit source,ASTClass master){
+    super(source);
     this.master=master;
   }
   
@@ -386,7 +395,7 @@ class PredicateClassGenerator extends AbstractRewriter {
     }
     cb.requires(cons_req);
     if (m.getBody()!=null) {
-      cb.requires(m.getBody().apply(new ClauseEncoding(){
+      cb.requires(m.getBody().apply(new ClauseEncoding(source()){
         public void visit(NameExpression e){
           if (e.getKind()==NameExpression.Kind.Reserved && e.getName()=="this"){
             result=create.local_name("ref");
@@ -574,7 +583,7 @@ class PredicateClassGenerator extends AbstractRewriter {
                 NameExpression name=(NameExpression)tmp;
                 Warning("adding getter %s_get_%s",pred_name,name.getName());
                 ContractBuilder cb=new ContractBuilder();
-                cb.given(copy_rw.rewrite_and_cast(pred_decl.getArgs()));
+                cb.given(copy_rw.rewrite(pred_decl.getArgs()));
                 cb.given(create.field_decl("req",create.class_type(class_name+"_"+pred_name)));
                 cb.requires(create.expression(StandardOperator.NEQ,
                     create.local_name("req"),create.reserved_name("null")));

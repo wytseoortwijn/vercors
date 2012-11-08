@@ -20,7 +20,8 @@ public class FeatureScanner extends AbstractScanner {
   private boolean has_dynamics=false;
   private boolean has_doubles=false;
   private boolean has_longs=false;
-
+  private boolean has_inheritance=false;
+  
   public boolean usesDoubles(){
     return has_doubles;
   }
@@ -36,6 +37,10 @@ public class FeatureScanner extends AbstractScanner {
   public boolean hasDynamicItems(){
     return has_dynamics;
   }
+  
+  public boolean usesInheritance(){
+    return has_inheritance;
+  }
 
   public void pre_visit(ASTNode node){
     super.pre_visit(node);
@@ -47,6 +52,10 @@ public class FeatureScanner extends AbstractScanner {
   }
 
   public void visit(ASTClass c) {
+    if (c.super_classes.length > 0 || c.implemented_classes.length > 0) {
+      Warning("detected inheritance");
+      has_inheritance=true;
+    }
     int N=c.getStaticCount();
     for(int i=0;i<N;i++){
       ASTNode node=c.getStatic(i);

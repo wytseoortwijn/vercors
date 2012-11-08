@@ -4,21 +4,28 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
 
-public class NameSpace {
+/**
+ * 
+ * @author sccblom
+ *
+ * @param <K>
+ * @param <D>
+ */
+public class NameSpace<K,D> {
 
-  private Stack<Map<String,AnyDefinition>> stack=new Stack();
+  private Stack<Map<K,D>> stack=new Stack<Map<K, D>>();
   
-  private Map<String,AnyDefinition> map=new HashMap();
+  private Map<K,D> map=new HashMap<K, D>();
  
   public void enter(){
     stack.push(map);
-    map=new HashMap();
+    map=new HashMap<K, D>();
     map.putAll(stack.peek());
   }
-  public AnyDefinition lookup(String name){
+  public D lookup(K name){
     return map.get(name);
   }
-  public void add(String name,AnyDefinition def){
+  public void add(K name,D def){
     map.put(name, def);
   }
   public void leave(){

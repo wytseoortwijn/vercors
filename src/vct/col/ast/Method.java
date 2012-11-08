@@ -20,11 +20,11 @@ public class Method extends ASTNode {
     Pure,
     Plain
   };
-
+ 
   private final String name;
   private final Type return_type;
   private final DeclarationStatement args [];
-  private Contract contract;
+  private Hashtable <String,Contract> spec=new Hashtable();
   private ASTNode body;
   public final Kind kind;
   
@@ -53,7 +53,7 @@ public class Method extends ASTNode {
     }
     this.body=body;
     this.kind=kind;
-    if (contract!=null) setContract(contract);
+    setContract(contract);
   }
 
   public Kind getKind(){ return kind; }
@@ -67,7 +67,15 @@ public class Method extends ASTNode {
   public Type getArgType(int i){ return args[i].getType(); }
 
   public void setContract(Contract contract){
-    this.contract=contract;
+    setContract("this",contract);
+  }
+  
+  public void setContract(String tag,Contract contract){
+    if (contract==null) {
+      spec.remove(tag);
+      return;
+    }
+    spec.put(tag,contract);
     for(DeclarationStatement d:contract.given){
       d.setParent(this);
     }
@@ -75,8 +83,13 @@ public class Method extends ASTNode {
       d.setParent(this);
     }
   }
+  
+  public Contract getContract(String tag){
+    return spec.get(tag);
+  }
+  
   public Contract getContract(){
-    return contract;
+    return spec.get("this");
   }
   
   public void setBody(ASTNode body){
@@ -93,6 +106,14 @@ public class Method extends ASTNode {
   }
   public Type getReturnType() {
     return return_type;
+  }
+
+  public Type[] getArgType() {
+    Type res[]=new Type[args.length];
+    for(int i=0;i<args.length;i++){
+      res[i]=args[i].getType();
+    }
+    return res;
   }
 
 }

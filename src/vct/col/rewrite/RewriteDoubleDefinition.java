@@ -6,10 +6,14 @@ import vct.col.ast.NameExpression;
 import vct.col.ast.OperatorExpression;
 import vct.col.ast.PrimitiveType;
 import vct.col.ast.PrimitiveType.Sort;
+import vct.col.ast.ProgramUnit;
 import static hre.System.Abort;
 
 public class RewriteDoubleDefinition extends AbstractRewriter {
 
+  public RewriteDoubleDefinition(ProgramUnit source) {
+    super(source);
+  }
   public void visit(PrimitiveType t){
     if (t.sort==Sort.Double){
       result=create.class_type(DefineDouble.double_name);

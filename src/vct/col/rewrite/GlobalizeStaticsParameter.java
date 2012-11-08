@@ -13,6 +13,7 @@ import vct.col.ast.Method;
 import vct.col.ast.MethodInvokation;
 import vct.col.ast.NameExpression;
 import vct.col.ast.OperatorExpression;
+import vct.col.ast.ProgramUnit;
 import vct.col.ast.StandardOperator;
 import vct.util.ClassName;
 import static hre.System.Abort;
@@ -28,6 +29,10 @@ import static hre.System.Warning;
  */
 public class GlobalizeStaticsParameter extends GlobalizeStatics {
 
+  public GlobalizeStaticsParameter(ProgramUnit source) {
+    super(source);
+  }
+
   /**
    * Add the global argument to every non-static method.
    */
@@ -42,15 +47,15 @@ public class GlobalizeStaticsParameter extends GlobalizeStatics {
         //TODO: parameter decl in factory!
         args[0]=create.field_decl("global",create.class_type("Global"));
         for(int i=1;i<args.length;i++){
-          args[i]=rewrite_and_cast(m.getArgs()[i-1]);
+          args[i]=rewrite(m.getArgs()[i-1]);
         }
         result=create.method_kind(
             m.getKind(),
-            rewrite_and_cast(m.getReturnType()),
+            rewrite(m.getReturnType()),
             rewrite(m.getContract()),
             m.getName(),
             args,
-            rewrite_nullable(m.getBody()));
+            rewrite(m.getBody()));
         break;
       }
       default:
@@ -87,7 +92,7 @@ public class GlobalizeStaticsParameter extends GlobalizeStatics {
         result=create.invokation(
             rewrite(m.object),
             m.guarded,
-            rewrite_and_cast(m.method),
+            rewrite(m.method),
             args
         );
         break;

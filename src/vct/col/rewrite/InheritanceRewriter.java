@@ -1,0 +1,100 @@
+package vct.col.rewrite;
+
+import vct.col.ast.ASTClass;
+import vct.col.ast.ASTNode;
+import vct.col.ast.ClassType;
+import vct.col.ast.Contract;
+import vct.col.ast.Method;
+import vct.col.ast.ProgramUnit;
+import vct.col.ast.Type;
+import static hre.System.*;
+
+public class InheritanceRewriter extends AbstractRewriter {
+
+  public InheritanceRewriter(ProgramUnit source) {
+    super(source);
+  }
+
+  private AbstractRewriter copy_abstract=new AbstractRewriter(source()){
+    @Override
+    public void visit(Method m){
+      result=create.method_kind(m.kind,rewrite(m.getReturnType()), rewrite(m.getContract()), m.getName(), rewrite(m.getArgs()) , null);
+    }
+  };
+  
+  ASTClass super_class=null;
+  
+  @Override
+  public void visit(ASTClass cl){
+    ASTClass res=create.ast_class(cl.name, cl.kind, new ClassType[0], new ClassType[0]);
+    switch(cl.super_classes.length){
+      case 0:
+        super_class=null;
+        break;
+      case 1:
+        super_class=target().find(cl.super_classes[0]);
+        break;
+      default:
+        Fail("Multiple inheritance is not supported.");
+    }
+    for(ASTNode node:cl.staticMembers()){
+      res.add_static(rewrite(node));
+    }
+    for(ASTNode node:cl.dynamicMembers()){
+      res.add_dynamic(rewrite(node));
+    }
+    super_class=null;
+    if (cl.implemented_classes.length>0) Fail("interfaces are future work");
+    for(ClassType parent:cl.super_classes){
+      Warning("Checking parent %s of %s",parent,cl.name);
+      ASTClass super_class=target().find(parent);
+      if (super_class==null) Abort("class %s not found",cl.super_classes[0]);
+      for(Method m:super_class.dynamicMethods()){
+        switch(m.kind){
+          case Predicate:
+          case Plain:{
+            Type type[]=m.getArgType();
+            if (cl.find(m.getName(),type)==null){
+              Warning("method %s of kind %s in class %s will be copied",m.getName(),m.kind,cl.name);
+              res.add_dynamic(copy_abstract.rewrite(m));
+            } else {
+              Warning("method %s of kind %s in class %s is an override",m.getName(),m.kind,cl.name);
+            }
+            break;
+          }
+          default:{
+            Warning("ignoring method %s of kind %s in class %s",m.getName(),m.kind,cl.name);
+          }
+        }
+      }
+    }
+    result=res;
+  }
+  
+  @Override
+  public void visit(Method m){
+    super.visit(m);
+    if (super_class!=null){
+      switch(m.kind){
+        case Plain:{
+          Method override=super_class.find(m.getName(),m.getArgType());
+          Contract c=m.getContract();
+          if (override==null) return;
+          if (c!=null && override!=null){
+            Fail("alternate contracts are not supported at %s",m.getOrigin());
+          }
+          Method res=(Method)result;
+          
+          res.setContract(rewrite(override.getContract()));
+          
+          result=res;
+          break;
+        }
+        default:{
+          Warning("check the case of %s in InheritanceRewriter.visit(Method)",m.kind);
+          break;
+        }
+      }
+    }
+  }
+}

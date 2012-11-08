@@ -1,6 +1,7 @@
 package vct.col.rewrite;
 
 import java.util.Arrays;
+import java.util.HashSet;
 
 import hre.util.FrameControl;
 import vct.col.ast.ASTClass;
@@ -23,6 +24,7 @@ import vct.col.ast.Method;
 import vct.col.ast.NameExpression;
 import vct.col.ast.OperatorExpression;
 import vct.col.ast.PrimitiveType;
+import vct.col.ast.ProgramUnit;
 import vct.col.ast.RecordType;
 import vct.col.ast.ReturnStatement;
 import vct.col.ast.StandardOperator;
@@ -37,12 +39,28 @@ import static hre.System.*;
  * 
  * @author Stefan Blom
  */ 
-public abstract class AbstractRewriter extends AbstractVisitor<ASTNode> {
+public class AbstractRewriter extends AbstractVisitor<ASTNode> {
 
-  /**
-   * Refers to the resulting package of the current package being rewritten.
-   */
-  protected ASTClass currentPackage=null;
+  private static ThreadLocal<AbstractRewriter> tl=new ThreadLocal<AbstractRewriter>();
+
+  public final AbstractRewriter copy_rw;
+  
+  private AbstractRewriter(Thread t){
+    copy_rw=null;
+    create=new ASTFactory();    
+  }
+  
+  public AbstractRewriter(ProgramUnit source,ProgramUnit target){
+    super(source,target);
+    AbstractRewriter tmp=tl.get();
+    if(tmp==null){
+      tmp=new AbstractRewriter(Thread.currentThread());
+      tl.set(tmp);
+    }
+    copy_rw=tmp;
+    create=new ASTFactory();    
+  }
+
   /**
    * Refers to the resulting class of the current class being rewritten.
    */
@@ -64,8 +82,8 @@ public abstract class AbstractRewriter extends AbstractVisitor<ASTNode> {
    */
   public final ASTFactory create;
       
-  public AbstractRewriter(){
-    create=new ASTFactory();
+  public AbstractRewriter(ProgramUnit source){
+    this(source,new ProgramUnit());
   }
   
   public void pre_visit(ASTNode n){
@@ -96,12 +114,12 @@ public abstract class AbstractRewriter extends AbstractVisitor<ASTNode> {
       if (auto_proof){
         if (n.get_before()!=null && result.get_before()==null){
           ASTNode tmp=result;
-          tmp.set_before(rewrite_and_cast(n.get_before()));
+          tmp.set_before(rewrite(n.get_before()));
           result=tmp;
         }
         if (n.get_after()!=null && result.get_after()==null){
           ASTNode tmp=result;
-          tmp.set_after(rewrite_and_cast(n.get_after()));
+          tmp.set_after(rewrite(n.get_after()));
           result=tmp;
         }
       }
@@ -115,37 +133,19 @@ public abstract class AbstractRewriter extends AbstractVisitor<ASTNode> {
 
   /** Rewrite contract while adding to a contract builder. */
   public void rewrite(Contract c,ContractBuilder cb){
-    cb.given(rewrite_and_cast(c.given));
-    cb.yields(rewrite_and_cast(c.yields));
-    if (c.modifies!=null) cb.modifies(rewrite_and_cast(c.modifies));
+    cb.given(rewrite(c.given));
+    cb.yields(rewrite(c.yields));
+    if (c.modifies!=null) cb.modifies(rewrite(c.modifies));
     cb.requires(rewrite(c.pre_condition));
     cb.ensures(rewrite(c.post_condition));
   }
   public Contract rewrite(Contract c){
-    return new Contract(rewrite_and_cast(c.given),rewrite_and_cast(c.yields),rewrite_nullable(c.modifies),rewrite(c.pre_condition),rewrite(c.post_condition));
+    if (c==null) return null;
+    return new Contract(rewrite(c.given),rewrite(c.yields),rewrite(c.modifies),rewrite(c.pre_condition),rewrite(c.post_condition));
   }
 
-  public ASTNode rewrite(ASTNode node){
-    return node.apply(this);
-  }
-  
-  public <E extends ASTNode> E[] rewrite(E head,E[] tail){
-    E[] res=Arrays.copyOf(tail, tail.length+1);
-    res[0]=rewrite_and_cast(head);
-    for(int i=0;i<tail.length;i++){
-      res[i+1]=rewrite_and_cast(tail[i]);
-    }
-    return res;
-  }
-  
-  public ASTNode[] rewrite(ASTNode array[]){
-    ASTNode[] res=new ASTNode[array.length];
-    for(int i=0;i<array.length;i++){
-      res[i]=array[i].apply(this);
-    }
-    return res;
-  }
-  public <E extends ASTNode> E rewrite_and_cast(E node){
+  public <E extends ASTNode> E rewrite(E node){
+    if (node==null) return null;
     ASTNode tmp=node.apply(this);
     try {
       return (E)tmp;
@@ -153,30 +153,46 @@ public abstract class AbstractRewriter extends AbstractVisitor<ASTNode> {
      throw new Error("Expected "+node.getClass()+ " got " + tmp.getClass()); 
     }
   }
-  public <E extends ASTNode> E[] rewrite_and_cast(E node[]){
-    E res[]=Arrays.copyOf(node, node.length);
-    for(int i=0;i<res.length;i++){
-      res[i]=rewrite_and_cast(res[i]);
+  
+  private final <E extends ASTNode> E[] glue(E... args){
+    return args;
+  }
+  public <E extends ASTNode> E[] rewrite(E head,E[] tail){
+    // TODO: figure out how to do it if tail == null.
+    E[] res;
+    if (tail==null) {
+      res=glue(head);
+    } else {
+      res=Arrays.copyOf(tail, tail.length+1);
+    }
+    res[0]=rewrite(head);
+    for(int i=0;i<tail.length;i++){
+      res[i+1]=rewrite(tail[i]);
     }
     return res;
   }
-  public <E extends ASTNode> E rewrite_nullable(E node){
-    if (node==null) return null;
-    return rewrite_and_cast(node);
-  }
-  public <E extends ASTNode> E[] rewrite_nullable(E node[]){
+  
+  /**
+   * Rewrite an array.
+   * If the given array is null then this function will return null.
+   * If any of the elements of the array is null, the corresponding element will
+   * also be null.
+   * @param <E> The type of the array elements. 
+   * @param node The array to be rewritten.
+   * @return A new array with rewritten elements.
+   */
+  public <E extends ASTNode> E[] rewrite(E node[]){
     if (node==null) return null;
     E res[]=Arrays.copyOf(node, node.length);
     for(int i=0;i<res.length;i++){
-      res[i]=rewrite_and_cast(res[i]);
+      res[i]=rewrite(res[i]);
     }
     return res;
   }
-
   @Override
   public void visit(MethodInvokation e) {
-    ASTNode object=rewrite_nullable(e.object);
-    NameExpression method=rewrite_and_cast(e.method);
+    ASTNode object=rewrite(e.object);
+    NameExpression method=rewrite(e.method);
     int N=e.getArity();
     ASTNode args[]=new ASTNode[N];
     for(int i=0;i<N;i++){
@@ -197,44 +213,26 @@ public abstract class AbstractRewriter extends AbstractVisitor<ASTNode> {
     //checkPermission(c);
     String name=c.getName();
     if (name==null) {
-      Debug("rewriting root class");
-      if (c.getDynamicCount()>0) throw new Error("root class with dynamic content");
-      ASTClass res=new ASTClass();
-      res.setOrigin(c.getOrigin());
-      int N=c.getStaticCount();
-      for(int i=0;i<N;i++){
-        currentPackage=res;
-        res.add_static(c.getStatic(i).apply(this));
-      }
-      result=res;
+      Abort("illegal class without name");
     } else {
       Debug("rewriting class "+name);
       ASTClass res=new ASTClass(name,c.kind,c.super_classes,c.implemented_classes);
       res.setOrigin(c.getOrigin());
-      if (c.isPackage()) {
-        currentPackage.add_static(res);
-      } else {
-        currentClass=res;
-      }
+      currentClass=res;
       Contract contract=c.getContract();
       if (contract!=null){
         res.setContract(rewrite(contract));
       }
       int N=c.getStaticCount();
       for(int i=0;i<N;i++){
-        if (c.isPackage()) currentPackage=res;
         res.add_static(c.getStatic(i).apply(this));
       }
       int M=c.getDynamicCount();
       for(int i=0;i<M;i++){
         res.add_dynamic(c.getDynamic(i).apply(this));
       }
-      if (c.isPackage()){
-        result=null;
-      } else{
         result=res;
         currentClass=null;
-      }
     }
   }
 
@@ -281,6 +279,7 @@ public abstract class AbstractRewriter extends AbstractVisitor<ASTNode> {
     if (tmp instanceof Type){
       t=(Type)tmp;
     } else {
+      Abort("Type %s rewrote to non-type %s",t.getClass(),tmp==null ? "null":tmp.getClass());
       throw new Error("type AST rewrote to non-type AST");
     }
     String name=s.getName();
@@ -349,15 +348,15 @@ public abstract class AbstractRewriter extends AbstractVisitor<ASTNode> {
     //checkPermission(m);
     String name=m.getName();
     int N=m.getArity();
-    DeclarationStatement args[]=rewrite_and_cast(m.getArgs());
+    DeclarationStatement args[]=rewrite(m.getArgs());
     Contract mc=m.getContract();
     Contract c=null;
     if (mc!=null){
       c=rewrite(mc);
     }
     Method.Kind kind=m.kind;
-    Type rt=rewrite_and_cast(m.getReturnType());
-    ASTNode body=rewrite_nullable(m.getBody());
+    Type rt=rewrite(m.getReturnType());
+    ASTNode body=rewrite(m.getBody());
     Method res=new Method(kind,name,rt,c,args,body);
     res.setOrigin(m.getOrigin());
     result=res;
@@ -414,4 +413,39 @@ public abstract class AbstractRewriter extends AbstractVisitor<ASTNode> {
     res.setOrigin(p.getOrigin());
     result=res;
   }
+
+  public ProgramUnit rewriteAll() {
+    for(ASTClass cl:source().classes()){
+      ASTClass tmp=rewrite(cl);
+      if (tmp!=null){
+        target().addClass(tmp.getFullName(),tmp);
+      }
+    }
+    return target();
+  }
+  
+  private void rewriteOrdered(HashSet<ASTClass> done,ASTClass cl){
+    if (!done.contains(cl)){
+      done.add(cl);
+      for(ClassType parent:cl.implemented_classes){
+        Fail("interfaces are not supported");
+      }
+      for(ClassType parent:cl.super_classes){
+        rewriteOrdered(done,source().find(parent));
+      }
+      Debug("rewriting %s",cl.getName());
+      ASTClass tmp=rewrite(cl);
+      if (tmp!=null){
+        target().addClass(tmp.getFullName(),tmp);
+      }      
+    }
+  }
+  public ProgramUnit rewriteOrdered() {
+    HashSet<ASTClass> done=new HashSet();
+    for(ASTClass cl:source().classes()){
+      rewriteOrdered(done,cl);
+    }    
+    return target();
+  }
+ 
 }

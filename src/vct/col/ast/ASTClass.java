@@ -27,7 +27,6 @@ public class ASTClass extends ASTNode {
    * @author sccblom
    */
   public static enum ClassKind {
-    Package,
     Interface,
     Abstract,
     Plain
@@ -59,17 +58,10 @@ public class ASTClass extends ASTNode {
     return fullname.toArray(new String[0]);
   }
 
-  /** Create an empty root class. */
-  public ASTClass(){
-    kind=ClassKind.Package;
-    name=null;
-    super_classes=new ClassType[0];
-    implemented_classes=new ClassType[0];
-  }
   /** Create a root class from a given block statement. */
   public ASTClass(BlockStatement node) {
-    kind=ClassKind.Package;
-    name=null;
+    kind=ClassKind.Plain;
+    name="<<main>>";
     int N=node.getLength();
     for(int i=0;i<N;i++){
       static_entries.add(node.getStatement(i));
@@ -78,7 +70,7 @@ public class ASTClass extends ASTNode {
     implemented_classes=new ClassType[0];
   }
 
-  /** Create a new class in a hierarchy. */
+  /** Create a nested class. */
   public ASTClass(String name,ASTClass parent,boolean is_static,ClassKind kind){
     this.kind=kind;
     this.name=name;
@@ -175,22 +167,6 @@ public class ASTClass extends ASTNode {
   }
   public ASTNode getDynamic(int i){
     return dynamic_entries.get(i);
-  }
-  public boolean isPackage(){
-    if (name==null) return true;
-    if (kind!=ClassKind.Package) return false;
-    if (dynamic_entries.size()>0) {
-      Abort("alleged package %s has dynamic entries.",name);
-    }
-    int N=static_entries.size();
-    for(int i=0;i<N;i++){
-      ASTNode tmp=static_entries.get(i);
-      while (tmp instanceof ASTWith){
-        tmp=((ASTWith)tmp).body;
-      }
-      if (!(tmp instanceof ASTClass)) Abort("package %s has non-class entries.",name);
-    }
-    return true;
   }
   
   public ASTClass(String name,ClassKind kind){
@@ -309,6 +285,16 @@ public class ASTClass extends ASTNode {
     }
   }
 
+  /** Get an iterator for all static members. */
+  public Iterable<ASTNode> staticMembers(){
+    return static_entries;
+  }
+  
+  /** Get an iterator for all dynamic members. */
+  public Iterable<ASTNode> dynamicMembers(){
+    return dynamic_entries;
+  }
+
   /** Get an iterator for the static fields of the class. */
   public Iterable<DeclarationStatement> staticFields() {
     return new FilteredIterable<ASTNode,DeclarationStatement>(static_entries,new DeclarationFilter());
@@ -329,31 +315,19 @@ public class ASTClass extends ASTNode {
     return new FilteredIterable<ASTNode,Method>(dynamic_entries,new MethodFilter());
   }
   
-  public List<String[]> class_names(){
-    ArrayList<String[]>res=new ArrayList();
-    find_class_names(res);
-    return res;
-  }
-  private void find_class_names(ArrayList<String[]> res) {
-    if (isPackage()){
-      for(int i=0;i<static_entries.size();i++){
-        ((ASTClass)static_entries.get(i)).find_class_names(res);
-      }
-    } else {
-      res.add(getFullName());
-    }    
-  }
   private Contract contract;
   public Contract getContract(){
     return contract;
   }
   public void setContract(Contract contract){
     this.contract=contract;
-    for(DeclarationStatement d:contract.given){
-      d.setParent(this);
-    }
-    for(DeclarationStatement d:contract.yields){
-      d.setParent(this);
+    if (contract!=null){
+      for(DeclarationStatement d:contract.given){
+        d.setParent(this);
+      }
+      for(DeclarationStatement d:contract.yields){
+        d.setParent(this);
+      }
     }
   }
 }

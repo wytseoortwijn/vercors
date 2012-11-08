@@ -4,6 +4,7 @@ import vct.col.ast.ASTNode;
 import vct.col.ast.AssignmentStatement;
 import vct.col.ast.BlockStatement;
 import vct.col.ast.OperatorExpression;
+import vct.col.ast.ProgramUnit;
 import static hre.System.Debug;
 
 /**
@@ -12,6 +13,10 @@ import static hre.System.Debug;
  * @author Stefan Blom
  */ 
 public class AssignmentRewriter extends AbstractRewriter {
+
+  public AssignmentRewriter(ProgramUnit source) {
+    super(source);
+  }
 
   public void visit(BlockStatement s) {
     Debug("rewriting block");

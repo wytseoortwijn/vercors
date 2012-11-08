@@ -118,15 +118,9 @@ public abstract class ASTNode implements ASTFlags {
   protected abstract <T> void accept_simple(ASTVisitor<T> visitor);
   
   public final <T> void accept(ASTVisitor<T> visitor){
-    if (visitor instanceof ASTFrame) {
-      ((ASTFrame) visitor).enter(this);
-    }
     visitor.pre_visit(this);
     this.accept_simple(visitor);
     visitor.post_visit(this);
-    if (visitor instanceof ASTFrame) {
-      ((ASTFrame) visitor).leave(this);
-    }
   }
   
   public final <T> T apply(ASTVisitor<T> visitor){

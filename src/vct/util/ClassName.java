@@ -6,7 +6,7 @@ public class ClassName {
 
   public final String name[];
   
-  public ClassName(String name[]){
+  public ClassName(String ... name){
     this.name=Arrays.copyOf(name,name.length);
   }
   

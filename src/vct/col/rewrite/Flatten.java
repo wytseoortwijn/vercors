@@ -15,6 +15,7 @@ import vct.col.ast.Method;
 import vct.col.ast.MethodInvokation;
 import vct.col.ast.NameExpression;
 import vct.col.ast.OperatorExpression;
+import vct.col.ast.ProgramUnit;
 import vct.col.ast.ReturnStatement;
 import vct.col.ast.StandardOperator;
 import vct.col.ast.Type;
@@ -25,8 +26,12 @@ import static hre.System.Warning;
 
 public class Flatten extends AbstractRewriter {
 
+  public Flatten(ProgramUnit source) {
+    super(source);
+  }
+
   /* TODO check for pure expression while copying! */
-  private AbstractRewriter copy_pure=new AbstractRewriter(){};
+  private AbstractRewriter copy_pure=new AbstractRewriter(source());
   
   private Stack<BlockStatement> block_stack=new Stack<BlockStatement>();
   private BlockStatement current_block=null;
@@ -36,12 +41,12 @@ public class Flatten extends AbstractRewriter {
   public void post_visit(ASTNode n){
     if (n.get_before()!=null && result.get_before()==null){
       ASTNode tmp=result;
-      tmp.set_before(copy_pure.rewrite_and_cast(n.get_before()));
+      tmp.set_before(copy_pure.rewrite(n.get_before()));
       result=tmp;
     }
     if (n.get_after()!=null && result.get_after()==null){
       ASTNode tmp=result;
-      tmp.set_after(copy_pure.rewrite_and_cast(n.get_after()));
+      tmp.set_after(copy_pure.rewrite(n.get_after()));
       result=tmp;
     }
     super.post_visit(n);
@@ -58,8 +63,8 @@ public class Flatten extends AbstractRewriter {
 
   public void visit(MethodInvokation e) {
     Debug("call to %s",e.method.getName());
-    ASTNode object=rewrite_nullable(e.object);
-    NameExpression method=rewrite_and_cast(e.method);
+    ASTNode object=rewrite(e.object);
+    NameExpression method=rewrite(e.method);
     int N=e.getArity();
     ASTNode args[]=new ASTNode[N];
     for(int i=0;i<N;i++){
@@ -78,8 +83,8 @@ public class Flatten extends AbstractRewriter {
       declaration_block.add_statement(n);
       Debug("assigning resutl of call");
       ASTNode call=create.invokation(object,e.guarded,method,args);
-      call.set_before(copy_pure.rewrite_nullable(e.get_before()));
-      call.set_after(copy_pure.rewrite_nullable(e.get_after()));
+      call.set_before(copy_pure.rewrite(e.get_before()));
+      call.set_after(copy_pure.rewrite(e.get_after()));
       for(NameExpression lbl:e.getLabels()){
         Debug("FLATTEN: copying label %s",lbl);
         call.addLabel(lbl);
@@ -229,17 +234,17 @@ public class Flatten extends AbstractRewriter {
     }
     String name=m.getName();
     int N=m.getArity();
-    DeclarationStatement args[]=copy_pure.rewrite_and_cast(m.getArgs());
+    DeclarationStatement args[]=copy_pure.rewrite(m.getArgs());
     Contract mc=m.getContract();
     Contract c=null;
     if (mc!=null){
       ASTNode pre=mc.pre_condition.apply(copy_pure);
       ASTNode post=mc.post_condition.apply(copy_pure);
-      c=new Contract(copy_pure.rewrite_and_cast(mc.given),copy_pure.rewrite_and_cast(mc.yields),
-          copy_pure.rewrite_nullable(mc.modifies),pre,post);
+      c=new Contract(copy_pure.rewrite(mc.given),copy_pure.rewrite(mc.yields),
+          copy_pure.rewrite(mc.modifies),pre,post);
     }
     Method.Kind kind=m.kind;
-    Method res=new Method(kind,name,rewrite_and_cast(m.getReturnType()),c,args,null);
+    Method res=new Method(kind,name,rewrite(m.getReturnType()),c,args,null);
     res.setOrigin(m.getOrigin());
     ASTNode body=m.getBody();
     if (body!=null) {

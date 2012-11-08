@@ -30,15 +30,12 @@ public class Main {
   
   /**
    * Generate Boogie code and optionally verify a class.
-   * @param cl The class for which code must be generated.
+   * @param arg The class for which code must be generated.
    */
-  public static BoogieReport TestBoogie(ASTClass cl){
+  public static BoogieReport TestBoogie(ProgramUnit arg){
     int timeout=15;
     String boogie=boogie_location.get();
     try {
-      if (cl.getDynamicCount()>0 && cl.getStaticCount()>0) {
-        throw new Error("mixed static/dynamic boogie program.");
-      }
       PrintStream boogie_input=new PrintStream("boogie-input.bpl");
       TrackingOutput boogie_code=new TrackingOutput(boogie_input);
       //InputStream pre_s=ClassLoader.getSystemResourceAsStream("vct/boogie/boogie-prelude.bpl");
@@ -54,7 +51,12 @@ public class Main {
       //boogie_code.leave(origin);
       //pre.close();
       BoogiePrinter printer=new BoogiePrinter(boogie_code);
-      printer.print(cl);
+      for(ASTClass cl:arg.classes()){
+        if (cl.getDynamicCount()>0 && cl.getStaticCount()>0) {
+          throw new Error("mixed static/dynamic boogie program.");
+        }  
+        printer.print(cl);
+      }
       TrackingTree tree=boogie_code.close();
 
       if (boogie==null) Fail("please set location of boogie binary");
@@ -82,21 +84,10 @@ public class Main {
    * @param program AST of the Chalice program.
    *
    */
-  public static CompositeReport TestChalice(final ASTClass program){
+  public static CompositeReport TestChalice(final ProgramUnit program){
     String chalice=chalice_location.get();
     CompositeReport report=new CompositeReport();
     System.err.println("Checking with Chalice");
-    if (program.getDynamicCount()>0) throw new Error("chalice program with dynamic top level.");
-    if (program.getStaticCount()==1){
-      ASTNode tmp=program.getStatic(0);
-      if (!(tmp instanceof ASTClass)){
-        throw new Error("unexpected entity: "+tmp.getClass());
-      }
-      ASTClass class_def=(ASTClass)tmp;
-      if (class_def.isPackage()){
-        return TestChalice(class_def);
-      }
-    }
     try {
       File chalice_input_file;
       if (vct.util.Configuration.backend_file.get()==null){
@@ -112,28 +103,13 @@ public class Main {
       final TrackingOutput chalice_code=new TrackingOutput(chalice_input);
       final ChalicePrinter printer=new ChalicePrinter(chalice_code);
       
-      Runnable local=new Runnable(){
-        public void run(){find_classes(program);}
-        private void find_classes(ASTClass pkg){
-          if (pkg.getDynamicCount()>0) throw new Error("package with dynamic entries");
-          int N=pkg.getStaticCount();
-          for(int i=0;i<N;i++){
-            ASTNode tmp=pkg.getStatic(i);
-            if (!(tmp instanceof ASTClass)){
-              throw new Error("unexpected entity: "+tmp.getClass());
-            }
-            ASTClass class_def=(ASTClass)tmp;
-            if (class_def.isPackage()){
-              find_classes(class_def);
-            } else if (class_def.getStaticCount()>0){
-              Fail("class "+class_def.getName()+" has static entries");
-            } else {
-              class_def.accept(printer);
-            }
-          }
+      for(ASTClass cl:program.classes()){
+        if (cl.getStaticCount()>0){
+          throw new Error("class "+cl.getName()+" has static entries");
+        } else {
+          cl.accept(printer);
         }
-      };
-      local.run();
+      }
       
       TrackingTree tree=chalice_code.close();
       if (true){

@@ -97,8 +97,13 @@ public class JavaPrinter extends AbstractPrinter {
     }
     int N=block.getLength();
     for(int i=0;i<N;i++){
-      block.getStatement(i).accept(this);
-      if (in_expr) out.printf(";");
+      ASTNode statement=block.getStatement(i);
+      statement.accept(this);
+      if (in_expr) {
+        out.printf(";");
+      } else {
+        out.lnprintf(";");
+      }
     }
     if (!nested) {
       out.decrIndent();
@@ -136,9 +141,6 @@ public class JavaPrinter extends AbstractPrinter {
       break;
     case Interface:
       out.lnprintf("interface %s",cl.getName());
-      break;
-    case Package:
-      out.lnprintf("PACKAGE[%s]",cl.getName());
       break;
     default:
       Abort("unexpected class kind %s",cl.kind);
@@ -340,19 +342,19 @@ public class JavaPrinter extends AbstractPrinter {
     s.getLocation().accept(this);
     out.printf("=");
     s.getExpression().accept(this);
-    //if (in_expr) out.lnprintf(";");
   }
+
   public void visit(ReturnStatement s){
     ASTNode expr=s.getExpression();
     if (expr==null){
-      out.lnprintf("return;");
+      out.lnprintf("return");
     } else {
       out.printf("return ");
       setExpr();
       expr.accept(this);
-      out.lnprintf(";");
     }
   }
+
   public void visit(OperatorExpression e){
     switch(e.getOperator()){
       case Fork:{
@@ -363,7 +365,7 @@ public class JavaPrinter extends AbstractPrinter {
         } else {
           throw new Error("fork/join are limited to name expressions");
         }
-        out.lnprintf("Thread thread_%s := new Thread(%s).start();",name,name);
+        out.lnprintf("Thread thread_%s := new Thread(%s).start()",name,name);
         break;
       }
       case Join:{
@@ -374,7 +376,7 @@ public class JavaPrinter extends AbstractPrinter {
         } else {
           throw new Error("fork/join are limited to name expressions");
         }
-        out.lnprintf("thread_%s.join();",name);
+        out.lnprintf("thread_%s.join()",name);
         break;
       }
       case Assert:{
@@ -383,7 +385,6 @@ public class JavaPrinter extends AbstractPrinter {
         setExpr();
         ASTNode prop=e.getArg(0);
         prop.accept(this);
-        out.lnprintf(";");
         break;
       }
       case Continue:{
@@ -394,7 +395,6 @@ public class JavaPrinter extends AbstractPrinter {
           setExpr();
           lbl.accept(this);
         }
-        out.lnprintf(";");
         break;
       }
       case Assume:{
@@ -403,7 +403,6 @@ public class JavaPrinter extends AbstractPrinter {
         setExpr();
         ASTNode prop=e.getArg(0);
         prop.accept(this);
-        out.lnprintf(";");
         break;
       }
       case HoarePredicate:{
@@ -435,7 +434,6 @@ public class JavaPrinter extends AbstractPrinter {
         setExpr();
         ASTNode string=e.getArg(0);
         string.accept(this);
-        out.lnprintf(";");        
         break;
       }
       case Unfold:{
@@ -444,7 +442,6 @@ public class JavaPrinter extends AbstractPrinter {
         setExpr();
         ASTNode prop=e.getArg(0);
         prop.accept(this);
-        out.lnprintf(";");
         break;
       }
       case Fold:{
@@ -453,7 +450,6 @@ public class JavaPrinter extends AbstractPrinter {
         setExpr();
         ASTNode prop=e.getArg(0);
         prop.accept(this);
-        out.lnprintf(";");
         break;
       }
       case New:{
@@ -517,27 +513,13 @@ public class JavaPrinter extends AbstractPrinter {
     return track_out.close();
   }
 
-  public static TrackingTree dump(PrintStream out,ASTNode node){
-    Debug("Dumping Java code...");
+  public static TrackingTree dump(PrintStream out,ProgramUnit program){
+    hre.System.Debug("Dumping Java code...");
     try {
       TrackingOutput track_out=new TrackingOutput(out,false);
       JavaPrinter printer=new JavaPrinter(track_out);
-      if(node instanceof ASTClass){
-        ASTClass program=(ASTClass)node;
-        String name=program.getName();
-        if (name==null){
-          Debug("multiple class program");
-          int N=program.getStaticCount();
-          for(int i=0;i<N;i++){
-            program.getStatic(i).accept(printer);
-          }
-        } else {
-          Debug("single class");
-          program.accept(printer);
-        }
-      } else {
-        Debug("non-class");
-        node.accept(printer);
+      for(ASTClass cl:program.classes()){
+        cl.accept(printer);
       }
       return track_out.close();
     } catch (Exception e) {
@@ -545,6 +527,13 @@ public class JavaPrinter extends AbstractPrinter {
       e.printStackTrace();
       throw new Error("abort");
     }
+  }
+
+  public static void dump(PrintStream out, ASTNode cl) {
+    TrackingOutput track_out=new TrackingOutput(out,false);
+    JavaPrinter printer=new JavaPrinter(track_out);
+    cl.accept(printer);
+    track_out.close();    
   }
   
 }
