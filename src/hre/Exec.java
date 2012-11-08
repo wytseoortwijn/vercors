@@ -43,6 +43,7 @@ public class Exec {
     CopyThread stdin_copy,stdout_copy,stderr_copy;
     try {
       if (stdin!=null) stdin_copy=new CopyThread(stdin,process.getOutputStream());
+      else stdin_copy=null; 
       stdout_copy=new CopyThread(process.getInputStream(),stdout);
       stdout_copy.start();
       stderr_copy=new CopyThread(process.getErrorStream(),stderr);
@@ -54,6 +55,7 @@ public class Exec {
     try {
       // wait for process and output.
       int exitcode=process.waitFor();
+      if (stdin_copy!=null) stdin_copy.join();
       stdout_copy.join();
       if (stdout_copy.getError()!=null) {
         hre.System.Abort("stdout error: %s%n",stdout_copy.getError());
@@ -64,6 +66,7 @@ public class Exec {
       }
       return exitcode;
     } catch (InterruptedException e){
+      hre.System.Warning("interrupted!");
       process.destroy();
       return -1;
     }
