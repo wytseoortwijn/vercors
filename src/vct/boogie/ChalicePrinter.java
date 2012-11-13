@@ -6,6 +6,7 @@ import java.util.HashSet;
 import hre.ast.TrackingOutput;
 import vct.col.ast.*;
 import vct.col.ast.PrimitiveType.Sort;
+import vct.col.util.ASTUtils;
 import static hre.System.Abort;
 import static hre.System.Debug;
 import static hre.System.Fail;
@@ -207,11 +208,16 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
             in_clause=true;
             if (contract!=null && !contract.pre_condition.equals(ContractBuilder.default_true)) {
               // this is an unsafe trick!
-              out.printf("unfolding ");
-              nextExpr();
-              current_precedence=0;
-              contract.pre_condition.accept(this);
-              out.printf(" in ");
+              for(ASTNode part:ASTUtils.conjuncts(contract.pre_condition)){
+                if (!(part instanceof MethodInvokation)) continue;
+                MethodInvokation mi=(MethodInvokation)part;
+                if (mi.getDefinition().kind != Method.Kind.Predicate) continue;
+                out.printf("unfolding ");
+                nextExpr();
+                current_precedence=0;
+                part.accept(this);
+                out.printf(" in ");
+              }
             }
             nextExpr();
             body.accept(this);
