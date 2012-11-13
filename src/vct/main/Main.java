@@ -328,6 +328,7 @@ class Main
     }
     Progress("Parsed %d files in: %dms",cnt,System.currentTimeMillis() - startTime);
     startTime = System.currentTimeMillis();
+    vct.java.printer.JavaPrinter.dump(System.out,program);
     program=new ResolveAndMerge().rewrite_and_cast(program);
     new SimpleTypeCheck(program).check(program);
     Progress("Initial type check took %dms",System.currentTimeMillis() - startTime);
