@@ -29,12 +29,24 @@ public class Configuration {
    */
   public static final StringSetting backend_file=new StringSetting(null);
   
+  /**
+   * Control type checking in the PVL parser.
+   * By default type checking is enabled, but for multiple file input
+   * it must often be disabled as the PVL type checker does not consider libraries.
+   */
+  public static final BooleanSetting pvl_type_check=new BooleanSetting(true);
+  
+  /**
+   * Add the VCT library options to the given option parser.
+   * @param clops Option parser.
+   */
   public static void add_options(OptionParser clops){
     clops.add(keep_temp_files.getEnable("keep temporary files"),"keep");
     clops.add(detailed_errors.getEnable("produce detailed error messages"),"detail");
     clops.add(backend_file.getAssign("filename for storing the back-end input"),"encoded");
     clops.add(vct.boogie.Main.boogie_location.getAssign("location of boogie binary"),"boogie-tool");
     clops.add(vct.boogie.Main.chalice_location.getAssign("location of chalice binary"),"chalice-tool");
+    clops.add(pvl_type_check.getDisable("disable type check in PVL parser"),"no-pvl-check");
   }
 
 }
