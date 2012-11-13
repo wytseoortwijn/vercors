@@ -1,5 +1,6 @@
 package vct.col.ast;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 
@@ -71,5 +72,13 @@ public class ProgramUnit {
 
   public ASTClass find(ClassType type) {
     return find(new ClassName(type.getNameFull()));
+  }
+
+  public Method find_predicate(String[] nameFull) {
+    String [] class_name=Arrays.copyOf(nameFull, nameFull.length-1);
+    ASTClass cl=find(class_name);
+    if (cl==null) return null;
+    Method m=cl.find_predicate(nameFull[nameFull.length-1]);
+    return m;
   }
 }

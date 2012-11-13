@@ -1,21 +1,17 @@
 package vct.col.util;
 
-import javax.swing.JTable.PrintMode;
-
 import vct.col.ast.ASTClass;
 import vct.col.ast.ASTNode;
-import vct.col.ast.ASTWith;
-import vct.col.ast.AbstractScanner;
-import vct.col.ast.AssignmentStatement;
-import vct.col.ast.DeclarationStatement;
-import vct.col.ast.Method;
 import vct.col.ast.PrimitiveType.Sort;
+import vct.col.ast.RecursiveVisitor;
 import vct.col.ast.Type;
 
-import static hre.System.*;
+public class FeatureScanner extends RecursiveVisitor<Object> {
 
-public class FeatureScanner extends AbstractScanner {
-
+  public FeatureScanner(){
+    super(null,null);
+  }
+  
   private boolean has_statics=false;
   private boolean has_dynamics=false;
   private boolean has_doubles=false;

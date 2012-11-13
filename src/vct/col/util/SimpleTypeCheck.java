@@ -8,29 +8,36 @@ import static hre.System.Debug;
 import static hre.System.Fail;
 import static hre.System.Warning;
 
-public class SimpleTypeCheck extends AbstractVisitor<Type> {
+public class SimpleTypeCheck extends RecursiveVisitor<Type> {
 
   public void check(){
-    ASTVisitor checker=new PostVisit(this);
     for(ASTClass cl:source().classes()){
-      cl.accept(checker);
+      cl.accept(this);
     }
   }
-  
+
   public SimpleTypeCheck(ProgramUnit arg){
     super(arg);
   }
 
   public void visit(ConstantExpression e){
+    super.visit(e);
     if (e.getType()==null) Abort("untyped constant %s",e);
   }
   public void visit(ClassType t){
+    super.visit(t);
     ASTClass cl=source().find(t.getNameFull());
-    if (cl==null) Fail("type error: class "+t.getFullName()+" not found"); 
+    if (cl==null) {
+      Method m=source().find_predicate(t.getNameFull());
+      if (m==null){
+        Fail("type error: class (or predicate) "+t.getFullName()+" not found");
+      }
+    }
     t.setType(t);
   }
  
   public void visit(MethodInvokation e){
+    super.visit(e);
     if (e.object==null) Abort("unresolved method invokation at "+e.getOrigin());
     if (e.object.getType()==null) Abort("object has no type at %s",e.object.getOrigin());
     if (!(e.object.getType() instanceof ClassType)) Abort("invokation on non-class");
@@ -89,6 +96,7 @@ public class SimpleTypeCheck extends AbstractVisitor<Type> {
   }
   
   public void visit(AssignmentStatement s){
+    super.visit(s);
     ASTNode loc=s.getLocation();
     ASTNode val=s.getExpression();
     Type loc_type=loc.getType();
@@ -101,6 +109,7 @@ public class SimpleTypeCheck extends AbstractVisitor<Type> {
   }
   
   public void visit(DeclarationStatement s){
+    super.visit(s);
     String name=s.getName();
     Type t=s.getType();
     ASTNode e=s.getInit();
@@ -110,6 +119,7 @@ public class SimpleTypeCheck extends AbstractVisitor<Type> {
   }
   
   public void visit(Method m){
+    super.visit(m);
     String name=m.getName();
     ASTNode body=m.getBody();
     Contract contract=m.getContract();
@@ -129,6 +139,7 @@ public class SimpleTypeCheck extends AbstractVisitor<Type> {
     }
   }
   public void visit(NameExpression e){
+    super.visit(e);
     Kind kind = e.getKind();
     String name=e.getName();
     switch(kind){
@@ -169,6 +180,7 @@ public class SimpleTypeCheck extends AbstractVisitor<Type> {
     }
   }
   public void visit(OperatorExpression e){
+    super.visit(e);
     StandardOperator op=e.getOperator();
     switch(op){
     case And:
@@ -378,9 +390,11 @@ public class SimpleTypeCheck extends AbstractVisitor<Type> {
     }
   }
   public void visit(BlockStatement s){
+    super.visit(s);
     // TODO: consider if type should be type of last statement. 
   }
   public void visit(IfStatement s){
+    super.visit(s);
     int N=s.getCount();
     for(int i=0;i<N;i++){
       Type t=s.getGuard(i).getType();
@@ -391,13 +405,16 @@ public class SimpleTypeCheck extends AbstractVisitor<Type> {
     // TODO: consider if this can be an if expression.... 
   }
   public void visit(ReturnStatement s){
+    super.visit(s);
     // TODO: check expression against method type.
   }
   public void visit(ASTClass c){
+    super.visit(c);
     // TODO: type checks on class.
   }
   
   public void visit(LoopStatement s) {
+    super.visit(s);
     for(ASTNode inv:s.getInvariants()){
       Type t=inv.getType();
       if (t==null || !(t instanceof PrimitiveType) || (((PrimitiveType)t).sort!=Sort.Boolean)){

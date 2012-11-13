@@ -330,5 +330,14 @@ public class ASTClass extends ASTNode {
       }
     }
   }
+  public Method find_predicate(String string) {
+    for(Method m:staticMethods()){
+      if (m.getName().equals(string)) return m;
+    }
+    for(Method m:dynamicMethods()){
+      if (m.getName().equals(string)) return m;
+    }
+    return null;
+  }
 }
 

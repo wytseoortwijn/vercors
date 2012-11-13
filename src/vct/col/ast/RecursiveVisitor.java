@@ -1,0 +1,185 @@
+package vct.col.ast;
+
+public abstract class RecursiveVisitor<T> extends ASTFrame<T> implements
+    ASTVisitor<T> {
+
+  public RecursiveVisitor(ASTFrame<T> share) {
+    super(share);
+    // TODO Auto-generated constructor stub
+  }
+
+  public RecursiveVisitor(ProgramUnit source) {
+    super(source);
+    // TODO Auto-generated constructor stub
+  }
+  public RecursiveVisitor(ProgramUnit source, ProgramUnit target) {
+    super(source, target);
+    // TODO Auto-generated constructor stub
+  }
+
+  @Override
+  public void pre_visit(ASTNode n) {
+    enter(n);
+    /* TODO: fix errors resulting from proper checks:
+    ASTNode tmp;
+    tmp=n.get_before();
+    if (tmp!=null) tmp.accept(this);
+    tmp=n.get_after();
+    if (tmp!=null) tmp.accept(this);
+    */
+  }
+
+  @Override
+  public void post_visit(ASTNode n) {
+    leave(n);
+  }
+
+  @Override
+  public void visit(StandardProcedure p) {
+    // no chidren
+  }
+
+  @Override
+  public void visit(ConstantExpression e) {
+    // no children
+  }
+
+  @Override
+  public void visit(OperatorExpression e) {
+    for(ASTNode arg:e.getArguments()){
+      arg.accept(this);
+    }    
+  }
+
+  @Override
+  public void visit(NameExpression e) {
+    // no children
+  }
+
+  @Override
+  public void visit(ArrayType t) {
+    t.base_type.accept(this);
+  }
+
+  @Override
+  public void visit(ClassType t) {
+    // no children
+  }
+
+  @Override
+  public void visit(FunctionType t) {
+    t.getResult().accept(this);
+    int N=t.getArity();
+    for(int i=0;i<N;i++){
+      t.getArgument(i).accept(this);
+    }
+  }
+
+  @Override
+  public void visit(PrimitiveType t) {
+    // no children    
+  }
+
+  @Override
+  public void visit(RecordType t) {
+    int N=t.getFieldCount();
+    for(int i=0;i<N;i++){
+      t.getFieldType(i).accept(this);
+    }    
+  }
+
+  @Override
+  public void visit(MethodInvokation e) {
+    dispatch(e.object);
+    for(ASTNode arg:e.getArgs()){
+      arg.accept(this);
+    }
+  }
+
+  private void dispatch(ASTNode object) {
+    if(object!=null){
+      object.accept(this);
+    }
+  }
+
+  @Override
+  public void visit(BlockStatement s) {
+    int N=s.getLength();
+    for(int i=0;i<N;i++){
+      s.getStatement(i).accept(this);
+    }
+  }
+
+  @Override
+  public void visit(IfStatement s) {
+    int N=s.getCount();
+    for(int i=0;i<N;i++){
+      s.getGuard(i).accept(this);
+      s.getStatement(i).accept(this);
+    }
+    
+  }
+
+  @Override
+  public void visit(ReturnStatement s) {
+    dispatch(s.getExpression());
+  }
+
+  @Override
+  public void visit(AssignmentStatement s) {
+    s.getLocation().accept(this);
+    s.getExpression().accept(this);
+  }
+
+  @Override
+  public void visit(DeclarationStatement s) {
+    s.getType().accept(this);
+    dispatch(s.getInit());
+  }
+
+  @Override
+  public void visit(LoopStatement s) {
+    dispatch(s.getInitBlock());
+    dispatch(s.getEntryGuard());
+    for(ASTNode inv:s.getInvariants()){
+      inv.accept(this);
+    }
+    s.getBody().accept(this);
+    dispatch(s.getExitGuard());
+  }
+
+  @Override
+  public void visit(Method m) {
+    Contract c=m.getContract();
+    if (c!=null){
+      dispatch(c.pre_condition);
+      dispatch(c.post_condition);
+    }
+    dispatch(m.getBody());
+  }
+
+  @Override
+  public void visit(ASTClass c) {
+    int N;
+    N=c.getStaticCount();
+    for(int i=0;i<N;i++){
+      c.getStatic(i).accept(this);
+    }
+    N=c.getDynamicCount();
+    for(int i=0;i<N;i++){
+      c.getDynamic(i).accept(this);
+    }
+  }
+
+  @Override
+  public void visit(ASTWith astWith) {
+    astWith.body.accept(this);
+  }
+
+  @Override
+  public void visit(BindingExpression e) {
+    dispatch(e.select);
+    e.main.accept(this);
+  }
+
+}
