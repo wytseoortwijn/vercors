@@ -108,13 +108,13 @@ public abstract class GlobalizeStatics extends AbstractRewriter {
         result=create.invokation(
           create.this_expression(create.class_type("Global")),
           m.guarded,
-          create.method_name(prefix+"_"+m.method.getName()),
+          prefix+"_"+m.method,
           rewrite(m.getArgs()));
       } else {
         result=create.invokation(
             create.local_name("global"),
             m.guarded,
-            create.method_name(prefix+"_"+m.method.getName()),
+            prefix+"_"+m.method,
             rewrite(m.getArgs()));        
       }
     } else {

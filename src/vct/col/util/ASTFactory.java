@@ -47,7 +47,7 @@ import static hre.System.*;
  * Note that extracting origins form any class that is itself an origin does not work:
  * the core constructor would be invoked instead of the extracting one. 
  * 
- * @author sccblom
+ * @author Stefan Blom
  * @param E The type of object from which this factory can extract origins.
  */
 public class ASTFactory<E> implements FrameControl {
@@ -494,16 +494,16 @@ public class ASTFactory<E> implements FrameControl {
   /**
    * Create a new method invokation node.
    */
-  public MethodInvokation invokation(Origin origin,ASTNode object,boolean guarded,NameExpression method,ASTNode ... args){
+  public MethodInvokation invokation(Origin origin,ASTNode object,boolean guarded,String method,ASTNode ... args){
     MethodInvokation res=new MethodInvokation(object,guarded,method,args);
     res.setOrigin(origin);
     res.accept_if(post);
     return res;
   }
-  public MethodInvokation invokation(E origin,ASTNode object,boolean guarded,NameExpression method,ASTNode ... args){
+  public MethodInvokation invokation(E origin,ASTNode object,boolean guarded,String method,ASTNode ... args){
     return invokation(origin_source.create(origin),object,guarded,method,args);
   }
-  public MethodInvokation invokation(ASTNode object,boolean guarded,NameExpression method,ASTNode ... args){
+  public MethodInvokation invokation(ASTNode object,boolean guarded,String method,ASTNode ... args){
     return invokation(origin_stack.get(),object,guarded,method,args);
   }
   
@@ -584,7 +584,7 @@ public class ASTFactory<E> implements FrameControl {
     } else {
       Fail("cannot instantiate type %s",type);
     }
-    return invokation(origin, type, false, method_name(origin,name) , args);
+    return invokation(origin, type, false, name , args);
   }
   public MethodInvokation new_object(E origin,Type type,ASTNode ... args){
     return new_object(origin_source.create(origin),type,args); 

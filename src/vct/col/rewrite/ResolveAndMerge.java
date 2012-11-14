@@ -72,6 +72,39 @@ public class ResolveAndMerge extends AbstractRewriter {
     return static_context;
   }
   
+  private BlockStatement rewrite_proof(BlockStatement orig){
+    if (orig==null) return null;
+    BlockStatement modified=create.block();
+    int N=orig.getLength();
+    for(int i=0;i<N;i++){
+      ASTNode s=orig.getStatement(i);
+      if (s instanceof AssignmentStatement) {
+        AssignmentStatement a=(AssignmentStatement)s;
+        modified.add_statement(create.assignment(s.getOrigin(),
+                a.getLocation().apply(copy_rw),
+                a.getExpression().apply(copy_rw)));
+      } else if (s instanceof OperatorExpression) {
+        OperatorExpression a=(OperatorExpression)s;
+        switch(a.getOperator()){
+          case Assign:
+            modified.add_statement(create.assignment(s.getOrigin(),
+                a.getArg(0).apply(copy_rw),
+                a.getArg(1).apply(copy_rw)));
+            break;
+          case Unfold:
+            modified.add_statement(s.apply(copy_rw));
+            break;
+          default:
+            Abort("bad expression in proof block at %s",s.getOrigin());
+        }
+      } else {
+        Abort("unexpected %s in proof block at %s",s.getClass(),s.getOrigin());
+      }
+    }
+    return modified;
+  }
+  
+    /* TODO: copy/modify to appropriate places.
   public void post_visit(ASTNode n){
     if (n.get_before()!=null && result.get_before()==null){
       ASTNode tmp=result;
@@ -135,6 +168,7 @@ public class ResolveAndMerge extends AbstractRewriter {
     }
     super.post_visit(n);
   }
+    */
   public void visit(ASTClass c) {
     String name=c.getName();
     Debug("rewriting class %s",name);
@@ -399,8 +433,7 @@ public class ResolveAndMerge extends AbstractRewriter {
   
   public void visit(MethodInvokation e){
     ASTNode object=e.object;
-    NameExpression method=e.method;
-    String name=method.getName();
+    String name=e.method;
     Debug("invokation %s",name); 
     for (NameExpression lbl:e.getLabels()){
       Debug("invokation %s has label %s",name,lbl);
@@ -421,7 +454,6 @@ public class ResolveAndMerge extends AbstractRewriter {
     } else {
       object=object.apply(this);
     }
-    method=create.method_name(name);
     boolean guarded=e.guarded;
     
     int N=e.getArity();
@@ -429,12 +461,15 @@ public class ResolveAndMerge extends AbstractRewriter {
     for(int i=0;i<N;i++){
       args[i]=e.getArg(i).apply(this);
     }
-    result=create.invokation(object, guarded, method, args);
+    MethodInvokation res=create.invokation(object, guarded, name, args);
+    res.set_before(rewrite_proof(e.get_before()));
+    res.set_after(rewrite_proof(e.get_after()));
+    result=res;
   }
   
   public void visit(LoopStatement s){
     super.visit(s);
-    result.set_before(copy_rw.rewrite(s.get_before()));
-    result.set_after(rewrite(s.get_after()));
+    ((LoopStatement)result).set_before(rewrite_proof(s.get_before()));
+    ((LoopStatement)result).set_after(rewrite_proof(s.get_after()));
   }
 }

@@ -91,8 +91,7 @@ public class AbstractPrinter extends AbstractVisitor {
       e.object.accept(this);
       out.printf(i_syntax);
     }
-    e.method.accept(this);
-    out.print("(");
+    out.printf("%s(",e.method);
     int N=e.getArity();
     if(N>0){
       int precedence=current_precedence;

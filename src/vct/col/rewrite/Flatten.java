@@ -37,21 +37,7 @@ public class Flatten extends AbstractRewriter {
   private BlockStatement current_block=null;
   private BlockStatement declaration_block=null;
   private static long counter=0;
-  
-  public void post_visit(ASTNode n){
-    if (n.get_before()!=null && result.get_before()==null){
-      ASTNode tmp=result;
-      tmp.set_before(copy_pure.rewrite(n.get_before()));
-      result=tmp;
-    }
-    if (n.get_after()!=null && result.get_after()==null){
-      ASTNode tmp=result;
-      tmp.set_after(copy_pure.rewrite(n.get_after()));
-      result=tmp;
-    }
-    super.post_visit(n);
-  }
-  
+    
   public void visit(BlockStatement s){
     int N=s.getLength();
     block_stack.push(current_block);
@@ -62,9 +48,8 @@ public class Flatten extends AbstractRewriter {
   }
 
   public void visit(MethodInvokation e) {
-    Debug("call to %s",e.method.getName());
+    Debug("call to %s",e.method);
     ASTNode object=rewrite(e.object);
-    NameExpression method=rewrite(e.method);
     int N=e.getArity();
     ASTNode args[]=new ASTNode[N];
     for(int i=0;i<N;i++){
@@ -75,14 +60,16 @@ public class Flatten extends AbstractRewriter {
       Abort("result type of call unknown at %s",e.getOrigin());
     }
     if (e.getType().isVoid()){
-      result=create.invokation(object,e.guarded,method,args);
+      result=create.invokation(object,e.guarded,e.method,args);
+      ((MethodInvokation)result).set_before(copy_rw.rewrite(e.get_before()));
+      ((MethodInvokation)result).set_after(copy_rw.rewrite(e.get_after()));
     } else {
       Debug("declaring variable %s (%s)",name,e.getType());
       ASTNode n=create.field_decl(name,e.getType());
       Debug("inserting in %s",declaration_block);
       declaration_block.add_statement(n);
       Debug("assigning resutl of call");
-      ASTNode call=create.invokation(object,e.guarded,method,args);
+      MethodInvokation call=create.invokation(object,e.guarded,e.method,args);
       call.set_before(copy_pure.rewrite(e.get_before()));
       call.set_after(copy_pure.rewrite(e.get_after()));
       for(NameExpression lbl:e.getLabels()){
@@ -184,6 +171,7 @@ public class Flatten extends AbstractRewriter {
     } else {
       result=create.return_statement();
     }
+    ((ReturnStatement)result).set_after(copy_rw.rewrite(s.get_after()));
   }
   private void visit_body(ASTNode body){
     if (body instanceof BlockStatement){
@@ -283,6 +271,8 @@ public class Flatten extends AbstractRewriter {
     tmp=s.getBody();
     res.setBody(tmp.apply(this));
     res.setOrigin(s.getOrigin());
+    res.set_before(copy_rw.rewrite(s.get_before()));
+    res.set_after(copy_rw.rewrite(s.get_after()));
     result=res; return ;
   }
 

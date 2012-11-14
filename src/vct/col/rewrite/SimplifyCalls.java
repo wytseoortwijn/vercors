@@ -26,13 +26,12 @@ public class SimplifyCalls extends AbstractRewriter {
         object=null;
       }
     }
-    NameExpression method=rewrite(e.method);
     int N=e.getArity();
     ASTNode args[]=new ASTNode[N];
     for(int i=0;i<N;i++){
       args[i]=e.getArg(i).apply(this);
     }
-    result=create.invokation(object,e.guarded,method,args);
+    result=create.invokation(object,e.guarded,e.method,args);
   }
 
 }

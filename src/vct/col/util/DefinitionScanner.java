@@ -3,20 +3,21 @@ package vct.col.util;
 import vct.col.ast.ASTClass;
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTWith;
-import vct.col.ast.AbstractScanner;
 import vct.col.ast.AssignmentStatement;
 import vct.col.ast.Contract;
 import vct.col.ast.DeclarationStatement;
 import vct.col.ast.Method;
 import vct.col.ast.PrimitiveType.Sort;
+import vct.col.ast.RecursiveVisitor;
 
-public class DefinitionScanner extends AbstractScanner {
+public class DefinitionScanner extends RecursiveVisitor<Object> {
 
   private ClassDefinition root;
   private ClassDefinition current;
   private boolean static_context;
   
   public DefinitionScanner(ClassDefinition root){
+    super(null,null);
     this.root=root;
   }
 

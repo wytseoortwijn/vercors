@@ -19,7 +19,6 @@ public class GuardedCallExpander extends AbstractRewriter {
       super.visit(e);    
     } else {
       ASTNode object=e.object.apply(this);
-      NameExpression method=rewrite(e.method);
       int N=e.getArity();
       ASTNode args[]=new ASTNode[N];
       for(int i=0;i<N;i++){
@@ -30,7 +29,7 @@ public class GuardedCallExpander extends AbstractRewriter {
       OperatorExpression guard=new OperatorExpression(StandardOperator.NEQ,object,null_expression);
       guard.setOrigin(e.getOrigin());
       
-      ASTNode call=create.invokation(object,false,method,args);
+      ASTNode call=create.invokation(object,false,e.method,args);
       for(NameExpression lbl:e.getLabels()){
         call.addLabel(rewrite(lbl));
       }

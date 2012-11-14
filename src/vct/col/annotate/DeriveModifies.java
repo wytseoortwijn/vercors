@@ -5,7 +5,7 @@ import java.util.Hashtable;
 
 import vct.col.ast.ASTClass;
 import vct.col.ast.ASTNode;
-import vct.col.ast.AbstractScanner;
+import vct.col.ast.ASTVisitor;
 import vct.col.ast.AssignmentStatement;
 import vct.col.ast.BlockStatement;
 import vct.col.ast.Contract;
@@ -13,6 +13,7 @@ import vct.col.ast.ContractBuilder;
 import vct.col.ast.Method;
 import vct.col.ast.OperatorExpression;
 import vct.col.ast.ProgramUnit;
+import vct.col.ast.RecursiveVisitor;
 import vct.col.rewrite.AbstractRewriter;
 
 import static hre.System.Debug;
@@ -23,8 +24,12 @@ import static hre.System.Fail;
  * 
  * @author Stefan Blom
  */ 
-public class DeriveModifies extends AbstractScanner {
+public class DeriveModifies extends RecursiveVisitor<Object> {
 
+  public DeriveModifies(){
+    super(null,null);
+  }
+  
   private Hashtable<String,Contract>cache=new Hashtable<String, Contract>();
   /** We copy everything except Method declarations.
    *  Therefore this is the only visitor that must be overridden. 
@@ -43,7 +48,7 @@ public class DeriveModifies extends AbstractScanner {
     builder.requires(c.pre_condition);
     builder.ensures(c.post_condition);
     builder.modifies();
-    AbstractScanner mod=new ModificationScanner(cache,builder);
+    ASTVisitor<Object> mod=new ModificationScanner(cache,builder);
     m.accept(mod);
     // change contract in result.
     c=builder.getContract();

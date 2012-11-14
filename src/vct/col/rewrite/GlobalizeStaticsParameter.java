@@ -75,7 +75,7 @@ public class GlobalizeStaticsParameter extends GlobalizeStatics {
       if (m.getDefinition()!=null){
         kind=m.getDefinition().getKind();
       } else {
-        Warning("assuming kind of %s is Predicate",m.method.getName());
+        Warning("assuming kind of %s is Predicate",m.method);
       }
       switch(kind){
       case Constructor:
@@ -92,7 +92,7 @@ public class GlobalizeStaticsParameter extends GlobalizeStatics {
         result=create.invokation(
             rewrite(m.object),
             m.guarded,
-            rewrite(m.method),
+            m.method,
             args
         );
         break;

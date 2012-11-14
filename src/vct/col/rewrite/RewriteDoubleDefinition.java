@@ -22,7 +22,7 @@ public class RewriteDoubleDefinition extends AbstractRewriter {
     }
   }
   public void visit(OperatorExpression e){
-    NameExpression name;
+    String name;
     if (e.getType()==null) Abort("missing type for code from %s",e.getOrigin());
     if (!e.getType().isDouble()){
       super.visit(e);
@@ -30,10 +30,10 @@ public class RewriteDoubleDefinition extends AbstractRewriter {
     }
     switch(e.getOperator()){
     case Plus:
-      name=create.method_name("plus");
+      name=("plus");
       break;
     case Mult:
-      name=create.method_name("mult");
+      name=("mult");
       break;
     default:
       super.visit(e);

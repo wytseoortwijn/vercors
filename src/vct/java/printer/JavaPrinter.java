@@ -31,6 +31,7 @@ public class JavaPrinter extends AbstractPrinter {
       //out.printf("[");
     }
   }
+  /* TODO: copy to appropriate places
   public void post_visit(ASTNode node){
     if (node.get_before()!=null || node.get_after()!=null){
       out.printf("/*@ ");
@@ -44,10 +45,11 @@ public class JavaPrinter extends AbstractPrinter {
         out.printf("then ");
         tmp.accept(this);      
       }
-      out.printf(" */");
+      out.printf(" \*\/");
     }
     super.post_visit(node);
   }
+  */
   public void visit(ClassType t){
     out.print(t.getFullName());
   }
@@ -353,6 +355,12 @@ public class JavaPrinter extends AbstractPrinter {
       setExpr();
       expr.accept(this);
     }
+    if (s.get_after()!=null){
+      out.printf("/*@ ");
+      out.printf("then ");
+      s.get_after().accept(this);
+      out.printf(" */");
+    }
   }
 
   public void visit(OperatorExpression e){
@@ -493,6 +501,18 @@ public class JavaPrinter extends AbstractPrinter {
     } else {
       out.printf("do");
     }
+    if (s.get_before()!=null){
+      out.printf("/*@ ");
+      out.printf("then ");
+      s.get_before().accept(this);
+      out.printf(" */");
+    }
+    if (s.get_after()!=null){
+      out.printf("/*@ ");
+      out.printf("then ");
+      s.get_after().accept(this);
+      out.printf(" */");
+    }
     tmp=s.getBody();
     if (!(tmp instanceof BlockStatement)) { out.printf(" "); }
     tmp.accept(this);
@@ -505,6 +525,21 @@ public class JavaPrinter extends AbstractPrinter {
     }
   }
   
+  public void visit(MethodInvokation s){
+    super.visit(s);
+    if (s.get_before()!=null){
+      out.printf("/*@ ");
+      out.printf("then ");
+      s.get_before().accept(this);
+      out.printf(" */");
+    }
+    if (s.get_after()!=null){
+      out.printf("/*@ ");
+      out.printf("then ");
+      s.get_after().accept(this);
+      out.printf(" */");
+    }    
+  }
   public static TrackingTree dump_expr(PrintStream out,ASTNode node){
     TrackingOutput track_out=new TrackingOutput(out,false);
     JavaPrinter printer=new JavaPrinter(track_out);

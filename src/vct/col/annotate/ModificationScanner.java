@@ -4,23 +4,24 @@ import java.util.Hashtable;
 
 import vct.col.ast.ASTClass;
 import vct.col.ast.ASTNode;
-import vct.col.ast.AbstractScanner;
 import vct.col.ast.AssignmentStatement;
 import vct.col.ast.Contract;
 import vct.col.ast.ContractBuilder;
 import vct.col.ast.Method;
 import vct.col.ast.MethodInvokation;
 import vct.col.ast.OperatorExpression;
+import vct.col.ast.RecursiveVisitor;
 import vct.col.ast.Type;
 
 import static hre.System.Abort;
 import static hre.System.Fail;
 
-public class ModificationScanner extends AbstractScanner {
+public class ModificationScanner extends RecursiveVisitor<Object> {
 
   private ContractBuilder builder;
   private Hashtable<String, Contract> cache;
   public ModificationScanner(Hashtable<String, Contract> cache, ContractBuilder builder) {
+    super(null,null);
     this.builder=builder;
     this.cache=cache;
   }

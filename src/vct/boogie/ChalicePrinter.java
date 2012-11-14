@@ -335,10 +335,10 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
             setExpr();
             out.printf("assume ");
             i.object.accept(this);
-            out.lnprintf(".%s_abstract();",i.method.getName());
+            out.lnprintf(".%s_abstract();",i.method);
             out.printf("fold ");
             i.object.accept(this);
-            out.lnprintf(".%s ;",i.method.getName());            
+            out.lnprintf(".%s ;",i.method);            
             break;
           }
         }
@@ -415,12 +415,11 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
     int N=e.getArity();
     // TODO: check site rather than rely on N==0 assumption.
     if (in_clause && N==0 && (e.getType()==null || e.getType().isBoolean())) {
-      Debug("invoking %s of kind %s",e.method,e.method.getKind());
       if (e.object!=null) {
         e.object.accept(this);
         out.print(".");
       }
-      e.method.accept(this);
+      out.print(e.method);
     } else {
       super.visit(e);
     }

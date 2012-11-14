@@ -21,13 +21,6 @@ public abstract class RecursiveVisitor<T> extends ASTFrame<T> implements
   public void pre_visit(ASTNode n) {
     enter(n);
     ASTNode tmp;
-    /* TODO: fix errors resulting from proper checks: */
-    //  tmp=n.get_before();
-    //  if (tmp!=null) tmp.accept(this);
-    if (n instanceof LoopStatement){
-      tmp=n.get_after();
-      if (tmp!=null) tmp.accept(this);
-    }
   }
 
   @Override
@@ -91,10 +84,12 @@ public abstract class RecursiveVisitor<T> extends ASTFrame<T> implements
 
   @Override
   public void visit(MethodInvokation e) {
+    // TODO: fix dispatch(e.get_before());
     dispatch(e.object);
     for(ASTNode arg:e.getArgs()){
       arg.accept(this);
     }
+    // TODO: fix dispatch(e.get_after());
   }
 
   private void dispatch(ASTNode object) {
@@ -124,6 +119,7 @@ public abstract class RecursiveVisitor<T> extends ASTFrame<T> implements
   @Override
   public void visit(ReturnStatement s) {
     dispatch(s.getExpression());
+    dispatch(s.get_after());
   }
 
   @Override
@@ -140,6 +136,7 @@ public abstract class RecursiveVisitor<T> extends ASTFrame<T> implements
 
   @Override
   public void visit(LoopStatement s) {
+    // TODO: fix dispatch(s.get_before());
     dispatch(s.getInitBlock());
     dispatch(s.getEntryGuard());
     for(ASTNode inv:s.getInvariants()){
@@ -147,6 +144,7 @@ public abstract class RecursiveVisitor<T> extends ASTFrame<T> implements
     }
     s.getBody().accept(this);
     dispatch(s.getExitGuard());
+    dispatch(s.get_after());
   }
 
   @Override

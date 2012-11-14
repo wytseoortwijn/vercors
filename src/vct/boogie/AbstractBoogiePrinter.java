@@ -67,8 +67,7 @@ public abstract class AbstractBoogiePrinter extends AbstractPrinter {
       e.object.accept(this);
       out.printf(".");
     }
-    e.method.accept(this);
-    out.printf("(");
+    out.printf("%s(",e.method);
     next="";
     HashMap<String,ASTNode> map=new HashMap();
     for(int i=0;i<args.length;i++){
@@ -358,8 +357,8 @@ public abstract class AbstractBoogiePrinter extends AbstractPrinter {
       s.getExpression().accept(this);
       out.lnprintf(";");
     }
-    if (s.get_before()!=null){
-      s.get_before().accept(this);
+    if (s.get_after()!=null){
+      s.get_after().accept(this);
     }
     if (post_condition!=null){
       out.printf("assert ");

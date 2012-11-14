@@ -21,5 +21,14 @@ public class ReturnStatement extends ASTNode {
     visitor.visit(this);
   }
 
+  /** Block of proof hints to be executed after callee returns and before caller resumes.
+   */
+  private BlockStatement after;
+  public void set_after(BlockStatement block){
+    after=block;
+  }
+  public BlockStatement get_after(){
+    return after;
+  }
 }
 

@@ -108,7 +108,7 @@ public class VoidCalls extends AbstractRewriter {
         args[i+1]=rewrite(e.getArg(i));
       }
       args[0]=rewrite(s.getLocation());
-      ASTNode res=create.invokation(rewrite(e.object), e.guarded , rewrite(e.method), args );
+      MethodInvokation res=create.invokation(rewrite(e.object), e.guarded , e.method , args );
       for(NameExpression lbl:e.getLabels()){
         Debug("VOIDCALLS: copying label %s",lbl);
         res.addLabel(rewrite(lbl));

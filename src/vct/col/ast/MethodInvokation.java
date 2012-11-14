@@ -3,7 +3,6 @@ package vct.col.ast;
 
 import java.util.*;
 import static hre.System.*;
-import vct.col.rewrite.AbstractRewriter;
 
 /**
  * This AST node stores method invokations on objects.
@@ -15,26 +14,26 @@ import vct.col.rewrite.AbstractRewriter;
 public class MethodInvokation extends ASTNode {
 
   public final ASTNode object;
-  public final NameExpression method;
+  public final String method;
   private Method definition;
   private ASTNode args[];
   public final boolean guarded;
   
-  public MethodInvokation(ASTNode object,NameExpression method,ASTNode ... args){
+  public MethodInvokation(ASTNode object,String method,ASTNode ... args){
     this.object=object;
     this.method=method;
     this.args=Arrays.copyOf(args,args.length);
     guarded=false;
   }
   
-  public MethodInvokation(ASTNode object,boolean guarded,NameExpression method,ASTNode ... args){
+  public MethodInvokation(ASTNode object,boolean guarded,String method,ASTNode ... args){
     this.object=object;
     this.method=method;
     this.args=Arrays.copyOf(args,args.length);
     this.guarded=guarded;
   }
 
-  public void accept_simple(ASTVisitor visitor){
+  public <T> void accept_simple(ASTVisitor<T> visitor){
     visitor.visit(this);
   }
 
@@ -78,5 +77,28 @@ public class MethodInvokation extends ASTNode {
     }
     return definition.kind==Method.Kind.Constructor;
   }
+
+  /** Block of proof hints to be executed just before
+   *  evaluating the expression represented by this AST node.
+   *  But after any argument has been evaluated.
+   */
+  private BlockStatement before;
+  /** Block of proof hints to be executed after the
+   *  current node has been evaluated.
+   */
+  private BlockStatement after;
+  public void set_before(BlockStatement block){
+    before=block;
+  }
+  public BlockStatement get_before(){
+    return before;
+  }
+  public void set_after(BlockStatement block){
+    after=block;
+  }
+  public BlockStatement get_after(){
+    return after;
+  }
+
 }
 

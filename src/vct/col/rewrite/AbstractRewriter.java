@@ -73,11 +73,6 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   protected boolean auto_labels=true;
   
   /**
-   * Prevent automatic copying of before and after blocks.
-   */
-  protected boolean auto_proof=true;
-  
-  /**
    * This variable references an AST factory, whose Origin is set to
    * the origin of the current node being rewritten.
    */
@@ -112,21 +107,8 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
         }
         result=tmp;
       }
-      if (auto_proof){
-        if (n.get_before()!=null && result.get_before()==null){
-          ASTNode tmp=result;
-          tmp.set_before(rewrite(n.get_before()));
-          result=tmp;
-        }
-        if (n.get_after()!=null && result.get_after()==null){
-          ASTNode tmp=result;
-          tmp.set_after(rewrite(n.get_after()));
-          result=tmp;
-        }
-      }
       result.copyMissingFlags(n);
     }
-    auto_proof=true;
     auto_labels=true;
     create.leave();
     super.post_visit(n);
@@ -193,13 +175,15 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   @Override
   public void visit(MethodInvokation e) {
     ASTNode object=rewrite(e.object);
-    NameExpression method=rewrite(e.method);
     int N=e.getArity();
     ASTNode args[]=new ASTNode[N];
     for(int i=0;i<N;i++){
       args[i]=e.getArg(i).apply(this);
     }
-    result=create.invokation(object,e.guarded,method,args);
+    MethodInvokation res=create.invokation(object,e.guarded,e.method,args);
+    res.set_before(rewrite(e.get_before()));
+    res.set_after(rewrite(e.get_after()));
+    result=res;
   }
 
   @Override
@@ -340,6 +324,8 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
     }
     tmp=s.getBody();
     res.setBody(tmp.apply(this));
+    res.set_before(rewrite(s.get_before()));
+    res.set_after(rewrite(s.get_after()));
     res.setOrigin(s.getOrigin());
     result=res; return ;
   }
@@ -405,6 +391,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
     if(val!=null) val=val.apply(this);
     ReturnStatement res=new ReturnStatement(val);
     res.setOrigin(s.getOrigin());
+    res.set_after(rewrite(s.get_after()));
     result=res;
   }
   @Override

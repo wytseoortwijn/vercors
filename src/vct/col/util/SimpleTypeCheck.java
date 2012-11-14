@@ -60,18 +60,18 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     }
     ASTClass cl=source().find(object_type.getNameFull());
     if (cl==null) Fail("could not find class %s",object_type.getFullName());
-    Method m=cl.find(e.method.getName(),type);
+    Method m=cl.find(e.method,type);
     while(m==null && cl.super_classes.length>0){
       cl=source().find(cl.super_classes[0].getNameFull());
-      m=cl.find(e.method.getName(),type);
+      m=cl.find(e.method,type);
     }
     if (m==null) {
-      String parts[]=e.method.getName().split("_");
+      String parts[]=e.method.split("_");
       if (parts.length==3 && parts[1].equals("get")){
         // TODO: check if parts[0] is a predicate.
         DeclarationStatement field=cl.find_field(parts[2]);
         if (field!=null) {
-          Warning("assuming %s is implicit getter function",e.method.getName());
+          Warning("assuming %s is implicit getter function",e.method);
           e.setType(field.getType());
         }
         return;
@@ -83,7 +83,7 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
           tmp=tmp+","+type[i].toString();
         }
       }
-      Fail("could not find method %s(%s) in class %s at %s",e.method.getName(),tmp,object_type.getFullName(),e.getOrigin());
+      Fail("could not find method %s(%s) in class %s at %s",e.method,tmp,object_type.getFullName(),e.getOrigin());
     }
     switch(m.kind){
     case Constructor:
