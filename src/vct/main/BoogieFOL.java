@@ -8,7 +8,6 @@ import vct.boogie.BoogieReport;
 import vct.col.ast.ASTClass;
 import vct.col.ast.ASTClass.ClassKind;
 import vct.col.ast.ASTNode;
-import vct.col.ast.AbstractScanner;
 import vct.col.ast.BlockStatement;
 import vct.col.ast.Contract;
 import vct.col.ast.DeclarationStatement;
@@ -16,6 +15,7 @@ import vct.col.ast.Method;
 import vct.col.ast.OperatorExpression;
 import vct.col.ast.PrimitiveType;
 import vct.col.ast.ProgramUnit;
+import vct.col.ast.RecursiveVisitor;
 import vct.col.ast.StandardOperator;
 import vct.col.rewrite.AbstractRewriter;
 import vct.col.util.ASTFactory;
@@ -42,7 +42,11 @@ public class BoogieFOL {
    * @author Stefan Blom
    *
    */
-  private static class MethodFinder extends AbstractScanner {
+  private static class MethodFinder extends RecursiveVisitor<Object> {
+    
+    public MethodFinder(){
+      super(null,null);
+    }
     
     CompositeReport report=new CompositeReport();
     

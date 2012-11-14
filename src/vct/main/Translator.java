@@ -13,7 +13,6 @@ import vct.boogie.BoogieReport;
 import vct.col.ast.ASTClass;
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTWith;
-import vct.col.ast.AbstractScanner;
 import vct.col.ast.AbstractVisitor;
 import vct.col.ast.ArrayType;
 import vct.col.ast.AssignmentStatement;
@@ -32,6 +31,7 @@ import vct.col.ast.NameExpression;
 import vct.col.ast.OperatorExpression;
 import vct.col.ast.PrimitiveType;
 import vct.col.ast.RecordType;
+import vct.col.ast.RecursiveVisitor;
 import vct.col.ast.ReturnStatement;
 import vct.col.ast.StandardOperator;
 import vct.col.ast.StandardProcedure;
@@ -70,7 +70,11 @@ public class Translator {
 	    //StringPrinter visitor = new StringPrinter();
 	    //theTree.accept(visitor);
 	}
-	private class GeneratingZ3LogicFinder extends AbstractScanner {
+	private class GeneratingZ3LogicFinder extends RecursiveVisitor<Object> {
+	  
+	  public GeneratingZ3LogicFinder(){
+	    super(null,null);
+	  }
 		public void visit(Method m){
 			boolean ans = startGeneratingZ3Logic(m);
 		}
@@ -579,8 +583,10 @@ public class Translator {
 	   * @author Stefan Blom
 	   *
 	   */
-	private static class MethodFinder extends AbstractScanner {
-	    
+	private static class MethodFinder extends RecursiveVisitor {
+	  public MethodFinder(){
+	    super(null,null);
+	  }
 	    /** 
 	     * Executed when the abstract scanner finds a method.
 	     */
@@ -738,7 +744,7 @@ public class Translator {
 		public void visit(MethodInvokation e) {
 			outputToString.printf("Found MethodeInvocation %s%n",e.toString());
 		    if (e.object!=null) e.object.accept(this);
-		    e.method.accept(this);
+		    outputToString.printf("%s",e.method);
 		    int N=e.getArity();
 		    for(int i=0;i<N;i++){
 		    	e.getArg(i).accept(this);
