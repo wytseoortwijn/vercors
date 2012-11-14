@@ -37,8 +37,8 @@ import vct.col.rewrite.GlobalizeStaticsParameter;
 import vct.col.rewrite.GuardedCallExpander;
 import vct.col.rewrite.InheritanceRewriter;
 import vct.col.rewrite.ReorderAssignments;
+import vct.col.rewrite.ResolvNames;
 import vct.col.rewrite.ResolveAndMerge;
-import vct.col.rewrite.ReferenceEncoding;
 import vct.col.rewrite.SimplifyCalls;
 import vct.col.rewrite.StripConstructors;
 import vct.col.rewrite.VoidCalls;
@@ -120,8 +120,6 @@ class Main
     clops.add(explicit_encoding.getEnable("explicit encoding"),"explicit");
     BooleanSetting apply_forall_rule=new BooleanSetting(false);
     clops.add(apply_forall_rule.getEnable("apply forall rule"),"apply-forall");
-    BooleanSetting reference_encoding=new BooleanSetting(false);
-    clops.add(reference_encoding.getEnable("reference encoding"),"refenc");
     BooleanSetting global_with_field=new BooleanSetting(false);
     clops.add(global_with_field.getEnable("Encode global access with a field rather than a parameter. (expert option)"),"global-with-field");
     
@@ -279,12 +277,12 @@ class Main
         return new ReorderAssignments(arg).rewriteAll();
       }
     });
-    defined_passes.put("refenc",new CompilerPass("apply reference encoding"){
+    defined_passes.put("resolv_names",new CompilerPass("resolv all names"){
       public ProgramUnit apply(ProgramUnit arg){
-        return new ReferenceEncoding(arg).rewriteAll();
+        return new ResolvNames(arg).rewriteAll();
       }
     });
-    defined_passes.put("resolv",new CompilerPass("resolv all names"){
+    defined_passes.put("resolv",new CompilerPass("resolv and standardize"){
       public ProgramUnit apply(ProgramUnit arg){
         return new ResolveAndMerge(arg).rewriteAll();
       }
@@ -335,6 +333,7 @@ class Main
     }
     Progress("Parsed %d files in: %dms",cnt,System.currentTimeMillis() - startTime);
     startTime = System.currentTimeMillis();
+    //program=new ResolvNames(program).rewriteAll();
     program=new ResolveAndMerge(program).rewriteAll();
     new SimpleTypeCheck(program).check();
     Progress("Initial type check took %dms",System.currentTimeMillis() - startTime);
@@ -398,11 +397,6 @@ class Main
       passes.add("flatten");
       passes.add("resolv");
       passes.add("check");
-      if (reference_encoding.get()){
-        passes.add("refenc");
-        passes.add("resolv");
-        passes.add("check");
-      }
       if (features.usesDoubles()){
         Warning("defining Double");
         passes.add("define_double");
