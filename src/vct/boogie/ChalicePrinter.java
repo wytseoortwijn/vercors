@@ -244,8 +244,19 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
       }
     }
   }
-  public void visit(OperatorExpression e){
-    switch(e.getOperator()){
+  
+  public void visit(Dereference e){
+    if (e.object instanceof NameExpression){
+      NameExpression arg1=(NameExpression)e.object;
+      if (arg1.getKind()==NameExpression.Kind.Label||arg1.getKind()==NameExpression.Kind.Unresolved){
+        arg1.accept(this);
+        out.printf("_%s",e.field);
+        return;
+      }
+    }
+    super.visit(e);    
+  }
+    /*
     case Select:{
       // label.field should be printed as label_field, for now. 
       if (e.getArg(0) instanceof NameExpression){
@@ -261,6 +272,10 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
       super.visit(e);
       break;
     }
+      */
+  
+  public void visit(OperatorExpression e){
+    switch(e.getOperator()){
     case Fold:{
       if (in_expr) throw new Error("fold is a statement");
       in_clause=true;

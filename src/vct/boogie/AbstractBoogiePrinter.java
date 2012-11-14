@@ -276,6 +276,7 @@ public abstract class AbstractBoogiePrinter extends AbstractPrinter {
       out.decrIndent();      
       out.lnprintf("}");
     }
+    if (s.get_after()!=null)s.get_after().accept(this);
   }
   public void visit(OperatorExpression e){
     String keyword=null;
@@ -311,7 +312,8 @@ public abstract class AbstractBoogiePrinter extends AbstractPrinter {
         in_clause=false;
         break;
       }
-      case Select:{
+/* this should be legacy code by now...
+     case Select:{
         ASTNode a0=e.getArg(0);
         ASTNode a1=e.getArg(1);
         if (a0 instanceof NameExpression && a1 instanceof NameExpression){
@@ -329,12 +331,26 @@ public abstract class AbstractBoogiePrinter extends AbstractPrinter {
         // a1.accept(this);
         // break;
       }
+ */
       default:{
         super.visit(e);
       }
     }
   }
 
+  public void visit(Dereference e){
+    if (boogie){
+      if (e.object instanceof ClassType) {
+        // TODO: check if really OK.
+        out.printf("%s",e.field);
+      } else {
+        Fail("dereferences are illegal in Boogie programs");
+      }
+    } else {
+      e.object.accept(this);
+      out.printf(".%s",e.field);
+    }
+  }
   public void visit(ReturnStatement s){
     if (s.getExpression()!=null) {
       out.printf("__result := ");

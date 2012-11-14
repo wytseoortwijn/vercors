@@ -21,6 +21,7 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
   }
 
   public void visit(ConstantExpression e){
+    Debug("constant %s",e);
     super.visit(e);
     if (e.getType()==null) Abort("untyped constant %s",e);
   }
@@ -140,16 +141,28 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
   }
   public void visit(NameExpression e){
     super.visit(e);
+    Debug("%s name %s",e.getKind(),e.getName());
     Kind kind = e.getKind();
     String name=e.getName();
     switch(kind){
-    case Argument:
-    case Local:
-        if (e.getType()==null) {
-          Abort("type of local variable %s has not been set",name);
+      case Argument:
+      case Local:
+      case Field:{
+        VariableInfo info=variables.lookup(name);
+        if (info==null) {
+          Abort("%s name %s is undefined",kind,name);
         }
+        if (info.kind!=kind){
+          if (kind==NameExpression.Kind.Local){
+            Warning("mismatch of kinds %s/%s for name %s",kind,info.kind,name);
+          } else {
+            Abort("mismatch of kinds %s/%s for name %s",kind,info.kind,name);
+          }
+        }
+        DeclarationStatement decl=(DeclarationStatement)info.reference;
+        e.setType(decl.getType());
         break;
-      case Field:
+      }
       case Method:
         if (e.getType()!=null){
           Abort("type of member %s has been set illegally",name);
@@ -157,20 +170,37 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
         break;
       case Reserved:
         if (name.equals("this")){
-          if (e.getType()==null) Abort("type of this has not been set");
+          ASTClass cl=current_class();
+          if (cl==null){
+            Abort("use of keyword this outside of class context");
+          }
+          e.setType(new ClassType(cl.getFullName()));
           break;
         } else if (name.equals("null")){
           e.setType(new ClassType("<<null>>"));
           break;
-        } else if (name.equals("\\result")){
-          if (e.getType()==null) Abort("type of result has not been set");
+        } else if (name.equals("\\result")||name.equals("result")){
+          Method m=current_method();
+          if (m==null){
+            Abort("Use of result keyword outside of a method context.");
+          }
+          e.setType(m.getReturnType());
           break;
         }
         Abort("missing case for reserved name %s",name);
         break;
-      case Unresolved:
+      case Unresolved:{
+        VariableInfo info=variables.lookup(name);
+        if (info!=null) {
+          Warning("unresolved %s name %s found during type check",info.kind,name);
+          //TODO: fix for label case!
+          DeclarationStatement decl=(DeclarationStatement)info.reference;
+          e.setType(decl.getType());
+          break;
+        }
         Abort("unresolved name %s found during type check at %s",name,e.getOrigin());
         break;
+      }
       case Label:
         e.setType(new ClassType("<<label>>"));
         break;
@@ -181,6 +211,7 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
   }
   public void visit(OperatorExpression e){
     super.visit(e);
+    Debug("operator %s",e.getOperator());
     StandardOperator op=e.getOperator();
     switch(op){
     case And:
@@ -208,26 +239,6 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       // TODO: check arguments
       e.setType(new PrimitiveType(Sort.Void));
       break;
-    case Select:
-    {
-      NameExpression field=(NameExpression)e.getArg(1);
-      Type object_type=e.getArg(0).getType();
-      if (object_type==null) Fail("type of object unknown at "+e.getOrigin());
-      if (!(object_type instanceof ClassType)) Abort("cannot select members of non-object type.");
-      if (((ClassType)object_type).getFullName().equals("<<label>>")){
-        //TODO: avoid this kludge to not typing labeled arguments
-        e.setType(object_type);
-        break;
-      }
-      Debug("resolving class "+((ClassType)object_type).getFullName()+" "+((ClassType)object_type).getNameFull().length);
-      ASTClass cl=source().find(((ClassType)object_type).getNameFull());
-      if (cl==null) Fail("could not find class %s",((ClassType)object_type).getFullName());
-      Debug("looking in class "+cl.getName());
-      DeclarationStatement decl=cl.find_field(field.getName());
-      if (decl==null) Fail("Field %s not found in class %s",field.getName(),((ClassType)object_type).getFullName());
-      e.setType(decl.getType());
-      break;
-    }
     case Assign:
     {
       if (e.getArg(0) instanceof NameExpression){
@@ -389,6 +400,26 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       break;
     }
   }
+  
+  public void visit(Dereference e){
+    super.visit(e);
+    Type object_type=e.object.getType();
+    if (object_type==null) Fail("type of object unknown at "+e.getOrigin());
+    if (!(object_type instanceof ClassType)) Abort("cannot select members of non-object type.");
+    if (((ClassType)object_type).getFullName().equals("<<label>>")){
+      //TODO: avoid this kludge to not typing labeled arguments
+      e.setType(object_type);
+    } else {
+      Debug("resolving class "+((ClassType)object_type).getFullName()+" "+((ClassType)object_type).getNameFull().length);
+      ASTClass cl=source().find(((ClassType)object_type).getNameFull());
+      if (cl==null) Fail("could not find class %s",((ClassType)object_type).getFullName());
+      Debug("looking in class "+cl.getName());
+      DeclarationStatement decl=cl.find_field(e.field);
+      if (decl==null) Fail("Field %s not found in class %s",e.field,((ClassType)object_type).getFullName());
+      e.setType(decl.getType());
+    }
+  }
+
   public void visit(BlockStatement s){
     super.visit(s);
     // TODO: consider if type should be type of last statement. 

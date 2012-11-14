@@ -8,6 +8,7 @@ import vct.col.ast.ClassType;
 import vct.col.ast.Contract;
 import vct.col.ast.ContractBuilder;
 import vct.col.ast.DeclarationStatement;
+import vct.col.ast.Dereference;
 import vct.col.ast.Method;
 import vct.col.ast.MethodInvokation;
 import vct.col.ast.NameExpression;
@@ -121,23 +122,17 @@ public abstract class GlobalizeStatics extends AbstractRewriter {
     }
   }
 
-  public void visit(OperatorExpression e){
-    if (e.getOperator()==StandardOperator.Select && (e.getArg(0) instanceof ClassType)){
-      NameExpression var=(NameExpression)e.getArg(1);
-      String var_name=new ClassName(((ClassType)e.getArg(0)).getNameFull()).toString("_")+"_"+var.getName();
+  public void visit(Dereference e){
+    if (e.object instanceof ClassType){
+      String var_name=new ClassName(((ClassType)e.object).getNameFull()).toString("_")+"_"+e.field;
       if (!processing_static){
-        result=create.expression(
-            StandardOperator.Select,
-            create.local_name("global"),
-            create.field_name(var_name));
+        result=create.dereference(create.local_name("global"),var_name);
       } else {
-        result=create.expression(
-          StandardOperator.Select,
-          create.this_expression(create.class_type("Global")),
-          create.field_name(var_name));
-      }
+        result=create.dereference(create.this_expression(create.class_type("Global")),var_name);
+      }     
     } else {
       super.visit(e);
     }
   }
+
 }

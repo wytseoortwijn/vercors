@@ -13,6 +13,7 @@ import vct.col.ast.ClassType;
 import vct.col.ast.Contract;
 import vct.col.ast.ContractBuilder;
 import vct.col.ast.DeclarationStatement;
+import vct.col.ast.Dereference;
 import vct.col.ast.LoopStatement;
 import vct.col.ast.Method;
 import vct.col.ast.MethodInvokation;
@@ -167,7 +168,7 @@ public class ExplicitPermissionEncoding extends AbstractRewriter {
     res.setBody(tmp.apply(this));
     res.setOrigin(s.getOrigin());
     res.set_before(copy_rw.rewrite(s.get_before()));
-    res.set_after(copy_rw.rewrite(s.get_after()));
+    res.set_after(rewrite(s.get_after()));
     block.add_statement(res);
     auto_proof=false;
     result=block;
@@ -358,7 +359,7 @@ class PredicateClassGenerator extends AbstractRewriter {
     cb.requires(create.invokation(null,false, create.method_name("valid"), new DeclarationStatement[0]));
     ASTNode check_body=create.expression(StandardOperator.EQ,create.field_name("ref"),create.local_name("object"));
     for (DeclarationStatement decl:m.getArgs()){
-      ASTNode field=create.expression(StandardOperator.Select,create.reserved_name("this"),create.field_name(decl.getName()));
+      ASTNode field=create.dereference(create.reserved_name("this"),decl.getName());
       check_body=create.expression(StandardOperator.And,check_body,
           create.expression(StandardOperator.EQ,field,create.local_name(decl.getName())));
     }
@@ -381,15 +382,13 @@ class PredicateClassGenerator extends AbstractRewriter {
     ASTNode check_args[]=new ASTNode[N+1];
     {
       cons_decls.add(create.field_decl("ref",class_type));
-      ASTNode field=create.expression(StandardOperator.Select,create.reserved_name("this"),
-          create.field_name("ref"));
+      ASTNode field=create.dereference(create.reserved_name("this"),"ref");
       check_args[0]=create.local_name("ref");
       cons_body.add_statement(create.assignment(field, check_args[0]));
     }
     for(int i=0;i<N;i++){
       cons_decls.add(create.field_decl(m.getArgument(i),m.getArgType(i)));
-      ASTNode field=create.expression(StandardOperator.Select,create.reserved_name("this"),
-          create.field_name(m.getArgument(i)));
+      ASTNode field=create.dereference(create.reserved_name("this"),m.getArgument(i));
       check_args[i+1]=create.local_name(m.getArgument(i));
       cons_body.add_statement(create.assignment(field, check_args[i+1]));
     }
@@ -414,8 +413,7 @@ class PredicateClassGenerator extends AbstractRewriter {
             DeclarationStatement decl=create.field_decl(name,type);
             decl.setGhost(true);
             cons_decls.add(decl);
-            ASTNode field=create.expression(StandardOperator.Select,create.reserved_name("this"),
-                create.field_name(name));
+            ASTNode field=create.dereference(create.reserved_name("this"),name);
             cons_body.add_statement(create.assignment(field, create.local_name(name)));
           }
         }
@@ -443,9 +441,7 @@ class PredicateClassGenerator extends AbstractRewriter {
               getter_args
           ),
           create.expression(StandardOperator.Old,
-              create.expression(StandardOperator.Select,
-                  create.local_name("ref"),create.field_name(field_name)
-              )
+              create.dereference(create.local_name("ref"),field_name)
           )
       ));
     }
@@ -478,8 +474,8 @@ class PredicateClassGenerator extends AbstractRewriter {
 
   public void visit(MethodInvokation call){
     String field_name=null;
-    if (call.object instanceof OperatorExpression) {
-      field_name=((NameExpression)((OperatorExpression)call.object).getArg(1)).getName();
+    if (call.object instanceof Dereference) {
+      field_name=((Dereference)call.object).field;
     } else if (call.object instanceof NameExpression){
       field_name=((NameExpression)call.object).getName();
       if (!field_name.equals("this")) {
@@ -562,7 +558,7 @@ class PredicateClassGenerator extends AbstractRewriter {
   
   public void visit(NameExpression e){
     if (e.getKind()==NameExpression.Kind.Reserved && e.getName().equals("this")){
-      result=create.field_name("ref");
+      result=create.dereference(create.reserved_name("this"),"ref");
     } else {
       super.visit(e);
     }
@@ -574,56 +570,53 @@ class PredicateClassGenerator extends AbstractRewriter {
       case PointsTo:
         if (condition_level==0){
           ASTNode tmp=e.getArg(0);
-          if (tmp instanceof OperatorExpression){
-            OperatorExpression field=(OperatorExpression)tmp;
-            tmp=field.getArg(0);
+          if (tmp instanceof Dereference){
+            Dereference field=(Dereference)tmp;
+            tmp=field.object;
             if (tmp instanceof NameExpression && ((NameExpression)tmp).getName().equals("this")){
-              tmp=field.getArg(1);
-              if (tmp instanceof NameExpression){
-                NameExpression name=(NameExpression)tmp;
-                Warning("adding getter %s_get_%s",pred_name,name.getName());
-                ContractBuilder cb=new ContractBuilder();
-                cb.given(copy_rw.rewrite(pred_decl.getArgs()));
-                cb.given(create.field_decl("req",create.class_type(class_name+"_"+pred_name)));
-                cb.requires(create.expression(StandardOperator.NEQ,
-                    create.local_name("req"),create.reserved_name("null")));
-                cb.requires(
-                    create.invokation(
-                        create.local_name("req"),false,
-                        create.method_name("valid"),new ASTNode[0]
-                    )
-                );
-                int N=pred_decl.getArity();
-                ASTNode args[]=new ASTNode[N+1];
-                args[0]=create.reserved_name("this");
-                for(int i=0;i<N;i++){
-                  args[i+1]=create.local_name(pred_decl.getArgument(i));
-                }
-                cb.requires(
-                    create.invokation(
-                        create.local_name("req"),false,
-                        create.method_name("check"),
-                        args
-                    )
-                );
-                protected_fields.add(name.getName());
-                Method getter=create.function_decl(
-                    field.getType(),
-                    cb.getContract(),
-                    pred_name+"_get_"+name.getName(),
-                    new DeclarationStatement[0],
-                    create.block(
-                        create.expression(StandardOperator.Unfold,
-                            create.invokation(
-                                create.local_name("req"),false,
-                                create.method_name("valid"),new ASTNode[0]
-                            )
-                        ),
-                        create.return_statement(copy_rw.rewrite(field))
-                    )
-                );
-                master.add_dynamic(getter);
+              String name=field.field;
+              Warning("adding getter %s_get_%s",pred_name,name);
+              ContractBuilder cb=new ContractBuilder();
+              cb.given(copy_rw.rewrite(pred_decl.getArgs()));
+              cb.given(create.field_decl("req",create.class_type(class_name+"_"+pred_name)));
+              cb.requires(create.expression(StandardOperator.NEQ,
+                  create.local_name("req"),create.reserved_name("null")));
+              cb.requires(
+                  create.invokation(
+                      create.local_name("req"),false,
+                      create.method_name("valid"),new ASTNode[0]
+                  )
+              );
+              int N=pred_decl.getArity();
+              ASTNode args[]=new ASTNode[N+1];
+              args[0]=create.reserved_name("this");
+              for(int i=0;i<N;i++){
+                args[i+1]=create.local_name(pred_decl.getArgument(i));
               }
+              cb.requires(
+                  create.invokation(
+                      create.local_name("req"),false,
+                      create.method_name("check"),
+                      args
+                  )
+              );
+              protected_fields.add(name);
+              Method getter=create.function_decl(
+                  field.getType(),
+                  cb.getContract(),
+                  pred_name+"_get_"+name,
+                  new DeclarationStatement[0],
+                  create.block(
+                      create.expression(StandardOperator.Unfold,
+                          create.invokation(
+                              create.local_name("req"),false,
+                              create.method_name("valid"),new ASTNode[0]
+                          )
+                      ),
+                      create.return_statement(copy_rw.rewrite(field))
+                  )
+              );
+              master.add_dynamic(getter);
             }
           }
         }

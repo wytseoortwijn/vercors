@@ -20,13 +20,14 @@ public abstract class RecursiveVisitor<T> extends ASTFrame<T> implements
   @Override
   public void pre_visit(ASTNode n) {
     enter(n);
-    /* TODO: fix errors resulting from proper checks:
     ASTNode tmp;
-    tmp=n.get_before();
-    if (tmp!=null) tmp.accept(this);
-    tmp=n.get_after();
-    if (tmp!=null) tmp.accept(this);
-    */
+    /* TODO: fix errors resulting from proper checks: */
+    //  tmp=n.get_before();
+    //  if (tmp!=null) tmp.accept(this);
+    if (n instanceof LoopStatement){
+      tmp=n.get_after();
+      if (tmp!=null) tmp.accept(this);
+    }
   }
 
   @Override
@@ -180,6 +181,11 @@ public abstract class RecursiveVisitor<T> extends ASTFrame<T> implements
   public void visit(BindingExpression e) {
     dispatch(e.select);
     e.main.accept(this);
+  }
+
+  @Override
+  public void visit(Dereference e){
+    e.object.accept(this);
   }
 
 }

@@ -49,6 +49,8 @@ public interface ASTVisitor<T> {
 
   public void visit(BindingExpression e);
 
+  public void visit(Dereference e);
+
 }
 
 

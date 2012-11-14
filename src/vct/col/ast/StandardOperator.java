@@ -78,10 +78,10 @@ public enum StandardOperator {
   PointsTo(3),
   /** Immutable permission predicate.  */
   Value(1),
-  /** Member selection. */
+  /* Member selection is replaced by Dereference
   Select(2),
-  /** Guarded member selection. (Selection with built-in null test.) */
-  GuardedSelect(2),
+  Guarded member selection. (Selection with built-in null test.)
+  GuardedSelect(2),*/
   /** Array subscript. */
   Subscript(2),
   /** Fork statement. */

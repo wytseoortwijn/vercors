@@ -9,6 +9,7 @@ import vct.col.ast.ASTNode;
 import vct.col.ast.ASTWith;
 import vct.col.ast.AbstractVisitor;
 import vct.col.ast.ContractBuilder;
+import vct.col.ast.Dereference;
 import vct.col.ast.MethodInvokation;
 import vct.col.ast.ArrayType;
 import vct.col.ast.AssignmentStatement;
@@ -446,6 +447,11 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
       rewriteOrdered(done,cl);
     }    
     return target();
+  }
+
+  @Override
+  public void visit(Dereference e) {
+    result=create.dereference(e.object.apply(this),e.field);
   }
  
 }

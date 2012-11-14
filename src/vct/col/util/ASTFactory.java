@@ -15,6 +15,7 @@ import vct.col.ast.ConstantExpression;
 import vct.col.ast.Contract;
 import vct.col.ast.ContractBuilder;
 import vct.col.ast.DeclarationStatement;
+import vct.col.ast.Dereference;
 import vct.col.ast.IfStatement;
 import vct.col.ast.LoopStatement;
 import vct.col.ast.Method;
@@ -75,10 +76,11 @@ public class ASTFactory<E> implements FrameControl {
 
   /**
    * Create a new factory that perform a post check on every new node.
-   */
+   * apparently not needed:
   public ASTFactory(ASTVisitor post){
     this.post=post;
   }
+  */
 
   /**
    * Create a new AST factory that can extract origins from <code>E</code> objects.
@@ -370,6 +372,23 @@ public class ASTFactory<E> implements FrameControl {
   }
   
   /**
+   * Create a name expression that refers to an unresolved name.
+   */
+  public NameExpression unresolved_name(Origin origin,String name) {
+    NameExpression res=new NameExpression(name);
+    res.setKind(NameExpression.Kind.Unresolved);
+    res.setOrigin(origin);
+    res.accept_if(post);
+    return res;
+  }
+  public NameExpression unresolved_name(E origin,String name) {
+    return unresolved_name(origin_source.create(origin),name);
+  }
+  public NameExpression unresolved_name(String name) {
+    return unresolved_name(origin_stack.get(),name);
+  }
+  
+  /**
    * Create a name expression that refers to a label.
    */
   public NameExpression label(Origin origin,String name) {
@@ -402,6 +421,23 @@ public class ASTFactory<E> implements FrameControl {
   public NameExpression local_name(String name) {
     return local_name(origin_stack.get(),name);
   }
+  
+  /**
+   * Create a name expression that refers to a specific kind.
+   */
+  public NameExpression name(Origin origin,NameExpression.Kind kind,String name) {
+    NameExpression res=new NameExpression(name);
+    res.setKind(kind);
+    res.setOrigin(origin);
+    res.accept_if(post);
+    return res;
+  }
+  public NameExpression name(E origin,NameExpression.Kind kind,String name) {
+    return name(origin_source.create(origin),kind,name);
+  }
+  public NameExpression name(NameExpression.Kind kind,String name) {
+    return name(origin_stack.get(),kind,name);
+  }
 
   /**
    * Create a name expression referring to an arbitrary name.
@@ -420,6 +456,22 @@ public class ASTFactory<E> implements FrameControl {
     return identifier(origin_stack.get(),name);
   }
 
+  /** Create a dereference expression.
+   */
+  public Dereference dereference(Origin origin,ASTNode object,String field){
+    Dereference res=new Dereference(object,field);
+    res.setOrigin(origin);
+    res.accept_if(post);
+    return res;
+  }
+  public Dereference dereference(E origin,ASTNode object,String field){
+    return dereference(origin_source.create(origin),object,field);
+  }
+
+  public Dereference dereference(ASTNode object,String field){
+    return dereference(origin_stack.get(),object,field);
+  }
+          
   /**
    * Create an if-then-else statement.
    */

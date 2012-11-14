@@ -21,7 +21,9 @@ public class ConstructorRewriter extends AbstractRewriter {
   }
 
   public void visit(MethodInvokation e){
-    if (e.getDefinition().kind==Method.Kind.Constructor) {
+    if (e.getDefinition()==null){
+      Warning("method invokation (%s) without definition from %s",e.method.getName(),e.method.getOrigin());
+    } else if (e.getDefinition().kind==Method.Kind.Constructor) {
       Fail("%s cannot deal with instantiation that is not an assignment at %s",getClass(),e.getOrigin());
     }
     super.visit(e);

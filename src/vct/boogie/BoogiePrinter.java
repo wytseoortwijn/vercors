@@ -66,6 +66,7 @@ public class BoogiePrinter extends AbstractBoogiePrinter {
   }
   public void visit(OperatorExpression e){
     switch(e.getOperator()){
+/* this should be legacy code:
       case Select:{
         ASTNode a0=e.getArg(0);
         ASTNode a1=e.getArg(1);
@@ -84,6 +85,7 @@ public class BoogiePrinter extends AbstractBoogiePrinter {
         a1.accept(this);
         break;
       }
+*/
       case HoarePredicate:{
           Fail("Hoare Logic is not supported in this release.");
           /* TODO: solve at least two remaining problems:

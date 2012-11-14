@@ -194,4 +194,7 @@ public abstract class AbstractScanner implements ASTVisitor<Boolean> {
     e.main.accept(this);
   }
 
+  public void visit(Dereference e){
+    e.object.accept(this);
+  }
 }

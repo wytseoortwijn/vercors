@@ -16,8 +16,6 @@ public class JavaSyntax {
     if(syntax==null){
       syntax=new Syntax();
       // non-java operators.
-      syntax.addLeftFix(Select,".",150);
-      syntax.addLeftFix(GuardedSelect,"->",150);
       syntax.addInfix(Implies,"==>",30);
       syntax.addInfix(IFF,"<==>",30);
       syntax.addLeftFix(Wand,"-*",30);

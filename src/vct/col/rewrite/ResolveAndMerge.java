@@ -1,5 +1,7 @@
 package vct.col.rewrite;
 
+import hre.util.SingleNameSpace;
+
 import java.util.HashSet;
 import java.util.Set;
 import java.util.Stack;
@@ -14,7 +16,9 @@ import vct.col.ast.ClassType;
 import vct.col.ast.Contract;
 import vct.col.ast.ContractBuilder;
 import vct.col.ast.DeclarationStatement;
+import vct.col.ast.Dereference;
 import vct.col.ast.FunctionType;
+import vct.col.ast.LoopStatement;
 import vct.col.ast.Method;
 import vct.col.ast.MethodInvokation;
 import vct.col.ast.NameExpression;
@@ -28,7 +32,6 @@ import vct.col.util.DefinitionScanner;
 import vct.col.util.FieldDefinition;
 import vct.col.util.LocalDefinition;
 import vct.col.util.MethodDefinition;
-import vct.col.util.NameSpace;
 import vct.col.util.PredicateScanner;
 import vct.util.ClassName;
 import static hre.System.*;
@@ -48,9 +51,9 @@ public class ResolveAndMerge extends AbstractRewriter {
     DefinitionScanner scanner=new DefinitionScanner(defs);
     source.accept(scanner);
     source.accept(new PredicateScanner(predicates));
-    type_names=new NameSpace();
-    var_names=new NameSpace();
-    method_names=new NameSpace();
+    type_names=new SingleNameSpace();
+    var_names=new SingleNameSpace();
+    method_names=new SingleNameSpace();
   }
 
   private AbstractRewriter copy_rw=new AbstractRewriter(source(),target());
@@ -59,9 +62,9 @@ public class ResolveAndMerge extends AbstractRewriter {
   private Stack<ASTClass> currentstack;
   private ASTClass currentclass;
   private Method currentmethod;
-  private NameSpace<String,Type> type_names;
-  private NameSpace<String,AnyDefinition> var_names;
-  private NameSpace<String,AnyDefinition> method_names;
+  private SingleNameSpace<String,Type> type_names;
+  private SingleNameSpace<String,AnyDefinition> var_names;
+  private SingleNameSpace<String,AnyDefinition> method_names;
   private Set<ClassName> predicates=new HashSet();
   
   private boolean static_context=true;
@@ -111,14 +114,20 @@ public class ResolveAndMerge extends AbstractRewriter {
                   a.getExpression().apply(copy_rw)));
         } else if (s instanceof OperatorExpression) {
           OperatorExpression a=(OperatorExpression)s;
-          if (a.getOperator()!=StandardOperator.Assign){
-            Abort("bad expression in with block at %s",s.getOrigin());
+          switch(a.getOperator()){
+            case Assign:
+              modified.add_statement(create.assignment(s.getOrigin(),
+                  a.getArg(0).apply(this),
+                  a.getArg(1).apply(copy_rw)));
+              break;
+            case Unfold:
+              modified.add_statement(s.apply(copy_rw));
+              break;
+            default:
+              Abort("bad expression in after block at %s",s.getOrigin());
           }
-          modified.add_statement(create.assignment(s.getOrigin(),
-                a.getArg(0).apply(this),
-                a.getArg(1).apply(copy_rw)));            
         } else {
-          Abort("unexpected %s in with block at %s",s.getClass(),s.getOrigin());
+          Abort("unexpected %s in after block at %s",s.getClass(),s.getOrigin());
         }
       }
       tmp.set_after(modified);
@@ -248,21 +257,6 @@ public class ResolveAndMerge extends AbstractRewriter {
     result=create.class_type(t.getNameFull());
   }
   
-  public void visit(OperatorExpression e){
-    StandardOperator op=e.getOperator();
-    if (op==StandardOperator.Select||op==StandardOperator.GuardedSelect){
-      ASTNode left=e.getArg(0).apply(this);
-      ASTNode right=e.getArg(1);
-      if (!(right instanceof NameExpression)) throw new Error("right hand side of select must be name");
-      ((NameExpression)right).setKind(NameExpression.Kind.Field);
-      ASTNode res=new OperatorExpression(op,left,right);
-      res.setOrigin(e.getOrigin());
-      result=res;
-    } else {
-      super.visit(e);
-    }
-  }
-
   public void visit(NameExpression e) {
     String name=e.getName();
     if (name.equals("null")){
@@ -303,8 +297,7 @@ public class ResolveAndMerge extends AbstractRewriter {
         } else {
           space=create.this_expression(t);
         }
-        ASTNode new_name=create.field_name(name);
-        result=create.expression(StandardOperator.Select,space,new_name);
+        result=create.dereference(space,name);
         return;
       }
       if (def instanceof LocalDefinition) {
@@ -437,5 +430,11 @@ public class ResolveAndMerge extends AbstractRewriter {
       args[i]=e.getArg(i).apply(this);
     }
     result=create.invokation(object, guarded, method, args);
+  }
+  
+  public void visit(LoopStatement s){
+    super.visit(s);
+    result.set_before(copy_rw.rewrite(s.get_before()));
+    result.set_after(rewrite(s.get_after()));
   }
 }

@@ -61,7 +61,7 @@ public class GlobalizeStaticsField extends GlobalizeStatics {
         for(DeclarationStatement d: m.getArgs()){
           if (d.getType() instanceof ClassType){
             ASTNode not_null=create.expression(StandardOperator.NEQ,create.local_name(d.getName()),create.reserved_name("null"));
-            ASTNode gname=create.expression(StandardOperator.Select,create.local_name(d.getName()),create.field_name("global"));
+            ASTNode gname=create.dereference(create.local_name(d.getName()),"global");
             ASTNode access=create.expression(StandardOperator.Value,gname);
             ASTNode same=create.expression(StandardOperator.EQ,create.field_name("global"),gname);
             cb.requires(create.expression(StandardOperator.Implies,not_null,

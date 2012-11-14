@@ -14,7 +14,6 @@ public class BoogieSyntax {
   private static Syntax chalice;
   
   private static void setCommon(Syntax syntax){
-    syntax.addLeftFix(Select,".",150);
     syntax.addPrefix(Not,"!",130);
     syntax.addPrefix(UMinus,"-",130);
     syntax.addPrefix(UPlus,"+",130);

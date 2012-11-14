@@ -85,12 +85,11 @@ public class AbstractPrinter extends AbstractVisitor {
   public void visit(MethodInvokation e){
     boolean statement=!in_expr;
     setExpr();
-    String i_syntax[]=syntax.getSyntax(e.guarded?StandardOperator.GuardedSelect:StandardOperator.Select);
+    String i_syntax=e.guarded?"->":".";
     if (e.object!=null) {
       // TODO: manage precedence properly.
-      out.printf(i_syntax[0]);
       e.object.accept(this);
-      out.printf(i_syntax[1]);
+      out.printf(i_syntax);
     }
     e.method.accept(this);
     out.print("(");
@@ -107,9 +106,6 @@ public class AbstractPrinter extends AbstractVisitor {
       current_precedence=precedence;
     }
     out.print(")");
-    if (e.object!=null) {
-      out.printf(i_syntax[2]);
-    }
     if (statement) {
       out.lnprintf(";");
     }

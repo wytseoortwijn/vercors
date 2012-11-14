@@ -536,5 +536,9 @@ public class JavaPrinter extends AbstractPrinter {
     track_out.close();    
   }
   
+  public void visit(Dereference e){
+    e.object.accept(this);
+    out.printf(".%s",e.field);
+  }
 }
 

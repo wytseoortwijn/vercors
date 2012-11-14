@@ -1,5 +1,7 @@
 package vct.col.ast;
 
+import hre.util.SingleNameSpace;
+
 import java.util.Stack;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -8,10 +10,38 @@ import static hre.System.Debug;
 /**
  * Utility class that provides common functionality for exploring abstract syntax trees.
  * 
- * @author sccblom
+ * @author Stefan Blom
  *
  */
 public abstract class ASTFrame<T> {
+  
+  /**
+   * Information record for variables.
+   * 
+   * @author Stefan Blom
+   */
+  public static class VariableInfo {
+    
+    /**
+     * Reference to the place where the variable was defined.
+     */
+    public final ASTNode reference;
+    
+    /**
+     * Stores the kind of the variable.
+     */
+    public final NameExpression.Kind kind;
+    
+    /**
+     * Constructor for a variable info record.
+     */
+    public VariableInfo(ASTNode reference,NameExpression.Kind kind){
+      this.reference=reference;
+      this.kind=kind;
+    }
+  }
+  
+  public final SingleNameSpace<String,VariableInfo> variables;
   
   /**
    * Field for communicating return value.
@@ -74,6 +104,7 @@ public abstract class ASTFrame<T> {
     method_stack=new Stack<Method>();
     result_stack=new Stack<T>();
     result_ref=new AtomicReference<T>();
+    variables=new SingleNameSpace<String,VariableInfo>();
   }
   
   /**
@@ -89,6 +120,7 @@ public abstract class ASTFrame<T> {
     target=share.target;
     result_stack=share.result_stack;
     result_ref=share.result_ref;
+    variables=share.variables;
   }
   
   /**
@@ -112,20 +144,55 @@ public abstract class ASTFrame<T> {
     Debug("entering %s",node.getClass());
     if (node instanceof ASTClass){
       ASTClass cl=(ASTClass)node;
-      class_stack.push(cl); 
+      class_stack.push(cl);
+      variables.enter();
+      for(DeclarationStatement decl:cl.dynamicFields()){
+        variables.add(decl.getName(),new VariableInfo(decl,NameExpression.Kind.Field));
+      }
+      for(DeclarationStatement decl:cl.staticFields()){
+        variables.add(decl.getName(),new VariableInfo(decl,NameExpression.Kind.Field));
+      }
     }
     if (node instanceof Method){
-      method_stack.push((Method)node);
+      Method m=(Method)node;
+      method_stack.push(m);
+      variables.enter();
+      for(DeclarationStatement decl:m.getArgs()){
+        variables.add(decl.getName(),new VariableInfo(decl,NameExpression.Kind.Argument));
+      }
+      Contract c=m.getContract();
+      if (c!=null){
+        for(DeclarationStatement decl:c.given){
+          variables.add(decl.getName(),new VariableInfo(decl,NameExpression.Kind.Argument));
+        }
+        for(DeclarationStatement decl:c.yields){
+          variables.add(decl.getName(),new VariableInfo(decl,NameExpression.Kind.Argument));
+        }
+      }
+    }
+    if (node instanceof BlockStatement){
+      variables.enter();
+    }
+    if (node instanceof DeclarationStatement){
+      DeclarationStatement decl=(DeclarationStatement)node;
+      if (decl.getParent() instanceof BlockStatement){
+        variables.add(decl.getName(),new VariableInfo(decl,NameExpression.Kind.Local));
+      }
     }
     result_stack.push(result);
     result=null;
   }
   public void leave(ASTNode node){
     if (node instanceof ASTClass){
+      variables.leave();
       class_stack.pop(); 
     }
     if (node instanceof Method){
       method_stack.pop();
+      variables.leave();
+    }
+    if (node instanceof BlockStatement){
+      variables.leave();
     }
     result_ref.set(result);
     result=result_stack.pop();
@@ -152,9 +219,11 @@ public abstract class ASTFrame<T> {
   public void Abort(String format,Object ...args){
     hre.System.Abort("At "+current_node().getOrigin()+": "+format,args);
   }
+  /* disabled because selection doesn't work.
   public void Debug(String format,Object ...args){
     hre.System.Debug("At "+current_node().getOrigin()+": "+format,args);
   }
+  */
   public void Fail(String format,Object ...args){
     hre.System.Fail("At "+current_node().getOrigin()+": "+format,args);
   }
