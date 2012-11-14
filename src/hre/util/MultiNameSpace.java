@@ -6,14 +6,14 @@ import java.util.Map;
 import java.util.Stack;
 
 /**
- * A name space with frame control.
+ * A name space with frame control and multiple definitions per name.
  * 
  * @author sccblom
  *
  * @param <Key>
  * @param <Data>
  */
-public class NameSpace <Key,Data> implements FrameControl {
+public class MultiNameSpace <Key,Data> implements FrameControl {
 
   private final class List {
     final Data item;
