@@ -101,23 +101,27 @@ public class VoidCalls extends AbstractRewriter {
   public void visit(AssignmentStatement s){
     if (s.getExpression() instanceof MethodInvokation){
       MethodInvokation e=(MethodInvokation)s.getExpression();
-      int N=e.getArity();
-      ASTNode args[]=new ASTNode[N+1];
-      args[0]=rewrite(s.getLocation());
-      for(int i=0;i<N;i++){
-        args[i+1]=rewrite(e.getArg(i));
+      Method m=e.getDefinition();
+      if (e==null) Abort("cannot process invokation of %s without definition",e.method);
+      if (m.kind==Method.Kind.Plain){
+        int N=e.getArity();
+        ASTNode args[]=new ASTNode[N+1];
+        args[0]=rewrite(s.getLocation());
+        for(int i=0;i<N;i++){
+          args[i+1]=rewrite(e.getArg(i));
+        }
+        args[0]=rewrite(s.getLocation());
+        MethodInvokation res=create.invokation(rewrite(e.object), e.guarded , e.method , args );
+        for(NameExpression lbl:e.getLabels()){
+          Debug("VOIDCALLS: copying label %s",lbl);
+          res.addLabel(rewrite(lbl));
+        }
+        res.set_before(rewrite(e.get_before()));
+        res.set_after(rewrite(e.get_after()));
+        result=res;
+        return;
       }
-      args[0]=rewrite(s.getLocation());
-      MethodInvokation res=create.invokation(rewrite(e.object), e.guarded , e.method , args );
-      for(NameExpression lbl:e.getLabels()){
-        Debug("VOIDCALLS: copying label %s",lbl);
-        res.addLabel(rewrite(lbl));
-      }
-      res.set_before(rewrite(e.get_before()));
-      res.set_after(rewrite(e.get_after()));
-      result=res;
-    } else {
-      super.visit(s);
     }
+    super.visit(s);
   }
 }
