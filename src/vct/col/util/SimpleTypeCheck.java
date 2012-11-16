@@ -94,6 +94,8 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       break;
     }
     e.setDefinition(m);
+    if (e.get_before()!=null) e.get_before().accept(this);
+    if (e.get_after()!=null) e.get_after().accept(this);
   }
   
   public void visit(AssignmentStatement s){
@@ -104,6 +106,7 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     if (loc_type==null) Abort("Location has no type.");
     Type val_type=val.getType();
     if (val_type==null) Abort("Value has no type has no type.");
+    if (loc_type.toString().equals("<<label>>")) return;
     if (!(loc_type.equals(val_type) || loc_type.supertypeof(val_type))) {
       Abort("Types of location (%s) and value (%s) do not match at %s.",loc_type,val_type,s.getOrigin());
     }
@@ -145,6 +148,16 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     Kind kind = e.getKind();
     String name=e.getName();
     switch(kind){
+      case Unresolved:{
+        VariableInfo info=variables.lookup(name);
+        if (info!=null) {
+          Warning("unresolved %s name %s found during type check",info.kind,name);
+          e.setKind(info.kind);
+          kind=info.kind;
+        }
+      }
+    }
+    switch(kind){
       case Argument:
       case Local:
       case Field:{
@@ -153,7 +166,8 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
           Abort("%s name %s is undefined",kind,name);
         }
         if (info.kind!=kind){
-          if (kind==NameExpression.Kind.Local){
+          if ((kind==NameExpression.Kind.Local && info.kind==NameExpression.Kind.Argument)
+            ||(kind==NameExpression.Kind.Argument && info.kind==NameExpression.Kind.Local)){
             Warning("mismatch of kinds %s/%s for name %s",kind,info.kind,name);
           } else {
             Abort("mismatch of kinds %s/%s for name %s",kind,info.kind,name);
@@ -190,14 +204,6 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
         Abort("missing case for reserved name %s",name);
         break;
       case Unresolved:{
-        VariableInfo info=variables.lookup(name);
-        if (info!=null) {
-          Warning("unresolved %s name %s found during type check",info.kind,name);
-          //TODO: fix for label case!
-          DeclarationStatement decl=(DeclarationStatement)info.reference;
-          e.setType(decl.getType());
-          break;
-        }
         Abort("unresolved name %s found during type check at %s",name,e.getOrigin());
         break;
       }

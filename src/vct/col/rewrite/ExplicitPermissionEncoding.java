@@ -266,12 +266,12 @@ class ClauseEncoding extends AbstractRewriter {
         Abort("At %s: every predicate invokation must be labeled.",i.getOrigin());
       }
       NameExpression lbl=i.getLabel(0);
-      ASTNode body=create.expression(StandardOperator.NEQ,create.field_name(lbl.getName()),create.reserved_name("null"));
+      ASTNode body=create.expression(StandardOperator.NEQ,create.unresolved_name(lbl.getName()),create.reserved_name("null"));
       body=create.expression(StandardOperator.Star,body,
-          create.invokation(create.local_name(lbl.getName()), false, ("valid")));
+          create.invokation(create.unresolved_name(lbl.getName()), false, ("valid")));
       body=create.expression(StandardOperator.Star,body,
           create.invokation(
-              create.local_name(lbl.getName()),
+              create.unresolved_name(lbl.getName()),
               false,
               ("check"),
               rewrite(i.object,i.getArgs())
@@ -318,7 +318,7 @@ class PredicateClassGenerator extends AbstractRewriter {
     // Start with ref field:
     pred_class.add_dynamic(create.field_decl("ref",class_type));
     DeclarationStatement args[]=m.getArgs();
-    ASTNode cons_req=create.expression(StandardOperator.NEQ,create.field_name("ref"),create.reserved_name("null"));
+    ASTNode cons_req=create.expression(StandardOperator.NEQ,create.unresolved_name("ref"),create.reserved_name("null"));
     // Note that permission for fields will be added later.
     
     // Add arguments as fields:
@@ -326,10 +326,10 @@ class PredicateClassGenerator extends AbstractRewriter {
       pred_class.add_dynamic(args[i].apply(copy_rw));
       if (args[i].getType().isPrimitive(PrimitiveType.Sort.Fraction)){
         cons_req=create.expression(StandardOperator.Star,cons_req,
-            create.expression(StandardOperator.LT,create.constant(0),create.field_name(args[i].getName()))
+            create.expression(StandardOperator.LT,create.constant(0),create.unresolved_name(args[i].getName()))
             );
         cons_req=create.expression(StandardOperator.Star,cons_req,
-            create.expression(StandardOperator.LTE,create.field_name(args[i].getName()),create.constant(100))
+            create.expression(StandardOperator.LTE,create.unresolved_name(args[i].getName()),create.constant(100))
             );
       }
     }
@@ -556,10 +556,22 @@ class PredicateClassGenerator extends AbstractRewriter {
   */
   
   public void visit(NameExpression e){
-    if (e.getKind()==NameExpression.Kind.Reserved && e.getName().equals("this")){
-      result=create.dereference(create.reserved_name("this"),"ref");
-    } else {
-      super.visit(e);
+    NameExpression.Kind kind=e.getKind();
+    String name=e.getName();
+    switch(kind){
+      case Local:
+      case Argument:
+        result=create.name(NameExpression.Kind.Unresolved,name);
+        break;
+      case Reserved:{
+        if (name.equals("this")){
+          result=create.dereference(create.reserved_name("this"),"ref");
+          break;
+        }
+      }
+      default:
+        result=create.name(kind,name);
+        break;
     }
   }
   

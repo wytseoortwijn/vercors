@@ -67,39 +67,42 @@ public class GlobalizeStaticsParameter extends GlobalizeStatics {
   /**
    * Add the this/global argument to every invokation of a non-static method.
    */
-  public void visit(MethodInvokation m){
-    if (m.object instanceof ClassType && !m.isInstantiation()){
-      super.visit(m);
+  public void visit(MethodInvokation e){
+    Method m=e.getDefinition();
+    if (m==null) Abort("cannot globalize method invokaiton without method definition");
+    ASTClass cl=(ASTClass)m.getParent();
+    if (m.isStatic() && !e.isInstantiation()){
+      super.visit(e);
     } else {
       Method.Kind kind=Method.Kind.Predicate;
-      if (m.getDefinition()!=null){
-        kind=m.getDefinition().getKind();
+      if (e.getDefinition()!=null){
+        kind=e.getDefinition().getKind();
       } else {
-        Warning("assuming kind of %s is Predicate",m.method);
+        Warning("assuming kind of %s is Predicate",e.method);
       }
       switch(kind){
       case Constructor:
       case Plain:{
-        ASTNode args[]=new ASTNode[m.getArity()+1];
+        ASTNode args[]=new ASTNode[e.getArity()+1];
         if (processing_static){
           args[0]=create.reserved_name("this");
         } else {
           args[0]=create.local_name("global");
         }
         for(int i=1;i<args.length;i++){
-          args[i]=rewrite(m.getArg(i-1));
+          args[i]=rewrite(e.getArg(i-1));
         }
         result=create.invokation(
-            rewrite(m.object),
-            m.guarded,
-            m.method,
+            rewrite(e.object),
+            e.guarded,
+            e.method,
             args
         );
         break;
       }
       case Pure:
       case Predicate:
-        super.visit(m);
+        super.visit(e);
         break;
       default:
         Abort("missing case: %s",kind);

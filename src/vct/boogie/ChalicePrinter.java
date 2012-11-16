@@ -166,7 +166,7 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
       case Pure:{
         out.printf("function %s",name);
         print_arguments(m,true);
-        if (contract!=null) visit(contract,true);
+        if (contract!=null) visit(contract,false);
         if (body !=null) {
           if (body instanceof BlockStatement){
             out.lnprintf("{");
@@ -248,7 +248,10 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
   public void visit(Dereference e){
     if (e.object instanceof NameExpression){
       NameExpression arg1=(NameExpression)e.object;
-      if (arg1.getKind()==NameExpression.Kind.Label||arg1.getKind()==NameExpression.Kind.Unresolved){
+      if (arg1.getKind()==NameExpression.Kind.Unresolved){
+        Abort("unresolved name %s",arg1.getName());
+      }
+      if (arg1.getKind()==NameExpression.Kind.Label){
         arg1.accept(this);
         out.printf("_%s",e.field);
         return;
@@ -403,7 +406,10 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
   public void visit(NameExpression e){
     String s=e.toString();
     if (s.equals("\\result")){
-      out.print("__result");
+      if (current_method().kind==Method.Kind.Pure)
+        out.print("result");
+      else
+        out.print("__result");
     } else if (s.equals("\\old")){
       out.print("old");
     } else {

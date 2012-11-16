@@ -15,6 +15,7 @@ import vct.col.ast.NameExpression;
 import vct.col.ast.OperatorExpression;
 import vct.col.ast.ProgramUnit;
 import vct.col.ast.StandardOperator;
+import vct.col.ast.Type;
 import vct.util.ClassName;
 import static hre.System.Abort;
 import static hre.System.Debug;
@@ -101,30 +102,41 @@ public abstract class GlobalizeStatics extends AbstractRewriter {
     }
   }
 
-  public void visit(MethodInvokation m){
-    if (m.object instanceof ClassType && !m.isInstantiation()){
-      String prefix=new ClassName(((ClassType)m.object).getNameFull()).toString("_");
+  public void visit(MethodInvokation e){
+    Method m=e.getDefinition();
+    if (m==null) Abort("cannot globalize method invokaiton without method definition");
+    ASTClass cl=(ASTClass)m.getParent();
+    if (m.isStatic() && !e.isInstantiation()){
+      String prefix=new ClassName(cl.getFullName()).toString("_");
       if (processing_static){
         result=create.invokation(
           create.this_expression(create.class_type("Global")),
-          m.guarded,
-          prefix+"_"+m.method,
-          rewrite(m.getArgs()));
+          e.guarded,
+          prefix+"_"+e.method,
+          rewrite(e.getArgs()));
       } else {
         result=create.invokation(
             create.local_name("global"),
-            m.guarded,
-            prefix+"_"+m.method,
-            rewrite(m.getArgs()));        
+            e.guarded,
+            prefix+"_"+e.method,
+            rewrite(e.getArgs()));        
       }
     } else {
-      super.visit(m);
+      super.visit(e);
     }
   }
 
   public void visit(Dereference e){
+    ClassType t;
     if (e.object instanceof ClassType){
-      String var_name=new ClassName(((ClassType)e.object).getNameFull()).toString("_")+"_"+e.field;
+      t=(ClassType)e.object;
+    } else {
+      t=(ClassType)e.object.getType();
+    }
+    ASTClass cl=source().find(t);
+    DeclarationStatement decl=cl.find_field(e.field);
+    if (decl.isStatic()){
+      String var_name=new ClassName(t.getNameFull()).toString("_")+"_"+e.field;
       if (!processing_static){
         result=create.dereference(create.local_name("global"),var_name);
       } else {

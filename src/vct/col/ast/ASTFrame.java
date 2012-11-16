@@ -160,18 +160,14 @@ public abstract class ASTFrame<T> {
       for(DeclarationStatement decl:m.getArgs()){
         variables.add(decl.getName(),new VariableInfo(decl,NameExpression.Kind.Argument));
       }
-      Contract c=m.getContract();
-      if (c!=null){
-        for(DeclarationStatement decl:c.given){
-          variables.add(decl.getName(),new VariableInfo(decl,NameExpression.Kind.Argument));
-        }
-        for(DeclarationStatement decl:c.yields){
-          variables.add(decl.getName(),new VariableInfo(decl,NameExpression.Kind.Argument));
-        }
-      }
+      add_contract_vars(m);
     }
     if (node instanceof BlockStatement){
       variables.enter();
+      if (node.getParent() instanceof MethodInvokation){
+        MethodInvokation s=(MethodInvokation)node.getParent();
+        add_contract_vars(s.getDefinition());
+      }
     }
     if (node instanceof DeclarationStatement){
       DeclarationStatement decl=(DeclarationStatement)node;
@@ -179,9 +175,48 @@ public abstract class ASTFrame<T> {
         variables.add(decl.getName(),new VariableInfo(decl,NameExpression.Kind.Local));
       }
     }
+    if (node instanceof MethodInvokation){
+      for(NameExpression label:node.getLabels()){
+        variables.add(label.getName(),new VariableInfo(node,NameExpression.Kind.Label));
+      }
+    }
+    if (node instanceof LoopStatement){
+      variables.enter();
+      for(ASTNode inv:((LoopStatement)node).getInvariants()){
+        scan_labels(inv);
+      }
+    }
     result_stack.push(result);
     result=null;
   }
+  private void add_contract_vars(Method m) {
+    if (m==null) return;
+    Contract c=m.getContract();
+    if (c==null) return;
+    for(DeclarationStatement decl:c.given){
+      variables.add(decl.getName(),new VariableInfo(decl,NameExpression.Kind.Argument));
+    }
+    scan_labels(c.pre_condition);
+    for(DeclarationStatement decl:c.yields){
+      variables.add(decl.getName(),new VariableInfo(decl,NameExpression.Kind.Argument));
+    }
+    scan_labels(c.post_condition);
+  }
+
+  
+  private void scan_labels(ASTNode node) {
+    if (node instanceof MethodInvokation){
+      for(NameExpression label:node.getLabels()){
+        variables.add(label.getName(),new VariableInfo(node,NameExpression.Kind.Label));
+      }
+    }
+    if (node instanceof OperatorExpression){
+      for(ASTNode arg:((OperatorExpression)node).getArguments()){
+        scan_labels(arg);
+      }
+    }
+  }
+
   public void leave(ASTNode node){
     if (node instanceof ASTClass){
       variables.leave();
@@ -192,6 +227,9 @@ public abstract class ASTFrame<T> {
       variables.leave();
     }
     if (node instanceof BlockStatement){
+      variables.leave();
+    }
+    if (node instanceof LoopStatement){
       variables.leave();
     }
     result_ref.set(result);
@@ -217,7 +255,7 @@ public abstract class ASTFrame<T> {
   }
   
   public void Abort(String format,Object ...args){
-    hre.System.Abort("At "+current_node().getOrigin()+": "+format,args);
+    hre.System.Abort("("+this.getClass()+")At "+current_node().getOrigin()+": "+format,args);
   }
   /* disabled because selection doesn't work.
   public void Debug(String format,Object ...args){

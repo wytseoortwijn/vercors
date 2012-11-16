@@ -136,7 +136,7 @@ public abstract class RecursiveVisitor<T> extends ASTFrame<T> implements
 
   @Override
   public void visit(LoopStatement s) {
-    // TODO: fix dispatch(s.get_before());
+    dispatch(s.get_before());
     dispatch(s.getInitBlock());
     dispatch(s.getEntryGuard());
     for(ASTNode inv:s.getInvariants()){

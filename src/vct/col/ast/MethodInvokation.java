@@ -89,12 +89,14 @@ public class MethodInvokation extends ASTNode {
   private BlockStatement after;
   public void set_before(BlockStatement block){
     before=block;
+    if (block!=null) block.setParent(this);
   }
   public BlockStatement get_before(){
     return before;
   }
   public void set_after(BlockStatement block){
     after=block;
+    if (block!=null) block.setParent(this);
   }
   public BlockStatement get_after(){
     return after;

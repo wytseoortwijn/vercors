@@ -503,7 +503,7 @@ public class JavaPrinter extends AbstractPrinter {
     }
     if (s.get_before()!=null){
       out.printf("/*@ ");
-      out.printf("then ");
+      out.printf("with ");
       s.get_before().accept(this);
       out.printf(" */");
     }

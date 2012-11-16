@@ -43,6 +43,7 @@ public class ClassType extends Type {
           name[1].equals("lang") && name[2].equals("Object")) return true;
       // Everything is a supertype of <<null>>.
       if (ct.name.length==1 && ct.name[0].equals("<<null>>")) return true;
+      if (ct.name.length==1 && ct.name[0].equals("<<label>>")) return true;
       if (ct.name.length==name.length){
         int i=0;
         while(i<name.length){
