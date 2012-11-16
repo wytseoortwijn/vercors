@@ -2,7 +2,6 @@
 
 package vct.main;
 
-import hre.ast.MessageOrigin;
 import hre.config.BooleanSetting;
 import hre.config.OptionParser;
 import hre.config.StringListSetting;
@@ -31,15 +30,13 @@ import vct.col.rewrite.ExplicitPermissionEncoding;
 import vct.col.rewrite.FilterClass;
 import vct.col.rewrite.FinalizeArguments;
 import vct.col.rewrite.Flatten;
-import vct.col.rewrite.ForallRule;
 import vct.col.rewrite.GlobalizeStaticsField;
 import vct.col.rewrite.GlobalizeStaticsParameter;
 import vct.col.rewrite.GuardedCallExpander;
 import vct.col.rewrite.InheritanceRewriter;
 import vct.col.rewrite.ReorderAssignments;
-import vct.col.rewrite.ResolvNames;
-import vct.col.rewrite.ResolveAndMerge;
 import vct.col.rewrite.SimplifyCalls;
+import vct.col.rewrite.Standardize;
 import vct.col.rewrite.StripConstructors;
 import vct.col.rewrite.VoidCalls;
 import vct.col.util.FeatureScanner;
@@ -84,7 +81,7 @@ class Main
       System.err.printf("Validating class %s...%n",class_name.toString("."));
       long start=System.currentTimeMillis();
       ProgramUnit task=new FilterClass(program,class_name.name).rewriteAll();
-      task=new ResolveAndMerge(task).rewriteAll();
+      task=new Standardize(task).rewriteAll();
       new SimpleTypeCheck(task).check();
       TestReport report=vct.boogie.Main.TestChalice(task);
       System.err.printf("%s: result is %s (%dms)%n",class_name.toString("."),
@@ -107,8 +104,6 @@ class Main
     clops.add(separate_checks.getEnable("validate classes separately"),"separate");
     BooleanSetting help_passes=new BooleanSetting(false);
     clops.add(help_passes.getEnable("print help on available passes"),"help-passes");
-    BooleanSetting hoare_check=new BooleanSetting(false);
-    clops.add(hoare_check.getEnable("select Hoare Logic Checker backend"),"hlc");
     StringListSetting pass_list=new StringListSetting();
     clops.add(pass_list.getAppendOption("add to the custom list of compilation passes"),"passes");
     StringListSetting show_before=new StringListSetting();
@@ -118,8 +113,6 @@ class Main
    
     BooleanSetting explicit_encoding=new BooleanSetting(false);
     clops.add(explicit_encoding.getEnable("explicit encoding"),"explicit");
-    BooleanSetting apply_forall_rule=new BooleanSetting(false);
-    clops.add(apply_forall_rule.getEnable("apply forall rule"),"apply-forall");
     BooleanSetting global_with_field=new BooleanSetting(false);
     clops.add(global_with_field.getEnable("Encode global access with a field rather than a parameter. (expert option)"),"global-with-field");
     
@@ -234,11 +227,6 @@ class Main
         return new Flatten(arg).rewriteAll();
       }
     });
-    defined_passes.put("forall_rule",new CompilerPass("Apply the forall rule to predicates"){
-      public ProgramUnit apply(ProgramUnit arg){
-        return new ForallRule(arg).rewriteAll();
-      }
-    });
     if (global_with_field.get()){
       Warning("Using the incomplete and experimental field access for globals.");
       defined_passes.put("globalize",new CompilerPass("split classes into static and dynamic parts"){
@@ -253,14 +241,6 @@ class Main
         }
       });
     }
-    defined_checks.put("hoare_logic",new ValidationPass("Check Hoare Logic Proofs"){
-      public TestReport apply(ProgramUnit arg){
-        for(ASTClass cl:arg.classes()){
-          Brain.main(cl);
-        }
-        return null;
-      }
-    });
     defined_passes.put("inheritance",new CompilerPass("rewrite contract to reflect inheritance"){
       public ProgramUnit apply(ProgramUnit arg){
         return new InheritanceRewriter(arg).rewriteOrdered();
@@ -277,16 +257,6 @@ class Main
         return new ReorderAssignments(arg).rewriteAll();
       }
     });
-    defined_passes.put("resolv_names",new CompilerPass("resolv all names"){
-      public ProgramUnit apply(ProgramUnit arg){
-        return new ResolvNames(arg).rewriteAll();
-      }
-    });
-    defined_passes.put("resolv",new CompilerPass("resolv and standardize"){
-      public ProgramUnit apply(ProgramUnit arg){
-        return new ResolveAndMerge(arg).rewriteAll();
-      }
-    });
     defined_passes.put("rm_cons",new CompilerPass("???"){
       public ProgramUnit apply(ProgramUnit arg){
         return new ConstructorRewriter(arg).rewriteAll();
@@ -295,6 +265,11 @@ class Main
     defined_passes.put("simplify_calls",new CompilerPass("???"){
       public ProgramUnit apply(ProgramUnit arg){
         return new SimplifyCalls(arg).rewriteAll();
+      }
+    });
+    defined_passes.put("standardize",new CompilerPass("Standardize representation"){
+      public ProgramUnit apply(ProgramUnit arg){
+        return new Standardize(arg).rewriteAll();
       }
     });
     defined_passes.put("strip_constructors",new CompilerPass("Strip constructors from classes"){
@@ -317,7 +292,7 @@ class Main
       }
       System.exit(0);
     }
-    if (!(boogie.get() || chalice.get() || hoare_check.get() || pass_list.iterator().hasNext())) {
+    if (!(boogie.get() || chalice.get() || pass_list.iterator().hasNext())) {
       Fail("no back-end or passes specified");
     }
     Progress("parsing inputs...");
@@ -333,8 +308,7 @@ class Main
     }
     Progress("Parsed %d files in: %dms",cnt,System.currentTimeMillis() - startTime);
     startTime = System.currentTimeMillis();
-    //program=new ResolvNames(program).rewriteAll();
-    program=new ResolveAndMerge(program).rewriteAll();
+    program=new Standardize(program).rewriteAll();
     new SimpleTypeCheck(program).check();
     Progress("Initial type check took %dms",System.currentTimeMillis() - startTime);
     FeatureScanner features=new FeatureScanner();
@@ -352,77 +326,68 @@ class Main
       passes.add("reorder");
       passes.add("simplify_calls");
       if (infer_modifies.get()) {
-        passes.add("resolv");
+        passes.add("standardize");
         passes.add("check");
         passes.add("modifies");
       }
-      passes.add("resolv");
+      passes.add("standardize");
       passes.add("check");
       passes.add("voidcalls");
-      passes.add("resolv");
+      passes.add("standardize");
       passes.add("check");
       passes.add("flatten");
-      passes.add("resolv");
+      passes.add("standardize");
       passes.add("check");
       passes.add("strip_constructors");
-      passes.add("resolv");
+      passes.add("standardize");
       passes.add("check");
     	passes.add("boogie");
     } else if (chalice.get()) {
     	passes=new ArrayList<String>();
-      if (apply_forall_rule.get()){
-        passes.add("forall_rule");
-        passes.add("resolv");
-        passes.add("check");       
-      }
       if (features.hasStaticItems()){
         Warning("Encoding globals by means of an argument.");
+        passes.add("standardize");
+        passes.add("check");
         passes.add("globalize");
-        passes.add("resolv");
+        passes.add("standardize");
         passes.add("check");
       }
       if (features.usesInheritance()){
         passes.add("inheritance");
-        passes.add("resolv");
+        passes.add("standardize");
         passes.add("check");       
       }
       if (explicit_encoding.get()){
         passes.add("expand");
-        passes.add("resolv");
+        passes.add("standardize");
         passes.add("check");
         passes.add("explicit_encoding");
-        passes.add("resolv");
+        passes.add("standardize");
         passes.add("check");
       }
       passes.add("flatten");
-      passes.add("resolv");
+      passes.add("standardize");
       passes.add("check");
       if (features.usesDoubles()){
         Warning("defining Double");
         passes.add("define_double");
-        passes.add("resolv");
+        passes.add("standardize");
         passes.add("check");
       }
     	passes.add("assign");
       passes.add("reorder");
     	passes.add("expand");
-    	passes.add("resolv");
+    	passes.add("standardize");
     	passes.add("check");
       passes.add("rm_cons");
-      passes.add("resolv");
+      passes.add("standardize");
       passes.add("check");
       passes.add("voidcalls");
-      passes.add("resolv");
+      passes.add("standardize");
       passes.add("check");
       passes.add("flatten");
-      passes.add("resolv");
       passes.add("check");
     	passes.add("chalice");
-    } else if (hoare_check.get()) {
-    	passes=new ArrayList<String>();
-    	passes.add("resolv");
-    	passes.add("assign");
-    	passes.add("hoare_logic");
     } else {
     	if (!pass_list.iterator().hasNext()) Abort("no back-end or passes specified");
     }
