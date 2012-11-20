@@ -67,8 +67,9 @@ class Main
     }
     Progress("Parsing %s file %s",lang,name);
     ProgramUnit unit=Parser.parse(lang,name);
-    program.merge(unit);
     Progress("Read %s succesfully",name);
+    program.merge(unit);
+    Progress("Merged %s succesfully",name);
   }
 
   private static List<ClassName> classes;
