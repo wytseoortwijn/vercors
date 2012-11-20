@@ -75,7 +75,11 @@ public class System {
   public static void Debug(String format,Object...args){
     StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
     int N=stackTraceElements.length;
-    String name=stackTraceElements[2].getClassName();
+    int idx=2;
+    while(stackTraceElements[idx].getMethodName().equals("Debug")){
+      idx++;
+    }
+    String name=stackTraceElements[idx].getClassName();
     for(;;){
       MessageStream out=debug_map.get(name);
       if (out!=null){
