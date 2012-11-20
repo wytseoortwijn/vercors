@@ -107,7 +107,7 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     Type val_type=val.getType();
     if (val_type==null) Abort("Value has no type has no type.");
     if (loc_type.toString().equals("<<label>>")) return;
-    if (!(loc_type.equals(val_type) || loc_type.supertypeof(val_type))) {
+    if (!(loc_type.equals(val_type) || loc_type.supertypeof(null, val_type))) {
       Abort("Types of location (%s) and value (%s) do not match at %s.",loc_type,val_type,s.getOrigin());
     }
   }
@@ -323,9 +323,9 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       if (t1==null) Fail("type of left argument unknown at %s",e.getOrigin());
       Type t2=e.getArg(1).getType();
       if (t2==null) Fail("type of right argument unknown at %s",e.getOrigin());
-      if (t1.supertypeof(t2)){
+      if (t1.supertypeof(null, t2)){
         e.setType(t1);
-      } else if (t2.supertypeof(t1)){
+      } else if (t2.supertypeof(null, t1)){
         e.setType(t1);
       } else {
         Fail("Types of left and right-hand side argument are uncomparable at %s",e.getOrigin());
@@ -340,10 +340,10 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       Type res=new PrimitiveType(Sort.Byte);
       Type t1=e.getArg(0).getType();
       if (t1==null) Fail("type of left argument unknown at %s",e.getOrigin());
-      if (!t1.supertypeof(res)) Fail("type of first argument of %s is wrong at %s",op,e.getOrigin());
+      if (!t1.supertypeof(null, res)) Fail("type of first argument of %s is wrong at %s",op,e.getOrigin());
       Type t2=e.getArg(1).getType();
       if (t2==null) Fail("type of right argument unknown at %s",e.getOrigin());
-      if (!t2.supertypeof(res)) Fail("type of second argument of %s is wrong at %s",op,e.getOrigin());
+      if (!t2.supertypeof(null, res)) Fail("type of second argument of %s is wrong at %s",op,e.getOrigin());
       if (t1.getClass()!=t2.getClass()) {
         Fail("Types of left and right-hand side argument are uncomparable at %s",e.getOrigin());
       }
@@ -420,7 +420,7 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       ASTClass cl=source().find(((ClassType)object_type).getNameFull());
       if (cl==null) Fail("could not find class %s",((ClassType)object_type).getFullName());
       Debug("looking in class "+cl.getName());
-      DeclarationStatement decl=cl.find_field(e.field);
+      DeclarationStatement decl=cl.find_field(e.field,true);
       if (decl==null) Fail("Field %s not found in class %s",e.field,((ClassType)object_type).getFullName());
       e.setType(decl.getType());
     }

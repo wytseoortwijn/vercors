@@ -42,7 +42,7 @@ public final class PrimitiveType extends Type {
     return sort.toString();
   }
   
-  public boolean supertypeof(Type t){
+  public boolean supertypeof(ProgramUnit context, Type t){
     if (t instanceof PrimitiveType){
       PrimitiveType pt=(PrimitiveType)t;
       if (this.sort==pt.sort) return true;
@@ -83,6 +83,8 @@ public final class PrimitiveType extends Type {
 
   public ASTNode zero(){
     switch(sort){
+    case Boolean:
+      return new ConstantExpression(false);
     case Integer:
       return new ConstantExpression(0);
     case Long:

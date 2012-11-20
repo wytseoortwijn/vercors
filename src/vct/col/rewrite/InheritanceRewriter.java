@@ -4,6 +4,7 @@ import vct.col.ast.ASTClass;
 import vct.col.ast.ASTNode;
 import vct.col.ast.ClassType;
 import vct.col.ast.Contract;
+import vct.col.ast.DeclarationStatement;
 import vct.col.ast.Method;
 import vct.col.ast.ProgramUnit;
 import vct.col.ast.Type;
@@ -37,24 +38,20 @@ public class InheritanceRewriter extends AbstractRewriter {
       default:
         Fail("Multiple inheritance is not supported.");
     }
+    if (cl.implemented_classes.length>0) Fail("interfaces are future work");
     for(ASTNode node:cl.staticMembers()){
       res.add_static(rewrite(node));
     }
     for(ASTNode node:cl.dynamicMembers()){
       res.add_dynamic(rewrite(node));
     }
-    super_class=null;
-    if (cl.implemented_classes.length>0) Fail("interfaces are future work");
-    for(ClassType parent:cl.super_classes){
-      Warning("Checking parent %s of %s",parent,cl.name);
-      ASTClass super_class=target().find(parent);
-      if (super_class==null) Abort("class %s not found",cl.super_classes[0]);
+    if (super_class!=null){
       for(Method m:super_class.dynamicMethods()){
         switch(m.kind){
           case Predicate:
           case Plain:{
             Type type[]=m.getArgType();
-            if (cl.find(m.getName(),type)==null){
+            if (res.find(m.getName(),type)==null){
               Warning("method %s of kind %s in class %s will be copied",m.getName(),m.kind,cl.name);
               res.add_dynamic(copy_abstract.rewrite(m));
             } else {
@@ -67,6 +64,13 @@ public class InheritanceRewriter extends AbstractRewriter {
           }
         }
       }
+      for(DeclarationStatement decl:super_class.dynamicFields()){
+        String name=decl.getName();
+        if (cl.find_field(name)==null){
+          res.add_dynamic(copy_abstract.rewrite(decl));
+        }
+      }
+      super_class=null;
     }
     result=res;
   }

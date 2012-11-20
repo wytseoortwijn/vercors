@@ -22,7 +22,7 @@ public class RecordType extends Type {
     visitor.visit(this);
   }
   @Override
-  public boolean supertypeof(Type t) {
+  public boolean supertypeof(ProgramUnit context, Type t) {
     // TODO Auto-generated method stub
     return false;
   }

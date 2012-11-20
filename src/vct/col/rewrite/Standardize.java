@@ -8,6 +8,7 @@ import vct.col.ast.MethodInvokation;
 import vct.col.ast.NameExpression;
 import vct.col.ast.OperatorExpression;
 import vct.col.ast.ProgramUnit;
+import vct.col.ast.StandardOperator;
 import static hre.System.Debug;
 
 /**
@@ -15,6 +16,7 @@ import static hre.System.Debug;
  * 
  * <UL>
  * <LI> Replace assignment expressions used as statements by assignment statements.
+ * <LI> Replace simple increment and decrement statements by assignments.
  * <LI> Create objects for method invokations that do not have them.
  * </UL>
  * 
@@ -40,7 +42,31 @@ public class Standardize extends AbstractRewriter {
         {
           ASTNode var=e.getArg(0).apply(this);
           ASTNode val=e.getArg(1).apply(this);
-          res.add_statement(create.assignment(var,val));
+          res.add_statement(create.assignment(e.getOrigin(),var,val));
+          break;
+        }
+        case PostIncr:
+        case PreIncr:
+        {
+          ASTNode arg=e.getArg(0);
+          if (arg instanceof NameExpression){
+            ASTNode incr=create.expression(e.getOrigin(),StandardOperator.Plus,rewrite(arg),create.constant(e.getOrigin(),1));
+            res.add_statement(create.assignment(e.getOrigin(),rewrite(arg),incr));
+          } else {
+            res.add_statement(rewrite(e));
+          }
+          break;
+        }
+        case PostDecr:
+        case PreDecr:
+        {
+          ASTNode arg=e.getArg(0);
+          if (arg instanceof NameExpression){
+            ASTNode incr=create.expression(e.getOrigin(),StandardOperator.Minus,rewrite(arg),create.constant(e.getOrigin(),1));
+            res.add_statement(create.assignment(e.getOrigin(),rewrite(arg),incr));
+          } else {
+            res.add_statement(rewrite(e));
+          }
           break;
         }
         default:

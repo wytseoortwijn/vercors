@@ -146,12 +146,7 @@ public abstract class ASTFrame<T> {
       ASTClass cl=(ASTClass)node;
       class_stack.push(cl);
       variables.enter();
-      for(DeclarationStatement decl:cl.dynamicFields()){
-        variables.add(decl.getName(),new VariableInfo(decl,NameExpression.Kind.Field));
-      }
-      for(DeclarationStatement decl:cl.staticFields()){
-        variables.add(decl.getName(),new VariableInfo(decl,NameExpression.Kind.Field));
-      }
+      recursively_add_class_info(cl);
     }
     if (node instanceof Method){
       Method m=(Method)node;
@@ -189,6 +184,32 @@ public abstract class ASTFrame<T> {
     result_stack.push(result);
     result=null;
   }
+  private void recursively_add_class_info(ASTClass cl) {
+    switch(cl.super_classes.length){
+      case 0:
+        break;
+      case 1:{
+        if (source != null) {
+          ASTClass super_class=source.find(cl.super_classes[0]);
+          if (super_class!=null){
+            recursively_add_class_info(super_class);
+          }
+        }
+        break;
+      }
+      default:
+        Fail("Multiple inheritance is not supported.");
+        break;
+    }
+    for(DeclarationStatement decl:cl.dynamicFields()){
+      variables.add(decl.getName(),new VariableInfo(decl,NameExpression.Kind.Field));
+    }
+    for(DeclarationStatement decl:cl.staticFields()){
+      variables.add(decl.getName(),new VariableInfo(decl,NameExpression.Kind.Field));
+    }
+
+  }
+
   private void add_contract_vars(Method m) {
     if (m==null) return;
     Contract c=m.getContract();
@@ -239,11 +260,19 @@ public abstract class ASTFrame<T> {
   }
 
   public ASTNode current_node(){
-    return node_stack.peek();
+    if (node_stack.isEmpty()) {
+      return null;
+    } else {
+      return node_stack.peek();
+    }
   }
 
   public ASTClass current_class(){
-    return class_stack.peek();
+    if (class_stack.isEmpty()){
+      return null;
+    } else {
+      return class_stack.peek();
+    }
   }
   
   public Method current_method(){
@@ -257,16 +286,19 @@ public abstract class ASTFrame<T> {
   public void Abort(String format,Object ...args){
     hre.System.Abort("("+this.getClass()+")At "+current_node().getOrigin()+": "+format,args);
   }
-  /* disabled because selection doesn't work.
   public void Debug(String format,Object ...args){
-    hre.System.Debug("At "+current_node().getOrigin()+": "+format,args);
+    ASTNode node=current_node();
+    if (node!=null){
+      hre.System.Debug("At "+node.getOrigin()+": "+format,args);
+    } else {
+      hre.System.Debug(format,args);
+    }
   }
-  */
   public void Fail(String format,Object ...args){
     hre.System.Fail("At "+current_node().getOrigin()+": "+format,args);
   }
   public void Warning(String format,Object ...args){
-    hre.System.Warning("At "+current_node().getOrigin()+": "+format,args);
+    hre.System.Warning("("+this.getClass()+"):%n  at "+current_node().getOrigin()+":%n    "+format,args);
   }
 
 }

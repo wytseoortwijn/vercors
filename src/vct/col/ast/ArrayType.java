@@ -15,7 +15,7 @@ public class ArrayType extends Type {
   }
 
   @Override
-  public boolean supertypeof(Type t) {
+  public boolean supertypeof(ProgramUnit context, Type t) {
     // TODO Auto-generated method stub
     return false;
   }

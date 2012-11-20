@@ -1,6 +1,8 @@
 package vct.col.ast;
 
 import static hre.System.Abort;
+import static hre.System.Debug;
+import static hre.System.Warning;
 
 import java.util.Arrays;
 
@@ -35,7 +37,7 @@ public class ClassType extends Type {
     visitor.visit(this);
   }
 
-  public boolean supertypeof(Type t){
+  public boolean supertypeof(ProgramUnit context, Type t){
     if (t instanceof ClassType) {
       ClassType ct=(ClassType)t;
       // java.lang.Object is supertype of everything.
@@ -44,19 +46,38 @@ public class ClassType extends Type {
       // Everything is a supertype of <<null>>.
       if (ct.name.length==1 && ct.name[0].equals("<<null>>")) return true;
       if (ct.name.length==1 && ct.name[0].equals("<<label>>")) return true;
-      if (ct.name.length==name.length){
-        int i=0;
-        while(i<name.length){
-          if (!ct.name[i].equals(name[i])) break;
-          i++;
-        }
-        if (i==name.length) return true;
-      }
-      // TODO: check inheritance.
+      return supertype_search(context,ct);
     }
     return false;
   }
   
+  
+  private boolean supertype_search(ProgramUnit context, ClassType ct) {
+    Debug("checking if %s is asuper type of %s",this,ct);
+    if (ct.name.length==name.length){
+      int i=0;
+      while(i<name.length){
+        if (!ct.name[i].equals(name[i])) break;
+        i++;
+      }
+      if (i==name.length) return true;
+    }
+    Debug("argument is not the same type not the same type");
+    if (context==null) {
+      Debug("missing context");
+      return false;
+    }
+    ASTClass cl=context.find(ct);
+    if (cl==null) {
+      Debug("class not found");
+      return false;
+    }
+    for(ClassType ct_parent:cl.super_classes){
+      if (supertype_search(context,ct_parent)) return true;
+    }
+    return false;
+  }
+
   public String toString(){
     return getFullName();
   }

@@ -23,6 +23,7 @@ public class ProgramUnit {
   
   public void addClass(ClassName name,ASTClass cl){
     classes.put(name,cl);
+    cl.attach(this,name);
   }
   
   public void addClass(String name[],ASTClass cl){

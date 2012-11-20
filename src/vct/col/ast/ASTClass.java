@@ -6,8 +6,11 @@ import hre.util.FilteredIterable;
 
 import java.util.*;
 
+import javax.xml.transform.Source;
+
 import vct.col.util.DeclarationFilter;
 import vct.col.util.MethodFilter;
+import vct.util.ClassName;
 
 import static hre.System.Abort;
 import static hre.System.Debug;
@@ -46,7 +49,15 @@ public class ASTClass extends ASTNode {
   private ArrayList<ASTNode> static_entries=new ArrayList<ASTNode>();
   /** contains the dynamic entries. */
   private ArrayList<ASTNode> dynamic_entries=new ArrayList<ASTNode>();
-
+  /** contains the root of the source forest. */
+  private ProgramUnit root;
+  /** contains the package name */
+  private ClassName package_name;
+  
+  public void attach(ProgramUnit root,ClassName package_name){
+    this.root=root;
+    this.package_name=package_name;
+  }
   
   private void getFullName(ArrayList<String> fullname){
     if (parent_class!=null) parent_class.getFullName(fullname);
@@ -222,7 +233,7 @@ public class ASTClass extends ASTNode {
     }
     return null;
   }
-  private static Method find(List<ASTNode> list,String name, Type[] type){
+  private Method find(List<ASTNode> list,String name, Type[] type){
     node:for(ASTNode n:list){
       if (n instanceof Method){
         Method m=(Method)n;
@@ -232,7 +243,7 @@ public class ASTClass extends ASTNode {
           if (args.length>=type.length){
             Debug("attempting match");
             for(int i=0;i<type.length;i++){
-              if (!m.getArgType(i).supertypeof(type[i])){
+              if (!m.getArgType(i).supertypeof(root, type[i])){
                 Debug("type of argument %d does not match method (cannot pass %s as %s)%n",i,type[i],m.getArgType(i));
                 continue node;
               }
@@ -253,7 +264,13 @@ public class ASTClass extends ASTNode {
   public Method find(String name, Type[] type) {
     //TODO: support inheritance and detect duplicate definitions.
     Method m=find(static_entries,name,type);
-    if (m==null) m=find(dynamic_entries,name,type);
+    if (m!=null) return m;
+    m=find(dynamic_entries,name,type);
+    if (m!=null) return m;
+    for(ClassType parent:this.super_classes){
+      m = root.find(parent).find(name,type);
+      if (m != null) return m;
+    }    
     return m;
   }
 
@@ -274,15 +291,33 @@ public class ASTClass extends ASTNode {
     }
     return null;
   }
+
+  /**
+   * Search for a field in the current class.
+   * 
+   * @deprecated Use find_field(name,false) instead.
+   */
+  @Deprecated
   public DeclarationStatement find_field(String name) {
+    return find_field(name,false);    
+  }
+  /**
+   * Search for a field declaration.
+   * @param name The name of the field to be found.
+   * @param recursive Flag that signals inclusion of super classes in the search path.
+   * @return The Declaration of the field if found and null otherwise.
+   */
+  public DeclarationStatement find_field(String name,boolean recursive){
     Debug("looking for field "+name);
-    DeclarationStatement stat=find_field(static_entries,name);
-    DeclarationStatement dyn=find_field(dynamic_entries,name);
-    if (dyn==null) {
-      return stat;
-    } else {
-      return dyn;
+    DeclarationStatement temp=find_field(static_entries,name);
+    if (temp!=null) return temp;
+    temp=find_field(dynamic_entries,name);
+    if (temp!=null || !recursive) return temp;
+    for(ClassType parent:this.super_classes){
+      temp = root.find(parent).find_field(name,true);
+      if (temp != null) return temp;
     }
+    return null;
   }
 
   /** Get an iterator for all static members. */
