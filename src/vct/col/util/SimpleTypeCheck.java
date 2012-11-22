@@ -151,7 +151,7 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       case Unresolved:{
         VariableInfo info=variables.lookup(name);
         if (info!=null) {
-          Warning("unresolved %s name %s found during type check",info.kind,name);
+          Debug("unresolved %s name %s found during type check",info.kind,name);
           e.setKind(info.kind);
           kind=info.kind;
         }
@@ -168,7 +168,7 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
         if (info.kind!=kind){
           if ((kind==NameExpression.Kind.Local && info.kind==NameExpression.Kind.Argument)
             ||(kind==NameExpression.Kind.Argument && info.kind==NameExpression.Kind.Local)){
-            Warning("mismatch of kinds %s/%s for name %s",kind,info.kind,name);
+            Debug("mismatch of kinds %s/%s for name %s",kind,info.kind,name);
           } else {
             Abort("mismatch of kinds %s/%s for name %s",kind,info.kind,name);
           }
