@@ -46,8 +46,13 @@ import vct.util.Configuration;
 import static hre.System.*;
 import static hre.ast.Context.globalContext;
 
+/**
+ * VerCors Tool main verifier.
+ * @author Stefan Blom
+ *
+ */
 class Main
-{  
+{
   private static ProgramUnit program=new ProgramUnit();
   
   private static void parseFile(String name){
@@ -366,6 +371,8 @@ class Main
         passes.add("check");
       }
       passes.add("flatten");
+      passes.add("finalize_args");
+      passes.add("reorder");
       passes.add("standardize");
       passes.add("check");
       if (features.usesDoubles()){
