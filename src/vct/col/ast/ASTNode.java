@@ -14,6 +14,13 @@ import static hre.System.Warning;
 /** common features of all AST nodes. */
 public abstract class ASTNode implements ASTFlags {
 
+  public ASTNode labeled(String name){
+    NameExpression label=new NameExpression(NameExpression.Kind.Label,name);
+    label.setOrigin(this.origin);
+    addLabel(label);
+    return this;
+  }
+  
   /**
    * Contains the labels used to mark this node.
    */

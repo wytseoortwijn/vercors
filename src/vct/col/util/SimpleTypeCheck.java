@@ -186,7 +186,7 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
         if (name.equals("this")){
           ASTClass cl=current_class();
           if (cl==null){
-            Abort("use of keyword this outside of class context");
+            Fail("use of keyword this outside of class context");
           }
           e.setType(new ClassType(cl.getFullName()));
           break;
@@ -196,9 +196,19 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
         } else if (name.equals("\\result")||name.equals("result")){
           Method m=current_method();
           if (m==null){
-            Abort("Use of result keyword outside of a method context.");
+            Fail("Use of result keyword outside of a method context.");
           }
           e.setType(m.getReturnType());
+          break;
+        } else if (name.equals("super")){
+          ASTClass cl=current_class();
+          if (cl==null){
+            Fail("use of keyword super outside of class context");
+          }
+          if (cl.super_classes.length==0) {
+            Fail("class %s does not have a super type",cl.getName());
+          }
+          e.setType(cl.super_classes[0]);
           break;
         }
         Abort("missing case for reserved name %s",name);

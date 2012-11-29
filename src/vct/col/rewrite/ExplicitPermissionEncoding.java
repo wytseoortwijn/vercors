@@ -483,6 +483,9 @@ class PredicateClassGenerator extends AbstractRewriter {
     } else {
       Abort("could not get field name at %s",call.object.getOrigin());
     }
+    if (call.labels()==0){
+      Fail("unlabeled invokation of %s",call.method);
+    }
     String label_name=call.getLabel(0).getName();
     if (pred_class.find_field(label_name)!=null){
       Abort("label %s declared twice",label_name);

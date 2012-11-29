@@ -9,5 +9,7 @@ public interface ASTFlags {
   public final int  IN_ARG = 0x0004;
   
   public final int OUT_ARG = 0x0008;
+  
+  public final int   FINAL = 0x0010;
 
 }

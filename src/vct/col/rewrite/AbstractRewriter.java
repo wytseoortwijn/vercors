@@ -5,6 +5,7 @@ import java.util.HashSet;
 
 import hre.util.FrameControl;
 import vct.col.ast.ASTClass;
+import vct.col.ast.ASTFrame;
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTWith;
 import vct.col.ast.AbstractVisitor;
@@ -51,6 +52,17 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
     create=new ASTFactory();    
   }
   
+  public AbstractRewriter(ASTFrame<ASTNode> shared){
+    super(shared);
+    AbstractRewriter tmp=tl.get();
+    if(tmp==null){
+      tmp=new AbstractRewriter(Thread.currentThread());
+      tl.set(tmp);
+    }
+    copy_rw=tmp;
+    create=new ASTFactory();
+  }
+
   public AbstractRewriter(ProgramUnit source,ProgramUnit target){
     super(source,target);
     AbstractRewriter tmp=tl.get();
@@ -92,19 +104,20 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
     create.setOrigin(n.getOrigin());
     result=null;
   }
-  
+  public void copy_labels(ASTNode dest,ASTNode source){
+    for(NameExpression lbl:source.getLabels()){
+      NameExpression copy=new NameExpression(lbl.getName());
+      copy.setKind(NameExpression.Kind.Label);
+      copy.setOrigin(lbl.getOrigin());
+      dest.addLabel(copy);
+    }    
+  }
   public void post_visit(ASTNode n){
     if (result==n) Debug("rewriter linked instead of making a copy"); 
     if (result!=null && result!=n) {
       if (auto_labels){
         ASTNode tmp=result;
-        for(NameExpression lbl:n.getLabels()){
-          Debug("leave %s with label %s",n.getClass(),lbl);
-          NameExpression copy=new NameExpression(lbl.getName());
-          copy.setKind(NameExpression.Kind.Label);
-          copy.setOrigin(lbl.getOrigin());
-          tmp.addLabel(copy);
-        }
+        copy_labels(tmp,n);
         result=tmp;
       }
       result.copyMissingFlags(n);

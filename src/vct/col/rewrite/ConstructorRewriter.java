@@ -35,6 +35,7 @@ public class ConstructorRewriter extends AbstractRewriter {
       if (i.getDefinition().kind==Method.Kind.Constructor) {
         ASTNode s1=create.assignment(rewrite(e.getLocation()),create.expression(StandardOperator.New,rewrite(i.getType())));
         ASTNode s2=create.invokation(rewrite(e.getLocation()),false ,i.method+"_init",rewrite(i.getArgs()));
+        copy_labels(s2,e.getExpression());
         result=create.block(s1,s2);
         return;
       }

@@ -243,6 +243,9 @@ public class JavaPrinter extends AbstractPrinter {
       if (!predicate) out.lnprintf("@*/");
     }
     if (m.isStatic()) out.printf("static ");
+    if (m.isValidFlag(ASTFlags.FINAL) && m.getFlag(ASTFlags.FINAL)){
+      out.printf("final ");
+    }
     if (((ASTClass)m.getParent()).getName().equals(name)){
       out.printf("/*constructor*/");
     } else {

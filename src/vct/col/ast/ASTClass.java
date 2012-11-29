@@ -262,15 +262,20 @@ public class ASTClass extends ASTNode {
     return null;
   }
   public Method find(String name, Type[] type) {
+    return find(name,type,true);
+  }
+  public Method find(String name, Type[] type,boolean recursive) {
     //TODO: support inheritance and detect duplicate definitions.
     Method m=find(static_entries,name,type);
     if (m!=null) return m;
     m=find(dynamic_entries,name,type);
     if (m!=null) return m;
-    for(ClassType parent:this.super_classes){
-      m = root.find(parent).find(name,type);
-      if (m != null) return m;
-    }    
+    if (recursive){
+      for(ClassType parent:this.super_classes){
+        m = root.find(parent).find(name,type);
+        if (m != null) return m;
+      }
+    }  
     return m;
   }
 
