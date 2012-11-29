@@ -124,7 +124,7 @@ public class BoogieFOL {
     ASTFactory create=new ASTFactory();
     create.setOrigin(formula.getOrigin());
     
-    AbstractRewriter copy_rw=new AbstractRewriter(null);
+    AbstractRewriter copy_rw=new AbstractRewriter((ProgramUnit)null);
     
     ASTClass program=create.ast_class("dummy",ClassKind.Plain,null,null);
     for (ASTNode n:args){
