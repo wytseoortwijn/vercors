@@ -33,7 +33,6 @@ import vct.col.rewrite.FinalizeArguments;
 import vct.col.rewrite.Flatten;
 import vct.col.rewrite.GlobalizeStaticsField;
 import vct.col.rewrite.GlobalizeStaticsParameter;
-import vct.col.rewrite.GuardedCallExpander;
 import vct.col.rewrite.InheritanceRewriter;
 import vct.col.rewrite.ReorderAssignments;
 import vct.col.rewrite.SimplifyCalls;
@@ -214,11 +213,6 @@ class Main
         return DefineDouble.rewrite(arg);
       }
     });
-    defined_passes.put("expand",new CompilerPass("expand guarded method calls"){
-      public ProgramUnit apply(ProgramUnit arg){
-        return new GuardedCallExpander(arg).rewriteAll();
-      }
-    });
     defined_passes.put("explicit_encoding",new CompilerPass("encode required and ensured permission as ghost arguments"){
       public ProgramUnit apply(ProgramUnit arg){
         return new ExplicitPermissionEncoding(arg).rewriteAll();
@@ -372,9 +366,8 @@ class Main
         passes.add("check");       
       }
       if (explicit_encoding.get()){
-        passes.add("expand");
         passes.add("standardize");
-        passes.add("check");
+        passes.add("check");       
         passes.add("explicit_encoding");
         passes.add("standardize");
         passes.add("check");
@@ -392,7 +385,6 @@ class Main
       }
     	passes.add("assign");
       passes.add("reorder");
-    	passes.add("expand");
     	passes.add("standardize");
     	passes.add("check");
       passes.add("rm_cons");
