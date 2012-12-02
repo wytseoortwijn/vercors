@@ -196,7 +196,7 @@ public class ExplicitPermissionEncoding extends AbstractRewriter {
       if (arg1.labels()==1){
         for(NameExpression lbl:arg1.getLabels()){
           result=create.expression(e.getOperator(),
-              create.invokation(create.local_name(lbl.getName()), false, "valid")
+              create.invokation(create.local_name(lbl.getName()), null, "valid")
               );
           return;
         }
@@ -268,11 +268,11 @@ class ClauseEncoding extends AbstractRewriter {
       NameExpression lbl=i.getLabel(0);
       ASTNode body=create.expression(StandardOperator.NEQ,create.unresolved_name(lbl.getName()),create.reserved_name("null"));
       body=create.expression(StandardOperator.Star,body,
-          create.invokation(create.unresolved_name(lbl.getName()), false, ("valid")));
+          create.invokation(create.unresolved_name(lbl.getName()), null, ("valid")));
       body=create.expression(StandardOperator.Star,body,
           create.invokation(
               create.unresolved_name(lbl.getName()),
-              false,
+              null,
               ("check"),
               rewrite(i.object,i.getArgs())
           ));
@@ -338,7 +338,7 @@ class PredicateClassGenerator extends AbstractRewriter {
     ASTNode valid_body;
     if (m.getBody()==null){
       pred_class.add_dynamic(create.predicate("abstract_valid", null , new DeclarationStatement[0] ));
-      valid_body=create.invokation(null,false, ("abstract_valid"), new DeclarationStatement[0]);
+      valid_body=create.invokation(null,null, ("abstract_valid"), new DeclarationStatement[0]);
     } else {
       valid_body=rewrite(m.getBody());
     }
@@ -355,7 +355,7 @@ class PredicateClassGenerator extends AbstractRewriter {
     
     // Prepare check function;
     ContractBuilder cb=new ContractBuilder();
-    cb.requires(create.invokation(null,false, ("valid"), new DeclarationStatement[0]));
+    cb.requires(create.invokation(null,null, ("valid"), new DeclarationStatement[0]));
     ASTNode check_body=create.expression(StandardOperator.EQ,create.field_name("ref"),create.local_name("object"));
     for (DeclarationStatement decl:m.getArgs()){
       ASTNode field=create.dereference(create.reserved_name("this"),decl.getName());
@@ -376,7 +376,7 @@ class PredicateClassGenerator extends AbstractRewriter {
     final BlockStatement cons_body=create.block();
     final ArrayList<DeclarationStatement> cons_decls=new ArrayList();
     cb=new ContractBuilder();
-    cb.ensures(create.invokation(null,false, ("valid"), new ASTNode[0]));
+    cb.ensures(create.invokation(null,null, ("valid"), new ASTNode[0]));
     int N=m.getArity();
     ASTNode check_args[]=new ASTNode[N+1];
     {
@@ -419,11 +419,11 @@ class PredicateClassGenerator extends AbstractRewriter {
       }));
     } else {
       cons_body.add_statement(create.expression(StandardOperator.Assume,
-          create.invokation(create.reserved_name("this"),false, ("abstract_valid"), new ASTNode[0])));
+          create.invokation(create.reserved_name("this"),null, ("abstract_valid"), new ASTNode[0])));
     }
-    cb.ensures(create.invokation(null,false, ("check"), check_args));
+    cb.ensures(create.invokation(null,null, ("check"), check_args));
     cons_body.add_statement(create.expression(StandardOperator.Fold,
-        create.invokation(create.reserved_name("this"),false, ("valid"), new ASTNode[0])));
+        create.invokation(create.reserved_name("this"),null, ("valid"), new ASTNode[0])));
     for(String field_name:protected_fields){
       ASTNode getter_args[]=new ASTNode[N+1];
       for(int i=0;i<N;i++){
@@ -435,7 +435,7 @@ class PredicateClassGenerator extends AbstractRewriter {
       cb.ensures(create.expression(StandardOperator.EQ,
           create.invokation(
               create.local_name("ref"),
-              false ,
+              null ,
               (pred_name+"_get_"+field_name),
               getter_args
           ),
@@ -457,7 +457,7 @@ class PredicateClassGenerator extends AbstractRewriter {
     ArrayList<Method> getters=new ArrayList<Method>();
     for(DeclarationStatement field:pred_class.dynamicFields()){
       cb=new ContractBuilder();
-      cb.requires(create.invokation(null,false, ("valid"), new DeclarationStatement[0]));
+      cb.requires(create.invokation(null,null, ("valid"), new DeclarationStatement[0]));
       getters.add(create.function_decl(
           field.getType(),
           cb.getContract(),
@@ -535,8 +535,8 @@ class PredicateClassGenerator extends AbstractRewriter {
     );         
 */
     ASTNode exists=create.expression(StandardOperator.NEQ,create.field_name(label_name),create.reserved_name("null")); 
-    ASTNode valid=create.invokation(create.field_name(label_name), false, ("valid"));
-    ASTNode check=create.invokation(create.field_name(label_name), false, ("check"),
+    ASTNode valid=create.invokation(create.field_name(label_name), null, ("valid"));
+    ASTNode check=create.invokation(create.field_name(label_name), null, ("check"),
         rewrite(call.object,call.getArgs()));
     auto_labels=false;
     result=create.expression(StandardOperator.Star,create.expression(StandardOperator.Star,exists,valid),check);
@@ -597,7 +597,7 @@ class PredicateClassGenerator extends AbstractRewriter {
                   create.local_name("req"),create.reserved_name("null")));
               cb.requires(
                   create.invokation(
-                      create.local_name("req"),false,
+                      create.local_name("req"),null,
                       ("valid"),new ASTNode[0]
                   )
               );
@@ -609,7 +609,7 @@ class PredicateClassGenerator extends AbstractRewriter {
               }
               cb.requires(
                   create.invokation(
-                      create.local_name("req"),false,
+                      create.local_name("req"),null,
                       ("check"),
                       args
                   )
@@ -623,7 +623,7 @@ class PredicateClassGenerator extends AbstractRewriter {
                   create.block(
                       create.expression(StandardOperator.Unfold,
                           create.invokation(
-                              create.local_name("req"),false,
+                              create.local_name("req"),null,
                               ("valid"),new ASTNode[0]
                           )
                       ),

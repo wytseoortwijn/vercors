@@ -85,7 +85,7 @@ public class AbstractPrinter extends AbstractVisitor {
   public void visit(MethodInvokation e){
     boolean statement=!in_expr;
     setExpr();
-    String i_syntax=e.guarded?"->":".";
+    String i_syntax=".";
     if (e.object!=null) {
       // TODO: manage precedence properly.
       e.object.accept(this);

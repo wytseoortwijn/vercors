@@ -62,10 +62,10 @@ public class DynamicStaticInheritance extends AbstractRewriter {
 //      if (isThis(e.object)&&(e.getDefinition()==null||e.getDefinition().getKind()==Method.Kind.Predicate)){
       if (isThis(e.object)){
         String class_name=this.current_class().getName();
-        result=create.invokation(rewrite(e.object), e.guarded, e.method+AT_STRING+class_name, rewrite(e.getArgs()));
+        result=create.invokation(rewrite(e.object), rewrite(e.dispatch), e.method+AT_STRING+class_name, rewrite(e.getArgs()));
       } else if (isSuper(e.object)){
         String class_name=this.current_class().super_classes[0].getName();
-        result=create.invokation(create.reserved_name("this"), e.guarded, e.method+AT_STRING+class_name, rewrite(e.getArgs()));
+        result=create.invokation(create.reserved_name("this"), rewrite(e.dispatch), e.method+AT_STRING+class_name, rewrite(e.getArgs()));
       } else {
         super.visit(e);
       }
@@ -76,7 +76,7 @@ public class DynamicStaticInheritance extends AbstractRewriter {
     public void visit(MethodInvokation e){
       if (isSuper(e.object)){
         String class_name=this.current_class().super_classes[0].getName();
-        result=create.invokation(create.reserved_name("this"), e.guarded, e.method+AT_STRING+class_name, rewrite(e.getArgs()));
+        result=create.invokation(create.reserved_name("this"), rewrite(e.dispatch), e.method+AT_STRING+class_name, rewrite(e.getArgs()));
       } else {
         super.visit(e);
       }
@@ -86,7 +86,7 @@ public class DynamicStaticInheritance extends AbstractRewriter {
     public void visit(MethodInvokation e){
       if (isSuper(e.object)){
         String class_name=this.current_class().super_classes[0].getName();
-        result=create.invokation(create.reserved_name("this"), e.guarded, e.method+AT_STRING+class_name, rewrite(e.getArgs()));
+        result=create.invokation(create.reserved_name("this"), rewrite(e.dispatch), e.method+AT_STRING+class_name, rewrite(e.getArgs()));
       } else {
         super.visit(e);
       }
@@ -173,9 +173,9 @@ public class DynamicStaticInheritance extends AbstractRewriter {
           names[i]=create.name(NameExpression.Kind.Local,m.getArgument(i));
         }
         ContractBuilder cb=new ContractBuilder();
-        cb.requires(create.invokation(null,false,m.getName(),names).labeled("family"));
-        cb.requires(create.invokation(null,false,"is_a_"+class_name).labeled("class_of"));
-        cb.ensures(create.invokation(null,false,m.getName()+AT_STRING+class_name,names).labeled("member"));
+        cb.requires(create.invokation(null,null,m.getName(),names).labeled("family"));
+        cb.requires(create.invokation(null,null,"is_a_"+class_name).labeled("class_of"));
+        cb.ensures(create.invokation(null,null,m.getName()+AT_STRING+class_name,names).labeled("member"));
         Method open=create.method_decl(
             create.primitive_type(Sort.Void),
             cb.getContract(),
@@ -191,7 +191,7 @@ public class DynamicStaticInheritance extends AbstractRewriter {
           }
           ASTNode base=create.invokation(
               create.reserved_name("this"),
-              false,
+              null,
               m.getName()+AT_STRING+parent.getName(),
               names);
           base.labeled("parent");
@@ -233,7 +233,7 @@ public class DynamicStaticInheritance extends AbstractRewriter {
         ContractBuilder cb=new ContractBuilder();
         Contract c=m.getContract();
         if (c!=null) copy_rw.rewrite(c,cb);
-        cb.ensures(create.invokation(create.reserved_name("this"),false,"is_a_"+class_name).labeled("class_of"));
+        cb.ensures(create.invokation(create.reserved_name("this"),null,"is_a_"+class_name).labeled("class_of"));
         Method global=create.method_kind(
             m.kind,
             copy_rw.rewrite(m.getReturnType()),
@@ -268,7 +268,7 @@ public class DynamicStaticInheritance extends AbstractRewriter {
     case Pure:{
       block.add_statement(create.expression(StandardOperator.Unfold,tag_this.rewrite(c.pre_condition)));
       block.add_statement(create.return_statement(create.invokation(
-          create.reserved_name("this"),false,name+AT_STRING+parent.getName(),names)));
+          create.reserved_name("this"),null,name+AT_STRING+parent.getName(),names)));
       break;
     }
     case Plain:{
@@ -276,7 +276,7 @@ public class DynamicStaticInheritance extends AbstractRewriter {
       block.add_statement(create.expression(StandardOperator.Unfold,tag_this.rewrite(c.pre_condition)));
       if (t.isVoid()){
         block.add_statement(create.invokation(
-            create.reserved_name("this"),false,name+AT_STRING+parent.getName(),names));
+            create.reserved_name("this"),null,name+AT_STRING+parent.getName(),names));
       } else {
         Abort("unsupported non-void method");
       }
@@ -286,7 +286,7 @@ public class DynamicStaticInheritance extends AbstractRewriter {
     case Predicate:{
       body=create.invokation(
           create.reserved_name("this"),
-          false,
+          null,
           m.getName()+AT_STRING+parent.getName(),
           names);
       body.labeled("parent");

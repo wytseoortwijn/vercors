@@ -31,7 +31,7 @@ public class SimplifyCalls extends AbstractRewriter {
     for(int i=0;i<N;i++){
       args[i]=e.getArg(i).apply(this);
     }
-    result=create.invokation(object,e.guarded,e.method,args);
+    result=create.invokation(object,rewrite(e.dispatch),e.method,args);
   }
 
 }

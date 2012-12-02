@@ -94,7 +94,7 @@ public class GlobalizeStaticsParameter extends GlobalizeStatics {
         }
         result=create.invokation(
             rewrite(e.object),
-            e.guarded,
+            rewrite(e.dispatch),
             e.method,
             args
         );

@@ -193,7 +193,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
     for(int i=0;i<N;i++){
       args[i]=e.getArg(i).apply(this);
     }
-    MethodInvokation res=create.invokation(object,e.guarded,e.method,args);
+    MethodInvokation res=create.invokation(object,rewrite(e.dispatch),e.method,args);
     res.set_before(rewrite(e.get_before()));
     res.set_after(rewrite(e.get_after()));
     result=res;

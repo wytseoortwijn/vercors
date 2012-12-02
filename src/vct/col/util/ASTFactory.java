@@ -494,17 +494,17 @@ public class ASTFactory<E> implements FrameControl {
   /**
    * Create a new method invokation node.
    */
-  public MethodInvokation invokation(Origin origin,ASTNode object,boolean guarded,String method,ASTNode ... args){
-    MethodInvokation res=new MethodInvokation(object,guarded,method,args);
+  public MethodInvokation invokation(Origin origin,ASTNode object,ClassType dispatch,String method,ASTNode ... args){
+    MethodInvokation res=new MethodInvokation(object,dispatch,method,args);
     res.setOrigin(origin);
     res.accept_if(post);
     return res;
   }
-  public MethodInvokation invokation(E origin,ASTNode object,boolean guarded,String method,ASTNode ... args){
-    return invokation(origin_source.create(origin),object,guarded,method,args);
+  public MethodInvokation invokation(E origin,ASTNode object,ClassType dispatch,String method,ASTNode ... args){
+    return invokation(origin_source.create(origin),object,dispatch,method,args);
   }
-  public MethodInvokation invokation(ASTNode object,boolean guarded,String method,ASTNode ... args){
-    return invokation(origin_stack.get(),object,guarded,method,args);
+  public MethodInvokation invokation(ASTNode object,ClassType dispatch,String method,ASTNode ... args){
+    return invokation(origin_stack.get(),object,dispatch,method,args);
   }
   
   
@@ -584,7 +584,7 @@ public class ASTFactory<E> implements FrameControl {
     } else {
       Fail("cannot instantiate type %s",type);
     }
-    return invokation(origin, type, false, name , args);
+    return invokation(origin, type, null, name , args);
   }
   public MethodInvokation new_object(E origin,Type type,ASTNode ... args){
     return new_object(origin_source.create(origin),type,args); 

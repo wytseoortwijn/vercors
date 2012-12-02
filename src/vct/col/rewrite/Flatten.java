@@ -60,7 +60,7 @@ public class Flatten extends AbstractRewriter {
       Abort("result type of call unknown at %s",e.getOrigin());
     }
     if (e.getType().isVoid()){
-      result=create.invokation(object,e.guarded,e.method,args);
+      result=create.invokation(object,rewrite(e.dispatch),e.method,args);
       ((MethodInvokation)result).set_before(copy_rw.rewrite(e.get_before()));
       ((MethodInvokation)result).set_after(copy_rw.rewrite(e.get_after()));
     } else {
@@ -69,7 +69,7 @@ public class Flatten extends AbstractRewriter {
       Debug("inserting in %s",declaration_block);
       declaration_block.add_statement(n);
       Debug("assigning resutl of call");
-      MethodInvokation call=create.invokation(object,e.guarded,e.method,args);
+      MethodInvokation call=create.invokation(object,rewrite(e.dispatch),e.method,args);
       call.set_before(copy_pure.rewrite(e.get_before()));
       call.set_after(copy_pure.rewrite(e.get_after()));
       for(NameExpression lbl:e.getLabels()){

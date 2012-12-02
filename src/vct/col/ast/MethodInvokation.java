@@ -17,20 +17,20 @@ public class MethodInvokation extends ASTNode {
   public final String method;
   private Method definition;
   private ASTNode args[];
-  public final boolean guarded;
+  public final ClassType dispatch;
   
   public MethodInvokation(ASTNode object,String method,ASTNode ... args){
     this.object=object;
     this.method=method;
     this.args=Arrays.copyOf(args,args.length);
-    guarded=false;
+    dispatch=null;
   }
   
-  public MethodInvokation(ASTNode object,boolean guarded,String method,ASTNode ... args){
+  public MethodInvokation(ASTNode object,ClassType dispatch,String method,ASTNode ... args){
     this.object=object;
     this.method=method;
     this.args=Arrays.copyOf(args,args.length);
-    this.guarded=guarded;
+    this.dispatch=dispatch;
   }
 
   public <T> void accept_simple(ASTVisitor<T> visitor){

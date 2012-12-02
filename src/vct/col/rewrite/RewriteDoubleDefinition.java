@@ -42,7 +42,7 @@ public class RewriteDoubleDefinition extends AbstractRewriter {
     int N=e.getOperator().arity();
     ASTNode args[]=new ASTNode[N];
     for(int i=0;i<N;i++) args[i]=e.getArg(i).apply(this);
-    result=create.invokation(null, false, name ,args);
+    result=create.invokation(null, null, name ,args);
   }
   public void visit(ConstantExpression e){
     if(e.getType().isDouble()){
