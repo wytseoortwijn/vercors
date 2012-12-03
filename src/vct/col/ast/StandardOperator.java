@@ -94,6 +94,10 @@ public enum StandardOperator {
   Unlock(1),
   /** Direct proof statement. */
   DirectProof(1),
+  /** Open a predicate family. */
+  Open(1),
+  /** Close a predicate family. */
+  Close(1),
   /** Fold statement. */
   Fold(1),
   /** Unfold statement. */

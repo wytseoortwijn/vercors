@@ -1,5 +1,7 @@
 package vct.col.util;
 
+import java.util.Arrays;
+
 import vct.col.ast.*;
 import vct.col.ast.NameExpression.Kind;
 import vct.col.ast.PrimitiveType.Sort;
@@ -30,6 +32,12 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     ASTClass cl=source().find(t.getNameFull());
     if (cl==null) {
       Method m=source().find_predicate(t.getNameFull());
+      if (m==null){
+        String name[]=t.getNameFull();
+        if (name.length >1){
+          m=source().find_predicate(Arrays.copyOf(name, name.length-1));
+        }
+      }
       if (m==null){
         Fail("type error: class (or predicate) "+t.getFullName()+" not found");
       }
@@ -98,18 +106,23 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     if (e.get_after()!=null) e.get_after().accept(this);
   }
   
-  public void visit(AssignmentStatement s){
-    super.visit(s);
-    ASTNode loc=s.getLocation();
-    ASTNode val=s.getExpression();
-    Type loc_type=loc.getType();
+  public final void check_loc_val(Type loc_type,ASTNode val){
     if (loc_type==null) Abort("Location has no type.");
     Type val_type=val.getType();
     if (val_type==null) Abort("Value has no type has no type.");
     if (loc_type.toString().equals("<<label>>")) return;
-    if (!(loc_type.equals(val_type) || loc_type.supertypeof(null, val_type))) {
-      Abort("Types of location (%s) and value (%s) do not match at %s.",loc_type,val_type,s.getOrigin());
-    }
+    if (!(loc_type.equals(val_type) || loc_type.supertypeof(source(), val_type))) {
+      Fail("Types of location (%s) and value (%s) do not match.",loc_type,val_type);
+    }    
+  }
+  public void visit(AssignmentStatement s){
+    ASTNode val=s.getExpression();
+    val.accept(this);
+    Type val_type=val.getType();
+    if (val_type==null) Abort("Value has no type has no type.");
+    if (val_type.toString().equals("<<label>>")) return;
+    s.getLocation().accept(this);
+    check_loc_val(s.getLocation().getType(),s.getExpression());
   }
   
   public void visit(DeclarationStatement s){
@@ -117,8 +130,8 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     String name=s.getName();
     Type t=s.getType();
     ASTNode e=s.getInit();
-    if (e!=null && !t.equals(e.getType())) {
-      Abort("type of %s (%s) does not match its initialization (%s)",name,t,e.getType());
+    if (e!=null) {
+      check_loc_val(t,e);
     }
   }
   
@@ -366,14 +379,16 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     }
     case Fold:
     case Unfold:
+    case Open:
+    case Close:
     {
       ASTNode arg=e.getArg(0);
       if (!(arg instanceof MethodInvokation)){
-        Fail("At %s: argument of (un)fold must be a predicate invokation.",arg.getOrigin());
+        Fail("At %s: argument of [%s] must be a predicate invokation.",arg.getOrigin(),op);
       }
       MethodInvokation prop=(MethodInvokation)arg;
       if (prop.getDefinition().kind != Method.Kind.Predicate){
-        Fail("At %s: argument of (un)fold must be predicate and not %s",arg.getOrigin(),prop.getDefinition().kind);
+        Fail("At %s: argument of [%s] must be predicate and not %s",arg.getOrigin(),op,prop.getDefinition().kind);
       }
       e.setType(new PrimitiveType(Sort.Void));      
       break;

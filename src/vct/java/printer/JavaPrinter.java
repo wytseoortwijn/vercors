@@ -463,6 +463,30 @@ public class JavaPrinter extends AbstractPrinter {
         prop.accept(this);
         break;
       }
+      case Open:{
+        out.printf("//@ open ");
+        current_precedence=0;
+        setExpr();
+        ASTNode prop=e.getArg(0);
+        prop.accept(this);
+        if (e.get_before()!=null){
+          out.printf(" where ");
+          e.get_before().accept(this);
+          if (e.get_after()!=null){
+            out.printf(" then ");
+            e.get_after().accept(this);
+          }
+        }
+        break;
+      }
+      case Close:{
+        out.printf("//@ close ");
+        current_precedence=0;
+        setExpr();
+        ASTNode prop=e.getArg(0);
+        prop.accept(this);
+        break;
+      }
       case New:{
         out.printf("new ");
         e.getArg(0).accept(this);
@@ -532,7 +556,7 @@ public class JavaPrinter extends AbstractPrinter {
     super.visit(s);
     if (s.get_before()!=null){
       out.printf("/*@ ");
-      out.printf("then ");
+      out.printf("with ");
       s.get_before().accept(this);
       out.printf(" */");
     }

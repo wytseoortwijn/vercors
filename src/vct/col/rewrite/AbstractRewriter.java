@@ -381,6 +381,8 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
       args[i]=e.getArg(i).apply(this);
     }
     OperatorExpression res=new OperatorExpression(op,args);
+    res.set_before(rewrite(e.get_before()));
+    res.set_after(rewrite(e.get_after()));
     res.setOrigin(e.getOrigin());
     result=res;
   }

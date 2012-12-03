@@ -7,7 +7,7 @@ import java.util.*;
 
 import static hre.System.*;
 
-public class OperatorExpression extends ASTNode {
+public class OperatorExpression extends ExpressionNode {
 
   private StandardOperator op;
   private ASTNode args[];

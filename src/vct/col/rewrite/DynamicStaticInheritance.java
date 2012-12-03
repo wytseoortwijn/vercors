@@ -1,5 +1,7 @@
 package vct.col.rewrite;
 
+import java.util.Arrays;
+
 import vct.col.ast.ASTClass;
 import vct.col.ast.ASTFlags;
 import vct.col.ast.ASTNode;
@@ -81,7 +83,67 @@ public class DynamicStaticInheritance extends AbstractRewriter {
         super.visit(e);
       }
     }
+    public void visit(OperatorExpression e){
+      switch(e.getOperator()){
+        case Fold:
+        case Unfold:
+          result=split_predicates.rewrite(e);
+          break;
+        case Open:{
+          MethodInvokation i=(MethodInvokation)e.getArg(0);
+          MethodInvokation res=create.invokation(
+              rewrite(i.object),
+              null,
+              "open_"+i.method+AT_STRING+i.dispatch.getFullName(),
+              rewrite(i.getArgs())
+            );
+          res.set_before(rewrite(e.get_before()));
+          res.set_after(rewrite(e.get_after()));
+          result=res;
+          break;
+        }
+        default:
+          super.visit(e);
+          break;
+      }
+    }
+    public void visit(ClassType t){
+      ASTClass cl=source().find(t.getNameFull());
+      if (cl==null) {
+        Method m=source().find_predicate(t.getNameFull());
+        if (m==null){
+          String name[]=t.getNameFull();
+          String new_name[]=new String[name.length-1];
+          for(int i=0;i<new_name.length-1;i++){
+            new_name[i]=name[i];
+          }
+          int k=new_name.length-1;
+          new_name[k]=name[k]+AT_STRING+name[k+1];
+          result=create.class_type(new_name);
+        } else {
+          super.visit(t);
+        }
+      } else {
+        super.visit(t);
+      }
+    }
   };
+  
+  private AbstractRewriter split_predicates=new AbstractRewriter(this){
+    public void visit(MethodInvokation e){
+      if (e.dispatch!=null){
+        result=create.invokation(
+          rewrite(e.object),
+          null,
+          e.method+AT_STRING+e.dispatch.getFullName(),
+          rewrite(e.getArgs())
+        );
+      } else {
+        super.visit(e);
+      }
+    }
+  };
+  
   private AbstractRewriter fix_super_plus=new AbstractRewriter(this){
     public void visit(MethodInvokation e){
       if (isSuper(e.object)){
@@ -95,11 +157,50 @@ public class DynamicStaticInheritance extends AbstractRewriter {
       switch(e.getOperator()){
         case Fold:
         case Unfold:
-          result=tag_this.rewrite(e);
+          result=split_predicates.rewrite(e);
           break;
+        case Open:{
+          MethodInvokation i=(MethodInvokation)e.getArg(0);
+          MethodInvokation res=create.invokation(
+              rewrite(i.object),
+              null,
+              "open_"+i.method+AT_STRING+i.dispatch.getFullName(),
+              rewrite(i.getArgs())
+            );
+          BlockStatement tmp=rewrite(e.get_before());
+          if (tmp==null) tmp=create.block();
+          if (i.labels()>0){
+            NameExpression label=i.getLabel(0);
+            tmp.add_statement(create.assignment(create.label("family"),rewrite(label)));
+          }
+          res.set_before(tmp);
+          res.set_after(rewrite(e.get_after()));
+          result=res;
+          break;
+        }
         default:
           super.visit(e);
           break;
+      }
+    }
+    public void visit(ClassType t){
+      ASTClass cl=source().find(t.getNameFull());
+      if (cl==null) {
+        Method m=source().find_predicate(t.getNameFull());
+        if (m==null){
+          String name[]=t.getNameFull();
+          String new_name[]=new String[name.length-1];
+          for(int i=0;i<new_name.length-1;i++){
+            new_name[i]=name[i];
+          }
+          int k=new_name.length-1;
+          new_name[k]=name[k]+AT_STRING+name[k+1];
+          result=create.class_type(new_name);
+        } else {
+          super.visit(t);
+        }
+      } else {
+        super.visit(t);
       }
     }
   };
@@ -248,7 +349,7 @@ public class DynamicStaticInheritance extends AbstractRewriter {
             tag_this.rewrite(m.getContract()),
             m.getName()+AT_STRING+class_name,
             copy_rw.rewrite(m.getArgs()),
-            tag_this.rewrite(m.getBody()));
+            fix_super.rewrite(m.getBody()));
         res.add_dynamic(local);
         break;
       }

@@ -161,7 +161,11 @@ public abstract class ASTFrame<T> {
       variables.enter();
       if (node.getParent() instanceof MethodInvokation){
         MethodInvokation s=(MethodInvokation)node.getParent();
-        add_contract_vars(s.getDefinition());
+        Method def=s.getDefinition();
+        //if (def==null) {
+        //  Warning("definition of method invokation is unknown, expect type errors.");
+        //}
+        add_contract_vars(def);
       }
     }
     if (node instanceof DeclarationStatement){
