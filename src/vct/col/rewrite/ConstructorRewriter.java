@@ -52,15 +52,13 @@ public class ConstructorRewriter extends AbstractRewriter {
       Contract c=m.getContract();
       if (c!=null){
         rewrite(c,cb);
-        //cb.requires(rewrite(c.pre_condition));
-        for(DeclarationStatement field:((ASTClass)m.getParent()).dynamicFields()){
-          cb.requires(create.expression(
-              StandardOperator.Perm,
-              create.field_name(field.getName()),
-              create.constant(100)
-          ));
-        }
-        //cb.ensures(rewrite(c.post_condition));
+      }
+      for(DeclarationStatement field:((ASTClass)m.getParent()).dynamicFields()){
+        cb.requires(create.expression(
+            StandardOperator.Perm,
+            create.field_name(field.getName()),
+            create.constant(100)
+        ));
       }
       result=create.method_decl(create.primitive_type(PrimitiveType.Sort.Void), cb.getContract(), name, args, body);
     } else {
