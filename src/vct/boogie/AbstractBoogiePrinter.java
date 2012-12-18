@@ -370,6 +370,31 @@ public abstract class AbstractBoogiePrinter extends AbstractPrinter {
     }
     out.lnprintf("assume false; // return;");   
   }
-  
+  @Override
+  public void visit(BindingExpression e){
+    out.printf("(");
+    switch(e.binder){
+      case FORALL:
+        out.printf("forall ");
+        break;
+      default:
+        Abort("missing case: %s",e.binder);
+    }
+    int N=e.getDeclCount();
+    if (N!=1) {
+      Abort("multi variable quatification is future work");
+    }
+    DeclarationStatement decl=e.getDeclaration(0);
+    out.printf("%s : ",decl.getName());
+    decl.getType().accept(this);
+    out.printf("::");
+    if (e.select!=null){
+      e.select.accept(this);
+      out.printf("==>");
+    }
+    e.main.accept(this);
+    out.printf(")");
+  }
+
 }
 

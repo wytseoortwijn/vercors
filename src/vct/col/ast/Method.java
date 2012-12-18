@@ -24,18 +24,24 @@ public class Method extends ASTNode {
   private final String name;
   private final Type return_type;
   private final DeclarationStatement args [];
+  private final boolean var_args;
   private Hashtable <String,Contract> spec=new Hashtable();
   private ASTNode body;
   public final Kind kind;
   
-  public Method(String name,Type return_type,Contract contract,DeclarationStatement args[],ASTNode body){
-    this(Kind.Plain,name,return_type,contract,args,body);
+  public boolean usesVarArgs(){
+    return var_args;
+  }
+  
+  public Method(String name,Type return_type,Contract contract,DeclarationStatement args[],boolean varArgs,ASTNode body){
+    this(Kind.Plain,name,return_type,contract,args,varArgs,body);
   }
 
-  public Method(Kind kind, String name,String args[],FunctionType t){
+  public Method(Kind kind, String name,String args[],boolean many,FunctionType t){
     this.name=name;
     this.return_type=t.getResult();
     this.args=new DeclarationStatement[args.length];
+    this.var_args=many;
     for(int i=0;i<args.length;i++){
       this.args[i]=new DeclarationStatement(args[i],t.getArgument(i));
       this.args[i].setParent(this);
@@ -44,10 +50,11 @@ public class Method extends ASTNode {
     this.kind=kind;
   }
   
-  public Method(Kind kind, String name,Type return_type,Contract contract,DeclarationStatement args[],ASTNode body){
+  public Method(Kind kind, String name,Type return_type,Contract contract,DeclarationStatement args[],boolean varArgs,ASTNode body){
     this.name=name;
     this.return_type=return_type;
     this.args=Arrays.copyOf(args,args.length);
+    this.var_args=varArgs;
     for(int i=0;i<args.length;i++){
       if (this.args[i].getParent()==null) this.args[i].setParent(this);
     }

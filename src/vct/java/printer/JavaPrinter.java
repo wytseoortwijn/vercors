@@ -257,12 +257,18 @@ public class JavaPrinter extends AbstractPrinter {
       if (args[0].isValidFlag(ASTNode.GHOST) && args[0].isGhost()){ out.printf("/*@ ghost */"); }
       if (args[0].isValidFlag(ASTFlags.OUT_ARG) && args[0].getFlag(ASTFlags.OUT_ARG)){ out.printf("/*@ out */"); }
       m.getArgType(0).accept(this);
+      if (N==1 && m.usesVarArgs()){
+        out.print(" ...");
+      }
       out.printf(" %s",m.getArgument(0));
       for(int i=1;i<N;i++){
         out.printf(",");
         if (args[i].isValidFlag(ASTNode.GHOST) && args[i].isGhost()){ out.printf("/*@ ghost */"); }
         if (args[i].isValidFlag(ASTFlags.OUT_ARG) && args[i].getFlag(ASTFlags.OUT_ARG)){ out.printf("/*@ out */"); }
         m.getArgType(i).accept(this);
+        if (i==N-1 && m.usesVarArgs()){
+          out.print(" ...");
+        }
         out.printf(" %s",m.getArgument(i));
       }
     }

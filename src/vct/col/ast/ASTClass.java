@@ -240,14 +240,22 @@ public class ASTClass extends ASTNode {
         if (m.getName().equals(name)){
           Debug("checking type of method %s",name);
           DeclarationStatement args[]=m.getArgs();
-          if (args.length>=type.length){
+          boolean varargs=m.usesVarArgs();
+          if (args.length>=type.length || varargs){
+            int idx;
             Debug("attempting match");
             for(int i=0;i<type.length;i++){
-              if (!m.getArgType(i).supertypeof(root, type[i])){
-                Debug("type of argument %d does not match method (cannot pass %s as %s)%n",i,type[i],m.getArgType(i));
+              if (varargs && i>=args.length){
+                idx=args.length-1;
+              } else {
+                idx=i;
+              }
+              if (!m.getArgType(idx).supertypeof(root, type[i])){
+                Debug("type of argument %d does not match method (cannot pass %s as %s)%n",i,type[i],m.getArgType(idx));
                 continue node;
               }
             }
+            if (varargs && type.length==args.length-1) return m;
             for(int i=type.length;i<args.length;i++){
               if (!args[i].isValidFlag(ASTFlags.GHOST) || !args[i].getFlag(ASTFlags.GHOST)) {
                 Debug("omitted argument is not ghost - no match");

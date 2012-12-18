@@ -511,11 +511,14 @@ public class ASTFactory<E> implements FrameControl {
   /**
    * Create a method declaration
    */
-  public Method method_kind(Origin origin,Method.Kind kind,Type returns,Contract contract,String name,DeclarationStatement args[],ASTNode body){
-    Method res=new Method(kind,name,returns,contract,args,body);
+  public Method method_kind(Origin origin,Method.Kind kind,Type returns,Contract contract,String name,DeclarationStatement args[],boolean varArgs,ASTNode body){
+    Method res=new Method(kind,name,returns,contract,args,varArgs,body);
     res.setOrigin(origin);
     res.accept_if(post);
     return res;
+  }
+  public Method method_kind(Origin origin,Method.Kind kind,Type returns,Contract contract,String name,DeclarationStatement args[],ASTNode body){
+    return method_kind(origin,kind,returns,contract,name,args,false,body);
   }
   public Method method_kind(E origin,Method.Kind kind,Type returns,Contract contract,String name,DeclarationStatement args[],ASTNode body){
     return method_kind(origin_source.create(origin),kind,returns,contract,name,args,body);
@@ -528,10 +531,7 @@ public class ASTFactory<E> implements FrameControl {
    * Create a method declaration
    */
   public Method method_decl(Origin origin,Type returns,Contract contract,String name,DeclarationStatement args[],ASTNode body){
-    Method res=new Method(Method.Kind.Plain,name,returns,contract,args,body);
-    res.setOrigin(origin);
-    res.accept_if(post);
-    return res;
+    return method_kind(origin,Method.Kind.Plain,returns,contract,name,args,false,body);
   }
   public Method method_decl(E origin,Type returns,Contract contract,String name,DeclarationStatement args[],ASTNode body){
     return method_decl(origin_source.create(origin),returns,contract,name,args,body);
@@ -544,10 +544,7 @@ public class ASTFactory<E> implements FrameControl {
    * Create a function declaration
    */
   public Method function_decl(Origin origin,Type returns,Contract contract,String name,DeclarationStatement args[],ASTNode body){
-    Method res=new Method(Method.Kind.Pure,name,returns,contract,args,body);
-    res.setOrigin(origin);
-    res.accept_if(post);
-    return res;
+    return method_kind(origin,Method.Kind.Pure,returns,contract,name,args,false,body);
   }
   public Method function_decl(E origin,Type returns,Contract contract,String name,DeclarationStatement args[],ASTNode body){
     return function_decl(origin_source.create(origin),returns,contract,name,args,body);
@@ -597,12 +594,7 @@ public class ASTFactory<E> implements FrameControl {
    * Create a predicate declaration.
    */
   public Method predicate(Origin origin, String name, ASTNode body,DeclarationStatement ... args) {
-    Type bool=new PrimitiveType(Sort.Boolean);
-    bool.setOrigin(origin);
-    Method res=new Method(Method.Kind.Predicate, name, bool, null, args, body);
-    res.setOrigin(origin);
-    res.accept_if(post);
-    return res;    
+    return method_kind(origin,Method.Kind.Predicate,primitive_type(origin,Sort.Boolean),null,name,args,false,body);
   }
   public Method predicate(E origin,String name, ASTNode body, DeclarationStatement ... args) {
     return predicate(origin_source.create(origin),name,body,args);
@@ -731,17 +723,17 @@ public class ASTFactory<E> implements FrameControl {
   /**
    * Create a new binding expression.
    */
-  public ASTNode binder(Origin origin,Binder b,DeclarationStatement decls[],ASTNode selection,ASTNode main) {
-    ASTNode res=new BindingExpression(b,decls,selection,main);
+  public ASTNode binder(Origin origin,Binder b,Type result_type,DeclarationStatement decls[],ASTNode selection,ASTNode main) {
+    ASTNode res=new BindingExpression(b,result_type,decls,selection,main);
     res.setOrigin(origin);
     res.accept_if(post);
     return res;
   }
-  public ASTNode binder(E origin,Binder b,DeclarationStatement decls[],ASTNode selection,ASTNode main) {
-    return binder(origin_source.create(origin),b,decls,selection,main);
+  public ASTNode binder(E origin,Binder b,Type result_type,DeclarationStatement decls[],ASTNode selection,ASTNode main) {
+    return binder(origin_source.create(origin),b,result_type,decls,selection,main);
   }
-  public ASTNode binder(Binder b,DeclarationStatement decls[],ASTNode selection,ASTNode main) {
-    return binder(origin_stack.get(),b,decls,selection,main);      
+  public ASTNode binder(Binder b,Type result_type,DeclarationStatement decls[],ASTNode selection,ASTNode main) {
+    return binder(origin_stack.get(),b,result_type,decls,selection,main);      
   }
 
   public void addRandomConstructor(ASTClass cl){
@@ -760,8 +752,14 @@ public class ASTFactory<E> implements FrameControl {
           constant(100)
      ));
     }
-    Method cons=new Method(Method.Kind.Constructor, cl.getName(),primitive_type(PrimitiveType.Sort.Void), cb.getContract(), new DeclarationStatement[0],block());
-    cons.setOrigin(cl.getOrigin());
+    Method cons=method_kind(
+        Method.Kind.Constructor,
+        primitive_type(PrimitiveType.Sort.Void),
+        cb.getContract(),
+        cl.getName(),
+        new DeclarationStatement[0],
+        block()
+    );
     cl.add_dynamic(cons);
     leave();
   }
@@ -782,8 +780,13 @@ public class ASTFactory<E> implements FrameControl {
       ));
       body.add_statement(assignment(field_name(field.getName()),zero));
     }
-    Method cons=new Method(Method.Kind.Constructor, cl.getName(),primitive_type(PrimitiveType.Sort.Void), cb.getContract(), new DeclarationStatement[0],body);
-    cons.setOrigin(cl.getOrigin());
+    Method cons=method_kind(
+        Method.Kind.Constructor,
+        primitive_type(PrimitiveType.Sort.Void),
+        cb.getContract(),
+        cl.getName(),
+        new DeclarationStatement[0],
+        body);
     cl.add_dynamic(cons);
     leave();
   }

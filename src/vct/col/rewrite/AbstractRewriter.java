@@ -9,6 +9,7 @@ import vct.col.ast.ASTFrame;
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTWith;
 import vct.col.ast.AbstractVisitor;
+import vct.col.ast.BindingExpression;
 import vct.col.ast.ContractBuilder;
 import vct.col.ast.Dereference;
 import vct.col.ast.MethodInvokation;
@@ -357,9 +358,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
     Method.Kind kind=m.kind;
     Type rt=rewrite(m.getReturnType());
     ASTNode body=rewrite(m.getBody());
-    Method res=new Method(kind,name,rt,c,args,body);
-    res.setOrigin(m.getOrigin());
-    result=res;
+    result=create.method_kind(m.getOrigin(), kind, rt, c, name, args, m.usesVarArgs(), body);
   }
 
   @Override
@@ -455,5 +454,10 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   public void visit(Dereference e) {
     result=create.dereference(e.object.apply(this),e.field);
   }
- 
+  
+  @Override
+  public void visit(BindingExpression e){
+    result=create.binder(e.binder,rewrite(e.result_type),rewrite(e.getDeclarations()), rewrite(e.select), rewrite(e.main));
+  }
+  
 }

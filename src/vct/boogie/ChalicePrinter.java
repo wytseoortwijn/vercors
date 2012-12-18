@@ -47,6 +47,10 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
 
   public void visit(ASTClass c){
     String class_name=c.getName();
+    if (class_name.equals("LockSet")){
+      Warning("skipping LockSet class");
+      return;
+    }
     if (in_class) throw new Error("illegal nested class "+class_name);
     if (c.getStaticCount()>0) throw new Error("illegal static entries in "+class_name);
     Contract contract=c.getContract();
@@ -84,7 +88,13 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
     for(int i=0;i<args.length;i++){
       if (args[i].isValidFlag(ASTFlags.OUT_ARG)&&args[i].getFlag(ASTFlags.OUT_ARG)) continue;
       out.printf("%s%s: ",next,args[i].getName());
+        if (i==args.length-1 && m.usesVarArgs() && function){
+          out.print("seq<");
+        }
       args[i].getType().accept(this);
+        if (i==args.length-1 && m.usesVarArgs() && function){
+          out.print(">");
+        }
       next=",";
     }
     if (c!=null){
@@ -418,14 +428,54 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
   }
 
   public void visit(MethodInvokation e){
+    Method m=e.getDefinition();
+    if (m==null){
+      Abort("at %s: definition of invoked method unavailable",e.getOrigin());
+    }
     int N=e.getArity();
-    // TODO: check site rather than rely on N==0 assumption.
-    if (in_clause && N==0 && (e.getType()==null || e.getType().isBoolean())) {
+    if (m.kind==Method.Kind.Predicate){
+      if (N>0) Abort("predicates cannot have arguments in Chalice");
       if (e.object!=null) {
         e.object.accept(this);
         out.print(".");
       }
       out.print(e.method);
+    } else if (m.kind==Method.Kind.Pure && m.usesVarArgs()) {
+      if (e.object!=null) {
+        e.object.accept(this);
+        out.print(".");
+      }
+      out.print(e.method);
+      out.print("(");
+      String sep="";
+      if (m.usesVarArgs()){
+        N=m.getArity()-1;
+      }
+      for(int i=0;i<N;i++){
+        out.print(sep);
+        sep=",";
+        e.getArg(i).accept(this);
+      }
+      if (m.usesVarArgs()){
+        out.printf("%s",sep);
+        sep="";
+        int i=N;
+        N=e.getArity();
+        if (N>i){
+          out.print("[");
+          for(;i<N;i++){
+            out.print(sep);
+            sep=",";
+            e.getArg(i).accept(this);
+          }
+          out.print("]");
+        } else {
+          out.print("nil<");
+          m.getArgType(N).accept(this);
+          out.print(">");
+        }
+      }
+      out.print(")");
     } else {
       super.visit(e);
     }

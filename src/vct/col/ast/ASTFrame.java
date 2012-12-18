@@ -185,6 +185,12 @@ public abstract class ASTFrame<T> {
         scan_labels(inv);
       }
     }
+    if (node instanceof BindingExpression){
+      variables.enter();
+      for(DeclarationStatement decl:((BindingExpression)node).getDeclarations()){
+        variables.add(decl.getName(),new VariableInfo(decl,NameExpression.Kind.Local));
+      }
+    }
     result_stack.push(result);
     result=null;
   }
@@ -255,6 +261,9 @@ public abstract class ASTFrame<T> {
       variables.leave();
     }
     if (node instanceof LoopStatement){
+      variables.leave();
+    }
+    if (node instanceof BindingExpression){
       variables.leave();
     }
     result_ref.set(result);

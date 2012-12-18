@@ -475,6 +475,7 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     // TODO: type checks on class.
   }
   
+  @Override
   public void visit(LoopStatement s) {
     super.visit(s);
     for(ASTNode inv:s.getInvariants()){
@@ -498,6 +499,28 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
         Abort("loop exit guard is not a boolean");
       }      
     }
+  }
+  
+  @Override
+  public void visit(BindingExpression e){
+    super.visit(e);
+    //result=create.binder(e.binder, rewrite(e.getDeclarations()), rewrite(e.select), rewrite(e.main));
+    Type t;
+    if (e.select!=null){
+      t=e.select.getType();
+      if (t==null){
+        Abort("Selection in binding expression without type.");
+      }
+      if (!t.isBoolean()){
+        Fail("Selector in binding expression is not a boolean.");
+      }
+    }
+    t=e.main.getType();
+    if (t==null){
+      Abort("Binding expression without type.");
+    }
+    
+    e.setType(new PrimitiveType(Sort.Boolean));
   }
 
 }

@@ -177,6 +177,11 @@ public abstract class RecursiveVisitor<T> extends ASTFrame<T> implements
 
   @Override
   public void visit(BindingExpression e) {
+    int N=e.getDeclCount();
+    for(int i=0;i<N;i++){
+      e.getDeclaration(i).accept(this);
+    }
+    dispatch(e.result_type);
     dispatch(e.select);
     e.main.accept(this);
   }

@@ -35,9 +35,7 @@ public class FilterClass extends AbstractRewriter {
       }
       Method.Kind kind=m.kind;
       Type rt=rewrite(m.getReturnType());
-      Method res=new Method(kind,name,rt,c,args,null);
-      res.setOrigin(m.getOrigin());
-      result=res;
+      result=create.method_kind(m.getOrigin(), kind, rt, c, name, args, null);
     }
   }
 }

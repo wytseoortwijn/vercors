@@ -126,9 +126,15 @@ public class ExplicitPermissionEncoding extends AbstractRewriter {
       };
       cb.ensures(c.post_condition.apply(clause_rw));
       ASTNode body=rewrite(m.getBody());
-      Method res=new Method(m.kind,m.getName(),m.getReturnType(), cb.getContract(), args.toArray(new DeclarationStatement[0]), body);
-      res.setOrigin(m);
-      result=res;
+      result=create.method_kind(
+          m.getOrigin(),
+          m.kind,
+          rewrite(m.getReturnType()),
+          cb.getContract(),
+          m.getName(),
+          args.toArray(new DeclarationStatement[0]),
+          m.usesVarArgs(),
+          body);
       current_method=null;
     }
   }
