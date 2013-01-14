@@ -291,8 +291,8 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       if (t1==null) Fail("type of left argument unknown at "+e.getOrigin());
       Type t2=e.getArg(1).getType();
       if (t2==null) Fail("type of right argument unknown at "+e.getOrigin());
-      if (t1.getClass()!=t2.getClass()) {
-        Fail("Types of left and right-hand side argument are uncomparable at "+e.getOrigin());
+      if (!t1.comparableWith(t2)) {
+        Fail("Types of left and right-hand side argument are uncomparable: %s/%s",t1,t2);
       }
       e.setType(new PrimitiveType(Sort.Boolean));
       break;
@@ -426,6 +426,24 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       e.setType((Type)t);
       break;
     }
+    case Subscript:
+    {
+      Type t1=e.getArg(0).getType();
+      if (t1==null) Fail("type of base unknown at %s",e.getOrigin());
+      if (!(t1 instanceof ArrayType)) Fail("base must be array type.");
+      Type t2=e.getArg(1).getType();
+      if (t2==null) Fail("type of subscript unknown at %s",e.getOrigin());
+      if (!t2.isInteger()) {
+        Fail("subcript has type %s rather than integer",t2);
+      }
+      ArrayType base=(ArrayType) t1;
+      if (base.dim>1){
+        e.setType(new ArrayType(base.base_type,base.dim-1));
+      } else {
+        e.setType(base.base_type);
+      }
+      break;
+    }
     default:
       Abort("missing case of operator %s",op);
       break;
@@ -436,7 +454,16 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     super.visit(e);
     Type object_type=e.object.getType();
     if (object_type==null) Fail("type of object unknown at "+e.getOrigin());
-    if (!(object_type instanceof ClassType)) Abort("cannot select members of non-object type.");
+    if (object_type instanceof ArrayType){
+      if (e.field.equals("length")){
+        e.setType(new PrimitiveType(Sort.Integer));
+        return;
+      }
+      Fail("%s is not a pseudo field of arrays.",e.field);
+    }
+    if (!(object_type instanceof ClassType)) {
+      Fail("cannot select member %s of non-object type %s",e.field,object_type.getClass());
+    }
     if (((ClassType)object_type).getFullName().equals("<<label>>")){
       //TODO: avoid this kludge to not typing labeled arguments
       e.setType(object_type);

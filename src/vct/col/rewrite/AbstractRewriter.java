@@ -460,4 +460,8 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
     result=create.binder(e.binder,rewrite(e.result_type),rewrite(e.getDeclarations()), rewrite(e.select), rewrite(e.main));
   }
   
+  @Override
+  public void visit(ArrayType t){
+    result=create.array_type(rewrite(t.base_type),t.dim);
+  }
 }

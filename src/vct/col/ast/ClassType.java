@@ -95,4 +95,8 @@ public class ClassType extends Type {
   public ASTNode zero(){
     return new NameExpression(NameExpression.Kind.Reserved,"null");
   }
+  
+  public boolean isNull(){
+    return name.length==1 && name[0].equals("<<null>>"); 
+  }
 }

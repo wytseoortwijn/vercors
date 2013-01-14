@@ -44,5 +44,15 @@ public abstract  class Type extends ASTNode {
     return null;
   }
 
+  public boolean comparableWith(Type t2) {
+    // TODO: the following is not 100% fool proof.
+    // E.g. Void is not comparable to anything...
+    return getClass()==t2.getClass();
+  }
+
+  public boolean isNull() {
+    return false;
+  }
+
 }
 

@@ -20,4 +20,18 @@ public class ArrayType extends Type {
     return false;
   }
 
+  @Override
+  public boolean comparableWith(Type t){
+    if (t instanceof ArrayType){
+      return dim == (((ArrayType)t).dim) && base_type.comparableWith(((ArrayType)t).base_type);
+    }
+    return t.isNull();
+  }
+  
+  @Override
+  public String toString(){
+    String res=base_type.toString();
+    for(int i=0;i<dim;i++) res=res+"[]";
+    return res;
+  }
 }

@@ -18,6 +18,7 @@ import static hre.System.Warning;
  * 
  */
 public class JavaPrinter extends AbstractPrinter {
+  
   public JavaPrinter(TrackingOutput out){
     super(JavaSyntax.get(),out);
   }
@@ -50,6 +51,17 @@ public class JavaPrinter extends AbstractPrinter {
     super.post_visit(node);
   }
   */
+  
+  @Override
+  public void visit(ArrayType t){
+    t.base_type.accept(this);
+    for(int i=0;i<t.dim;i++){
+      out.print("[]");
+    }
+  }
+ 
+  
+  @Override
   public void visit(ClassType t){
     out.print(t.getFullName());
   }
@@ -101,6 +113,9 @@ public class JavaPrinter extends AbstractPrinter {
     for(int i=0;i<N;i++){
       ASTNode statement=block.getStatement(i);
       statement.accept(this);
+      if (statement instanceof LoopStatement) continue;
+      if (statement instanceof DeclarationStatement) continue;
+      if (statement instanceof IfStatement) continue;
       if (in_expr) {
         out.printf(";");
       } else {
