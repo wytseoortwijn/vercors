@@ -1,10 +1,14 @@
 package vct.col.ast;
 
+import hre.ast.MessageOrigin;
+
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 
+import vct.col.ast.ASTClass.ClassKind;
 import vct.col.rewrite.AbstractRewriter;
+import vct.col.util.ASTFactory;
 import vct.col.util.FeatureScanner;
 import vct.util.ClassName;
 
@@ -16,6 +20,17 @@ import vct.util.ClassName;
  */
 public class ProgramUnit {
 
+  private static HashMap<ClassName,ASTClass> library=new HashMap<ClassName, ASTClass>();
+  
+  static {
+    ASTFactory create=new ASTFactory();
+    create.setOrigin(new MessageOrigin("<<ProgramUnit>>"));
+    ASTClass seq=create.ast_class("seq", ClassKind.Plain, null, null);
+    Method len=create.function_decl(create.primitive_type(PrimitiveType.Sort.Integer), null, "length", new DeclarationStatement[0], null);
+    seq.add_dynamic(len);
+    library.put(new ClassName("seq"),seq);
+  }
+  
   /**
    * Classes that comprise this program unit. 
    */
@@ -37,8 +52,10 @@ public class ProgramUnit {
   /**
    * Create an empty program unit.
    */
-  public ProgramUnit(){}
-  
+  public ProgramUnit(){
+    
+  }
+
   /**
    * Copy all entries from the given unit.
    * 
@@ -68,7 +85,11 @@ public class ProgramUnit {
   }
 
   public ASTClass find(ClassName name) {
-    return classes.get(name);
+    ASTClass cl=classes.get(name);
+    if (cl==null){
+      cl=library.get(name);
+    }
+    return cl;
   }
 
   public ASTClass find(ClassType type) {

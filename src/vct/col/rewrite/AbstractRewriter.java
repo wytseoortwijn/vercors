@@ -259,7 +259,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
 
   public void visit(ClassType t){
     //checkPermission(t);
-    ClassType res=new ClassType(t.getNameFull());
+    ClassType res=new ClassType(t.getNameFull(),rewrite(t.getArgs()));
     res.setOrigin(t.getOrigin());
     result=res; return ;    
   }

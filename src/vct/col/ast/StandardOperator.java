@@ -115,7 +115,9 @@ public enum StandardOperator {
   /** Continue with next value in loop */
   Continue(1),
   /** Create a new uninitialized object */
-  New(1);
+  New(1),
+  /** Get the size of a container, such as a sequence. */
+  Size(1);
 
   private final int arity;
   

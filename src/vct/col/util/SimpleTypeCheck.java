@@ -444,6 +444,14 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       }
       break;
     }
+    case Size:
+    {
+      Type t=e.getArg(0).getType();
+      if (t==null) Fail("type of argument is unknown at %s",e.getOrigin());
+      if (!t.toString().equals("seq")) Fail("argument of size is not a sequence");
+      e.setType(new PrimitiveType(Sort.Integer));      
+      break;
+    }
     default:
       Abort("missing case of operator %s",op);
       break;

@@ -9,7 +9,22 @@ import java.util.Arrays;
 public class ClassType extends Type {
 
   private final String name[];
+  private final ASTNode args[];
   
+  public ClassType(String name[],ASTNode ... args){
+    this.name=Arrays.copyOf(name,name.length);
+    this.args=Arrays.copyOf(args,args.length);
+  }
+  
+  public ASTNode[] getArgs(){
+    return args;
+  }
+  
+  public ASTNode getArg(int i){
+    return args[i];
+  }
+
+
   public String[] getNameFull(){
     return Arrays.copyOf(name,name.length);
   }
@@ -17,10 +32,12 @@ public class ClassType extends Type {
   public ClassType(String name) {
     this.name=new String[1];
     this.name[0]=name;
+    args=null;
   }
   public ClassType(String name[]) {
     if (name.length==0) Abort("illegal name of length 0");
     this.name=Arrays.copyOf(name,name.length);
+    args=null;
   }
   public String getName(){
     return name[name.length-1];

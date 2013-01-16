@@ -36,6 +36,7 @@ public class BoogieSyntax {
     syntax.addRightFix(Assign,"=",10);
     syntax.addFunction(Old,"old");
     syntax.addOperator(ITE,20,"","?",":","");
+    syntax.addOperator(Size,0,"|","|");
   }
 
   public static Syntax getBoogie(){

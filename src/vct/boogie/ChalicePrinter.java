@@ -30,10 +30,19 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
   
   public void visit(ClassType t){
     String name[]=t.getNameFull();
+    ASTNode args[]=t.getArgs();
     if (name.length>1){
       Abort("cannot deal with class name of length %d",name.length);
     }
+    if (args.length > 1) {
+      Abort("more than one type parameter is illegal");
+    }
     out.print(t.getName());
+    if (args.length==1){
+      out.print("<");
+      args[0].accept(this);
+      out.print(">");
+    }
   }
   public void visit(PrimitiveType t){
     switch (t.sort){

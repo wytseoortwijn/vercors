@@ -64,6 +64,16 @@ public class JavaPrinter extends AbstractPrinter {
   @Override
   public void visit(ClassType t){
     out.print(t.getFullName());
+    ASTNode args[]=t.getArgs();
+    if (args.length>0){
+      out.print("<");
+      args[0].accept(this);
+      for(int i=1;i<args.length;i++){
+        out.print(",");
+        args[i].accept(this);
+      }
+      out.print(">");
+    }
   }
   public void visit(FunctionType t){
     int N=t.getArity();
