@@ -55,8 +55,21 @@ public class System {
    * such as bad input.
    */
   public static void Fail(String format,Object...args){
+    String prefix="";
+    if (where){
+      StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
+      int N=stackTraceElements.length;
+      int idx=2;
+      while(stackTraceElements[idx].getMethodName().equals("Fail")){
+        idx++;
+      }
+      String name=stackTraceElements[idx].getClassName();
+      int line=stackTraceElements[idx].getLineNumber();
+      java.lang.System.err.printf("At line %d of %s:%n",line,name);
+      prefix="  ";
+    }
     String message=String.format(format,args);
-    java.lang.System.err.printf("%s%n",message);
+    java.lang.System.err.printf("%s%s%n",prefix,message);
     java.lang.System.exit(1);
   }
   
@@ -122,5 +135,11 @@ public class System {
   public static void Warning(String format,Object...args){
     String message=String.format(format,args);
     java.lang.System.err.printf("WARNING: %s%n",message);    
+  }
+
+  private static boolean where=false;
+  
+  public static void EnableWhere(boolean b) {
+    where=b;
   }
 }
