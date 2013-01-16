@@ -24,6 +24,7 @@ import java.util.concurrent.Future;
 import vct.col.annotate.DeriveModifies;
 import vct.col.ast.*;
 import vct.col.rewrite.AssignmentRewriter;
+import vct.col.rewrite.ChalicePreProcess;
 import vct.col.rewrite.ConstructorRewriter;
 import vct.col.rewrite.DefineDouble;
 import vct.col.rewrite.DynamicStaticInheritance;
@@ -51,7 +52,7 @@ import static hre.ast.Context.globalContext;
  * @author Stefan Blom
  *
  */
-class Main
+public class Main
 {
   private static ProgramUnit program=new ProgramUnit();
   
@@ -129,6 +130,8 @@ class Main
     
     StringListSetting debug_list=new StringListSetting();
     clops.add(debug_list.getAppendOption("print debug message for given classes and/or packages"),"debug");
+    BooleanSetting where=new BooleanSetting(false);
+    clops.add(where.getEnable("report which class failed"),"where");
     
     BooleanSetting progress=new BooleanSetting(false);
     clops.add(progress.getEnable("print progress messages"),"progress");
@@ -140,6 +143,7 @@ class Main
     for(String name:debug_list){
       hre.System.EnableDebug(name,java.lang.System.err,"vct("+name+")");
     }
+    hre.System.EnableWhere(where.get());
 
     Hashtable<String,CompilerPass> defined_passes=new Hashtable<String,CompilerPass>();
     Hashtable<String,ValidationPass> defined_checks=new Hashtable<String,ValidationPass>();
@@ -288,6 +292,11 @@ class Main
         return new VoidCalls(arg).rewriteAll();
       }
     });
+    defined_passes.put("chalice-preprocess",new CompilerPass("Pre processing for chalice"){
+      public ProgramUnit apply(ProgramUnit arg){
+        return new ChalicePreProcess(arg).rewriteAll();
+      }
+    });
     if (help_passes.get()) {
       System.out.println("The following passes are available:"); 
       for (Entry<String, CompilerPass> entry:defined_passes.entrySet()){
@@ -394,6 +403,8 @@ class Main
       passes.add("standardize");
       passes.add("check");
       passes.add("flatten");
+      passes.add("check");
+      passes.add("chalice-preprocess");
       passes.add("check");
     	passes.add("chalice");
     } else {
