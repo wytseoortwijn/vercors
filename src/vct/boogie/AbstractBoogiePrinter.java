@@ -374,9 +374,15 @@ public abstract class AbstractBoogiePrinter extends AbstractPrinter {
   public void visit(BindingExpression e){
     out.printf("(");
     switch(e.binder){
-      case FORALL:
-        out.printf("forall ");
-        break;
+    case FORALL:
+      out.printf("forall ");
+      break;
+    case EXISTS:
+      out.printf("exists ");
+      break;
+    case LET:
+      out.printf("let ");
+      break;
       default:
         Abort("missing case: %s",e.binder);
     }

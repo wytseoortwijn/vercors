@@ -1,15 +1,37 @@
 package vct.col.rewrite;
 
+import vct.col.ast.ASTClass;
 import vct.col.ast.Dereference;
 import vct.col.ast.MethodInvokation;
 import vct.col.ast.PrimitiveType;
 import vct.col.ast.ProgramUnit;
 import vct.col.ast.StandardOperator;
+import vct.col.ast.Type;
+import hre.ast.MessageOrigin;
+
+import java.util.Hashtable;
+import java.util.Map.Entry;
 
 public class ChalicePreProcess extends AbstractRewriter {
 
+  private Hashtable<Type,String>cell_types=new Hashtable();
+  
   public ChalicePreProcess(ProgramUnit source) {
     super(source);
+  }
+  
+  @Override
+  public ProgramUnit rewriteAll(){
+    ProgramUnit res=super.rewriteAll();
+    for(Entry<Type,String> entry : cell_types.entrySet()){
+      create.setOrigin(new MessageOrigin("added by ChalicePreProcess"));
+      ASTClass cl=create.ast_class(entry.getValue(), ASTClass.ClassKind.Plain , null,null);
+      cl.add_dynamic(create.field_decl("item",entry.getKey()));
+      String name[]=new String[1];
+      name[0]=entry.getValue();
+      res.addClass(name, cl);
+    }
+    return res;
   }
   
   @Override
@@ -29,6 +51,16 @@ public class ChalicePreProcess extends AbstractRewriter {
       super.visit(e);
     }    
   }
-    
+  
+  @Override
+  public void visit(PrimitiveType t){
+    if (t.sort==PrimitiveType.Sort.Cell){
+      String sort="cell_of_"+t.getArg(0);
+      cell_types.put((Type)t.getArg(0),sort);
+      result=create.class_type(sort);
+    } else {
+      super.visit(t);
+    }
+  }
      
 }

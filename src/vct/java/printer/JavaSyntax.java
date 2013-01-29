@@ -82,8 +82,7 @@ public class JavaSyntax {
       syntax.addPrimitiveType(Fraction,"frac");
       syntax.addPrimitiveType(Long,"long");
       syntax.addPrimitiveType(Void,"void");
-      syntax.addPrimitiveType(Pred,"pred");
-      syntax.addPrimitiveType(Group,"group");
+      syntax.addPrimitiveType(Resource,"resource");
       syntax.addPrimitiveType(Boolean,"boolean");
       syntax.addPrimitiveType(Class,"classtype");
       

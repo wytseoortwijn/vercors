@@ -18,8 +18,8 @@ public final class PrimitiveType extends Type {
     Void,
     String,
     Class,
-    Pred,
-    Group,
+    Resource,
+    Cell,
     Sequence,
     Array};
 
@@ -30,6 +30,7 @@ public final class PrimitiveType extends Type {
     switch(sort){
       case Sequence:
       case Array:
+      case Cell:
         if (N!=1) Abort("illegal argument count");
         break;
       default:
@@ -91,6 +92,7 @@ public final class PrimitiveType extends Type {
     switch(this.sort){
     case Sequence:
     case Array:
+    case Cell:
       if (t instanceof ClassType) {
         ClassType ct=(ClassType)t;
         String name[]=ct.getNameFull();

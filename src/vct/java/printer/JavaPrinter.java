@@ -50,16 +50,7 @@ public class JavaPrinter extends AbstractPrinter {
     }
     super.post_visit(node);
   }
-  */
-  
-  @Override
-  public void visit(ArrayType t){
-    t.base_type.accept(this);
-    for(int i=0;i<t.dim;i++){
-      out.print("[]");
-    }
-  }
- 
+  */ 
   
   @Override
   public void visit(ClassType t){
@@ -88,25 +79,41 @@ public class JavaPrinter extends AbstractPrinter {
   }
 
   public void visit(BindingExpression e){
+    String binder=null;
     switch(e.binder){
       case FORALL:
-      {
-        setExpr();
-        out.printf("(\\forall ");
-        int N=e.getDeclCount();
-        if (N!=1) Abort("cannot deal with multiple variables in binder (yet)");
-        DeclarationStatement decl=e.getDeclaration(0);
-        decl.getType().accept(this);
-        out.printf(" %s;",decl.getName());
-        e.select.accept(this);
-        out.printf(";");
-        e.main.accept(this);
-        out.printf(")");
-        return;
-      }
+        binder="\\forall";
+        break;
+      case EXISTS:
+        binder="\\exists";
+        break;
+      case STAR:
+        binder="\\forall*";
+        break;
+      case LET:
+        binder="\\let";
+        break;
       default:
         Abort("binder %s unimplemented",e.binder);
     }
+    setExpr();
+    out.printf("(%s ",binder);
+    int N=e.getDeclCount();
+    if (N!=1) Abort("cannot deal with multiple variables in binder (yet)");
+    DeclarationStatement decl=e.getDeclaration(0);
+    decl.getType().accept(this);
+    out.printf(" %s",decl.getName());
+    if (decl.getInit()!=null){
+      out.printf("= ");
+      decl.getInit().accept(this);
+    }
+    out.printf(";");
+    if (e.select!=null){
+      e.select.accept(this);
+      out.printf(";");
+    }
+    e.main.accept(this);
+    out.printf(")");
   }
 
   public void visit(BlockStatement block){
@@ -642,6 +649,14 @@ public class JavaPrinter extends AbstractPrinter {
         }
         t.getArg(0).accept(this);
         out.printf("[]");
+        break;
+      case Cell:
+        if (t.getArgCount()!=1){
+          Fail("Sequence type constructor with %d arguments instead of 1",t.getArgCount());
+        }
+        out.printf("cell<");
+        t.getArg(0).accept(this);
+        out.printf(">");
         break;
       case Sequence:
         if (t.getArgCount()!=1){

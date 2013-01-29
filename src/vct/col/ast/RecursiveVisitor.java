@@ -51,11 +51,6 @@ public abstract class RecursiveVisitor<T> extends ASTFrame<T> implements
   }
 
   @Override
-  public void visit(ArrayType t) {
-    t.base_type.accept(this);
-  }
-
-  @Override
   public void visit(ClassType t) {
     // no children
   }
@@ -71,7 +66,10 @@ public abstract class RecursiveVisitor<T> extends ASTFrame<T> implements
 
   @Override
   public void visit(PrimitiveType t) {
-    // no children    
+    int N=t.getArgCount();
+    for(int i=0;i<N;i++){
+      t.getArg(i).accept(this);
+    }          
   }
 
   @Override

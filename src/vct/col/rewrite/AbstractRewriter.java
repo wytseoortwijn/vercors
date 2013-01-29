@@ -13,7 +13,6 @@ import vct.col.ast.BindingExpression;
 import vct.col.ast.ContractBuilder;
 import vct.col.ast.Dereference;
 import vct.col.ast.MethodInvokation;
-import vct.col.ast.ArrayType;
 import vct.col.ast.AssignmentStatement;
 import vct.col.ast.BlockStatement;
 import vct.col.ast.ClassType;
@@ -460,8 +459,4 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
     result=create.binder(e.binder,rewrite(e.result_type),rewrite(e.getDeclarations()), rewrite(e.select), rewrite(e.main));
   }
   
-  @Override
-  public void visit(ArrayType t){
-    result=create.array_type(rewrite(t.base_type),t.dim);
-  }
 }

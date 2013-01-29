@@ -5,9 +5,11 @@ import hre.ast.MessageOrigin;
 import java.util.Stack;
 
 import vct.col.ast.ASTNode;
+import vct.col.ast.AssignmentStatement;
 import vct.col.ast.BlockStatement;
 import vct.col.ast.Contract;
 import vct.col.ast.DeclarationStatement;
+import vct.col.ast.Dereference;
 import vct.col.ast.FunctionType;
 import vct.col.ast.IfStatement;
 import vct.col.ast.LoopStatement;
@@ -37,7 +39,7 @@ public class Flatten extends AbstractRewriter {
   private BlockStatement current_block=null;
   private BlockStatement declaration_block=null;
   private static long counter=0;
-    
+  
   public void visit(BlockStatement s){
     int N=s.getLength();
     block_stack.push(current_block);
@@ -275,4 +277,19 @@ public class Flatten extends AbstractRewriter {
     result=res; return ;
   }
 
+  @Override
+  public void visit(Dereference e){
+    Warning("deref %s",e.field);
+    if (e.object instanceof OperatorExpression
+        && ((OperatorExpression)e.object).getOperator()==StandardOperator.Subscript
+    ){
+      ASTNode obj=e.object.apply(this);
+      String name="__flatten_"+(++counter);
+      declaration_block.add_statement(create.field_decl(name,e.object.getType(),null));
+      current_block.add_statement(create.assignment(create.local_name(name),obj));
+      result=create.dereference(create.local_name(name),e.field);
+    } else {
+      super.visit(e);
+    }
+  }
 }

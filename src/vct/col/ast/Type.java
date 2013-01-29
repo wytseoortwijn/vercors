@@ -62,10 +62,11 @@ public abstract  class Type extends ASTNode {
     return null;
   }
 
-  public boolean comparableWith(Type t2) {
-    // TODO: the following is not 100% fool proof.
-    // E.g. Void is not comparable to anything...
-    return getClass()==t2.getClass();
+  public boolean comparableWith(ProgramUnit context, Type t2){
+    if(equals(t2)) return true;
+    if(this.supertypeof(context,t2)) return true;
+    if(t2.supertypeof(context,this)) return true;
+    return false;
   }
 
   public boolean isNull() {

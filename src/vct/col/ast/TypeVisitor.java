@@ -4,8 +4,6 @@ public interface TypeVisitor {
 
   public void visit(PrimitiveType t);
   
-  public void visit(ArrayType t);
-  
   public void visit(ClassType t);
 
   public void visit(RecordType t);

@@ -5,7 +5,7 @@ import static hre.System.Abort;
 
 public class BindingExpression extends ASTNode {
 
-  public static enum Binder {LAMBDA,FORALL,EXISTS,SUM,PRODUCT,STAR};
+  public static enum Binder {LAMBDA,FORALL,EXISTS,SUM,PRODUCT,STAR,LET};
   
   public final Binder binder;
   public final ASTNode select;

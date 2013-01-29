@@ -17,8 +17,6 @@ public interface ASTVisitor<T> {
   
   public void visit(NameExpression e);
   
-  public void visit(ArrayType t);
-
   public void visit(ClassType t);
   
   public void visit(FunctionType t);

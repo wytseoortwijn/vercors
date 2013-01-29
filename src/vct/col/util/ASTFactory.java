@@ -7,7 +7,6 @@ import vct.col.ast.ASTNode;
 import vct.col.ast.ASTVisitor;
 import vct.col.ast.ASTWith.Kind;
 import vct.col.ast.ASTWith;
-import vct.col.ast.ArrayType;
 import vct.col.ast.AssignmentStatement;
 import vct.col.ast.BindingExpression;
 import vct.col.ast.BindingExpression.Binder;
@@ -802,21 +801,6 @@ public class ASTFactory<E> implements FrameControl {
         body);
     cl.add_dynamic(cons);
     leave();
-  }
-
-  public ArrayType array_type(Type t, int dim) {
-    return array_type(origin_stack.get(),t,dim);
-  }
-  
-  public ArrayType array_type(E origin, Type t, int dim) {
-    return array_type(origin_source.create(origin),t,dim);
-  }
-  
-  public ArrayType array_type(Origin origin, Type t, int dim) {
-    ArrayType res=new ArrayType(t,dim);
-    if (origin!=null) res.setOrigin(origin);
-    res.accept_if(post);
-    return res;
   }
 
 }

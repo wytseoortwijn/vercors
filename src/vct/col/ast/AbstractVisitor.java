@@ -115,8 +115,6 @@ public abstract class AbstractVisitor<T> extends ASTFrame<T> implements ASTVisit
   
   public void visit(NameExpression e){ visit_any(e); }
 
-  public void visit(ArrayType t){ visit_any(t); }
-
   public void visit(ClassType t){ visit_any(t); }
   
   public void visit(FunctionType t){ visit_any(t); }
