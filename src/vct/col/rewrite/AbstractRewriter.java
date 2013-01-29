@@ -34,6 +34,7 @@ import vct.col.ast.StandardProcedure;
 import vct.col.ast.Type;
 import vct.col.util.ASTFactory;
 import vct.col.util.ASTPermission;
+import vct.col.util.ASTUtils;
 import static hre.System.*;
 
 /**
@@ -78,6 +79,12 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
    * Refers to the resulting class of the current class being rewritten.
    */
   protected ASTClass currentClass=null;
+  
+  
+  /**
+   * Refer to the contract builder, used for the contract of the current method. 
+   */
+  protected ContractBuilder currentContractBuilder=null;
   
   /**
    * Prevent automatic copying of labels.
@@ -132,8 +139,14 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
     cb.given(rewrite(c.given));
     cb.yields(rewrite(c.yields));
     if (c.modifies!=null) cb.modifies(rewrite(c.modifies));
-    cb.requires(rewrite(c.pre_condition));
-    cb.ensures(rewrite(c.post_condition));
+    for(ASTNode clause:ASTUtils.conjuncts(c.pre_condition)){
+      cb.requires(rewrite(clause));
+    }
+    for(ASTNode clause:ASTUtils.conjuncts(c.post_condition)){
+      cb.ensures(rewrite(clause));
+    }
+    //cb.requires(rewrite(c.pre_condition));
+    //cb.ensures(rewrite(c.post_condition));
   }
   public Contract rewrite(Contract c){
     if (c==null) return null;
@@ -350,13 +363,15 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
     int N=m.getArity();
     DeclarationStatement args[]=rewrite(m.getArgs());
     Contract mc=m.getContract();
-    Contract c=null;
+    currentContractBuilder=new ContractBuilder();
     if (mc!=null){
-      c=rewrite(mc);
+      rewrite(mc,currentContractBuilder);
     }
     Method.Kind kind=m.kind;
     Type rt=rewrite(m.getReturnType());
     ASTNode body=rewrite(m.getBody());
+    Contract c=currentContractBuilder.getContract();
+    currentContractBuilder=null;
     result=create.method_kind(m.getOrigin(), kind, rt, c, name, args, m.usesVarArgs(), body);
   }
 

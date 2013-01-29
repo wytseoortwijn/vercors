@@ -79,7 +79,68 @@ public class RewriteArray extends AbstractRewriter {
       array_name=((OperatorExpression)array_name).getArg(0);
       ASTNode index_expr=((OperatorExpression)e.main).getArg(0);
       index_expr=((OperatorExpression)index_expr).getArg(1);
-      Type returns=create.primitive_type(Sort.Sequence,create.primitive_type(Sort.Cell,rewrite(t)));
+      
+      String name="__sub_array_"+(++count);
+      Type type=create.primitive_type(Sort.Sequence,create.primitive_type(Sort.Cell,rewrite(t)));
+      currentContractBuilder.given(create.field_decl(name,type));
+      ASTNode tmp;
+      tmp=create.expression(StandardOperator.EQ,
+          create.expression(StandardOperator.Size,create.local_name(name)),
+          rewrite(((OperatorExpression)((OperatorExpression)e.select).getArg(1)).getArg(1))
+      );
+      currentContractBuilder.requires(tmp);
+      tmp=create.binder(
+          BindingExpression.Binder.FORALL,
+          null,
+          rewrite(e.getDeclarations()),
+          rewrite(e.select),
+          create.expression(StandardOperator.EQ,
+              create.expression(StandardOperator.Subscript,
+                  create.local_name(name),
+                  create.local_name(e.getDeclaration(0).getName())
+              ),
+              create.expression(StandardOperator.Subscript,
+                  rewrite(array_name),
+                  rewrite(index_expr)
+              )
+
+          )
+      );
+      currentContractBuilder.requires(tmp);
+      DeclarationStatement args[]=new DeclarationStatement[1];
+      args[0]=create.field_decl("i",create.primitive_type(Sort.Integer));
+      ASTNode res=create.binder(
+          BindingExpression.Binder.FORALL,
+          null,
+          args,
+          create.expression(StandardOperator.And,
+              create.expression(StandardOperator.LTE,create.constant(0),create.local_name("i")),
+              create.expression(StandardOperator.LT,create.local_name("i"),
+                  create.expression(StandardOperator.Size,rewrite(array_name))
+              )
+          ),
+          create.expression(StandardOperator.NEQ,
+              create.expression(StandardOperator.Subscript,
+                  rewrite(array_name),
+                  create.local_name("i")
+              ),
+              create.reserved_name("null")
+          )
+      );
+      tmp=create.expression(StandardOperator.Perm,
+          create.dereference(
+              create.expression(StandardOperator.Subscript,
+                  create.local_name(name),
+                  create.reserved_name("*")
+              ), "item"
+          ),
+          rewrite(((OperatorExpression)e.main).getArg(1))
+      );
+      res=create.expression(StandardOperator.Star,res,tmp);
+      
+      //copy_rw.rewrite(returns)
+      /*
+      
       ContractBuilder cb=new ContractBuilder();
       
       cb.requires(create.binder(
@@ -122,9 +183,10 @@ public class RewriteArray extends AbstractRewriter {
       args[0]=create.field_decl("__selected_"+count,copy_rw.rewrite(returns),
           create.invokation(null,null,"__select_"+count,rewrite(array_name))
       );
+
       result=create.binder(BindingExpression.Binder.LET,
           null,
-          args,
+          null,//args
           null,
           create.expression(StandardOperator.Perm,
               create.dereference(
@@ -136,6 +198,8 @@ public class RewriteArray extends AbstractRewriter {
               rewrite(((OperatorExpression)e.main).getArg(1))
           )
       );
+      */
+      result=res;
     } else {
       super.visit(e);
     }
