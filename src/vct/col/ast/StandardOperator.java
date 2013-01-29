@@ -117,7 +117,11 @@ public enum StandardOperator {
   /** Create a new uninitialized object */
   New(1),
   /** Get the size of a container, such as a sequence. */
-  Size(1);
+  Size(1),
+  /** Empty list */
+  Nil(1),
+  /** pre-pre element to list */
+  Cons(2);
 
   private final int arity;
   

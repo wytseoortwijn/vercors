@@ -16,6 +16,24 @@ import static hre.System.*;
  *
  */
 public abstract  class Type extends ASTNode {
+  
+  protected ASTNode args[];
+  
+  public Type(ASTNode ... args){
+    this.args=Arrays.copyOf(args,args.length);
+  }
+
+  public ASTNode[] getArgs(){
+    return args;
+  }
+  
+  public ASTNode getArg(int i){
+    return args[i];
+  }
+  
+  public int getArgCount(){
+    return args.length;
+  }
 
   public boolean isBoolean() {
     return false;

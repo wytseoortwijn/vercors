@@ -46,6 +46,11 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
   }
   public void visit(PrimitiveType t){
     switch (t.sort){
+    case Sequence:
+      out.print("seq<");
+      t.getArg(0).accept(this);
+      out.print(">");
+      break;
     case Fraction:
       out.printf("int");
       break;
@@ -431,6 +436,13 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
         out.print("__result");
     } else if (s.equals("\\old")){
       out.print("old");
+    } else if (s.equals("nil")) {
+      out.print("nil<");
+      Type t=e.getType();
+      if (t==null) Abort("untyped occurrence of nil");
+      t=(Type)((PrimitiveType)t).getArg(0);
+      t.accept(this);
+      out.print(">");
     } else {
       out.print(s);
     }

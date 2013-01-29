@@ -633,5 +633,28 @@ public class JavaPrinter extends AbstractPrinter {
     e.object.accept(this);
     out.printf(".%s",e.field);
   }
+  
+  public void visit(PrimitiveType t){
+    switch(t.sort){
+      case Array:
+        if (t.getArgCount()!=1){
+          Fail("Array type constructor with %d arguments instead of 1",t.getArgCount());
+        }
+        t.getArg(0).accept(this);
+        out.printf("[]");
+        break;
+      case Sequence:
+        if (t.getArgCount()!=1){
+          Fail("Sequence type constructor with %d arguments instead of 1",t.getArgCount());
+        }
+        out.printf("seq<");
+        t.getArg(0).accept(this);
+        out.printf(">");
+        break;
+      default:
+        super.visit(t);
+    }
+  }
+  
 }
 

@@ -388,7 +388,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
 
   public void visit(PrimitiveType t){
     //checkPermission(t);
-    PrimitiveType res=new PrimitiveType(t.sort);
+    PrimitiveType res=new PrimitiveType(t.sort,rewrite(t.getArgs()));
     res.setOrigin(t);
     result=res;
   }

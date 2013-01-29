@@ -619,17 +619,17 @@ public class ASTFactory<E> implements FrameControl {
   /**
    * Create a new primitive type.
    */
-  public PrimitiveType primitive_type(Origin origin,PrimitiveType.Sort sort){
-    PrimitiveType res=new PrimitiveType(sort);
+  public PrimitiveType primitive_type(Origin origin,PrimitiveType.Sort sort,ASTNode ... args){
+    PrimitiveType res=new PrimitiveType(sort,args);
     res.setOrigin(origin);
     res.accept_if(post);
     return res;        
   }
-  public PrimitiveType primitive_type(E origin,PrimitiveType.Sort sort){
-    return primitive_type(origin_source.create(origin),sort);
+  public PrimitiveType primitive_type(E origin,PrimitiveType.Sort sort,ASTNode ... args){
+    return primitive_type(origin_source.create(origin),sort,args);
   }
-  public PrimitiveType primitive_type(PrimitiveType.Sort sort){
-    return primitive_type(origin_stack.get(),sort);
+  public PrimitiveType primitive_type(PrimitiveType.Sort sort,ASTNode ... args){
+    return primitive_type(origin_stack.get(),sort,args);
   }
   
   /**

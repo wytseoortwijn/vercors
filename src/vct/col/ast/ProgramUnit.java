@@ -29,6 +29,8 @@ public class ProgramUnit {
     Method len=create.function_decl(create.primitive_type(PrimitiveType.Sort.Integer), null, "length", new DeclarationStatement[0], null);
     seq.add_dynamic(len);
     library.put(new ClassName("seq"),seq);
+    //ASTClass var=create.ast_class("var", ClassKind.Plain, null, null);
+    
   }
   
   /**

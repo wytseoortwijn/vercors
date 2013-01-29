@@ -23,7 +23,8 @@ public class JavaSyntax {
       syntax.addFunction(Value,"Value");
       syntax.addFunction(PointsTo,"PointsTo");
       syntax.addFunction(Old,"\\old");
-      
+      syntax.addOperator(Size,999,"|","|");
+      syntax.addOperator(Nil,999,"nil<",">");
       syntax.addOperator(Subscript,145,"","[","]"); // TODO: check if relative order to Select is OK!
       
       // Java Operators  Precedence
@@ -81,6 +82,8 @@ public class JavaSyntax {
       syntax.addPrimitiveType(Fraction,"frac");
       syntax.addPrimitiveType(Long,"long");
       syntax.addPrimitiveType(Void,"void");
+      syntax.addPrimitiveType(Pred,"pred");
+      syntax.addPrimitiveType(Group,"group");
       syntax.addPrimitiveType(Boolean,"boolean");
       syntax.addPrimitiveType(Class,"classtype");
       

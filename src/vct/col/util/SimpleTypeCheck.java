@@ -206,6 +206,10 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
         } else if (name.equals("null")){
           e.setType(new ClassType("<<null>>"));
           break;
+        } else if (name.equals("nil")){
+          // TODO: put in correct type: seq<??> or seq<E>.
+          e.setType(new ClassType("<<null>>"));
+          break;
         } else if (name.equals("\\result")||name.equals("result")){
           Method m=current_method();
           if (m==null){
@@ -448,8 +452,13 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     {
       Type t=e.getArg(0).getType();
       if (t==null) Fail("type of argument is unknown at %s",e.getOrigin());
-      if (!t.toString().equals("seq")) Fail("argument of size is not a sequence");
+      if (!t.isPrimitive(Sort.Sequence)) Fail("argument of size is not a sequence");
       e.setType(new PrimitiveType(Sort.Integer));      
+      break;
+    }
+    case Nil:
+    {
+      e.setType(new PrimitiveType(Sort.Sequence,e.getArg(0)));
       break;
     }
     default:
@@ -462,6 +471,13 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     super.visit(e);
     Type object_type=e.object.getType();
     if (object_type==null) Fail("type of object unknown at "+e.getOrigin());
+    if (object_type instanceof PrimitiveType){
+      if (e.field.equals("length")){
+        e.setType(new PrimitiveType(Sort.Integer));
+        return;
+      }
+      Fail("%s is not a pseudo field.",e.field);
+    }
     if (object_type instanceof ArrayType){
       if (e.field.equals("length")){
         e.setType(new PrimitiveType(Sort.Integer));
