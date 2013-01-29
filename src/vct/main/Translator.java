@@ -14,7 +14,6 @@ import vct.col.ast.ASTClass;
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTWith;
 import vct.col.ast.AbstractVisitor;
-import vct.col.ast.ArrayType;
 import vct.col.ast.AssignmentStatement;
 import vct.col.ast.BindingExpression;
 import vct.col.ast.BlockStatement;
@@ -708,12 +707,6 @@ public class Translator {
 			outputToString.printf("Found name %s with type %s%n",e.getName(),e.getType());
 			hoareTriple.set(currentWorkingTriple, hoareTriple.get(currentWorkingTriple).concat(" "));
 			hoareTriple.set(currentWorkingTriple, hoareTriple.get(currentWorkingTriple).concat(e.getName()));
-		}
-
-		@Override
-		public void visit(ArrayType t) {
-		    // TODO Auto-generated method stub
-		    throw new Error("missing case in Abstract Scanner: "+t.getClass());
 		}
 
 		@Override

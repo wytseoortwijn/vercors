@@ -36,6 +36,7 @@ import vct.col.rewrite.GlobalizeStaticsField;
 import vct.col.rewrite.GlobalizeStaticsParameter;
 import vct.col.rewrite.InheritanceRewriter;
 import vct.col.rewrite.ReorderAssignments;
+import vct.col.rewrite.RewriteArray;
 import vct.col.rewrite.SimplifyCalls;
 import vct.col.rewrite.Standardize;
 import vct.col.rewrite.StripConstructors;
@@ -267,6 +268,11 @@ public class Main
         return new ReorderAssignments(arg).rewriteAll();
       }
     });
+    defined_passes.put("rewrite_arrays",new CompilerPass("rewrite arrays to sequences of cells"){
+      public ProgramUnit apply(ProgramUnit arg){
+        return new RewriteArray(arg).rewriteAll();
+      }
+    });
     defined_passes.put("rm_cons",new CompilerPass("???"){
       public ProgramUnit apply(ProgramUnit arg){
         return new ConstructorRewriter(arg).rewriteAll();
@@ -392,6 +398,9 @@ public class Main
         passes.add("standardize");
         passes.add("check");
       }
+      passes.add("rewrite_arrays");
+      passes.add("standardize");
+      passes.add("check");
     	passes.add("assign");
       passes.add("reorder");
     	passes.add("standardize");
@@ -403,6 +412,7 @@ public class Main
       passes.add("standardize");
       passes.add("check");
       passes.add("flatten");
+      passes.add("reorder");
       passes.add("check");
       passes.add("chalice-preprocess");
       passes.add("check");
