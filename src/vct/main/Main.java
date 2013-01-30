@@ -387,6 +387,9 @@ public class Main
         passes.add("standardize");
         passes.add("check");
       }
+      passes.add("rewrite_arrays");
+      passes.add("standardize");
+      passes.add("check");
       passes.add("flatten");
       passes.add("finalize_args");
       passes.add("reorder");
@@ -398,9 +401,6 @@ public class Main
         passes.add("standardize");
         passes.add("check");
       }
-      passes.add("rewrite_arrays");
-      passes.add("standardize");
-      passes.add("check");
     	passes.add("assign");
       passes.add("reorder");
     	passes.add("standardize");
