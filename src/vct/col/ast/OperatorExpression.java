@@ -15,7 +15,7 @@ public class OperatorExpression extends ExpressionNode {
   public OperatorExpression(StandardOperator op,ASTNode ... args){
     this.op=op;
     this.args=Arrays.copyOf(args,args.length);
-    if (args.length != op.arity()) Abort("wrong number of arguments for %s, got %d expected %d",op,args.length,op.arity());
+    if (op.arity()>=0 && args.length != op.arity()) Abort("wrong number of arguments for %s, got %d expected %d",op,args.length,op.arity());
   }
   public void accept_simple(ASTVisitor visitor){
     visitor.visit(this);

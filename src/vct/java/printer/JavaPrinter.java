@@ -531,6 +531,21 @@ public class JavaPrinter extends AbstractPrinter {
         out.printf("()");
         break;
       }
+      case Build:{
+        ASTNode args[]=e.getArguments();
+        setExpr();
+        out.printf("<<");
+        args[0].accept(this);
+        out.printf(">>{");
+        String sep="";
+        for(int i=1;i<args.length;i++){
+          out.printf("%s",sep);
+          sep=",";
+          args[i].accept(this);
+        }
+        out.printf("}");
+        break;
+      }
       default:{
         super.visit(e);
       }

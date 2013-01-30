@@ -469,6 +469,26 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       e.setType(new PrimitiveType(Sort.Sequence,e.getArg(0)));
       break;
     }
+    case Build:
+    {
+      ASTNode args[]=e.getArguments();
+      if (args.length==0 || !(args[0] instanceof Type)){
+        Abort("Build without type argument");
+      }
+      Type t=(Type)args[0];
+      e.setType(t);
+      t=(Type)t.getArg(0);
+      for(int i=1;i<args.length;i++){
+        Type tt=args[i].getType();
+        if (tt==null){
+          Abort("untyped build argument %d",i);
+        }
+        if (t.equals(tt)) continue;
+        if (t.supertypeof(source(), tt)) continue;
+        Abort("cannot use %s to initialize %s",tt,t);
+      }
+      break;
+    }
     default:
       Abort("missing case of operator %s",op);
       break;

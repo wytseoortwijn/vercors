@@ -121,7 +121,9 @@ public enum StandardOperator {
   /** Empty list */
   Nil(1),
   /** pre-pre element to list */
-  Cons(2);
+  Cons(2),
+  /** Build list/sequence constant. */
+  Build(-1);
 
   private final int arity;
   

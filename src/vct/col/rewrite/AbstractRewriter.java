@@ -389,6 +389,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
     //checkPermission(e);
     StandardOperator op=e.getOperator();
     int N=op.arity();
+    if(N<0) N=e.getArguments().length;
     ASTNode args[]=new ASTNode[N];
     for(int i=0;i<N;i++){
       args[i]=e.getArg(i).apply(this);
