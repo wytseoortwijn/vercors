@@ -279,7 +279,6 @@ public class Flatten extends AbstractRewriter {
 
   @Override
   public void visit(Dereference e){
-    Warning("deref %s",e.field);
     if (e.object instanceof OperatorExpression
         && ((OperatorExpression)e.object).getOperator()==StandardOperator.Subscript
     ){
