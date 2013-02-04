@@ -534,9 +534,9 @@ public class JavaPrinter extends AbstractPrinter {
       case Build:{
         ASTNode args[]=e.getArguments();
         setExpr();
-        out.printf("<<");
+        out.printf("new ");
         args[0].accept(this);
-        out.printf(">>{");
+        out.printf("{");
         String sep="";
         for(int i=1;i<args.length;i++){
           out.printf("%s",sep);

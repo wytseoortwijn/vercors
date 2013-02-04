@@ -55,6 +55,7 @@ public class BoogieSyntax {
       chalice.addOperator(Nil,0,"nil<",">");
       chalice.addOperator(Cons,0,"([","]++(","))");
       chalice.addOperator(Subscript,0,"(",")[","]");
+      chalice.addLeftFix(Append,"++",100);
     }
     return chalice;
   }

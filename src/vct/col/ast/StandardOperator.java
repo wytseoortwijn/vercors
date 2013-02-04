@@ -122,6 +122,8 @@ public enum StandardOperator {
   Nil(1),
   /** pre-pre element to list */
   Cons(2),
+  /** append two lists */
+  Append(2),
   /** Build list/sequence constant. */
   Build(-1);
 

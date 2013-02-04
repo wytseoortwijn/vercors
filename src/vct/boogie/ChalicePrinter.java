@@ -421,6 +421,32 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
         e.getArg(0).accept(this);
         break;
       }
+      case Build:{
+        ASTNode args[]=e.getArguments();
+        if (args[0] instanceof PrimitiveType){
+          PrimitiveType t=(PrimitiveType)args[0];
+          if (t.sort==Sort.Sequence){
+            if (args.length==1){
+              out.print("nil<");
+              t.getArg(0).accept(this);
+              out.print(">");
+            } else {
+              String sep="[";
+              for(int i=1;i<args.length;i++){
+                out.print(sep);
+                sep=",";
+                args[i].accept(this);
+              }
+              out.print("]");
+            }
+          } else {
+            Abort("illegal build type %s",t);
+          }
+        } else {
+          Abort("illegal build type");
+        }
+        break;
+      }
       default:{
         super.visit(e);
       }

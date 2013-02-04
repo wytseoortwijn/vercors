@@ -469,6 +469,20 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       e.setType(new PrimitiveType(Sort.Sequence,e.getArg(0)));
       break;
     }
+    case Append:
+    {
+      Type t1=e.getArg(0).getType();
+      if (t1==null) Fail("type of first argument is unknown at %s",e.getOrigin());
+      if (!t1.isPrimitive(Sort.Sequence)) Fail("argument of size is not a sequence");
+      Type t2=e.getArg(0).getType();
+      if (t2==null) Fail("type of second argument is unknown at %s",e.getOrigin());
+      if (!t2.isPrimitive(Sort.Sequence)) Fail("argument of size is not a sequence");
+      if (!t1.getArg(0).equals(t2.getArg(0))){
+        Fail("different sequence types in append"); 
+      }
+      e.setType(t1);
+      break;
+    }
     case Build:
     {
       ASTNode args[]=e.getArguments();
