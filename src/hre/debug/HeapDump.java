@@ -8,6 +8,8 @@ import java.io.PrintStream;
 import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 /**
@@ -66,7 +68,21 @@ public class HeapDump {
               tree_dump(out,visited,i,base_classes);
             }
           }
-        } else if (val !=null && field.getType().isArray()) {
+        } else if (val!=null && val instanceof Map) {
+          out.printf("<map %s>\n",field.getName());
+          for(Object tmp :((Map)val).entrySet()){
+            Entry e=(Entry)tmp;
+            out.printf("<entry>%n");
+            out.printf("<key>%n");
+            tree_dump(out,visited,e.getKey(),base_classes);
+            out.printf("</key>%n");
+            out.printf("<value>%n");
+            tree_dump(out,visited,e.getValue(),base_classes);
+            out.printf("</value>%n");
+            out.printf("</entry>%n");
+          }
+          out.printf("</map>\n");
+        } else if (val !=null && val instanceof Object[]) {
           for(Object i:(Object[])val){
             if (i!=null && is_instance(i,base_classes)){
               tree_dump(out,visited,i,base_classes);
