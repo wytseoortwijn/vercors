@@ -372,19 +372,19 @@ public abstract class AbstractBoogiePrinter extends AbstractPrinter {
   }
   @Override
   public void visit(BindingExpression e){
+    String connect=null;
     out.printf("(");
     switch(e.binder){
     case FORALL:
       out.printf("forall ");
+      connect=")==>(";
       break;
     case EXISTS:
       out.printf("exists ");
+      connect=")&&(";
       break;
-    case LET:
-      out.printf("let ");
-      break;
-      default:
-        Abort("missing case: %s",e.binder);
+    default:
+      Abort("missing case: %s",e.binder);
     }
     int N=e.getDeclCount();
     if (N!=1) {
@@ -393,13 +393,13 @@ public abstract class AbstractBoogiePrinter extends AbstractPrinter {
     DeclarationStatement decl=e.getDeclaration(0);
     out.printf("%s : ",decl.getName());
     decl.getType().accept(this);
-    out.printf("::");
+    out.printf("::((");
     if (e.select!=null){
       e.select.accept(this);
-      out.printf("==>");
+      out.printf(connect);
     }
     e.main.accept(this);
-    out.printf(")");
+    out.printf(")))");
   }
 
 }
