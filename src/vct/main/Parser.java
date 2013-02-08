@@ -10,6 +10,9 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Properties;
+
+
 
 import static hre.System.*;
 
@@ -17,10 +20,17 @@ import vct.col.ast.ASTNode;
 import vct.col.ast.ProgramUnit;
 
 public class Parser {
-
   public static ProgramUnit parse(String language,String file){
-    String vct_home=System.getenv("VCT_HOME");
-    //System.err.printf("home is %s%n",vct_home);
+    switch(language){
+    case "c":
+    case "cl":
+        return CLangParser.parse(file);
+      default:
+        return plugin_parse(language,file);
+    }
+  }
+
+  private static ProgramUnit plugin_parse(String language,String file){
     File home=new File(System.getenv("VCT_HOME"));
     //System.err.printf("home is %s%n",home);
     ClassLoader loader=null;
