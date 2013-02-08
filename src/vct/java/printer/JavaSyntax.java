@@ -86,7 +86,8 @@ public class JavaSyntax {
       syntax.addPrimitiveType(Resource,"resource");
       syntax.addPrimitiveType(Boolean,"boolean");
       syntax.addPrimitiveType(Class,"classtype");
-      
+      syntax.addPrimitiveType(Char,"char");
+      syntax.addPrimitiveType(Float,"float");
     }
     return syntax;
   } 
