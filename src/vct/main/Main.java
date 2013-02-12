@@ -21,6 +21,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import vct.clang.printer.CPrinter;
 import vct.col.annotate.DeriveModifies;
 import vct.col.ast.*;
 import vct.col.rewrite.AssignmentRewriter;
@@ -149,11 +150,17 @@ public class Main
     Hashtable<String,CompilerPass> defined_passes=new Hashtable<String,CompilerPass>();
     Hashtable<String,ValidationPass> defined_checks=new Hashtable<String,ValidationPass>();
     defined_passes.put("java",new CompilerPass("print AST in java syntax"){
-      public ProgramUnit apply(ProgramUnit arg){
-        vct.java.printer.JavaPrinter.dump(System.out,arg);
-        return arg;
-      }
-    });
+        public ProgramUnit apply(ProgramUnit arg){
+          vct.java.printer.JavaPrinter.dump(System.out,arg);
+          return arg;
+        }
+      });
+    defined_passes.put("c",new CompilerPass("print AST in java syntax"){
+        public ProgramUnit apply(ProgramUnit arg){
+          vct.clang.printer.CPrinter.dump(System.out,arg);
+          return arg;
+        }
+      });
     defined_passes.put("dump",new CompilerPass("dump AST"){
       public ProgramUnit apply(ProgramUnit arg){
         PrefixPrintStream out=new PrefixPrintStream(System.out);
