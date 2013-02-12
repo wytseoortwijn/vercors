@@ -276,6 +276,17 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       e.setType(new PrimitiveType(Sort.Void));
       break;
     case Assign:
+    case AddAssign:
+    case SubAssign:
+    case MulAssign:
+    case DivAssign:
+    case RemAssign:
+    case AndAssign:
+    case XorAssign:
+    case OrAssign:
+    case ShlAssign:
+    case ShrAssign:
+    case SShrAssign:
     {
       if (e.getArg(0) instanceof NameExpression){
         NameExpression name=(NameExpression)e.getArg(0);

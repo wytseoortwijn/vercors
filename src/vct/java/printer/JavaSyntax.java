@@ -74,9 +74,17 @@ public class JavaSyntax {
       syntax.addOperator(ITE,20,"","?",":","");
       //  1 assignment  = += -= *= /= %= &= ^= |= <<= >>= >>>=
       syntax.addRightFix(Assign,"=",10);
-      // Note that Modify covers lhs <op> = rhs for any op,
-      // not just the legal ones in Java.
-      syntax.addOperator(Modify,10,"","","=","");
+      syntax.addRightFix(AddAssign,"+=",10);
+      syntax.addRightFix(SubAssign,"-=",10);
+      syntax.addRightFix(MulAssign,"*= ",10);
+      syntax.addRightFix(DivAssign,"/=",10);
+      syntax.addRightFix(RemAssign,"%=",10);
+      syntax.addRightFix(AndAssign,"&=",10);
+      syntax.addRightFix(XorAssign,"^=",10);
+      syntax.addRightFix(OrAssign,"|=",10);
+      syntax.addRightFix(ShlAssign,"<<=",10);
+      syntax.addRightFix(ShrAssign,">>=",10);
+      syntax.addRightFix(SShrAssign,">>>=",10);
       
       syntax.addPrimitiveType(Double,"double");
       syntax.addPrimitiveType(Integer,"int");

@@ -52,8 +52,28 @@ public enum StandardOperator {
   Instance(2),
   /** Simple assignment operator. */
   Assign(2),
-  /** Modifying assignment operator. The second argument is intended to be a binary function. */ 
-  Modify(3),
+  /** Multiply with */
+  MulAssign(2),
+  /** Divide by */
+  DivAssign(2),
+  /** Assign modulo */
+  RemAssign(2),
+  /** Add to */
+  AddAssign(2),
+  /** Subtract */
+  SubAssign(2),
+  /** shift left */
+  ShlAssign(2),
+  /** shift right */
+  ShrAssign(2),
+  /** signed shift right */
+  SShrAssign(2),
+  /** bitwise and */
+  AndAssign(2),
+  /** bitwise xor */
+  XorAssign(2),
+  /** bitwise or */
+  OrAssign(2), 
   /** Increment and return new value. */
   PreIncr(1),
   /** Decrement and return new value. */
