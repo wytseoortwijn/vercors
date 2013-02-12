@@ -24,10 +24,10 @@ public class Parser {
     switch(language){
     case "c":
     case "cl":
-        return CLangParser.parse(file);
-      default:
-        return plugin_parse(language,file);
+      language="clang";
+      break;
     }
+    return plugin_parse(language,file);
   }
 
   private static ProgramUnit plugin_parse(String language,String file){
