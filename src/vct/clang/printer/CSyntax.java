@@ -10,6 +10,9 @@ public class CSyntax {
   public static Syntax get(){
     if(syntax==null){
       syntax=new Syntax();
+      
+      syntax.addPrefix(UMinus, "-", 150);
+      syntax.addPrefix(UPlus, "+", 150);
 
       syntax.addLeftFix(Mult,"*",130);
       syntax.addLeftFix(Div,"/",130);
@@ -24,6 +27,17 @@ public class CSyntax {
       syntax.addInfix(GTE,">=",100);
       
       syntax.addRightFix(Assign,"=",30);
+      
+      syntax.addPrimitiveType(Double,"double");
+      syntax.addPrimitiveType(Integer,"int");
+      //syntax.addPrimitiveType(Fraction,"frac");
+      syntax.addPrimitiveType(Long,"long");
+      syntax.addPrimitiveType(Void,"void");
+      //syntax.addPrimitiveType(Resource,"resource");
+      syntax.addPrimitiveType(Boolean,"bool");
+      //syntax.addPrimitiveType(Class,"classtype");
+      syntax.addPrimitiveType(Char,"char");
+      syntax.addPrimitiveType(Float,"float");
     }
     return syntax;
   } 
