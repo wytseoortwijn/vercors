@@ -26,7 +26,6 @@ public class Exec {
   public static int exec(File stdin,File stdout,File stderr,String ... command_line){
     Runtime runtime=Runtime.getRuntime();
     String OS=java.lang.System.getProperty("os.name");
-    Warning("OS is %s%n",OS);
     if (OS.startsWith("Windows")){
       File tmp=new File(command_line[0]);
       if (!tmp.exists()){
