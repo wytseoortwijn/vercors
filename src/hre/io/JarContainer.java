@@ -42,4 +42,9 @@ public class JarContainer implements Container {
     return entry.getSize();
   }
 
+@Override
+public String findFile(String name) {
+	return null;
+}
+
 }

@@ -19,6 +19,15 @@ public class DirContainer implements Container {
     File f=new File(dir,name);
     return f.exists() && f.isFile();
   }
+  @Override
+  public String findFile(String name) {
+    File f=new File(dir,name);
+    if (f.exists() && f.isFile()){
+    	return f.getAbsolutePath();
+    } else {
+    	return null;
+    }
+  }
 
   @Override
   public InputStream read(String name) throws FileNotFoundException {

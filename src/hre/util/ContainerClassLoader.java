@@ -66,6 +66,12 @@ public class ContainerClassLoader extends ClassLoader {
       //System.err.printf("completed loading %s%n",className);
       return cls;
     }
+    
+    @Override
+    protected String findLibrary(String libname){
+    	String fullname=System.mapLibraryName(libname);
+    	return source.findFile(fullname);
+    }
 
 }
 

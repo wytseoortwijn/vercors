@@ -10,5 +10,7 @@ public interface Container {
   public InputStream read(String name) throws IOException;
   
   public long size(String name);
+
+  public String findFile(String name);
   
 }
