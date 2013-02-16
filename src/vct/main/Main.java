@@ -46,6 +46,7 @@ import vct.col.util.FeatureScanner;
 import vct.col.util.SimpleTypeCheck;
 import vct.util.ClassName;
 import vct.util.Configuration;
+import vct.util.Parser;
 import static hre.System.*;
 import static hre.ast.Context.globalContext;
 
