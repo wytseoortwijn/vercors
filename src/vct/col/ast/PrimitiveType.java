@@ -11,6 +11,10 @@ public final class PrimitiveType extends Type {
     Short,
     Integer,
     Long,
+    UByte,
+    UShort,
+    UInteger,
+    ULong,
     Float,
     Double,
     Char,
@@ -119,6 +123,13 @@ public final class PrimitiveType extends Type {
         case Short:
         case Byte:
           return true;
+        }  
+        break;
+      case UInteger:
+        switch(pt.sort){
+        case UShort:
+        case Byte:
+          return true;
         }        
         break;
       case Long:
@@ -127,7 +138,15 @@ public final class PrimitiveType extends Type {
         case Short:
         case Byte:
           return true;
-        }        
+        }  
+        break;
+      case Float:
+        switch(pt.sort){
+        case Integer:
+        case Short:
+        case Byte:
+          return true;
+        }    
         break;
       default:
         Fail("missing case in PrimitiveType.supertypeof (%s/%s)",this.sort,pt.sort);

@@ -96,6 +96,7 @@ public class JavaSyntax {
       syntax.addPrimitiveType(Class,"classtype");
       syntax.addPrimitiveType(Char,"char");
       syntax.addPrimitiveType(Float,"float");
+      syntax.addPrimitiveType(UInteger,"/*unsigned*/ int");
     }
     return syntax;
   } 
