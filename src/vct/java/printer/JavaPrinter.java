@@ -563,14 +563,19 @@ public class JavaPrinter extends AbstractPrinter {
     if (s.getInitBlock()!=null){
       out.printf("for(");
       nextExpr();
+       if(s.getInitBlock() instanceof BlockStatement)
       ((BlockStatement)s.getInitBlock()).getStatement(0).accept(this);
+       else s.getInitBlock().accept(this);
       out.printf(";");
       nextExpr();
       s.getEntryGuard().accept(this);
       out.printf(";");
-      if (((BlockStatement)s.getUpdateBlock())!=null){
+      if ((s.getUpdateBlock())!=null){
         nextExpr();
+        if(s.getUpdateBlock() instanceof BlockStatement)
         ((BlockStatement)s.getUpdateBlock()).getStatement(0).accept(this);
+        else 
+        	s.getUpdateBlock().accept(this);
       }
       out.printf(")");
     } else if ((tmp=s.getEntryGuard())!=null) {

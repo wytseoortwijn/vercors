@@ -127,6 +127,7 @@ public final class PrimitiveType extends Type {
         break;
       case UInteger:
         switch(pt.sort){
+        case ULong:
         case UShort:
         case Byte:
           return true;
@@ -139,6 +140,15 @@ public final class PrimitiveType extends Type {
         case Byte:
           return true;
         }  
+        break;
+      case ULong:
+        switch(pt.sort){
+        case Long:
+        case Integer:
+        case Short:
+        case Byte:
+          return true;
+        }
         break;
       case Float:
         switch(pt.sort){

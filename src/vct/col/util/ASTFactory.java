@@ -714,6 +714,23 @@ public class ASTFactory<E> implements FrameControl {
     return while_loop(origin_stack.get(),test,body,invariant);
   }
   
+  public LoopStatement for_loop(Origin origin,ASTNode init, ASTNode test, ASTNode update, ASTNode body,ASTNode ... invariant){
+	    LoopStatement res=new LoopStatement();
+	    res.setEntryGuard(test);
+	    res.setInitBlock(init);
+	    res.setUpdateBlock(update);
+	    res.setBody(body);
+	    res.setOrigin(origin);
+	    for (ASTNode inv:invariant) res.appendInvariant(inv);
+	    res.accept_if(post);
+	    return res;    
+	  }
+	  public LoopStatement for_loop(E origin, ASTNode init, ASTNode test,ASTNode update,ASTNode body,ASTNode ... invariant){
+	    return for_loop(origin_source.create(origin),init, test,update,body,invariant);
+	  }
+	  public LoopStatement for_loop(ASTNode init,ASTNode test,ASTNode update,ASTNode body,ASTNode ... invariant){
+	    return for_loop(origin_stack.get(),init,test,update,body,invariant);
+	  }
   
   /**
    * Create a new auxiliary with node.
