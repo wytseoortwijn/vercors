@@ -127,7 +127,6 @@ public class ExplicitPermissionEncoding extends AbstractRewriter {
       cb.ensures(c.post_condition.apply(clause_rw));
       ASTNode body=rewrite(m.getBody());
       result=create.method_kind(
-          m.getOrigin(),
           m.kind,
           rewrite(m.getReturnType()),
           cb.getContract(),

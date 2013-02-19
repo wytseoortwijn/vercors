@@ -181,8 +181,23 @@ public abstract class ASTFrame<T> {
     }
     if (node instanceof LoopStatement){
       variables.enter();
-      for(ASTNode inv:((LoopStatement)node).getInvariants()){
+      LoopStatement loop=(LoopStatement)node;
+      for(ASTNode inv:loop.getInvariants()){
         scan_labels(inv);
+      }
+      if (loop.getInitBlock() instanceof DeclarationStatement){
+        DeclarationStatement decl=(DeclarationStatement)loop.getInitBlock();
+        variables.add(decl.getName(),new VariableInfo(decl,NameExpression.Kind.Local));
+      }
+      if (loop.getInitBlock() instanceof BlockStatement){
+        BlockStatement block=(BlockStatement)loop.getInitBlock();
+        int N=block.getLength();
+        for(int i=0;i<N;i++){
+          if (block.getStatement(i) instanceof DeclarationStatement){
+            DeclarationStatement decl=(DeclarationStatement)block.getStatement(i);
+            variables.add(decl.getName(),new VariableInfo(decl,NameExpression.Kind.Local));
+          }         
+        }
       }
     }
     if (node instanceof BindingExpression){

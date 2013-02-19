@@ -3,6 +3,7 @@ package vct.col.rewrite;
 import java.util.Arrays;
 import java.util.HashSet;
 
+import hre.ast.Origin;
 import hre.util.FrameControl;
 import vct.col.ast.ASTClass;
 import vct.col.ast.ASTFrame;
@@ -96,7 +97,12 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
    * the origin of the current node being rewritten.
    */
   public final ASTFactory create;
-      
+  
+  public final ASTFactory create(Origin origin){
+    create.setOrigin(origin);
+    return create;
+  }
+  
   public AbstractRewriter(ProgramUnit source){
     this(source,new ProgramUnit());
   }
@@ -372,7 +378,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
     ASTNode body=rewrite(m.getBody());
     Contract c=currentContractBuilder.getContract();
     currentContractBuilder=null;
-    result=create.method_kind(m.getOrigin(), kind, rt, c, name, args, m.usesVarArgs(), body);
+    result=create.method_kind(kind, rt, c, name, args, m.usesVarArgs(), body);
   }
 
   @Override

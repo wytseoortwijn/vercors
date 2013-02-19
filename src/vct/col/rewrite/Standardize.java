@@ -42,7 +42,7 @@ public class Standardize extends AbstractRewriter {
         {
           ASTNode var=e.getArg(0).apply(this);
           ASTNode val=e.getArg(1).apply(this);
-          res.add_statement(create.assignment(e.getOrigin(),var,val));
+          res.add_statement(create(e.getOrigin()).assignment(var,val));
           break;
         }
         case PostIncr:
@@ -51,7 +51,7 @@ public class Standardize extends AbstractRewriter {
           ASTNode arg=e.getArg(0);
           if (arg instanceof NameExpression){
             ASTNode incr=create.expression(e.getOrigin(),StandardOperator.Plus,rewrite(arg),create.constant(e.getOrigin(),1));
-            res.add_statement(create.assignment(e.getOrigin(),rewrite(arg),incr));
+            res.add_statement(create(e.getOrigin()).assignment(rewrite(arg),incr));
           } else {
             res.add_statement(rewrite(e));
           }
@@ -63,7 +63,7 @@ public class Standardize extends AbstractRewriter {
           ASTNode arg=e.getArg(0);
           if (arg instanceof NameExpression){
             ASTNode incr=create.expression(e.getOrigin(),StandardOperator.Minus,rewrite(arg),create.constant(e.getOrigin(),1));
-            res.add_statement(create.assignment(e.getOrigin(),rewrite(arg),incr));
+            res.add_statement(create(e.getOrigin()).assignment(rewrite(arg),incr));
           } else {
             res.add_statement(rewrite(e));
           }

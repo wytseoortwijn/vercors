@@ -41,7 +41,7 @@ public abstract class GlobalizeStatics extends AbstractRewriter {
   
   public GlobalizeStatics(ProgramUnit source) {
     super(source);
-    global_class=create.ast_class(new MessageOrigin("filtered globals"),"Global",ClassKind.Plain,null,null);
+    global_class=create(new MessageOrigin("filtered globals")).ast_class("Global",ClassKind.Plain,null,null);
     target().addClass(global_class.getFullName(),global_class);
   }
 

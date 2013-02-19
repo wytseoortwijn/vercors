@@ -43,7 +43,7 @@ public class FinalizeArguments extends AbstractRewriter {
         for(int i=0;i<N;i++){
           String old_name=m.getArgument(i);
           String new_name="__"+m.getArgument(i);
-          args[i]=create.field_decl(old_decls[i].getOrigin(),new_name,rewrite(m.getArgType(i)));
+          args[i]=create(old_decls[i].getOrigin()).field_decl(new_name,rewrite(m.getArgType(i)));
           if (old_decls[i].isValidFlag(ASTFlags.GHOST)){
             args[i].setGhost(old_decls[i].isGhost());
           }
