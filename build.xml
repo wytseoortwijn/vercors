@@ -26,8 +26,8 @@
            classpath="${bin}:${basedir}/../hre/hre.jar"
            debug="on"
            includeAntRuntime="false"
-           source="1.6"
-           target="1.6">
+           source="1.7"
+           target="1.7">
       <include name="**/*.java"/>
     </javac>
   </target>
