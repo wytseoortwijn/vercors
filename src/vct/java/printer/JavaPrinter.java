@@ -664,15 +664,30 @@ public class JavaPrinter extends AbstractPrinter {
   public void visit(PrimitiveType t){
     switch(t.sort){
       case Array:
-        if (t.getArgCount()!=1){
-          Fail("Array type constructor with %d arguments instead of 1",t.getArgCount());
-        }
         t.getArg(0).accept(this);
-        out.printf("[]");
-        break;
+        switch(t.getArgCount()){
+        case 1:
+            out.printf("[]");
+            return;
+        case 2:
+          out.printf("[/*");
+          t.getArg(1).accept(this);
+          out.printf("*/]");
+          return;
+        default:
+            Fail("Array type constructor with %d arguments instead of 1 or 2",t.getArgCount());
+        }
       case Cell:
+        if (t.getArgCount()==2){
+          out.printf("cell<");
+          t.getArg(0).accept(this);
+          out.printf(">[");
+          t.getArg(1).accept(this);
+          out.printf("]");
+          break;
+        }
         if (t.getArgCount()!=1){
-          Fail("Sequence type constructor with %d arguments instead of 1",t.getArgCount());
+          Fail("Cell type constructor with %d arguments instead of 1",t.getArgCount());
         }
         out.printf("cell<");
         t.getArg(0).accept(this);

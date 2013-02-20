@@ -97,6 +97,9 @@ public class JavaSyntax {
       syntax.addPrimitiveType(Char,"char");
       syntax.addPrimitiveType(Float,"float");
       syntax.addPrimitiveType(UInteger,"/*unsigned*/ int");
+      syntax.addPrimitiveType(ULong,"/*unsigned*/ long");
+      syntax.addPrimitiveType(UShort,"/*unsigned*/ short");
+      syntax.addPrimitiveType(Short,"short");
     }
     return syntax;
   } 

@@ -63,6 +63,9 @@ public abstract  class Type extends ASTNode {
   }
 
   public boolean comparableWith(ProgramUnit context, Type t2){
+    if (isIntegerType()){
+      return t2.isIntegerType();
+    }
     if(equals(t2)) return true;
     if(this.supertypeof(context,t2)) return true;
     if(t2.supertypeof(context,this)) return true;
@@ -70,6 +73,18 @@ public abstract  class Type extends ASTNode {
   }
 
   public boolean isNull() {
+    return false;
+  }
+
+  public boolean equalSize(Type t2) {
+    return false;
+  }
+
+  public boolean isIntegerType() {
+    return false;
+  }
+
+  public boolean isNumeric() {
     return false;
   }
 

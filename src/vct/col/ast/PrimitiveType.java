@@ -33,9 +33,11 @@ public final class PrimitiveType extends Type {
     int N=args.length;
     switch(sort){
       case Sequence:
-      case Array:
       case Cell:
         if (N!=1) Abort("illegal argument count");
+        break;
+      case Array:
+        if (N<1 || N>2) Abort("illegal argument count");
         break;
       default:
         if (N!=0) Abort("illegal argument count");
@@ -185,5 +187,45 @@ public final class PrimitiveType extends Type {
       return super.zero();
     }
   }
+  public boolean equalSize(Type t2) {
+    int tmp=size();
+    if (tmp>0 && t2 instanceof PrimitiveType){
+      return tmp==((PrimitiveType)t2).size();
+    }
+    return false;
+  }
+  private int size() {
+    switch(sort){
+      case Short:
+      case UShort:
+        return 16;
+      case UInteger:
+      case Integer:
+        return 32;
+      case Long:
+      case ULong:
+        return 64;
+      default: return -1;
+    }
+    
+  }
+  
+  public boolean isIntegerType() {
+    return size()>0;
+  }
+  
+  public boolean isNumeric() {
+    return isIntegerType() || isFloatType() || sort==Sort.Fraction ;
+  }
+  private boolean isFloatType() {
+    switch(sort){
+      case Float:
+      case Double:
+        return true;
+      default:
+        return false;
+    }
+  }
+
 
 }

@@ -111,7 +111,10 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     Type val_type=val.getType();
     if (val_type==null) Abort("Value has no type has no type.");
     if (loc_type.toString().equals("<<label>>")) return;
-    if (!(loc_type.equals(val_type) || loc_type.supertypeof(source(), val_type))) {
+    if (!(loc_type.equals(val_type)
+        ||loc_type.supertypeof(source(), val_type)
+        ||loc_type.isNumeric()&&val_type.isNumeric()
+    )){
       Fail("Types of location (%s) and value (%s) do not match.",loc_type,val_type);
     }    
   }
@@ -348,8 +351,8 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     case UPlus:
     {
       Type t=e.getArg(0).getType();
-      if (!t.isInteger()){
-        Fail("Argument of %s must be boolean at %s",op,e.getOrigin());
+      if (!t.isNumeric()){
+        Fail("Argument of %s must be a numeric type",op);
       }
       e.setType(t);
       break;
@@ -362,15 +365,48 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     {
       Type t1=e.getArg(0).getType();
       if (t1==null) Fail("type of left argument unknown at %s",e.getOrigin());
+      if (!t1.isNumeric()){
+        Fail("First argument of %s is %s rather than a numeric type",op,t1);
+      }
       Type t2=e.getArg(1).getType();
       if (t2==null) Fail("type of right argument unknown at %s",e.getOrigin());
-      if (t1.supertypeof(null, t2)){
-        e.setType(t1);
-      } else if (t2.supertypeof(null, t1)){
+      if (!t2.isNumeric()){
+        Fail("Second argument of %s is %s rather than a numeric type",op,t2);
+      }
+      e.setType(t1);
+      break;
+    }
+    case BitAnd:
+    case BitOr:
+    case BitNot:
+    case BitXor:
+    {
+      Type t1=e.getArg(0).getType();
+      if (t1==null) Fail("type of left argument unknown at %s",e.getOrigin());
+      Type t2=e.getArg(1).getType();
+      if (t2==null) Fail("type of right argument unknown at %s",e.getOrigin());
+      if (t1.equalSize(t2)){
         e.setType(t1);
       } else {
-        Fail("Types of left and right-hand side argument are uncomparable at %s",e.getOrigin());
+        Fail("Types of left and right-hand side argument are different (%s/%s).",t1,t2);
       }
+      break;
+    }
+    case RightShift:
+    case LeftShift:
+    case UnsignedRightShift:
+    {
+      Type t1=e.getArg(0).getType();
+      if (t1==null) Fail("type of left argument unknown at %s",e.getOrigin());
+      if (!t1.isIntegerType()){
+        Fail("First argument of %s must be integer type, not %s",op,t1);
+      }
+      Type t2=e.getArg(1).getType();
+      if (t2==null) Fail("type of right argument unknown at %s",e.getOrigin());
+      if (!t2.isIntegerType()){
+        Fail("Second argument of %s must be integer type, not %s",op,t2);
+      }
+      e.setType(t1);
       break;
     }
     case GTE:
