@@ -199,19 +199,37 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
             int L=block.getLength()-1;
             ASTNode tmp;
             for(int i=0;i<L;i++){
-              tmp=block.getStatement(i);
-              if (tmp instanceof OperatorExpression &&
-                  ((OperatorExpression)tmp).getOperator()==StandardOperator.Unfold)
-              {
-                in_clause=true;
-                nextExpr();
-                current_precedence=0;
-                out.printf("unfolding ");
-                ((OperatorExpression)tmp).getArg(0).accept(this);
-                out.lnprintf(" in");
-                in_clause=false;
+              int LL,j=0;
+              ASTNode main=block.getStatement(i);
+              if (main instanceof BlockStatement){
+                LL=((BlockStatement)main).getLength();
+                if (LL==0) continue;
+                tmp=((BlockStatement)main).getStatement(0);
               } else {
-                Fail("statement that is not unfold in pure method at %s",m.getOrigin());
+                LL=1;
+                tmp=main;
+              }
+              for(;;){
+                if (tmp instanceof OperatorExpression &&
+                    ((OperatorExpression)tmp).getOperator()==StandardOperator.Unfold)
+                {
+                  in_clause=true;
+                  nextExpr();
+                  current_precedence=0;
+                  out.printf("unfolding ");
+                  ((OperatorExpression)tmp).getArg(0).accept(this);
+                  out.lnprintf(" in");
+                  in_clause=false;
+                } else if (tmp instanceof OperatorExpression &&
+                    ((OperatorExpression)tmp).getOperator()==StandardOperator.Assert)
+                {
+                  Warning("Ignoring assert.");
+                } else {
+                  Fail("statement (%s) that is not unfold in pure method at %s",tmp.getClass(),m.getOrigin());
+                }
+                j++;
+                if (j>=LL) break;
+                tmp=((BlockStatement)main).getStatement(j);
               }
             }
             tmp=block.getStatement(L);

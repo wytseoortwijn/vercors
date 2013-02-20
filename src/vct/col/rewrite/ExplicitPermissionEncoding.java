@@ -195,15 +195,20 @@ public class ExplicitPermissionEncoding extends AbstractRewriter {
     super.visit(name);
   }
   
+  private AbstractRewriter clause_rw=new ClauseEncoding(source());
+  
   public void visit(OperatorExpression e){
     switch (e.getOperator()){
     case Unfold:{
       ASTNode arg1=e.getArg(0);
       if (arg1.labels()==1){
         for(NameExpression lbl:arg1.getLabels()){
-          result=create.expression(e.getOperator(),
+          result=create.block(
+              create.expression(StandardOperator.Assert,clause_rw.rewrite(arg1)),
+              create.expression(e.getOperator(),
               create.invokation(create.local_name(lbl.getName()), null, "valid")
-              );
+              )
+          );
           return;
         }
       } else {
