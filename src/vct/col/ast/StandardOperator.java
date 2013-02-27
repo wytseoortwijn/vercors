@@ -144,6 +144,7 @@ public enum StandardOperator {
   Cons(2),
   /** append two lists */
   Append(2),
+  AddrOf(1),
   /** Build list/sequence constant. */
   Build(-1);
 
