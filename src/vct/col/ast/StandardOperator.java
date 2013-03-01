@@ -98,6 +98,19 @@ public enum StandardOperator {
   PointsTo(3),
   /** Immutable permission predicate.  */
   Value(1),
+  /** Array permission predicate.
+   *  ArrayPerm(name,first,step,count,p);
+   *  The arguments are
+   *  <UL>
+   *   <li> the name of the array
+   *   <li> the first index to which access is denoted
+   *   <li> the step by which the indices are increased
+   *   <li> the count of elements to which access is granted
+   *   <li> the fraction p access for every index
+   *  </UL>
+   *  the first argument is the name of the array.
+   */
+  ArrayPerm(5),
   /* Member selection is replaced by Dereference
   Select(2),
   Guarded member selection. (Selection with built-in null test.)

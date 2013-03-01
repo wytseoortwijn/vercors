@@ -270,6 +270,7 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     case PointsTo:
     case Perm:
     case Value:
+    case ArrayPerm:
       // TODO: check arguments
       e.setType(new PrimitiveType(Sort.Boolean));
       break;

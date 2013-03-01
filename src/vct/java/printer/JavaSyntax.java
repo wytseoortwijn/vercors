@@ -22,6 +22,7 @@ public class JavaSyntax {
       syntax.addFunction(Perm,"Perm");
       syntax.addFunction(Value,"Value");
       syntax.addFunction(PointsTo,"PointsTo");
+      syntax.addFunction(ArrayPerm,"ArrayPerm");
       syntax.addFunction(Old,"\\old");
       syntax.addOperator(Size,999,"|","|");
       syntax.addOperator(Nil,999,"nil<",">");

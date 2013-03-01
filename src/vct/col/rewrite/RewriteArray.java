@@ -38,6 +38,103 @@ public class RewriteArray extends AbstractRewriter {
   
   @Override
   public void visit(OperatorExpression e){
+    if (e.getOperator()==StandardOperator.ArrayPerm){
+      Type t=(Type)(e.getArg(0).getType().getArg(0));
+      ASTNode array_name=e.getArg(0);
+      
+      // Given a sub-array...
+      String name="__sub_array_"+(++count);
+      Type type=create.primitive_type(Sort.Sequence,create.primitive_type(Sort.Cell,rewrite(t)));
+      currentContractBuilder.given(create.field_decl(name,type));
+
+      ASTNode tmp;
+      // the size of the sub-array is count, before and after.
+      tmp=create.expression(StandardOperator.EQ,
+          create.expression(StandardOperator.Size,create.local_name(name)),
+          rewrite(e.getArg(3))
+      );
+      currentContractBuilder.requires(tmp);
+      currentContractBuilder.ensures(tmp);
+
+      DeclarationStatement decl[]=new DeclarationStatement[1];
+      String vname="_auto_i_";
+      decl[0]=create.field_decl(vname,create.primitive_type(PrimitiveType.Sort.Integer));
+      tmp=new BindingExpression(
+          Binder.FORALL,
+          create.primitive_type(PrimitiveType.Sort.Boolean),
+          decl,
+          create.expression(StandardOperator.Star,
+              create.expression(StandardOperator.LTE,create.constant(0),create.local_name(vname)),
+              create.expression(StandardOperator.LT,create.local_name(vname),
+                  create.expression(StandardOperator.Size,create.unresolved_name(name)))
+          ),
+          create.expression(StandardOperator.EQ,
+              create.expression(StandardOperator.Subscript,
+                  create.unresolved_name(name),create.local_name(vname)),
+              create.expression(StandardOperator.Subscript,rewrite(array_name),
+                 create.expression(StandardOperator.Plus,rewrite(e.getArg(1)),
+                     create.expression(StandardOperator.Mult,rewrite(e.getArg(2)),
+                         create.local_name(vname)
+                     )
+                 )
+              )             
+          )
+      );
+      tmp.setOrigin(e.getOrigin());
+      currentContractBuilder.requires(tmp);
+      currentContractBuilder.ensures(tmp);
+      tmp=new BindingExpression(
+          Binder.FORALL,
+          create.primitive_type(PrimitiveType.Sort.Boolean),
+          decl,
+          create.expression(StandardOperator.Star,
+            create.expression(StandardOperator.Star,
+              create.expression(StandardOperator.LTE,rewrite(e.getArg(1)),create.local_name(vname)),
+              create.expression(StandardOperator.LT,create.local_name(vname),
+                  create.expression(StandardOperator.Plus,rewrite(e.getArg(1)),
+                      create.expression(StandardOperator.Mult,rewrite(e.getArg(2)),
+                          rewrite(e.getArg(3))
+                      )
+                  )
+                  )
+            ),
+            create.expression(StandardOperator.EQ,
+                create.expression(StandardOperator.Mod,create.local_name(vname),rewrite(e.getArg(2))),
+                rewrite(e.getArg(1))
+            )
+          ),
+          create.expression(StandardOperator.EQ,
+              create.expression(StandardOperator.Subscript,
+                  rewrite(array_name),create.local_name(vname)),
+              create.expression(StandardOperator.Subscript,create.unresolved_name(name),
+                 create.expression(StandardOperator.Div,
+                     create.expression(StandardOperator.Minus,
+                         create.local_name(vname),
+                         rewrite(e.getArg(1))
+                     ),
+                     rewrite(e.getArg(2))
+                 )
+              )             
+          )
+      );
+      tmp.setOrigin(e.getOrigin());
+      currentContractBuilder.requires(tmp);
+      currentContractBuilder.ensures(tmp);
+
+      // permission on the sub-array.
+      ASTNode res=create.expression(StandardOperator.Perm,
+          create.dereference(
+              create.expression(StandardOperator.Subscript,
+                  create.local_name(name),
+                  create.reserved_name("*")
+              ), "item"
+          ),
+          rewrite(e.getArg(4))
+      );
+      
+      result=res;
+      return;
+    }
     super.visit(e);
     if (e.getOperator()==StandardOperator.Subscript && ((PrimitiveType)e.getArg(0).getType()).sort==Array){
        result=create.dereference(result,"item");
