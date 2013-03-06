@@ -258,6 +258,7 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     case Or:
     case Implies:
     case IFF:
+    case Wand:
     {
       Type t1=e.getArg(0).getType();
       if (t1==null || !t1.isBoolean()) Fail("type of left argument unknown at "+e.getOrigin());
@@ -448,6 +449,9 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       e.setType(new PrimitiveType(Sort.Void));      
       break;
     }
+    case Use:
+    case QED:
+    case Apply:
     case Assert:
     case HoarePredicate:
     case Assume:

@@ -188,5 +188,10 @@ public abstract class RecursiveVisitor<T> extends ASTFrame<T> implements
   public void visit(Dereference e){
     e.object.accept(this);
   }
+  
+  @Override
+  public void visit(Lemma l){
+    l.block.accept(this);
+  }
 
 }

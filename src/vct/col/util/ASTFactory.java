@@ -17,6 +17,7 @@ import vct.col.ast.ContractBuilder;
 import vct.col.ast.DeclarationStatement;
 import vct.col.ast.Dereference;
 import vct.col.ast.IfStatement;
+import vct.col.ast.Lemma;
 import vct.col.ast.LoopStatement;
 import vct.col.ast.Method;
 import vct.col.ast.MethodInvokation;
@@ -626,5 +627,12 @@ public class ASTFactory<E> implements FrameControl {
     cl.add_dynamic(cons);
     leave();
   }
+
+public ASTNode lemma(vct.col.ast.BlockStatement block) {
+    ASTNode res=new Lemma(block);
+    res.setOrigin(origin_stack.get());
+    res.accept_if(post);
+    return res;
+}
 
 }

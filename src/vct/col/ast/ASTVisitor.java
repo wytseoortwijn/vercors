@@ -49,6 +49,8 @@ public interface ASTVisitor<T> {
 
   public void visit(Dereference e);
 
+  public void visit(Lemma lemma);
+
 }
 
 

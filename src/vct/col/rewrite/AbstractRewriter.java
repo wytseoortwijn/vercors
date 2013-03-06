@@ -13,6 +13,7 @@ import vct.col.ast.AbstractVisitor;
 import vct.col.ast.BindingExpression;
 import vct.col.ast.ContractBuilder;
 import vct.col.ast.Dereference;
+import vct.col.ast.Lemma;
 import vct.col.ast.MethodInvokation;
 import vct.col.ast.AssignmentStatement;
 import vct.col.ast.BlockStatement;
@@ -140,23 +141,32 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
     super.post_visit(n);
   }
 
+  protected boolean in_requires=false;
+  protected boolean in_ensures=false;
+  
   /** Rewrite contract while adding to a contract builder. */
   public void rewrite(Contract c,ContractBuilder cb){
     cb.given(rewrite(c.given));
     cb.yields(rewrite(c.yields));
     if (c.modifies!=null) cb.modifies(rewrite(c.modifies));
+    in_requires=true;
     for(ASTNode clause:ASTUtils.conjuncts(c.pre_condition)){
       cb.requires(rewrite(clause));
     }
+    in_requires=false;
+    in_ensures=true;
     for(ASTNode clause:ASTUtils.conjuncts(c.post_condition)){
       cb.ensures(rewrite(clause));
     }
+    in_ensures=false;
     //cb.requires(rewrite(c.pre_condition));
     //cb.ensures(rewrite(c.post_condition));
   }
   public Contract rewrite(Contract c){
     if (c==null) return null;
-    return new Contract(rewrite(c.given),rewrite(c.yields),rewrite(c.modifies),rewrite(c.pre_condition),rewrite(c.post_condition));
+    ContractBuilder cb=new ContractBuilder();
+    rewrite(c,cb);
+    return cb.getContract();
   }
 
   public <E extends ASTNode> E rewrite(E node){
@@ -481,4 +491,9 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
     result=create.binder(e.binder,rewrite(e.result_type),rewrite(e.getDeclarations()), rewrite(e.select), rewrite(e.main));
   }
   
+  @Override
+  public void visit(Lemma l){
+	result=create.lemma(rewrite(l.block));
+  }
+
 }

@@ -139,6 +139,12 @@ public enum StandardOperator {
   Assert(1),
   /** Assume statement. */
   Assume(1),
+  /** Use statement for magic wand proofs */
+  Use(1),
+  /** QED statement for magic wand proofs */
+  QED(1),
+  /** Apply statement for magic wands */
+  Apply(1),
   /** Havoc statement. */
   Havoc(1),
   /** Hoare Predicate statement. This is the main ingredient of a Hoare Logic proof. */

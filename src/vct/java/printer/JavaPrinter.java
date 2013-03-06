@@ -404,6 +404,12 @@ public class JavaPrinter extends AbstractPrinter {
     }
   }
 
+  public void visit(Lemma l){
+      out.printf("/*@ lemma ");
+      l.block.accept(this);
+      out.lnprintf(" */");
+  }
+  
   public void visit(OperatorExpression e){
     switch(e.getOperator()){
       case Fork:{
@@ -494,13 +500,37 @@ public class JavaPrinter extends AbstractPrinter {
         break;
       }
       case Fold:{
-        out.printf("//@ fold ");
-        current_precedence=0;
-        setExpr();
-        ASTNode prop=e.getArg(0);
-        prop.accept(this);
-        break;
-      }
+          out.printf("//@ fold ");
+          current_precedence=0;
+          setExpr();
+          ASTNode prop=e.getArg(0);
+          prop.accept(this);
+          break;
+        }
+      case Use:{
+          out.printf("//@ use ");
+          current_precedence=0;
+          setExpr();
+          ASTNode prop=e.getArg(0);
+          prop.accept(this);
+          break;
+        }
+      case Apply:{
+          out.printf("//@ apply ");
+          current_precedence=0;
+          setExpr();
+          ASTNode prop=e.getArg(0);
+          prop.accept(this);
+          break;
+        }
+      case QED:{
+          out.printf("//@ qed ");
+          current_precedence=0;
+          setExpr();
+          ASTNode prop=e.getArg(0);
+          prop.accept(this);
+          break;
+        }
       case Open:{
         out.printf("//@ open ");
         current_precedence=0;
