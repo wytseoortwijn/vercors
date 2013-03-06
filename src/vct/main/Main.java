@@ -42,6 +42,7 @@ import vct.col.rewrite.SimplifyCalls;
 import vct.col.rewrite.Standardize;
 import vct.col.rewrite.StripConstructors;
 import vct.col.rewrite.VoidCalls;
+import vct.col.rewrite.WandEncoder;
 import vct.col.util.FeatureScanner;
 import vct.col.util.SimpleTypeCheck;
 import vct.util.ClassName;
@@ -265,12 +266,17 @@ public class Main
         return new DynamicStaticInheritance(arg).rewriteOrdered();
       }
     });
+    defined_passes.put("magicwand",new CompilerPass("Encode magic wand proofs with witnesses"){
+        public ProgramUnit apply(ProgramUnit arg){
+          return new WandEncoder(arg).rewriteAll();
+        }
+      });
     defined_passes.put("modifies",new CompilerPass("Derive modifies clauses for all contracts"){
-      public ProgramUnit apply(ProgramUnit arg){
-        new DeriveModifies().annotate(arg);
-        return arg;
-      }
-    });
+        public ProgramUnit apply(ProgramUnit arg){
+          new DeriveModifies().annotate(arg);
+          return arg;
+        }
+      });
     defined_passes.put("reorder",new CompilerPass("reorder statements (e.g. all declarations at the start of a bock"){
       public ProgramUnit apply(ProgramUnit arg){
         return new ReorderAssignments(arg).rewriteAll();
@@ -372,7 +378,10 @@ public class Main
       passes.add("check");
     	passes.add("boogie");
     } else if (chalice.get()) {
-    	passes=new ArrayList<String>();
+      passes=new ArrayList<String>();
+      passes.add("magicwand");
+      passes.add("standardize");
+      passes.add("check");
       if (features.hasStaticItems()){
         Warning("Encoding globals by means of an argument.");
         passes.add("standardize");
