@@ -48,6 +48,29 @@ public class RewriteArray extends AbstractRewriter {
       currentContractBuilder.given(create.field_decl(name,type));
 
       ASTNode tmp;
+      DeclarationStatement args[]=new DeclarationStatement[1];
+      args[0]=create.field_decl(name+"_i",create.primitive_type(Sort.Integer));
+      ASTNode res=create.binder(
+          BindingExpression.Binder.FORALL,
+          null,
+          args,
+          create.expression(StandardOperator.And,
+              create.expression(StandardOperator.LTE,create.constant(0),create.local_name(name+"_i")),
+              create.expression(StandardOperator.LT,create.local_name(name+"_i"),
+                  create.expression(StandardOperator.Size,rewrite(array_name))
+              )
+          ),
+          create.expression(StandardOperator.NEQ,
+              create.expression(StandardOperator.Subscript,
+                  rewrite(array_name),
+                  create.local_name(name+"_i")
+              ),
+              create.reserved_name("null")
+          )
+      );;
+      
+      
+      
       // the size of the sub-array is count, before and after.
       tmp=create.expression(StandardOperator.EQ,
           create.expression(StandardOperator.Size,create.local_name(name)),
@@ -122,7 +145,7 @@ public class RewriteArray extends AbstractRewriter {
       currentContractBuilder.ensures(tmp);
 
       // permission on the sub-array.
-      ASTNode res=create.expression(StandardOperator.Perm,
+      tmp=create.expression(StandardOperator.Perm,
           create.dereference(
               create.expression(StandardOperator.Subscript,
                   create.local_name(name),
@@ -131,6 +154,7 @@ public class RewriteArray extends AbstractRewriter {
           ),
           rewrite(e.getArg(4))
       );
+      res=create.expression(StandardOperator.Star,res,tmp);
       
       result=res;
       return;

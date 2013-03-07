@@ -628,11 +628,24 @@ public class ASTFactory<E> implements FrameControl {
     leave();
   }
 
-public ASTNode lemma(vct.col.ast.BlockStatement block) {
+  public ASTNode lemma(vct.col.ast.BlockStatement block) {
     ASTNode res=new Lemma(block);
     res.setOrigin(origin_stack.get());
     res.accept_if(post);
     return res;
-}
+  }
+
+  public BindingExpression forall(ASTNode guard, ASTNode claim, DeclarationStatement ... decl) {
+    BindingExpression res=new BindingExpression(
+        Binder.FORALL,
+        primitive_type(PrimitiveType.Sort.Boolean),
+        decl,
+        guard,
+        claim
+    );
+    res.setOrigin(origin_stack.get());
+    res.accept_if(post);
+    return res;
+  }
 
 }

@@ -127,6 +127,10 @@ public abstract class GlobalizeStatics extends AbstractRewriter {
   }
 
   public void visit(Dereference e){
+    if (e.field.equals("length")){
+      super.visit(e);
+      return;
+    }
     ClassType t;
     if (e.object instanceof ClassType){
       t=(ClassType)e.object;
