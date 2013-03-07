@@ -85,7 +85,7 @@ public class System {
    * Emit a debug message if the class calling this method is tagged for debugging.
    * 
    */
-  public static void Debug(String format,Object...args){
+  public static boolean Debug(String format,Object...args){
     StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
     int N=stackTraceElements.length;
     int idx=2;
@@ -97,10 +97,10 @@ public class System {
       MessageStream out=debug_map.get(name);
       if (out!=null){
         out.say(format,args);
-        return;
+        return true;
       }
       int lastdot=name.lastIndexOf(".");
-      if (lastdot<0) return;
+      if (lastdot<0) return false;
       name=name.substring(0,lastdot);
     }
   }
