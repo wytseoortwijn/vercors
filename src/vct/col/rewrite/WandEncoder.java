@@ -3,6 +3,7 @@ package vct.col.rewrite;
 import hre.ast.MessageOrigin;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 
@@ -221,12 +222,14 @@ public class WandEncoder extends AbstractRewriter {
 	  def.case_count++;
 	  int lemma_no=def.case_count;
 	  
+      HashMap<NameExpression,ASTNode> local2proof=new HashMap();
 	  ContractBuilder lemma_cb=new ContractBuilder();
 	  BlockStatement lemma_body=create.block();
 	  BlockStatement proof_body=create.block();
 	  ASTNode proof_result=create.constant(true);
 	  ArrayList<DeclarationStatement> lemma_args=new ArrayList();
 	  ArrayList<ASTNode> create_args=new ArrayList();
+	  ASTNode case_body;
 	  
 	  lemma_body.add_statement(create.field_decl("wand",create.class_type(wand_type),
 	      create.new_object(create.class_type(wand_type)))
@@ -240,6 +243,69 @@ public class WandEncoder extends AbstractRewriter {
         create.reserved_name("null")
     ));
     lemma_cb.ensures(create.invokation(create.reserved_name("\\result"), null, "valid"));
+    
+    Type this_type=create.class_type(current_class().getFullName());
+    String this_name="this_"+lemma_no;
+    def.cl.add_dynamic(create.field_decl(this_name,this_type));
+    def.valid_body=create.expression(StandardOperator.Star,
+			def.valid_body,
+			create.expression(StandardOperator.Perm,create.field_name(this_name),create.constant(100))
+		);
+    lemma_args.add(create.field_decl(this_name,this_type));
+    lemma_body.add_statement(create.assignment(
+            create.dereference(create.local_name("wand"),this_name),
+            create.local_name(this_name)
+        ));
+    create_args.add(create.reserved_name("this"));
+    case_body=create.expression(StandardOperator.NEQ,
+            create.field_name(this_name),
+            create.reserved_name("null")
+	);
+    lemma_cb.requires(create.expression(StandardOperator.NEQ,
+            create.local_name(this_name),
+            create.reserved_name("null")
+	));
+    local2proof.put(create.reserved_name("this"),create.unresolved_name(this_name));
+    AbstractRewriter rename_for_proof=new Substitution(source(), local2proof);
+    
+    for(int i=0;i<N-1;i++){
+    	ASTNode tmp=l.block.getStatement(i);
+    	if (tmp instanceof OperatorExpression){
+    		OperatorExpression e=(OperatorExpression)tmp;
+    		switch(e.getOperator()){
+	    		case Use:{
+	    			lemma_cb.requires(rename_for_proof.rewrite(e.getArg(0)));
+	    			case_body=create.expression(StandardOperator.Star,
+	    					case_body,
+	    					rename_for_proof.rewrite(e.getArg(0))
+						);	    			
+					continue;
+	    		}
+	    		case Access:{
+	    			DeclarationStatement arg=(DeclarationStatement)e.getArg(0);
+	    			String var=arg.getName()+"_"+lemma_no;
+	    			DeclarationStatement decl=create.field_decl(var, rewrite(arg.getType()));
+	    			def.cl.add_dynamic(decl);
+	    			lemma_args.add(decl);
+	    			lemma_body.add_statement(create.assignment(
+	    		            create.dereference(create.local_name("wand"),var),
+	    		            create.local_name(var)	    					
+					));
+	    			create_args.add(create.unresolved_name(arg.getName()));
+	    			local2proof.put(create.unresolved_name(arg.getName()),create.unresolved_name(var));
+	    			def.valid_body=create.expression(StandardOperator.Star,
+    					def.valid_body,
+    					create.expression(StandardOperator.Perm,create.field_name(var),create.constant(100))
+					);
+	    			continue;
+	    		}
+    		}
+    	}
+    	proof_body.add_statement(rewrite(tmp));
+    }
+    
+   
+    
 	  int count=0;
     for(ASTNode n:ASTUtils.conjuncts(wand.getArg(0))){
       count++;
@@ -265,6 +331,12 @@ public class WandEncoder extends AbstractRewriter {
             create.local_name(var)
         ));
         create_args.add(rewrite(m.object));
+        case_body=create.expression(StandardOperator.Star,case_body,
+    		create.expression(StandardOperator.EQ,create.field_name(var),rename_for_proof.rewrite(m.object))
+        );
+        lemma_cb.requires(
+    		create.expression(StandardOperator.EQ,create.local_name(var),rename_for_proof.rewrite(m.object))
+        );
       } else {
         Abort("unexpected clause in magic wand");
       }
@@ -294,6 +366,12 @@ public class WandEncoder extends AbstractRewriter {
             create.local_name(var)
         ));
         create_args.add(rewrite(m.object));
+        case_body=create.expression(StandardOperator.Star,case_body,
+    		create.expression(StandardOperator.EQ,create.field_name(var),rename_for_proof.rewrite(m.object))
+        );
+        lemma_cb.requires(
+    		create.expression(StandardOperator.EQ,create.local_name(var),rename_for_proof.rewrite(m.object))
+        );
         proof_result=create.expression(StandardOperator.Star,
             proof_result,
             create.invokation(create.field_name(var),null,m.method)
@@ -321,6 +399,13 @@ public class WandEncoder extends AbstractRewriter {
 	      lemma_args.toArray(new DeclarationStatement[0]),
 	      lemma_body);
 	  currentClass.add_dynamic(lemma_method);
+	  def.valid_body=create.expression(StandardOperator.Star,
+				def.valid_body,
+				create.expression(StandardOperator.Implies,
+						create.expression(StandardOperator.EQ,create.field_name("lemma"),create.constant(lemma_no)),
+						case_body
+				)
+	  );
 	  def.apply_cases.addClause(
 	      create.expression(StandardOperator.EQ,create.field_name("lemma"),create.constant(lemma_no)),
 	      proof_body);
