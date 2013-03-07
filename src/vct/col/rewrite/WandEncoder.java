@@ -1,18 +1,42 @@
 package vct.col.rewrite;
 
+import hre.ast.MessageOrigin;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Hashtable;
+
 import vct.col.ast.ASTClass;
 import vct.col.ast.ASTNode;
+import vct.col.ast.BlockStatement;
 import vct.col.ast.ClassType;
+import vct.col.ast.Contract;
+import vct.col.ast.ContractBuilder;
+import vct.col.ast.DeclarationStatement;
+import vct.col.ast.IfStatement;
+import vct.col.ast.Lemma;
+import vct.col.ast.Method;
 import vct.col.ast.MethodInvokation;
 import vct.col.ast.NameExpression;
 import vct.col.ast.OperatorExpression;
+import vct.col.ast.PrimitiveType.Sort;
 import vct.col.ast.ProgramUnit;
 import vct.col.ast.StandardOperator;
+import vct.col.ast.Type;
+import vct.col.util.ASTFactory;
 import vct.col.util.ASTUtils;
 import vct.col.util.WandScanner;
 
 public class WandEncoder extends AbstractRewriter {
 
+  private class WandDefinition {
+    ASTClass cl;
+    ASTNode valid_body;
+    IfStatement apply_cases;
+    int case_count;
+  }
+  private Hashtable<String,WandDefinition> defined_wand_classes=new Hashtable<String,WandDefinition>();
+  
 	public WandEncoder(ProgramUnit source) {
 		super(source);
 		WandScanner scanner=new WandScanner(source);
@@ -73,6 +97,9 @@ public class WandEncoder extends AbstractRewriter {
 		    			Abort("unexpected clause in magic wand");
 		    		}
 		    	}
+		    	if (!defined_wand_classes.containsKey(type_name)){
+		    	  define_wand(type_name,e);
+		    	}
 		    	if (in_requires){
 		    		currentContractBuilder.given(create.field_decl(lbl,create.class_type(type_name)));
 		    	}
@@ -87,4 +114,262 @@ public class WandEncoder extends AbstractRewriter {
 		      super.visit(e);
 		    }
     }
+	  
+	public void define_wand(String name,OperatorExpression e){
+	  WandDefinition def=new WandDefinition();
+	  defined_wand_classes.put(name,def);
+	  create.enter();
+	  create.setOrigin(new MessageOrigin("generated class "+name));
+	  ASTClass cl=create.ast_class(name,ASTClass.ClassKind.Plain,null,null);
+	  def.cl=cl;
+	      
+	  cl.add_dynamic(create.field_decl("lemma",create.primitive_type(Sort.Integer)));
+	  ASTNode valid_body=create.expression(StandardOperator.Star,
+	      create.expression(StandardOperator.Perm,create.field_name("lemma"),create.constant(100)),
+	      create.expression(StandardOperator.GT,create.field_name("lemma"),create.constant(0))
+	  );
+	  ContractBuilder cb=new ContractBuilder();
+	  cb.requires(create.invokation(create.reserved_name("this"), null, "valid"));
+	  Contract get_contract=cb.getContract();
+	  
+	  // now we build the contract of the apply method.
+	  cb=new ContractBuilder();
+	  cb.requires(create.invokation(create.reserved_name("this"), null, "valid"));
+	  
+    int count=0;
+    for(ASTNode n:ASTUtils.conjuncts(e.getArg(0))){
+      count++;
+      if (n instanceof MethodInvokation){
+        MethodInvokation m=(MethodInvokation)n;
+        String var="in_"+count;
+        Type t=m.object.getType();
+        if (t.getOrigin()==null){
+          t.setOrigin(cl);
+        }
+        ASTNode decl=create.field_decl(var,rewrite(t));
+        cl.add_dynamic(decl);
+        valid_body=create.expression(StandardOperator.Star,
+            valid_body,
+            create.expression(StandardOperator.Perm,create.field_name(var),create.constant(100))
+        );
+        ASTNode body=create.field_name(var);
+        Method getter=create.function_decl(t,get_contract, "get_"+var, new DeclarationStatement[0], body);
+        cl.add_dynamic(getter);
+        cb.requires(create.expression(StandardOperator.NEQ,
+            create.invokation(null,null,"get_"+var),
+            create.reserved_name("null")
+        ));
+        cb.requires(create.invokation(create.invokation(null,null,"get_"+var),null,m.method));
+      } else {
+        Abort("unexpected clause in magic wand");
+      }
+    }
+    count=0;
+    for(ASTNode n:ASTUtils.conjuncts(e.getArg(1))){
+      count++;
+      if (n instanceof MethodInvokation){
+        MethodInvokation m=(MethodInvokation)n;
+        String var="out_"+count;
+        Type t=m.object.getType();
+        if (t.getOrigin()==null){
+          t.setOrigin(cl);
+        }
+        ASTNode decl=create.field_decl(var,rewrite(t));
+        cl.add_dynamic(decl);
+        valid_body=create.expression(StandardOperator.Star,
+            valid_body,
+            create.expression(StandardOperator.Perm,create.field_name(var),create.constant(100))
+        );
+        ASTNode body=create.field_name(var);
+        Method getter=create.function_decl(t,get_contract, "get_"+var, new DeclarationStatement[0], body);
+        cl.add_dynamic(getter);
+        cb.requires(create.expression(StandardOperator.NEQ,
+            create.invokation(null,null,"get_"+var),
+            create.reserved_name("null")
+        ));
+        cb.ensures(create.invokation(
+            create.expression(StandardOperator.Old,create.invokation(null,null,"get_"+var)),
+            null,
+            m.method
+        ));
+      } else {
+        Abort("unexpected clause in magic wand");
+      }
+    }    
+    def.valid_body=valid_body;
+    IfStatement cases=new IfStatement();
+    cases.setOrigin(create.getOrigin());
+    ASTNode apply_body=create.block(
+        create.expression(StandardOperator.Unfold,
+            create.invokation(create.reserved_name("this"), null, "valid")
+        ), cases
+    );
+    Method apply=create.method_decl(create.primitive_type(Sort.Void),
+        cb.getContract(),"apply",new DeclarationStatement[0],apply_body);
+    cl.add_dynamic(apply);
+    def.apply_cases=cases;
+	  target().addClass(new String[]{name}, cl);
+	  create.leave();
+	}
+	
+	public void visit(Lemma l){
+	  int N=l.block.getLength();
+	  OperatorExpression wand=(OperatorExpression)((OperatorExpression)l.block.getStatement(N-1)).getArg(0);
+	  String wand_type=get_wand_type(wand);
+	  String wand_name=wand.getLabel(0).getName();
+	  WandDefinition def=defined_wand_classes.get(wand_type);
+	  def.case_count++;
+	  int lemma_no=def.case_count;
+	  
+	  ContractBuilder lemma_cb=new ContractBuilder();
+	  BlockStatement lemma_body=create.block();
+	  BlockStatement proof_body=create.block();
+	  ASTNode proof_result=create.constant(true);
+	  ArrayList<DeclarationStatement> lemma_args=new ArrayList();
+	  ArrayList<ASTNode> create_args=new ArrayList();
+	  
+	  lemma_body.add_statement(create.field_decl("wand",create.class_type(wand_type),
+	      create.new_object(create.class_type(wand_type)))
+	  );
+	  lemma_body.add_statement(create.assignment(
+	      create.dereference(create.local_name("wand"),"lemma"),
+	      create.constant(lemma_no))
+	  );
+    lemma_cb.ensures(create.expression(StandardOperator.NEQ,
+        create.reserved_name("\\result"),
+        create.reserved_name("null")
+    ));
+    lemma_cb.ensures(create.invokation(create.reserved_name("\\result"), null, "valid"));
+	  int count=0;
+    for(ASTNode n:ASTUtils.conjuncts(wand.getArg(0))){
+      count++;
+      if (n instanceof MethodInvokation){
+        MethodInvokation m=(MethodInvokation)n;
+        String var="in_"+count;
+        Type t=m.object.getType();
+        if (t.getOrigin()==null){
+          t.setOrigin(l);
+        }
+        DeclarationStatement decl=create.field_decl(var,rewrite(t));
+        lemma_args.add(decl);
+        lemma_body.add_statement(create.assignment(
+            create.dereference(create.local_name("wand"),var),
+            create.local_name(var)
+        ));
+        lemma_cb.requires(create.expression(StandardOperator.NEQ,
+            create.local_name(var),
+            create.reserved_name("null")
+        ));
+        lemma_cb.ensures(create.expression(StandardOperator.EQ,
+            create.invokation(create.reserved_name("\\result"),null, "get_"+var),
+            create.local_name(var)
+        ));
+        create_args.add(rewrite(m.object));
+      } else {
+        Abort("unexpected clause in magic wand");
+      }
+    }
+    count=0;
+    for(ASTNode n:ASTUtils.conjuncts(wand.getArg(1))){
+      count++;
+      if (n instanceof MethodInvokation){
+        MethodInvokation m=(MethodInvokation)n;
+        String var="out_"+count;
+        Type t=m.object.getType();
+        if (t.getOrigin()==null){
+          t.setOrigin(l);
+        }
+        DeclarationStatement decl=create.field_decl(var,rewrite(t));
+        lemma_args.add(decl);
+        lemma_body.add_statement(create.assignment(
+            create.dereference(create.local_name("wand"),var),
+            create.local_name(var)
+        ));
+        lemma_cb.requires(create.expression(StandardOperator.NEQ,
+            create.local_name(var),
+            create.reserved_name("null")
+        ));
+        lemma_cb.ensures(create.expression(StandardOperator.EQ,
+            create.invokation(create.reserved_name("\\result"),null, "get_"+var),
+            create.local_name(var)
+        ));
+        create_args.add(rewrite(m.object));
+        proof_result=create.expression(StandardOperator.Star,
+            proof_result,
+            create.invokation(create.field_name(var),null,m.method)
+        );
+      } else {
+        Abort("unexpected clause in magic wand");
+      }
+    }
+ 
+	  lemma_body.add_statement(create.expression(StandardOperator.Fold,
+        create.invokation(create.local_name("wand"), null, "valid")));
+	  lemma_body.add_statement(create.return_statement(create.local_name("wand")));
+	  // The following assert is not needed for correctness.
+	  // However, it is essential for providing an error message at the correct lines!
+	  create.enter();
+	  create.setOrigin(l.block.getStatement(N-1).getOrigin());
+	  proof_body.add_statement(create.expression(StandardOperator.Assert,proof_result));
+	  create.leave();
+	  
+	  String lemma_name=wand_type+"_lemma_"+lemma_no;
+	  Method lemma_method=create.method_decl(
+	      create.class_type(wand_type),
+	      lemma_cb.getContract(),
+	      lemma_name,
+	      lemma_args.toArray(new DeclarationStatement[0]),
+	      lemma_body);
+	  currentClass.add_dynamic(lemma_method);
+	  def.apply_cases.addClause(
+	      create.expression(StandardOperator.EQ,create.field_name("lemma"),create.constant(lemma_no)),
+	      proof_body);
+	  result=create.assignment(create.local_name(wand_name),
+	      create.invokation(null,null,lemma_name,create_args.toArray(new ASTNode[0])));
+	}
+	
+	private String get_wand_type(OperatorExpression e){
+    String type_name="Wand";
+    int count=0;
+    for(ASTNode n:ASTUtils.conjuncts(e.getArg(0))){
+      count++;
+      if (n instanceof MethodInvokation){
+        MethodInvokation m=(MethodInvokation)n;
+        type_name+="_"+m.method;
+      } else {
+        Abort("unexpected clause in magic wand");
+      }
+    }
+    count=0;
+    type_name+="_for";
+    for(ASTNode n:ASTUtils.conjuncts(e.getArg(1))){
+      count++;
+      if (n instanceof MethodInvokation){
+        MethodInvokation m=(MethodInvokation)n;
+        type_name+="_"+m.method;
+      } else {
+        Abort("unexpected clause in magic wand");
+      }
+    }
+    return type_name;
+	}
+	
+	
+	@Override
+	public ProgramUnit rewriteAll(){
+	  ProgramUnit res=super.rewriteAll();
+	  for(WandDefinition def:defined_wand_classes.values()){
+	    create.enter();
+	    create. setOrigin(def.cl.getOrigin());
+	    def.valid_body=create.expression(StandardOperator.Star,
+	        def.valid_body,
+	        create.expression(StandardOperator.LTE,create.field_name("lemma"),create.constant(def.case_count))
+	    );
+      Method valid=create.predicate("valid",def.valid_body);
+      def.cl.add_dynamic(valid);
+      create.addZeroConstructor(def.cl);
+      create.leave();
+	  }
+	  return res;
+	}
 }

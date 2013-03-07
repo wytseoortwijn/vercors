@@ -429,7 +429,9 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       e.setType(new PrimitiveType(Sort.Boolean));      
       break;
     }
-    case DirectProof:{
+    case Access:
+    case DirectProof:
+    {
       e.setType(new PrimitiveType(Sort.Void));
       break;
     }

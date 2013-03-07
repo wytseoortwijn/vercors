@@ -139,6 +139,8 @@ public enum StandardOperator {
   Assert(1),
   /** Assume statement. */
   Assume(1),
+  /** Access statement for use in magic wand proofs */
+  Access(1),
   /** Use statement for magic wand proofs */
   Use(1),
   /** QED statement for magic wand proofs */

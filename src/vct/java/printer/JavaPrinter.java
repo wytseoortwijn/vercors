@@ -508,13 +508,21 @@ public class JavaPrinter extends AbstractPrinter {
           break;
         }
       case Use:{
-          out.printf("//@ use ");
-          current_precedence=0;
-          setExpr();
-          ASTNode prop=e.getArg(0);
-          prop.accept(this);
-          break;
-        }
+        out.printf("//@ use ");
+        current_precedence=0;
+        setExpr();
+        ASTNode prop=e.getArg(0);
+        prop.accept(this);
+        break;
+      }
+      case Access:{
+        out.printf("//@ access ");
+        current_precedence=0;
+        setExpr();
+        ASTNode prop=e.getArg(0);
+        prop.accept(this);
+        break;
+      }
       case Apply:{
           out.printf("//@ apply ");
           current_precedence=0;
