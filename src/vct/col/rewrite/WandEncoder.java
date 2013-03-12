@@ -16,6 +16,7 @@ import vct.col.ast.ContractBuilder;
 import vct.col.ast.DeclarationStatement;
 import vct.col.ast.IfStatement;
 import vct.col.ast.Lemma;
+import vct.col.ast.LoopStatement;
 import vct.col.ast.Method;
 import vct.col.ast.MethodInvokation;
 import vct.col.ast.NameExpression;
@@ -270,38 +271,43 @@ public class WandEncoder extends AbstractRewriter {
     
     for(int i=0;i<N-1;i++){
     	ASTNode tmp=l.block.getStatement(i);
+    	create(tmp);
     	if (tmp instanceof OperatorExpression){
     		OperatorExpression e=(OperatorExpression)tmp;
     		switch(e.getOperator()){
 	    		case Use:{
-	    			lemma_cb.requires(rename_for_proof.rewrite(e.getArg(0)));
+	    		  ASTNode temp=e.getArg(0);
+	    		  if (temp instanceof OperatorExpression){
+	    		    OperatorExpression ee=(OperatorExpression)temp;
+	    		    if (ee.getOperator()==StandardOperator.Wand){
+	    		      String label=ee.getLabel(0).getName();
+	    		      DeclarationStatement arg=create.field_decl(label,create.class_type(get_wand_type(ee)));
+	    		      String var=arg.getName()+"_"+lemma_no;
+	    		      add_access(def, local2proof, lemma_body, lemma_args, create_args, arg, var);
+	    		    }
+	    		  }
+	    		  temp=rewrite(temp);
+	    			lemma_cb.requires(rename_for_proof.rewrite(temp));
 	    			case_body=create.expression(StandardOperator.Star,
 	    					case_body,
-	    					rename_for_proof.rewrite(e.getArg(0))
+	    					rename_for_proof.rewrite(temp)
 						);	    			
 					continue;
 	    		}
 	    		case Access:{
-	    			DeclarationStatement arg=(DeclarationStatement)e.getArg(0);
+	    		  DeclarationStatement arg=(DeclarationStatement)e.getArg(0);
 	    			String var=arg.getName()+"_"+lemma_no;
-	    			DeclarationStatement decl=create.field_decl(var, rewrite(arg.getType()));
-	    			def.cl.add_dynamic(decl);
-	    			lemma_args.add(decl);
-	    			lemma_body.add_statement(create.assignment(
-	    		            create.dereference(create.local_name("wand"),var),
-	    		            create.local_name(var)	    					
-					));
-	    			create_args.add(create.unresolved_name(arg.getName()));
-	    			local2proof.put(create.unresolved_name(arg.getName()),create.unresolved_name(var));
-	    			def.valid_body=create.expression(StandardOperator.Star,
-    					def.valid_body,
-    					create.expression(StandardOperator.Perm,create.field_name(var),create.constant(100))
-					);
+	    			add_access(def, local2proof, lemma_body, lemma_args, create_args, arg, var);
 	    			continue;
+	    		}
+	    		case Apply:{
+	    		  String label=e.getArg(0).getLabel(0).getName()+"_"+lemma_no;
+	    		  proof_body.add_statement(create.invokation(create.field_name(label), null , "apply"));
+	    		  continue;
 	    		}
     		}
     	}
-    	proof_body.add_statement(rewrite(tmp));
+    	proof_body.add_statement(rename_for_proof.rewrite(tmp));
     }
     
    
@@ -412,6 +418,24 @@ public class WandEncoder extends AbstractRewriter {
 	  result=create.assignment(create.local_name(wand_name),
 	      create.invokation(null,null,lemma_name,create_args.toArray(new ASTNode[0])));
 	}
+  private void add_access(WandDefinition def,
+      HashMap<NameExpression, ASTNode> local2proof, BlockStatement lemma_body,
+      ArrayList<DeclarationStatement> lemma_args,
+      ArrayList<ASTNode> create_args, DeclarationStatement arg, String var) {
+    DeclarationStatement decl=create.field_decl(var, rewrite(arg.getType()));
+    def.cl.add_dynamic(decl);
+    lemma_args.add(decl);
+    lemma_body.add_statement(create.assignment(
+              create.dereference(create.local_name("wand"),var),
+              create.local_name(var)	    					
+    ));
+    create_args.add(create.unresolved_name(arg.getName()));
+    local2proof.put(create.unresolved_name(arg.getName()),create.unresolved_name(var));
+    def.valid_body=create.expression(StandardOperator.Star,
+    	def.valid_body,
+    	create.expression(StandardOperator.Perm,create.field_name(var),create.constant(100))
+    );
+  }
 	
 	private String get_wand_type(OperatorExpression e){
     String type_name="Wand";
@@ -456,5 +480,16 @@ public class WandEncoder extends AbstractRewriter {
       create.leave();
 	  }
 	  return res;
+	}
+	
+	@Override
+	public void visit(LoopStatement l){
+	  for(ASTNode inv:l.getInvariants()){
+	    if (inv instanceof OperatorExpression && ((OperatorExpression)inv).getOperator()==StandardOperator.Wand){
+	      String label=inv.getLabel(0).getName();
+	      currentBlock.add_statement(create.field_decl(label,create.class_type(get_wand_type((OperatorExpression)inv))));
+	    }
+	  }
+	  super.visit(l);
 	}
 }

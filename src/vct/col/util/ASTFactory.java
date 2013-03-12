@@ -648,4 +648,8 @@ public class ASTFactory<E> implements FrameControl {
     return res;
   }
 
+  public ASTNode non_null(String string) {
+    return expression(StandardOperator.NEQ,unresolved_name(string),reserved_name("null"));
+  }
+
 }

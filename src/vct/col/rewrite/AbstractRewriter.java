@@ -82,6 +82,11 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
    */
   protected ASTClass currentClass=null;
   
+  /**
+   * Refers to the block that is the result of rewriting the current block.
+   */
+  protected BlockStatement currentBlock=null;
+  
   
   /**
    * Refer to the contract builder, used for the contract of the current method. 
@@ -101,6 +106,10 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   
   public final ASTFactory create(Origin origin){
     create.setOrigin(origin);
+    return create;
+  }
+  public final ASTFactory create(ASTNode node){
+    create.setOrigin(node.getOrigin());
     return create;
   }
   
@@ -273,16 +282,18 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   public void visit(BlockStatement s) {
     //checkPermission(s);
     Debug("rewriting block");
-    BlockStatement res=new BlockStatement();
-    res.setOrigin(s.getOrigin());
+    BlockStatement tmp=currentBlock;
+    currentBlock=new BlockStatement();
+    currentBlock.setOrigin(s.getOrigin());
     int N=s.getLength();
     for (int i=0;i<N;i++){
       ASTNode n=s.getStatement(i).apply(this);
       if (n==null) Abort("Got null rewriting %s at %s",s.getStatement(i).getClass(),s.getStatement(i).getOrigin());
       Debug("adding %s",n.getClass());
-      res.add_statement(n);
+      currentBlock.add_statement(n);
     }
-    result=res; return ;
+    result=currentBlock;
+    currentBlock=tmp;
   }
 
   public void visit(ClassType t){
