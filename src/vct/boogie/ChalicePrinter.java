@@ -195,52 +195,7 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
           if (body instanceof BlockStatement){
             out.lnprintf("{");
             out.incrIndent();
-            BlockStatement block=(BlockStatement)body;
-            int L=block.getLength()-1;
-            ASTNode tmp;
-            for(int i=0;i<L;i++){
-              int LL,j=0;
-              ASTNode main=block.getStatement(i);
-              if (main instanceof BlockStatement){
-                LL=((BlockStatement)main).getLength();
-                if (LL==0) continue;
-                tmp=((BlockStatement)main).getStatement(0);
-              } else {
-                LL=1;
-                tmp=main;
-              }
-              for(;;){
-                if (tmp instanceof OperatorExpression &&
-                    ((OperatorExpression)tmp).getOperator()==StandardOperator.Unfold)
-                {
-                  in_clause=true;
-                  nextExpr();
-                  current_precedence=0;
-                  out.printf("unfolding ");
-                  ((OperatorExpression)tmp).getArg(0).accept(this);
-                  out.lnprintf(" in");
-                  in_clause=false;
-                } else if (tmp instanceof OperatorExpression &&
-                    ((OperatorExpression)tmp).getOperator()==StandardOperator.Assert)
-                {
-                  Warning("Ignoring assert.");
-                } else {
-                  Fail("statement (%s) that is not unfold in pure method at %s",tmp.getClass(),m.getOrigin());
-                }
-                j++;
-                if (j>=LL) break;
-                tmp=((BlockStatement)main).getStatement(j);
-              }
-            }
-            tmp=block.getStatement(L);
-            if (tmp instanceof ReturnStatement){
-              tmp=((ReturnStatement)tmp).getExpression();
-              nextExpr();
-              current_precedence=0;
-              tmp.accept(this);
-            } else {
-              Fail("last statement of pure method is not an expression at %s",m.getOrigin());
-            }
+            print_function_body(m, (BlockStatement) body);
             out.decrIndent();
             out.lnprintf("");
             out.lnprintf("}");
@@ -284,6 +239,72 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
         }
         break;
       }
+    }
+  }
+
+  private void print_function_body(Method m, BlockStatement block) {
+    int L=block.getLength()-1;
+    ASTNode tmp;
+    for(int i=0;i<L;i++){
+      int LL,j=0;
+      ASTNode main=block.getStatement(i);
+      if (main instanceof BlockStatement){
+        LL=((BlockStatement)main).getLength();
+        if (LL==0) continue;
+        tmp=((BlockStatement)main).getStatement(0);
+      } else {
+        LL=1;
+        tmp=main;
+      }
+      for(;;){
+        if (tmp instanceof OperatorExpression &&
+            ((OperatorExpression)tmp).getOperator()==StandardOperator.Unfold)
+        {
+          in_clause=true;
+          nextExpr();
+          current_precedence=0;
+          out.printf("unfolding ");
+          ((OperatorExpression)tmp).getArg(0).accept(this);
+          out.lnprintf(" in");
+          in_clause=false;
+        } else if (tmp instanceof OperatorExpression &&
+            ((OperatorExpression)tmp).getOperator()==StandardOperator.Assert)
+        {
+          Warning("Ignoring assert.");
+        } else {
+          Fail("statement (%s) that is not unfold in pure method at %s",tmp.getClass(),m.getOrigin());
+        }
+        j++;
+        if (j>=LL) break;
+        tmp=((BlockStatement)main).getStatement(j);
+      }
+    }
+    tmp=block.getStatement(L);
+    if (tmp instanceof ReturnStatement){
+      tmp=((ReturnStatement)tmp).getExpression();
+      nextExpr();
+      current_precedence=0;
+      tmp.accept(this);
+    } else if (tmp instanceof IfStatement) {
+      IfStatement cases=(IfStatement)tmp;
+      int C=cases.getCount()-1;
+      if (cases.getGuard(C)!=IfStatement.else_guard){
+        Abort("missing else branch");
+      }
+      setExpr();
+      for(int i=0;i<C;i++){
+        out.printf("(");
+        cases.getGuard(i).accept(this);
+        out.printf(")?(");
+        print_function_body(m,(BlockStatement)cases.getStatement(i));
+        out.printf("):(");
+      }
+      print_function_body(m,(BlockStatement)cases.getStatement(C));
+      for(int i=0;i<C;i++){
+        out.printf(")");
+      }
+    } else {
+      Fail("last statement of pure method is not a return or an if-expression");
     }
   }
   

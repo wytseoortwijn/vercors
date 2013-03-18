@@ -275,6 +275,11 @@ public class WandEncoder extends AbstractRewriter {
     	if (tmp instanceof OperatorExpression){
     		OperatorExpression e=(OperatorExpression)tmp;
     		switch(e.getOperator()){
+	    		case Apply:{
+	    		  String label=e.getArg(0).getLabel(0).getName()+"_"+lemma_no;
+	    		  proof_body.add_statement(create.invokation(create.field_name(label), null , "apply"));
+	    		  // If a magic wand is applied, it is also used, so we continue with the use body.
+	    		}
 	    		case Use:{
 	    		  ASTNode temp=e.getArg(0);
 	    		  if (temp instanceof OperatorExpression){
@@ -299,11 +304,6 @@ public class WandEncoder extends AbstractRewriter {
 	    			String var=arg.getName()+"_"+lemma_no;
 	    			add_access(def, local2proof, lemma_body, lemma_args, create_args, arg, var);
 	    			continue;
-	    		}
-	    		case Apply:{
-	    		  String label=e.getArg(0).getLabel(0).getName()+"_"+lemma_no;
-	    		  proof_body.add_statement(create.invokation(create.field_name(label), null , "apply"));
-	    		  continue;
 	    		}
     		}
     	}
