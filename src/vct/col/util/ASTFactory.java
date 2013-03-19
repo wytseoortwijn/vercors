@@ -1,6 +1,8 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 package vct.col.util;
 
+import java.util.ArrayList;
+
 import vct.col.ast.ASTClass;
 import vct.col.ast.ASTClass.ClassKind;
 import vct.col.ast.ASTNode;
@@ -648,8 +650,37 @@ public class ASTFactory<E> implements FrameControl {
     return res;
   }
 
-  public ASTNode non_null(String string) {
-    return expression(StandardOperator.NEQ,unresolved_name(string),reserved_name("null"));
+ /**
+  * Fold left of a non-empty list. 
+  * 
+  * @param op Operator to fold with.
+  * @param list Non-empty list of terms.
+  * @return folded list.
+  */
+  public ASTNode fold(StandardOperator op, ArrayList<ASTNode> list) {
+    ASTNode res=list.get(0);
+    int N=list.size();
+    for(int i=1;i<N;i++){
+      res=expression(op,res,list.get(i));
+    }
+    return res;
+  }
+
+  /**
+   * Construct a non_null expression.
+   * 
+   * @param expr Expression that is supposed to be non-null.
+   * @return AST for <code> expr != null </code>
+   */
+  public ASTNode non_null(ASTNode expr) {
+    return expression(StandardOperator.NEQ,expr,reserved_name("null"));
+  }
+  
+  /**
+   * Construct a non_null expression for a variable name.
+   */
+ public ASTNode non_null(String string) {
+    return non_null(unresolved_name(string));
   }
 
 }

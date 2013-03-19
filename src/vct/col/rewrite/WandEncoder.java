@@ -41,10 +41,6 @@ public class WandEncoder extends AbstractRewriter {
   
 	public WandEncoder(ProgramUnit source) {
 		super(source);
-		WandScanner scanner=new WandScanner(source);
-		for(ASTClass cl:source.classes()){
-			scanner.visit(cl);
-		}
 	}
 	  public void visit(OperatorExpression e){
 		  	
@@ -81,6 +77,16 @@ public class WandEncoder extends AbstractRewriter {
 			    		tmp=create.invokation(create.local_name(lbl), null, "get_in_"+count);
 			    		tmp=create.expression(StandardOperator.EQ,tmp,rewrite(m.object));
 			    		res=create.expression(StandardOperator.Star,res,tmp);
+			        Method m_def=m.getDefinition();
+			        if (m_def==null){
+			          Abort("applied method is is undefined");
+			        }
+			        int N=m_def.getArity();
+			        for (int i=0;i<N;i++){
+	              tmp=create.invokation(create.local_name(lbl), null, "get_in_"+count+"_"+i);
+	              tmp=create.expression(StandardOperator.EQ,tmp,rewrite(m.getArg(i)));
+	              res=create.expression(StandardOperator.Star,res,tmp);
+		          }
 		    		} else {
 		    			Abort("unexpected clause in magic wand");
 		    		}
@@ -95,6 +101,16 @@ public class WandEncoder extends AbstractRewriter {
 			    		tmp=create.invokation(create.local_name(lbl), null, "get_out_"+count);
 			    		tmp=create.expression(StandardOperator.EQ,tmp,rewrite(m.object));
 			    		res=create.expression(StandardOperator.Star,res,tmp);
+              Method m_def=m.getDefinition();
+              if (m_def==null){
+                Abort("applied method is is undefined");
+              }
+              int N=m_def.getArity();
+              for (int i=0;i<N;i++){
+                tmp=create.invokation(create.local_name(lbl), null, "get_out_"+count+"_"+i);
+                tmp=create.expression(StandardOperator.EQ,tmp,rewrite(m.getArg(i)));
+                res=create.expression(StandardOperator.Star,res,tmp);
+              }
 		    		} else {
 		    			Abort("unexpected clause in magic wand");
 		    		}
@@ -126,10 +142,9 @@ public class WandEncoder extends AbstractRewriter {
 	  def.cl=cl;
 	      
 	  cl.add_dynamic(create.field_decl("lemma",create.primitive_type(Sort.Integer)));
-	  ASTNode valid_body=create.expression(StandardOperator.Star,
-	      create.expression(StandardOperator.Perm,create.field_name("lemma"),create.constant(100)),
-	      create.expression(StandardOperator.GT,create.field_name("lemma"),create.constant(0))
-	  );
+	  ArrayList<ASTNode> valid_list=new ArrayList();
+	  valid_list.add(create.expression(StandardOperator.Perm,create.field_name("lemma"),create.constant(100)));
+	  valid_list.add(create.expression(StandardOperator.GT,create.field_name("lemma"),create.constant(0)));
 	  ContractBuilder cb=new ContractBuilder();
 	  cb.requires(create.invokation(create.reserved_name("this"), null, "valid"));
 	  Contract get_contract=cb.getContract();
@@ -148,20 +163,21 @@ public class WandEncoder extends AbstractRewriter {
         if (t.getOrigin()==null){
           t.setOrigin(cl);
         }
-        ASTNode decl=create.field_decl(var,rewrite(t));
-        cl.add_dynamic(decl);
-        valid_body=create.expression(StandardOperator.Star,
-            valid_body,
-            create.expression(StandardOperator.Perm,create.field_name(var),create.constant(100))
-        );
-        ASTNode body=create.field_name(var);
-        Method getter=create.function_decl(t,get_contract, "get_"+var, new DeclarationStatement[0], body);
-        cl.add_dynamic(getter);
-        cb.requires(create.expression(StandardOperator.NEQ,
-            create.invokation(null,null,"get_"+var),
-            create.reserved_name("null")
-        ));
-        cb.requires(create.invokation(create.invokation(null,null,"get_"+var),null,m.method));
+        add_field_and_getter(cl, valid_list, get_contract, var, t);
+        cb.requires(create.non_null(create.invokation(null,null,"get_"+var)));
+        Method m_def=m.getDefinition();
+        if (m_def==null){
+          Abort("applied method is is undefined");
+        }
+        int N=m_def.getArity();
+        ASTNode args[]=new ASTNode[N];
+        for (int i=0;i<N;i++){
+          Type tt=m_def.getArgType(i);
+          add_field_and_getter(cl, valid_list, get_contract, var+"_"+i, tt);
+          if (tt instanceof ClassType) cb.requires(create.non_null(create.invokation(null,null,"get_"+var+"_"+i)));
+          args[i]=create.invokation(null,null,"get_"+var+"_"+i);
+        }
+        cb.requires(create.invokation(create.invokation(null,null,"get_"+var),null,m.method,args));
       } else {
         Abort("unexpected clause in magic wand");
       }
@@ -176,29 +192,31 @@ public class WandEncoder extends AbstractRewriter {
         if (t.getOrigin()==null){
           t.setOrigin(cl);
         }
-        ASTNode decl=create.field_decl(var,rewrite(t));
-        cl.add_dynamic(decl);
-        valid_body=create.expression(StandardOperator.Star,
-            valid_body,
-            create.expression(StandardOperator.Perm,create.field_name(var),create.constant(100))
-        );
-        ASTNode body=create.field_name(var);
-        Method getter=create.function_decl(t,get_contract, "get_"+var, new DeclarationStatement[0], body);
-        cl.add_dynamic(getter);
-        cb.requires(create.expression(StandardOperator.NEQ,
-            create.invokation(null,null,"get_"+var),
-            create.reserved_name("null")
-        ));
+        add_field_and_getter(cl, valid_list, get_contract, var, t);
+        cb.requires(create.non_null(create.invokation(null,null,"get_"+var)));
+        Method m_def=m.getDefinition();
+        if (m_def==null){
+          Abort("applied method is is undefined");
+        }
+        int N=m_def.getArity();
+        ASTNode args[]=new ASTNode[N];
+        for (int i=0;i<N;i++){
+          Type tt=m_def.getArgType(i);
+          add_field_and_getter(cl, valid_list, get_contract, var+"_"+i, tt);
+          if (tt instanceof ClassType) cb.requires(create.non_null(create.invokation(null,null,"get_"+var+"_"+i)));
+          args[i]=create.expression(StandardOperator.Old,create.invokation(null,null,"get_"+var+"_"+i));
+        }
         cb.ensures(create.invokation(
             create.expression(StandardOperator.Old,create.invokation(null,null,"get_"+var)),
             null,
-            m.method
+            m.method,
+            args
         ));
       } else {
         Abort("unexpected clause in magic wand");
       }
     }    
-    def.valid_body=valid_body;
+    def.valid_body=create.fold(StandardOperator.Star,valid_list);
     IfStatement cases=new IfStatement();
     cases.setOrigin(create.getOrigin());
     ASTNode apply_body=create.block(
@@ -213,6 +231,15 @@ public class WandEncoder extends AbstractRewriter {
 	  target().addClass(new String[]{name}, cl);
 	  create.leave();
 	}
+  private void add_field_and_getter(ASTClass cl, ArrayList<ASTNode> valid_list,
+      Contract get_contract, String var, Type t) {
+    ASTNode decl=create.field_decl(var,rewrite(t));
+    cl.add_dynamic(decl);
+    valid_list.add(create.expression(StandardOperator.Perm,create.field_name(var),create.constant(100)));
+    ASTNode body=create.field_name(var);
+    Method getter=create.function_decl(t,get_contract, "get_"+var, new DeclarationStatement[0], body);
+    cl.add_dynamic(getter);
+  }
 	
 	public void visit(Lemma l){
 	  int N=l.block.getLength();
@@ -230,7 +257,7 @@ public class WandEncoder extends AbstractRewriter {
 	  ASTNode proof_result=create.constant(true);
 	  ArrayList<DeclarationStatement> lemma_args=new ArrayList();
 	  ArrayList<ASTNode> create_args=new ArrayList();
-	  ASTNode case_body;
+	  ArrayList<ASTNode> case_body=new ArrayList();
 	  
 	  lemma_body.add_statement(create.field_decl("wand",create.class_type(wand_type),
 	      create.new_object(create.class_type(wand_type)))
@@ -258,10 +285,10 @@ public class WandEncoder extends AbstractRewriter {
             create.local_name(this_name)
         ));
     create_args.add(create.reserved_name("this"));
-    case_body=create.expression(StandardOperator.NEQ,
+    case_body.add(create.expression(StandardOperator.NEQ,
             create.field_name(this_name),
-            create.reserved_name("null")
-	);
+            create.reserved_name("null"))
+	  );
     lemma_cb.requires(create.expression(StandardOperator.NEQ,
             create.local_name(this_name),
             create.reserved_name("null")
@@ -293,10 +320,7 @@ public class WandEncoder extends AbstractRewriter {
 	    		  }
 	    		  temp=rewrite(temp);
 	    			lemma_cb.requires(rename_for_proof.rewrite(temp));
-	    			case_body=create.expression(StandardOperator.Star,
-	    					case_body,
-	    					rename_for_proof.rewrite(temp)
-						);	    			
+	    			case_body.add(rename_for_proof.rewrite(temp));	    			
 					continue;
 	    		}
 	    		case Access:{
@@ -322,27 +346,18 @@ public class WandEncoder extends AbstractRewriter {
         if (t.getOrigin()==null){
           t.setOrigin(l);
         }
-        DeclarationStatement decl=create.field_decl(var,rewrite(t));
-        lemma_args.add(decl);
-        lemma_body.add_statement(create.assignment(
-            create.dereference(create.local_name("wand"),var),
-            create.local_name(var)
-        ));
-        lemma_cb.requires(create.expression(StandardOperator.NEQ,
-            create.local_name(var),
-            create.reserved_name("null")
-        ));
-        lemma_cb.ensures(create.expression(StandardOperator.EQ,
-            create.invokation(create.reserved_name("\\result"),null, "get_"+var),
-            create.local_name(var)
-        ));
-        create_args.add(rewrite(m.object));
-        case_body=create.expression(StandardOperator.Star,case_body,
-    		create.expression(StandardOperator.EQ,create.field_name(var),rename_for_proof.rewrite(m.object))
-        );
-        lemma_cb.requires(
-    		create.expression(StandardOperator.EQ,create.local_name(var),rename_for_proof.rewrite(m.object))
-        );
+        define_link(lemma_cb, lemma_body, lemma_args, create_args, case_body,
+            rename_for_proof, m.object, var, t);
+        Method m_def=m.getDefinition();
+        if (m_def==null){
+          Abort("applied method is is undefined");
+        }
+        int N1=m_def.getArity();
+        for (int i=0;i<N1;i++){
+          Type tt=m_def.getArgType(i);
+          define_link(lemma_cb, lemma_body, lemma_args, create_args, case_body,
+              rename_for_proof, m.getArg(i) , var+"_"+i, tt);
+        }
       } else {
         Abort("unexpected clause in magic wand");
       }
@@ -357,30 +372,23 @@ public class WandEncoder extends AbstractRewriter {
         if (t.getOrigin()==null){
           t.setOrigin(l);
         }
-        DeclarationStatement decl=create.field_decl(var,rewrite(t));
-        lemma_args.add(decl);
-        lemma_body.add_statement(create.assignment(
-            create.dereference(create.local_name("wand"),var),
-            create.local_name(var)
-        ));
-        lemma_cb.requires(create.expression(StandardOperator.NEQ,
-            create.local_name(var),
-            create.reserved_name("null")
-        ));
-        lemma_cb.ensures(create.expression(StandardOperator.EQ,
-            create.invokation(create.reserved_name("\\result"),null, "get_"+var),
-            create.local_name(var)
-        ));
-        create_args.add(rewrite(m.object));
-        case_body=create.expression(StandardOperator.Star,case_body,
-    		create.expression(StandardOperator.EQ,create.field_name(var),rename_for_proof.rewrite(m.object))
-        );
-        lemma_cb.requires(
-    		create.expression(StandardOperator.EQ,create.local_name(var),rename_for_proof.rewrite(m.object))
-        );
+        define_link(lemma_cb, lemma_body, lemma_args, create_args, case_body,
+            rename_for_proof, m.object, var, t);
+        Method m_def=m.getDefinition();
+        if (m_def==null){
+          Abort("applied method is is undefined");
+        }
+        int N1=m_def.getArity();
+        ASTNode args[]=new ASTNode[N1];
+        for (int i=0;i<N1;i++){
+          Type tt=m_def.getArgType(i);
+          define_link(lemma_cb, lemma_body, lemma_args, create_args, case_body,
+              rename_for_proof, m.getArg(i) , var+"_"+i, tt);
+          args[i]=create.field_name(var+"_"+i);
+        }
         proof_result=create.expression(StandardOperator.Star,
             proof_result,
-            create.invokation(create.field_name(var),null,m.method)
+            create.invokation(create.field_name(var),null,m.method,args)
         );
       } else {
         Abort("unexpected clause in magic wand");
@@ -409,7 +417,7 @@ public class WandEncoder extends AbstractRewriter {
 				def.valid_body,
 				create.expression(StandardOperator.Implies,
 						create.expression(StandardOperator.EQ,create.field_name("lemma"),create.constant(lemma_no)),
-						case_body
+						create.fold(StandardOperator.Star,case_body)
 				)
 	  );
 	  def.apply_cases.addClause(
@@ -418,6 +426,32 @@ public class WandEncoder extends AbstractRewriter {
 	  result=create.assignment(create.local_name(wand_name),
 	      create.invokation(null,null,lemma_name,create_args.toArray(new ASTNode[0])));
 	}
+  private void define_link(ContractBuilder lemma_cb, BlockStatement lemma_body,
+      ArrayList<DeclarationStatement> lemma_args,
+      ArrayList<ASTNode> create_args, ArrayList<ASTNode> case_body,
+      AbstractRewriter rename_for_proof, ASTNode object, String var, Type t) {
+    DeclarationStatement decl=create.field_decl(var,rewrite(t));
+    lemma_args.add(decl);
+    lemma_body.add_statement(create.assignment(
+        create.dereference(create.local_name("wand"),var),
+        create.local_name(var)
+    ));
+    if (t instanceof ClassType) lemma_cb.requires(create.expression(StandardOperator.NEQ,
+        create.local_name(var),
+        create.reserved_name("null")
+    ));
+    lemma_cb.ensures(create.expression(StandardOperator.EQ,
+        create.invokation(create.reserved_name("\\result"),null, "get_"+var),
+        create.local_name(var)
+    ));
+    create_args.add(rewrite(object));
+    case_body.add(
+    create.expression(StandardOperator.EQ,create.field_name(var),rename_for_proof.rewrite(object))
+    );
+    lemma_cb.requires(
+    create.expression(StandardOperator.EQ,create.local_name(var),rename_for_proof.rewrite(object))
+    );
+  }
   private void add_access(WandDefinition def,
       HashMap<NameExpression, ASTNode> local2proof, BlockStatement lemma_body,
       ArrayList<DeclarationStatement> lemma_args,
