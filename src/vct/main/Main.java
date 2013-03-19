@@ -36,6 +36,7 @@ import vct.col.rewrite.Flatten;
 import vct.col.rewrite.GlobalizeStaticsField;
 import vct.col.rewrite.GlobalizeStaticsParameter;
 import vct.col.rewrite.InheritanceRewriter;
+import vct.col.rewrite.InlinePredicatesRewriter;
 import vct.col.rewrite.ReorderAssignments;
 import vct.col.rewrite.RewriteArray;
 import vct.col.rewrite.SimplifyCalls;
@@ -124,6 +125,8 @@ public class Main
    
     BooleanSetting explicit_encoding=new BooleanSetting(false);
     clops.add(explicit_encoding.getEnable("explicit encoding"),"explicit");
+    BooleanSetting inline_predicates=new BooleanSetting(false);
+    clops.add(inline_predicates.getEnable("inline predicates with arguments"),"inline");
     BooleanSetting global_with_field=new BooleanSetting(false);
     clops.add(global_with_field.getEnable("Encode global access with a field rather than a parameter. (expert option)"),"global-with-field");
     
@@ -266,6 +269,11 @@ public class Main
         return new DynamicStaticInheritance(arg).rewriteOrdered();
       }
     });
+    defined_passes.put("inline",new CompilerPass("Inline predicates with arguments"){
+      public ProgramUnit apply(ProgramUnit arg){
+        return new InlinePredicatesRewriter(arg).rewriteAll();
+      }
+    });
     defined_passes.put("magicwand",new CompilerPass("Encode magic wand proofs with witnesses"){
         public ProgramUnit apply(ProgramUnit arg){
           return new WandEncoder(arg).rewriteAll();
@@ -382,6 +390,11 @@ public class Main
       passes.add("magicwand");
       passes.add("standardize");
       passes.add("check");
+      if (inline_predicates.get()){
+        passes.add("inline");
+        passes.add("standardize");
+        passes.add("check");        
+      }
       if (features.hasStaticItems()){
         Warning("Encoding globals by means of an argument.");
         passes.add("standardize");
