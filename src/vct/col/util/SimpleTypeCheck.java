@@ -510,6 +510,20 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       e.setType(t1);
       break;
     }
+    case Head:{
+      Type t=e.getArg(0).getType();
+      if (t==null) Fail("type of argument is unknown at %s",e.getOrigin());
+      if (!t.isPrimitive(Sort.Sequence)) Fail("argument of head is not a sequence");
+      e.setType((Type)t.getArg(0));      
+      break;      
+    }
+    case Tail:{
+      Type t=e.getArg(0).getType();
+      if (t==null) Fail("type of argument is unknown at %s",e.getOrigin());
+      if (!t.isPrimitive(Sort.Sequence)) Fail("argument of tail is not a sequence");
+      e.setType(t);      
+      break;      
+    }
     case Size:
     {
       Type t=e.getArg(0).getType();

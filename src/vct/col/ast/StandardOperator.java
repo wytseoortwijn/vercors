@@ -166,6 +166,10 @@ public enum StandardOperator {
   /** append two lists */
   Append(2),
   AddrOf(1),
+  /** head of a list. */
+  Head(1),
+  /** tail of a list. */
+  Tail(1),
   /** Build list/sequence constant. */
   Build(-1);
 

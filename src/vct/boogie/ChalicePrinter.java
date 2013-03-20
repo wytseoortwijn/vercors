@@ -460,6 +460,16 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
         e.getArg(0).accept(this);
         break;
       }
+      case Head:{
+        e.getArg(0).accept(this);
+        out.print("[0]");
+        break;
+      }
+      case Tail:{
+        e.getArg(0).accept(this);
+        out.print("[1..]");
+        break;
+      }
       case Build:{
         ASTNode args[]=e.getArguments();
         if (args[0] instanceof PrimitiveType){

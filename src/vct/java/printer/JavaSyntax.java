@@ -20,6 +20,8 @@ public class JavaSyntax {
       syntax.addInfix(IFF,"<==>",30);
       syntax.addLeftFix(Wand,"-*",30);
       syntax.addFunction(Perm,"Perm");
+      syntax.addFunction(Head,"head");
+      syntax.addFunction(Tail,"tail");
       syntax.addFunction(Value,"Value");
       syntax.addFunction(PointsTo,"PointsTo");
       syntax.addFunction(ArrayPerm,"ArrayPerm");
