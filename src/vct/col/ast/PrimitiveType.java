@@ -175,6 +175,8 @@ public final class PrimitiveType extends Type {
     switch(sort){
     case Boolean:
       return new ConstantExpression(false);
+    case Fraction:
+      return new ConstantExpression(0);
     case Integer:
       return new ConstantExpression(0);
     case Long:

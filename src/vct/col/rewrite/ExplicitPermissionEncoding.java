@@ -73,7 +73,7 @@ public class ExplicitPermissionEncoding extends AbstractRewriter {
 
   public void visit(Method m){
     final String class_name=((ASTClass)m.getParent()).getName();
-    if (m.kind==Method.Kind.Predicate){
+    if (m.kind==Method.Kind.Predicate){ 
       ASTClass pred_class=(ASTClass)(new PredicateClassGenerator(source(),currentClass)).rewrite((ASTNode)m);
       Contract c=((ASTClass)m.getParent()).getContract();
       if (c!=null){
@@ -87,6 +87,7 @@ public class ExplicitPermissionEncoding extends AbstractRewriter {
       if (c==null) c=ContractBuilder.emptyContract();
       final ContractBuilder cb=new ContractBuilder();
       cb.given(rewrite(c.given));
+      cb.yields(rewrite(c.yields));
       final ArrayList<DeclarationStatement> args=new ArrayList<DeclarationStatement>();
       for(DeclarationStatement arg:m.getArgs()){
         args.add(rewrite(arg));
@@ -267,13 +268,18 @@ class ClauseEncoding extends AbstractRewriter {
 
   public void visit(MethodInvokation i) {
     if (i.getDefinition()==null){
+      //Abort("Missing definition of %s",i.method);
       Warning("Ignoring missing definition of %s",i.method);
       result=copy_rw.rewrite(i);
     } else if (i.getDefinition().getKind()!=Method.Kind.Predicate){
       result=copy_rw.rewrite(i);
     } else {
       if (i.labels()==0){
-        Abort("At %s: every predicate invokation must be labeled.",i.getOrigin());
+        if (i.getArity()==0){
+          result=copy_rw.rewrite(i);
+          return;
+        }
+        Abort("At %s: every predicate invokation with arguments must be labeled.",i.getOrigin());
       }
       NameExpression lbl=i.getLabel(0);
       ASTNode body=create.expression(StandardOperator.NEQ,create.unresolved_name(lbl.getName()),create.reserved_name("null"));
