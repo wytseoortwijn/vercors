@@ -457,6 +457,7 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     case Assert:
     case HoarePredicate:
     case Assume:
+    case Witness:
     {
       Type t=e.getArg(0).getType();
       if (t==null) Fail("type of argument is unknown at %s",e.getOrigin());

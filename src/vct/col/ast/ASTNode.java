@@ -221,5 +221,14 @@ public abstract class ASTNode implements ASTFlags {
   public int labels() {
     return labelset.size();
   }
+
+  /**
+   * Check if this node is an operator expression.
+   * @param op operator
+   * @return true is this AST is an <code>op</code>-expression, false otherwise.
+   */
+  public boolean isa(StandardOperator op) {
+    return false;
+  }
   
 }
