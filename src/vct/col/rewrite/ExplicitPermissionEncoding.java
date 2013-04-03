@@ -199,6 +199,26 @@ public class ExplicitPermissionEncoding extends AbstractRewriter {
   
   public void visit(OperatorExpression e){
     switch (e.getOperator()){
+    case Witness:{
+      ASTNode arg1=e.getArg(0);
+      if (arg1.labels()!=1){
+        Fail("Witness must have precisely one label.");
+      }
+      String lbl=arg1.getLabel(0).getName();
+      //TODO:
+      //if (arg1.isa(StandardOperator.Wand)){
+      //}
+      if (arg1 instanceof MethodInvokation){
+        MethodInvokation pred=(MethodInvokation)arg1;
+        String pred_name=pred.method;
+        String class_name=((ASTClass)pred.getDefinition().getParent()).getName();
+        Type t=create.class_type(class_name+"_"+pred_name);
+        result=create.field_decl(lbl, t);
+        break;
+      }
+      Fail("cannot declare this witness");
+      break;
+    }
     case Unfold:{
       ASTNode arg1=e.getArg(0);
       if (arg1.labels()==1){

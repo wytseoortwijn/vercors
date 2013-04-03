@@ -56,5 +56,9 @@ public class OperatorExpression extends ExpressionNode {
   public ASTNode[] getArguments() {
     return Arrays.copyOf(args,args.length);
   }
+  public boolean isa(StandardOperator op) {
+    return op==this.op;
+  }
+
 }
 

@@ -147,6 +147,8 @@ public enum StandardOperator {
   QED(1),
   /** Apply statement for magic wands */
   Apply(1),
+  /** Declare a witness variable, for use in witness proofs. */
+  Witness(1),
   /** Havoc statement. */
   Havoc(1),
   /** Hoare Predicate statement. This is the main ingredient of a Hoare Logic proof. */

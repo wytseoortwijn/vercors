@@ -45,6 +45,30 @@ public class WandEncoder extends AbstractRewriter {
 	  public void visit(OperatorExpression e){
 		  	
 		    switch (e.getOperator()){
+		    case Witness:{
+		      ASTNode arg1=e.getArg(0);
+		      if (arg1.labels()!=1){
+		        Fail("Witness must have precisely one label.");
+		      }
+		      String lbl=arg1.getLabel(0).getName();
+		      if (arg1.isa(StandardOperator.Wand)){
+		        Type t=create.class_type(get_wand_type((OperatorExpression)arg1));
+            result=create.field_decl(lbl, t);
+            break;		        
+		      }
+		      /* TODO: 
+		      if (arg1 instanceof MethodInvokation){
+		        MethodInvokation pred=(MethodInvokation)arg1;
+		        String pred_name=pred.method;
+		        String class_name=((ASTClass)pred.getDefinition().getParent()).getName();
+		        Type t=create.class_type(class_name+"_"+pred_name);
+		        result=create.field_decl(lbl, t);
+		        break;
+		      }
+		      */
+		      Fail("cannot declare this witness");
+		      break;
+		    }
 		    case Apply:{
 		      ASTNode arg1=e.getArg(0);
 		      if (arg1.labels()==1){
