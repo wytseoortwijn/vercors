@@ -625,7 +625,7 @@ class PredicateClassGenerator extends AbstractRewriter {
             tmp=field.object;
             if (tmp instanceof NameExpression && ((NameExpression)tmp).getName().equals("this")){
               String name=field.field;
-              Warning("adding getter %s_get_%s",pred_name,name);
+              Debug("adding getter %s_get_%s",pred_name,name);
               ContractBuilder cb=new ContractBuilder();
               cb.given(copy_rw.rewrite(pred_decl.getArgs()));
               cb.given(create.field_decl("req",create.class_type(class_name+"_"+pred_name)));
