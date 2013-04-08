@@ -27,6 +27,7 @@ import vct.col.ast.StandardOperator;
 import vct.col.ast.Type;
 import vct.col.util.ASTFactory;
 import vct.col.util.ASTUtils;
+import vct.col.util.NameScanner;
 import vct.col.util.WandScanner;
 
 public class WandEncoder extends AbstractRewriter {
@@ -266,6 +267,8 @@ public class WandEncoder extends AbstractRewriter {
   }
 	
 	public void visit(Lemma l){
+	  Hashtable<String,Type> vars=new Hashtable<String,Type>();
+	  l.accept(new NameScanner(vars));
 	  int N=l.block.getLength();
 	  OperatorExpression wand=(OperatorExpression)((OperatorExpression)l.block.getStatement(N-1)).getArg(0);
 	  String wand_type=get_wand_type(wand);
@@ -320,6 +323,12 @@ public class WandEncoder extends AbstractRewriter {
     local2proof.put(create.reserved_name("this"),create.unresolved_name(this_name));
     AbstractRewriter rename_for_proof=new Substitution(source(), local2proof);
     
+    for(String name:vars.keySet()){
+      Debug("accessing %s : %s",name,vars.get(name));
+      DeclarationStatement arg=create.field_decl(name,vars.get(name));
+      String var=arg.getName()+"_"+lemma_no;
+      add_access(def, local2proof, lemma_body, lemma_args, create_args, arg, var);
+    }
     for(int i=0;i<N-1;i++){
     	ASTNode tmp=l.block.getStatement(i);
     	create(tmp);
@@ -348,9 +357,7 @@ public class WandEncoder extends AbstractRewriter {
 					continue;
 	    		}
 	    		case Access:{
-	    		  DeclarationStatement arg=(DeclarationStatement)e.getArg(0);
-	    			String var=arg.getName()+"_"+lemma_no;
-	    			add_access(def, local2proof, lemma_body, lemma_args, create_args, arg, var);
+	    		  Fail("access keyword no longer supported.");
 	    			continue;
 	    		}
     		}
