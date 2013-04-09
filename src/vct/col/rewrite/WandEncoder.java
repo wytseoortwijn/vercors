@@ -168,7 +168,7 @@ public class WandEncoder extends AbstractRewriter {
 	      
 	  cl.add_dynamic(create.field_decl("lemma",create.primitive_type(Sort.Integer)));
 	  ArrayList<ASTNode> valid_list=new ArrayList();
-	  valid_list.add(create.expression(StandardOperator.Perm,create.field_name("lemma"),create.constant(100)));
+	  valid_list.add(create.expression(StandardOperator.Value,create.field_name("lemma")));
 	  valid_list.add(create.expression(StandardOperator.GT,create.field_name("lemma"),create.constant(0)));
 	  ContractBuilder cb=new ContractBuilder();
 	  cb.requires(create.invokation(create.reserved_name("this"), null, "valid"));
@@ -260,7 +260,7 @@ public class WandEncoder extends AbstractRewriter {
       Contract get_contract, String var, Type t) {
     ASTNode decl=create.field_decl(var,rewrite(t));
     cl.add_dynamic(decl);
-    valid_list.add(create.expression(StandardOperator.Perm,create.field_name(var),create.constant(100)));
+    valid_list.add(create.expression(StandardOperator.Value,create.field_name(var)));
     ASTNode body=create.field_name(var);
     Method getter=create.function_decl(t,get_contract, "get_"+var, new DeclarationStatement[0], body);
     cl.add_dynamic(getter);
@@ -304,7 +304,7 @@ public class WandEncoder extends AbstractRewriter {
     def.cl.add_dynamic(create.field_decl(this_name,this_type));
     def.valid_body=create.expression(StandardOperator.Star,
 			def.valid_body,
-			create.expression(StandardOperator.Perm,create.field_name(this_name),create.constant(100))
+			create.expression(StandardOperator.Value,create.field_name(this_name))
 		);
     lemma_args.add(create.field_decl(this_name,this_type));
     lemma_body.add_statement(create.assignment(
@@ -498,7 +498,7 @@ public class WandEncoder extends AbstractRewriter {
     local2proof.put(create.unresolved_name(arg.getName()),create.unresolved_name(var));
     def.valid_body=create.expression(StandardOperator.Star,
     	def.valid_body,
-    	create.expression(StandardOperator.Perm,create.field_name(var),create.constant(100))
+    	create.expression(StandardOperator.Value,create.field_name(var))
     );
   }
 	
