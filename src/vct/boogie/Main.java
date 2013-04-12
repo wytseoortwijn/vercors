@@ -7,6 +7,7 @@ import hre.ast.TrackingOutput;
 import hre.ast.TrackingTree;
 import hre.config.BooleanSetting;
 import hre.config.StringSetting;
+import hre.io.SplittingOutputStream;
 import hre.util.CompositeReport;
 import hre.util.TestReport.Verdict;
 
@@ -36,7 +37,20 @@ public class Main {
     int timeout=15;
     String boogie=boogie_location.get();
     try {
-      PrintStream boogie_input=new PrintStream("boogie-input.bpl");
+      File boogie_input_file=File.createTempFile("boogie-input",".bpl",new File("."));
+      if (!vct.util.Configuration.keep_temp_files.get()){
+        boogie_input_file.deleteOnExit();
+      }
+      final PrintStream boogie_input;
+      
+      if (vct.util.Configuration.backend_file.get()==null){
+        boogie_input=new PrintStream(boogie_input_file);
+      } else {
+        OutputStream temp=new FileOutputStream(boogie_input_file);
+        File encoded_file=new File(vct.util.Configuration.backend_file.get());
+        OutputStream encoded=new FileOutputStream(encoded_file);
+        boogie_input=new PrintStream(new SplittingOutputStream(temp,encoded));
+      }
       TrackingOutput boogie_code=new TrackingOutput(boogie_input);
       //InputStream pre_s=ClassLoader.getSystemResourceAsStream("vct/boogie/boogie-prelude.bpl");
       //if (pre_s==null) throw new Error("missing boogie-prelude.bpl");
@@ -64,7 +78,7 @@ public class Main {
       boogie_out.deleteOnExit();
       File boogie_err=File.createTempFile("boogie-err","txt");
       boogie_err.deleteOnExit();
-      int res=hre.Exec.exec(null, boogie_out, boogie_err, boogie,"/timeLimit:"+timeout, "/xml:boogie-output.xml","boogie-input.bpl");
+      int res=hre.Exec.exec(null, boogie_out, boogie_err, boogie,"/timeLimit:"+timeout, "/xml:boogie-output.xml",boogie_input_file.toString());
       if (res<0){
         Fail("boogie execution failed with exit code %d",res);
       }
@@ -89,17 +103,20 @@ public class Main {
     CompositeReport report=new CompositeReport();
     System.err.println("Checking with Chalice");
     try {
-      File chalice_input_file;
-      if (vct.util.Configuration.backend_file.get()==null){
-        chalice_input_file=File.createTempFile("chalice-input",".chalice",new File("."));
-        if (!vct.util.Configuration.keep_temp_files.get()){
-          chalice_input_file.deleteOnExit();
-        }
-      } else {
-        chalice_input_file=new File(vct.util.Configuration.backend_file.get());
+      File chalice_input_file=File.createTempFile("chalice-input",".chalice",new File("."));
+      if (!vct.util.Configuration.keep_temp_files.get()){
+        chalice_input_file.deleteOnExit();
       }
-
-      final PrintStream chalice_input=new PrintStream(chalice_input_file);
+      final PrintStream chalice_input;
+      
+      if (vct.util.Configuration.backend_file.get()==null){
+        chalice_input=new PrintStream(chalice_input_file);
+      } else {
+        OutputStream temp=new FileOutputStream(chalice_input_file);
+        File encoded_file=new File(vct.util.Configuration.backend_file.get());
+        OutputStream encoded=new FileOutputStream(encoded_file);
+        chalice_input=new PrintStream(new SplittingOutputStream(temp,encoded));
+      }
       final TrackingOutput chalice_code=new TrackingOutput(chalice_input);
       final ChalicePrinter printer=new ChalicePrinter(chalice_code);
       
