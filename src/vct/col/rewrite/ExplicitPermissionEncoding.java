@@ -246,11 +246,37 @@ public class ExplicitPermissionEncoding extends AbstractRewriter {
         Type t=create.class_type(class_name+"_"+pred_name);
         ArrayList<ASTNode> args=new ArrayList();
         args.add(pred.object.apply(copy_rw));
-        for (ASTNode arg:pred.getArgs()){
-          args.add(arg.apply(copy_rw));
+        BlockStatement block=create.block(
+            create.assignment(create.local_name(lbl.getName()),create.new_object(t)),
+            create.assignment(
+                create.dereference(create.local_name(lbl.getName()),"ref"),
+                rewrite(pred.object)
+            )
+        );
+        DeclarationStatement decls[]=pred.getDefinition().getArgs();
+        for (int i=0;i<decls.length;i++){
+          block.add_statement(create.assignment(
+              create.dereference(create.local_name(lbl.getName()),decls[i].getName()),
+              rewrite(pred.getArg(i))
+          ));
+          args.add(pred.getArg(i).apply(copy_rw));
         }
-        result=create.assignment(create.local_name(lbl.getName()),
-                create.new_object(t,args.toArray(new ASTNode[0])));
+        ASTNode pred_args[]=pred.getArgs();
+        for(int i=decls.length;i<pred_args.length;i++){
+          block.add_statement(create.assignment(
+              create.dereference(create.local_name(lbl.getName()),pred_args[i].getLabel(0).getName()),
+              rewrite(pred_args[i])
+          ));
+        }
+        block.add_statement(
+            create.expression(e.getOperator(),
+                create.invokation(create.local_name(lbl.getName()), null, "valid"))
+        );
+        block.add_statement(
+            create.expression(StandardOperator.Assert,
+                create.invokation(create.local_name(lbl.getName()), null, "check",args.toArray(new ASTNode[0])))
+        );
+        result=block;
         result.setGhost(true);
           //    create.new_object(type, args));
           //result=create.expression(e.getOperator(),
@@ -468,6 +494,7 @@ class PredicateClassGenerator extends AbstractRewriter {
       }
       getter_args[N]=create.reserved_name("this");
       getter_args[N].addLabel(create.label("req"));
+      /* TODO remove if superflous
       cb.ensures(create.expression(StandardOperator.EQ,
           create.invokation(
               create.local_name("ref"),
@@ -479,8 +506,9 @@ class PredicateClassGenerator extends AbstractRewriter {
               create.dereference(create.local_name("ref"),field_name)
           )
       ));
+      */
     }
-    // Add constructor;
+    /* skip adding specific constructor;
     pred_class.add_dynamic(create.method_kind(Method.Kind.Constructor,
         create.primitive_type(Sort.Void),
         cb.getContract(),
@@ -488,6 +516,9 @@ class PredicateClassGenerator extends AbstractRewriter {
         cons_decls.toArray(new DeclarationStatement[0]),
         cons_body
     ));
+    */
+    // Add default constructor.
+    create.addZeroConstructor(pred_class);
     
     // Add getters;
     ArrayList<Method> getters=new ArrayList<Method>();
@@ -623,6 +654,7 @@ class PredicateClassGenerator extends AbstractRewriter {
           if (tmp instanceof Dereference){
             Dereference field=(Dereference)tmp;
             tmp=field.object;
+            /*
             if (tmp instanceof NameExpression && ((NameExpression)tmp).getName().equals("this")){
               String name=field.field;
               Debug("adding getter %s_get_%s",pred_name,name);
@@ -668,6 +700,7 @@ class PredicateClassGenerator extends AbstractRewriter {
               );
               master.add_dynamic(getter);
             }
+            */
           }
         }
         super.visit(e);
