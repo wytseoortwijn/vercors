@@ -29,11 +29,25 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
   }
   public void visit(ClassType t){
     super.visit(t);
+    Debug("class type %s",t);
+    String name[]=t.getNameFull();
+    if (name.length==1){
+      VariableInfo info=variables.lookup(name[0]);
+      if (info!=null){
+        Debug("kind is %s",info.kind);
+        t.setType(t);
+        return;
+      } else {
+        Debug("not a variable");
+      }
+    }
     ASTClass cl=source().find(t.getNameFull());
     if (cl==null) {
-      Method m=source().find_predicate(t.getNameFull());
+      Method m=null;
+      if (name.length>1){
+        m=source().find_predicate(t.getNameFull());
+      }
       if (m==null){
-        String name[]=t.getNameFull();
         if (name.length >1){
           m=source().find_predicate(Arrays.copyOf(name, name.length-1));
         }
