@@ -325,7 +325,13 @@ public class ASTClass extends ASTNode {
     DeclarationStatement temp=find_field(static_entries,name);
     if (temp!=null) return temp;
     temp=find_field(dynamic_entries,name);
-    if (temp!=null || !recursive) return temp;
+    if (temp!=null) return temp;
+    if (contract!=null){
+      for(DeclarationStatement tmp : contract.given){
+         if(tmp.getName().equals(name)) return tmp;
+      }
+    }
+    if (!recursive) return temp;
     for(ClassType parent:this.super_classes){
       temp = root.find(parent).find_field(name,true);
       if (temp != null) return temp;

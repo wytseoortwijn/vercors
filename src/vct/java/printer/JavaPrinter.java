@@ -71,7 +71,7 @@ public class JavaPrinter extends AbstractPrinter {
     N--;
     for(int i=0;i<N;i++){
       t.getArgument(i).accept(this);
-      out.print("#");
+      out.print(",");
     }
     t.getArgument(N).accept(this);
     out.print("->");
@@ -156,8 +156,9 @@ public class JavaPrinter extends AbstractPrinter {
       out.lnprintf("/*@");
       out.incrIndent();
       for (DeclarationStatement d:contract.given){
-        out.printf("given ");
-        d.accept(this);
+        out.printf("given %s : ",d.getName());
+        d.getType().accept(this);
+        out.lnprintf(";");
       }
       for (DeclarationStatement d:contract.yields){
         out.printf("yields ");
