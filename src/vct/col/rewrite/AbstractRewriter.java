@@ -168,6 +168,9 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
       cb.ensures(rewrite(clause));
     }
     in_ensures=false;
+    if (c.signals!=null) for(DeclarationStatement decl:c.signals){
+      cb.signals((ClassType)rewrite(decl.getType()),decl.getName(),rewrite(decl.getInit()));      
+    }
     //cb.requires(rewrite(c.pre_condition));
     //cb.ensures(rewrite(c.post_condition));
   }
@@ -256,9 +259,12 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
       res.setOrigin(c.getOrigin());
       currentClass=res;
       Contract contract=c.getContract();
+      currentContractBuilder=new ContractBuilder();
       if (contract!=null){
-        res.setContract(rewrite(contract));
+        rewrite(contract,currentContractBuilder);
       }
+      res.setContract(currentContractBuilder.getContract());
+      currentContractBuilder=null;
       int N=c.getStaticCount();
       for(int i=0;i<N;i++){
         res.add_static(c.getStatic(i).apply(this));
@@ -267,8 +273,8 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
       for(int i=0;i<M;i++){
         res.add_dynamic(c.getDynamic(i).apply(this));
       }
-        result=res;
-        currentClass=null;
+      result=res;
+      currentClass=null;
     }
   }
 
@@ -388,9 +394,9 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
     //checkPermission(m);
     String name=m.getName();
     int N=m.getArity();
+    currentContractBuilder=new ContractBuilder();
     DeclarationStatement args[]=rewrite(m.getArgs());
     Contract mc=m.getContract();
-    currentContractBuilder=new ContractBuilder();
     if (mc!=null){
       rewrite(mc,currentContractBuilder);
     }

@@ -267,6 +267,23 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     Debug("operator %s",e.getOperator());
     StandardOperator op=e.getOperator();
     switch(op){
+    case Instance:
+    case SubType:
+    case SuperType:
+    {
+      e.setType(new PrimitiveType(Sort.Boolean));
+      break;      
+    }
+    case Cast:
+    {
+      ASTNode t=e.getArg(0);
+      if (t instanceof Type) {
+        e.setType((Type)t);
+      } else {
+        Fail("cannot cast to non-type %s",t.getClass());
+      }
+      break;
+    }
     case And:
     case Star:
     case Or:

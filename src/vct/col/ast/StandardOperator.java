@@ -50,6 +50,12 @@ public enum StandardOperator {
   ITE(3),
   /** Instance of test. */
   Instance(2),
+  /** Type Cast Expression. */
+  Cast(2),
+  /** Sub type relation. */
+  SubType(2),
+  /** Super type relation. */
+  SuperType(2),
   /** Simple assignment operator. */
   Assign(2),
   /** Multiply with */

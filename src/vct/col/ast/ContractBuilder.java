@@ -2,6 +2,7 @@
 package vct.col.ast;
 
 import hre.ast.CompositeOrigin;
+import hre.ast.FileOrigin;
 import hre.ast.MessageOrigin;
 import hre.ast.Origin;
 
@@ -20,6 +21,7 @@ public class ContractBuilder {
   private ASTNode post_condition=default_true;
   private ArrayList<DeclarationStatement> given=new ArrayList<DeclarationStatement>();
   private ArrayList<DeclarationStatement> yields=new ArrayList<DeclarationStatement>();
+  private ArrayList<DeclarationStatement> signals=new ArrayList<DeclarationStatement>();
   private HashSet<ASTNode> modifiable;
   
   private static final void scan_to(ArrayList<DeclarationStatement> list,BlockStatement decls){
@@ -98,7 +100,7 @@ public class ContractBuilder {
     if (modifiable!=null){
       mods=modifiable.toArray(new ASTNode[0]);
     }
-    return new Contract(given.toArray(decls),yields.toArray(decls),mods,pre_condition,post_condition);
+    return new Contract(given.toArray(decls),yields.toArray(decls),mods,pre_condition,post_condition,signals.toArray(decls));
   }
   public void modifies(ASTNode ... locs) {
     empty=false;
@@ -110,6 +112,14 @@ public class ContractBuilder {
 
   public static Contract emptyContract() {
     return new Contract(new DeclarationStatement[0],new DeclarationStatement[0],default_true,default_true);
+  }
+
+  public void signals(ClassType type, String name, ASTNode expr) {
+    DeclarationStatement decl=new DeclarationStatement(name,type,expr);
+    FileOrigin o1=(FileOrigin)type.getOrigin();
+    FileOrigin o2=(FileOrigin)expr.getOrigin();
+    decl.setOrigin(o1.merge(o2));
+    signals.add(decl);
   }
 
 }

@@ -4,6 +4,8 @@ import java.util.EnumSet;
 import java.util.ArrayList;
 
 import vct.col.ast.ASTNode;
+import vct.col.ast.BooleanValue;
+import vct.col.ast.ConstantExpression;
 import vct.col.ast.OperatorExpression;
 import vct.col.ast.StandardOperator;
 
@@ -28,6 +30,13 @@ public class ASTUtils {
         res.add(e);
       }
     } else {
+      if (n instanceof ConstantExpression){
+        ConstantExpression ce=(ConstantExpression)n;
+        if (ce.value instanceof BooleanValue && ((BooleanValue)ce.value).value){
+          // skip true.
+          return;
+        }
+      }
       res.add(n); 
     }
   }
