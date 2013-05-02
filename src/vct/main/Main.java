@@ -33,6 +33,7 @@ import vct.col.rewrite.ExplicitPermissionEncoding;
 import vct.col.rewrite.FilterClass;
 import vct.col.rewrite.FinalizeArguments;
 import vct.col.rewrite.Flatten;
+import vct.col.rewrite.GenericPass1;
 import vct.col.rewrite.GlobalizeStaticsField;
 import vct.col.rewrite.GlobalizeStaticsParameter;
 import vct.col.rewrite.InheritanceRewriter;
@@ -230,6 +231,12 @@ public class Main
         return DefineDouble.rewrite(arg);
       }
     });
+    defined_passes.put("erase",new CompilerPass("Erase generic types"){
+      public ProgramUnit apply(ProgramUnit arg){
+        arg=new GenericPass1(arg).rewriteAll();
+        return arg;
+      }
+    });   
     defined_passes.put("explicit_encoding",new CompilerPass("encode required and ensured permission as ghost arguments"){
       public ProgramUnit apply(ProgramUnit arg){
         return new ExplicitPermissionEncoding(arg).rewriteAll();
