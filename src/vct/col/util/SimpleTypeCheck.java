@@ -5,6 +5,7 @@ import java.util.Arrays;
 import vct.col.ast.*;
 import vct.col.ast.NameExpression.Kind;
 import vct.col.ast.PrimitiveType.Sort;
+import vct.col.rewrite.MultiSubstitution;
 import static hre.System.Abort;
 import static hre.System.Debug;
 import static hre.System.Fail;
@@ -52,7 +53,9 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
           m=source().find_predicate(Arrays.copyOf(name, name.length-1));
         }
       }
-      if (m==null){
+      if (m==null &&
+          !(name.length==3 && name[0].equals("java") && name[1].equals("lang") && name[2].equals("Object"))
+          && !(name.length==1 && name[0].equals("Object"))){
         Fail("type error: class (or predicate) "+t.getFullName()+" not found");
       }
     }
@@ -82,10 +85,10 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     }
     ASTClass cl=source().find(object_type.getNameFull());
     if (cl==null) Fail("could not find class %s",object_type.getFullName());
-    Method m=cl.find(e.method,type);
+    Method m=cl.find(e.method,object_type,type);
     while(m==null && cl.super_classes.length>0){
       cl=source().find(cl.super_classes[0].getNameFull());
-      m=cl.find(e.method,type);
+      m=cl.find(e.method,object_type,type);
     }
     if (m==null) {
       String parts[]=e.method.split("_");
@@ -112,8 +115,11 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       e.setType((Type)e.object);
       break;
     default:
-      e.setType(m.getReturnType());
-      break;
+      {
+        MultiSubstitution sigma=m.getSubstitution(object_type);
+        e.setType(sigma.rewrite(m.getReturnType()));
+        break;
+      }
     }
     e.setDefinition(m);
     if (e.get_before()!=null) e.get_before().accept(this);

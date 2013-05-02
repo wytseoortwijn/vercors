@@ -56,6 +56,8 @@ public enum StandardOperator {
   SubType(2),
   /** Super type relation. */
   SuperType(2),
+  /** Intersection type */
+  InterSect(-1),
   /** Simple assignment operator. */
   Assign(2),
   /** Multiply with */

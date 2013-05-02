@@ -31,7 +31,7 @@ public class JavaSyntax {
       syntax.addOperator(Size,999,"|","|");
       syntax.addOperator(Nil,999,"nil<",">");
       syntax.addOperator(Subscript,145,"","[","]"); // TODO: check if relative order to Select is OK!
-      syntax.addOperator(Cast,145,"(",")","");
+      syntax.addOperator(Cast,145,"((",")",")");
       syntax.addLeftFix(Append,"+++",110);
       
       // Java Operators  Precedence

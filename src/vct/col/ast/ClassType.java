@@ -47,6 +47,7 @@ public class ClassType extends Type {
       // java.lang.Object is supertype of everything.
       if (name.length==3 && name[0].equals("java") &&
           name[1].equals("lang") && name[2].equals("Object")) return true;
+      if (name.length==1 && name[0].equals("Object")) return true;
       // Everything is a supertype of <<null>>.
       if (ct.name.length==1 && ct.name[0].equals("<<null>>")) return true;
       if (ct.name.length==1 && ct.name[0].equals("<<label>>")) return true;
@@ -83,7 +84,13 @@ public class ClassType extends Type {
   }
 
   public String toString(){
-    return getFullName();
+    String res=getFullName();
+    if (this.args!=null && this.args.length>0){
+      res=res+"<"+args[0];
+      for(int i=1;i<args.length;i++) res=res+","+args[i];
+      res=res+">";
+    }
+    return res;
   }
   
   public int hashCode(){

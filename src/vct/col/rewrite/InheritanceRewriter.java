@@ -51,7 +51,7 @@ public class InheritanceRewriter extends AbstractRewriter {
           case Predicate:
           case Plain:{
             Type type[]=m.getArgType();
-            if (res.find(m.getName(),type)==null){
+            if (res.find(m.getName(),null,type)==null){
               Warning("method %s of kind %s in class %s will be copied",m.getName(),m.kind,cl.name);
               res.add_dynamic(copy_abstract.rewrite(m));
             } else {
@@ -81,7 +81,7 @@ public class InheritanceRewriter extends AbstractRewriter {
     if (super_class!=null){
       switch(m.kind){
         case Plain:{
-          Method override=super_class.find(m.getName(),m.getArgType());
+          Method override=super_class.find(m.getName(),null,m.getArgType());
           Contract c=m.getContract();
           if (override==null) return;
           if (c!=null && override!=null){

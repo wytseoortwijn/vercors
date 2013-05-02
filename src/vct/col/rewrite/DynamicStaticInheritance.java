@@ -253,7 +253,7 @@ public class DynamicStaticInheritance extends AbstractRewriter {
           for(int i=0;i<N;i++){
             names[i]=create.name(NameExpression.Kind.Local,m.getArgument(i));
           }
-          if (cl.find(name,types,false)==null){
+          if (cl.find(name,null,types,false)==null){
              Debug("%s inherits %s",cl.getName(),name);
              if (name.startsWith("is_a_")||name.startsWith("instance_of_")) continue;
              if (m.isValidFlag(ASTFlags.FINAL)&& m.getFlag(ASTFlags.FINAL)) continue;
@@ -312,7 +312,7 @@ public class DynamicStaticInheritance extends AbstractRewriter {
       case Plain:{
         Contract c=m.getContract();
         if (parent!=null){
-          Method override=parent.find(m.getName(),m.getArgType());
+          Method override=parent.find(m.getName(),null,m.getArgType());
           if (c!=null && override!=null){
             Fail("alternate contracts are not supported at %s",m.getOrigin());
           }

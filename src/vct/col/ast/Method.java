@@ -6,6 +6,12 @@ import hre.ast.MessageOrigin;
 import java.util.*;
 
 import vct.col.ast.Method.Kind;
+import vct.col.ast.PrimitiveType.Sort;
+import vct.col.rewrite.MultiSubstitution;
+import vct.col.rewrite.Substitution;
+import static hre.System.Abort;
+import static hre.System.Debug;
+import static hre.System.Warning;
 
 /**
  * Method Declaration.
@@ -121,6 +127,38 @@ public class Method extends ASTNode {
       res[i]=args[i].getType();
     }
     return res;
+  }
+
+  public MultiSubstitution getSubstitution(ClassType object_type) {
+    Map<String,Type> map=new HashMap<String,Type>();
+    MultiSubstitution sigma=new MultiSubstitution(null,map);
+    if (object_type==null){
+      Debug("missing object type");
+      return sigma;      
+    }
+    if (object_type.args==null){
+      Debug("object type has no arguments");
+      return sigma;
+    }
+    if (getParent()==null){
+      Debug("missing parent");
+      return sigma;
+    }
+    Contract c=((ASTClass)getParent()).getContract();
+    if (c==null) {
+      Debug("missing contract");
+      return sigma;
+    }
+    Debug("building map...");
+    for(int i=0;i<c.given.length&&i<object_type.args.length;i++){
+      if (c.given[i].getType().isPrimitive(Sort.Class)){
+        Debug("%s = %s",c.given[i].getName(),object_type.args[i]);
+        map.put(c.given[i].getName(),(Type)object_type.args[i]);
+      } else {
+        Debug("skipping %s",c.given[i].getName());
+      }
+    }
+    return sigma;
   }
 
 }

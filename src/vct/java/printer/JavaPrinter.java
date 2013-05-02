@@ -285,11 +285,12 @@ public class JavaPrinter extends AbstractPrinter {
       out.printf("final ");
     }
     if (((ASTClass)m.getParent()).getName().equals(name)){
-      out.printf("/*constructor*/");
+      //out.printf("/*constructor*/");
     } else {
       result_type.accept(this);
+      out.printf(" ");
     }
-    out.printf(" %s(",name);
+    out.printf("%s(",name);
     if (N>0) {
       DeclarationStatement args[]=m.getArgs();
       if (args[0].isValidFlag(ASTNode.GHOST) && args[0].isGhost()){ out.printf("/*@ ghost */"); }
