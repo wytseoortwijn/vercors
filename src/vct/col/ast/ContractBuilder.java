@@ -19,10 +19,11 @@ public class ContractBuilder {
   public final static ASTNode default_true=new ConstantExpression(true,origin);
   private ASTNode pre_condition=default_true;
   private ASTNode post_condition=default_true;
+  private ASTNode invariant=default_true;
   private ArrayList<DeclarationStatement> given=new ArrayList<DeclarationStatement>();
   private ArrayList<DeclarationStatement> yields=new ArrayList<DeclarationStatement>();
-  private ArrayList<DeclarationStatement> signals=new ArrayList<DeclarationStatement>();
   private HashSet<ASTNode> modifiable;
+  private ArrayList<DeclarationStatement> signals=new ArrayList<DeclarationStatement>(); 
   
   private static final void scan_to(ArrayList<DeclarationStatement> list,BlockStatement decls){
     int N=decls.getLength();
@@ -118,7 +119,19 @@ public class ContractBuilder {
       pre_condition.setOrigin(new CompositeOrigin(tmp.getOrigin(),condition.getOrigin()));
     }
   }
-  
+
+  public void invariant(ASTNode condition){
+	    empty=false;
+	    if (condition.getOrigin()==null) throw new Error("condition "+condition.getClass()+" without origin");
+	    if (invariant==default_true) {
+	      invariant=condition;
+	    } else {
+	      ASTNode tmp=invariant;
+	      invariant=new OperatorExpression(StandardOperator.And,invariant,condition);
+	      invariant.setOrigin(new CompositeOrigin(tmp.getOrigin(),condition.getOrigin()));
+	    }
+	  }
+ 
   public Contract getContract(){
     return getContract(true);
   }

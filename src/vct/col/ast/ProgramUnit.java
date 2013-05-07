@@ -23,6 +23,16 @@ import static hre.System.*;
  */
 public class ProgramUnit {
 
+  private SpecificationFormat format=SpecificationFormat.Concurrent;
+  
+  public void setSpecificationFormat(SpecificationFormat format){
+    this.format=format;
+  }
+  
+  public SpecificationFormat getSpecificationFormat(){
+    return format;
+  }
+  
   private static HashMap<ClassName,ASTClass> library=new HashMap<ClassName, ASTClass>();
   
   static {

@@ -94,6 +94,8 @@ public class AbstractPrinter extends AbstractVisitor {
     if (e.object!=null) {
       // TODO: manage precedence properly.
       if (e.object instanceof Type && e.getDefinition()!=null && !e.getDefinition().isStatic()){
+      // for generics, but not for int[]:
+      // if (e.object instanceof ClassType && ((ClassType)e.object).getName().equals(e.method)){
         out.printf("new ");
       } else {
         e.object.accept(this);
