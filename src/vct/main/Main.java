@@ -25,6 +25,7 @@ import vct.clang.printer.CPrinter;
 import vct.col.annotate.DeriveModifies;
 import vct.col.ast.*;
 import vct.col.rewrite.AssignmentRewriter;
+import vct.col.rewrite.BoxingRewriter;
 import vct.col.rewrite.ChalicePreProcess;
 import vct.col.rewrite.ConstructorRewriter;
 import vct.col.rewrite.DefineDouble;
@@ -120,6 +121,8 @@ public class Main
     clops.add(separate_checks.getEnable("validate classes separately"),"separate");
     BooleanSetting help_passes=new BooleanSetting(false);
     clops.add(help_passes.getEnable("print help on available passes"),"help-passes");
+    BooleanSetting sequential_spec=new BooleanSetting(false);
+    clops.add(sequential_spec.getEnable("sequential specification instead of concurrent"),"sequential");
     StringListSetting pass_list=new StringListSetting();
     clops.add(pass_list.getAppendOption("add to the custom list of compilation passes"),"passes");
     StringListSetting show_before=new StringListSetting();
@@ -187,6 +190,11 @@ public class Main
         return vct.boogie.Main.TestBoogie(arg);
       }
     });
+    defined_passes.put("box",new CompilerPass("box class types with parameters"){
+        public ProgramUnit apply(ProgramUnit arg){
+          return new BoxingRewriter(arg).rewriteAll();
+        }
+      });
     defined_checks.put("chalice",new ValidationPass("verify with Chalice"){
       public TestReport apply(ProgramUnit arg){
         if (separate_checks.get()) {
@@ -375,7 +383,15 @@ public class Main
       cnt++;
     }
     Progress("Parsed %d files in: %dms",cnt,System.currentTimeMillis() - startTime);
-    FeatureScanner features=new FeatureScanner();
+    if (boogie.get() || sequential_spec.get()) {
+      program.setSpecificationFormat(SpecificationFormat.Sequential);
+    }
+    /*
+    startTime = System.currentTimeMillis();
+    program=new Standardize(program).rewriteAll();
+    new SimpleTypeCheck(program).check();
+    Progress("Initial type check took %dms",System.currentTimeMillis() - startTime);
+    */
     program.accept(features);
     classes=new ArrayList();
     for (ClassName name:program.classNames()){
