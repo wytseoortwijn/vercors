@@ -1,9 +1,12 @@
 package vct.col.rewrite;
 
 import vct.col.ast.ASTClass;
+import vct.col.ast.ASTNode;
 import vct.col.ast.Dereference;
 import vct.col.ast.MethodInvokation;
+import vct.col.ast.OperatorExpression;
 import vct.col.ast.PrimitiveType;
+import vct.col.ast.PrimitiveType.Sort;
 import vct.col.ast.ProgramUnit;
 import vct.col.ast.StandardOperator;
 import vct.col.ast.Type;
@@ -60,6 +63,29 @@ public class ChalicePreProcess extends AbstractRewriter {
       result=create.class_type(sort);
     } else {
       super.visit(t);
+    }
+  }
+  
+  @Override
+  public void visit(OperatorExpression e){
+    switch(e.getOperator()){
+      case Minus:{
+        super.visit(e);
+        if (e.getArg(0).getType().isPrimitive(Sort.Fraction) ||
+            e.getArg(1).getType().isPrimitive(Sort.Fraction) )
+        {
+          ASTNode temp=result;
+          result=create.expression(StandardOperator.ITE,
+              create.expression(StandardOperator.LT,rewrite(e.getArg(0)),rewrite(e.getArg(1))),
+              create.constant(0),
+              temp
+          );
+        }
+        break;
+      }
+      default:
+        super.visit(e);
+        break;
     }
   }
      
