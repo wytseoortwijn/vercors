@@ -91,6 +91,7 @@ public class JavaSyntax {
       
       syntax.addPrimitiveType(Double,"double");
       syntax.addPrimitiveType(Integer,"int");
+      syntax.addPrimitiveType(ZFraction,"zfrac");
       syntax.addPrimitiveType(Fraction,"frac");
       syntax.addPrimitiveType(Long,"long");
       syntax.addPrimitiveType(Void,"void");
