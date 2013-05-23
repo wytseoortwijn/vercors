@@ -72,7 +72,9 @@ public class ChalicePreProcess extends AbstractRewriter {
       case Minus:{
         super.visit(e);
         if (e.getArg(0).getType().isPrimitive(Sort.Fraction) ||
-            e.getArg(1).getType().isPrimitive(Sort.Fraction) )
+            e.getArg(0).getType().isPrimitive(Sort.ZFraction) ||
+            e.getArg(1).getType().isPrimitive(Sort.Fraction) ||
+            e.getArg(1).getType().isPrimitive(Sort.ZFraction) )
         {
           ASTNode temp=result;
           result=create.expression(StandardOperator.ITE,
