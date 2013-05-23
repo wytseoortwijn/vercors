@@ -80,6 +80,7 @@ public class ChalicePreProcess extends AbstractRewriter {
               create.constant(0),
               temp
           );
+          result.setType(new PrimitiveType(Sort.ZFraction));
         }
         break;
       }

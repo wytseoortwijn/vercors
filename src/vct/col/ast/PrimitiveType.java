@@ -18,7 +18,10 @@ public final class PrimitiveType extends Type {
     Float,
     Double,
     Char,
+    /** non-zero fraction */
     Fraction,
+    /** possibly zero fraction */
+    ZFraction,
     Void,
     String,
     Class,
@@ -112,6 +115,15 @@ public final class PrimitiveType extends Type {
       case Sequence:
       case Array:
         return false;
+      case ZFraction:
+        switch(pt.sort){
+        case Fraction:
+        case Integer:
+        case Short:
+        case Byte:
+          return true;
+        }
+        break;
       case Fraction:
         switch(pt.sort){
         case Integer:
@@ -175,6 +187,8 @@ public final class PrimitiveType extends Type {
     switch(sort){
     case Boolean:
       return new ConstantExpression(false);
+    case ZFraction:
+      return new ConstantExpression(0);
     case Fraction:
       return new ConstantExpression(0);
     case Integer:

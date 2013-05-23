@@ -51,6 +51,7 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
       t.getArg(0).accept(this);
       out.print(">");
       break;
+    case ZFraction:
     case Fraction:
       out.printf("int");
       break;
@@ -411,19 +412,28 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
         super.visit(e);
         break;
       }
-      /*
       case Perm:{
         assert in_expr;
         ASTNode a0=e.getArg(0);
         ASTNode a1=e.getArg(1);
-        out.print("acc(");
-        a0.accept(this);
-        out.print(",100*");
-        a1.accept(this);
-        out.print(")");
+        //Warning("perm with %s",a1.getType());
+        if (a1.getType().isPrimitive(Sort.ZFraction)){
+          out.print("(((");
+          a1.accept(this);
+          out.print(")>0)==>acc(");
+          a0.accept(this);
+          out.print(",");
+          a1.accept(this);
+          out.print("))");
+       } else {
+          out.print("acc(");
+          a0.accept(this);
+          out.print(",");
+          a1.accept(this);
+          out.print(")");
+        }
         break;
       }
-      */
       case PointsTo:{
         assert in_expr;
         ASTNode a0=e.getArg(0);

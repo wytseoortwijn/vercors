@@ -333,7 +333,13 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       if (t1.getClass()!=t2.getClass()) {
         Fail("Types of left and right-hand side argument are uncomparable at "+e.getOrigin());
       }
-      e.setType(t1);      
+      if (t2.supertypeof(source(), t1)) {
+        //Warning("ITE type %s",t2);
+        e.setType(t2);        
+      } else {
+        //Warning("ITE type %s",t1);
+        e.setType(t1);
+      }
       break;
     }
     case Not:
@@ -375,7 +381,11 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       if (!t2.isNumeric()){
         Fail("Second argument of %s is %s rather than a numeric type",op,t2);
       }
-      e.setType(t1);
+      if (op==StandardOperator.Minus && t1.isPrimitive(Sort.Fraction)){
+        e.setType(new PrimitiveType(Sort.ZFraction));
+      } else {
+        e.setType(t1);
+      }
       break;
     }
     case BitAnd:

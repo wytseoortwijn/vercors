@@ -394,6 +394,14 @@ class PredicateClassGenerator extends AbstractRewriter {
             create.expression(StandardOperator.LTE,create.unresolved_name(args[i].getName()),create.constant(100))
             );
       }
+      if (args[i].getType().isPrimitive(PrimitiveType.Sort.ZFraction)){
+        cons_req=create.expression(StandardOperator.Star,cons_req,
+            create.expression(StandardOperator.LTE,create.constant(0),create.unresolved_name(args[i].getName()))
+            );
+        cons_req=create.expression(StandardOperator.Star,cons_req,
+            create.expression(StandardOperator.LTE,create.unresolved_name(args[i].getName()),create.constant(100))
+            );
+      }
     }
     
     // Rewrite the body, which will cause fields to be created.
