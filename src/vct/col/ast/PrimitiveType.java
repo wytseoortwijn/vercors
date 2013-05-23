@@ -231,7 +231,7 @@ public final class PrimitiveType extends Type {
   }
   
   public boolean isNumeric() {
-    return isIntegerType() || isFloatType() || sort==Sort.Fraction ;
+    return isIntegerType() || isFloatType() || sort==Sort.Fraction || sort==Sort.ZFraction ;
   }
   private boolean isFloatType() {
     switch(sort){
