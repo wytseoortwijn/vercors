@@ -321,6 +321,7 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
         return;
       }
     }
+    current_precedence=0;
     super.visit(e);    
   }
     /*
