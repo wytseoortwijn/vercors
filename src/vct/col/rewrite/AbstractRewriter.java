@@ -27,6 +27,8 @@ import vct.col.ast.LoopStatement;
 import vct.col.ast.Method;
 import vct.col.ast.NameExpression;
 import vct.col.ast.OperatorExpression;
+import vct.col.ast.ParallelBarrier;
+import vct.col.ast.ParallelBlock;
 import vct.col.ast.PrimitiveType;
 import vct.col.ast.ProgramUnit;
 import vct.col.ast.RecordType;
@@ -510,7 +512,17 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   
   @Override
   public void visit(Lemma l){
-	result=create.lemma(rewrite(l.block));
+    result=create.lemma(rewrite(l.block));
+  }
+  
+  @Override
+  public void visit(ParallelBlock pb){
+    result=create.parallel_block(rewrite(pb.contract),rewrite(pb.decl),rewrite(pb.count),rewrite(pb.block));
+  }
+  
+  @Override
+  public void visit(ParallelBarrier pb){
+    result=create.barrier(rewrite(pb.contract));
   }
 
 }

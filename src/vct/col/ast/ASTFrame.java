@@ -213,6 +213,11 @@ public abstract class ASTFrame<T> {
         variables.add(decl.getName(),new VariableInfo(decl,NameExpression.Kind.Local));
       }
     }
+    if (node instanceof ParallelBlock){
+      ParallelBlock pb=(ParallelBlock)node;
+      variables.enter();
+      variables.add(pb.decl.getName(),new VariableInfo(pb.decl,NameExpression.Kind.Local));
+    }
     result_stack.push(result);
     result=null;
   }
@@ -285,6 +290,9 @@ public abstract class ASTFrame<T> {
       variables.leave();
     }
     if (node instanceof BindingExpression){
+      variables.leave();
+    }
+    if (node instanceof ParallelBlock){
       variables.leave();
     }
     result_ref.set(result);

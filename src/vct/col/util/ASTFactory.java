@@ -25,6 +25,8 @@ import vct.col.ast.Method;
 import vct.col.ast.MethodInvokation;
 import vct.col.ast.NameExpression;
 import vct.col.ast.OperatorExpression;
+import vct.col.ast.ParallelBarrier;
+import vct.col.ast.ParallelBlock;
 import vct.col.ast.PrimitiveType;
 import vct.col.ast.PrimitiveType.Sort;
 import vct.col.ast.ReturnStatement;
@@ -682,5 +684,37 @@ public class ASTFactory<E> implements FrameControl {
  public ASTNode non_null(String string) {
     return non_null(unresolved_name(string));
   }
+ 
+ 
+ /**
+  * Create a new barrier node.
+  */
+ public ParallelBarrier barrier(Origin origin,Contract c){
+   ParallelBarrier res=new ParallelBarrier(c);
+   res.setOrigin(origin);
+   res.accept_if(post);
+   return res;
+ }
+ public ParallelBarrier barrier(E origin,Contract c){
+   return barrier(origin_source.create(origin),c);
+ }
+ public ParallelBarrier barrier(Contract c){
+   return barrier(origin_stack.get(),c);
+ }
+ /**
+  * Create a new parallel block.
+  */
+ public ParallelBlock parallel_block(Origin origin,Contract contract,DeclarationStatement name,ASTNode count,BlockStatement block){
+   ParallelBlock res=new ParallelBlock(contract, name, count, block);
+   res.setOrigin(origin);
+   res.accept_if(post);
+   return res;
+ }
+ public ParallelBlock parallel_block(E origin,Contract c,DeclarationStatement name,ASTNode count,BlockStatement block){
+   return parallel_block(origin_source.create(origin),c, name, count, block);
+ }
+ public ParallelBlock parallel_block(Contract c,DeclarationStatement name,ASTNode count,BlockStatement block){
+   return parallel_block(origin_stack.get(),c, name, count, block);
+ }
 
 }

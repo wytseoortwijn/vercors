@@ -90,6 +90,12 @@ public abstract class RecursiveVisitor<T> extends ASTFrame<T> implements
     // TODO: fix dispatch(e.get_after());
   }
 
+  private void dispatch(Contract c){
+    if (c!=null){
+      dispatch(c.pre_condition);
+      dispatch(c.post_condition);      
+    }
+  }
   private void dispatch(ASTNode object) {
     if(object!=null){
       object.accept(this);
@@ -193,5 +199,15 @@ public abstract class RecursiveVisitor<T> extends ASTFrame<T> implements
   public void visit(Lemma l){
     l.block.accept(this);
   }
+  
+  public void visit(ParallelBarrier pb){
+    dispatch(pb.contract);
+  }
+
+  public void visit(ParallelBlock pb){
+    dispatch(pb.contract);
+    pb.block.accept(this);
+  }
+
 
 }

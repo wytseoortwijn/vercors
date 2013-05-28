@@ -2,6 +2,7 @@ package vct.col.util;
 
 import vct.col.ast.ASTClass;
 import vct.col.ast.ASTNode;
+import vct.col.ast.ParallelBlock;
 import vct.col.ast.PrimitiveType.Sort;
 import vct.col.ast.RecursiveVisitor;
 import vct.col.ast.Type;
@@ -17,6 +18,7 @@ public class FeatureScanner extends RecursiveVisitor<Object> {
   private boolean has_doubles=false;
   private boolean has_longs=false;
   private boolean has_inheritance=false;
+  private boolean has_kernels=false;
   
   public boolean usesDoubles(){
     return has_doubles;
@@ -36,6 +38,10 @@ public class FeatureScanner extends RecursiveVisitor<Object> {
   
   public boolean usesInheritance(){
     return has_inheritance;
+  }
+  
+  public boolean usesKernels(){
+    return has_kernels;
   }
 
   public void pre_visit(ASTNode node){
@@ -65,4 +71,10 @@ public class FeatureScanner extends RecursiveVisitor<Object> {
       c.getDynamic(i).accept(this);
     }
   }
+  
+  public void visit(ParallelBlock pb){
+    has_kernels=true;
+    super.visit(pb);
+  }
+
 }

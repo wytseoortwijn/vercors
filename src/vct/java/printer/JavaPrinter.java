@@ -751,5 +751,19 @@ public class JavaPrinter extends AbstractPrinter {
     }
   }
   
+  @Override
+  public void visit(ParallelBlock pb){
+    if(pb.contract==null){
+      Warning("parallel block with null contract!");
+    } else {
+      visit(pb.contract);
+    }
+    out.printf("kernel(%s,",pb.decl.getName());
+    nextExpr();
+    pb.count.accept(this);
+    out.printf(")");
+    pb.block.accept(this);
+  }
+  
 }
 

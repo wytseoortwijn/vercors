@@ -51,6 +51,10 @@ public interface ASTVisitor<T> {
 
   public void visit(Lemma lemma);
 
+  public void visit(ParallelBarrier parallelBarrier);
+
+  public void visit(ParallelBlock parallelBlock);
+
 }
 
 

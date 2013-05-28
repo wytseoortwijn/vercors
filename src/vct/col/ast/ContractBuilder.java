@@ -77,7 +77,7 @@ public class ContractBuilder {
       post_condition=condition;
     } else {
       ASTNode tmp=post_condition;
-      post_condition=new OperatorExpression(StandardOperator.And,post_condition,condition);
+      post_condition=new OperatorExpression(StandardOperator.Star,post_condition,condition);
       post_condition.setOrigin(new CompositeOrigin(tmp.getOrigin(),condition.getOrigin()));
     }
   }
@@ -88,7 +88,7 @@ public class ContractBuilder {
       pre_condition=condition;
     } else {
       ASTNode tmp=post_condition;
-      pre_condition=new OperatorExpression(StandardOperator.And,pre_condition,condition);
+      pre_condition=new OperatorExpression(StandardOperator.Star,pre_condition,condition);
       pre_condition.setOrigin(new CompositeOrigin(tmp.getOrigin(),condition.getOrigin()));
     }
   }

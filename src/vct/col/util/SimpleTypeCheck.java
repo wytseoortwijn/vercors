@@ -291,11 +291,9 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       break;
     }
     case And:
-    case Star:
     case Or:
     case Implies:
     case IFF:
-    case Wand:
     {
       Type t1=e.getArg(0).getType();
       if (t1==null || !t1.isBoolean()) Fail("type of left argument unknown at "+e.getOrigin());
@@ -305,12 +303,24 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       e.setType(new PrimitiveType(Sort.Boolean));
       break;
     }
+    case Star:
+    case Wand:
+    {
+      Type t1=e.getArg(0).getType();
+      if (t1==null) Fail("type of left argument unknown at %s",e.getOrigin());
+      if (!t1.isBoolean() && !t1.isPrimitive(Sort.Resource)) Fail("type of right argument is %s rather than boolean/resource at %s",t1,e.getOrigin());
+      Type t2=e.getArg(1).getType();
+      if (t2==null) Fail("type of right argument unknown at %s",e.getOrigin());
+      if (!t2.isBoolean() && !t2.isPrimitive(Sort.Resource)) Fail("type of right argument is %s rather than boolean/resource at %s",t2,e.getOrigin());
+      e.setType(new PrimitiveType(Sort.Resource));
+      break;
+    }
     case PointsTo:
     case Perm:
     case Value:
     case ArrayPerm:
       // TODO: check arguments
-      e.setType(new PrimitiveType(Sort.Boolean));
+      e.setType(new PrimitiveType(Sort.Resource));
       break;
     case Fork:
     case Join:
@@ -686,7 +696,7 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     super.visit(s);
     for(ASTNode inv:s.getInvariants()){
       Type t=inv.getType();
-      if (t==null || !(t instanceof PrimitiveType) || (((PrimitiveType)t).sort!=Sort.Boolean)){
+      if (t==null || !(t.isBoolean() || t.isPrimitive(Sort.Resource))){
         Abort("loop invariant is not a boolean");
       }
     }
@@ -718,7 +728,7 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
         Abort("Selection in binding expression without type.");
       }
       if (!t.isBoolean()){
-        Fail("Selector in binding expression is not a boolean.");
+        Fail("Selector in binding expression is %s instead of boolean.",t);
       }
     }
     t=e.main.getType();
