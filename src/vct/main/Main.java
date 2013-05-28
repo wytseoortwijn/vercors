@@ -38,6 +38,7 @@ import vct.col.rewrite.GlobalizeStaticsField;
 import vct.col.rewrite.GlobalizeStaticsParameter;
 import vct.col.rewrite.InheritanceRewriter;
 import vct.col.rewrite.InlinePredicatesRewriter;
+import vct.col.rewrite.KernelRewriter;
 import vct.col.rewrite.ReorderAssignments;
 import vct.col.rewrite.RewriteArray;
 import vct.col.rewrite.SimplifyCalls;
@@ -281,6 +282,11 @@ public class Main
         return new InlinePredicatesRewriter(arg).rewriteAll();
       }
     });
+    defined_passes.put("kernel-split",new CompilerPass("Split kernels into main, thread and barrier."){
+      public ProgramUnit apply(ProgramUnit arg){
+        return new KernelRewriter(arg).rewriteAll();
+      }
+    });
     defined_passes.put("magicwand",new CompilerPass("Encode magic wand proofs with witnesses"){
         public ProgramUnit apply(ProgramUnit arg){
           return new WandEncoder(arg).rewriteAll();
@@ -409,6 +415,11 @@ public class Main
         passes.add("globalize");
         passes.add("standardize");
         passes.add("check");
+      }
+      if (features.usesKernels()){
+        passes.add("kernel-split");
+        passes.add("standardize");
+        passes.add("check");       
       }
       if (features.usesInheritance()){
         passes.add("standardize");
