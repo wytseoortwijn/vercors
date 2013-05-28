@@ -16,6 +16,8 @@ public class JavaSyntax {
     if(syntax==null){
       syntax=new Syntax();
       // non-java operators.
+      syntax.addInfix(SubType,"<:",90);
+      syntax.addInfix(SuperType,":>",90);
       syntax.addInfix(Implies,"==>",30);
       syntax.addInfix(IFF,"<==>",30);
       syntax.addLeftFix(Wand,"-*",30);
@@ -29,6 +31,7 @@ public class JavaSyntax {
       syntax.addOperator(Size,999,"|","|");
       syntax.addOperator(Nil,999,"nil<",">");
       syntax.addOperator(Subscript,145,"","[","]"); // TODO: check if relative order to Select is OK!
+      syntax.addOperator(Cast,145,"((",")",")");
       syntax.addLeftFix(Append,"+++",110);
       
       // Java Operators  Precedence

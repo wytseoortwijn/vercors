@@ -147,6 +147,13 @@ public abstract class ASTFrame<T> {
       class_stack.push(cl);
       variables.enter();
       recursively_add_class_info(cl);
+      Contract contract=cl.getContract();
+      if (contract!=null){
+        for (DeclarationStatement decl:contract.given){
+          variables.add(decl.getName(),new VariableInfo(decl,NameExpression.Kind.Field));
+          //Warning("added %s",decl.getName());
+        }
+      }
     }
     if (node instanceof Method){
       Method m=(Method)node;
@@ -232,7 +239,6 @@ public abstract class ASTFrame<T> {
     for(DeclarationStatement decl:cl.staticFields()){
       variables.add(decl.getName(),new VariableInfo(decl,NameExpression.Kind.Field));
     }
-
   }
 
   private void add_contract_vars(Method m) {

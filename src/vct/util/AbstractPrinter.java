@@ -83,13 +83,16 @@ public class AbstractPrinter extends AbstractVisitor {
   }
 
   public void visit(MethodInvokation e){
-    boolean statement=!in_expr;
+    //boolean statement=!in_expr;
     setExpr();
-    String i_syntax=".";
     if (e.object!=null) {
       // TODO: manage precedence properly.
-      e.object.accept(this);
-      out.printf(i_syntax);
+      if (e.object instanceof Type && !e.getDefinition().isStatic()){
+        out.printf("new ");
+      } else {
+        e.object.accept(this);
+        out.printf(".");
+      }
     }
     out.printf("%s",e.method);
     if (e.dispatch!=null){
@@ -110,9 +113,9 @@ public class AbstractPrinter extends AbstractVisitor {
       current_precedence=precedence;
     }
     out.print(")");
-    if (statement) {
-      out.lnprintf(";");
-    }
+    //if (statement) {
+    //  out.lnprintf(";/*abs invoke*/");
+    //}
   }
 
   public void visit(OperatorExpression e){

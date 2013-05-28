@@ -1,12 +1,14 @@
 package vct.util;
 
 import java.util.Arrays;
+import static hre.System.Abort;
 
 public class ClassName {
 
   public final String name[];
   
   public ClassName(String ... name){
+    if (name.length==0) Abort("empty name");
     this.name=Arrays.copyOf(name,name.length);
   }
   

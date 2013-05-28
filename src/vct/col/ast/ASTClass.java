@@ -8,6 +8,7 @@ import java.util.*;
 
 import javax.xml.transform.Source;
 
+import vct.col.rewrite.MultiSubstitution;
 import vct.col.util.DeclarationFilter;
 import vct.col.util.MethodFilter;
 import vct.util.ClassName;
@@ -233,7 +234,7 @@ public class ASTClass extends ASTNode {
     }
     return null;
   }
-  private Method find(List<ASTNode> list,String name, Type[] type){
+  private Method find(List<ASTNode> list,String name, ClassType object_type, Type[] type){
     node:for(ASTNode n:list){
       if (n instanceof Method){
         Method m=(Method)n;
@@ -244,14 +245,16 @@ public class ASTClass extends ASTNode {
           if (args.length>=type.length || varargs){
             int idx;
             Debug("attempting match");
+            MultiSubstitution sigma=m.getSubstitution(object_type);
             for(int i=0;i<type.length;i++){
               if (varargs && i>=args.length){
                 idx=args.length-1;
               } else {
                 idx=i;
               }
-              if (!m.getArgType(idx).supertypeof(root, type[i])){
-                Debug("type of argument %d does not match method (cannot pass %s as %s)%n",i,type[i],m.getArgType(idx));
+              Type m_idx_t=sigma.rewrite(m.getArgType(idx));
+              if (!m_idx_t.supertypeof(root, type[i])){
+                Debug("type of argument %d does not match method (cannot pass %s as %s)%n",i,type[i],m_idx_t);
                 continue node;
               }
             }
@@ -269,18 +272,18 @@ public class ASTClass extends ASTNode {
     }
     return null;
   }
-  public Method find(String name, Type[] type) {
-    return find(name,type,true);
+  public Method find(String name, ClassType object_type, Type[] type) {
+    return find(name,object_type,type,true);
   }
-  public Method find(String name, Type[] type,boolean recursive) {
+  public Method find(String name, ClassType object_type, Type[] type,boolean recursive) {
     //TODO: support inheritance and detect duplicate definitions.
-    Method m=find(static_entries,name,type);
+    Method m=find(static_entries,name,object_type,type);
     if (m!=null) return m;
-    m=find(dynamic_entries,name,type);
+    m=find(dynamic_entries,name,object_type,type);
     if (m!=null) return m;
     if (recursive){
       for(ClassType parent:this.super_classes){
-        m = root.find(parent).find(name,type);
+        m = root.find(parent).find(name,object_type,type);
         if (m != null) return m;
       }
     }  
@@ -325,7 +328,13 @@ public class ASTClass extends ASTNode {
     DeclarationStatement temp=find_field(static_entries,name);
     if (temp!=null) return temp;
     temp=find_field(dynamic_entries,name);
-    if (temp!=null || !recursive) return temp;
+    if (temp!=null) return temp;
+    if (contract!=null){
+      for(DeclarationStatement tmp : contract.given){
+         if(tmp.getName().equals(name)) return tmp;
+      }
+    }
+    if (!recursive) return temp;
     for(ClassType parent:this.super_classes){
       temp = root.find(parent).find_field(name,true);
       if (temp != null) return temp;

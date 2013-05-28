@@ -6,6 +6,7 @@ import hre.ast.TrackingTree;
 import java.io.PrintStream;
 import vct.col.ast.*;
 import vct.col.ast.PrimitiveType.Sort;
+import vct.col.util.ASTUtils;
 import vct.util.*;
 import static hre.System.Abort;
 import static hre.System.Debug;
@@ -57,6 +58,7 @@ public class JavaPrinter extends AbstractPrinter {
     out.print(t.getFullName());
     ASTNode args[]=t.getArgs();
     if (args.length>0){
+      setExpr();
       out.print("<");
       args[0].accept(this);
       for(int i=1;i<args.length;i++){
@@ -71,7 +73,7 @@ public class JavaPrinter extends AbstractPrinter {
     N--;
     for(int i=0;i<N;i++){
       t.getArgument(i).accept(this);
-      out.print("#");
+      out.print(",");
     }
     t.getArgument(N).accept(this);
     out.print("->");
@@ -151,21 +153,7 @@ public class JavaPrinter extends AbstractPrinter {
 
   public void visit(ASTClass cl){
     int N;
-    Contract contract=cl.getContract();
-    if (contract!=null){
-      out.lnprintf("/*@");
-      out.incrIndent();
-      for (DeclarationStatement d:contract.given){
-        out.printf("given ");
-        d.accept(this);
-      }
-      for (DeclarationStatement d:contract.yields){
-        out.printf("yields ");
-        d.accept(this);
-      }
-      out.decrIndent();
-      out.lnprintf("*/");
-    }
+    visit(cl.getContract());
     switch(cl.kind){
     case Plain:
       out.lnprintf("class %s",cl.getName());
@@ -209,6 +197,58 @@ public class JavaPrinter extends AbstractPrinter {
     out.lnprintf("}");    
   }
 
+  private void visit(Contract contract) {
+    if (contract!=null){
+      out.lnprintf("/*@");
+      out.incrIndent();
+      for (DeclarationStatement d:contract.given){
+        out.printf("given ");
+        d.accept(this);
+      }
+      for(ASTNode e:ASTUtils.conjuncts(contract.pre_condition)){
+        out.printf("requires ");
+        nextExpr();
+        e.accept(this);
+        out.lnprintf(";");
+      }
+      for (DeclarationStatement d:contract.yields){
+        out.printf("yields ");
+        d.accept(this);
+      }
+      for(ASTNode e:ASTUtils.conjuncts(contract.post_condition)){
+        out.printf("ensures ");
+        nextExpr();
+        e.accept(this);
+        out.lnprintf(";");
+      }
+      for (DeclarationStatement d:contract.signals){
+        out.printf("signals (");
+        d.getType().accept(this);
+        out.printf(" %s) ",d.getName());
+        nextExpr();
+        d.getInit().accept(this);
+        out.lnprintf(";");
+      }      
+      if (contract.modifies!=null){
+        out.printf("modifies ");
+        if (contract.modifies.length==0){
+          out.lnprintf("\\nothing;");
+        } else {
+          nextExpr();
+          contract.modifies[0].accept(this);
+          for(int i=1;i<contract.modifies.length;i++){
+            out.printf(", ");
+            nextExpr();
+            contract.modifies[i].accept(this);
+          }
+          out.lnprintf(";");
+        }
+      }
+      out.decrIndent();
+      out.lnprintf("@*/");
+    }
+  }
+
   public void visit(DeclarationStatement s){
     ASTNode expr=s.getInit();
     nextExpr();
@@ -238,52 +278,19 @@ public class JavaPrinter extends AbstractPrinter {
       out.print("predicate ");
     }
     if (contract!=null && !predicate){
-      out.lnprintf("/*@");
-      out.incrIndent();
-      for (DeclarationStatement d:contract.given){
-        out.printf("given ");
-        d.accept(this);
-      }
-      for (DeclarationStatement d:contract.yields){
-        out.printf("yields ");
-        d.accept(this);
-      }
-      out.printf("requires ");
-      nextExpr();
-      contract.pre_condition.accept(this);
-      out.lnprintf(";");
-      out.printf("ensures ");
-      nextExpr();
-      contract.post_condition.accept(this);
-      out.lnprintf(";");
-      if (contract.modifies!=null){
-        out.printf("modifies ");
-        if (contract.modifies.length==0){
-          out.lnprintf("\\nothing;");
-        } else {
-          nextExpr();
-          contract.modifies[0].accept(this);
-          for(int i=1;i<contract.modifies.length;i++){
-            out.printf(", ");
-            nextExpr();
-            contract.modifies[i].accept(this);
-          }
-          out.lnprintf(";");
-        }
-      }
-      out.decrIndent();
-      if (!predicate) out.lnprintf("@*/");
+      visit(contract);
     }
     if (m.isStatic()) out.printf("static ");
     if (m.isValidFlag(ASTFlags.FINAL) && m.getFlag(ASTFlags.FINAL)){
       out.printf("final ");
     }
     if (((ASTClass)m.getParent()).getName().equals(name)){
-      out.printf("/*constructor*/");
+      //out.printf("/*constructor*/");
     } else {
       result_type.accept(this);
+      out.printf(" ");
     }
-    out.printf(" %s(",name);
+    out.printf("%s(",name);
     if (N>0) {
       DeclarationStatement args[]=m.getArgs();
       if (args[0].isValidFlag(ASTNode.GHOST) && args[0].isGhost()){ out.printf("/*@ ghost */"); }
