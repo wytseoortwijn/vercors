@@ -45,6 +45,7 @@ public class Configuration {
     clops.add(detailed_errors.getEnable("produce detailed error messages"),"detail");
     clops.add(backend_file.getAssign("filename for storing the back-end input"),"encoded");
     clops.add(vct.boogie.Main.boogie_location.getAssign("location of boogie binary"),"boogie-tool");
+    clops.add(vct.boogie.Main.boogie_timeout.getAssign("boogie time limit"),"boogie-limit");
     clops.add(vct.boogie.Main.chalice_location.getAssign("location of chalice binary"),"chalice-tool");
     clops.add(pvl_type_check.getDisable("disable type check in PVL parser"),"no-pvl-check");
   }

@@ -172,6 +172,14 @@ public final class PrimitiveType extends Type {
           return true;
         }    
         break;
+      case Boolean:
+        break;
+      case Resource:
+        switch(pt.sort){
+        case Boolean:
+          return true;
+        }    
+        break;
       default:
         Fail("missing case in PrimitiveType.supertypeof (%s/%s)",this.sort,pt.sort);
       }

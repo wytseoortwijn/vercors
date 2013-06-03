@@ -127,6 +127,9 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
   }
   
   public final void check_loc_val(Type loc_type,ASTNode val){
+    check_loc_val(loc_type,val,"Types of location (%s) and value (%s) do not match.");
+  }
+  public final void check_loc_val(Type loc_type,ASTNode val,String fmt){
     if (loc_type==null) Abort("Location has no type.");
     Type val_type=val.getType();
     if (val_type==null) Abort("Value has no type has no type.");
@@ -135,7 +138,7 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
         ||loc_type.supertypeof(source(), val_type)
         ||loc_type.isNumeric()&&val_type.isNumeric()
     )){
-      Fail("Types of location (%s) and value (%s) do not match.",loc_type,val_type);
+      Fail(fmt,loc_type,val_type);
     }    
   }
   public void visit(AssignmentStatement s){
@@ -174,8 +177,7 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     if (body!=null) {
       Type bt=body.getType();
       if (bt==null) Abort("untyped body of %s has class %s",name,body.getClass());
-      if (!bt.equals(m.getReturnType()))
-      Abort("body of %s does not match result type",name);
+      check_loc_val(m.getReturnType(),body,"return type (%s) does not match body (%s)");
     }
   }
   public void visit(NameExpression e){
@@ -292,7 +294,6 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     }
     case And:
     case Or:
-    case Implies:
     case IFF:
     {
       Type t1=e.getArg(0).getType();
@@ -301,6 +302,19 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       if (t2==null) Fail("type of right argument unknown at %s",e.getOrigin());
       if (!t2.isBoolean()) Fail("type of right argument is %s rather than boolean at %s",t2,e.getOrigin());
       e.setType(new PrimitiveType(Sort.Boolean));
+      break;
+    }
+    case Implies:
+    {
+      Type t1=e.getArg(0).getType();
+      if (t1==null) Fail("type of left argument unknown at "+e.getOrigin());
+      if (!t1.isBoolean()) Fail("type of right argument is %s rather than boolean at %s",t1,e.getOrigin());
+      Type t2=e.getArg(1).getType();
+      if (t2==null) Fail("type of right argument unknown at %s",e.getOrigin());
+      if (!t2.isBoolean()&&!t2.isPrimitive(Sort.Resource)){
+        Fail("type of right argument is %s rather than boolean or resource at %s",t2,e.getOrigin());
+      }
+      e.setType(t2);
       break;
     }
     case Star:
@@ -518,8 +532,8 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     {
       Type t=e.getArg(0).getType();
       if (t==null) Fail("type of argument is unknown at %s",e.getOrigin());
-      if (!t.isBoolean()){
-        Fail("Argument of %s must be boolean at %s",op,e.getOrigin());
+      if (!t.isBoolean()&&!t.isPrimitive(Sort.Resource)){
+        Fail("Argument of %s must be boolean or resource at %s",op,e.getOrigin());
       }
       e.setType(new PrimitiveType(Sort.Void));      
       break;

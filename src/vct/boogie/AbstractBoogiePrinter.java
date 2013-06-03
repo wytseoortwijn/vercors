@@ -5,6 +5,7 @@ import java.util.HashMap;
 
 import hre.ast.TrackingOutput;
 import vct.col.ast.*;
+import vct.col.util.ASTUtils;
 import vct.util.*;
 import static hre.System.Fail;
 
@@ -155,23 +156,28 @@ public abstract class AbstractBoogiePrinter extends AbstractPrinter {
   public void visit(Contract contract,boolean function){
     in_clause=true;
     out.incrIndent();
-    nextExpr();
+    
     if (contract.pre_condition.getOrigin()==null) {
       throw new Error("pre condition has no origin");
     }
-    out.printf("requires ");
-    current_precedence=0;
-    contract.pre_condition.accept(this);
-    out.lnprintf(";");
-    if(!function){
+    for (ASTNode clause:ASTUtils.conjuncts(contract.pre_condition)){
+      out.printf("requires ");
       nextExpr();
+      current_precedence=0;
+      clause.accept(this);
+      out.lnprintf(";");
+    }
+    if(!function){
       if (contract.post_condition.getOrigin()==null) {
         throw new Error("post condition has no origin");
       }
-      out.printf("ensures ");
-      current_precedence=0;
-      contract.post_condition.accept(this);
-      out.lnprintf(";");
+      for (ASTNode clause:ASTUtils.conjuncts(contract.post_condition)){
+        out.printf("ensures ");
+        nextExpr();
+        current_precedence=0;
+        clause.accept(this);
+        out.lnprintf(";");
+      }
     }
     if (contract.modifies!=null){
       out.printf("modifies ");

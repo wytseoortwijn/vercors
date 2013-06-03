@@ -466,7 +466,7 @@ public class ASTFactory<E> implements FrameControl {
    * Create a predicate declaration.
    */
   public Method predicate(String name, ASTNode body,DeclarationStatement ... args) {
-    return method_kind(Method.Kind.Predicate,primitive_type(Sort.Boolean),null,name,args,false,body);
+    return method_kind(Method.Kind.Predicate,primitive_type(Sort.Resource),null,name,args,false,body);
   }
   
   /**

@@ -6,6 +6,7 @@ import hre.ast.Origin;
 import hre.ast.TrackingOutput;
 import hre.ast.TrackingTree;
 import hre.config.BooleanSetting;
+import hre.config.IntegerSetting;
 import hre.config.StringSetting;
 import hre.io.SplittingOutputStream;
 import hre.util.CompositeReport;
@@ -27,6 +28,7 @@ import static hre.System.*;
 public class Main {
 
   public static StringSetting boogie_location=new StringSetting("vct-boogie");
+  public static IntegerSetting boogie_timeout=new IntegerSetting(15);
   public static StringSetting chalice_location=new StringSetting("vct-chalice");
   
   /**
@@ -34,7 +36,7 @@ public class Main {
    * @param arg The class for which code must be generated.
    */
   public static BoogieReport TestBoogie(ProgramUnit arg){
-    int timeout=15;
+    int timeout=boogie_timeout.get();
     String boogie=boogie_location.get();
     try {
       File boogie_input_file=File.createTempFile("boogie-input",".bpl",new File("."));
@@ -99,6 +101,7 @@ public class Main {
    *
    */
   public static CompositeReport TestChalice(final ProgramUnit program){
+    int timeout=boogie_timeout.get();
     String chalice=chalice_location.get();
     CompositeReport report=new CompositeReport();
     System.err.println("Checking with Chalice");
@@ -135,7 +138,7 @@ public class Main {
         chalice_out.deleteOnExit();
         File chalice_err=File.createTempFile("chalice-err",".txt");
         chalice_err.deleteOnExit();
-        int result=hre.Exec.exec(null, chalice_out, chalice_err,chalice,chalice_input_file.toString());
+        int result=hre.Exec.exec(null, chalice_out, chalice_err,chalice,"-boogieOpt:timeLimit:"+timeout,chalice_input_file.toString());
         ChaliceReport output=new ChaliceReport(new FileInputStream(chalice_out),tree);
         if (vct.util.Configuration.keep_temp_files.get()){
           System.err.printf("Input file was kept as: %s%n",chalice_input_file);

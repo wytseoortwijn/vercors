@@ -7,6 +7,7 @@ import vct.col.ast.Contract;
 import vct.col.ast.ContractBuilder;
 import vct.col.ast.DeclarationStatement;
 import vct.col.ast.Method;
+import vct.col.ast.NameExpression;
 import vct.col.ast.OperatorExpression;
 import vct.col.ast.PrimitiveType;
 import vct.col.ast.PrimitiveType.Sort;
@@ -159,6 +160,41 @@ public class RewriteArray extends AbstractRewriter {
       result=res;
       return;
     }
+    if (e.getOperator()==StandardOperator.Perm && e.getArg(0).isa(StandardOperator.Subscript)){
+      OperatorExpression loc=(OperatorExpression)e.getArg(0);
+      ASTNode index=loc.getArg(1);
+      if (!(index instanceof NameExpression) || !((NameExpression)index).getName().equals("*")){
+        Type t=(Type)(loc.getArg(0).getType().getArg(0));
+        ASTNode array_name=loc.getArg(0);
+        
+        // Given a sub-array...
+        String name="__elem_in_array_"+(++count);
+        Type type=create.primitive_type(Sort.Cell,rewrite(t));
+        currentContractBuilder.given(create.field_decl(name,type));
+        currentContractBuilder.requires(create.expression(StandardOperator.EQ,
+            create.local_name(name),
+            create.expression(StandardOperator.Subscript,
+                rewrite(loc.getArg(0)),
+                rewrite(loc.getArg(1))
+            )
+        ));
+        ASTNode res=create.expression(StandardOperator.Star,
+          create.expression(StandardOperator.EQ,
+              create.local_name(name),
+              create.expression(StandardOperator.Subscript,
+                  rewrite(loc.getArg(0)),
+                  rewrite(loc.getArg(1))
+              )
+          ),
+          create.expression(StandardOperator.Perm,
+            create.dereference(create.local_name(name),"item"),
+            rewrite(e.getArg(1))
+          )
+        );
+        result=res;
+        return;
+      }
+    }
     super.visit(e);
     if (e.getOperator()==StandardOperator.Subscript && ((PrimitiveType)e.getArg(0).getType()).sort==Array){
        result=create.dereference(result,"item");
@@ -176,7 +212,7 @@ public class RewriteArray extends AbstractRewriter {
           Binder.FORALL,
           create.primitive_type(PrimitiveType.Sort.Boolean),
           decl,
-          create.expression(StandardOperator.Star,
+          create.expression(StandardOperator.And,
               create.expression(StandardOperator.LTE,create.constant(0),create.local_name(name)),
               create.expression(StandardOperator.LT,create.local_name(name),
                   create.expression(StandardOperator.Size,create.unresolved_name(arrayname)))
