@@ -297,7 +297,8 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     case IFF:
     {
       Type t1=e.getArg(0).getType();
-      if (t1==null || !t1.isBoolean()) Fail("type of left argument unknown at "+e.getOrigin());
+      if (t1==null) Fail("type of left argument unknown at "+e.getOrigin());
+      if (!t1.isBoolean()) Fail("type of left argument is %s rather than boolean at %s",t1,e.getOrigin());
       Type t2=e.getArg(1).getType();
       if (t2==null) Fail("type of right argument unknown at %s",e.getOrigin());
       if (!t2.isBoolean()) Fail("type of right argument is %s rather than boolean at %s",t2,e.getOrigin());
