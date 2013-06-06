@@ -41,6 +41,7 @@ import vct.col.rewrite.InlinePredicatesRewriter;
 import vct.col.rewrite.KernelRewriter;
 import vct.col.rewrite.ReorderAssignments;
 import vct.col.rewrite.RewriteArray;
+import vct.col.rewrite.RewriteArrayPerms;
 import vct.col.rewrite.SimplifyCalls;
 import vct.col.rewrite.Standardize;
 import vct.col.rewrite.StripConstructors;
@@ -298,6 +299,11 @@ public class Main
           return arg;
         }
       });
+    defined_passes.put("recognize_arrays",new CompilerPass("standardize array permissions"){
+      public ProgramUnit apply(ProgramUnit arg){
+        return new RewriteArrayPerms(arg).rewriteAll();
+      }
+    });
     defined_passes.put("reorder",new CompilerPass("reorder statements (e.g. all declarations at the start of a bock"){
       public ProgramUnit apply(ProgramUnit arg){
         return new ReorderAssignments(arg).rewriteAll();
@@ -435,6 +441,9 @@ public class Main
         passes.add("standardize");
         passes.add("check");
       }
+      passes.add("recognize_arrays");
+      passes.add("standardize");
+      passes.add("check");
       passes.add("rewrite_arrays");
       passes.add("standardize");
       passes.add("check");
