@@ -33,7 +33,8 @@ public class ASTClass extends ASTNode {
   public static enum ClassKind {
     Interface,
     Abstract,
-    Plain
+    Plain,
+    Kernel
   };
   
   /** contains the kind of class. */

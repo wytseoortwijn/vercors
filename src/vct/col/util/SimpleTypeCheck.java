@@ -256,7 +256,17 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
           e.setType(new PrimitiveType(Sort.Integer));
           break;
         }
-        Abort("missing case for reserved name %s",name);
+        switch(name){
+          case "tcount":
+          case "gsize":
+          case "tid":
+          case "gid":
+          case "lid":
+            e.setType(new PrimitiveType(Sort.Integer));
+            break;
+          default:
+            Abort("missing case for reserved name %s",name);
+        }
         break;
       case Unresolved:{
         Abort("unresolved name %s found during type check at %s",name,e.getOrigin());

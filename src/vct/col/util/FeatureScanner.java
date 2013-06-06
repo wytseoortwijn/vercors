@@ -54,6 +54,10 @@ public class FeatureScanner extends RecursiveVisitor<Object> {
   }
 
   public void visit(ASTClass c) {
+    if (c.kind==ASTClass.ClassKind.Kernel){
+      has_kernels=true;
+      return;
+    }
     if (c.super_classes.length > 0 || c.implemented_classes.length > 0) {
       Warning("detected inheritance");
       has_inheritance=true;

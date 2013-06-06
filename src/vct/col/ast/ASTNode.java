@@ -3,6 +3,7 @@ package vct.col.ast;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import hre.ast.Origin;
@@ -230,5 +231,47 @@ public abstract class ASTNode implements ASTFlags {
   public boolean isa(StandardOperator op) {
     return false;
   }
+
+  public boolean isName(String name) {
+    return false;
+  }
   
+  public boolean match(ASTNode pattern,Set<String> open,Map<String,ASTNode> match){
+    Abort("AST node %s does not implement the match method",this.getClass());
+    return false;
+  }
+  
+  private HashSet<ASTNode> predecessors;
+  
+  public void setPredecessor(ASTNode item){
+    if (predecessors!=null){
+      Abort("predecessors is not null");
+    }
+    predecessors=new HashSet<ASTNode>();
+    predecessors.add(item);
+  }
+  
+  public void setPredecessor(Set<ASTNode> init){
+    if (predecessors!=null){
+      Abort("predecessors is not null");
+    }
+    predecessors=new HashSet<ASTNode>(init);
+  }
+
+  public void addPredecessor(ASTNode item){
+    if (predecessors==null){
+      Abort("predecessors is null");
+    }
+    predecessors.add(item);
+  }
+  public void addPredecessor(Set<ASTNode> items){
+    if (predecessors==null){
+      Abort("predecessors is null");
+    }
+    predecessors.addAll(items);
+  }
+
+  public Set<ASTNode> getPredecessors(){
+    return predecessors;
+  }
 }

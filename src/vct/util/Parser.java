@@ -23,8 +23,12 @@ import vct.col.ast.ProgramUnit;
 public class Parser {
   public static ProgramUnit parse(String language,String file){
     switch(language){
+    case "pvl":
+      language="antlr4";
+      break;
     case "c":
     case "cl":
+      Warning("clang parser causes many crashes and will be replaced");
       language="clang";
       break;
     }

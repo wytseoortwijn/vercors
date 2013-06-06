@@ -71,24 +71,38 @@ public class ContractBuilder {
     for(DeclarationStatement d:decls) yields.add(d);
   }
   public void ensures(ASTNode condition){
+    ensures(condition,true);
+  }
+  public void ensures(ASTNode condition,boolean at_end){
     empty=false;
     if (condition.getOrigin()==null) throw new Error("condition "+condition.getClass()+" without origin");
     if (post_condition==default_true) {
       post_condition=condition;
     } else {
       ASTNode tmp=post_condition;
-      post_condition=new OperatorExpression(StandardOperator.Star,post_condition,condition);
+      if (at_end){
+        post_condition=new OperatorExpression(StandardOperator.Star,post_condition,condition);
+      } else {
+        post_condition=new OperatorExpression(StandardOperator.Star,condition,post_condition);
+      }
       post_condition.setOrigin(new CompositeOrigin(tmp.getOrigin(),condition.getOrigin()));
     }
   }
   public void requires(ASTNode condition){
+    requires(condition,true);
+  }
+  public void requires(ASTNode condition,boolean at_end){
     empty=false;
     if (condition.getOrigin()==null) throw new Error("condition "+condition.getClass()+" without origin");
     if (pre_condition==default_true) {
       pre_condition=condition;
     } else {
       ASTNode tmp=post_condition;
-      pre_condition=new OperatorExpression(StandardOperator.Star,pre_condition,condition);
+      if (at_end){
+        pre_condition=new OperatorExpression(StandardOperator.Star,pre_condition,condition);
+      } else {
+        pre_condition=new OperatorExpression(StandardOperator.Star,condition,pre_condition);
+      }
       pre_condition.setOrigin(new CompositeOrigin(tmp.getOrigin(),condition.getOrigin()));
     }
   }

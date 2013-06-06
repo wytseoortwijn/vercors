@@ -37,6 +37,12 @@ public class Configuration {
   public static final BooleanSetting pvl_type_check=new BooleanSetting(true);
   
   /**
+   * When a kernel is a single group, some important simplifications can be performed.
+   * Thus we have this option that tells the tools to assume gsize==tcount.
+   */
+  public static final BooleanSetting assume_single_group=new BooleanSetting(false);
+  
+  /**
    * Add the VCT library options to the given option parser.
    * @param clops Option parser.
    */
@@ -48,6 +54,7 @@ public class Configuration {
     clops.add(vct.boogie.Main.boogie_timeout.getAssign("boogie time limit"),"boogie-limit");
     clops.add(vct.boogie.Main.chalice_location.getAssign("location of chalice binary"),"chalice-tool");
     clops.add(pvl_type_check.getDisable("disable type check in PVL parser"),"no-pvl-check");
+    clops.add(assume_single_group.getEnable("enable single group assumptions"),"single-group");
   }
 
 }

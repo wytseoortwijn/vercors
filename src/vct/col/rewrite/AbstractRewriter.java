@@ -522,7 +522,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   
   @Override
   public void visit(ParallelBarrier pb){
-    result=create.barrier(rewrite(pb.contract));
+    result=create.barrier(rewrite(pb.contract),pb.fences);
   }
 
 }

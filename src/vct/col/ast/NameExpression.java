@@ -72,6 +72,10 @@ public class NameExpression extends ASTNode {
     return false;
   }
   
+  public boolean isName(String name) {
+    return this.name.equals(name);
+  }
+
   public int hashCode(){
     return name.hashCode();
   }

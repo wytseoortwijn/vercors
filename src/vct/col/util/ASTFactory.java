@@ -2,6 +2,7 @@
 package vct.col.util;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 
 import vct.col.ast.ASTClass;
 import vct.col.ast.ASTClass.ClassKind;
@@ -500,6 +501,19 @@ public class ASTFactory<E> implements FrameControl {
     res.accept_if(post);
     return res;
   }
+  /**
+   * Create a new reserved name expression with a fixed type.
+   *
+   * Added to experiment with kernels, may not become permanent.
+   */
+  public NameExpression reserved_name(String name,Type t){
+    NameExpression res=new NameExpression(name);
+    res.setKind(NameExpression.Kind.Reserved);
+    res.setOrigin(origin_stack.get());
+    res.accept_if(post);
+    res.setType(t);
+    return res;
+  }
 
   /**
    * Create a new return statement.
@@ -651,6 +665,19 @@ public class ASTFactory<E> implements FrameControl {
     res.accept_if(post);
     return res;
   }
+  
+  public BindingExpression starall(ASTNode guard, ASTNode claim, DeclarationStatement ... decl) {
+    BindingExpression res=new BindingExpression(
+        Binder.STAR,
+        primitive_type(PrimitiveType.Sort.Resource),
+        decl,
+        guard,
+        claim
+    );
+    res.setOrigin(origin_stack.get());
+    res.accept_if(post);
+    return res;
+  }
 
  /**
   * Fold left of a non-empty list. 
@@ -689,17 +716,17 @@ public class ASTFactory<E> implements FrameControl {
  /**
   * Create a new barrier node.
   */
- public ParallelBarrier barrier(Origin origin,Contract c){
-   ParallelBarrier res=new ParallelBarrier(c);
+ public ParallelBarrier barrier(Origin origin,Contract c,EnumSet<ParallelBarrier.Fence> fences){
+   ParallelBarrier res=new ParallelBarrier(c,fences);
    res.setOrigin(origin);
    res.accept_if(post);
    return res;
  }
- public ParallelBarrier barrier(E origin,Contract c){
-   return barrier(origin_source.create(origin),c);
+ public ParallelBarrier barrier(E origin,Contract c,EnumSet<ParallelBarrier.Fence> fences){
+   return barrier(origin_source.create(origin),c,fences);
  }
- public ParallelBarrier barrier(Contract c){
-   return barrier(origin_stack.get(),c);
+ public ParallelBarrier barrier(Contract c,EnumSet<ParallelBarrier.Fence> fences){
+   return barrier(origin_stack.get(),c,fences);
  }
  /**
   * Create a new parallel block.

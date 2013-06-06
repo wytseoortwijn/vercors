@@ -164,6 +164,9 @@ public class JavaPrinter extends AbstractPrinter {
     case Interface:
       out.lnprintf("interface %s",cl.getName());
       break;
+    case Kernel:
+      out.lnprintf("kernel %s",cl.getName());
+      break;
     default:
       Abort("unexpected class kind %s",cl.kind);
     }
@@ -763,6 +766,19 @@ public class JavaPrinter extends AbstractPrinter {
     pb.count.accept(this);
     out.printf(")");
     pb.block.accept(this);
+  }
+
+  @Override
+  public void visit(ParallelBarrier pb){
+    if(pb.contract==null){
+      Fail("parallel barrier with null contract!");
+    } else {
+      out.println("barrier{");
+      out.incrIndent();
+      visit(pb.contract);
+      out.decrIndent();
+      out.println("}");
+    }
   }
   
 }

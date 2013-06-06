@@ -110,5 +110,14 @@ public class GlobalizeStaticsParameter extends GlobalizeStatics {
       }
     }
   }
+  
+  @Override
+  public void visit(ASTClass cl){
+    if (cl.kind==ASTClass.ClassKind.Kernel){
+      result=copy_rw.rewrite(cl);
+    } else {
+      super.visit(cl);
+    }
+  }
 }
 

@@ -56,8 +56,32 @@ public abstract class AbstractBoogiePrinter extends AbstractPrinter {
     }
     Contract c=e.getDefinition().getContract();
     if (c!=null){
+      HashMap<String,ASTNode> yield_map=new HashMap();
+      BlockStatement block=e.get_after();
+      if (block!=null){
+        int N=block.getLength();
+        for(int i=0;i<N;i++){
+          ASTNode s=block.getStatement(i);
+          if (s instanceof AssignmentStatement){
+            AssignmentStatement a=(AssignmentStatement)s;
+            ASTNode loc=a.getLocation();
+            ASTNode val=a.getExpression();
+            if (val instanceof NameExpression && loc instanceof NameExpression){
+              yield_map.put(((NameExpression)val).getName(),loc);
+            }
+          }
+        }
+      }
       for(int i=0;i<c.yields.length;i++){
-        out.printf("%s%s_%s",next,tag,c.yields[i].getName());
+        String name=c.yields[i].getName();
+        ASTNode loc=yield_map.get(name);
+        if (loc==null){
+          out.printf("%s%s_%s",next,tag,name);
+        } else {
+          out.print(next);
+          nextExpr();
+          loc.accept(this);
+        }
         next=",";        
       }
     }
@@ -122,11 +146,14 @@ public abstract class AbstractBoogiePrinter extends AbstractPrinter {
           ASTNode item=after.getStatement(i);
           if (item instanceof AssignmentStatement){
             AssignmentStatement hint=(AssignmentStatement)item;
-            hint.getLocation().accept(this);
-            out.lnprintf(" := %s_%s;",tag,((NameExpression)hint.getExpression()).getName());
+            ASTNode loc=hint.getLocation();
+            if (!(loc instanceof NameExpression)){
+              loc.accept(this);
+              out.lnprintf(" := %s_%s;",tag,((NameExpression)hint.getExpression()).getName());
+            }
           }
         }        
-      } 
+      }
     }
   }
   public void visit(AssignmentStatement s){
