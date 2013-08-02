@@ -18,24 +18,27 @@ import java.util.Properties;
 import static hre.System.*;
 
 import vct.col.ast.ASTNode;
+import vct.col.ast.CompilationUnit;
 import vct.col.ast.ProgramUnit;
 
 public class Parser {
-  public static ProgramUnit parse(String language,String file){
+  public static CompilationUnit parse(String language,String file){
     switch(language){
     case "pvl":
+    case "c":
+    case "c11":
+    case "cl":
       language="antlr4";
       break;
-    case "c":
-    case "cl":
-      Warning("clang parser causes many crashes and will be replaced");
-      language="clang";
-      break;
+//    case "cl":
+//      Warning("clang parser causes many crashes and will be replaced");
+//      language="clang";
+//      break;
     }
     return plugin_parse(language,file);
   }
 
-  private static ProgramUnit plugin_parse(String language,String file){
+  private static CompilationUnit plugin_parse(String language,String file){
     File home=new File(System.getenv("VCT_HOME"));
     //System.err.printf("home is %s%n",home);
     ClassLoader loader=null;
@@ -117,7 +120,7 @@ public class Parser {
       e.printStackTrace();
       Fail("could not instantiate parser");
     }
-    ProgramUnit result=parser.parse(new File(file));
+    CompilationUnit result=parser.parse(new File(file));
     if (result==null){
       Fail("parser returned null");
     }

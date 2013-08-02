@@ -2,6 +2,7 @@ package vct.col.ast;
 
 import hre.ast.MessageOrigin;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -11,6 +12,8 @@ import vct.col.rewrite.AbstractRewriter;
 import vct.col.util.ASTFactory;
 import vct.col.util.FeatureScanner;
 import vct.util.ClassName;
+
+import static hre.System.*;
 
 /**
  * Class for containing a collection of classes.
@@ -32,12 +35,31 @@ public class ProgramUnit {
     //ASTClass var=create.ast_class("var", ClassKind.Plain, null, null);
     
   }
+
+  /**
+   * The compilation units that make up this program/subsystem.
+   */
+  private ArrayList<CompilationUnit> contents=new ArrayList<CompilationUnit>();
+  
+  
+  public int size(){
+    return contents.size();
+  }
+  
+  public CompilationUnit get(int i){
+    return contents.get(i);
+  }
+  
+  public Iterable<CompilationUnit> get(){
+    return contents;
+  }
   
   /**
-   * Classes that comprise this program unit. 
+   * Index of classes that are contained within this program unit. 
    */
   private HashMap<ClassName,ASTClass> classes=new HashMap<ClassName, ASTClass>();
   
+  /*
   public void addClass(ClassName name,ASTClass cl){
     classes.put(name,cl);
     cl.attach(this,name);
@@ -50,6 +72,7 @@ public class ProgramUnit {
   public void addClass(ClassType type,ASTClass cl){
     addClass(type.getNameFull(),cl);
   }
+  */
   
   /**
    * Create an empty program unit.
@@ -58,14 +81,15 @@ public class ProgramUnit {
     
   }
 
-  /**
-   * Copy all entries from the given unit.
-   * 
-   * @param unit
-   */
-  public void merge(ProgramUnit unit){
-    AbstractRewriter copy_rw=new AbstractRewriter(unit,this);
-    copy_rw.rewriteAll();
+  public void add(CompilationUnit unit){
+    contents.add(unit);
+    for(ASTNode n:unit.get()){
+      if (n instanceof ASTClass){
+        ASTClass cl=(ASTClass)n;
+        Warning("indexing %s as %s",cl.name,cl.getDeclName());
+        classes.put(cl.getDeclName(),cl);
+      }
+    }
   }
 
   public Iterable<ASTClass> classes() {
@@ -77,8 +101,8 @@ public class ProgramUnit {
   }
 
   public <T> void accept(ASTVisitor<T> visitor) {
-    for(ASTClass cl:classes()){
-      cl.accept(visitor);
+    for(CompilationUnit cu:contents){
+      cu.accept(visitor);
     }
   }
 

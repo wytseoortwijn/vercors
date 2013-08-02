@@ -274,4 +274,5 @@ public abstract class ASTNode implements ASTFlags {
   public Set<ASTNode> getPredecessors(){
     return predecessors;
   }
+
 }

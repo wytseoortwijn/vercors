@@ -13,9 +13,17 @@ public class ClassName {
   }
   
   public ClassName(String[] fullName, String name2) {
+    if (fullName==null){
+      name=new String[]{name2};
+      return;
+    }
     name=new String[fullName.length+1];
     for(int i=0;i<fullName.length;i++) name[i]=fullName[i];
     name[fullName.length]=name2;
+  }
+
+  public ClassName(ClassName package_name, String name) {
+    this(package_name==null?null:package_name.name,name);
   }
 
   public static boolean equal(String name1[],String name2[]){

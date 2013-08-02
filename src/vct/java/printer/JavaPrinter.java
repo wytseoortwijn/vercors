@@ -200,7 +200,8 @@ public class JavaPrinter extends AbstractPrinter {
     out.lnprintf("}");    
   }
 
-  private void visit(Contract contract) {
+  @Override
+  public void visit(Contract contract) {
     if (contract!=null){
       out.lnprintf("/*@");
       out.incrIndent();

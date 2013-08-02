@@ -6,7 +6,8 @@ import java.util.HashSet;
 
 import vct.col.util.ASTUtils;
 
-public class Contract {
+public class Contract extends ASTNode {
+  
   public final ASTNode pre_condition;
   public final ASTNode post_condition;
   public final DeclarationStatement given[];
@@ -61,6 +62,11 @@ public class Contract {
   }
   public boolean hasLabel(String name) {
      return labels.contains(name);
+  }
+
+  @Override
+  protected <T> void accept_simple(ASTVisitor<T> visitor) {
+    visitor.visit(this);
   }
   
 }

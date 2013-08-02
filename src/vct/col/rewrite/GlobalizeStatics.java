@@ -5,6 +5,7 @@ import vct.col.ast.ASTClass;
 import vct.col.ast.ASTClass.ClassKind;
 import vct.col.ast.ASTNode;
 import vct.col.ast.ClassType;
+import vct.col.ast.CompilationUnit;
 import vct.col.ast.Contract;
 import vct.col.ast.ContractBuilder;
 import vct.col.ast.DeclarationStatement;
@@ -42,7 +43,7 @@ public abstract class GlobalizeStatics extends AbstractRewriter {
   public GlobalizeStatics(ProgramUnit source) {
     super(source);
     global_class=create(new MessageOrigin("filtered globals")).ast_class("Global",ClassKind.Plain,null,null);
-    target().addClass(global_class.getFullName(),global_class);
+    target().add(new CompilationUnit("Globals").add(global_class));
   }
 
   protected ASTClass global_class;

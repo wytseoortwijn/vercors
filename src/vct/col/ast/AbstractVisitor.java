@@ -152,8 +152,11 @@ public abstract class AbstractVisitor<T> extends ASTFrame<T> implements ASTVisit
   public void visit(ParallelBarrier pb){ visit_any(pb); }
 
   public void visit(ParallelBlock pb){ visit_any(pb); }
-
   
+  public void visit(Contract c){ visit_any(c); }
+
+  public void visit(ASTSpecial s){ visit_any(s); }
+
 }
 
 

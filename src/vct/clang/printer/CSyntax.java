@@ -5,41 +5,65 @@ import static vct.col.ast.StandardOperator.*;
 import static vct.col.ast.PrimitiveType.Sort.*;
 
 public class CSyntax {
-  private static Syntax syntax;
+  private static Syntax c_syntax;
+  private static Syntax cml_syntax;
   
-  public static Syntax get(){
-    if(syntax==null){
-      syntax=new Syntax();
-      
-      syntax.addPrefix(UMinus, "-", 150);
-      syntax.addPrefix(UPlus, "+", 150);
+  public static void setCommon(Syntax syntax){
+    syntax.addPostfix(PostIncr, "++", 160);
+    syntax.addPostfix(PostDecr, "--", 160);
+    syntax.addPrefix(PreIncr, "++", 160);
+    syntax.addPrefix(PreDecr, "--", 160);
+    
+    syntax.addPrefix(UMinus, "-", 150);
+    syntax.addPrefix(UPlus, "+", 150);
 
-      syntax.addLeftFix(Mult,"*",130);
-      syntax.addLeftFix(Div,"/",130);
-      syntax.addLeftFix(Mod,"%",130);
-      
-      syntax.addLeftFix(Plus,"+",120);
-      syntax.addLeftFix(Minus,"-",120);
-      
-      syntax.addInfix(LT,"<",100);
-      syntax.addInfix(LTE,"<=",100);
-      syntax.addInfix(GT,">",100);
-      syntax.addInfix(GTE,">=",100);
-      
-      syntax.addRightFix(Assign,"=",30);
-      
-      syntax.addPrimitiveType(Double,"double");
-      syntax.addPrimitiveType(Integer,"int");
-      //syntax.addPrimitiveType(Fraction,"frac");
-      syntax.addPrimitiveType(Long,"long");
-      syntax.addPrimitiveType(Void,"void");
-      //syntax.addPrimitiveType(Resource,"resource");
-      syntax.addPrimitiveType(Boolean,"bool");
-      //syntax.addPrimitiveType(Class,"classtype");
-      syntax.addPrimitiveType(Char,"char");
-      syntax.addPrimitiveType(Float,"float");
+    syntax.addLeftFix(Mult,"*",130);
+    syntax.addLeftFix(Div,"/",130);
+    syntax.addLeftFix(Mod,"%",130);
+    
+    syntax.addLeftFix(Plus,"+",120);
+    syntax.addLeftFix(Minus,"-",120);
+    
+    syntax.addInfix(LT,"<",100);
+    syntax.addInfix(LTE,"<=",100);
+    syntax.addInfix(GT,">",100);
+    syntax.addInfix(GTE,">=",100);
+    
+    syntax.addInfix(EQ,"==",90);
+    syntax.addInfix(NEQ,"!=",90);
+    
+    syntax.addRightFix(Assign,"=",30);
+    
+    syntax.addPrimitiveType(Double,"double");
+    syntax.addPrimitiveType(Integer,"int");
+    //syntax.addPrimitiveType(Fraction,"frac");
+    syntax.addPrimitiveType(Long,"long");
+    syntax.addPrimitiveType(Void,"void");
+    //syntax.addPrimitiveType(Resource,"resource");
+    syntax.addPrimitiveType(Boolean,"bool");
+    //syntax.addPrimitiveType(Class,"classtype");
+    syntax.addPrimitiveType(Char,"char");
+    syntax.addPrimitiveType(Float,"float");
+  }
+
+  public static Syntax getC() {
+    if (c_syntax==null){
+      c_syntax=new Syntax();
+      setCommon(c_syntax);
     }
-    return syntax;
+    return c_syntax;
+  }
+  
+  public static Syntax getCML() {
+    if (cml_syntax==null){
+      cml_syntax=new Syntax();
+      setCommon(cml_syntax);
+      cml_syntax.addLeftFix(Star,"**",130); // TODO: priorities!
+      cml_syntax.addLeftFix(Wand,"-*",120); // TODO: priorities!
+      cml_syntax.addFunction(Perm,"perm");
+      cml_syntax.addFunction(Old,"old");
+    }
+    return cml_syntax;
   } 
 
 }

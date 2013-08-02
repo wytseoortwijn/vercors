@@ -3,21 +3,22 @@ package vct.col.ast;
 
 import java.util.*;
 
-public class DeclarationStatement extends ASTNode {
+import vct.util.ClassName;
+
+public class DeclarationStatement extends ASTDeclaration {
 
   // Type should become part of ASTNode!!
   private Type type;
-  private String name;
   private ASTNode expr;
 
   public DeclarationStatement(String name,Type type){
-    this.name=name;
+    super(name);
     this.type=type;
     expr=null;
   }
 
   public DeclarationStatement(String name,Type type,ASTNode expr){
-    this.name=name;
+    super(name);
     this.type=type;
     this.expr=expr;
   }
@@ -28,7 +29,14 @@ public class DeclarationStatement extends ASTNode {
   
   public ASTNode getInit() { return expr; }
   
-  public void accept_simple(ASTVisitor visitor){
+  @Override
+  public ClassName getDeclName() {
+    hre.System.Warning("%s.%s",package_name,name);
+    return new ClassName(package_name,name);
+  }
+
+  @Override
+  protected <T> void accept_simple(ASTVisitor<T> visitor) {
     visitor.visit(this);
   }
 

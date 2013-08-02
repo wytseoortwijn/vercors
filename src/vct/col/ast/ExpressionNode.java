@@ -1,6 +1,6 @@
 package vct.col.ast;
 
-public abstract class ExpressionNode extends ASTNode {
+public abstract class ExpressionNode extends ASTNode implements BeforeAfterAnnotations {
 
   /** Block of proof hints to be executed just before
    *  evaluating the expression represented by this AST node.

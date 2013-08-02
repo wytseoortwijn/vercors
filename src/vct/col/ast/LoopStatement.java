@@ -4,7 +4,7 @@ package vct.col.ast;
 import java.util.ArrayList;
 import java.util.Collection;
 
-public class LoopStatement extends ASTNode {
+public class LoopStatement extends ASTNode implements BeforeAfterAnnotations {
   private ArrayList<ASTNode> invariants=new ArrayList();
   private ASTNode body;
   private ASTNode entry_guard;

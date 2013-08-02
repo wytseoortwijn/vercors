@@ -106,9 +106,13 @@ public class ContractBuilder {
       pre_condition.setOrigin(new CompositeOrigin(tmp.getOrigin(),condition.getOrigin()));
     }
   }
- 
+  
   public Contract getContract(){
-    if (empty) return null;
+    return getContract(true);
+  }
+  
+  public Contract getContract(boolean null_on_empty){
+    if (empty && null_on_empty) return null;
     DeclarationStatement[] decls=new DeclarationStatement[0];
     ASTNode[] mods=null;
     if (modifiable!=null){

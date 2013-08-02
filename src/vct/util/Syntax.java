@@ -23,10 +23,20 @@ public class Syntax {
 
   private Map<StandardOperator,Integer> precedence_map = new EnumMap<StandardOperator, Integer>(StandardOperator.class);
   private Map<StandardOperator,String[]> syntax_map = new EnumMap<StandardOperator, String[]>(StandardOperator.class);
+  private Map<StandardOperator,String[]> pattern_map = new EnumMap<StandardOperator, String[]>(StandardOperator.class);
   private Map<StandardOperator,Associativity> associativity_map = new EnumMap<StandardOperator, Associativity>(StandardOperator.class);
   private Map<Sort,String> type_map = new EnumMap<Sort, String>(Sort.class);
   
   private Map<String,StandardOperator> operator_map = new HashMap<String, StandardOperator>();
+  
+  /**
+   * Get a pattern that can be matched against an ANTLR 4.x parse tree.
+   * @param op
+   * @return
+   */
+  public String[] getPattern(StandardOperator op){
+    return pattern_map.get(op);
+  }
   
   /**
    * Convert a string to an operator.
@@ -66,6 +76,8 @@ public class Syntax {
     syntax_map.put(op,full_syntax);
     operator_map.put(syntax,op);
     associativity_map.put(op,Associativity.Left);
+    String pattern[]={null,syntax,null};
+    pattern_map.put(op, pattern);
   }
   /** Add a non-associative binary infix operator to the language. */
   public void addInfix(StandardOperator op,final String syntax,int precedence){
@@ -74,6 +86,8 @@ public class Syntax {
     syntax_map.put(op,full_syntax);
     operator_map.put(syntax,op);
     associativity_map.put(op,Associativity.None);
+    String pattern[]={null,syntax,null};
+    pattern_map.put(op, pattern);
   }
   /** Add a prefix operator to the language. */
   public void addPrefix(StandardOperator op,final String syntax,int precedence){
@@ -82,6 +96,8 @@ public class Syntax {
     syntax_map.put(op,full_syntax);
     operator_map.put(syntax,op);
     associativity_map.put(op,Associativity.None);
+    String pattern[]={syntax,null};
+    pattern_map.put(op, pattern);
   }
   /** Add a postfix operator to the language. */
   public void addPostfix(StandardOperator op,final String syntax,int precedence){
@@ -90,6 +106,8 @@ public class Syntax {
     syntax_map.put(op,full_syntax);
     operator_map.put(syntax,op);
     associativity_map.put(op,Associativity.None);
+    String pattern[]={null,syntax};
+    pattern_map.put(op, pattern);
   }
 
   /** Add a non-associative binary infix operator to the language. */
@@ -99,16 +117,26 @@ public class Syntax {
     syntax_map.put(op,full_syntax);
     operator_map.put(syntax,op);
     associativity_map.put(op,Associativity.Right);
+    String pattern[]={null,syntax,null};
+    pattern_map.put(op, pattern);
   }
   
   /** Add a standard operation that is represented with function call syntax */
   public void addFunction(StandardOperator op,final String syntax){
     int N=op.arity();
     String full_syntax[]=new String[N+1];
+    String pattern[]=new String[2*N+2];
+    pattern[0]=syntax;
+    pattern[1]="(";
     full_syntax[0]=syntax+"(";
-    for(int i=1;i<N;i++) full_syntax[i]=",";
+    for(int i=1;i<N;i++) {
+      full_syntax[i]=",";
+      pattern[2*i+1]=",";
+    }
     full_syntax[N]=")";
+    pattern[2*N+1]=")";
     syntax_map.put(op,full_syntax);
+    pattern_map.put(op, pattern);
   }
   
   /** Add a name for a primitive type */

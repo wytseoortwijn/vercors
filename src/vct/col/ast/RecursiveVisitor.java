@@ -92,8 +92,7 @@ public abstract class RecursiveVisitor<T> extends ASTFrame<T> implements
 
   private void dispatch(Contract c){
     if (c!=null){
-      dispatch(c.pre_condition);
-      dispatch(c.post_condition);      
+      c.accept(this);
     }
   }
   private void dispatch(ASTNode object) {
@@ -209,5 +208,14 @@ public abstract class RecursiveVisitor<T> extends ASTFrame<T> implements
     pb.block.accept(this);
   }
 
+  public void visit(Contract c){
+    dispatch(c.pre_condition);
+    dispatch(c.post_condition);
+  }
 
+  public void visit(ASTSpecial s){
+    for(ASTNode n:s.args){
+      dispatch(n);
+    }
+  }
 }

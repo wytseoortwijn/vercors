@@ -162,5 +162,15 @@ public class AbstractPrinter extends AbstractVisitor {
     if (!in_expr) Abort("constant %s outside of expression for %s",ce,ce.getOrigin());
     out.print(ce.toString());
   }
+  
+  public void visit(ASTSpecial s){
+    switch(s.kind){
+    case Comment:
+      out.println(s.args[0].toString());
+      break;
+    default:
+      Abort("unimplemented special %s",s.kind);
+    }
+  }
 }
 

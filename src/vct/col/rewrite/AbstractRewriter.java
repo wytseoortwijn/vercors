@@ -6,11 +6,14 @@ import java.util.HashSet;
 import hre.ast.Origin;
 import hre.util.FrameControl;
 import vct.col.ast.ASTClass;
+import vct.col.ast.ASTDeclaration;
 import vct.col.ast.ASTFrame;
 import vct.col.ast.ASTNode;
+import vct.col.ast.ASTSpecial;
 import vct.col.ast.ASTWith;
 import vct.col.ast.AbstractVisitor;
 import vct.col.ast.BindingExpression;
+import vct.col.ast.CompilationUnit;
 import vct.col.ast.ContractBuilder;
 import vct.col.ast.Dereference;
 import vct.col.ast.Lemma;
@@ -467,15 +470,23 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   }
 
   public ProgramUnit rewriteAll() {
-    for(ASTClass cl:source().classes()){
-      ASTClass tmp=rewrite(cl);
-      if (tmp!=null){
-        target().addClass(tmp.getFullName(),tmp);
+    for(CompilationUnit cu :source().get()){
+      CompilationUnit res=new CompilationUnit(cu.getFileName());
+      for(ASTNode n:cu.get()){
+        ASTNode tmp=rewrite(n);
+        if (tmp!=null){
+          res.add(tmp);
+        }
+      }
+      if (res.size()>0){
+        target().add(res);
+      } else {
+        Warning("discarding empty unit %s",cu.getFileName());
       }
     }
     return target();
   }
-  
+/*
   private void rewriteOrdered(HashSet<ASTClass> done,ASTClass cl){
     if (!done.contains(cl)){
       done.add(cl);
@@ -488,16 +499,32 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
       Debug("rewriting %s",cl.getName());
       ASTClass tmp=rewrite(cl);
       if (tmp!=null){
-        target().addClass(tmp.getFullName(),tmp);
+        if (tmp.packageDefined()){
+          target().addDeclaration(tmp.getDeclName(),tmp);
+        } else {
+          target().addDeclaration(cl.getDeclName(),tmp);
+        }
       }      
     }
   }
+*/
   public ProgramUnit rewriteOrdered() {
+    Abort("ordered rewriting disabled for now");
+    return null;
+    /*
     HashSet<ASTClass> done=new HashSet();
-    for(ASTClass cl:source().classes()){
-      rewriteOrdered(done,cl);
-    }    
+    for(ASTNode item:source().entries()){
+      if (item instanceof ASTClass){
+        rewriteOrdered(done,(ASTClass)item);
+      } else {
+        ASTNode tmp=rewrite(item);
+        if (tmp!=null){
+          target().add(tmp);
+        }
+      }
+    }
     return target();
+    */
   }
 
   @Override
@@ -523,6 +550,11 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   @Override
   public void visit(ParallelBarrier pb){
     result=create.barrier(rewrite(pb.contract),pb.fences);
+  }
+
+  @Override
+  public void visit(ASTSpecial special) {
+    result=create.special(special.kind,rewrite(special.args));
   }
 
 }

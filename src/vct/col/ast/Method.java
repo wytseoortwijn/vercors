@@ -9,6 +9,7 @@ import vct.col.ast.Method.Kind;
 import vct.col.ast.PrimitiveType.Sort;
 import vct.col.rewrite.MultiSubstitution;
 import vct.col.rewrite.Substitution;
+import vct.util.ClassName;
 import static hre.System.Abort;
 import static hre.System.Debug;
 import static hre.System.Warning;
@@ -18,7 +19,7 @@ import static hre.System.Warning;
  * @author sccblom
  *
  */
-public class Method extends ASTNode {
+public class Method extends ASTDeclaration {
   /** Enumeration of kinds of methods. */
   public static enum Kind{
     Constructor,
@@ -27,7 +28,6 @@ public class Method extends ASTNode {
     Plain
   };
  
-  private final String name;
   private final Type return_type;
   private final DeclarationStatement args [];
   private final boolean var_args;
@@ -44,7 +44,7 @@ public class Method extends ASTNode {
   }
 
   public Method(Kind kind, String name,String args[],boolean many,FunctionType t){
-    this.name=name;
+    super(name);
     this.return_type=t.getResult();
     this.args=new DeclarationStatement[args.length];
     this.var_args=many;
@@ -57,7 +57,7 @@ public class Method extends ASTNode {
   }
   
   public Method(Kind kind, String name,Type return_type,Contract contract,DeclarationStatement args[],boolean varArgs,ASTNode body){
-    this.name=name;
+    super(name);
     this.return_type=return_type;
     this.args=Arrays.copyOf(args,args.length);
     this.var_args=varArgs;
@@ -111,9 +111,6 @@ public class Method extends ASTNode {
   public ASTNode getBody(){
     return body;
   }
-  public void accept_simple(ASTVisitor visitor){
-    visitor.visit(this);
-  }
   public DeclarationStatement[] getArgs() {
     return args;
   }
@@ -159,6 +156,17 @@ public class Method extends ASTNode {
       }
     }
     return sigma;
+  }
+
+  @Override
+  public ClassName getDeclName() {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  protected <T> void accept_simple(ASTVisitor<T> visitor) {
+    visitor.visit(this);
   }
 
 }

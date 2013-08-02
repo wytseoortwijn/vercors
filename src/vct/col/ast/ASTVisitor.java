@@ -55,6 +55,10 @@ public interface ASTVisitor<T> {
 
   public void visit(ParallelBlock parallelBlock);
 
+  public void visit(Contract contract);
+
+  public void visit(ASTSpecial special);
+
 }
 
 

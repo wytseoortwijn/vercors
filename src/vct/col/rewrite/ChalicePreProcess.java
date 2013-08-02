@@ -2,6 +2,7 @@ package vct.col.rewrite;
 
 import vct.col.ast.ASTClass;
 import vct.col.ast.ASTNode;
+import vct.col.ast.CompilationUnit;
 import vct.col.ast.Dereference;
 import vct.col.ast.MethodInvokation;
 import vct.col.ast.OperatorExpression;
@@ -30,9 +31,7 @@ public class ChalicePreProcess extends AbstractRewriter {
       create.setOrigin(new MessageOrigin("added by ChalicePreProcess"));
       ASTClass cl=create.ast_class(entry.getValue(), ASTClass.ClassKind.Plain , null,null);
       cl.add_dynamic(create.field_decl("item",entry.getKey()));
-      String name[]=new String[1];
-      name[0]=entry.getValue();
-      res.addClass(name, cl);
+      res.add(new CompilationUnit(entry.getValue()).add(cl));
     }
     return res;
   }

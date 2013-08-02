@@ -7,6 +7,7 @@ import java.util.EnumSet;
 import vct.col.ast.ASTClass;
 import vct.col.ast.ASTClass.ClassKind;
 import vct.col.ast.ASTNode;
+import vct.col.ast.ASTSpecial;
 import vct.col.ast.ASTVisitor;
 import vct.col.ast.ASTWith.Kind;
 import vct.col.ast.ASTWith;
@@ -743,5 +744,20 @@ public class ASTFactory<E> implements FrameControl {
  public ParallelBlock parallel_block(Contract c,DeclarationStatement name,ASTNode count,BlockStatement block){
    return parallel_block(origin_stack.get(),c, name, count, block);
  }
+
+public ASTSpecial special(vct.col.ast.ASTSpecial.Kind kind, ASTNode ... args) {
+  return special(origin_stack.get(),kind,args);
+}
+
+public ASTSpecial special(Origin origin, vct.col.ast.ASTSpecial.Kind kind, ASTNode ... args) {
+  ASTSpecial res=new ASTSpecial(kind,args);
+  res.setOrigin(origin);
+  res.accept_if(post);
+  return res;
+}
+
+public ASTSpecial comment(String text) {
+  return special(vct.col.ast.ASTSpecial.Kind.Comment,constant(text));
+}
 
 }

@@ -24,7 +24,7 @@ import static hre.System.Warning;
  * @author sccblom
  *
  */
-public class ASTClass extends ASTNode {
+public class ASTClass extends ASTDeclaration {
   /**
    * Enumeration of the kinds of classes that are considered.
    * 
@@ -39,8 +39,6 @@ public class ASTClass extends ASTNode {
   
   /** contains the kind of class. */
   public final ClassKind kind;
-  /** contains the name of the class/module/package. */
-  public final String name;
   /** contains the classes extended by this class */
   public final ClassType super_classes[];
   /** contains the interfaces(classes) implemented by this class */
@@ -51,15 +49,6 @@ public class ASTClass extends ASTNode {
   private ArrayList<ASTNode> static_entries=new ArrayList<ASTNode>();
   /** contains the dynamic entries. */
   private ArrayList<ASTNode> dynamic_entries=new ArrayList<ASTNode>();
-  /** contains the root of the source forest. */
-  private ProgramUnit root;
-  /** contains the package name */
-  private ClassName package_name;
-  
-  public void attach(ProgramUnit root,ClassName package_name){
-    this.root=root;
-    this.package_name=package_name;
-  }
   
   private void getFullName(ArrayList<String> fullname){
     if (parent_class!=null) parent_class.getFullName(fullname);
@@ -70,11 +59,17 @@ public class ASTClass extends ASTNode {
     getFullName(fullname);
     return fullname.toArray(new String[0]);
   }
+  
+  public ClassName getDeclName(){
+    return new ClassName(getFullName());
+  }
+
+  
 
   /** Create a root class from a given block statement. */
   public ASTClass(BlockStatement node) {
+    super("<<main>>");
     kind=ClassKind.Plain;
-    name="<<main>>";
     int N=node.getLength();
     for(int i=0;i<N;i++){
       static_entries.add(node.getStatement(i));
@@ -85,8 +80,8 @@ public class ASTClass extends ASTNode {
 
   /** Create a nested class. */
   public ASTClass(String name,ASTClass parent,boolean is_static,ClassKind kind){
+    super(name);
     this.kind=kind;
-    this.name=name;
     this.parent_class=parent;
     if(is_static){
       parent.add_static(this);
@@ -122,8 +117,8 @@ public class ASTClass extends ASTNode {
    *  Do not forget to set the parent later! 
    */
   public ASTClass(String name,BlockStatement static_part,BlockStatement dynamic_part,ClassKind kind){
+    super(name);
     this.kind=kind;
-    this.name=name;
     int N=static_part.getLength();
     for(int i=0;i<N;i++){
       static_entries.add(static_part.getStatement(i));
@@ -188,10 +183,10 @@ public class ASTClass extends ASTNode {
 
   /** Create a new class without putting it in a hierarchy. */
   public ASTClass(String name,ClassKind kind,ClassType bases[],ClassType supports[]){
+    super(name);
     if (bases==null) Abort("super class array may not be null");
     if (supports==null) Abort("implemented array may not be null");
     this.kind=kind;
-    this.name=name;
     super_classes=Arrays.copyOf(bases,bases.length);
     implemented_classes=Arrays.copyOf(supports,supports.length);
   }

@@ -3,9 +3,12 @@ package vct.clang.printer;
 import java.io.PrintStream;
 
 import vct.col.ast.ASTClass;
+import vct.col.ast.ASTDeclaration;
 import vct.col.ast.ASTNode;
 import vct.col.ast.AssignmentStatement;
 import vct.col.ast.BlockStatement;
+import vct.col.ast.CompilationUnit;
+import vct.col.ast.Contract;
 import vct.col.ast.DeclarationStatement;
 import vct.col.ast.IfStatement;
 import vct.col.ast.Method;
@@ -19,7 +22,7 @@ import hre.ast.TrackingTree;
 public class CPrinter extends AbstractPrinter {
 
 	public CPrinter(TrackingOutput out) {
-		super(CSyntax.get(), out);
+		super(CSyntax.getCML(), out);
 	}
 
 	public void pre_visit(ASTNode node) {
@@ -30,6 +33,10 @@ public class CPrinter extends AbstractPrinter {
 			out.printf(":");
 			// out.printf("[");
 		}
+	}
+	
+	public void post_visit(ASTNode node) {
+	  super.post_visit(node);
 	}
 
 	public void visit(ASTClass cl){
@@ -53,7 +60,22 @@ public class CPrinter extends AbstractPrinter {
 		}
 	}
 	
+	@Override
+	public void visit(Contract c){
+	  out.println("/*@");
+	  out.incrIndent();
+    out.print("requires ");
+    c.pre_condition.accept(this);
+    out.println(";");
+    out.print("ensures ");
+    c.post_condition.accept(this);
+    out.println(";");
+	  out.decrIndent();
+	  out.println("@*/");
+	}
 	public void visit(Method m){
+	  Contract c=m.getContract();
+	  if (c!=null) visit(c); //c.accept(this);
 		nextExpr();
 		m.getReturnType().accept(this);
 		out.printf(" %s(",m.getName());
@@ -146,12 +168,13 @@ public class CPrinter extends AbstractPrinter {
 	}
 
 	public static TrackingTree dump(PrintStream out, ProgramUnit program) {
-		hre.System.Debug("Dumping Java code...");
+		hre.System.Debug("Dumping C code...");
 		try {
 			TrackingOutput track_out = new TrackingOutput(out, false);
 			CPrinter printer = new CPrinter(track_out);
-			for (ASTClass cl : program.classes()) {
-				cl.accept(printer);
+			for (CompilationUnit cu: program.get()) {
+			  track_out.lnprintf("=== file: %s ===",cu.getFileName());
+				cu.accept(printer);
 			}
 			return track_out.close();
 		} catch (Exception e) {
