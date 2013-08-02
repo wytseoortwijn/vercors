@@ -75,9 +75,9 @@ public class Main
       vct.col.ast.ASTNode.pvl_mode=true;
     }
     Progress("Parsing %s file %s",lang,name);
-    ProgramUnit unit=Parser.parse(lang,name);
+    CompilationUnit unit=Parser.parse(lang,name);
     Progress("Read %s succesfully",name);
-    program.merge(unit);
+    program.add(unit);
     Progress("Merged %s succesfully",name);
   }
 
@@ -489,7 +489,7 @@ public class Main
           vct.java.printer.JavaPrinter.dump(System.out,program);
         }
         if (task!=null){
-          Progress("Applying %s ...", pass);
+          Progress("Applying %s ...",pass);
           startTime = System.currentTimeMillis();
           program=task.apply(program);
           Progress(" ... pass took %d ms",System.currentTimeMillis()-startTime);
