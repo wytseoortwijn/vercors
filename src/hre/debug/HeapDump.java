@@ -70,6 +70,7 @@ public class HeapDump {
           }
         } else if (val!=null && val instanceof Map) {
           out.printf("<map %s>\n",field.getName());
+          out.enter();
           for(Object tmp :((Map)val).entrySet()){
             Entry e=(Entry)tmp;
             out.printf("<entry>%n");
@@ -81,6 +82,7 @@ public class HeapDump {
             out.printf("</value>%n");
             out.printf("</entry>%n");
           }
+          out.leave();
           out.printf("</map>\n");
         } else if (val !=null && val instanceof Object[]) {
           for(Object i:(Object[])val){

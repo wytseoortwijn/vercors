@@ -142,4 +142,10 @@ public class System {
   public static void EnableWhere(boolean b) {
     where=b;
   }
+  
+  public static Failure Failure(String format,Object...args){
+    String message=String.format(format, args);
+    return new Failure(message);
+  }
+
 }
