@@ -3,6 +3,7 @@ package vct.boogie;
 
 import vct.util.Syntax;
 import static vct.col.ast.StandardOperator.*;
+import static vct.col.ast.ASTReserved.*;
 
 /**
  * Create Syntax objects for Boogie and Chalice.
@@ -37,9 +38,11 @@ public class BoogieSyntax {
     syntax.addFunction(Old,"old");
     syntax.addOperator(ITE,20,"","?",":","");
     syntax.addOperator(Size,0,"|","|");
+    
+    syntax.addReserved(Result,"result");
   }
 
-  public static Syntax getBoogie(){
+  public static synchronized Syntax getBoogie(){
     if(boogie==null){
       boogie=new Syntax();
       setCommon(boogie);
@@ -47,7 +50,7 @@ public class BoogieSyntax {
     return boogie;
   }
   
-  public static Syntax getChalice(){
+  public static synchronized Syntax getChalice(){
     if(chalice==null){
       chalice=new Syntax();
       setCommon(chalice);
@@ -56,6 +59,10 @@ public class BoogieSyntax {
       chalice.addOperator(Cons,0,"([","]++(","))");
       chalice.addOperator(Subscript,0,"(",")[","]");
       chalice.addLeftFix(Append,"++",100);
+      
+      chalice.addReserved(This,"this");
+      chalice.addReserved(Null,"null");
+      chalice.addReserved(Any,"*");
     }
     return chalice;
   }

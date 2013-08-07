@@ -1,6 +1,7 @@
 package vct.col.rewrite;
 
 import vct.col.ast.ASTNode;
+import vct.col.ast.ASTReserved;
 import vct.col.ast.AssignmentStatement;
 import vct.col.ast.BlockStatement;
 import vct.col.ast.Method;
@@ -99,12 +100,12 @@ public class Standardize extends AbstractRewriter {
         if (m.isStatic()){
           result=create.dereference(create.class_type(current_class().getFullName()),e.getName());
         } else {
-          result=create.dereference(create.reserved_name("this"),e.getName());
+          result=create.dereference(create.reserved_name(ASTReserved.This),e.getName());
         }
         break;
       }
       default:
-        result=create.name(e.getKind(), e.getName());
+        super.visit(e);
         break;
     }
   }

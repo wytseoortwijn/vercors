@@ -21,7 +21,7 @@ import static hre.System.Warning;
 public class JavaPrinter extends AbstractPrinter {
   
   public JavaPrinter(TrackingOutput out){
-    super(JavaSyntax.get(),out);
+    super(JavaSyntax.getJavaJML(),out);
   }
 
   public void pre_visit(ASTNode node){
@@ -32,6 +32,27 @@ public class JavaPrinter extends AbstractPrinter {
       out.printf(":");
       //out.printf("[");
     }
+  }
+  
+  public void post_visit(ASTNode node){
+    if (node instanceof BeforeAfterAnnotations){
+      BeforeAfterAnnotations baa=(BeforeAfterAnnotations)node;
+      if (baa.get_before()!=null || baa.get_after()!=null){
+        out.printf("/*@ ");
+        ASTNode tmp=baa.get_before();
+        if (tmp!=null) {
+          out.printf("with ");
+          tmp.accept(this);
+        }
+        tmp=baa.get_after();
+        if (tmp!=null) {
+          out.printf("then ");
+          tmp.accept(this);      
+        }
+        out.printf(" */");
+      }
+    }
+    super.post_visit(node);
   }
   /* TODO: copy to appropriate places
   public void post_visit(ASTNode node){
@@ -152,7 +173,6 @@ public class JavaPrinter extends AbstractPrinter {
   }
 
   public void visit(ASTClass cl){
-    int N;
     visit(cl.getContract());
     switch(cl.kind){
     case Plain:
@@ -186,15 +206,12 @@ public class JavaPrinter extends AbstractPrinter {
     }
     out.lnprintf("{");
     out.incrIndent();
-    N=cl.getStaticCount();
-    for(int i=0;i<N;i++){
-      if (cl.getStatic(i) instanceof DeclarationStatement) out.printf("static ");
-      else out.println("/* static */");
-      cl.getStatic(i).accept(this);
-    }
-    N=cl.getDynamicCount();
-    for(int i=0;i<N;i++){
-      cl.getDynamic(i).accept(this);
+    for(ASTNode item:cl){
+      if (item.isStatic()){
+        if (item instanceof DeclarationStatement) out.printf("static ");
+        else out.println("/* static */");
+      }
+      item.accept(this);
     }
     out.decrIndent();
     out.lnprintf("}");    

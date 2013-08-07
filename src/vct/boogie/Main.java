@@ -69,7 +69,7 @@ public class Main {
       BoogiePrinter printer=new BoogiePrinter(boogie_code);
       for(ASTClass cl:arg.classes()){
         if (cl.getDynamicCount()>0 && cl.getStaticCount()>0) {
-          throw new Error("mixed static/dynamic boogie program.");
+          throw Failure("mixed static(%d)/dynamic(%d) boogie program.",cl.getStaticCount(),cl.getDynamicCount());
         }  
         printer.print(cl);
       }

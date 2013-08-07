@@ -84,7 +84,7 @@ public class FinalizeArguments extends AbstractRewriter {
         if (arg instanceof NameExpression){
           NameExpression name=(NameExpression)arg;
           if (name.getKind()==NameExpression.Kind.Argument){
-            result=create.name(NameExpression.Kind.Argument,"__"+name.getName());
+            result=create.argument_name("__"+name.getName());
             break;
           }
         }

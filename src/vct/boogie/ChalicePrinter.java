@@ -513,6 +513,7 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
     }
   }
 
+  /*
   public void visit(NameExpression e){
     String s=e.toString();
     if (s.equals("\\result")){
@@ -533,7 +534,8 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
       out.print(s);
     }
   }
-
+*/
+  
   public void visit(MethodInvokation e){
     Method m=e.getDefinition();
     if (m==null){

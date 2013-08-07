@@ -1,8 +1,9 @@
 package vct.col.ast;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 
-public class CompilationUnit {
+public class CompilationUnit implements ASTSequence<CompilationUnit> {
 
   private String name;
   
@@ -37,6 +38,11 @@ public class CompilationUnit {
     for(ASTNode n:contents){
       n.accept(visitor);
     }
+  }
+
+  @Override
+  public Iterator<ASTNode> iterator() {
+    return contents.iterator();
   }
 
 }

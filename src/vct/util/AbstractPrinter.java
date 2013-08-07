@@ -73,11 +73,17 @@ public class AbstractPrinter extends AbstractVisitor {
   }
 
   public void visit(NameExpression e){
-    boolean statement=!in_expr;
-    setExpr();
-    String s=e.toString();
-    out.print(s);
-    if (statement) {
+    ASTReserved word=e.reserved();
+    if (word==null){
+      out.print(e.getName());
+    } else {
+      String s=syntax.getSyntax(word);
+      if (s==null) {
+        throw Failure("reserved word %s not part of langauge",word);
+      }
+      out.print(s);
+    }
+    if (!in_expr) {
       out.lnprintf(";");
     }
   }
@@ -167,6 +173,12 @@ public class AbstractPrinter extends AbstractVisitor {
     switch(s.kind){
     case Comment:
       out.println(s.args[0].toString());
+      break;
+    case Invariant:
+      setExpr();
+      out.print("// Special invariant : ");
+      s.args[0].accept(this);
+      out.println("");
       break;
     default:
       Abort("unimplemented special %s",s.kind);

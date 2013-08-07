@@ -9,6 +9,7 @@ import vct.col.ast.ASTClass;
 import vct.col.ast.ASTDeclaration;
 import vct.col.ast.ASTFrame;
 import vct.col.ast.ASTNode;
+import vct.col.ast.ASTSequence;
 import vct.col.ast.ASTSpecial;
 import vct.col.ast.ASTWith;
 import vct.col.ast.AbstractVisitor;
@@ -39,6 +40,7 @@ import vct.col.ast.ReturnStatement;
 import vct.col.ast.StandardOperator;
 import vct.col.ast.StandardProcedure;
 import vct.col.ast.Type;
+import vct.col.ast.VariableDeclaration;
 import vct.col.util.ASTFactory;
 import vct.col.util.ASTPermission;
 import vct.col.util.ASTUtils;
@@ -92,6 +94,11 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
    */
   protected BlockStatement currentBlock=null;
   
+  
+  protected ASTSequence<?> current_sequence(){
+    if (currentBlock!=null) return currentBlock;
+    return currentClass;
+  }
   
   /**
    * Refer to the contract builder, used for the contract of the current method. 
@@ -270,13 +277,8 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
       }
       res.setContract(currentContractBuilder.getContract());
       currentContractBuilder=null;
-      int N=c.getStaticCount();
-      for(int i=0;i<N;i++){
-        res.add_static(c.getStatic(i).apply(this));
-      }
-      int M=c.getDynamicCount();
-      for(int i=0;i<M;i++){
-        res.add_dynamic(c.getDynamic(i).apply(this));
+      for(ASTNode item:c){
+        res.add(rewrite(item));
       }
       result=res;
       currentClass=null;
@@ -299,9 +301,12 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
     int N=s.getLength();
     for (int i=0;i<N;i++){
       ASTNode n=s.getStatement(i).apply(this);
-      if (n==null) Abort("Got null rewriting %s at %s",s.getStatement(i).getClass(),s.getStatement(i).getOrigin());
-      Debug("adding %s",n.getClass());
-      currentBlock.add_statement(n);
+      if (n==null) {
+        Debug("Got null rewriting %s at %s",s.getStatement(i).getClass(),s.getStatement(i).getOrigin());
+      } else {
+        Debug("adding %s",n.getClass());
+        currentBlock.add_statement(n);
+      }
     }
     result=currentBlock;
     currentBlock=tmp;
@@ -416,8 +421,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   @Override
   public void visit(NameExpression e) {
     //checkPermission(e);
-    NameExpression res=new NameExpression(e.getName());
-    res.setKind(e.getKind());
+    NameExpression res=new NameExpression(e.getKind(),e.reserved(),e.getName());
     res.setOrigin(e.getOrigin());
     result=res;
   }
@@ -555,6 +559,15 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   @Override
   public void visit(ASTSpecial special) {
     result=create.special(special.kind,rewrite(special.args));
+  }
+  
+  @Override
+  public void visit(VariableDeclaration decl) {
+    VariableDeclaration res=create.variable_decl(decl.basetype);
+    for(DeclarationStatement d:decl.get()){
+      res.add(rewrite(d));
+    }
+    result=res;
   }
 
 }

@@ -7,7 +7,8 @@ import vct.util.ClassName;
 public class ASTSpecial extends ASTNode {
 
   public static enum Kind {
-    Comment
+    Comment,
+    Invariant
   };
 
   public final Kind kind;

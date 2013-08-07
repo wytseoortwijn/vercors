@@ -1,6 +1,8 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 package vct.col.ast;
 
+import vct.col.ast.NameExpression.Kind;
+
 /** Node that can hold every possible kind of defined name.
  * 
  * @author Stefan Blom
@@ -28,10 +30,18 @@ public class NameExpression extends ASTNode {
   
   /** The name that this AST node is referencing. */
   private String name;
+  /** The reserved name this node contains. */
+  private ASTReserved reserved;
   /** The kind of the definition being referenced. */
   private Kind kind;
   /** The site where this name was defined. */
   private ASTNode site;
+  
+  public NameExpression(ASTReserved name){
+    reserved=name;
+    kind=Kind.Reserved;
+    this.name=name.toString();
+  }
   
   /** Create an unresolved name expression */
   public NameExpression(String name){
@@ -39,12 +49,14 @@ public class NameExpression extends ASTNode {
     kind=Kind.Unresolved;
   }
   /** Create an specific kind of name expression */
-  public NameExpression(Kind kind,String name){
+  public NameExpression(Kind kind,ASTReserved word,String name){
     this.name=name;
+    this.reserved=word;
     this.kind=kind;
   }
   
   public void setKind(Kind kind){
+    if (kind==Kind.Reserved) hre.System.Abort("cannot just declared a word reserved");
     this.kind=kind;
   }
   public Kind getKind(){
@@ -79,5 +91,14 @@ public class NameExpression extends ASTNode {
   public int hashCode(){
     return name.hashCode();
   }
+  
+  public boolean isReserved(ASTReserved word) {
+    return reserved==word;
+  }
+
+  public ASTReserved reserved(){
+    return reserved;
+  }
+
 }
 

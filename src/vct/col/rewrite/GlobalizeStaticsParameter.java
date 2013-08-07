@@ -4,6 +4,7 @@ import hre.ast.MessageOrigin;
 import vct.col.ast.ASTClass;
 import vct.col.ast.ASTClass.ClassKind;
 import vct.col.ast.ASTNode;
+import vct.col.ast.ASTReserved;
 import vct.col.ast.ClassType;
 import vct.col.ast.Contract;
 import vct.col.ast.ContractBuilder;
@@ -85,7 +86,7 @@ public class GlobalizeStaticsParameter extends GlobalizeStatics {
       case Plain:{
         ASTNode args[]=new ASTNode[e.getArity()+1];
         if (processing_static){
-          args[0]=create.reserved_name("this");
+          args[0]=create.reserved_name(ASTReserved.This);
         } else {
           args[0]=create.local_name("global");
         }

@@ -8,6 +8,7 @@ import java.util.Set;
 
 import vct.col.ast.ASTClass;
 import vct.col.ast.ASTNode;
+import vct.col.ast.ASTReserved;
 import vct.col.ast.ASTVisitor;
 import vct.col.ast.BlockStatement;
 import vct.col.ast.Contract;
@@ -312,8 +313,8 @@ public class KernelRewriter extends AbstractRewriter {
           ),false);
         }
         barrier_cb.ensures(create.expression(StandardOperator.EQ,
-            create.reserved_name("\\result"),create.local_name("this_barrier")),false);
-        barrier_cb.ensures(create_resources(create.reserved_name("\\result")),false);
+            create.reserved_name(ASTReserved.Result),create.local_name("this_barrier")),false);
+        barrier_cb.ensures(create_resources(create.reserved_name(ASTReserved.Result)),false);
         barrier_cb.ensures(create.fold(StandardOperator.Star, constraint),false);
         barrier_cb.ensures(create.fold(StandardOperator.Star, kernel_main_invariant),false);
         ArrayList<DeclarationStatement> barrier_decls=new ArrayList<DeclarationStatement>();

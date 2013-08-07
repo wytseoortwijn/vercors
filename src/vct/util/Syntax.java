@@ -1,10 +1,12 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 package vct.util;
 
+import vct.col.ast.ASTReserved;
 import vct.col.ast.PrimitiveType.Sort;
 import vct.col.ast.StandardOperator;
 import vct.util.Syntax.Associativity;
 
+import java.util.HashSet;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.EnumMap;
@@ -28,6 +30,9 @@ public class Syntax {
   private Map<Sort,String> type_map = new EnumMap<Sort, String>(Sort.class);
   
   private Map<String,StandardOperator> operator_map = new HashMap<String, StandardOperator>();
+  
+  private Map<ASTReserved,String> reserved2syntax = new HashMap<ASTReserved, String>();
+  private Map<String,ASTReserved> syntax2reserved = new HashMap<String, ASTReserved>();
   
   /**
    * Get a pattern that can be matched against an ANTLR 4.x parse tree.
@@ -153,6 +158,28 @@ public class Syntax {
     precedence_map.put(op,precedence);
     syntax_map.put(op,full_syntax);
     associativity_map.put(op,Associativity.None);
+  }
+  
+  public void addReserved(ASTReserved word,String string) {
+    reserved2syntax.put(word,string);
+    syntax2reserved.put(string,word);
+  }
+/*  
+  public Iterable<String> reserved(){
+    return reserved2syntax.keySet();
+  }
+*/
+  
+  public boolean is_reserved(String text) {
+    return syntax2reserved.containsKey(text);
+  }
+
+  public ASTReserved reserved(String text) {
+    return syntax2reserved.get(text);
+  }
+
+  public String getSyntax(ASTReserved word) {
+    return reserved2syntax.get(word);
   }
 }
 

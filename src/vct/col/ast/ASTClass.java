@@ -3,6 +3,7 @@ package vct.col.ast;
 
 import hre.ast.MessageOrigin;
 import hre.util.FilteredIterable;
+import hre.util.Function;
 
 import java.util.*;
 
@@ -24,7 +25,7 @@ import static hre.System.Warning;
  * @author sccblom
  *
  */
-public class ASTClass extends ASTDeclaration {
+public class ASTClass extends ASTDeclaration implements ASTSequence<ASTClass> {
   /**
    * Enumeration of the kinds of classes that are considered.
    * 
@@ -45,10 +46,8 @@ public class ASTClass extends ASTDeclaration {
   public final ClassType implemented_classes[];
   /** contains the parent of this unit */
   private ASTClass parent_class;
-  /** contains the static entries */
-  private ArrayList<ASTNode> static_entries=new ArrayList<ASTNode>();
-  /** contains the dynamic entries. */
-  private ArrayList<ASTNode> dynamic_entries=new ArrayList<ASTNode>();
+  /** contains the list of entries */
+  private ArrayList<ASTNode> entries=new ArrayList<ASTNode>();
   
   private void getFullName(ArrayList<String> fullname){
     if (parent_class!=null) parent_class.getFullName(fullname);
@@ -72,7 +71,9 @@ public class ASTClass extends ASTDeclaration {
     kind=ClassKind.Plain;
     int N=node.getLength();
     for(int i=0;i<N;i++){
-      static_entries.add(node.getStatement(i));
+      ASTNode tmp=node.getStatement(i);
+      tmp.setFlag(STATIC,true);
+      entries.add(tmp);
     }
     super_classes=new ClassType[0];
     implemented_classes=new ClassType[0];
@@ -93,23 +94,19 @@ public class ASTClass extends ASTDeclaration {
   }
   /** Return a static child, which is created if necessary. */
   public ASTClass getStaticClass(String name,ClassKind kind){
-    int N;
-    N=dynamic_entries.size();
+    int N=entries.size();
     for(int i=0;i<N;i++){
-      if (dynamic_entries.get(i) instanceof ASTClass){
-        ASTClass cl=(ASTClass)dynamic_entries.get(i);
-        if (cl.name.equals(name)) throw new Error("class "+name+" already exists as a dynamic entry");
-      }
-    }
-    N=static_entries.size();
-    for(int i=0;i<N;i++){
-      if (static_entries.get(i) instanceof ASTClass){
-        ASTClass cl=(ASTClass)static_entries.get(i);
-        if (cl.name.equals(name)) return cl;
+      if (get(i) instanceof ASTClass){
+        ASTClass cl=(ASTClass)entries.get(i);
+        if (cl.name.equals(name)) {
+          if (cl.isStatic()) throw new Error("class "+name+" already exists as a dynamic entry");
+          return cl;
+        }
       }
     }
     ASTClass res=new ASTClass(name,this,true,kind);
     res.setOrigin(new MessageOrigin("get static class"));
+    add_static(res);
     return res;
   }
 
@@ -121,11 +118,11 @@ public class ASTClass extends ASTDeclaration {
     this.kind=kind;
     int N=static_part.getLength();
     for(int i=0;i<N;i++){
-      static_entries.add(static_part.getStatement(i));
+      add_static(static_part.getStatement(i));
     }
     N=dynamic_part.getLength();
     for(int i=0;i<N;i++){
-      dynamic_entries.add(dynamic_part.getStatement(i));
+      add_dynamic(dynamic_part.getStatement(i));
     }    
     super_classes=new ClassType[0];
     implemented_classes=new ClassType[0];
@@ -142,7 +139,7 @@ public class ASTClass extends ASTDeclaration {
   }
   public void add_static(ASTNode n){
     if (n==null) return;
-    static_entries.add(n);
+    entries.add(n);
     n.setParent(this);
     n.setStatic(true);
     while (n instanceof ASTWith){
@@ -156,7 +153,7 @@ public class ASTClass extends ASTDeclaration {
     if (n==null) return;
     n.setParent(this);
     n.setStatic(false);
-    dynamic_entries.add(n);
+    entries.add(n);
     while (n instanceof ASTWith){
       n=((ASTWith)n).body;
     }
@@ -164,17 +161,40 @@ public class ASTClass extends ASTDeclaration {
       ((ASTClass)n).setParentClass(this);
     }
   }
-  public int getStaticCount(){
-    return static_entries.size();
-  }
-  public int getDynamicCount(){
-    return dynamic_entries.size();
-  }
+  
   public ASTNode getStatic(int i){
-    return static_entries.get(i);
+    int N=0;
+    for(ASTNode n:entries){
+      if (n.isStatic()) {
+        if (N==i) return n;
+        N++;
+      }
+    }
+    return null;
+  }
+  public int getStaticCount(){
+    int N=0;
+    for(ASTNode n:entries){
+      if (n.isStatic()) N++;
+    }
+    return N;
   }
   public ASTNode getDynamic(int i){
-    return dynamic_entries.get(i);
+    int N=0;
+    for(ASTNode n:entries){
+      if (!n.isStatic()) {
+        if (N==i) return n;
+        N++;
+      }
+    }
+    return null;
+  }
+  public int getDynamicCount(){
+    int N=0;
+    for(ASTNode n:entries){
+      if (!n.isStatic()) N++;
+    }
+    return N;
   }
   
   public ASTClass(String name,ClassKind kind){
@@ -208,17 +228,7 @@ public class ASTClass extends ASTDeclaration {
    * Auxiliary function for class lookup.
    */
   private ASTClass find(String[] name,int pos) {
-    for(ASTNode n:static_entries){
-      if (n instanceof ASTClass){
-        ASTClass c=(ASTClass)n;
-        if (c.name.equals(name[pos])){
-          pos++;
-          if (pos==name.length) return c;
-          else return find(name,pos);
-        }
-      }
-    }
-    for(ASTNode n:dynamic_entries){
+    for(ASTNode n:entries){
       if (n instanceof ASTClass){
         ASTClass c=(ASTClass)n;
         if (c.name.equals(name[pos])){
@@ -273,9 +283,7 @@ public class ASTClass extends ASTDeclaration {
   }
   public Method find(String name, ClassType object_type, Type[] type,boolean recursive) {
     //TODO: support inheritance and detect duplicate definitions.
-    Method m=find(static_entries,name,object_type,type);
-    if (m!=null) return m;
-    m=find(dynamic_entries,name,object_type,type);
+    Method m=find(entries,name,object_type,type);
     if (m!=null) return m;
     if (recursive){
       for(ClassType parent:this.super_classes){
@@ -321,9 +329,7 @@ public class ASTClass extends ASTDeclaration {
    */
   public DeclarationStatement find_field(String name,boolean recursive){
     Debug("looking for field "+name);
-    DeclarationStatement temp=find_field(static_entries,name);
-    if (temp!=null) return temp;
-    temp=find_field(dynamic_entries,name);
+    DeclarationStatement temp=find_field(entries,name);
     if (temp!=null) return temp;
     if (contract!=null){
       for(DeclarationStatement tmp : contract.given){
@@ -340,32 +346,40 @@ public class ASTClass extends ASTDeclaration {
 
   /** Get an iterator for all static members. */
   public Iterable<ASTNode> staticMembers(){
-    return static_entries;
+    return new FilteredIterable<ASTNode,ASTNode>(entries,new Function<ASTNode,ASTNode>(){
+      public ASTNode apply(ASTNode n){
+        return n.isStatic()?n:null;
+      }
+    });
   }
   
   /** Get an iterator for all dynamic members. */
   public Iterable<ASTNode> dynamicMembers(){
-    return dynamic_entries;
+    return new FilteredIterable<ASTNode,ASTNode>(entries,new Function<ASTNode,ASTNode>(){
+      public ASTNode apply(ASTNode n){
+        return n.isStatic()?null:n;
+      }
+    });
   }
 
   /** Get an iterator for the static fields of the class. */
   public Iterable<DeclarationStatement> staticFields() {
-    return new FilteredIterable<ASTNode,DeclarationStatement>(static_entries,new DeclarationFilter());
+    return new FilteredIterable<ASTNode,DeclarationStatement>(staticMembers(),new DeclarationFilter());
   }
   
   /** Get an iterator for the dynamic fields of the class. */
   public Iterable<DeclarationStatement> dynamicFields() {
-    return new FilteredIterable<ASTNode,DeclarationStatement>(dynamic_entries,new DeclarationFilter());
+    return new FilteredIterable<ASTNode,DeclarationStatement>(dynamicMembers(),new DeclarationFilter());
   }
   
   /** Get an iterator for the static methods of the class. */
   public Iterable<Method> staticMethods() {
-    return new FilteredIterable<ASTNode,Method>(static_entries,new MethodFilter());
+    return new FilteredIterable<ASTNode,Method>(staticMembers(),new MethodFilter());
   }
 
   /** Get an iterator for the dynamic methods of the class. */
   public Iterable<Method> dynamicMethods() {
-    return new FilteredIterable<ASTNode,Method>(dynamic_entries,new MethodFilter());
+    return new FilteredIterable<ASTNode,Method>(dynamicMembers(),new MethodFilter());
   }
   
   private Contract contract;
@@ -391,6 +405,38 @@ public class ASTClass extends ASTDeclaration {
       if (m.getName().equals(string)) return m;
     }
     return null;
+  }
+
+  @Override
+  public Iterator<ASTNode> iterator() {
+    return entries.iterator();
+  }
+
+  @Override
+  public ASTClass add(ASTNode n) {
+    if (n==null) return this;
+    entries.add(n);
+    if (!n.isValidFlag(STATIC)){
+      Warning("static flag not set");
+      n.setStatic(false);
+    }
+    n.setParent(this);
+    while (n instanceof ASTWith){
+      n=((ASTWith)n).body;
+    }
+    if (n instanceof ASTClass) {
+      ((ASTClass)n).setParentClass(this);
+    }
+    return this;
+  }
+
+  @Override
+  public int size() {
+    return entries.size();
+  }
+  @Override
+  public ASTNode get(int i) {
+    return entries.get(i);
   }
 }
 

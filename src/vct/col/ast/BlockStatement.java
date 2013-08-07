@@ -4,7 +4,7 @@ package vct.col.ast;
 import java.util.*;
 
 
-public class BlockStatement extends ASTNode {
+public class BlockStatement extends ASTNode implements ASTSequence<BlockStatement> {
 
   private ArrayList<ASTNode> block=new ArrayList();
   
@@ -12,11 +12,7 @@ public class BlockStatement extends ASTNode {
     block.add(s);
     s.setParent(this);
   }
-
-  public void accept_simple(ASTVisitor visitor){
-    visitor.visit(this);
-  }
- 
+  
   public int getLength(){ return block.size(); }
   
   public ASTNode getStatement(int i){ return block.get(i); }
@@ -25,17 +21,31 @@ public class BlockStatement extends ASTNode {
     return block.isEmpty();
   }
 
-  /*
-  public void add_or_merge(ASTNode body) {
-    if (body instanceof BlockStatement){
-      for(ASTNode node:((BlockStatement)body).block){
-        node.resetParent();
-        add_statement(body);
-      }
-    } else {
-      add_statement(body);
-    }
+  @Override
+  public Iterator iterator() {
+    return block.iterator();
   }
-  */
+
+  @Override
+  public BlockStatement add(ASTNode item) {
+    block.add(item);
+    return this;
+  }
+
+  @Override
+  public int size() {
+    return block.size();
+  }
+
+  @Override
+  public ASTNode get(int i) {
+    return block.get(i);
+  }
+
+  @Override
+  protected <T> void accept_simple(ASTVisitor<T> visitor) {
+    visitor.visit(this);
+  }
+
 }
 

@@ -59,6 +59,8 @@ public interface ASTVisitor<T> {
 
   public void visit(ASTSpecial special);
 
+  public void visit(VariableDeclaration variableDeclaration);
+
 }
 
 

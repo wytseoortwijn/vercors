@@ -5,6 +5,7 @@ import java.util.Hashtable;
 
 import vct.col.ast.ASTFlags;
 import vct.col.ast.ASTNode;
+import vct.col.ast.ASTReserved;
 import vct.col.ast.BindingExpression;
 import vct.col.ast.BindingExpression.Binder;
 import vct.col.ast.BlockStatement;
@@ -126,7 +127,7 @@ public class RewriteArray extends AbstractRewriter {
                   rewrite(array_name),
                   create.local_name(name+"_i")
               ),
-              create.reserved_name("null")
+              create.reserved_name(ASTReserved.Null)
           )
       );
       
@@ -254,7 +255,7 @@ public class RewriteArray extends AbstractRewriter {
           create.dereference(
               create.expression(StandardOperator.Subscript,
                   create.local_name(name),
-                  create.reserved_name("*")
+                  create.reserved_name(ASTReserved.Any)
               ), "item"
           ),
           rewrite(e.getArg(4))
@@ -265,7 +266,7 @@ public class RewriteArray extends AbstractRewriter {
       return;
     }
     if (e.getOperator()==StandardOperator.Perm && e.getArg(0).isa(StandardOperator.Subscript)){
-      if (!(((OperatorExpression)e.getArg(0)).getArg(1).toString().equals("*"))){
+      if (!(((OperatorExpression)e.getArg(0)).getArg(1).isReserved(ASTReserved.Any))){
         Fail("Cannot use Perm for array elements, use ArrayPerm instead.");
       }
     }
@@ -275,7 +276,7 @@ public class RewriteArray extends AbstractRewriter {
     } else if (e.getOperator()==StandardOperator.Perm
              && (e.getArg(0) instanceof OperatorExpression)
              && (((OperatorExpression)e.getArg(0)).getOperator()==StandardOperator.Subscript)
-             && (((OperatorExpression)e.getArg(0)).getArg(1).toString().equals("*"))
+             && (((OperatorExpression)e.getArg(0)).getArg(1).isReserved(ASTReserved.Any))
     ){
       ASTNode res=result;
       DeclarationStatement decl[]=new DeclarationStatement[1];
@@ -293,7 +294,7 @@ public class RewriteArray extends AbstractRewriter {
           ),
           create.expression(StandardOperator.NEQ,
               create.expression(StandardOperator.Subscript,create.unresolved_name(arrayname),create.local_name(name))
-              ,create.reserved_name("null"))
+              ,create.reserved_name(ASTReserved.Null))
       );
       tmp.setOrigin(result.getOrigin());
       result=create.expression(StandardOperator.Star,res,tmp);

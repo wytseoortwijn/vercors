@@ -221,28 +221,28 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
         }
         break;
       case Reserved:
-        if (name.equals("this")){
+        switch(e.reserved()){
+        case This:{
           ASTClass cl=current_class();
           if (cl==null){
             Fail("use of keyword this outside of class context");
           }
           e.setType(new ClassType(cl.getFullName()));
           break;
-        } else if (name.equals("null")){
+        }
+      case Null:{
           e.setType(new ClassType("<<null>>"));
           break;
-        } else if (name.equals("nil")){
-          // TODO: put in correct type: seq<??> or seq<E>.
-          e.setType(new ClassType("<<null>>"));
-          break;
-        } else if (name.equals("\\result")||name.equals("result")){
+        }
+      case Result:{
           Method m=current_method();
           if (m==null){
             Fail("Use of result keyword outside of a method context.");
           }
           e.setType(m.getReturnType());
           break;
-        } else if (name.equals("super")){
+        }
+      case Super:{
           ASTClass cl=current_class();
           if (cl==null){
             Fail("use of keyword super outside of class context");
@@ -252,10 +252,16 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
           }
           e.setType(cl.super_classes[0]);
           break;
-        } else if (name.equals("*")) {
+        }
+      case Any:{
           e.setType(new PrimitiveType(Sort.Integer));
           break;
         }
+        default:
+            Abort("missing case for reserved name %s",name);
+        }
+        break;
+      case Unresolved:{
         switch(name){
           case "tcount":
           case "gsize":
@@ -265,11 +271,8 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
             e.setType(new PrimitiveType(Sort.Integer));
             break;
           default:
-            Abort("missing case for reserved name %s",name);
+            Abort("unresolved name %s found during type check at %s",name,e.getOrigin());
         }
-        break;
-      case Unresolved:{
-        Abort("unresolved name %s found during type check at %s",name,e.getOrigin());
         break;
       }
       case Label:

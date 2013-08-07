@@ -30,6 +30,7 @@ import vct.col.util.ASTFactory;
 import vct.col.util.ASTUtils;
 import vct.col.util.NameScanner;
 import vct.col.util.WandScanner;
+import static vct.col.ast.ASTReserved.*;
 
 public class WandEncoder extends AbstractRewriter {
 
@@ -93,7 +94,7 @@ public class WandEncoder extends AbstractRewriter {
 		    	String lbl=e.getLabel(0).getName();
 		    	String type_name="Wand";
 		    	ASTNode res=create.expression(StandardOperator.NEQ,
-		    					create.local_name(lbl),create.reserved_name("null"));
+		    					create.local_name(lbl),create.reserved_name(Null));
 		    	ASTNode tmp=create.invokation(create.local_name(lbl), null, "valid");
 		    	res=create.expression(StandardOperator.Star,res,tmp);
 		    	int count=0;
@@ -174,12 +175,12 @@ public class WandEncoder extends AbstractRewriter {
 	  valid_list.add(create.expression(StandardOperator.Value,create.field_name("lemma")));
 	  valid_list.add(create.expression(StandardOperator.GT,create.field_name("lemma"),create.constant(0)));
 	  ContractBuilder cb=new ContractBuilder();
-	  cb.requires(create.invokation(create.reserved_name("this"), null, "valid"));
+	  cb.requires(create.invokation(create.reserved_name(This), null, "valid"));
 	  Contract get_contract=cb.getContract();
 	  
 	  // now we build the contract of the apply method.
 	  cb=new ContractBuilder();
-	  cb.requires(create.invokation(create.reserved_name("this"), null, "valid"));
+	  cb.requires(create.invokation(create.reserved_name(This), null, "valid"));
 	  
     int count=0;
     for(ASTNode n:ASTUtils.conjuncts(e.getArg(0))){
@@ -249,7 +250,7 @@ public class WandEncoder extends AbstractRewriter {
     cases.setOrigin(create.getOrigin());
     ASTNode apply_body=create.block(
         create.expression(StandardOperator.Unfold,
-            create.invokation(create.reserved_name("this"), null, "valid")
+            create.invokation(create.reserved_name(This), null, "valid")
         ), cases
     );
     Method apply=create.method_decl(create.primitive_type(Sort.Void),
@@ -297,10 +298,10 @@ public class WandEncoder extends AbstractRewriter {
 	      create.constant(lemma_no))
 	  );
     lemma_cb.ensures(create.expression(StandardOperator.NEQ,
-        create.reserved_name("\\result"),
-        create.reserved_name("null")
+        create.reserved_name(Result),
+        create.reserved_name(Null)
     ));
-    lemma_cb.ensures(create.invokation(create.reserved_name("\\result"), null, "valid"));
+    lemma_cb.ensures(create.invokation(create.reserved_name(Result), null, "valid"));
     
     Type this_type=create.class_type(current_class().getFullName());
     String this_name="this_"+lemma_no;
@@ -314,16 +315,16 @@ public class WandEncoder extends AbstractRewriter {
             create.dereference(create.local_name("wand"),this_name),
             create.local_name(this_name)
         ));
-    create_args.add(create.reserved_name("this"));
+    create_args.add(create.reserved_name(This));
     case_body.add(create.expression(StandardOperator.NEQ,
             create.field_name(this_name),
-            create.reserved_name("null"))
+            create.reserved_name(Null))
 	  );
     lemma_cb.requires(create.expression(StandardOperator.NEQ,
             create.local_name(this_name),
-            create.reserved_name("null")
+            create.reserved_name(Null)
 	));
-    local2proof.put(create.reserved_name("this"),create.unresolved_name(this_name));
+    local2proof.put(create.reserved_name(This),create.unresolved_name(this_name));
     AbstractRewriter rename_for_proof=new Substitution(source(), local2proof);
     
     for(String name:vars.keySet()){
@@ -472,10 +473,10 @@ public class WandEncoder extends AbstractRewriter {
     ));
     if (t instanceof ClassType) lemma_cb.requires(create.expression(StandardOperator.NEQ,
         create.local_name(var),
-        create.reserved_name("null")
+        create.reserved_name(Null)
     ));
     lemma_cb.ensures(create.expression(StandardOperator.EQ,
-        create.invokation(create.reserved_name("\\result"),null, "get_"+var),
+        create.invokation(create.reserved_name(Result),null, "get_"+var),
         create.local_name(var)
     ));
     create_args.add(rewrite(object));

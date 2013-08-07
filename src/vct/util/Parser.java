@@ -24,10 +24,11 @@ import vct.col.ast.ProgramUnit;
 public class Parser {
   public static CompilationUnit parse(String language,String file){
     switch(language){
-    case "pvl":
     case "c":
     case "c11":
     case "cl":
+    case "java":
+    case "pvl":
       language="antlr4";
       break;
 //    case "cl":

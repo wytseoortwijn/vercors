@@ -337,10 +337,18 @@ public abstract class ASTFrame<T> {
     }
   }
   public void Fail(String format,Object ...args){
-    hre.System.Fail("At "+current_node().getOrigin()+": "+format,args);
+    if (current_node()!=null){
+      hre.System.Fail("At "+current_node().getOrigin()+": "+format,args);
+    } else {
+      hre.System.Fail(format,args);
+    }
   }
   public void Warning(String format,Object ...args){
-    hre.System.Warning("("+this.getClass()+"):%n  at "+current_node().getOrigin()+":%n    "+format,args);
+    if (current_node()!=null){
+      hre.System.Warning("("+this.getClass()+"):%n  at "+current_node().getOrigin()+":%n    "+format,args);
+    } else {
+      hre.System.Warning("("+this.getClass()+"):%n  "+format,args);
+    }
   }
 
 }

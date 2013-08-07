@@ -3,6 +3,7 @@ package vct.col.rewrite;
 import java.util.HashMap;
 
 import vct.col.ast.ASTNode;
+import vct.col.ast.ASTReserved;
 import vct.col.ast.Method;
 import vct.col.ast.MethodInvokation;
 import vct.col.ast.NameExpression;
@@ -27,7 +28,7 @@ public class InlinePredicatesRewriter extends AbstractRewriter {
     } else {
       HashMap<NameExpression,ASTNode> map=new HashMap<NameExpression, ASTNode>();
       Substitution sigma=new Substitution(source(),map);
-      map.put(create.reserved_name("this"), rewrite(e.object));
+      map.put(create.reserved_name(ASTReserved.This), rewrite(e.object));
       for(int i=0;i<N;i++){
         map.put(create.unresolved_name(def.getArgument(i)),rewrite(e.getArg(i)));
       }

@@ -1,6 +1,8 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 package vct.col.ast;
 
+import hre.ast.MessageOrigin;
+
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -76,12 +78,20 @@ public class LoopStatement extends ASTNode implements BeforeAfterAnnotations {
     before=block;
   }
   public BlockStatement get_before(){
+    if (before==null) {
+      before=new BlockStatement();
+      before.setOrigin(new MessageOrigin("before block"));
+    }
     return before;
   }
   public void set_after(BlockStatement block){
     after=block;
   }
   public BlockStatement get_after(){
+    if (after==null) {
+      after=new BlockStatement();
+      after.setOrigin(new MessageOrigin("after block"));
+    }
     return after;
   }
 

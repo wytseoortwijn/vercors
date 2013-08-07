@@ -7,6 +7,7 @@ import java.util.EnumSet;
 import vct.col.ast.ASTClass;
 import vct.col.ast.ASTClass.ClassKind;
 import vct.col.ast.ASTNode;
+import vct.col.ast.ASTReserved;
 import vct.col.ast.ASTSpecial;
 import vct.col.ast.ASTVisitor;
 import vct.col.ast.ASTWith.Kind;
@@ -35,10 +36,12 @@ import vct.col.ast.ReturnStatement;
 import vct.col.ast.StandardOperator;
 import vct.col.ast.Type;
 import vct.col.ast.BlockStatement;
+import vct.col.ast.VariableDeclaration;
 import hre.ast.Origin;
 import hre.util.FrameControl;
 import hre.util.FrameReference;
 import static hre.System.*;
+import static vct.col.ast.ASTReserved.Null;
 
 /**
  * This class provides a factory for ASTNodes, that can be
@@ -80,37 +83,78 @@ public class ASTFactory<E> implements FrameControl {
   public ASTFactory(){}
 
   /**
-   * Replace the current origin.
-   * 
-   * This method returns the AST to allow chaining.
-   * 
-   * @param origin The new origin.
-   * @return The AST factory.
+   * Create a new abstract class.
    */
-  public ASTFactory setOrigin(Origin origin) {
-    this.origin_stack.set(origin);
-    return this;
+  public ASTClass abstract_class(String name,ClassType super_class,ClassType ... supports) {
+    ClassType bases[]={super_class};
+    if (super_class==null) bases=null;
+    return ast_class(name,ClassKind.Abstract,bases,supports);
+  }
+  
+  public void addRandomConstructor(ASTClass cl){
+    enter();
+    setOrigin(cl.getOrigin());
+    ContractBuilder cb=new ContractBuilder();
+    for(DeclarationStatement field : cl.dynamicFields()){
+      cb.requires(expression(
+          StandardOperator.Perm,
+          field_name(field.getName()),
+          constant(100)
+      ));
+      cb.ensures(expression(
+          StandardOperator.Perm,
+          field_name(field.getName()),
+          constant(100)
+     ));
+    }
+    Method cons=method_kind(
+        Method.Kind.Constructor,
+        primitive_type(PrimitiveType.Sort.Void),
+        cb.getContract(),
+        cl.getName(),
+        new DeclarationStatement[0],
+        block()
+    );
+    cl.add_dynamic(cons);
+    leave();
+  }
+  
+  public void addZeroConstructor(ASTClass cl){
+    enter();
+    setOrigin(cl.getOrigin());
+    ContractBuilder cb=new ContractBuilder();
+    BlockStatement body=block();
+    for(DeclarationStatement field : cl.dynamicFields()){
+      ASTNode zero=field.getType().zero();
+      zero.setOrigin(cl.getOrigin());
+      cb.ensures(expression(
+           StandardOperator.PointsTo,
+           field_name(field.getName()),
+           constant(100),
+           zero
+      ));
+      body.add_statement(assignment(field_name(field.getName()),zero));
+    }
+    Method cons=method_kind(
+        Method.Kind.Constructor,
+        primitive_type(PrimitiveType.Sort.Void),
+        cb.getContract(),
+        cl.getName(),
+        new DeclarationStatement[0],
+        body);
+    cl.add_dynamic(cons);
+    leave();
   }
   
   /**
-   * Get the current origin. 
+   * Create a name expression that refers to an argument variable.
    */
-  public Origin getOrigin() {
-    return origin_stack.get();
-  }
-  
-  /**
-   * Enter a new stack frame of the origin stack.
-   */
-  public void enter(){
-    origin_stack.enter();
-  }
-  
-  /**
-   * Leave the current stack frame of the origin stack.
-   */
-  public void leave(){
-    origin_stack.leave();
+  public NameExpression argument_name(String name) {
+    NameExpression res=new NameExpression(name);
+    res.setKind(NameExpression.Kind.Argument);
+    res.setOrigin(origin_stack.get());
+    res.accept_if(post);
+    return res;
   }
 
   /**
@@ -135,24 +179,33 @@ public class ASTFactory<E> implements FrameControl {
     return res;    
   }
   
-  /**
-   * Create a new plain class.
-   */
-  public ASTClass new_class(String name,ClassType super_class,ClassType ... supports) {
-    ClassType bases[]={super_class};
-    if (super_class==null) bases=null;
-    return ast_class(name,ClassKind.Plain,bases,supports);
-  }
+  public ParallelBarrier barrier(Contract c,EnumSet<ParallelBarrier.Fence> fences){
+     return barrier(origin_stack.get(),c,fences);
+   }
   
-  /**
-   * Create a new abstract class.
-   */
-  public ASTClass abstract_class(String name,ClassType super_class,ClassType ... supports) {
-    ClassType bases[]={super_class};
-    if (super_class==null) bases=null;
-    return ast_class(name,ClassKind.Abstract,bases,supports);
-  }
+  public ParallelBarrier barrier(E origin,Contract c,EnumSet<ParallelBarrier.Fence> fences){
+     return barrier(origin_source.create(origin),c,fences);
+   }
 
+  /**
+    * Create a new barrier node.
+    */
+   public ParallelBarrier barrier(Origin origin,Contract c,EnumSet<ParallelBarrier.Fence> fences){
+     ParallelBarrier res=new ParallelBarrier(c,fences);
+     res.setOrigin(origin);
+     res.accept_if(post);
+     return res;
+   }
+
+  /**
+   * Create a new binding expression.
+   */
+  public ASTNode binder(Binder b,Type result_type,DeclarationStatement decls[],ASTNode selection,ASTNode main) {
+    ASTNode res=new BindingExpression(b,result_type,decls,selection,main);
+    res.setOrigin(origin_stack.get());
+    res.accept_if(post);
+    return res;
+  }
   /**
    * Create a new block, with the given statements as (initial) contents.
    */
@@ -165,7 +218,12 @@ public class ASTFactory<E> implements FrameControl {
     res.accept_if(post);
     return res;        
   }
-
+  public ClassType class_type(E origin,String name[],ASTNode ... args){
+    return class_type(origin_source.create(origin),name,args);
+  }
+  public ClassType class_type(E origin,String name,ASTNode ... args){
+    return class_type(origin_source.create(origin),name,args);
+  }
   /**
    * Create a new class type node.
    */
@@ -175,40 +233,52 @@ public class ASTFactory<E> implements FrameControl {
     res.accept_if(post);
     return res;
   }
-  public ClassType class_type(E origin,String name[],ASTNode ... args){
-    return class_type(origin_source.create(origin),name,args);
-  }
-  public ClassType class_type(String name[],ASTNode ... args){
-    return class_type(origin_stack.get(),name,args);
-  }
   public ClassType class_type(Origin origin,String name,ASTNode ... args){
     String tmp[]=new String[1];
     tmp[0]=name;
     return class_type(origin,tmp,args);
   }
-  public ClassType class_type(E origin,String name,ASTNode ... args){
-    return class_type(origin_source.create(origin),name,args);
+
+  
+  public ClassType class_type(String name[],ASTNode ... args){
+    return class_type(origin_stack.get(),name,args);
   }
   public ClassType class_type(String name,ASTNode ... args){
     return class_type(origin_stack.get(),name,args);
   }
-
-  
-  /**
-   * Create a new string constant.
-   */
-  public ConstantExpression constant(Origin origin, String s) {
-    ConstantExpression res=new ConstantExpression(s,origin);
-    res.accept_if(post);
-    return res;    
+  public ASTSpecial comment(String text) {
+    return special(vct.col.ast.ASTSpecial.Kind.Comment,constant(text));
   }
+
+  public ConstantExpression constant(boolean b) {
+    return constant(origin_stack.get(),b);
+  }
+  public ConstantExpression constant(double i) {
+    return constant(origin_stack.get(),i);
+  }
+  public ConstantExpression constant(E origin,boolean b) {
+    return constant(origin_source.create(origin),b);
+  }
+  
+  public ConstantExpression constant(E origin,double i) {
+    return constant(origin_source.create(origin),i);
+  }
+  public ConstantExpression constant(E origin,int i) {
+    return constant(origin_source.create(origin),i);
+  }
+  public ConstantExpression constant(E origin,long i) {
+    return constant(origin_source.create(origin),i);
+  }
+  
   public ConstantExpression constant(E origin,String s) {
     return constant(origin_source.create(origin),s);
   }
-  public ConstantExpression constant(String s) {
-    return constant(origin_stack.get(),s);
+  public ConstantExpression constant(int i) {
+    return constant(origin_stack.get(),i);
   }
-
+  public ConstantExpression constant(long i) {
+    return constant(origin_stack.get(),i);
+  }
   /**
    * Create a new boolean constant.
    */
@@ -216,42 +286,6 @@ public class ASTFactory<E> implements FrameControl {
     ConstantExpression res=new ConstantExpression(b,origin);
     res.accept_if(post);
     return res;    
-  }
-  public ConstantExpression constant(E origin,boolean b) {
-    return constant(origin_source.create(origin),b);
-  }
-  public ConstantExpression constant(boolean b) {
-    return constant(origin_stack.get(),b);
-  }
-  
-  /**
-   * Create a new integer constant.
-   */
-  public ConstantExpression constant(Origin origin, int i) {
-    ConstantExpression res=new ConstantExpression(i,origin);
-    res.accept_if(post);
-    return res;    
-  }
-  public ConstantExpression constant(E origin,int i) {
-    return constant(origin_source.create(origin),i);
-  }
-  public ConstantExpression constant(int i) {
-    return constant(origin_stack.get(),i);
-  }
-  
-  /**
-   * Create a new long constant.
-   */
-  public ConstantExpression constant(Origin origin, long i) {
-    ConstantExpression res=new ConstantExpression(i,origin);
-    res.accept_if(post);
-    return res;    
-  }
-  public ConstantExpression constant(E origin,long i) {
-    return constant(origin_source.create(origin),i);
-  }
-  public ConstantExpression constant(long i) {
-    return constant(origin_stack.get(),i);
   }
   /**
    * Create a new double constant.
@@ -261,13 +295,56 @@ public class ASTFactory<E> implements FrameControl {
     res.accept_if(post);
     return res;    
   }
-  public ConstantExpression constant(E origin,double i) {
-    return constant(origin_source.create(origin),i);
-  }
-  public ConstantExpression constant(double i) {
-    return constant(origin_stack.get(),i);
+  /**
+   * Create a new integer constant.
+   */
+  public ConstantExpression constant(Origin origin, int i) {
+    ConstantExpression res=new ConstantExpression(i,origin);
+    res.accept_if(post);
+    return res;    
   }
 
+  /**
+   * Create a new long constant.
+   */
+  public ConstantExpression constant(Origin origin, long i) {
+    ConstantExpression res=new ConstantExpression(i,origin);
+    res.accept_if(post);
+    return res;    
+  }
+  /**
+   * Create a new string constant.
+   */
+  public ConstantExpression constant(Origin origin, String s) {
+    ConstantExpression res=new ConstantExpression(s,origin);
+    res.accept_if(post);
+    return res;    
+  }
+  public ConstantExpression constant(String s) {
+    return constant(origin_stack.get(),s);
+  }
+  
+   
+  /** Create a dereference expression.
+   */
+  public Dereference dereference(ASTNode object,String field){
+    Dereference res=new Dereference(object,field);
+    res.setOrigin(origin_stack.get());
+    res.accept_if(post);
+    return res;
+  }
+  
+  /**
+   * Enter a new stack frame of the origin stack.
+   */
+  public void enter(){
+    origin_stack.enter();
+  }
+  
+  public OperatorExpression expression(E origin,StandardOperator op, ASTNode ... args){
+    return expression(origin_source.create(origin),op,args);
+  }
+  
   /**
    * Create a new operator expression.
    */
@@ -279,14 +356,10 @@ public class ASTFactory<E> implements FrameControl {
     res.accept_if(post);
     return res;
   }
-  public OperatorExpression expression(E origin,StandardOperator op, ASTNode ... args){
-    return expression(origin_source.create(origin),op,args);
-  }
+  
   public OperatorExpression expression(StandardOperator op, ASTNode ... args){
     return expression(origin_stack.get(),op,args);
   }
-  
-   
   /**
    * Create a new variable declaration with default value.
    * 
@@ -315,250 +388,23 @@ public class ASTFactory<E> implements FrameControl {
     res.accept_if(post);
     return res;
   }
-  
-  /**
-   * Create a name expression that refers to an unresolved name.
-   */
-  public NameExpression unresolved_name(String name) {
-    NameExpression res=new NameExpression(name);
-    res.setKind(NameExpression.Kind.Unresolved);
-    res.setOrigin(origin_stack.get());
-    res.accept_if(post);
-    return res;
-  }
-  
-  /**
-   * Create a name expression that refers to a label.
-   */
-  public NameExpression label(String name) {
-    NameExpression res=new NameExpression(name);
-    res.setKind(NameExpression.Kind.Label);
-    res.setOrigin(origin_stack.get());
-    res.accept_if(post);
-    return res;
-  }
-  
-  /**
-   * Create a name expression that refers to a local variable.
-   */
-  public NameExpression local_name(String name) {
-    NameExpression res=new NameExpression(name);
-    res.setKind(NameExpression.Kind.Local);
-    res.setOrigin(origin_stack.get());
-    res.accept_if(post);
-    return res;
-  }
-  
-  /**
-   * Create a name expression that refers to a specific kind.
-   */
-  public NameExpression name(NameExpression.Kind kind,String name) {
-    NameExpression res=new NameExpression(name);
-    res.setKind(kind);
-    res.setOrigin(origin_stack.get());
-    res.accept_if(post);
-    return res;
-  }
 
   /**
-   * Create a name expression referring to an arbitrary name.
-   */
-  public NameExpression identifier(String name){
-    NameExpression res=new NameExpression(name);
-    res.setKind(NameExpression.Kind.Unresolved);
-    res.setOrigin(origin_stack.get());
-    res.accept_if(post);
-    return res;
-  }
-
-  /** Create a dereference expression.
-   */
-  public Dereference dereference(ASTNode object,String field){
-    Dereference res=new Dereference(object,field);
-    res.setOrigin(origin_stack.get());
-    res.accept_if(post);
-    return res;
-  }
-          
-  /**
-   * Create an if-then-else statement.
-   */
-  public IfStatement ifthenelse(ASTNode test,ASTNode ... branches){
-    if (branches.length<1 || branches.length>2 ) Abort("illegal number of branches");
-    IfStatement res=new IfStatement();
-    res.addClause(test,branches[0]);
-    if (branches.length==2 && branches[1]!=null) res.addClause(IfStatement.else_guard,branches[1]);
-    res.setOrigin(origin_stack.get());
-    res.accept_if(post);
-    return res;    
-  }
-
-  /**
-   * Create a new method invokation node.
-   */
-  public MethodInvokation invokation(ASTNode object,ClassType dispatch,String method,ASTNode ... args){
-    MethodInvokation res=new MethodInvokation(object,dispatch,method,args);
-    res.setOrigin(origin_stack.get());
-    res.accept_if(post);
-    return res;
-  }
-  
-  /**
-   * Create a method declaration
-   */
-  public Method method_kind(Method.Kind kind,Type returns,Contract contract,String name,DeclarationStatement args[],boolean varArgs,ASTNode body){
-    Method res=new Method(kind,name,returns,contract,args,varArgs,body);
-    res.setOrigin(origin_stack.get());
-    res.accept_if(post);
-    return res;
-  }
-  /**
-   * Create a method declaration
-   */
-  public Method method_kind(Method.Kind kind,Type returns,Contract contract,String name,DeclarationStatement args[],ASTNode body){
-    return method_kind(kind,returns,contract,name,args,false,body);
-  }
-  
-  /**
-   * Create a method declaration
-   */
-  public Method method_decl(Type returns,Contract contract,String name,DeclarationStatement args[],ASTNode body){
-    return method_kind(Method.Kind.Plain,returns,contract,name,args,false,body);
-  }
-  
-  /**
-   * Create a function declaration
-   */
-  public Method function_decl(Type returns,Contract contract,String name,DeclarationStatement args[],ASTNode body){
-    return method_kind(Method.Kind.Pure,returns,contract,name,args,false,body);
-  }
-  
-
-  /**
-   * Create a name expression referring to a method name.
-   */
-  public NameExpression method_name(Origin origin,String name){
-    NameExpression res=new NameExpression(name);
-    res.setKind(NameExpression.Kind.Method);
-    res.setOrigin(origin);
-    res.accept_if(post);
-    return res;
-  }
-  public NameExpression method_name(E origin,String name){
-    return method_name(origin_source.create(origin),name);
-  }
-  public NameExpression method_name(String name) {
-    return method_name(origin_stack.get(),name);
-  }
-
-  /**
-   * Create an instantiation of a new object.
-   */
-  public MethodInvokation new_object(Type type,ASTNode ... args){
-    String name=null;
-    if (type instanceof ClassType){
-      name=((ClassType)type).getName();
-    } else {
-      Fail("cannot instantiate type %s",type);
+    * Fold left of a non-empty list. 
+    * 
+    * @param op Operator to fold with.
+    * @param list Non-empty list of terms.
+    * @return folded list.
+    */
+    public ASTNode fold(StandardOperator op, ArrayList<ASTNode> list) {
+      ASTNode res=list.get(0);
+      int N=list.size();
+      for(int i=1;i<N;i++){
+        res=expression(op,res,list.get(i));
+      }
+      return res;
     }
-    return invokation(type, null, name , args);
-  }
 
-  /**
-   * Create a predicate declaration.
-   */
-  public Method predicate(String name, ASTNode body,DeclarationStatement ... args) {
-    return method_kind(Method.Kind.Predicate,primitive_type(Sort.Resource),null,name,args,false,body);
-  }
-  
-  /**
-   * Create a new primitive type.
-   */
-  public PrimitiveType primitive_type(Origin origin,PrimitiveType.Sort sort,ASTNode ... args){
-    PrimitiveType res=new PrimitiveType(sort,args);
-    res.setOrigin(origin);
-    res.accept_if(post);
-    return res;        
-  }
-  public PrimitiveType primitive_type(E origin,PrimitiveType.Sort sort,ASTNode ... args){
-    return primitive_type(origin_source.create(origin),sort,args);
-  }
-  public PrimitiveType primitive_type(PrimitiveType.Sort sort,ASTNode ... args){
-    return primitive_type(origin_stack.get(),sort,args);
-  }
-  
-  /**
-   * Create a new reserved name expression.
-   * 
-   * Reserved names are (for now) all reserved keywords:
-   * this, super, null, \result, etc. To allow for future refactoring,
-   * this method returns ASTNode on purpose. E.g. null might
-   * yield a constant expression instead of a name expression.
-   */
-  public NameExpression reserved_name(String name){
-    NameExpression res=new NameExpression(name);
-    res.setKind(NameExpression.Kind.Reserved);
-    res.setOrigin(origin_stack.get());
-    res.accept_if(post);
-    return res;
-  }
-  /**
-   * Create a new reserved name expression with a fixed type.
-   *
-   * Added to experiment with kernels, may not become permanent.
-   */
-  public NameExpression reserved_name(String name,Type t){
-    NameExpression res=new NameExpression(name);
-    res.setKind(NameExpression.Kind.Reserved);
-    res.setOrigin(origin_stack.get());
-    res.accept_if(post);
-    res.setType(t);
-    return res;
-  }
-
-  /**
-   * Create a new return statement.
-   * @param value At most one node which is the returned value.
-   */
-  public ReturnStatement return_statement(ASTNode ... value){
-    if (value.length>1) Abort("illegal number of return values");
-    ReturnStatement res;
-    if (value.length==0){
-      res=new ReturnStatement();
-    } else {
-      res=new ReturnStatement(value[0]);
-    }
-    res.setOrigin(origin_stack.get());
-    res.accept_if(post);
-    return res;    
-  }
-
-  /**
-   * Create a reserved name this that also refers to the given class type.
-   */
-  public ASTNode this_expression(ClassType t) {
-    NameExpression res=new NameExpression("this");
-    res.setType(t);
-    res.setKind(NameExpression.Kind.Reserved);
-    res.setOrigin(origin_stack.get());
-    res.accept_if(post);
-    return res;
-  }
-   
-  
-  /**
-   * Create a new while loop.
-   */
-  public LoopStatement while_loop(ASTNode test,ASTNode body,ASTNode ... invariant){
-    LoopStatement res=new LoopStatement();
-    res.setEntryGuard(test);
-    res.setBody(body);
-    res.setOrigin(origin_stack.get());
-    for (ASTNode inv:invariant) res.appendInvariant(inv);
-    res.accept_if(post);
-    return res;    
-  }
-  
   public LoopStatement for_loop(ASTNode init, ASTNode test, ASTNode update, ASTNode body,ASTNode ... invariant){
 	    LoopStatement res=new LoopStatement();
 	    res.setEntryGuard(test);
@@ -570,90 +416,7 @@ public class ASTFactory<E> implements FrameControl {
 	    res.accept_if(post);
 	    return res;    
 	  }
-  
-  /**
-   * Create a new auxiliary with node.
-   */
-  public ASTNode with(String[] from, Kind kind, boolean all, ASTNode body) {
-    // types are irrelevant for a with node.
-    ASTNode res=new ASTWith(from,kind,all,body);
-    res.setOrigin(origin_stack.get());
-    res.accept_if(post);
-    return res;
-  }
-
-  /**
-   * Create a new binding expression.
-   */
-  public ASTNode binder(Binder b,Type result_type,DeclarationStatement decls[],ASTNode selection,ASTNode main) {
-    ASTNode res=new BindingExpression(b,result_type,decls,selection,main);
-    res.setOrigin(origin_stack.get());
-    res.accept_if(post);
-    return res;
-  }
-
-  public void addRandomConstructor(ASTClass cl){
-    enter();
-    setOrigin(cl.getOrigin());
-    ContractBuilder cb=new ContractBuilder();
-    for(DeclarationStatement field : cl.dynamicFields()){
-      cb.requires(expression(
-          StandardOperator.Perm,
-          field_name(field.getName()),
-          constant(100)
-      ));
-      cb.ensures(expression(
-          StandardOperator.Perm,
-          field_name(field.getName()),
-          constant(100)
-     ));
-    }
-    Method cons=method_kind(
-        Method.Kind.Constructor,
-        primitive_type(PrimitiveType.Sort.Void),
-        cb.getContract(),
-        cl.getName(),
-        new DeclarationStatement[0],
-        block()
-    );
-    cl.add_dynamic(cons);
-    leave();
-  }
-
-  public void addZeroConstructor(ASTClass cl){
-    enter();
-    setOrigin(cl.getOrigin());
-    ContractBuilder cb=new ContractBuilder();
-    BlockStatement body=block();
-    for(DeclarationStatement field : cl.dynamicFields()){
-      ASTNode zero=field.getType().zero();
-      zero.setOrigin(cl.getOrigin());
-      cb.ensures(expression(
-           StandardOperator.PointsTo,
-           field_name(field.getName()),
-           constant(100),
-           zero
-      ));
-      body.add_statement(assignment(field_name(field.getName()),zero));
-    }
-    Method cons=method_kind(
-        Method.Kind.Constructor,
-        primitive_type(PrimitiveType.Sort.Void),
-        cb.getContract(),
-        cl.getName(),
-        new DeclarationStatement[0],
-        body);
-    cl.add_dynamic(cons);
-    leave();
-  }
-
-  public ASTNode lemma(vct.col.ast.BlockStatement block) {
-    ASTNode res=new Lemma(block);
-    res.setOrigin(origin_stack.get());
-    res.accept_if(post);
-    return res;
-  }
-
+          
   public BindingExpression forall(ASTNode guard, ASTNode claim, DeclarationStatement ... decl) {
     BindingExpression res=new BindingExpression(
         Binder.FORALL,
@@ -666,36 +429,162 @@ public class ASTFactory<E> implements FrameControl {
     res.accept_if(post);
     return res;
   }
+
+  /**
+   * Create a function declaration
+   */
+  public Method function_decl(Type returns,Contract contract,String name,DeclarationStatement args[],ASTNode body){
+    return method_kind(Method.Kind.Pure,returns,contract,name,args,false,body);
+  }
   
-  public BindingExpression starall(ASTNode guard, ASTNode claim, DeclarationStatement ... decl) {
-    BindingExpression res=new BindingExpression(
-        Binder.STAR,
-        primitive_type(PrimitiveType.Sort.Resource),
-        decl,
-        guard,
-        claim
-    );
+  /**
+   * Get the current origin. 
+   */
+  public Origin getOrigin() {
+    return origin_stack.get();
+  }
+  /**
+   * Create a name expression referring to an arbitrary name.
+   */
+  public NameExpression identifier(String name){
+    NameExpression res=new NameExpression(name);
+    res.setKind(NameExpression.Kind.Unresolved);
+    res.setOrigin(origin_stack.get());
+    res.accept_if(post);
+    return res;
+  }
+  
+  /**
+   * Create an if-then-else statement.
+   */
+  public IfStatement ifthenelse(ASTNode test,ASTNode ... branches){
+    if (branches.length<1 || branches.length>2 ) Abort("illegal number of branches");
+    IfStatement res=new IfStatement();
+    res.addClause(test,branches[0]);
+    if (branches.length==2 && branches[1]!=null) res.addClause(IfStatement.else_guard,branches[1]);
+    res.setOrigin(origin_stack.get());
+    res.accept_if(post);
+    return res;    
+  }
+  
+  /**
+   * Create a new method invokation node.
+   */
+  public MethodInvokation invokation(ASTNode object,ClassType dispatch,String method,ASTNode ... args){
+    MethodInvokation res=new MethodInvokation(object,dispatch,method,args);
+    res.setOrigin(origin_stack.get());
+    res.accept_if(post);
+    return res;
+  }
+  
+
+  /**
+   * Create a name expression that refers to a label.
+   */
+  public NameExpression label(String name) {
+    NameExpression res=new NameExpression(name);
+    res.setKind(NameExpression.Kind.Label);
+    res.setOrigin(origin_stack.get());
+    res.accept_if(post);
+    return res;
+  }
+  /**
+   * Leave the current stack frame of the origin stack.
+   */
+  public void leave(){
+    origin_stack.leave();
+  }
+  public ASTNode lemma(vct.col.ast.BlockStatement block) {
+    ASTNode res=new Lemma(block);
     res.setOrigin(origin_stack.get());
     res.accept_if(post);
     return res;
   }
 
- /**
-  * Fold left of a non-empty list. 
-  * 
-  * @param op Operator to fold with.
-  * @param list Non-empty list of terms.
-  * @return folded list.
-  */
-  public ASTNode fold(StandardOperator op, ArrayList<ASTNode> list) {
-    ASTNode res=list.get(0);
-    int N=list.size();
-    for(int i=1;i<N;i++){
-      res=expression(op,res,list.get(i));
-    }
+  /**
+   * Create a name expression that refers to a local variable.
+   */
+  public NameExpression local_name(String name) {
+    NameExpression res=new NameExpression(name);
+    res.setKind(NameExpression.Kind.Local);
+    res.setOrigin(origin_stack.get());
+    res.accept_if(post);
     return res;
   }
 
+  /**
+   * Create a method declaration
+   */
+  public Method method_decl(Type returns,Contract contract,String name,DeclarationStatement args[],ASTNode body){
+    return method_kind(Method.Kind.Plain,returns,contract,name,args,false,body);
+  }
+  
+  /**
+   * Create a method declaration
+   */
+  public Method method_kind(Method.Kind kind,Type returns,Contract contract,String name,DeclarationStatement args[],ASTNode body){
+    return method_kind(kind,returns,contract,name,args,false,body);
+  }
+  /**
+   * Create a method declaration
+   */
+  public Method method_kind(Method.Kind kind,Type returns,Contract contract,String name,DeclarationStatement args[],boolean varArgs,ASTNode body){
+    Method res=new Method(kind,name,returns,contract,args,varArgs,body);
+    res.setOrigin(origin_stack.get());
+    res.accept_if(post);
+    return res;
+  }
+  public NameExpression method_name(E origin,String name){
+    return method_name(origin_source.create(origin),name);
+  }
+  
+  /**
+   * Create a name expression referring to a method name.
+   */
+  public NameExpression method_name(Origin origin,String name){
+    NameExpression res=new NameExpression(name);
+    res.setKind(NameExpression.Kind.Method);
+    res.setOrigin(origin);
+    res.accept_if(post);
+    return res;
+  }
+  public NameExpression method_name(String name) {
+    return method_name(origin_stack.get(),name);
+  }
+
+  /**
+   * Create a name expression that refers to a specific kind.
+   */
+  public NameExpression name(NameExpression.Kind kind,ASTReserved word,String name) {
+    NameExpression res=new NameExpression(kind,word,name);
+    res.setOrigin(origin_stack.get());
+    res.accept_if(post);
+    return res;
+  }
+
+  /**
+   * Create a new plain class.
+   */
+  public ASTClass new_class(String name,ClassType super_class,ClassType ... supports) {
+    ClassType bases[]={super_class};
+    if (super_class==null) bases=null;
+    return ast_class(name,ClassKind.Plain,bases,supports);
+  }
+   
+  
+  /**
+   * Create an instantiation of a new object.
+   */
+  public MethodInvokation new_object(Type type,ASTNode ... args){
+    String name=null;
+    if (type instanceof ClassType){
+      name=((ClassType)type).getName();
+    } else {
+      Fail("cannot instantiate type %s",type);
+    }
+    return invokation(type, null, name , args);
+  }
+  
   /**
    * Construct a non_null expression.
    * 
@@ -703,7 +592,7 @@ public class ASTFactory<E> implements FrameControl {
    * @return AST for <code> expr != null </code>
    */
   public ASTNode non_null(ASTNode expr) {
-    return expression(StandardOperator.NEQ,expr,reserved_name("null"));
+    return expression(StandardOperator.NEQ,expr,reserved_name(Null));
   }
   
   /**
@@ -712,52 +601,179 @@ public class ASTFactory<E> implements FrameControl {
  public ASTNode non_null(String string) {
     return non_null(unresolved_name(string));
   }
- 
- 
- /**
-  * Create a new barrier node.
-  */
- public ParallelBarrier barrier(Origin origin,Contract c,EnumSet<ParallelBarrier.Fence> fences){
-   ParallelBarrier res=new ParallelBarrier(c,fences);
-   res.setOrigin(origin);
-   res.accept_if(post);
-   return res;
- }
- public ParallelBarrier barrier(E origin,Contract c,EnumSet<ParallelBarrier.Fence> fences){
-   return barrier(origin_source.create(origin),c,fences);
- }
- public ParallelBarrier barrier(Contract c,EnumSet<ParallelBarrier.Fence> fences){
-   return barrier(origin_stack.get(),c,fences);
- }
- /**
-  * Create a new parallel block.
-  */
- public ParallelBlock parallel_block(Origin origin,Contract contract,DeclarationStatement name,ASTNode count,BlockStatement block){
-   ParallelBlock res=new ParallelBlock(contract, name, count, block);
-   res.setOrigin(origin);
-   res.accept_if(post);
-   return res;
- }
- public ParallelBlock parallel_block(E origin,Contract c,DeclarationStatement name,ASTNode count,BlockStatement block){
-   return parallel_block(origin_source.create(origin),c, name, count, block);
- }
- public ParallelBlock parallel_block(Contract c,DeclarationStatement name,ASTNode count,BlockStatement block){
-   return parallel_block(origin_stack.get(),c, name, count, block);
- }
 
-public ASTSpecial special(vct.col.ast.ASTSpecial.Kind kind, ASTNode ... args) {
-  return special(origin_stack.get(),kind,args);
+  public ParallelBlock parallel_block(Contract c,DeclarationStatement name,ASTNode count,BlockStatement block){
+     return parallel_block(origin_stack.get(),c, name, count, block);
+   }
+
+  public ParallelBlock parallel_block(E origin,Contract c,DeclarationStatement name,ASTNode count,BlockStatement block){
+     return parallel_block(origin_source.create(origin),c, name, count, block);
+   }
+
+  /**
+    * Create a new parallel block.
+    */
+   public ParallelBlock parallel_block(Origin origin,Contract contract,DeclarationStatement name,ASTNode count,BlockStatement block){
+     ParallelBlock res=new ParallelBlock(contract, name, count, block);
+     res.setOrigin(origin);
+     res.accept_if(post);
+     return res;
+   }
+
+  /**
+   * Create a predicate declaration.
+   */
+  public Method predicate(String name, ASTNode body,DeclarationStatement ... args) {
+    return method_kind(Method.Kind.Predicate,primitive_type(Sort.Resource),null,name,args,false,body);
+  }
+
+  public PrimitiveType primitive_type(E origin,PrimitiveType.Sort sort,ASTNode ... args){
+    return primitive_type(origin_source.create(origin),sort,args);
+  }
+  
+  /**
+   * Create a new primitive type.
+   */
+  public PrimitiveType primitive_type(Origin origin,PrimitiveType.Sort sort,ASTNode ... args){
+    PrimitiveType res=new PrimitiveType(sort,args);
+    res.setOrigin(origin);
+    res.accept_if(post);
+    return res;        
+  }
+
+ public PrimitiveType primitive_type(PrimitiveType.Sort sort,ASTNode ... args){
+  return primitive_type(origin_stack.get(),sort,args);
 }
 
-public ASTSpecial special(Origin origin, vct.col.ast.ASTSpecial.Kind kind, ASTNode ... args) {
+  /**
+   * Create a new reserved name expression.
+   * 
+   * Reserved names are (for now) all reserved keywords:
+   * this, super, null, \result, etc. To allow for future refactoring,
+   * this method returns ASTNode on purpose. E.g. null might
+   * yield a constant expression instead of a name expression.
+   */
+  public NameExpression reserved_name(ASTReserved name){
+    NameExpression res=new NameExpression(name);
+    res.setOrigin(origin_stack.get());
+    res.accept_if(post);
+    return res;
+  }
+  
+  /**
+   * Create a new reserved name expression with a fixed type.
+   *
+   * Added to experiment with kernels, may not become permanent.
+   */
+  public NameExpression reserved_name(ASTReserved name,Type t){
+    NameExpression res=new NameExpression(name);
+    res.setOrigin(origin_stack.get());
+    res.accept_if(post);
+    res.setType(t);
+    return res;
+  }
+ 
+ 
+ /**
+ * Create a new return statement.
+ * @param value At most one node which is the returned value.
+ */
+public ReturnStatement return_statement(ASTNode ... value){
+  if (value.length>1) Abort("illegal number of return values");
+  ReturnStatement res;
+  if (value.length==0){
+    res=new ReturnStatement();
+  } else {
+    res=new ReturnStatement(value[0]);
+  }
+  res.setOrigin(origin_stack.get());
+  res.accept_if(post);
+  return res;    
+}
+ /**
+ * Replace the current origin.
+ * 
+ * This method returns the AST to allow chaining.
+ * 
+ * @param origin The new origin.
+ * @return The AST factory.
+ */
+public ASTFactory setOrigin(Origin origin) {
+  this.origin_stack.set(origin);
+  return this;
+}
+ public ASTSpecial special(Origin origin, vct.col.ast.ASTSpecial.Kind kind, ASTNode ... args) {
   ASTSpecial res=new ASTSpecial(kind,args);
   res.setOrigin(origin);
   res.accept_if(post);
   return res;
 }
+ public ASTSpecial special(vct.col.ast.ASTSpecial.Kind kind, ASTNode ... args) {
+  return special(origin_stack.get(),kind,args);
+}
+ public BindingExpression starall(ASTNode guard, ASTNode claim, DeclarationStatement ... decl) {
+  BindingExpression res=new BindingExpression(
+      Binder.STAR,
+      primitive_type(PrimitiveType.Sort.Resource),
+      decl,
+      guard,
+      claim
+  );
+  res.setOrigin(origin_stack.get());
+  res.accept_if(post);
+  return res;
+}
+ /**
+ * Create a reserved name this that also refers to the given class type.
+ */
+public ASTNode this_expression(ClassType t) {
+  NameExpression res=new NameExpression(ASTReserved.This);
+  res.setType(t);
+  res.setOrigin(origin_stack.get());
+  res.accept_if(post);
+  return res;
+}
 
-public ASTSpecial comment(String text) {
-  return special(vct.col.ast.ASTSpecial.Kind.Comment,constant(text));
+/**
+ * Create a name expression that refers to an unresolved name.
+ */
+public NameExpression unresolved_name(String name) {
+  NameExpression res=new NameExpression(name);
+  res.setKind(NameExpression.Kind.Unresolved);
+  res.setOrigin(origin_stack.get());
+  res.accept_if(post);
+  return res;
+}
+
+/**
+ * Create a new while loop.
+ */
+public LoopStatement while_loop(ASTNode test,ASTNode body,ASTNode ... invariant){
+  LoopStatement res=new LoopStatement();
+  res.setEntryGuard(test);
+  res.setBody(body);
+  res.setOrigin(origin_stack.get());
+  for (ASTNode inv:invariant) res.appendInvariant(inv);
+  res.accept_if(post);
+  return res;    
+}
+
+/**
+ * Create a new auxiliary with node.
+ */
+public ASTNode with(String[] from, Kind kind, boolean all, ASTNode body) {
+  // types are irrelevant for a with node.
+  ASTNode res=new ASTWith(from,kind,all,body);
+  res.setOrigin(origin_stack.get());
+  res.accept_if(post);
+  return res;
+}
+
+public VariableDeclaration variable_decl(Type type) {
+  VariableDeclaration res=new VariableDeclaration(type);
+  res.setOrigin(origin_stack.get());
+  res.accept_if(post);
+  return res;
 }
 
 }

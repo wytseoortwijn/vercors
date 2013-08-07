@@ -16,11 +16,16 @@ import static hre.System.Warning;
 public abstract class ASTNode implements ASTFlags {
 
   public ASTNode labeled(String name){
-    NameExpression label=new NameExpression(NameExpression.Kind.Label,name);
+    NameExpression label=new NameExpression(NameExpression.Kind.Label,null,name);
     label.setOrigin(this.origin);
     addLabel(label);
     return this;
   }
+  
+  /**
+   * list of annotations.
+   */
+  private ArrayList<ASTNode> annotations;
   
   /**
    * Contains the labels used to mark this node.
@@ -273,6 +278,27 @@ public abstract class ASTNode implements ASTFlags {
 
   public Set<ASTNode> getPredecessors(){
     return predecessors;
+  }
+
+  public void attach(ASTNode ... annotation_list) {
+    if (annotations==null){
+      annotations=new ArrayList<ASTNode>();
+    }
+    for (ASTNode annotation : annotation_list){
+      if (annotation.isReserved(ASTReserved.Static)){
+        setStatic(true);
+      } else {
+        annotations.add(annotation);
+      }
+    }
+  }
+
+  public Iterable<ASTNode> annotations(){
+    return annotations;
+  }
+
+  public boolean isReserved(ASTReserved any) {
+    return false;
   }
 
 }

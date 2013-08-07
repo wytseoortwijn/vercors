@@ -1,6 +1,7 @@
 package vct.col.rewrite;
 
 import vct.col.ast.ASTNode;
+import vct.col.ast.ASTReserved;
 import vct.col.ast.ConstantExpression;
 import vct.col.ast.NameExpression;
 import vct.col.ast.OperatorExpression;
@@ -46,7 +47,7 @@ public class RewriteDoubleDefinition extends AbstractRewriter {
   }
   public void visit(ConstantExpression e){
     if(e.getType().isDouble()){
-      result=create.reserved_name("null");
+      result=create.reserved_name(ASTReserved.Null);
     } else {
       super.visit(e);
     }

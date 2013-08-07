@@ -6,6 +6,7 @@ import java.util.HashMap;
 
 import vct.col.ast.ASTFlags;
 import vct.col.ast.ASTNode;
+import vct.col.ast.ASTReserved;
 import vct.col.ast.AssignmentStatement;
 import vct.col.ast.Contract;
 import vct.col.ast.ContractBuilder;
@@ -49,7 +50,7 @@ public class VoidCalls extends AbstractRewriter {
       Contract c=m.getContract();
       if(c!=null){
         HashMap<NameExpression,ASTNode>map=new HashMap<NameExpression,ASTNode>();
-        map.put(create.reserved_name("\\result"),create.local_name("__result"));
+        map.put(create.reserved_name(ASTReserved.Result),create.local_name("__result"));
         Substitution subst=new Substitution(source(),map);
         cb.requires(c.pre_condition.apply(subst));
         cb.ensures(c.post_condition.apply(subst));

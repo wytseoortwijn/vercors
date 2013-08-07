@@ -21,43 +21,12 @@ public abstract class AbstractVisitor<T> extends ASTFrame<T> implements ASTVisit
   a 'recursive' default would be useful.
 */
     
-  protected Stack<ClassName> current_class_stack=new Stack();
+  protected Stack<ClassName> current_class_stack=new Stack<ClassName>();
   protected ClassName current_class=null;
-  
-  private Set<java.lang.Class> valid_classes;
   
   public AbstractVisitor(){
     this(null,null);
   }
-
-/*
-  public AbstractVisitor(Set<java.lang.Class> valid_classes){
-    this(null,valid_classes);
-  }
-
-
-  public AbstractVisitor(ProgramUnit source,Set<java.lang.Class> valid_classes){
-    this.source=source;
-    if (valid_classes==null){
-      this.valid_classes=null;
-    } else {
-      this.valid_classes=new HashSet();
-      this.valid_classes.addAll(valid_classes);
-    }
-  }
-  
-  public AbstractVisitor(ProgramUnit source) {
-    this(source,null);
-  }
-
-  good idea, but does not work well: hard to get classes.
-  public AbstractVisitor(Set<java.lang.Class> valid_classes,Set<java.lang.Class> skip_classes){
-    this.valid_classes=new HashSet();
-    this.valid_classes.addAll(valid_classes);
-    this.skip_classes=new HashSet();
-    this.skip_classes.addAll(skip_classes);
-  }
-*/
   
   public AbstractVisitor(ProgramUnit source) {
     super(source);
@@ -67,24 +36,17 @@ public abstract class AbstractVisitor<T> extends ASTFrame<T> implements ASTVisit
     super(source,target);
   }
   
-  public AbstractVisitor(ASTFrame shared) {
+  public AbstractVisitor(ASTFrame<T> shared) {
     super(shared);
   }
  
   private final void visit_any(ASTNode any){
     java.lang.Class<? extends Object> any_class=any.getClass();
-    //if (skip_classes.contains(any.getClass())) return;
     System.err.printf("for origin %s%n",any.getOrigin());
-    if (valid_classes==null) {
-      throw new Error("missing case or invalid AST: "+any_class.getSimpleName()+" in "+this.getClass().getSimpleName());
-    }
-    if (valid_classes.contains(any.getClass())){
-      throw new Error("invalid AST");
-    } else {
-      throw new Error("missing case");
-    }
+    throw new Error("missing case or invalid AST: "+any_class.getSimpleName()+" in "+this.getClass().getSimpleName());
   }
   
+  @Override
   public void pre_visit(ASTNode n){
     this.enter(n);
     if (n instanceof ASTClass){
@@ -94,6 +56,7 @@ public abstract class AbstractVisitor<T> extends ASTFrame<T> implements ASTVisit
     }
   }
   
+  @Override
   public void post_visit(ASTNode n){
     this.leave(n);
     if (n instanceof ASTClass){
@@ -107,55 +70,57 @@ public abstract class AbstractVisitor<T> extends ASTFrame<T> implements ASTVisit
     }
   }
   
-  public void visit(StandardProcedure p){ visit_any(p); }
+  @Override public void visit(StandardProcedure p){ visit_any(p); }
 
-  public void visit(ConstantExpression e){ visit_any(e); }
+  @Override public void visit(ConstantExpression e){ visit_any(e); }
   
-  public void visit(OperatorExpression e){ visit_any(e); }
+  @Override public void visit(OperatorExpression e){ visit_any(e); }
   
-  public void visit(NameExpression e){ visit_any(e); }
+  @Override public void visit(NameExpression e){ visit_any(e); }
 
-  public void visit(ClassType t){ visit_any(t); }
+  @Override public void visit(ClassType t){ visit_any(t); }
   
-  public void visit(FunctionType t){ visit_any(t); }
+  @Override public void visit(FunctionType t){ visit_any(t); }
   
-  public void visit(PrimitiveType t){ visit_any(t); }
+  @Override public void visit(PrimitiveType t){ visit_any(t); }
   
-  public void visit(RecordType t){ visit_any(t); }
+  @Override public void visit(RecordType t){ visit_any(t); }
 
-  public void visit(MethodInvokation e){ visit_any(e); }
+  @Override public void visit(MethodInvokation e){ visit_any(e); }
 
-  public void visit(BlockStatement s){ visit_any(s); }
+  @Override public void visit(BlockStatement s){ visit_any(s); }
   
-  public void visit(IfStatement s){ visit_any(s); }
+  @Override public void visit(IfStatement s){ visit_any(s); }
   
-  public void visit(ReturnStatement s){ visit_any(s); }
+  @Override public void visit(ReturnStatement s){ visit_any(s); }
   
-  public void visit(AssignmentStatement s){ visit_any(s); }
+  @Override public void visit(AssignmentStatement s){ visit_any(s); }
 
-  public void visit(DeclarationStatement s){ visit_any(s); }
+  @Override public void visit(DeclarationStatement s){ visit_any(s); }
 
-  public void visit(LoopStatement s){ visit_any(s); }
+  @Override public void visit(LoopStatement s){ visit_any(s); }
 
-  public void visit(Method m){ visit_any(m); }
+  @Override public void visit(Method m){ visit_any(m); }
 
-  public void visit(ASTClass c){ visit_any(c); }
+  @Override public void visit(ASTClass c){ visit_any(c); }
   
-  public void visit(ASTWith with){ visit_any(with); }
+  @Override public void visit(ASTWith with){ visit_any(with); }
   
-  public void visit(BindingExpression e){ visit_any(e); }
+  @Override public void visit(BindingExpression e){ visit_any(e); }
   
-  public void visit(Dereference e){ visit_any(e); }
+  @Override public void visit(Dereference e){ visit_any(e); }
 
-  public void visit(Lemma l){ visit_any(l); }
+  @Override public void visit(Lemma l){ visit_any(l); }
   
-  public void visit(ParallelBarrier pb){ visit_any(pb); }
+  @Override public void visit(ParallelBarrier pb){ visit_any(pb); }
 
-  public void visit(ParallelBlock pb){ visit_any(pb); }
+  @Override public void visit(ParallelBlock pb){ visit_any(pb); }
   
-  public void visit(Contract c){ visit_any(c); }
+  @Override public void visit(Contract c){ visit_any(c); }
 
-  public void visit(ASTSpecial s){ visit_any(s); }
+  @Override public void visit(ASTSpecial s){ visit_any(s); }
+
+  @Override public void visit(VariableDeclaration s) { visit_any(s); }
 
 }
 

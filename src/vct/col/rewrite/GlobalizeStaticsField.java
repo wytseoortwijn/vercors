@@ -4,6 +4,7 @@ import hre.ast.MessageOrigin;
 import vct.col.ast.ASTClass;
 import vct.col.ast.ASTClass.ClassKind;
 import vct.col.ast.ASTNode;
+import vct.col.ast.ASTReserved;
 import vct.col.ast.ClassType;
 import vct.col.ast.Contract;
 import vct.col.ast.ContractBuilder;
@@ -60,7 +61,7 @@ public class GlobalizeStaticsField extends GlobalizeStatics {
         cb.ensures(create.expression(StandardOperator.Value,create.field_name("global")));
         for(DeclarationStatement d: m.getArgs()){
           if (d.getType() instanceof ClassType){
-            ASTNode not_null=create.expression(StandardOperator.NEQ,create.local_name(d.getName()),create.reserved_name("null"));
+            ASTNode not_null=create.expression(StandardOperator.NEQ,create.local_name(d.getName()),create.reserved_name(ASTReserved.Null));
             ASTNode gname=create.dereference(create.local_name(d.getName()),"global");
             ASTNode access=create.expression(StandardOperator.Value,gname);
             ASTNode same=create.expression(StandardOperator.EQ,create.field_name("global"),gname);
