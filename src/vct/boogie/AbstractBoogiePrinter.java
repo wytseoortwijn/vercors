@@ -278,7 +278,7 @@ public abstract class AbstractBoogiePrinter extends AbstractPrinter {
     if (init_block!=null){
       init_block.accept(this);
     }
-    if (s.get_before()!=null){
+    if (s.get_before()!=null && s.get_before().size()>0){
       s.get_before().accept(this);
     }
     if (entry_guard!=null) {
@@ -308,7 +308,9 @@ public abstract class AbstractBoogiePrinter extends AbstractPrinter {
       out.decrIndent();      
       out.lnprintf("}");
     }
-    if (s.get_after()!=null)s.get_after().accept(this);
+    if (s.get_after()!=null && s.get_after().size() > 0) {
+      s.get_after().accept(this);
+    }
   }
   public void visit(OperatorExpression e){
     String keyword=null;

@@ -9,8 +9,7 @@ public class BlockStatement extends ASTNode implements ASTSequence<BlockStatemen
   private ArrayList<ASTNode> block=new ArrayList();
   
   public void add_statement(ASTNode s){
-    block.add(s);
-    s.setParent(this);
+    add(s);
   }
   
   public int getLength(){ return block.size(); }
@@ -28,7 +27,14 @@ public class BlockStatement extends ASTNode implements ASTSequence<BlockStatemen
 
   @Override
   public BlockStatement add(ASTNode item) {
-    block.add(item);
+    if (item!=null) {
+      // this requires major rewriting elsewhere!
+      //if (item instanceof ExpressionNode && !(item instanceof MethodInvokation)){
+      //  hre.System.Failure("expressions must be wrapped in a Expression special to make them statements");
+      //}
+      block.add(item);
+      item.setParent(this);
+    }
     return this;
   }
 

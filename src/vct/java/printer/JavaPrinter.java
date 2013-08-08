@@ -37,15 +37,15 @@ public class JavaPrinter extends AbstractPrinter {
   public void post_visit(ASTNode node){
     if (node instanceof BeforeAfterAnnotations){
       BeforeAfterAnnotations baa=(BeforeAfterAnnotations)node;
-      if (baa.get_before()!=null || baa.get_after()!=null){
+      if (baa.get_before()!=null && baa.get_before().size()>0 || baa.get_after()!=null && baa.get_after().size()>0){
         out.printf("/*@ ");
-        ASTNode tmp=baa.get_before();
-        if (tmp!=null) {
+        BlockStatement tmp=baa.get_before();
+        if (tmp!=null && tmp.size()>0) {
           out.printf("with ");
           tmp.accept(this);
         }
         tmp=baa.get_after();
-        if (tmp!=null) {
+        if (tmp!=null && tmp.size()>0) {
           out.printf("then ");
           tmp.accept(this);      
         }
@@ -73,6 +73,26 @@ public class JavaPrinter extends AbstractPrinter {
     super.post_visit(node);
   }
   */ 
+  
+  @Override
+  public void visit(ASTSpecial s){
+    switch(s.kind){
+    case Expression:
+      setExpr();
+      s.args[0].accept(this);
+      out.println(";");
+      break;
+    case Assert:
+      out.print("//@ assert ");
+      setExpr();
+      s.args[0].accept(this);
+      out.println(";");
+      break;
+    default:
+      super.visit(s);
+      break;
+    }
+  }
   
   @Override
   public void visit(ClassType t){

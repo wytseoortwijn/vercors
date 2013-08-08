@@ -745,6 +745,13 @@ public NameExpression unresolved_name(String name) {
   return res;
 }
 
+public VariableDeclaration variable_decl(Type type) {
+  VariableDeclaration res=new VariableDeclaration(type);
+  res.setOrigin(origin_stack.get());
+  res.accept_if(post);
+  return res;
+}
+
 /**
  * Create a new while loop.
  */
@@ -764,13 +771,6 @@ public LoopStatement while_loop(ASTNode test,ASTNode body,ASTNode ... invariant)
 public ASTNode with(String[] from, Kind kind, boolean all, ASTNode body) {
   // types are irrelevant for a with node.
   ASTNode res=new ASTWith(from,kind,all,body);
-  res.setOrigin(origin_stack.get());
-  res.accept_if(post);
-  return res;
-}
-
-public VariableDeclaration variable_decl(Type type) {
-  VariableDeclaration res=new VariableDeclaration(type);
   res.setOrigin(origin_stack.get());
   res.accept_if(post);
   return res;

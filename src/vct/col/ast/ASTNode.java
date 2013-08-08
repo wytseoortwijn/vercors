@@ -301,4 +301,8 @@ public abstract class ASTNode implements ASTFlags {
     return false;
   }
 
+  public void clearParent() {
+    parent=null;
+  }
+
 }

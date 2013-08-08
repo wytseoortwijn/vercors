@@ -535,6 +535,28 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
     }
   }
 */
+  @Override
+  public void visit(ASTSpecial s){
+    switch(s.kind){
+    case Expression:
+      if (s.args[0] instanceof MethodInvokation){
+        out.print("call ");
+      }
+      setExpr();
+      s.args[0].accept(this);
+      out.println(";");
+      break;
+    case Assert:
+      out.print("assert ");
+      setExpr();
+      s.args[0].accept(this);
+      out.println(";");
+      break;      
+    default:
+      super.visit(s);
+      break;
+    }
+  }
   
   public void visit(MethodInvokation e){
     Method m=e.getDefinition();
