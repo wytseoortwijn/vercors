@@ -33,6 +33,7 @@ import vct.col.rewrite.ExplicitPermissionEncoding;
 import vct.col.rewrite.FilterClass;
 import vct.col.rewrite.FinalizeArguments;
 import vct.col.rewrite.Flatten;
+import vct.col.rewrite.FlattenBeforeAfter;
 import vct.col.rewrite.GenericPass1;
 import vct.col.rewrite.GlobalizeStaticsField;
 import vct.col.rewrite.GlobalizeStaticsParameter;
@@ -278,6 +279,11 @@ public class Main
         return new DynamicStaticInheritance(arg).rewriteOrdered();
       }
     });
+    defined_passes.put("flatten_before_after",new CompilerPass("move before/after instructions"){
+      public ProgramUnit apply(ProgramUnit arg){
+        return new FlattenBeforeAfter(arg).rewriteAll();
+      }
+    });
     defined_passes.put("inline",new CompilerPass("Inline predicates with arguments"){
       public ProgramUnit apply(ProgramUnit arg){
         return new InlinePredicatesRewriter(arg).rewriteAll();
@@ -435,11 +441,15 @@ public class Main
         passes.add("check");       
       }
       if (explicit_encoding.get()){
-        passes.add("standardize");
-        passes.add("check");       
+        //passes.add("standardize");
+        //passes.add("check");       
         passes.add("explicit_encoding");
         passes.add("standardize");
         passes.add("check");
+      } else {
+        passes.add("flatten_before_after");
+        passes.add("standardize");
+        passes.add("check");        
       }
       passes.add("recognize_arrays");
       passes.add("standardize");
