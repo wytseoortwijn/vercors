@@ -59,7 +59,7 @@ public class FileContext {
         } else {
           C=line.length();
         }
-        while(k<C){
+        while(k<=C){
           out.printf("-");
           k++;         
         }
@@ -81,7 +81,7 @@ public class FileContext {
           k++;
         }
         C=o.getLastColumn();
-        while(k<C){
+        while(k<=C){
           out.printf("-");
           k++;         
         }
