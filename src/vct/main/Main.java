@@ -375,10 +375,6 @@ public class Main
       cnt++;
     }
     Progress("Parsed %d files in: %dms",cnt,System.currentTimeMillis() - startTime);
-    startTime = System.currentTimeMillis();
-    program=new Standardize(program).rewriteAll();
-    new SimpleTypeCheck(program).check();
-    Progress("Initial type check took %dms",System.currentTimeMillis() - startTime);
     FeatureScanner features=new FeatureScanner();
     program.accept(features);
     classes=new ArrayList();
@@ -388,6 +384,8 @@ public class Main
     List<String> passes=null;
     if (boogie.get()) {
     	passes=new ArrayList<String>();
+      passes.add("standardize");
+      passes.add("check");
       passes.add("flatten");
       passes.add("assign");
       passes.add("finalize_args");
@@ -412,6 +410,8 @@ public class Main
     	passes.add("boogie");
     } else if (chalice.get()) {
       passes=new ArrayList<String>();
+      passes.add("standardize");
+      passes.add("check");        
       passes.add("magicwand");
       passes.add("standardize");
       passes.add("check");
