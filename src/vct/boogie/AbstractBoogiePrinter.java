@@ -393,7 +393,9 @@ public abstract class AbstractBoogiePrinter extends AbstractPrinter {
       out.lnprintf(";");
     }
     if (s.get_after()!=null){
-      s.get_after().accept(this);
+      for(ASTNode n:s.get_after()){
+        n.accept(this);
+      }
     }
     if (post_condition!=null){
       out.printf("assert ");

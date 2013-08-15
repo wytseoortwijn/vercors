@@ -1,6 +1,7 @@
 package vct.col.rewrite;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 
 import hre.ast.Origin;
@@ -156,6 +157,13 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
         result=tmp;
       }
       result.copyMissingFlags(n);
+      if (n.annotated() && !result.annotated()){
+        ASTNode tmp=result;
+        for(ASTNode ann:n.annotations()){
+          tmp.attach(rewrite(ann));
+        }
+        result=tmp;
+      }
     }
     auto_labels=true;
     create.leave();
@@ -167,6 +175,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   
   /** Rewrite contract while adding to a contract builder. */
   public void rewrite(Contract c,ContractBuilder cb){
+    if (c==null) return;
     cb.given(rewrite(c.given));
     cb.yields(rewrite(c.yields));
     if (c.modifies!=null) cb.modifies(rewrite(c.modifies));
@@ -476,6 +485,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   public ProgramUnit rewriteAll() {
     for(CompilationUnit cu :source().get()){
       CompilationUnit res=new CompilationUnit(cu.getFileName());
+      res.attach(target());
       for(ASTNode n:cu.get()){
         ASTNode tmp=rewrite(n);
         if (tmp!=null){
@@ -490,45 +500,49 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
     }
     return target();
   }
-/*
-  private void rewriteOrdered(HashSet<ASTClass> done,ASTClass cl){
+
+  private void rewriteOrdered(HashSet<ASTClass> done,HashMap<ASTClass,CompilationUnit> target,ASTClass cl){
     if (!done.contains(cl)){
       done.add(cl);
       for(ClassType parent:cl.implemented_classes){
         Fail("interfaces are not supported");
       }
       for(ClassType parent:cl.super_classes){
-        rewriteOrdered(done,source().find(parent));
+        rewriteOrdered(done,target,source().find(parent));
       }
-      Debug("rewriting %s",cl.getName());
+      Warning("rewriting %s",cl.getName());
       ASTClass tmp=rewrite(cl);
       if (tmp!=null){
-        if (tmp.packageDefined()){
-          target().addDeclaration(tmp.getDeclName(),tmp);
-        } else {
-          target().addDeclaration(cl.getDeclName(),tmp);
-        }
+        CompilationUnit res=target.get(cl);
+        res.add(tmp);
       }      
     }
   }
-*/
+
   public ProgramUnit rewriteOrdered() {
-    Abort("ordered rewriting disabled for now");
-    return null;
-    /*
     HashSet<ASTClass> done=new HashSet();
-    for(ASTNode item:source().entries()){
-      if (item instanceof ASTClass){
-        rewriteOrdered(done,(ASTClass)item);
-      } else {
-        ASTNode tmp=rewrite(item);
+    HashMap<ASTClass,CompilationUnit> target=new HashMap();
+    for(CompilationUnit cu :source().get()){
+      CompilationUnit res=new CompilationUnit(cu.getFileName());
+      res.attach(target());
+      target().add(res);
+      for(ASTNode n:cu.get()){
+        if (n instanceof ASTClass) {
+          target.put((ASTClass)n,res);
+          continue;
+        }
+        ASTNode tmp=rewrite(n);
         if (tmp!=null){
-          target().add(tmp);
+          res.add(tmp);
         }
       }
     }
+    for(CompilationUnit cu :source().get()){
+      for(ASTNode n:cu.get()){
+        if (n instanceof ASTClass) rewriteOrdered(done,target,(ASTClass)n);
+      }
+    }
     return target();
-    */
   }
 
   @Override

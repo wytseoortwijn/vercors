@@ -33,7 +33,15 @@ public enum ASTReserved {
    */
   Null,
   /**
+   * Limit argument to being a pure method.
+   */
+  Pure,
+  /**
    * any value specification value
    */
-  Any
+  Any,
+  /**
+   * Java final keyword.
+   */
+  Final
 }

@@ -100,7 +100,7 @@ public class RewriteArrayPerms extends AbstractRewriter {
       if (loc.isa(StandardOperator.Subscript)){
         ASTNode array_name=((OperatorExpression)loc).getArg(0);
         ASTNode index_expr=((OperatorExpression)loc).getArg(1);
-        if (!index_expr.toString().equals("*")){
+        if (!index_expr.isReserved(ASTReserved.Any)){
           result=create.expression(StandardOperator.ArrayPerm,
               rewrite(array_name),
               rewrite(index_expr),

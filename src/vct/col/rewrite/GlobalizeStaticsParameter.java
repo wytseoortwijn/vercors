@@ -93,12 +93,19 @@ public class GlobalizeStaticsParameter extends GlobalizeStatics {
         for(int i=1;i<args.length;i++){
           args[i]=rewrite(e.getArg(i-1));
         }
-        result=create.invokation(
+        MethodInvokation res=create.invokation(
             rewrite(e.object),
             rewrite(e.dispatch),
             e.method,
             args
         );
+        if (e.get_before().size()>0) {
+          res.set_before(rewrite(e.get_before()));
+        }
+        if (e.get_after().size()>0) {
+          res.set_after(rewrite(e.get_after()));
+        }
+        result=res;
         break;
       }
       case Pure:

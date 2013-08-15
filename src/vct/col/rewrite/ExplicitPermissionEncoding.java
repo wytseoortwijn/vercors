@@ -558,7 +558,7 @@ class PredicateClassGenerator extends AbstractRewriter {
       field_name=((Dereference)call.object).field;
     } else if (call.object instanceof NameExpression){
       field_name=((NameExpression)call.object).getName();
-      if (!field_name.equals("this")) {
+      if (!field_name.equals("This")) {
         Abort("unexpected field name %s",field_name);
       }
     } else {
@@ -648,7 +648,7 @@ class PredicateClassGenerator extends AbstractRewriter {
         result=create.unresolved_name(name);
         break;
       case Reserved:{
-        if (name.equals("this")){
+        if (e.reserved()==This){
           result=create.dereference(create.reserved_name(This),"ref");
           break;
         }

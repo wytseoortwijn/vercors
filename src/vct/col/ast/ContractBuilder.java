@@ -62,6 +62,12 @@ public class ContractBuilder {
     empty=false;
     for(DeclarationStatement d:decls) given.add(d);
   }
+  
+  public void given(VariableDeclaration decl){
+    for(DeclarationStatement d:decl.flatten()){
+      given.add(d);
+    }
+  }
   /**
    * Add the given declarations to the list of yielded variables.
    * @param decls Any number of declarations.

@@ -6,6 +6,7 @@ import vct.col.ast.PrimitiveType.Sort;
 import vct.col.ast.StandardOperator;
 import vct.util.Syntax.Associativity;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.HashMap;
@@ -158,6 +159,20 @@ public class Syntax {
     precedence_map.put(op,precedence);
     syntax_map.put(op,full_syntax);
     associativity_map.put(op,Associativity.None);
+    ArrayList<String> pattern=new ArrayList<String>();
+    //System.err.printf("pattern for operator %s is:",op);
+    for(int i=0;i<full_syntax.length;i++){
+      if (i>0) {
+        //System.err.printf(" null");
+        pattern.add(null);
+      }
+      if (full_syntax[i].length()>0) {
+        //System.err.printf(" \"%s\"",full_syntax[i]);
+        pattern.add(full_syntax[i]);
+      }
+    }
+    //System.err.printf("%n");
+    pattern_map.put(op, pattern.toArray(full_syntax));
   }
   
   public void addReserved(ASTReserved word,String string) {

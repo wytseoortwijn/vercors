@@ -52,7 +52,8 @@ public class JavaSyntax {
       syntax.addPrimitiveType(Class,"classtype");
       
       syntax.addReserved(Result,"\\result");
-      
+      syntax.addReserved(Pure,"pure");
+      syntax.addReserved(Any,"*");
       JavaJMLSyntax=syntax;
     }
     return JavaJMLSyntax;
@@ -137,6 +138,7 @@ public class JavaSyntax {
     syntax.addReserved(This,"this");
     syntax.addReserved(Null,"null");
     syntax.addReserved(Super,"super");
+    syntax.addReserved(Final,"final");
   } 
 }
 

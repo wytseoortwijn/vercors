@@ -8,6 +8,7 @@ import vct.col.ast.ASTFlags;
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTReserved;
 import vct.col.ast.AssignmentStatement;
+import vct.col.ast.BlockStatement;
 import vct.col.ast.Contract;
 import vct.col.ast.ContractBuilder;
 import vct.col.ast.DeclarationStatement;
@@ -71,12 +72,15 @@ public class VoidCalls extends AbstractRewriter {
   }
   
   public void visit(ReturnStatement s){
-    ASTNode res=s.getExpression();
-    if (res!=null){
-      result=create.block(
-          create.assignment(create.local_name("__result"),rewrite(res)),
-          create.return_statement()
-      );
+    ASTNode expr=s.getExpression();
+    if (expr!=null){
+      BlockStatement res=create.block();
+      res.add(create.assignment(create.local_name("__result"),rewrite(expr)));
+      for(ASTNode n : s.get_after()){
+        res.add(rewrite(n));
+      }
+      res.add(create.return_statement());
+      result=res;
     } else {
       super.visit(s);
     }

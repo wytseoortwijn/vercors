@@ -57,7 +57,7 @@ public class ProgramUnit {
   /**
    * Index of classes that are contained within this program unit. 
    */
-  private HashMap<ClassName,ASTClass> classes=new HashMap<ClassName, ASTClass>();
+  HashMap<ClassName,ASTClass> classes=new HashMap<ClassName, ASTClass>();
   
   /*
   public void addClass(ClassName name,ASTClass cl){
@@ -86,7 +86,7 @@ public class ProgramUnit {
     for(ASTNode n:unit.get()){
       if (n instanceof ASTClass){
         ASTClass cl=(ASTClass)n;
-        Warning("indexing %s as %s",cl.name,cl.getDeclName());
+        Debug("indexing %s as %s",cl.name,cl.getDeclName());
         classes.put(cl.getDeclName(),cl);
       }
     }
@@ -125,8 +125,14 @@ public class ProgramUnit {
   public Method find_predicate(String[] nameFull) {
     String [] class_name=Arrays.copyOf(nameFull, nameFull.length-1);
     ASTClass cl=find(class_name);
-    if (cl==null) return null;
+    if (cl==null) {
+      Warning("class %s not found",class_name[class_name.length-1]);
+      return null;
+    }
     Method m=cl.find_predicate(nameFull[nameFull.length-1]);
+    if (m==null){
+      Warning("predicate %s not found in class %s",nameFull[nameFull.length-1],class_name[0]);
+    }
     return m;
   }
 }

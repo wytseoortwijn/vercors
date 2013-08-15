@@ -287,7 +287,8 @@ public class ASTClass extends ASTDeclaration implements ASTSequence<ASTClass> {
     if (m!=null) return m;
     if (recursive){
       for(ClassType parent:this.super_classes){
-        m = root.find(parent).find(name,object_type,type);
+        ASTClass rp=root.find(parent);
+        m = rp.find(name,object_type,type);
         if (m != null) return m;
       }
     }  

@@ -32,6 +32,11 @@ public class JavaPrinter extends AbstractPrinter {
       out.printf(":");
       //out.printf("[");
     }
+    if (node.annotated()) for(ASTNode ann:node.annotations()) {
+      nextExpr();
+      ann.accept(this);
+      out.printf(" ");
+    }
   }
   
   public void post_visit(ASTNode node){
@@ -77,6 +82,14 @@ public class JavaPrinter extends AbstractPrinter {
   @Override
   public void visit(ASTSpecial s){
     switch(s.kind){
+    case With:
+      out.print("WITH");
+      s.args[0].accept(this);
+      break;
+    case Then:
+      out.print("THEN");
+      s.args[0].accept(this);
+      break;
     case Expression:
       setExpr();
       s.args[0].accept(this);
@@ -325,6 +338,9 @@ public class JavaPrinter extends AbstractPrinter {
     if (m.isValidFlag(ASTFlags.FINAL) && m.getFlag(ASTFlags.FINAL)){
       out.printf("final ");
     }
+    if (m.getKind()==Method.Kind.Pure){
+      out.printf("/*@pure@*/ ");
+    }
     if (((ASTClass)m.getParent()).getName().equals(name)){
       //out.printf("/*constructor*/");
     } else {
@@ -563,6 +579,14 @@ public class JavaPrinter extends AbstractPrinter {
         prop.accept(this);
         break;
       }
+      case Witness:{
+        out.printf("//@ witness ");
+        current_precedence=0;
+        setExpr();
+        ASTNode prop=e.getArg(0);
+        prop.accept(this);
+        break;        
+      }
       case Access:{
         out.printf("//@ access ");
         current_precedence=0;
@@ -698,18 +722,18 @@ public class JavaPrinter extends AbstractPrinter {
   
   public void visit(MethodInvokation s){
     super.visit(s);
-    if (s.get_before()!=null){
-      out.printf("/*@ ");
-      out.printf("with ");
-      s.get_before().accept(this);
-      out.printf(" */");
-    }
-    if (s.get_after()!=null){
-      out.printf("/*@ ");
-      out.printf("then ");
-      s.get_after().accept(this);
-      out.printf(" */");
-    }    
+    //if (s.get_before()!=null){
+    //  out.printf("/*@ ");
+    //  out.printf("with ");
+    //  s.get_before().accept(this);
+    //  out.printf(" */");
+    //}
+    //if (s.get_after()!=null){
+    //  out.printf("/*@ ");
+    //  out.printf("then ");
+    //  s.get_after().accept(this);
+    //  out.printf(" */");
+    //}    
   }
   public static TrackingTree dump_expr(PrintStream out,ASTNode node){
     TrackingOutput track_out=new TrackingOutput(out,false);
@@ -724,8 +748,11 @@ public class JavaPrinter extends AbstractPrinter {
     try {
       TrackingOutput track_out=new TrackingOutput(out,false);
       JavaPrinter printer=new JavaPrinter(track_out);
-      for(ASTClass cl:program.classes()){
-        cl.accept(printer);
+      for(CompilationUnit cu : program.get()){
+        track_out.lnprintf("//==== %s ====",cu.getFileName());
+        for(ASTNode item : cu.get()){
+          item.accept(printer);
+        }
       }
       return track_out.close();
     } catch (Exception e) {

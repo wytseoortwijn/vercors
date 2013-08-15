@@ -85,6 +85,14 @@ public class ChalicePreProcess extends AbstractRewriter {
         }
         break;
       }
+      case Plus:{
+        if (e.getType().isPrimitive(Sort.Sequence)){
+          result=create.expression(StandardOperator.Append,rewrite(e.getArguments()));
+        } else {
+          super.visit(e);
+        }
+        break;
+      }
       default:
         super.visit(e);
         break;

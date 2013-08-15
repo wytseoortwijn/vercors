@@ -34,6 +34,9 @@ public class InheritanceRewriter extends AbstractRewriter {
         break;
       case 1:
         super_class=target().find(cl.super_classes[0]);
+        if (super_class==null){
+          Abort("could not find class %s",cl.super_classes[0]);
+        }
         break;
       default:
         Fail("Multiple inheritance is not supported.");
@@ -46,6 +49,7 @@ public class InheritanceRewriter extends AbstractRewriter {
       res.add_dynamic(rewrite(node));
     }
     if (super_class!=null){
+      Warning("scanning super class %s",super_class.getName());
       for(Method m:super_class.dynamicMethods()){
         switch(m.kind){
           case Predicate:

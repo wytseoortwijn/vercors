@@ -262,11 +262,11 @@ public abstract class ASTFrame<T> {
 
   
   private void scan_labels(ASTNode node) {
-    if (node instanceof MethodInvokation){
+    //if (node instanceof MethodInvokation){
       for(NameExpression label:node.getLabels()){
         variables.add(label.getName(),new VariableInfo(node,NameExpression.Kind.Label));
       }
-    }
+    //}
     if (node instanceof OperatorExpression){
       for(ASTNode arg:((OperatorExpression)node).getArguments()){
         scan_labels(arg);

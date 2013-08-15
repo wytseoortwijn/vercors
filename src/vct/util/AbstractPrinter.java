@@ -93,7 +93,7 @@ public class AbstractPrinter extends AbstractVisitor {
     setExpr();
     if (e.object!=null) {
       // TODO: manage precedence properly.
-      if (e.object instanceof Type && !e.getDefinition().isStatic()){
+      if (e.object instanceof Type && e.getDefinition()!=null && !e.getDefinition().isStatic()){
         out.printf("new ");
       } else {
         e.object.accept(this);
@@ -172,7 +172,9 @@ public class AbstractPrinter extends AbstractVisitor {
   public void visit(ASTSpecial s){
     switch(s.kind){
     case Comment:
-      out.println(s.args[0].toString());
+      for(String ln:s.args[0].toString().split("\n")){
+        out.println(ln);
+      }
       break;
     case Invariant:
       setExpr();

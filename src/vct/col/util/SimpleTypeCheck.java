@@ -48,11 +48,12 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       if (name.length>1){
         m=source().find_predicate(t.getNameFull());
       }
-      if (m==null){
-        if (name.length >1){
-          m=source().find_predicate(Arrays.copyOf(name, name.length-1));
-        }
-      }
+      // No clue why this was here:
+      //if (m==null){
+      //  if (name.length >1){
+      //    m=source().find_predicate(Arrays.copyOf(name, name.length-1));
+      //  }
+      //}
       if (m==null &&
           !(name.length==3 && name[0].equals("java") && name[1].equals("lang") && name[2].equals("Object"))
           && !(name.length==1 && name[0].equals("Object"))){
@@ -441,6 +442,23 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       break;
     }
     case Plus:
+    { // handle concatenation meaning of +
+      Type t1=e.getArg(0).getType();
+      if (t1==null) Fail("type of left argument unknown at %s",e.getOrigin());
+      if (!t1.isNumeric()){
+        if (!t1.isPrimitive(Sort.Sequence)){
+          Fail("First argument of %s is of unsupported type %s",op,t1);
+        }
+        Type t2=e.getArg(1).getType();
+        if (t2==null) Fail("type of right argument unknown at %s",e.getOrigin());
+        if (!t1.comparableWith(source(),t2)) {
+          Fail("Types of left and right-hand side argument are uncomparable: %s/%s",t1,t2);
+        }
+        e.setType(t1);
+        break;
+      }
+      // fall through for numeric meaning.
+    }
     case Minus:
     case Mult:
     case Div:

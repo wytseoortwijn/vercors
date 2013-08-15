@@ -6,6 +6,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import vct.col.ast.ASTSpecial.Kind;
+
 import hre.ast.Origin;
 import static hre.System.Abort;
 import static hre.System.Debug;
@@ -285,16 +287,29 @@ public abstract class ASTNode implements ASTFlags {
       annotations=new ArrayList<ASTNode>();
     }
     for (ASTNode annotation : annotation_list){
-      if (annotation.isReserved(ASTReserved.Static)){
-        setStatic(true);
-      } else {
-        annotations.add(annotation);
+      if (annotation instanceof NameExpression){
+        NameExpression name=(NameExpression)annotation;
+        if (name.reserved()!=null){
+          switch(name.reserved()){
+            case Static:
+              setStatic(true);
+              continue;
+            case Public:
+              Warning ("tossing public");
+              continue;
+          }
+        }
       }
+      annotations.add(annotation);
     }
   }
 
   public Iterable<ASTNode> annotations(){
     return annotations;
+  }
+  
+  public boolean annotated(){
+    return annotations!=null; 
   }
 
   public boolean isReserved(ASTReserved any) {
@@ -303,6 +318,10 @@ public abstract class ASTNode implements ASTFlags {
 
   public void clearParent() {
     parent=null;
+  }
+
+  public boolean isSpecial(Kind with) {
+    return false;
   }
 
 }

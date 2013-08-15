@@ -4,6 +4,7 @@ import vct.col.ast.ASTNode;
 import vct.col.ast.ASTSpecial;
 import vct.col.ast.BeforeAfterAnnotations;
 import vct.col.ast.BlockStatement;
+import vct.col.ast.MethodInvokation;
 import vct.col.ast.ProgramUnit;
 
 public class FlattenBeforeAfter extends AbstractRewriter {
@@ -18,7 +19,7 @@ public class FlattenBeforeAfter extends AbstractRewriter {
     BlockStatement res=create.block();
     for(ASTNode item:s){
       ASTNode tmp=rewrite(item);
-      if (tmp instanceof BeforeAfterAnnotations){
+      if ((tmp instanceof BeforeAfterAnnotations) && !(tmp instanceof MethodInvokation)){
         //Warning("moving %s",tmp.getClass());
         BeforeAfterAnnotations baa=(BeforeAfterAnnotations) tmp;
         BlockStatement before=baa.get_before();

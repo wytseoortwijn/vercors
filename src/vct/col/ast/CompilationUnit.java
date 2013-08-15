@@ -3,8 +3,21 @@ package vct.col.ast;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import vct.util.ClassName;
+
 public class CompilationUnit implements ASTSequence<CompilationUnit> {
 
+  private ProgramUnit parent;
+  
+  public void attach(ProgramUnit parent){
+    this.parent=parent;
+    for(ASTNode item:contents){
+      if (parent!=null && item instanceof ASTDeclaration){
+        ((ASTDeclaration)item).attach(parent,null);
+      }      
+    }
+  }
+  
   private String name;
   
   private ArrayList<ASTNode> contents=new ArrayList<ASTNode>();
@@ -18,6 +31,14 @@ public class CompilationUnit implements ASTSequence<CompilationUnit> {
   }
   
   public CompilationUnit add(ASTNode item){
+    if (parent!=null && item instanceof ASTDeclaration){
+      ((ASTDeclaration)item).attach(parent,null);
+      if (item instanceof ASTClass){
+        ASTClass cl=(ASTClass)item;
+        parent.classes.put(cl.getDeclName(),cl);
+      }
+
+    }
     contents.add(item);
     return this;
   }

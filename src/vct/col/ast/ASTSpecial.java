@@ -10,7 +10,11 @@ public class ASTSpecial extends ASTNode {
     Assert,
     Comment,
     Expression,
-    Invariant, Fold 
+    Invariant,
+//    Fold
+    With,
+    Then,
+    Proof
   };
 
   public final Kind kind;
@@ -25,6 +29,10 @@ public class ASTSpecial extends ASTNode {
   @Override
   protected <T> void accept_simple(ASTVisitor<T> visitor) {
     visitor.visit(this);
+  }
+  
+  public boolean isSpecial(Kind with) {
+    return kind==with;
   }
 
 }

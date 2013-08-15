@@ -216,7 +216,10 @@ public class DynamicStaticInheritance extends AbstractRewriter {
     ASTClass parent=null;
     if (cl.super_classes.length==1){
       parent=target().find(cl.super_classes[0]);
-    }
+      if (parent==null){
+        Abort("super class %s could not be found",cl.super_classes[0]);
+      }
+    } 
     String class_name=cl.getName();
     ASTClass res=create.ast_class(class_name,cl.kind,new ClassType[0],new ClassType[0]);
     //should be function, but chalice messes up during printing.

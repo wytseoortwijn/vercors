@@ -108,20 +108,28 @@ public abstract class GlobalizeStatics extends AbstractRewriter {
     if (m==null) Abort("cannot globalize method invokaiton without method definition");
     ASTClass cl=(ASTClass)m.getParent();
     if (m.isStatic() && !e.isInstantiation()){
+      MethodInvokation res;
       String prefix=new ClassName(cl.getFullName()).toString("_");
       if (processing_static){
-        result=create.invokation(
+        res=create.invokation(
           create.this_expression(create.class_type("Global")),
           rewrite(e.dispatch),
           prefix+"_"+e.method,
           rewrite(e.getArgs()));
       } else {
-        result=create.invokation(
+        res=create.invokation(
             create.local_name("global"),
             rewrite(e.dispatch),
             prefix+"_"+e.method,
             rewrite(e.getArgs()));        
       }
+      if (e.get_before().size()>0) {
+        res.set_before(rewrite(e.get_before()));
+      }
+      if (e.get_after().size()>0) {
+        res.set_after(rewrite(e.get_after()));
+      }
+      result=res;
     } else {
       super.visit(e);
     }
