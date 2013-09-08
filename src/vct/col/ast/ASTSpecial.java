@@ -14,7 +14,9 @@ public class ASTSpecial extends ASTNode {
 //    Fold
     With,
     Then,
-    Proof
+    Proof,
+    Import,
+    Throw
   };
 
   public final Kind kind;

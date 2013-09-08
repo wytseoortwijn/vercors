@@ -193,6 +193,8 @@ public final class PrimitiveType extends Type {
 
   public ASTNode zero(){
     switch(sort){
+    case Array:
+      return new NameExpression(ASTReserved.Null);
     case Boolean:
       return new ConstantExpression(false);
     case ZFraction:

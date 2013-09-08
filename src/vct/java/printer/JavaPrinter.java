@@ -4,6 +4,9 @@ package vct.java.printer;
 import hre.ast.TrackingOutput;
 import hre.ast.TrackingTree;
 import java.io.PrintStream;
+
+import org.apache.commons.lang3.StringEscapeUtils;
+
 import vct.col.ast.*;
 import vct.col.ast.PrimitiveType.Sort;
 import vct.col.util.ASTUtils;
@@ -101,6 +104,18 @@ public class JavaPrinter extends AbstractPrinter {
       s.args[0].accept(this);
       out.println(";");
       break;
+    case Import:
+      out.print("import ");
+      setExpr();
+      s.args[0].accept(this);
+      out.println(";");
+      break;    
+    case Throw:
+      out.print("throw ");
+      setExpr();
+      s.args[0].accept(this);
+      out.println(";");
+      break;    
     default:
       super.visit(s);
       break;
@@ -846,5 +861,14 @@ public class JavaPrinter extends AbstractPrinter {
     }
   }
   
+  public void visit(ConstantExpression ce){
+    if (!in_expr) Abort("constant %s outside of expression for %s",ce,ce.getOrigin());
+    if (ce.value instanceof StringValue){
+      out.print("\""+StringEscapeUtils.escapeJava(ce.toString())+"\"");
+    } else {
+      out.print(ce.toString());
+    }
+  }
+
 }
 
