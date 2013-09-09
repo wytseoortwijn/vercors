@@ -37,14 +37,6 @@ public class AnnotationInterpreter extends AbstractRewriter {
       if (a.isReserved(ASTReserved.Pure)){
         Warning("found pure annotation");
         kind=Method.Kind.Pure;
-      } else if (a instanceof ASTSpecial) {
-        ASTSpecial s=(ASTSpecial)a;
-        if (s.kind==ASTSpecial.Kind.Comment && s.args[0].toString().equals("/*pure*/")) {
-          Warning("found pure annotation");
-          kind=Method.Kind.Pure; 
-        } else {
-          ann.add(rewrite(a));
-        }
       } else {
         ann.add(rewrite(a));
       }

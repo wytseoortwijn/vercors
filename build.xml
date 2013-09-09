@@ -23,7 +23,7 @@
     <mkdir dir="${bin}"/>
     <javac srcdir="${src}"
            destdir="${bin}"
-           classpath="${bin}:${basedir}/../hre/hre.jar"
+           classpath="${bin}:${basedir}/../hre/hre.jar:${basedir}/../libs/commons-lang3-3.1/commons-lang3-3.1.jar"
            debug="on"
            includeAntRuntime="false"
            source="1.7"
