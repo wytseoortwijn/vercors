@@ -81,8 +81,20 @@ public class ChaliceReport extends hre.util.TestReport {
         }
         if (line.startsWith("Boogie program verifier finished")){
           boogie_completed=true;
-          if (line.contains("verified, 0 errors")){
+          String words[]=line.split(" ");
+          int verified_count=-1;
+          int error_count=-1;
+          int timeout_count=0;
+          for(int i=1;i<words.length;i++){
+			if (words[i].matches("verified.*")) verified_count=Integer.parseInt(words[i-1]);
+			if (words[i].matches("error.*")) error_count=Integer.parseInt(words[i-1]);
+			if (words[i].equals("time")) timeout_count=Integer.parseInt(words[i-1]);
+          }
+          if (error_count==0 && timeout_count==0){
             setVerdict(Verdict.Pass);
+          } else if (error_count==0) {
+        	Warning("Chalice/Boogie finished with %d timeouts",timeout_count);
+        	setVerdict(Verdict.Inconclusive);
           } else {
             setVerdict(Verdict.Fail);
           }
