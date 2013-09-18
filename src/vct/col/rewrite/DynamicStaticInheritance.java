@@ -5,6 +5,7 @@ import java.util.Arrays;
 import vct.col.ast.ASTClass;
 import vct.col.ast.ASTFlags;
 import vct.col.ast.ASTNode;
+import vct.col.ast.ASTReserved;
 import vct.col.ast.BlockStatement;
 import vct.col.ast.ClassType;
 import vct.col.ast.Contract;
@@ -50,7 +51,7 @@ public class DynamicStaticInheritance extends AbstractRewriter {
     if (!(n instanceof NameExpression)) return false;
     NameExpression name=(NameExpression)n;
     if (name.getKind()!=NameExpression.Kind.Reserved) return false; 
-    return name.getName().equals("this");
+    return name.reserved()==ASTReserved.This;
   }
   
   public static boolean isSuper(ASTNode n){

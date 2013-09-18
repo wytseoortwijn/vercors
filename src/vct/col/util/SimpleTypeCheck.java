@@ -45,15 +45,16 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     ASTClass cl=source().find(t.getNameFull());
     if (cl==null) {
       Method m=null;
+      // find external/dynamic dispatch predicates used for witnesses.
       if (name.length>1){
         m=source().find_predicate(t.getNameFull());
       }
-      // No clue why this was here:
-      //if (m==null){
-      //  if (name.length >1){
-      //    m=source().find_predicate(Arrays.copyOf(name, name.length-1));
-      //  }
-      //}
+      // find internal/static dispatch predicates used for witnesses.
+      if (m==null){
+        if (name.length >1){
+          m=source().find_predicate(Arrays.copyOf(name, name.length-1));
+        }
+      }
       if (m==null &&
           !(name.length==3 && name[0].equals("java") && name[1].equals("lang") && name[2].equals("Object"))
           && !(name.length==1 && name[0].equals("Object"))){
