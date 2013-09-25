@@ -79,7 +79,10 @@ public class ExplicitPermissionEncoding extends AbstractRewriter {
 
   public void visit(Method m){
     final String class_name=((ASTClass)m.getParent()).getName();
-    if (m.kind==Method.Kind.Predicate){ 
+    if (m.kind==Method.Kind.Predicate && !m.getName().equals(WandEncoder.VALID)){
+      // Witnesses must be generated for every predicate because
+      // a predicate without argument could invoke one that uses them,
+      // which requires using a witness.
       ASTClass pred_class=(ASTClass)(new PredicateClassGenerator(source(),currentClass)).rewrite((ASTNode)m);
       Contract c=((ASTClass)m.getParent()).getContract();
       if (c!=null){
@@ -327,11 +330,11 @@ class ClauseEncoding extends AbstractRewriter {
       result=copy_rw.rewrite(i);
     } else {
       if (i.labels()==0){
-        if (i.getArity()==0){
+        if (i.method.equals(WandEncoder.VALID)){
           result=copy_rw.rewrite(i);
           return;
         }
-        Abort("At %s: every predicate invokation with arguments must be labeled.",i.getOrigin());
+        Abort("At %s: every predicate invokation with must be labeled.",i.getOrigin());
       }
       NameExpression lbl=i.getLabel(0);
       ASTNode body=create.expression(StandardOperator.NEQ,create.unresolved_name(lbl.getName()),create.reserved_name(Null));

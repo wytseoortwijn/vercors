@@ -418,7 +418,7 @@ public class ASTClass extends ASTDeclaration implements ASTSequence<ASTClass> {
     if (n==null) return this;
     entries.add(n);
     if (!n.isValidFlag(STATIC)){
-      Warning("static flag not set");
+      Debug("static flag not set");
       n.setStatic(false);
     }
     n.setParent(this);

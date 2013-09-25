@@ -136,12 +136,12 @@ public class ProgramUnit {
     String [] class_name=Arrays.copyOf(nameFull, nameFull.length-1);
     ASTClass cl=find(class_name);
     if (cl==null) {
-      Warning("class %s not found",class_name[class_name.length-1]);
+      Debug("class %s not found",class_name[class_name.length-1]);
       return null;
     }
     Method m=cl.find_predicate(nameFull[nameFull.length-1]);
     if (m==null){
-      Warning("predicate %s not found in class %s",nameFull[nameFull.length-1],class_name[0]);
+      Debug("predicate %s not found in class %s",nameFull[nameFull.length-1],class_name[0]);
     }
     return m;
   }

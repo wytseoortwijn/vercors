@@ -495,7 +495,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
       if (res.size()>0){
         target().add(res);
       } else {
-        Warning("discarding empty unit %s",cu.getFileName());
+        Debug("discarding empty unit %s",cu.getFileName());
       }
     }
     return target();
@@ -510,7 +510,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
       for(ClassType parent:cl.super_classes){
         rewriteOrdered(done,target,source().find(parent));
       }
-      Warning("rewriting %s",cl.getName());
+      Debug("rewriting %s",cl.getName());
       ASTClass tmp=rewrite(cl);
       if (tmp!=null){
         CompilationUnit res=target.get(cl);

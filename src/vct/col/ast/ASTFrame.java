@@ -5,6 +5,8 @@ import hre.util.SingleNameSpace;
 import java.util.Stack;
 import java.util.concurrent.atomic.AtomicReference;
 
+import vct.col.ast.ASTSpecial.Kind;
+
 import static hre.System.Debug;
 
 /**
@@ -179,6 +181,23 @@ public abstract class ASTFrame<T> {
       DeclarationStatement decl=(DeclarationStatement)node;
       if (decl.getParent() instanceof BlockStatement){
         variables.add(decl.getName(),new VariableInfo(decl,NameExpression.Kind.Local));
+      }
+    }
+    if (node instanceof OperatorExpression){
+      OperatorExpression expr=(OperatorExpression)node;
+      switch(expr.getOperator()){
+        case Witness:{
+          for(NameExpression name:expr.getArg(0).getLabels()){
+            variables.add(name.getName(),new VariableInfo(node,NameExpression.Kind.Label));
+          }
+          break;
+        }
+        case Apply:{
+          for(NameExpression name:expr.getLabels()){
+            variables.add(name.getName(),new VariableInfo(node,NameExpression.Kind.Label));
+          }
+          break;          
+        }
       }
     }
     if (node instanceof MethodInvokation){

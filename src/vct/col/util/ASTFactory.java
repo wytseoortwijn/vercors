@@ -21,6 +21,7 @@ import vct.col.ast.Contract;
 import vct.col.ast.ContractBuilder;
 import vct.col.ast.DeclarationStatement;
 import vct.col.ast.Dereference;
+import vct.col.ast.FunctionType;
 import vct.col.ast.IfStatement;
 import vct.col.ast.Lemma;
 import vct.col.ast.LoopStatement;
@@ -34,6 +35,7 @@ import vct.col.ast.PrimitiveType;
 import vct.col.ast.PrimitiveType.Sort;
 import vct.col.ast.ReturnStatement;
 import vct.col.ast.StandardOperator;
+import vct.col.ast.TupleType;
 import vct.col.ast.Type;
 import vct.col.ast.BlockStatement;
 import vct.col.ast.VariableDeclaration;
@@ -775,5 +777,27 @@ public ASTNode with(String[] from, Kind kind, boolean all, ASTNode body) {
   res.accept_if(post);
   return res;
 }
+
+public Type arrow_type(Type src, Type tgt) {
+  Type res=new FunctionType(new Type[]{src},tgt);
+  res.setOrigin(origin_stack.get());
+  res.accept_if(post);
+  return res;
+}
+
+public Type tuple_type(Type ... t) {
+  Type res=new TupleType(t);
+  res.setOrigin(origin_stack.get());
+  res.accept_if(post);
+  return res;
+}
+
+public ASTNode arrow_type(Type[] types, Type tgt) {
+  Type res=new FunctionType(types,tgt);
+  res.setOrigin(origin_stack.get());
+  res.accept_if(post);
+  return res;
+}
+
 
 }

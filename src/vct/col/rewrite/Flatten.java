@@ -158,7 +158,7 @@ public class Flatten extends AbstractRewriter {
     }
     Type t=e.getType();
     if (t.getOrigin()==null){
-      Warning("fixing null origin near %s",e.getOrigin());
+      Debug("fixing null origin near %s",e.getOrigin());
       t.setOrigin(new MessageOrigin("Flatten.add_as_var fix near %s",e.getOrigin()));
     }
     ASTNode n=create.field_decl(name,t);

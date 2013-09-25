@@ -121,6 +121,8 @@ public abstract class AbstractVisitor<T> extends ASTFrame<T> implements ASTVisit
   @Override public void visit(ASTSpecial s){ visit_any(s); }
 
   @Override public void visit(VariableDeclaration s) { visit_any(s); }
+  
+  @Override public void visit(TupleType t) { visit_any(t); }
 
 }
 

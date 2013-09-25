@@ -65,12 +65,14 @@ public class ContractBuilder {
   }
   
   public void given(VariableDeclaration decl){
+	empty=false;
     for(DeclarationStatement d:decl.flatten()){
       given.add(d);
     }
   }
 
   public void yields(VariableDeclaration decl){
+    empty=false;
     for(DeclarationStatement d:decl.flatten()){
       yields.add(d);
     }

@@ -295,7 +295,7 @@ public abstract class ASTNode implements ASTFlags {
               setStatic(true);
               continue;
             case Public:
-              Warning ("tossing public");
+              Debug("ignoring public");
               continue;
           }
         }

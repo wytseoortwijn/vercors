@@ -63,6 +63,12 @@ public abstract class RecursiveVisitor<T> extends ASTFrame<T> implements
       t.getArgument(i).accept(this);
     }
   }
+  @Override
+  public void visit(TupleType t) {
+    for(int i=0;i<t.types.length;i++){
+      t.types[i].accept(this);
+    }
+  }
 
   @Override
   public void visit(PrimitiveType t) {

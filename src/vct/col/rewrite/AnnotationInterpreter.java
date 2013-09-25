@@ -31,11 +31,11 @@ public class AnnotationInterpreter extends AbstractRewriter {
     boolean varArgs=m.usesVarArgs();
     if (m.annotated()) for(ASTNode a:m.annotations()){
       if (a==null){
-        Warning("ignoring null annotation");
+        Debug("ignoring null annotation");
         continue;
       }
       if (a.isReserved(ASTReserved.Pure)){
-        Warning("found pure annotation");
+        Debug("found pure annotation");
         kind=Method.Kind.Pure;
       } else {
         ann.add(rewrite(a));

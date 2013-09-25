@@ -70,7 +70,7 @@ public class GenericPass1 extends AbstractRewriter {
     rewrite(m.getContract(),cb);
     if (old_returns.getArgCount()>0 || !returns.equals(old_returns)){
         cb.ensures(create.expression(StandardOperator.Instance,
-                create.reserved_name("\\result"),
+                create.reserved_name(ASTReserved.Result),
                 copy_rw.rewrite(old_returns)
         ));     
     }

@@ -61,6 +61,8 @@ public interface ASTVisitor<T> {
 
   public void visit(VariableDeclaration variableDeclaration);
 
+  public void visit(TupleType tupleType);
+
 }
 
 

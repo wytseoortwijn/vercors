@@ -9,6 +9,7 @@ import java.util.Hashtable;
 
 import vct.col.ast.ASTClass;
 import vct.col.ast.ASTNode;
+import vct.col.ast.ASTSpecial;
 import vct.col.ast.BlockStatement;
 import vct.col.ast.ClassType;
 import vct.col.ast.CompilationUnit;
@@ -33,6 +34,8 @@ import vct.col.util.WandScanner;
 import static vct.col.ast.ASTReserved.*;
 
 public class WandEncoder extends AbstractRewriter {
+
+  public static final String VALID = "valid_wand";
 
   private class WandDefinition {
     ASTClass cl;
@@ -61,16 +64,18 @@ public class WandEncoder extends AbstractRewriter {
             result=create.field_decl(lbl, t);
             break;		        
 		      }
-		      /* TODO: 
 		      if (arg1 instanceof MethodInvokation){
-		        MethodInvokation pred=(MethodInvokation)arg1;
-		        String pred_name=pred.method;
-		        String class_name=((ASTClass)pred.getDefinition().getParent()).getName();
-		        Type t=create.class_type(class_name+"_"+pred_name);
-		        result=create.field_decl(lbl, t);
-		        break;
+            String base[]=((ClassType)(((MethodInvokation)arg1).object.getType())).getNameFull();
+            String pred=((MethodInvokation)arg1).method;
+            String name[]=new String[base.length+1];
+            for(int i=0;i<base.length;i++){
+              name[i]=base[i];
+            }
+            name[base.length]=pred;
+            Type t=create.class_type(name);
+            result=create.field_decl(lbl, t);
+            break;            		        
 		      }
-		      */
 		      Fail("cannot declare this witness");
 		      break;
 		    }
@@ -78,7 +83,10 @@ public class WandEncoder extends AbstractRewriter {
 		      ASTNode arg1=e.getArg(0);
 		      if (arg1.labels()==1){
 		        for(NameExpression lbl:arg1.getLabels()){
-		          result=create.invokation(create.local_name(lbl.getName()), null, "apply");
+		          MethodInvokation res=create.invokation(create.local_name(lbl.getName()), null, "apply");
+		          res.set_before(copy_rw.rewrite(e.get_before()));
+		          res.set_after(copy_rw.rewrite(e.get_after()));
+		          result=res;
 		          return;
 		        }
 		        Warning("weird %s expression",e.getOperator());
@@ -95,7 +103,7 @@ public class WandEncoder extends AbstractRewriter {
 		    	String type_name="Wand";
 		    	ASTNode res=create.expression(StandardOperator.NEQ,
 		    					create.local_name(lbl),create.reserved_name(Null));
-		    	ASTNode tmp=create.invokation(create.local_name(lbl), null, "valid");
+		    	ASTNode tmp=create.invokation(create.local_name(lbl), null, VALID);
 		    	res=create.expression(StandardOperator.Star,res,tmp);
 		    	int count=0;
 		    	for(ASTNode n:ASTUtils.conjuncts(e.getArg(0))){
@@ -175,12 +183,12 @@ public class WandEncoder extends AbstractRewriter {
 	  valid_list.add(create.expression(StandardOperator.Value,create.field_name("lemma")));
 	  valid_list.add(create.expression(StandardOperator.GT,create.field_name("lemma"),create.constant(0)));
 	  ContractBuilder cb=new ContractBuilder();
-	  cb.requires(create.invokation(create.reserved_name(This), null, "valid"));
+	  cb.requires(create.invokation(create.reserved_name(This), null, VALID));
 	  Contract get_contract=cb.getContract();
 	  
 	  // now we build the contract of the apply method.
 	  cb=new ContractBuilder();
-	  cb.requires(create.invokation(create.reserved_name(This), null, "valid"));
+	  cb.requires(create.invokation(create.reserved_name(This), null, VALID));
 	  
     int count=0;
     for(ASTNode n:ASTUtils.conjuncts(e.getArg(0))){
@@ -206,7 +214,11 @@ public class WandEncoder extends AbstractRewriter {
           if (tt instanceof ClassType) cb.requires(create.non_null(create.invokation(null,null,"get_"+var+"_"+i)));
           args[i]=create.invokation(null,null,"get_"+var+"_"+i);
         }
-        cb.requires(create.invokation(create.invokation(null,null,"get_"+var),null,m.method,args));
+        ASTNode tmp=create.invokation(create.invokation(null,null,"get_"+var),null,m.method,args);
+        for (NameExpression l:m.getLabels()){
+          tmp.addLabel(copy_rw.rewrite(l));
+        }
+        cb.requires(tmp);
       } else {
         Abort("unexpected clause in magic wand");
       }
@@ -235,12 +247,16 @@ public class WandEncoder extends AbstractRewriter {
           if (tt instanceof ClassType) cb.requires(create.non_null(create.invokation(null,null,"get_"+var+"_"+i)));
           args[i]=create.expression(StandardOperator.Old,create.invokation(null,null,"get_"+var+"_"+i));
         }
-        cb.ensures(create.invokation(
+        ASTNode tmp=create.invokation(
             create.expression(StandardOperator.Old,create.invokation(null,null,"get_"+var)),
             null,
             m.method,
             args
-        ));
+        );
+        for (NameExpression l:m.getLabels()){
+          tmp.addLabel(copy_rw.rewrite(l));
+        }
+        cb.ensures(tmp);
       } else {
         Abort("unexpected clause in magic wand");
       }
@@ -250,7 +266,7 @@ public class WandEncoder extends AbstractRewriter {
     cases.setOrigin(create.getOrigin());
     ASTNode apply_body=create.block(
         create.expression(StandardOperator.Unfold,
-            create.invokation(create.reserved_name(This), null, "valid")
+            create.invokation(create.reserved_name(This), null, VALID)
         ), cases
     );
     Method apply=create.method_decl(create.primitive_type(Sort.Void),
@@ -301,7 +317,7 @@ public class WandEncoder extends AbstractRewriter {
         create.reserved_name(Result),
         create.reserved_name(Null)
     ));
-    lemma_cb.ensures(create.invokation(create.reserved_name(Result), null, "valid"));
+    lemma_cb.ensures(create.invokation(create.reserved_name(Result), null, VALID));
     
     Type this_type=create.class_type(current_class().getFullName());
     String this_name="this_"+lemma_no;
@@ -421,23 +437,26 @@ public class WandEncoder extends AbstractRewriter {
               rename_for_proof, m.getArg(i) , var+"_"+i, tt);
           args[i]=create.field_name(var+"_"+i);
         }
-        proof_result=create.expression(StandardOperator.Star,
-            proof_result,
-            create.invokation(create.field_name(var),null,m.method,args)
-        );
+        ASTNode call=create.invokation(create.field_name(var),null,m.method,args);
+        for(NameExpression name:n.getLabels()){
+          call.addLabel(copy_rw.rewrite(name));
+        }
+        proof_result=create.expression(StandardOperator.Star,proof_result,call);
       } else {
         Abort("unexpected clause in magic wand");
       }
     }
  
 	  lemma_body.add_statement(create.expression(StandardOperator.Fold,
-        create.invokation(create.local_name("wand"), null, "valid")));
+        create.invokation(create.local_name("wand"), null, VALID)));
 	  lemma_body.add_statement(create.return_statement(create.local_name("wand")));
 	  // The following assert is not needed for correctness.
 	  // However, it is essential for providing an error message at the correct lines!
 	  create.enter();
 	  create.setOrigin(l.block.getStatement(N-1).getOrigin());
-	  proof_body.add_statement(create.expression(StandardOperator.Assert,proof_result));
+	  //FIXME: rewrite assertions properly!
+	  //proof_body.add_statement(create.expression(StandardOperator.Assert,proof_result));
+	  //proof_body.add_statement(create.special(ASTSpecial.Kind.Assert, proof_result));
 	  create.leave();
 	  
 	  String lemma_name=wand_type+"_lemma_"+lemma_no;
@@ -543,7 +562,7 @@ public class WandEncoder extends AbstractRewriter {
 	        def.valid_body,
 	        create.expression(StandardOperator.LTE,create.field_name("lemma"),create.constant(def.case_count))
 	    );
-      Method valid=create.predicate("valid",def.valid_body);
+      Method valid=create.predicate(VALID,def.valid_body);
       def.cl.add_dynamic(valid);
       create.addZeroConstructor(def.cl);
       create.leave();
