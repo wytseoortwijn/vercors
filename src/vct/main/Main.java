@@ -110,6 +110,7 @@ public class Main
 
   public static void main(String[] args) throws Throwable
   {
+    long globalStart = System.currentTimeMillis();
     OptionParser clops=new OptionParser();
     clops.add(clops.getHelpOption(),'h',"help");
 
@@ -392,6 +393,7 @@ public class Main
     new SimpleTypeCheck(program).check();
     Progress("Initial type check took %dms",System.currentTimeMillis() - startTime);
     */
+    FeatureScanner features=new FeatureScanner();
     program.accept(features);
     classes=new ArrayList();
     for (ClassName name:program.classNames()){
@@ -540,6 +542,7 @@ public class Main
         Fail("No overall verdict has been set. Check the output carefully!");
       }
     }
+    Output("entire run took %d ms",System.currentTimeMillis()-globalStart);
   }
 }
 
