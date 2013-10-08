@@ -2,6 +2,7 @@ package hre.io;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.nio.file.Path;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import static hre.System.Debug;
@@ -26,11 +27,11 @@ public class MessageProcess {
    * 
    * @param command_line
    */
-  public MessageProcess(String ... command_line){
+  public MessageProcess(Path path,String ... command_line){
     Runtime runtime=Runtime.getRuntime();
     queue=new LinkedBlockingQueue<Message>();
     try {
-      process=runtime.exec(command_line);
+      process=runtime.exec(command_line,null,path.toFile());
     } catch (IOException e){
       queue.add(new Message("exec error %s",e.getMessage()));
       return;
@@ -41,6 +42,10 @@ public class MessageProcess {
     stderr_parser.start();
     process_input=new PrintStream(process.getOutputStream());
     new ProcessWatcher(process,queue,stdout_parser,stderr_parser).start();
+  }
+  
+  public MessageProcess(String ... command_line){
+    this(null,command_line);
   }
 
   public void send(String format,Object ... args){
