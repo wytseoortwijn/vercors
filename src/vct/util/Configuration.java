@@ -1,8 +1,18 @@
 package vct.util;
 
+import static hre.System.Abort;
+import static hre.System.Progress;
+import static hre.System.Warning;
+
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 import hre.config.BooleanSetting;
 import hre.config.OptionParser;
 import hre.config.StringSetting;
+import hre.io.Message;
+import hre.io.ModuleShell;
 /**
  * This class contains the configuration options of the VerCors library.
  * 
@@ -50,11 +60,103 @@ public class Configuration {
     clops.add(keep_temp_files.getEnable("keep temporary files"),"keep");
     clops.add(detailed_errors.getEnable("produce detailed error messages"),"detail");
     clops.add(backend_file.getAssign("filename for storing the back-end input"),"encoded");
-    clops.add(vct.boogie.Main.boogie_location.getAssign("location of boogie binary"),"boogie-tool");
+    clops.add(vct.boogie.Main.boogie_module.getAssign("name of the boogie environment module"),"boogie-module");
     clops.add(vct.boogie.Main.boogie_timeout.getAssign("boogie time limit"),"boogie-limit");
-    clops.add(vct.boogie.Main.chalice_location.getAssign("location of chalice binary"),"chalice-tool");
-    clops.add(pvl_type_check.getDisable("disable type check in PVL parser"),"no-pvl-check");
+    clops.add(vct.boogie.Main.chalice_module.getAssign("name of the chalice environment module"),"chalice-module");
+//    clops.add(pvl_type_check.getDisable("disable type check in PVL parser"),"no-pvl-check");
     clops.add(assume_single_group.getEnable("enable single group assumptions"),"single-group");
   }
 
+  
+  private static Path home;
+  private static Path generic_deps;
+  private static Path system_deps;
+  private static boolean windows;
+  static {
+    String tmp=System.getenv("VCT_HOME");
+    if (tmp==null){
+      throw new Error("variable VCT_HOME is not set");
+    }
+    home=Paths.get(tmp).toAbsolutePath();
+    if (!home.toFile().isDirectory()){
+      throw new Error("VCT_HOME value "+tmp+" is not a directory");
+    }
+    generic_deps=home.resolve(Paths.get("deps","generic","modules"));
+    String OS=System.getProperty("os.name");
+    String arch=System.getProperty("os.arch");
+    if(windows=OS.startsWith("Windows")){
+      system_deps=home.resolve(Paths.get("deps","Windows","modules"));
+    } else if (OS.equals("Linux")){
+      switch(arch){
+      case "x86":
+        system_deps=home.resolve(Paths.get("deps","Linux-i386","modules"));
+        break;
+      case "amd64":
+        system_deps=home.resolve(Paths.get("deps","Linux-x86_64","modules"));
+        break;
+      default:
+        throw new Error("unknown "+OS+"architecure: "+arch);
+      }
+    } else if (OS.equals("Mac OS X")){
+      system_deps=home.resolve(Paths.get("deps","Darwin-x86_64","modules"));
+    } else {
+      throw new Error("The "+OS+" Operating System is not supported");
+    }
+
+  }
+
+  /**
+   * Get the home of the VerCors Tool installation.
+   * @return VerCors Tool home.
+   */
+  public static Path getHome(){
+    return home;
+  }
+
+  /**
+   * 
+   */
+  public static ModuleShell getShell(String ... modules){
+    ModuleShell shell;
+    try {
+      //System.err.printf("home: %s%ngeneric:%s%nsystem:%s%n",getHome(),generic_deps,system_deps);
+      shell = new ModuleShell(getHome().resolve(Paths.get("modules")),generic_deps,system_deps);
+      for (String m:modules){
+        shell.send("module load %s",m);
+      }
+      shell.send("module list -t");
+      shell.send("echo ==== 1>&2");
+      String line;
+      for(;;){
+        Message msg=shell.recv();
+        if (msg.getFormat().equals("stdout: %s")){
+          line=(String)msg.getArg(0);
+          continue;
+        }
+        if (msg.getFormat().equals("stderr: %s")){
+          line=(String)msg.getArg(0);
+          if (line.equals("Currently Loaded Modulefiles:")) break;
+          continue;
+        }
+        Warning("unexpected shell response");
+        Abort(msg.getFormat(),msg.getArgs());
+      }
+      for(;;){
+        Message msg=shell.recv();
+        if (msg.getFormat().equals("stderr: %s")){
+          line=(String)msg.getArg(0);
+          if (line.contains("echo ====")) continue;
+          if (line.contains("====")) break;
+          Progress("module %s loaded",line);
+          continue;
+        }
+        Warning("unexpected shell response");
+        Abort(msg.getFormat(),msg.getArgs());
+      }
+    } catch (IOException e) {
+      e.printStackTrace();
+      throw new Error(e.getMessage());
+    }
+    return shell;
+  }
 }

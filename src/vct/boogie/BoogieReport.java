@@ -2,7 +2,10 @@
 package vct.boogie;
 
 import hre.ast.TrackingTree;
+import hre.io.Message;
+import hre.io.ModuleShell;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -25,6 +28,7 @@ import vct.util.*;
 
 import static hre.System.Abort;
 import static hre.System.Progress;
+import static hre.System.Warning;
 
 /**
  * Create a test report for a Boogie run from the output file.
@@ -39,7 +43,7 @@ public class BoogieReport extends hre.util.TestReport {
   private int verified_count=0; 
   private int timeout_count=0;
   
-	private static Document parseXmlFile(String filename){
+	private static Document parseXmlFile(File file){
 		//get the factory
 		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 		
@@ -49,7 +53,7 @@ public class BoogieReport extends hre.util.TestReport {
 			DocumentBuilder db = dbf.newDocumentBuilder();
 			
 			//parse using builder to get DOM representation of the XML file
-			return db.parse(filename);
+			return db.parse(file);
 			
 
 		}catch(ParserConfigurationException pce) {
@@ -63,12 +67,19 @@ public class BoogieReport extends hre.util.TestReport {
 		return null;
 	}
 
-  public BoogieReport(InputStream stream,String filename,TrackingTree tree) throws IOException {
-    BufferedReader in=new BufferedReader(new InputStreamReader(stream));
-    PrintStream out=new PrintStream("boogie-output.txt");
+  //public BoogieReport(InputStream stream,String filename,TrackingTree tree) throws IOException {
+  public BoogieReport(ModuleShell shell, File boogie_xml_file, TrackingTree tree) throws IOException {
     String line;
-    while((line=in.readLine())!=null){
-      out.println(line);
+    for(;;){
+      Message msg=shell.recv();
+      if (msg.getFormat().equals("exit %d")) break;
+      //System.err.printf(msg.getFormat(),msg.getArgs());
+      //System.err.println();
+      if (msg.getFormat().equals("stderr: %s") || msg.getFormat().equals("stdout: %s")){
+        line=(String)msg.getArg(0);
+      } else {
+        continue;
+      }
       if (line.matches(".*Boogie program verifier finished.*")){
         finished=true;
         String words[]=line.split(" ");
@@ -78,8 +89,8 @@ public class BoogieReport extends hre.util.TestReport {
           if (words[i].equals("time")) timeout_count=Integer.parseInt(words[i-1]);
         }
       }
+      Warning("unclaimed output in Boogie report: %s",line);
     }
-    out.close();
     if (!finished){
       setVerdict(Verdict.Error);
     } else if (timeout_count>0){
@@ -89,11 +100,11 @@ public class BoogieReport extends hre.util.TestReport {
     } else {
       setVerdict(Verdict.Pass);
     }
-    Progress("parsing %s\n",filename);
-    Document dom=parseXmlFile(filename);
-    Progress("interpreting %s\n",filename);
+    Progress("parsing %s\n",boogie_xml_file);
+    Document dom=parseXmlFile(boogie_xml_file);
+    Progress("interpreting %s\n",boogie_xml_file);
     parseDocument(dom,tree);
-    Progress("finished %s\n",filename);
+    Progress("finished %s\n",boogie_xml_file);
   }
   
   private void parseDocument(Document dom,TrackingTree tree){

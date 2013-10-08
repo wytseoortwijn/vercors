@@ -4,6 +4,8 @@ package vct.boogie;
 import hre.ast.FileOrigin;
 import hre.ast.Origin;
 import hre.ast.TrackingTree;
+import hre.io.Message;
+import hre.io.ModuleShell;
 
 import java.io.*;
 import java.util.*;
@@ -25,12 +27,25 @@ public class ChaliceReport extends hre.util.TestReport {
   private boolean boogie_started;
   private boolean boogie_completed;
   
-  public ChaliceReport(InputStream stream,TrackingTree tree){
+  public ChaliceReport(ModuleShell shell,TrackingTree tree){
     try {
-      BufferedReader in=new BufferedReader(new InputStreamReader(stream));
       String line;
-      while((line=in.readLine())!=null){
+      for(;;){
+        Message msg=shell.recv();
+        Debug(msg.getFormat(),msg.getArgs());
+        if (msg.getFormat().equals("exit %d")) break;
+        //System.err.printf(msg.getFormat(),msg.getArgs());
+        //System.err.println();
+        if (msg.getFormat().equals("stderr: %s") || msg.getFormat().equals("stdout: %s")){
+          line=(String)msg.getArg(0);
+        } else {
+          continue;
+        }
         if (line.equals("")) continue;
+        if (line.startsWith("Unhandled Exception") || line.startsWith("  at ")){
+          Warning("%s",line);
+          continue;
+        }
         if (line.startsWith("  ")){
           //System.out.println("processing:"+line);
           int dot=line.indexOf(".");
@@ -86,9 +101,9 @@ public class ChaliceReport extends hre.util.TestReport {
           int error_count=-1;
           int timeout_count=0;
           for(int i=1;i<words.length;i++){
-			if (words[i].matches("verified.*")) verified_count=Integer.parseInt(words[i-1]);
-			if (words[i].matches("error.*")) error_count=Integer.parseInt(words[i-1]);
-			if (words[i].equals("time")) timeout_count=Integer.parseInt(words[i-1]);
+            if (words[i].matches("verified.*")) verified_count=Integer.parseInt(words[i-1]);
+            if (words[i].matches("error.*")) error_count=Integer.parseInt(words[i-1]);
+            if (words[i].equals("time")) timeout_count=Integer.parseInt(words[i-1]);
           }
           if (error_count==0 && timeout_count==0){
             setVerdict(Verdict.Pass);
@@ -100,7 +115,7 @@ public class ChaliceReport extends hre.util.TestReport {
           }
           continue;
         }
-        System.err.println("chalice: "+line);
+        Warning("unclaimed output in Chalice report: %s",line);
       }
     } catch (Exception e) {
       Warning("unexpected exception %s",e);

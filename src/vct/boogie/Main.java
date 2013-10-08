@@ -8,6 +8,8 @@ import hre.ast.TrackingTree;
 import hre.config.BooleanSetting;
 import hre.config.IntegerSetting;
 import hre.config.StringSetting;
+import hre.io.Message;
+import hre.io.ModuleShell;
 import hre.io.SplittingOutputStream;
 import hre.util.CompositeReport;
 import hre.util.TestReport.Verdict;
@@ -27,9 +29,14 @@ import static hre.System.*;
  */
 public class Main {
 
-  public static StringSetting boogie_location=new StringSetting("vct-boogie");
-  public static IntegerSetting boogie_timeout=new IntegerSetting(15);
-  public static StringSetting chalice_location=new StringSetting("vct-chalice");
+  // The default z3 version is 4.3.1:
+  public static StringSetting z3_module=new StringSetting("z3/4.3.1");
+  // The default boogie version is 2012-10-22:
+  public static StringSetting boogie_module=new StringSetting("boogie/2012-10-22");
+  // The default timeout is set to half an hour, to give Z3 plenty of time yet avoid run-aways. 
+  public static IntegerSetting boogie_timeout=new IntegerSetting(1800);
+  // The default version of Chalice is 2012-11-20:
+  public static StringSetting chalice_module=new StringSetting("chalice/2012-11-20");
   
   /**
    * Generate Boogie code and optionally verify a class.
@@ -37,12 +44,10 @@ public class Main {
    */
   public static BoogieReport TestBoogie(ProgramUnit arg){
     int timeout=boogie_timeout.get();
-    String boogie=boogie_location.get();
+    ModuleShell shell=Configuration.getShell(z3_module.get(),boogie_module.get());
     try {
-      File boogie_input_file=File.createTempFile("boogie-input",".bpl",new File("."));
-      if (!vct.util.Configuration.keep_temp_files.get()){
-        boogie_input_file.deleteOnExit();
-      }
+      File boogie_input_file=File.createTempFile("boogie-input",".bpl",shell.shell_dir.toFile());
+      boogie_input_file.deleteOnExit();
       final PrintStream boogie_input;
       
       if (vct.util.Configuration.backend_file.get()==null){
@@ -54,18 +59,6 @@ public class Main {
         boogie_input=new PrintStream(new SplittingOutputStream(temp,encoded));
       }
       TrackingOutput boogie_code=new TrackingOutput(boogie_input);
-      //InputStream pre_s=ClassLoader.getSystemResourceAsStream("vct/boogie/boogie-prelude.bpl");
-      //if (pre_s==null) throw new Error("missing boogie-prelude.bpl");
-      //BufferedReader pre=new BufferedReader(new InputStreamReader(pre_s));
-      //Origin origin=new MessageOrigin("Boogie Prelude");
-      //boogie_code.enter(origin);
-      //for(;;) {
-      //  String line=pre.readLine();
-      //  if (line==null) break;
-      //  boogie_code.println(line);
-      //}
-      //boogie_code.leave(origin);
-      //pre.close();
       BoogiePrinter printer=new BoogiePrinter(boogie_code);
       for(ASTClass cl:arg.classes()){
         if (cl.getDynamicCount()>0 && cl.getStaticCount()>0) {
@@ -74,17 +67,15 @@ public class Main {
         printer.print(cl);
       }
       TrackingTree tree=boogie_code.close();
-
-      if (boogie==null) Fail("please set location of boogie binary");
-      File boogie_out=File.createTempFile("boogie-out","txt");
-      boogie_out.deleteOnExit();
-      File boogie_err=File.createTempFile("boogie-err","txt");
-      boogie_err.deleteOnExit();
-      int res=hre.Exec.exec(null, boogie_out, boogie_err, boogie,"/timeLimit:"+timeout, "/xml:boogie-output.xml",boogie_input_file.toString());
-      if (res<0){
-        Fail("boogie execution failed with exit code %d",res);
-      }
-      BoogieReport output=new BoogieReport(new FileInputStream(boogie_out),"boogie-output.xml",tree);
+      File boogie_xml_file=File.createTempFile("boogie-output",".xml",shell.shell_dir.toFile());
+      boogie_xml_file.deleteOnExit();
+      //shell.send("which boogie");
+      //shell.send("pwd");
+      //shell.send("ls -al");
+      shell.send("boogie /timeLimit:%s /xml:%s %s",timeout,boogie_xml_file.getName(),boogie_input_file.getName());
+      //shell.send("ls -al");
+      shell.send("exit");
+      BoogieReport output=new BoogieReport(shell,boogie_xml_file,tree);
       return output;
     } catch (Exception e) {
       System.out.println("error: ");
@@ -100,16 +91,16 @@ public class Main {
    * @param program AST of the Chalice program.
    *
    */
-  public static CompositeReport TestChalice(final ProgramUnit program){
+  public static ChaliceReport TestChalice(final ProgramUnit program){
     int timeout=boogie_timeout.get();
-    String chalice=chalice_location.get();
-    CompositeReport report=new CompositeReport();
+    ModuleShell shell=Configuration.getShell(z3_module.get(),boogie_module.get(),chalice_module.get());
+    File shell_dir=shell.shell_dir.toFile();
     System.err.println("Checking with Chalice");
     try {
-      File chalice_input_file=File.createTempFile("chalice-input",".chalice",new File("."));
-      if (!vct.util.Configuration.keep_temp_files.get()){
+      File chalice_input_file=File.createTempFile("chalice-input",".chalice",shell_dir);
+      //if (!vct.util.Configuration.keep_temp_files.get()){
         chalice_input_file.deleteOnExit();
-      }
+      //}
       final PrintStream chalice_input;
       
       if (vct.util.Configuration.backend_file.get()==null){
@@ -132,29 +123,19 @@ public class Main {
       }
       
       TrackingTree tree=chalice_code.close();
-      if (true){
-        if (chalice==null) throw new Error("please set location of chalice binary");
-        File chalice_out=File.createTempFile("chalice-out",".txt");
-        chalice_out.deleteOnExit();
-        File chalice_err=File.createTempFile("chalice-err",".txt");
-        chalice_err.deleteOnExit();
-        int result=hre.Exec.exec(null, chalice_out, chalice_err,chalice,"-boogieOpt:timeLimit:"+timeout,chalice_input_file.toString());
-        ChaliceReport output=new ChaliceReport(new FileInputStream(chalice_out),tree);
-        if (vct.util.Configuration.keep_temp_files.get()){
-          System.err.printf("Input file was kept as: %s%n",chalice_input_file);
-        }
-        if (result!=0) {
-          Warning("Unexpected return value from Chalice: %d",result);
-          output.setVerdict(Verdict.Error);
-        }
-        report.addReport(output);
-      }
+        //shell.send("which chalice");
+        //shell.send("pwd");
+        //shell.send("ls -al");
+        shell.send("chalice -boogieOpt:timeLimit:%d %s",timeout,chalice_input_file.getName());
+        //shell.send("ls -al");
+        shell.send("exit");
+        ChaliceReport output=new ChaliceReport(shell,tree);
+        return output;
     } catch (Exception e) {
       Warning("error: ");
       e.printStackTrace();
-      report.setVerdict(Verdict.Error);
+      return null;
     }
-    return report;
   }
 
 }
