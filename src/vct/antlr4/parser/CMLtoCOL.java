@@ -1,0 +1,642 @@
+package vct.antlr4.parser;
+
+import hre.ast.MessageOrigin;
+
+import org.antlr.v4.runtime.BufferedTokenStream;
+import org.antlr.v4.runtime.Parser;
+import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.tree.ParseTree;
+
+import vct.clang.printer.CSyntax;
+import vct.col.ast.*;
+import vct.parsers.CMLLexer;
+import vct.parsers.CMLParser.AbstractDeclaratorContext;
+import vct.parsers.CMLParser.AdditiveExpressionContext;
+import vct.parsers.CMLParser.AlignmentSpecifierContext;
+import vct.parsers.CMLParser.AndExpressionContext;
+import vct.parsers.CMLParser.ArgumentExpressionListContext;
+import vct.parsers.CMLParser.AssignmentExpressionContext;
+import vct.parsers.CMLParser.AssignmentOperatorContext;
+import vct.parsers.CMLParser.AtomicTypeSpecifierContext;
+import vct.parsers.CMLParser.BlockItemContext;
+import vct.parsers.CMLParser.BlockItemListContext;
+import vct.parsers.CMLParser.CastExpressionContext;
+import vct.parsers.CMLParser.CompilationUnitContext;
+import vct.parsers.CMLParser.CompoundStatementContext;
+import vct.parsers.CMLParser.ConditionalExpressionContext;
+import vct.parsers.CMLParser.ConstantExpressionContext;
+import vct.parsers.CMLParser.ContractClauseContext;
+import vct.parsers.CMLParser.ContractContext;
+import vct.parsers.CMLParser.DeclarationContext;
+import vct.parsers.CMLParser.DeclarationListContext;
+import vct.parsers.CMLParser.DeclarationSpecifierContext;
+import vct.parsers.CMLParser.DeclarationSpecifiers2Context;
+import vct.parsers.CMLParser.DeclarationSpecifiersContext;
+import vct.parsers.CMLParser.DeclaratorContext;
+import vct.parsers.CMLParser.DesignationContext;
+import vct.parsers.CMLParser.DesignatorContext;
+import vct.parsers.CMLParser.DesignatorListContext;
+import vct.parsers.CMLParser.DirectAbstractDeclaratorContext;
+import vct.parsers.CMLParser.DirectDeclaratorContext;
+import vct.parsers.CMLParser.EnumSpecifierContext;
+import vct.parsers.CMLParser.EnumerationConstantContext;
+import vct.parsers.CMLParser.EnumeratorContext;
+import vct.parsers.CMLParser.EnumeratorListContext;
+import vct.parsers.CMLParser.EqualityExpressionContext;
+import vct.parsers.CMLParser.ExclusiveOrExpressionContext;
+import vct.parsers.CMLParser.ExpressionContext;
+import vct.parsers.CMLParser.ExpressionStatementContext;
+import vct.parsers.CMLParser.ExternalDeclarationContext;
+import vct.parsers.CMLParser.FunctionDefinitionContext;
+import vct.parsers.CMLParser.FunctionSpecifierContext;
+import vct.parsers.CMLParser.GccAttributeContext;
+import vct.parsers.CMLParser.GccAttributeListContext;
+import vct.parsers.CMLParser.GccAttributeSpecifierContext;
+import vct.parsers.CMLParser.GccDeclaratorExtensionContext;
+import vct.parsers.CMLParser.GenericAssocListContext;
+import vct.parsers.CMLParser.GenericAssociationContext;
+import vct.parsers.CMLParser.GenericSelectionContext;
+import vct.parsers.CMLParser.IdentifierListContext;
+import vct.parsers.CMLParser.InclusiveOrExpressionContext;
+import vct.parsers.CMLParser.InitDeclaratorContext;
+import vct.parsers.CMLParser.InitDeclaratorListContext;
+import vct.parsers.CMLParser.InitializerContext;
+import vct.parsers.CMLParser.InitializerListContext;
+import vct.parsers.CMLParser.IterationStatementContext;
+import vct.parsers.CMLParser.JumpStatementContext;
+import vct.parsers.CMLParser.LabeledStatementContext;
+import vct.parsers.CMLParser.LogicalAndExpressionContext;
+import vct.parsers.CMLParser.LogicalOrExpressionContext;
+import vct.parsers.CMLParser.MultiplicativeExpressionContext;
+import vct.parsers.CMLParser.NestedParenthesesBlockContext;
+import vct.parsers.CMLParser.ParameterDeclarationContext;
+import vct.parsers.CMLParser.ParameterListContext;
+import vct.parsers.CMLParser.ParameterTypeListContext;
+import vct.parsers.CMLParser.PointerContext;
+import vct.parsers.CMLParser.PostfixExpressionContext;
+import vct.parsers.CMLParser.PrimaryExpressionContext;
+import vct.parsers.CMLParser.RelationalExpressionContext;
+import vct.parsers.CMLParser.ResourceContext;
+import vct.parsers.CMLParser.SelectionStatementContext;
+import vct.parsers.CMLParser.ShiftExpressionContext;
+import vct.parsers.CMLParser.SpecifierQualifierListContext;
+import vct.parsers.CMLParser.StatementContext;
+import vct.parsers.CMLParser.StaticAssertDeclarationContext;
+import vct.parsers.CMLParser.StorageClassSpecifierContext;
+import vct.parsers.CMLParser.StructDeclarationContext;
+import vct.parsers.CMLParser.StructDeclarationListContext;
+import vct.parsers.CMLParser.StructDeclaratorContext;
+import vct.parsers.CMLParser.StructDeclaratorListContext;
+import vct.parsers.CMLParser.StructOrUnionContext;
+import vct.parsers.CMLParser.StructOrUnionSpecifierContext;
+import vct.parsers.CMLParser.TranslationUnitContext;
+import vct.parsers.CMLParser.TypeNameContext;
+import vct.parsers.CMLParser.TypeQualifierContext;
+import vct.parsers.CMLParser.TypeQualifierListContext;
+import vct.parsers.CMLParser.TypeSpecifierContext;
+import vct.parsers.CMLParser.TypedefNameContext;
+import vct.parsers.CMLParser.UnaryExpressionContext;
+import vct.parsers.CMLParser.UnaryOperatorContext;
+import vct.parsers.CMLVisitor;
+import vct.util.Syntax;
+
+public class CMLtoCOL extends AbstractCtoCOL implements CMLVisitor<ASTNode> {
+
+  public static CompilationUnit convert(ParseTree tree, String file_name,BufferedTokenStream tokens,org.antlr.v4.runtime.Parser parser) {
+    CMLtoCOL visitor=new CMLtoCOL(CSyntax.getCML(),file_name,tokens,parser,CMLLexer.Identifier,CMLLexer.COMMENT);
+    visitor.scan_to(visitor.unit,tree);
+    return visitor.unit;
+  }
+
+  public CMLtoCOL(Syntax syntax, String filename, BufferedTokenStream tokens,
+      Parser parser, int identifier, int comment
+  ) {
+    super(syntax, filename, tokens, parser, identifier, CMLLexer.class);
+  }
+
+  @Override
+  public ASTNode visitAbstractDeclarator(AbstractDeclaratorContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitAdditiveExpression(AdditiveExpressionContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitAlignmentSpecifier(AlignmentSpecifierContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitAndExpression(AndExpressionContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitArgumentExpressionList(ArgumentExpressionListContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitAssignmentExpression(AssignmentExpressionContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitAssignmentOperator(AssignmentOperatorContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitAtomicTypeSpecifier(AtomicTypeSpecifierContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitBlockItem(BlockItemContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitBlockItemList(BlockItemListContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitCastExpression(CastExpressionContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitCompilationUnit(CompilationUnitContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitCompoundStatement(CompoundStatementContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitConditionalExpression(ConditionalExpressionContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitConstantExpression(ConstantExpressionContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitContract(ContractContext ctx) {
+    return getContract(ctx);
+  }
+
+  @Override
+  public ASTNode visitContractClause(ContractClauseContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitDeclaration(DeclarationContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitDeclarationList(DeclarationListContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitDeclarationSpecifier(DeclarationSpecifierContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitDeclarationSpecifiers(DeclarationSpecifiersContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitDeclarationSpecifiers2(DeclarationSpecifiers2Context ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitDeclarator(DeclaratorContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitDesignation(DesignationContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitDesignator(DesignatorContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitDesignatorList(DesignatorListContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitDirectAbstractDeclarator(
+      DirectAbstractDeclaratorContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitDirectDeclarator(DirectDeclaratorContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitEnumerationConstant(EnumerationConstantContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitEnumerator(EnumeratorContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitEnumeratorList(EnumeratorListContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitEnumSpecifier(EnumSpecifierContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitEqualityExpression(EqualityExpressionContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitExclusiveOrExpression(ExclusiveOrExpressionContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitExpression(ExpressionContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitExpressionStatement(ExpressionStatementContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitExternalDeclaration(ExternalDeclarationContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitFunctionDefinition(FunctionDefinitionContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitFunctionSpecifier(FunctionSpecifierContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitGccAttribute(GccAttributeContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitGccAttributeList(GccAttributeListContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitGccAttributeSpecifier(GccAttributeSpecifierContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitGccDeclaratorExtension(GccDeclaratorExtensionContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitGenericAssociation(GenericAssociationContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitGenericAssocList(GenericAssocListContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitGenericSelection(GenericSelectionContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitIdentifierList(IdentifierListContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitInclusiveOrExpression(InclusiveOrExpressionContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitInitDeclarator(InitDeclaratorContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitInitDeclaratorList(InitDeclaratorListContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitInitializer(InitializerContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitInitializerList(InitializerListContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitIterationStatement(IterationStatementContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitJumpStatement(JumpStatementContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitLabeledStatement(LabeledStatementContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitLogicalAndExpression(LogicalAndExpressionContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitLogicalOrExpression(LogicalOrExpressionContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitMultiplicativeExpression(
+      MultiplicativeExpressionContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitNestedParenthesesBlock(NestedParenthesesBlockContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitParameterDeclaration(ParameterDeclarationContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitParameterList(ParameterListContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitParameterTypeList(ParameterTypeListContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitPointer(PointerContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitPostfixExpression(PostfixExpressionContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitPrimaryExpression(PrimaryExpressionContext ctx) {
+    return visitPrimaryExpression((ParserRuleContext)ctx);
+  }
+
+  @Override
+  public ASTNode visitRelationalExpression(RelationalExpressionContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitResource(ResourceContext ctx) {
+    if (match(ctx,"perm","(",null,",",null,")")){
+      return create.expression(StandardOperator.Perm,convert(ctx,2),convert(ctx,4));
+    }
+    return null;
+  }
+
+  @Override
+  public ASTNode visitSelectionStatement(SelectionStatementContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitShiftExpression(ShiftExpressionContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitSpecifierQualifierList(SpecifierQualifierListContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitStatement(StatementContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitStaticAssertDeclaration(StaticAssertDeclarationContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitStorageClassSpecifier(StorageClassSpecifierContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitStructDeclaration(StructDeclarationContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitStructDeclarationList(StructDeclarationListContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitStructDeclarator(StructDeclaratorContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitStructDeclaratorList(StructDeclaratorListContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitStructOrUnion(StructOrUnionContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitStructOrUnionSpecifier(StructOrUnionSpecifierContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitTranslationUnit(TranslationUnitContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitTypedefName(TypedefNameContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitTypeName(TypeNameContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitTypeQualifier(TypeQualifierContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitTypeQualifierList(TypeQualifierListContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitTypeSpecifier(TypeSpecifierContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitUnaryExpression(UnaryExpressionContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitUnaryOperator(UnaryOperatorContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+
+}
