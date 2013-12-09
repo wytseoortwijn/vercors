@@ -1065,7 +1065,7 @@ JavaLetterOrDigit
 
 AT : '@';
 ELLIPSIS : '...';
-PLACEHOLDER : [\u0000]; // to be defined in an extension.
+PLACEHOLDER : EOF EOF; // to be defined in an extension.
 
 //
 // Whitespace and comments
