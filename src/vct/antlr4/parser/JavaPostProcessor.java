@@ -145,6 +145,24 @@ public class JavaPostProcessor extends AbstractRewriter {
         }
         break;
       }
+      case LT:
+      case LTE:
+      {
+        ASTNode arg0=rewrite(e.getArg(0));
+        ASTNode arg1=rewrite(e.getArg(1));
+        OperatorExpression res;
+        if (arg0 instanceof OperatorExpression && is_comparison(((OperatorExpression)arg0).getOperator())){
+          ASTNode tmp=rewrite(((OperatorExpression)e.getArg(0)).getArg(1));
+          arg1=create.expression(e.getOperator(),tmp,arg1);
+          res=create.expression(StandardOperator.And,arg0,arg1);
+        } else {
+          res=create.expression(e.getOperator(),arg0,arg1);
+        }
+        res.set_before(null);
+        res.set_after(null);
+        result=process_with_then(res,e);
+        return;
+      }
     }
     super.visit(e);
     OperatorExpression res=(OperatorExpression) result;
@@ -153,6 +171,15 @@ public class JavaPostProcessor extends AbstractRewriter {
     result=process_with_then(res,e);
   }
   
+  private boolean is_comparison(StandardOperator operator) {
+    switch(operator){
+    case LT:
+    case LTE:
+      return true;
+    }
+    return false;
+  }
+
   @Override
   public void visit(LoopStatement s){
     super.visit(s);
