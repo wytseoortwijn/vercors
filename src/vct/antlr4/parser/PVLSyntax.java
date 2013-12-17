@@ -1,9 +1,17 @@
 package vct.antlr4.parser;
 
+
 import vct.util.Syntax;
 import static vct.col.ast.StandardOperator.*;
 import static vct.col.ast.PrimitiveType.Sort.*;
 
+/**
+ * Defines the syntax of common types and operations of  
+ * the Program Verification Language (PVL).
+ * 
+ * @see Syntax
+ * 
+ */
 public class PVLSyntax {
 
   private static Syntax syntax;

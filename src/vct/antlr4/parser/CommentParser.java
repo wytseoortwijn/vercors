@@ -18,6 +18,9 @@ import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 
+/**
+ * Common setup for parsing specification comments.
+ */ 
 public abstract class CommentParser<Parser extends org.antlr.v4.runtime.Parser,Lexer extends org.antlr.v4.runtime.Lexer> {
   
   protected Parser parser;

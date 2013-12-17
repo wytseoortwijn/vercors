@@ -24,7 +24,12 @@ import vct.util.Syntax;
 import static hre.System.*;
 import org.apache.commons.lang3.StringEscapeUtils;
 
-public class AbstractJavaToCol extends VCTVisitor {
+/**
+ * Convert the shared parts of JML and Java parse trees to COL.
+ *
+ * @author <a href="mailto:s.c.c.blom@utwente.nl">Stefan Blom</a>
+*/
+public class AbstractJavaToCol extends ANTLRtoCOL {
 
   private final int IntegerLiteral;
   private final int StringLiteral;
@@ -138,10 +143,10 @@ public class AbstractJavaToCol extends VCTVisitor {
     return create.expression(StandardOperator.Build,n);
   }
   public ASTNode getCreator(ParserRuleContext ctx){
-    if (match(ctx,null,context.get("ClassCreatorRestContext"))){
+    if (match(ctx,null,"ClassCreatorRestContext")){
       ParserRuleContext rest_ctx=(ParserRuleContext)ctx.getChild(1);
       String name=getIdentifier(ctx,0);
-      if (match(rest_ctx,context.get("ArgumentsContext"))){
+      if (match(rest_ctx,"ArgumentsContext")){
         ParserRuleContext args_ctx=(ParserRuleContext)rest_ctx.getChild(0);
         ASTNode args[];
         if (args_ctx.getChildCount()>2){
@@ -262,12 +267,12 @@ public class AbstractJavaToCol extends VCTVisitor {
   }
 
   public ASTNode getClassBodyDeclaration(ParserRuleContext ctx) {
-    if (match(ctx,"static",context.get("BlockContext"))){
+    if (match(ctx,"static","BlockContext")){
       ASTNode res=convert(ctx,1);
       res.setStatic(true);
       return res;
     }
-    if (match(ctx,BlockContext.class)){
+    if (match(ctx,"BlockContext")){
       return convert(ctx,0);
     }
     return convert_annotated(ctx);
@@ -288,7 +293,7 @@ public class AbstractJavaToCol extends VCTVisitor {
       scan_comments_after(res.get_after(),ctx.getChild(1));
       return res;
     }
-    if (match(ctx,context.get("ExpressionContext"),";")){
+    if (match(ctx,"Expression",";")){
       return create.special(ASTSpecial.Kind.Expression,convert(ctx,0)); 
     }
     if (match(ctx,"while",null,null)){
@@ -375,7 +380,7 @@ public class AbstractJavaToCol extends VCTVisitor {
       name[1]=getIdentifier(ctx,2);
       return create.class_type(name);
     }
-    if (match(ctx,null,context.get("TypeArgumentsContext"))){
+    if (match(ctx,null,"TypeArgumentsContext")){
       String name=getIdentifier(ctx,0);
       ParserRuleContext arg_ctx=(ParserRuleContext)ctx.getChild(1);
       ASTNode args[]=convert_list(arg_ctx,1,arg_ctx.getChildCount()-1,",");
@@ -407,10 +412,13 @@ public class AbstractJavaToCol extends VCTVisitor {
     ClassType[]bases=null;
     ClassType[]supports=null;
     ContractBuilder cb=new ContractBuilder();
+    //Warning("class decl %s",ctx.toStringTree(parser));
     for(int i=2;i<N;i++){
+      //Warning("i==%d",i);
       if (match(i,true,ctx,"extends",null)){
         bases=new ClassType[]{forceClassType(convert(ctx,i+1))};
-      } else if (match(i,true,ctx,context.get("TypeParametersContext"))){
+        i+=1;
+      } else if (match(i,true,ctx,"TypeParametersContext")){
         ParserRuleContext pars=(ParserRuleContext)ctx.getChild(i);
         int K=pars.getChildCount();
         for(int k=1;k<K;k+=2){
@@ -431,7 +439,7 @@ public class AbstractJavaToCol extends VCTVisitor {
     Debug("converting type parameter %s",tree.toStringTree(parser));
     if (tree instanceof ParserRuleContext) {
       ParserRuleContext ctx=(ParserRuleContext)tree;
-      if (match(ctx,context.get("TypeParameterContext"))){
+      if (match(ctx,"TypeParameterContext")){
         cb.given(create.field_decl(getIdentifier(ctx,0),create.primitive_type(Sort.Class)));
       } else {
         Abort("missing case");

@@ -9,6 +9,9 @@ import vct.col.ast.Contract;
 import vct.parsers.JavaJMLLexer;
 import vct.parsers.JavaJMLParser;
 
+/**
+ * Parser for JML comments.
+ */
 public class JMLCommentParser extends CommentParser<JavaJMLParser,JavaJMLLexer> {
 
   public JMLCommentParser() {

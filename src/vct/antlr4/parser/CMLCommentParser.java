@@ -13,6 +13,10 @@ import vct.col.ast.Contract;
 import vct.parsers.CMLLexer;
 import vct.parsers.CMLParser;
 
+/**
+ * Parser for CML comments.
+ * 
+ */
 public class CMLCommentParser extends CommentParser<CMLParser,CMLLexer> {
 
   public CMLCommentParser() {

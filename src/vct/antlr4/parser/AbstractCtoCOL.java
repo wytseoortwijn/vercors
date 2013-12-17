@@ -11,7 +11,16 @@ import vct.col.ast.ASTNode;
 import vct.parsers.CParser.PrimaryExpressionContext;
 import vct.util.Syntax;
 
-public abstract class AbstractCtoCOL extends VCTVisitor {
+/**
+ * Convert the shared parts of CML and C parse trees to COL.
+ *
+ * This class contains the conversions for parse tree nodes,
+ * which are handled identically for CML and C and which
+ * cannot be handled by the generic methods in ANTLRtoCOL.
+ * 
+ * @author <a href="mailto:s.c.c.blom@utwente.nl">Stefan Blom</a>
+*/
+public abstract class AbstractCtoCOL extends ANTLRtoCOL {
 
   public AbstractCtoCOL(Syntax syntax,
       String filename,

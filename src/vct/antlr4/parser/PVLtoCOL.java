@@ -53,14 +53,20 @@ import vct.col.ast.PrimitiveType.Sort;
 import vct.util.Syntax;
 import static vct.col.ast.ASTReserved.*;
 
-public class PVLtoCOL2 extends VCTVisitor implements PVFullVisitor<ASTNode> {
+/**
+ * Convert ANTLR parse trees for PVL to COL.
+ * 
+ * @author <a href="mailto:s.c.c.blom@utwente.nl">Stefan Blom</a>
+*/
+public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
 
   public static CompilationUnit convert(ParseTree tree, String file_name,BufferedTokenStream tokens,org.antlr.v4.runtime.Parser parser) {
-    PVLtoCOL2 visitor=new PVLtoCOL2(PVLSyntax.get(),file_name,tokens,parser);
-    tree.accept(visitor);
-    return visitor.unit;
+    CompilationUnit unit=new CompilationUnit(file_name);
+    PVLtoCOL visitor=new PVLtoCOL(PVLSyntax.get(),file_name,tokens,parser);
+    visitor.scan_to(unit,tree);
+    return unit;
   }
-  public PVLtoCOL2(Syntax syntax, String filename, BufferedTokenStream tokens,org.antlr.v4.runtime.Parser parser) {
+  public PVLtoCOL(Syntax syntax, String filename, BufferedTokenStream tokens,org.antlr.v4.runtime.Parser parser) {
     super(syntax, filename, tokens,parser,PVFullLexer.ID,PVFullLexer.class);
   }
 
@@ -240,7 +246,7 @@ public class PVLtoCOL2 extends VCTVisitor implements PVFullVisitor<ASTNode> {
   @Override
   public ASTNode visitType(TypeContext ctx) {
     ASTNode res=null;
-    if (match(0,true,ctx,TerminalNode.class)){
+    if (match(0,true,ctx,"TerminalNode")){
       Sort sort=Sort.Void;
       switch(ctx.children.get(0).toString()){
       case "boolean": res=create.primitive_type(sort=Sort.Boolean); break;
@@ -256,7 +262,7 @@ public class PVLtoCOL2 extends VCTVisitor implements PVFullVisitor<ASTNode> {
     }
     int N=ctx.children.size()/3;
     for(int i=0;i<N;i++){
-      if (match(3*i+1,true,ctx,"[",ExprContext.class,"]")){
+      if (match(3*i+1,true,ctx,"[","ExprContext","]")){
         res=create.primitive_type(Sort.Array,res,convert(ctx.children.get(3*i+2)));
       } else {
         Fail("unknown type %s",ctx.toStringTree());
@@ -298,8 +304,8 @@ public class PVLtoCOL2 extends VCTVisitor implements PVFullVisitor<ASTNode> {
     return res;
   }
   
-  private Class type_expr=PVFullParser.TypeContext.class;
-  private Class tuple=PVFullParser.TupleContext.class;
+  private String type_expr="TypeContext";
+  private String tuple="TupleContext";
 
   @Override
   public ASTNode visitStatement(StatementContext ctx) {
@@ -407,6 +413,7 @@ public class PVLtoCOL2 extends VCTVisitor implements PVFullVisitor<ASTNode> {
 
   @Override
   public ASTNode visitProgram(ProgramContext ctx) {
+    /*
     for(ParseTree item:ctx.children){
       if (item instanceof ClazContext || item instanceof KernelContext){
         ASTClass cl=(ASTClass)convert(item);
@@ -415,6 +422,7 @@ public class PVLtoCOL2 extends VCTVisitor implements PVFullVisitor<ASTNode> {
         Fail("cannot handle %s at top level",item.getClass());
       }
     }
+*/
     return null;
   }
 

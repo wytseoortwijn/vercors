@@ -41,24 +41,73 @@ import vct.util.Syntax;
 
 import static hre.System.*;
 
-public class VCTVisitor implements ParseTreeVisitor<ASTNode> {
+/**
+ * Convert common parts of all ANTLR parse trees to COL.
+ * 
+ * This class implements functionality that all parse tree converters need.
+ *
+ * @author <a href="mailto:s.c.c.blom@utwente.nl">Stefan Blom</a>
+*/
+public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
 
+  /** Syntax of the language being parsed. */ 
   protected final Syntax syntax;
+  /** Factory for COL AST nodes. */
   protected final ASTFactory<ParseTree> create=new ASTFactory<ParseTree>();
+  /** Reference to the token stream, needed to access comments and otehr hidden tokens. */
   protected final BufferedTokenStream tokens;
+
+  /** Name of the file that was parsed. */
   protected final String filename;
+  /** File from which the current position was read. */
   protected String current_filename;
-  protected CompilationUnit unit;
+  /** Keep track of the difference between input line numbers and file line numbers. */
+  protected int line_offset;
+  
+  /** Reference to the parser, used for debugging messages. */
   protected final org.antlr.v4.runtime.Parser parser;
+  
+  /** Number of the token for identifiers. */
   protected final int id_token;
+  
+  /** The number of the channel used for comments. */
   protected final int ch_comment;
-  protected final int ch_control;
+  /** The number of the channel used for line directives.
+   * 
+   *  When a file is passed through the C Pre Processor, line directives
+   *  are added in order to be able to tell from which file the following lines
+   *  were included. We also use this features to get the correct line numbers
+   *  for specification comments. */ 
   protected final int ch_line_direction;
+  
+  /**
+   * Keeps track of the (specification) comments that have already been attached to the AST. 
+   */
   private HashSet<Integer> attached_comments=new HashSet<Integer>();
+  
+  /**
+   * Keeps track of the line directives that have been processed already.
+   */
   private HashSet<Integer> interpreted_directions=new HashSet<Integer>();
+  
+  /**
+   * Even though ANTLR4 grammars can share large parts, their parsers
+   * do not share their internal classes. Thus we need to use reflection
+   * to map the shared names for rules in the grammar to classes.
+   */
   protected HashMap<String,Class<?>> context=new HashMap<String,Class<?>>();
 
-  public VCTVisitor(Syntax syntax,String filename,BufferedTokenStream tokens,
+  /**
+   * Create a new parse tree converter.
+   * 
+   * @param syntax Syntax for the common types and operations of the language the is being converted.
+   * @param filename The name of the main file that was parsed to generate the parse tree.
+   * @param tokens The token stream from which the par tree was built.
+   * @param parser The parser for the language that is being converted.
+   * @param identifier The number of the token that represents identifiers.
+   * @param lexer_class The class of the lexer for the language.
+   */
+  public ANTLRtoCOL(Syntax syntax,String filename,BufferedTokenStream tokens,
       org.antlr.v4.runtime.Parser parser, int identifier, Class<?> lexer_class){
     this.syntax=syntax;
     this.filename=filename;
@@ -66,19 +115,27 @@ public class VCTVisitor implements ParseTreeVisitor<ASTNode> {
     this.tokens=tokens;
     this.parser=parser;
     this.id_token=identifier;
-    unit=new CompilationUnit(filename);
     ch_comment=getStaticInt(lexer_class,"COMMENT");
-    ch_control=getStaticInt(lexer_class,"CONTROL");
     ch_line_direction=getStaticInt(lexer_class,"LINEDIRECTION");
     Class<?> parser_classes[]=parser.getClass().getDeclaredClasses();
     for(Class<?> cl:parser_classes){
-      context.put(cl.getName(),cl);
+      String name=cl.getName();
+      int pos=name.lastIndexOf('$');
+      name=name.substring(pos+1);
+      //Warning("putting %s",name);
+      context.put(name,cl);
     }
+    context.put("TerminalNode", TerminalNode.class);
   }
 
   
-  private int line_offset;
-  
+  /**
+   * Process line directives to generate the origin of a range of tokens.
+   * 
+   * @param tok1 First token in the range.
+   * @param tok2 Last token in the range.
+   * @return Origin of the range [tok1,tok2].
+   */
   public Origin origin(Token tok1,Token tok2){
     List<Token> direction=tokens.getHiddenTokensToLeft(tok1.getTokenIndex(),ch_line_direction);
     if (direction!=null) {
@@ -99,6 +156,7 @@ public class VCTVisitor implements ParseTreeVisitor<ASTNode> {
     
   }
 
+  /** Get static field by reflection. */
   public static int getStaticInt(Class<?> cl,String field){
     try {
       Field f=cl.getDeclaredField(field);
@@ -115,6 +173,9 @@ public class VCTVisitor implements ParseTreeVisitor<ASTNode> {
     throw hre.System.Failure("class has no static field %s",field);
   }
   
+  /** Enter a new context for processing parse trees by setting the current origin
+   *  in the AST factory.
+   */
   public void enter(ParseTree node){
     create.enter();
     Origin origin;
@@ -129,7 +190,8 @@ public class VCTVisitor implements ParseTreeVisitor<ASTNode> {
     }
     create.setOrigin(origin);
   }
-
+  
+  /** Leave context after parse tree has been converted. */ 
   public void leave(ParseTree node, ASTNode res) {
     if (//res instanceof vct.col.ast.MethodInvokation ||
         res instanceof vct.col.ast.LoopStatement){
@@ -428,25 +490,56 @@ public class VCTVisitor implements ParseTreeVisitor<ASTNode> {
     return res;
   }
 
-  protected static boolean match(ParserRuleContext ctx,Object ... pattern){
+  /**
+   * Check if the children of an ANTLT parse tree node match a given pattern.
+   * 
+   * The pattern matching has three cases:
+   * <ul>
+   * <li> A string which matches the name of a parse tree node matches only nodes of that type. </li>
+   * <li> A non-null string matches a token with the same contents. </li>
+   * <li> A null string matches any node.</li>
+   * </ul>
+   * @param ctx The node that has to be matched.
+   * @param pattern The pattern that has to be matched.
+   * @return true in case of a match and false otherwise.
+   */
+  protected boolean match(ParserRuleContext ctx,String ... pattern){
     return match(0,false,ctx,pattern);
   }
-  protected static boolean match(int ofs,boolean prefix,ParserRuleContext ctx,Object ... pattern){
+  /**
+   * Check if a sub-range of the children of an ANTLT parse tree node match a given pattern.
+   * 
+   * The pattern matching has three cases:
+   * <ul>
+   * <li> A string which matches the name of a parse tree node matches only nodes of that type. </li>
+   * <li> A non-null string matches a token with the same contents. </li>
+   * <li> A null string matches any node.</li>
+   * </ul>
+   * 
+   * @param ofs First node to match.
+   * @param prefix Accept match if there are more children.
+   * @param ctx The node that has to be matched.
+   * @param pattern The pattern that has to be matched.
+   * @return true in case of a match and false otherwise.
+   */
+  protected boolean match(int ofs,boolean prefix,ParserRuleContext ctx,String ... pattern){
     if (ctx.children==null) return pattern.length==0 && ofs==0;
     if (ctx.children.size()<ofs+pattern.length) return false;
     if (!prefix && ctx.children.size()>ofs+pattern.length) return false;
     for(int i=0;i<pattern.length;i++){
       if (pattern[i]==null) continue;
       ParseTree item=ctx.children.get(ofs+i);
-      if (pattern[i] instanceof String){
+      Class cls=context.get(pattern[i]);
+      if (cls==null){
+        cls=context.get(pattern[i]+"Context");
+      }
+      if (cls!=null){
+        if (cls.isInstance(item)) continue;
+        return false;
+      } else {
         if (item.toString().equals(pattern[i])) continue;
         return false;
       }
-      if (pattern[i] instanceof Class){
-        if(((Class)(pattern[i])).isInstance(item)) continue;
-        return false;
-      }
-      Abort("cannot match %s",pattern[i].getClass());
     }
     return true;
   }
