@@ -100,12 +100,22 @@ import vct.parsers.CMLParser.UnaryOperatorContext;
 import vct.parsers.CMLVisitor;
 import vct.util.Syntax;
 
+/**
+ * Convert CML (C Modeling Language) parse trees to COL.
+ *
+ * This class contains the conversions for parse tree nodes,
+ * which are unique to CML or have to be handled differently
+ * from the same node for C.
+ * 
+ * @author <a href="mailto:s.c.c.blom@utwente.nl">Stefan Blom</a>
+*/
 public class CMLtoCOL extends AbstractCtoCOL implements CMLVisitor<ASTNode> {
 
   public static CompilationUnit convert(ParseTree tree, String file_name,BufferedTokenStream tokens,org.antlr.v4.runtime.Parser parser) {
+    CompilationUnit unit=new CompilationUnit(file_name);
     CMLtoCOL visitor=new CMLtoCOL(CSyntax.getCML(),file_name,tokens,parser,CMLLexer.Identifier,CMLLexer.COMMENT);
-    visitor.scan_to(visitor.unit,tree);
-    return visitor.unit;
+    visitor.scan_to(unit,tree);
+    return unit;
   }
 
   public CMLtoCOL(Syntax syntax, String filename, BufferedTokenStream tokens,

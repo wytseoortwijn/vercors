@@ -103,15 +103,41 @@ import vct.util.Syntax;
 
 import static hre.System.*;
 
+/**
+ * Convert C parse trees to COL.
+ *
+ * This class contains the conversions for parse tree nodes,
+ * which are unique to C or have to be handled differently
+ * from the same node for CML.
+ * 
+ * The methods in this class return null unless they need to override
+ * the default behavior in ANTLRtoCOL.
+ * 
+ * @author <a href="mailto:s.c.c.blom@utwente.nl">Stefan Blom</a>
+*/
 public class CtoCOL extends AbstractCtoCOL implements CVisitor<ASTNode> {
 
+  /**
+   * Convert an ANTLR4 parse tree of a C program to a COL tree.
+   * @param tree The parse tree to be converted.
+   * @param file_name The file parsed.
+   * @param tokens The token stream produced for the file.
+   * @param parser The instance of the parser used.
+   * @return COL Compilation unit with the contents of the parse tree.
+   */
   public static CompilationUnit convert(ParseTree tree, String file_name,BufferedTokenStream tokens,org.antlr.v4.runtime.Parser parser) {
+    // create a new compilation unit.
+    CompilationUnit unit=new CompilationUnit(file_name);
+    // Create a visitor that can do the conversion.
     CtoCOL visitor=new CtoCOL(CSyntax.getC(),file_name,tokens,parser);
-    visitor.scan_to(visitor.unit,tree);
-    return visitor.unit;
+    // Invoke the generic conversion method in ANTLRtoCOL.
+    // This method will scan the parse tree for declarations
+    // and put them in the compilation unit.
+    visitor.scan_to(unit,tree);
+    return unit;
   }
-  
-  public CtoCOL(Syntax syntax, String filename, BufferedTokenStream tokens,org.antlr.v4.runtime.Parser parser) {
+
+  private CtoCOL(Syntax syntax, String filename, BufferedTokenStream tokens,org.antlr.v4.runtime.Parser parser) {
     super(syntax, filename, tokens,parser,CLexer.Identifier,CLexer.class);
   }
 
@@ -190,15 +216,15 @@ public class CtoCOL extends AbstractCtoCOL implements CVisitor<ASTNode> {
   public ASTNode visitCompoundStatement(CompoundStatementContext ctx) {
     BlockStatement block=create.block();
     if (match(ctx,"{","}")) return block;
-    if (!match(ctx,"{",BlockItemListContext.class,"}")) return null;
+    if (!match(ctx,"{","BlockItemListContext","}")) return null;
     doblock(block,(BlockItemListContext)ctx.getChild(1));
     return block;
   }
 
   private void doblock(BlockStatement block, BlockItemListContext ctx) {
-    if (match(ctx,BlockItemContext.class)){
+    if (match(ctx,"BlockItemContext")){
       block.add_statement(convert(ctx,0));
-    } else if (match(ctx,BlockItemListContext.class,BlockItemContext.class)){
+    } else if (match(ctx,"BlockItemListContext","BlockItemContext")){
       doblock(block,(BlockItemListContext)ctx.getChild(0));
       block.add_statement(convert(ctx,1));
     } else {
@@ -354,16 +380,16 @@ public class CtoCOL extends AbstractCtoCOL implements CVisitor<ASTNode> {
   public ASTNode visitFunctionDefinition(FunctionDefinitionContext ctx) {
     int ofs=0;
     Type t=create.primitive_type(Sort.Integer);
-    if (match(0,true,ctx,DeclarationSpecifierContext.class)){
+    if (match(0,true,ctx,"DeclarationSpecifierContext")){
       ofs=1;
       t=(Type)convert(ctx,1);
     }
     ofs++;
     String name=null;
     ArrayList<DeclarationStatement> args=new ArrayList<DeclarationStatement>();
-    if (match((DeclaratorContext)ctx.getChild(ofs),DirectDeclaratorContext.class)){
+    if (match((DeclaratorContext)ctx.getChild(ofs),"DirectDeclaratorContext")){
       DirectDeclaratorContext decl_ctx=(DirectDeclaratorContext)((DeclaratorContext)ctx.getChild(ofs)).getChild(0);
-      if (match(decl_ctx,null,"(",ParameterTypeListContext.class,")")){
+      if (match(decl_ctx,null,"(","ParameterTypeListContext",")")){
         enter(decl_ctx);
         name=getIdentifier(decl_ctx, 0);
         ParserRuleContext arg_ctx=(ParserRuleContext)decl_ctx.getChild(2);
@@ -388,7 +414,7 @@ public class CtoCOL extends AbstractCtoCOL implements CVisitor<ASTNode> {
     }
     ofs++;
     ASTNode body;
-    if (match(ofs,false,ctx,(Object)null)){
+    if (match(ofs,false,ctx,(String)null)){
       body=convert(ctx,ofs);
     } else {
       return null;

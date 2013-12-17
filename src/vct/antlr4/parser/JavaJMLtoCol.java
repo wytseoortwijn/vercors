@@ -21,12 +21,18 @@ import vct.parsers.JavaJMLParser.SpecificationSequenceContext;
 import vct.parsers.JavaJMLParser.SpecificationStatementContext;
 import vct.util.Syntax;
 
+/**
+ * Convert JML parse trees to COL.
+ *
+ * @author <a href="mailto:s.c.c.blom@utwente.nl">Stefan Blom</a>
+*/
 public class JavaJMLtoCol extends AbstractJavaToCol implements JavaJMLVisitor<ASTNode> {
   
   public static CompilationUnit convert(ParseTree tree, String file_name,BufferedTokenStream tokens,Parser parser) {
+    CompilationUnit unit=new CompilationUnit(file_name);
     JavaJMLtoCol visitor=new JavaJMLtoCol(JavaSyntax.getJavaJML(),file_name,tokens,parser);
-    visitor.scan_to(visitor.unit,tree);
-    return visitor.unit;
+    visitor.scan_to(unit,tree);
+    return unit;
   }
 
   public JavaJMLtoCol(Syntax syntax, String filename, BufferedTokenStream tokens, Parser parser) {
@@ -614,10 +620,10 @@ public class JavaJMLtoCol extends AbstractJavaToCol implements JavaJMLVisitor<AS
 
   @Override
   public ASTNode visitSpecificationPrimary(SpecificationPrimaryContext ctx) {
-    if (match(ctx,TypeContext.class,"{","}")){
+    if (match(ctx,"TypeContext","{","}")){
       return create.expression(StandardOperator.Build,convert(ctx,0));
     }
-    if (match(ctx,TypeContext.class,"{",ExpressionListContext.class,"}")){
+    if (match(ctx,"TypeContext","{","ExpressionListContext","}")){
       ASTNode tmp[]=convert_list((ParserRuleContext)ctx.getChild(2),",");
       ASTNode args[]=new ASTNode[tmp.length+1];
       args[0]=convert(ctx,0);
@@ -802,19 +808,19 @@ public class JavaJMLtoCol extends AbstractJavaToCol implements JavaJMLVisitor<AS
     if (match(ctx,"proof",null)){
       return create.special(ASTSpecial.Kind.Proof,convert(ctx,1));
     }
-    if (match(ctx,"create",null,BlockContext.class)){
+    if (match(ctx,"create",null,"BlockContext")){
         ASTNode wand=convert(ctx,1);
         BlockStatement block=getBlock((ParserRuleContext)ctx.getChild(2));
         block.add_statement(create.expression(StandardOperator.QED,wand));
         return create.lemma(block);
       }
-    if (match(ctx,"create",BlockContext.class,null,";")){
+    if (match(ctx,"create","BlockContext",null,";")){
         ASTNode wand=convert(ctx,2);
         BlockStatement block=getBlock((ParserRuleContext)ctx.getChild(1));
         block.add_statement(create.expression(StandardOperator.QED,wand));
         return create.lemma(block);
       }
-    if (match(ctx,"create",BlockContext.class)){
+    if (match(ctx,"create","BlockContext")){
         BlockStatement block=getBlock((ParserRuleContext)ctx.getChild(1));
         return create.lemma(block);
       }
@@ -860,11 +866,11 @@ public class JavaJMLtoCol extends AbstractJavaToCol implements JavaJMLVisitor<AS
   public ASTNode visitFunctionDeclaration(FunctionDeclarationContext ctx) {
     Contract contract=null;
     int i=0;
-    if (match(0,true,ctx,ContractContext.class)){
+    if (match(0,true,ctx,"ContractContext")){
       contract=(Contract)convert(ctx,0);
       i=1;
     }
-    while(match(i,true,ctx,ModifierContext.class)){
+    while(match(i,true,ctx,"ModifierContext")){
       // TODO keep context!
       i++;
     }

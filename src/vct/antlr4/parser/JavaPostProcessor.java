@@ -19,6 +19,9 @@ import vct.col.ast.StandardOperator;
 import vct.col.ast.Type;
 import vct.col.rewrite.AbstractRewriter;
 
+/**
+ * Rewrite a Java AST, produced by parsing, to conform to the COL AST standard.  
+ */
 public class JavaPostProcessor extends AbstractRewriter {
 
   private int wildcard_count=0;

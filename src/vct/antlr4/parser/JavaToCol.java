@@ -20,12 +20,18 @@ import vct.parsers.JavaParser.SpecificationPrimitiveTypeContext;
 import vct.parsers.JavaParser.SpecificationStatementContext;
 import vct.util.Syntax;
 
+/**
+ * Convert Java parse trees to COL.
+ *
+ * @author <a href="mailto:s.c.c.blom@utwente.nl">Stefan Blom</a>
+*/
 public class JavaToCol extends AbstractJavaToCol implements JavaVisitor<ASTNode> {
 
   public static CompilationUnit convert(ParseTree tree, String file_name,BufferedTokenStream tokens,Parser parser) {
+    CompilationUnit unit=new CompilationUnit(file_name);
     JavaToCol visitor=new JavaToCol(JavaSyntax.getJava(),file_name,tokens,parser);
-    visitor.scan_to(visitor.unit,tree);
-    return visitor.unit;
+    visitor.scan_to(unit,tree);
+    return unit;
   }
 
   public JavaToCol(Syntax syntax, String filename, BufferedTokenStream tokens,

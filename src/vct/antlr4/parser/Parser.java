@@ -25,6 +25,9 @@ import vct.col.rewrite.AbstractRewriter;
 import vct.col.rewrite.AnnotationInterpreter;
 import vct.col.rewrite.FlattenVariableDeclarations;
 
+/**
+ * Parse specified code and convert the contents to COL. 
+ */
 public class Parser implements vct.col.util.Parser {
 
   @Override
@@ -44,7 +47,7 @@ public class Parser implements vct.col.util.Parser {
 
         Debug("parser got: %s",tree.toStringTree(parser));
 
-        return PVLtoCOL2.convert(tree,file_name,tokens,parser);
+        return PVLtoCOL.convert(tree,file_name,tokens,parser);
 
       } catch (FileNotFoundException e) {
         Fail("File %s has not been found",file_name);

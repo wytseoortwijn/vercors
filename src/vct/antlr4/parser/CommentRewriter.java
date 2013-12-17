@@ -21,6 +21,10 @@ import static vct.col.ast.ASTSpecial.Kind.Comment;
 import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.Lexer;
 
+/**
+ * Rewrite an AST with specifications in the form of comments
+ * to an AST with specifications in the from of ASTs. 
+ */
 public class CommentRewriter extends AbstractRewriter {
 
   private CommentParser parser;
