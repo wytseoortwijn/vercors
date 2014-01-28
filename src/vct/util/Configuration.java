@@ -1,6 +1,7 @@
 package vct.util;
 
 import static hre.System.Abort;
+import static hre.System.Debug;
 import static hre.System.Progress;
 import static hre.System.Warning;
 
@@ -143,13 +144,15 @@ public class Configuration {
       }
       for(;;){
         Message msg=shell.recv();
-        if (msg.getFormat().equals("stderr: %s")){
+        Debug(msg.getFormat(),msg.getArgs());
+        String fmt=msg.getFormat();
+        if (fmt.equals("stderr: %s")||fmt.equals("stdout: %s")){
           line=(String)msg.getArg(0);
           if (line.contains("echo ====")) continue;
           if (line.contains("====")) break;
           Progress("module %s loaded",line);
           continue;
-        }
+        } 
         Warning("unexpected shell response");
         Abort(msg.getFormat(),msg.getArgs());
       }
