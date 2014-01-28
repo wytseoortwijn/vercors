@@ -29,14 +29,24 @@ import static hre.System.*;
  */
 public class Main {
 
-  // The default z3 version is 4.3.1:
-  public static StringSetting z3_module=new StringSetting("z3/4.3.1");
-  // The default boogie version is 2012-10-22:
-  public static StringSetting boogie_module=new StringSetting("boogie/2012-10-22");
+  public static StringSetting z3_module;
+  public static StringSetting boogie_module;
   // The default timeout is set to half an hour, to give Z3 plenty of time yet avoid run-aways. 
   public static IntegerSetting boogie_timeout=new IntegerSetting(1800);
-  // The default version of Chalice is 2012-11-20:
-  public static StringSetting chalice_module=new StringSetting("chalice/2012-11-20");
+  public static StringSetting chalice_module;
+  
+  static {
+	  String OS=System.getProperty("os.name");
+	  if(OS.startsWith("Windows")){
+		  z3_module=new StringSetting("z3/3.2");
+		  boogie_module=new StringSetting("boogie/2012-06-15");
+		  chalice_module=new StringSetting("chalice/2012-06-15");
+	  } else {
+		  z3_module=new StringSetting("z3/4.3.1");
+		  boogie_module=new StringSetting("boogie/2012-10-22");
+		  chalice_module=new StringSetting("chalice/2012-11-20");
+	  }
+  }
   
   /**
    * Generate Boogie code and optionally verify a class.
