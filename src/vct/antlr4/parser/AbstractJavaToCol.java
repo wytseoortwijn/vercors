@@ -137,7 +137,18 @@ public class AbstractJavaToCol extends ANTLRtoCOL {
     }
     types.add(checkType(convert(ctx,2)));
   }
-
+  public ASTNode getCreatedName(ParserRuleContext ctx) {
+    if (match(ctx,(String)null)){
+      String name=getIdentifier(ctx,0);
+      return create.class_type(name);
+    } else if (match(ctx,(String)null,"TypeArgumentsOrDiamond")) {
+      String name=getIdentifier(ctx,0);
+      ASTNode args[]=convert_list((ParserRuleContext)(((ParserRuleContext)ctx.getChild(1)).getChild(0)), "<", ",", ">");
+      return create.class_type(name, args);
+    } else {
+      throw MissingCase(ctx);
+    }
+  }
   public ASTNode getArrayInitializer(ParserRuleContext ctx) {
     ASTNode n[]=convert_list(ctx,"{",",","}");
     return create.expression(StandardOperator.Build,n);
@@ -145,7 +156,8 @@ public class AbstractJavaToCol extends ANTLRtoCOL {
   public ASTNode getCreator(ParserRuleContext ctx){
     if (match(ctx,null,"ClassCreatorRestContext")){
       ParserRuleContext rest_ctx=(ParserRuleContext)ctx.getChild(1);
-      String name=getIdentifier(ctx,0);
+      Type type=checkType(convert(ctx,0));
+      //String name=getIdentifier(ctx,0);
       if (match(rest_ctx,"ArgumentsContext")){
         ParserRuleContext args_ctx=(ParserRuleContext)rest_ctx.getChild(0);
         ASTNode args[];
@@ -154,7 +166,7 @@ public class AbstractJavaToCol extends ANTLRtoCOL {
         } else {
           args=new ASTNode[0];
         }
-        MethodInvokation res=create.new_object(create.class_type(name), args);
+        MethodInvokation res=create.new_object(type/*create.class_type(name)*/, args);
         scan_comments_after(res.get_before(),ctx.getChild(0));
         scan_comments_after(res.get_after(),ctx);
         return res;
@@ -439,10 +451,12 @@ public class AbstractJavaToCol extends ANTLRtoCOL {
     Debug("converting type parameter %s",tree.toStringTree(parser));
     if (tree instanceof ParserRuleContext) {
       ParserRuleContext ctx=(ParserRuleContext)tree;
-      if (match(ctx,"TypeParameterContext")){
+      if (instance(ctx,"TypeParameter")){
         cb.given(create.field_decl(getIdentifier(ctx,0),create.primitive_type(Sort.Class)));
+      //} else if (match(ctx,"")){
+        
       } else {
-        Abort("missing case");
+        Abort("missing case %s",ctx.toStringTree(parser));
       }
     } else {
       Abort("missing case");

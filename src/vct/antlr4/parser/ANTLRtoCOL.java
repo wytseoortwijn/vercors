@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
+import hre.HREError;
 import hre.ast.FileOrigin;
 import hre.ast.Origin;
 
@@ -490,6 +491,17 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
     return res;
   }
 
+  protected boolean instance(Object item,String pattern){
+    Class cls=context.get(pattern);
+    if (cls==null){
+      cls=context.get(pattern+"Context");
+    }
+    if (cls!=null){
+      return cls.isInstance(item);
+    } else {
+      return false;
+    }
+  }
   /**
    * Check if the children of an ANTLT parse tree node match a given pattern.
    * 
@@ -546,13 +558,13 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
   
   protected String getIdentifier(ParserRuleContext ctx, int i) {
     ParseTree node=ctx.children.get(i);
-    if (node==null) Fail("child %d does not exist",i);
+    if (node==null) Abort("child %d does not exist",i);
     while(node instanceof ParserRuleContext){
       ParserRuleContext tmp=(ParserRuleContext)node;
       if (tmp.children.size()==1){
         node=tmp.getChild(0);
       } else {
-        Fail("not a nested identifier%n%s",node.toStringTree(parser));
+        Abort("not a nested identifier%n%s",node.toStringTree(parser));
       }
     }
     if (node instanceof TerminalNode){
@@ -561,7 +573,7 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
         return tok.getText();
       }
     }
-    Fail("child %d is not an identifier",i);
+    Abort("child %d is not an identifier",i);
     return null;
   }
   
@@ -602,4 +614,7 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
     return res;    
   }
 
+  protected HREError MissingCase(ParserRuleContext ctx){
+    return new HREError("missing case: %s",ctx.toStringTree(parser));
+  }
 }
