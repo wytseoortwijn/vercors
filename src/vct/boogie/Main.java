@@ -126,7 +126,7 @@ public class Main {
         //shell.send("which chalice");
         //shell.send("pwd");
         //shell.send("ls -al");
-        shell.send("chalice -boogieOpt:timeLimit:%d %s",timeout,chalice_input_file.getName());
+        shell.send("chalice -boogieOpt:timeLimit:%d -noTermination %s",timeout,chalice_input_file.getName());
         //shell.send("ls -al");
         shell.send("exit");
         ChaliceReport output=new ChaliceReport(shell,tree);

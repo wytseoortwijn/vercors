@@ -210,6 +210,9 @@ public class PVLtoCOL2 extends VCTVisitor implements PVFullVisitor<ASTNode> {
       case "!=": return create.expression(StandardOperator.NEQ,e1,e2);
       }
     }
+    if (match(ctx,"!",null)){
+      return create.expression(StandardOperator.Not,convert(ctx,1));
+    }
     if (match(ctx,null,"?",null,":",null)){
       return create.expression(StandardOperator.ITE,convert(ctx,0),convert(ctx,2),convert(ctx,4));
     }
@@ -224,6 +227,12 @@ public class PVLtoCOL2 extends VCTVisitor implements PVFullVisitor<ASTNode> {
     }
     if (match(ctx,"(","forall*",null,null,";",null,";",null,")")){
       return create.starall(convert(ctx,5),convert(ctx,7),create.field_decl(getIdentifier(ctx,3),(Type)convert(ctx,2)));
+    }
+    if (match(ctx,"(","forall",null,null,";",null,";",null,")")){
+      return create.forall(convert(ctx,5),convert(ctx,7),create.field_decl(getIdentifier(ctx,3),(Type)convert(ctx,2)));
+    }
+    if (match(ctx,"(","exists",null,null,";",null,";",null,")")){
+      return create.exists(convert(ctx,5),convert(ctx,7),create.field_decl(getIdentifier(ctx,3),(Type)convert(ctx,2)));
     }
     return visit(ctx);
   }

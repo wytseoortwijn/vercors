@@ -17,6 +17,7 @@ import vct.col.ast.Method;
 import vct.col.ast.MethodInvokation;
 import vct.col.ast.NameExpression;
 import vct.col.ast.OperatorExpression;
+import vct.col.ast.PrimitiveType.Sort;
 import vct.col.ast.ProgramUnit;
 import vct.col.ast.ReturnStatement;
 import vct.col.ast.StandardOperator;
@@ -151,6 +152,37 @@ public class Flatten extends AbstractRewriter {
     }
   }
   
+  @Override
+  public void visit(AssignmentStatement s) {
+    ASTNode loc=s.getLocation().apply(this);
+    ASTNode val=s.getExpression().apply(this);
+    if (loc instanceof Dereference){
+      Dereference d=(Dereference)loc;
+      if (d.field.equals("item")){
+        Dereference old_d=(Dereference)s.getLocation();
+        if (old_d.object.isa(StandardOperator.Subscript)){
+          OperatorExpression e=(OperatorExpression)old_d.object;
+          ASTNode ref=copy_rw.rewrite(d.object);
+          ASTNode ar=copy_rw.rewrite(e.getArg(0));
+          ASTNode idx=copy_rw.rewrite(e.getArg(1));
+          String var_name="__random_i";
+          DeclarationStatement decl=create.field_decl(var_name, create.primitive_type(Sort.Integer));
+          
+          ASTNode claim=create.expression(StandardOperator.NEQ,ref,
+              create.expression(StandardOperator.Subscript,ar,create.local_name(var_name)));;
+          ASTNode guard1=create.expression(StandardOperator.LTE,create.constant(0),create.local_name(var_name));
+          ASTNode guard2=create.expression(StandardOperator.LT,create.local_name(var_name),
+              create.expression(StandardOperator.Size,ar));
+          ASTNode guard3=create.expression(StandardOperator.NEQ,idx,create.local_name(var_name));
+          ASTNode guard=create.fold(StandardOperator.And,guard1,guard2,guard3);
+          ASTNode clue=create.forall(guard, claim, decl);
+          current_block.add_statement(create.expression(StandardOperator.Assume,clue));
+        }
+      }
+    }
+    result=create.assignment(loc,val);
+  }
+
   private ASTNode add_as_var(ASTNode e){
     String name="__flatten_"+(++counter);
     if (e.getType()==null){
