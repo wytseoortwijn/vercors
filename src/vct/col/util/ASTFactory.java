@@ -392,17 +392,33 @@ public class ASTFactory<E> implements FrameControl {
   }
 
   /**
+   * Fold left of a non-empty list. 
+   * 
+   * @param op Operator to fold with.
+   * @param list Non-empty list of terms.
+   * @return folded list.
+   */
+   public ASTNode fold(StandardOperator op, ArrayList<ASTNode> list) {
+     ASTNode res=list.get(0);
+     int N=list.size();
+     for(int i=1;i<N;i++){
+       res=expression(op,res,list.get(i));
+     }
+     return res;
+   }
+   
+   /**
     * Fold left of a non-empty list. 
     * 
     * @param op Operator to fold with.
     * @param list Non-empty list of terms.
     * @return folded list.
     */
-    public ASTNode fold(StandardOperator op, ArrayList<ASTNode> list) {
-      ASTNode res=list.get(0);
-      int N=list.size();
-      for(int i=1;i<N;i++){
-        res=expression(op,res,list.get(i));
+    public ASTNode fold(StandardOperator op, ASTNode base, ASTNode ... list) {
+      ASTNode res=base;
+      int N=list.length;
+      for(int i=0;i<N;i++){
+        res=expression(op,res,list[i]);
       }
       return res;
     }
@@ -422,6 +438,18 @@ public class ASTFactory<E> implements FrameControl {
   public BindingExpression forall(ASTNode guard, ASTNode claim, DeclarationStatement ... decl) {
     BindingExpression res=new BindingExpression(
         Binder.FORALL,
+        primitive_type(PrimitiveType.Sort.Boolean),
+        decl,
+        guard,
+        claim
+    );
+    res.setOrigin(origin_stack.get());
+    res.accept_if(post);
+    return res;
+  }
+  public BindingExpression exists(ASTNode guard, ASTNode claim, DeclarationStatement ... decl) {
+    BindingExpression res=new BindingExpression(
+        Binder.EXISTS,
         primitive_type(PrimitiveType.Sort.Boolean),
         decl,
         guard,

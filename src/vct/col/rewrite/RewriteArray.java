@@ -6,6 +6,7 @@ import java.util.Hashtable;
 import vct.col.ast.ASTFlags;
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTReserved;
+import vct.col.ast.AssignmentStatement;
 import vct.col.ast.BindingExpression;
 import vct.col.ast.BindingExpression.Binder;
 import vct.col.ast.BlockStatement;
@@ -13,6 +14,7 @@ import vct.col.ast.ConstantExpression;
 import vct.col.ast.Contract;
 import vct.col.ast.ContractBuilder;
 import vct.col.ast.DeclarationStatement;
+import vct.col.ast.Dereference;
 import vct.col.ast.IntegerValue;
 import vct.col.ast.LoopStatement;
 import vct.col.ast.Method;
@@ -40,6 +42,25 @@ public class RewriteArray extends AbstractRewriter {
   public RewriteArray(ProgramUnit source) {
     super(source);
   }
+
+  /* not needed here, but in flatten.
+  @Override
+  public void visit(AssignmentStatement s) {
+    ASTNode loc=s.getLocation().apply(this);
+    ASTNode val=s.getExpression().apply(this);
+    if (s.getLocation().isa(StandardOperator.Subscript) && loc instanceof Dereference){
+      OperatorExpression e=(OperatorExpression)s.getLocation();
+      Dereference d=(Dereference)loc;
+      ASTNode ref=copy_rw.rewrite(d.object);
+      ASTNode ar=copy_rw.rewrite(e.getArg(0));
+      ASTNode idx=copy_rw.rewrite(e.getArg(1));
+      ASTNode clue=create.expression(StandardOperator.EQ,ref,
+          create.expression(StandardOperator.Subscript,ar,idx));
+      currentBlock.add_statement(create.expression(StandardOperator.Assume,clue));
+    }
+    result=create.assignment(loc,val);
+  }
+  */
   
   @Override
   public void visit(LoopStatement s) {
