@@ -214,8 +214,7 @@ public class JavaToCol extends AbstractJavaToCol implements JavaVisitor<ASTNode>
 
   @Override
   public ASTNode visitCreatedName(CreatedNameContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
+    return getCreatedName(ctx);
   }
 
   @Override
