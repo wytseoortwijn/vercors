@@ -75,18 +75,23 @@ public class KernelRewriter extends AbstractRewriter {
    * @param node The node for which to find the set of preceeding barriers.
    * 
    */
-  private void find_predecessors(Set<Integer> barriers, ASTNode node) {
+  private void find_predecessors(Set<Integer> barriers,Set<ASTNode> visited, ASTNode node) {
+    if (visited.contains(node)) return;
+    visited.add(node);
     for(ASTNode pred : node.getPredecessors()){
       if (pred instanceof Method){
         barriers.add(0);
       } else if (pred instanceof ParallelBarrier) {
         barriers.add(barrier_map.get(pred));
       } else {
-        find_predecessors(barriers,pred);
+        find_predecessors(barriers,visited, pred);
       }
     }
   }
-
+  
+  private void find_predecessors(Set<Integer> barriers, ASTNode node) {
+    find_predecessors(barriers,new HashSet(),node);
+  }
   private ASTNode create_barrier_call(int no) {
     ArrayList<ASTNode> args=new ArrayList<ASTNode>();
     args.add(create.local_name("tcount"));
