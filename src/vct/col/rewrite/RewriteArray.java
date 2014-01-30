@@ -176,7 +176,11 @@ public class RewriteArray extends AbstractRewriter {
       String vname="_auto_i_";
       decl[0]=create.field_decl(vname,create.primitive_type(PrimitiveType.Sort.Integer));
       if (singleton){
-        tmp=create.expression(StandardOperator.And,
+        tmp=create.fold(StandardOperator.And,
+              create.expression(StandardOperator.LTE,
+                  create.constant(0),
+                  rewrite(e.getArg(1))
+              ),
               create.expression(StandardOperator.LT,
                   rewrite(e.getArg(1)),
                   create.expression(StandardOperator.Size,rewrite(array_name))

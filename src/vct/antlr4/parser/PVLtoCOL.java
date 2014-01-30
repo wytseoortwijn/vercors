@@ -186,6 +186,8 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
         return create.expression(StandardOperator.Old,getTuple((ParserRuleContext)ctx.children.get(1)));
       case "perm":
         return create.expression(StandardOperator.Perm,getTuple((ParserRuleContext)ctx.children.get(1)));
+      case "value":
+        return create.expression(StandardOperator.Value,getTuple((ParserRuleContext)ctx.children.get(1)));
       case "pointsto":
         return create.expression(StandardOperator.PointsTo,getTuple((ParserRuleContext)ctx.children.get(1)));
       }
