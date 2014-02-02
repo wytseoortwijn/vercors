@@ -280,15 +280,31 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       case Label:
         e.setType(new ClassType("<<label>>"));
         break;
+      case Output:
+        VariableInfo info=variables.lookup(name);
+        if (info==null) {
+          Abort("%s name %s is undefined",kind,name);
+        }
+        e.setType(info.reference.getType());
+        break;
       default:
         Abort("missing case for kind %s",kind);
         break;
     }
   }
   public void visit(OperatorExpression e){
-    super.visit(e);
     Debug("operator %s",e.getOperator());
     StandardOperator op=e.getOperator();
+    if (op==StandardOperator.PointsTo && e.getArg(2).isa(StandardOperator.BindOutput)){
+      e.getArg(0).accept(this);
+      e.getArg(1).accept(this);
+      enter(e.getArg(2));
+      leave(e.getArg(2));
+      e.getArg(2).setType(e.getArg(1).getType());
+      e.setType(new PrimitiveType(Sort.Resource));
+      return;
+    }
+    super.visit(e);
     switch(op){
     case Instance:
     case SubType:

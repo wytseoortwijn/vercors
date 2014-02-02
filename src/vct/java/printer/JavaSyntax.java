@@ -54,6 +54,7 @@ public class JavaSyntax {
       syntax.addReserved(Result,"\\result");
       syntax.addReserved(Pure,"pure");
       syntax.addReserved(Any,"*");
+      syntax.addPrefix(BindOutput,"?",666);
       JavaJMLSyntax=syntax;
     }
     return JavaJMLSyntax;

@@ -44,7 +44,8 @@ expr
  | expr ('&' | '*') expr
  | expr ('|' | '->') expr
  | expr '?' expr ':' expr
- | (lexpr | 'value' | 'perm' | 'pointsto' | 'old' ) tuple
+ | '?' ID
+ | (lexpr | 'value' | 'perm' | 'pointsto' | 'old' | '?' ) tuple
  | '(' ('exists'|'forall'|'forall*') type ID ';' expr (';' expr )? ')'
  | '(' expr ')'
  | 'new' ID
