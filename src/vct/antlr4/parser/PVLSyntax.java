@@ -86,6 +86,7 @@ public class PVLSyntax {
       //  2 ternary   ? :
        * */
       syntax.addOperator(ITE,20,"","?",":","");
+      syntax.addPrefix(BindOutput,"?",666);
       /*
       //  1 assignment  = += -= *= /= %= &= ^= |= <<= >>= >>>=
       syntax.addRightFix(Assign,"=",10);

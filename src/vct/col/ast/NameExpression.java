@@ -25,7 +25,9 @@ public class NameExpression extends ASTNode {
     /** for the reserved names: null, this, and super. */
     Reserved,
     /** for labels, such as statement labels and predicate labels. */
-    Label;
+    Label,
+    /** for the ?x binder of VeriFast. */
+    Output;
   }
   
   /** The name that this AST node is referencing. */

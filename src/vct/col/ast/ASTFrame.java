@@ -130,6 +130,11 @@ public abstract class ASTFrame<T> {
    */
   private Stack<ASTNode> node_stack;
   
+  /** */
+  protected ASTNode getParentNode(){
+    return node_stack.get(node_stack.size()-2);
+  }
+
   /**
    * Stack of current classes.
    */
@@ -197,6 +202,16 @@ public abstract class ASTFrame<T> {
             variables.add(name.getName(),new VariableInfo(node,NameExpression.Kind.Label));
           }
           break;          
+        }
+        case BindOutput:{
+          ASTNode e=((OperatorExpression) node).getArg(0);
+          if (e instanceof NameExpression){
+            NameExpression name=(NameExpression) e;
+            variables.add(name.getName(),new VariableInfo(node,NameExpression.Kind.Output));
+          } else {
+            Abort("unexpected output binder argument: %s",e.getClass());
+          }
+          break;
         }
       }
     }
