@@ -237,10 +237,37 @@ public class KernelRewriter extends AbstractRewriter {
             create.expression(StandardOperator.Old,create.field_name(local.getName()))));
         res.add_dynamic(create.field_decl(local.getName(), t));
       }
+      ASTNode global_constraint=create.constant(true);
       for (Method m:cl.dynamicMethods()){
+        if (m.getKind()==Method.Kind.Predicate){
+          if (m.getName().equals("kernel_invariant")){
+            global_constraint=m.getBody();
+            base_inv.add(copy_rw.rewrite(m.getBody()));
+            kernel_main_invariant.add(copy_rw.rewrite(m.getBody()));
+          }
+        }
+      }
+      for (Method m:cl.dynamicMethods()){
+        if (m.getKind()==Method.Kind.Predicate){
+          if (!m.getName().equals("kernel_invariant")){
+            res.add_dynamic(copy_rw.rewrite(m));
+          }
+          continue;          
+        }
         if (m.getKind()==Method.Kind.Pure){
           res.add_dynamic(copy_rw.rewrite(m));
           continue;
+          /* if constraints should be added to every method.... use this:
+          ContractBuilder cb=new ContractBuilder();
+          cb.requires(copy_rw.rewrite(global_constraint));
+          copy_rw.rewrite(m.getContract(),cb);
+          Type returns=copy_rw.rewrite(m.getReturnType());
+          String name=m.getName();
+          DeclarationStatement args[]=copy_rw.rewrite(m.getArgs());
+          ASTNode body=copy_rw.rewrite(m.getBody());
+          res.add_dynamic(create(m).function_decl(returns, cb.getContract(), name, args, body));
+          continue;
+          */
         }
         ArrayList<ASTNode> group_inv=new ArrayList<ASTNode>(base_inv);
         if (m.getArity()!=0) Fail("TODO: kernel argument support");

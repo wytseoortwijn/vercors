@@ -5,7 +5,9 @@ import static hre.System.Debug;
 import static hre.System.Progress;
 import static hre.System.Warning;
 
+import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -76,7 +78,14 @@ public class Configuration {
   static {
     String tmp=System.getenv("VCT_HOME");
     if (tmp==null){
-      throw new Error("variable VCT_HOME is not set");
+      ClassLoader loader=Configuration.class.getClassLoader();
+      URL url=loader.getResource("vct/util/Configuration.class");
+      File f=new File(url.getFile());
+      //Warning("origin is %s", f);
+      for(int i=0;i<5;i++) f=f.getParentFile();
+      //Warning("home is %s", f);
+      //throw new Error("variable VCT_HOME is not set");
+      tmp=f.toString();
     }
     home=Paths.get(tmp).toAbsolutePath();
     if (!home.toFile().isDirectory()){
