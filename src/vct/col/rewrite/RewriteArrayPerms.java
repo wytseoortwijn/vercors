@@ -39,7 +39,7 @@ public class RewriteArrayPerms extends AbstractRewriter {
         ASTNode loc=((OperatorExpression)e.main).getArg(0);
         ASTNode frac=((OperatorExpression)e.main).getArg(1);
         if (!loc.isa(StandardOperator.Subscript)){
-          Fail("non-array Perm insize quantification");
+          Fail("non-array Perm inside quantification");
         }
         ASTNode array_name=((OperatorExpression)loc).getArg(0);
         ASTNode index_expr=((OperatorExpression)loc).getArg(1);
@@ -78,6 +78,34 @@ public class RewriteArrayPerms extends AbstractRewriter {
             );            
           } else {
             Fail("unrecognized array index expression");
+          }
+        } else if (index_expr.isa(StandardOperator.Plus)) {
+          OperatorExpression idx=(OperatorExpression)index_expr;
+          if (!idx.getArg(0).isa(StandardOperator.Mult)){
+            Warning("array index expression not of form c * x + e");
+            JavaPrinter.dump_expr(System.err,idx);
+            System.err.println();
+            Fail("exit");
+          }
+          OperatorExpression idx2=(OperatorExpression)idx.getArg(0);
+          if (idx2.getArg(1).isName(decl.getName()) && (idx2.getArg(0) instanceof ConstantExpression)){
+            result=create.expression(StandardOperator.ArrayPerm,
+                rewrite(array_name),
+                create.expression(StandardOperator.Plus,
+                    create.expression(StandardOperator.Mult,
+                        rewrite(idx2.getArg(0)),
+                        rewrite(lower)),
+                    rewrite(idx.getArg(1))),
+                rewrite(idx2.getArg(0)),
+                create.expression(StandardOperator.Minus,
+                    rewrite(upper),rewrite(lower)),
+                rewrite(frac)
+            );            
+          } else {
+            Warning("array index expression not of form c * x + e");
+            JavaPrinter.dump_expr(System.err,idx);
+            System.err.println();
+            Fail("exit");
           }
         } else {
           Fail("unrecognized array index expression");
