@@ -245,7 +245,7 @@ public class RewriteArray extends AbstractRewriter {
               ),
               create.expression(StandardOperator.EQ,
                   create.expression(StandardOperator.Mod,create.local_name(vname),rewrite(e.getArg(2))),
-                  rewrite(e.getArg(1))
+                  create.constant(0)
               )
             ),
             create.expression(StandardOperator.EQ,
