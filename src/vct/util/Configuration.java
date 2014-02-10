@@ -107,7 +107,7 @@ public class Configuration {
       default:
         throw new Error("unknown "+OS+"architecure: "+arch);
       }
-    } else if (OS.equals("Mac OS X")){
+    } else if (OS.equals("Mac OS X")||OS.equals("Darwin")){
       system_deps=home.resolve(Paths.get("deps","Darwin-x86_64","modules"));
     } else {
       throw new Error("The "+OS+" Operating System is not supported");
