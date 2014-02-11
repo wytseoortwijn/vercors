@@ -81,7 +81,11 @@ public class Parser implements vct.col.util.Parser {
       try {
         Runtime runtime=Runtime.getRuntime();
         
-        Process process=runtime.exec("cpp -C -I. "+file_name);
+    	Progress("pre-processing %s",file_name);
+        
+    	Process process=runtime.exec("cpp -C -I. "+file_name);
+
+        //ANTLRInputStream input = new ANTLRInputStream(new FileInputStream(file));
         
         ANTLRInputStream input = new ANTLRInputStream(process.getInputStream());
         
