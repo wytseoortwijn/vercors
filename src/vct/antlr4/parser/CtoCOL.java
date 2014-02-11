@@ -173,7 +173,16 @@ public class CtoCOL extends AbstractCtoCOL implements CVisitor<ASTNode> {
 
   @Override
   public ASTNode visitAssignmentExpression(AssignmentExpressionContext ctx) {
-    // TODO Auto-generated method stub
+    if (false && match(ctx,null,"AssignmentOperatorContext",null)){
+    	ASTNode loc=convert(ctx,0);
+    	ASTNode val=convert(ctx,2);
+    	StandardOperator op=null;
+    	AssignmentOperatorContext op_ctx=(AssignmentOperatorContext)ctx.getChild(1);
+    	if (match(op_ctx,"=")){
+    		op=StandardOperator.Assign;
+    	}
+    	if(op!=null) return create.expression(op,loc,val);
+    }
     return null;
   }
 
