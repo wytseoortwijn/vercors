@@ -412,7 +412,7 @@ public class KernelRewriter extends AbstractRewriter {
 
           resource_cb.ensures(create.fold(StandardOperator.Star, group_inv));
           resource_cb.ensures(create.fold(StandardOperator.Star, constraint));
-          for(ASTNode claim:resources.get(i)){
+          if (resources.get(i)!=null) for(ASTNode claim:resources.get(i)){
             resource_cb.ensures(create.starall(
                 copy_rw.rewrite(guard),
                 copy_rw.rewrite(claim),
@@ -493,7 +493,7 @@ public class KernelRewriter extends AbstractRewriter {
             }
           }
           //cb.requires(create.fold(StandardOperator.Star, barrier_pre.get(i)));
-          for(ASTNode claim:barrier_pre.get(i)){
+          if (barrier_pre.get(i)!=null) for(ASTNode claim:barrier_pre.get(i)){
               if (ASTUtils.find_name(claim,"lid")){
                 cb.requires(create.forall(
                     copy_rw.rewrite(local_guard),
@@ -512,8 +512,8 @@ public class KernelRewriter extends AbstractRewriter {
             }
           cb.ensures(create.fold(StandardOperator.Star,kernel_main_invariant));
           cb.ensures(create.fold(StandardOperator.Star,constraint));
-          cb.ensures(create.fold(StandardOperator.Star, resources.get(i)));
-          cb.ensures(create.fold(StandardOperator.Star, barrier_post.get(i)));
+          if (resources.get(i)!=null) cb.ensures(create.fold(StandardOperator.Star, resources.get(i)));
+          if (barrier_post.get(i)!=null) cb.ensures(create.fold(StandardOperator.Star, barrier_post.get(i)));
           res.add_dynamic(create.method_decl(
               create.primitive_type(Sort.Void),
               cb.getContract(),
