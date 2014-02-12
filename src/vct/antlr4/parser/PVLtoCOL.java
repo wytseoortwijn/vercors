@@ -124,6 +124,16 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
           }
           Fail("missing case in %s",ctx.children.get(i));
         }
+        case "yields":{
+          Type type=(Type)convert(ctx.children.get(i+1));
+          String name=getIdentifier(ctx, i+2);
+          if (ctx.children.get(i+3).toString().equals(";")){
+            i+=4;
+            cb.yields(create.field_decl(name, type));
+            break;
+          }
+          Fail("missing case in %s",ctx.children.get(i));
+        }
         default:
           Fail("missing case: %s",ctx.children.get(i));
         }

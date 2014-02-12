@@ -56,6 +56,16 @@ public class Configuration {
   public static final BooleanSetting assume_single_group=new BooleanSetting(false);
   
   /**
+   * Enable the resource check during kernel verification.
+   */
+  public static final BooleanSetting enable_resource_check=new BooleanSetting(true);
+  
+  /**
+   * Enable post check during kernel verification. 
+   */
+  public static final BooleanSetting enable_post_check=new BooleanSetting(true);
+  
+  /**
    * Add the VCT library options to the given option parser.
    * @param clops Option parser.
    */
@@ -68,6 +78,8 @@ public class Configuration {
     clops.add(vct.boogie.Main.chalice_module.getAssign("name of the chalice environment module"),"chalice-module");
 //    clops.add(pvl_type_check.getDisable("disable type check in PVL parser"),"no-pvl-check");
     clops.add(assume_single_group.getEnable("enable single group assumptions"),"single-group");
+    clops.add(enable_resource_check.getDisable("disable barrier resource check during kernel verification"),"disable-resource-check");
+    clops.add(enable_post_check.getDisable("disable barrier post check during kernel verification"),"disable-post-check");
   }
 
   
