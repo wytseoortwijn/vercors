@@ -130,7 +130,10 @@ public class Main
     clops.add(show_before.getAppendOption("Show source code before given passes"),"show-before");
     StringListSetting show_after=new StringListSetting();
     clops.add(show_after.getAppendOption("Show source code after given passes"),"show-after");
-   
+    StringListSetting stop_after=new StringListSetting();
+    clops.add(stop_after.getAppendOption("Stop after given passes"),"stop-after");
+    
+    
     BooleanSetting explicit_encoding=new BooleanSetting(false);
     clops.add(explicit_encoding.getEnable("explicit encoding"),"explicit");
     BooleanSetting inline_predicates=new BooleanSetting(false);
@@ -534,6 +537,9 @@ public class Main
         }
         if (show_after.contains(pass)){
           vct.java.printer.JavaPrinter.dump(System.out,program);
+        }
+        if (stop_after.contains(pass)){
+          Fail("exit after pass %s",pass);
         }
       }
       if (res!=null) {
