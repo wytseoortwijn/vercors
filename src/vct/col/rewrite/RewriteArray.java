@@ -75,6 +75,8 @@ public class RewriteArray extends AbstractRewriter {
     if (tmp!=null) res.setEntryGuard(tmp.apply(this));
     tmp=s.getExitGuard();
     if (tmp!=null) res.setExitGuard(tmp.apply(this));
+    tmp=s.getBody();
+    res.setBody(tmp.apply(this));    
     in_loop_invariant=true;
     LoopStatement tmp_loop=current_loop;
     current_loop=res;
@@ -83,8 +85,6 @@ public class RewriteArray extends AbstractRewriter {
     }
     current_loop=tmp_loop;
     in_loop_invariant=false;
-    tmp=s.getBody();
-    res.setBody(tmp.apply(this));
     res.set_before(rewrite(s.get_before()));
     res.set_after(rewrite(s.get_after()));
     res.setOrigin(s.getOrigin());
@@ -168,6 +168,8 @@ public class RewriteArray extends AbstractRewriter {
       } else if (in_loop_invariant) {
         currentBlock.add_statement(create.expression(StandardOperator.Assume, tmp));
         current_loop.appendInvariant(tmp);
+        // needed but inconsistent.
+        //((BlockStatement)current_loop.getBody()).add_statement(create.expression(StandardOperator.Assume, tmp));
       } else {
         Fail("ArrayPerm in unknown/unimplemented context");
       }
@@ -201,7 +203,26 @@ public class RewriteArray extends AbstractRewriter {
                 create.expression(StandardOperator.LT,create.local_name(vname),
                     create.expression(StandardOperator.Size,create.unresolved_name(name)))
             ),
-            create.expression(StandardOperator.EQ,
+            create.fold(StandardOperator.And,
+                /* should be true, but unprovable
+                create.expression(StandardOperator.LTE,
+                    create.constant(0),
+                    create.expression(StandardOperator.Plus,rewrite(e.getArg(1)),
+                        create.expression(StandardOperator.Mult,rewrite(e.getArg(2)),
+                            create.local_name(vname)
+                        )
+                    )
+                ),
+                create.expression(StandardOperator.LT,
+                    create.expression(StandardOperator.Plus,rewrite(e.getArg(1)),
+                        create.expression(StandardOperator.Mult,rewrite(e.getArg(2)),
+                            create.local_name(vname)
+                        )
+                    ),
+                    create.expression(StandardOperator.Size,rewrite(array_name))
+                ),
+                */
+              create.expression(StandardOperator.EQ,
                 create.expression(StandardOperator.Subscript,
                     create.unresolved_name(name),create.local_name(vname)),
                 create.expression(StandardOperator.Subscript,rewrite(array_name),
@@ -210,7 +231,8 @@ public class RewriteArray extends AbstractRewriter {
                            create.local_name(vname)
                        )
                    )
-                )             
+                )
+              )
             )
         );
         tmp.setOrigin(e.getOrigin());
@@ -224,6 +246,8 @@ public class RewriteArray extends AbstractRewriter {
       } else if (in_loop_invariant) {
         currentBlock.add_statement(create.expression(StandardOperator.Assume, tmp));
         current_loop.appendInvariant(tmp);
+        // needed but inconsistent
+        //((BlockStatement)current_loop.getBody()).add_statement(create.expression(StandardOperator.Assume, tmp));
       } else {
         Fail("ArrayPerm in unknown/unimplemented context");
       }
@@ -248,18 +272,30 @@ public class RewriteArray extends AbstractRewriter {
                   create.constant(0)
               )
             ),
-            create.expression(StandardOperator.EQ,
-                create.expression(StandardOperator.Subscript,
-                    rewrite(array_name),create.local_name(vname)),
-                create.expression(StandardOperator.Subscript,create.unresolved_name(name),
-                   create.expression(StandardOperator.Div,
-                       create.expression(StandardOperator.Minus,
-                           create.local_name(vname),
-                           rewrite(e.getArg(1))
-                       ),
-                       rewrite(e.getArg(2))
-                   )
-                )             
+            create.fold(StandardOperator.And,
+                /* Should be true, but unprovable.
+                create.expression(StandardOperator.LTE,
+                    create.constant(0),
+                    create.local_name(vname)
+                ),
+                create.expression(StandardOperator.LT,
+                    create.local_name(vname),
+                    create.expression(StandardOperator.Size,rewrite(array_name))
+                ),
+                */
+              create.expression(StandardOperator.EQ,
+                  create.expression(StandardOperator.Subscript,
+                      rewrite(array_name),create.local_name(vname)),
+                  create.expression(StandardOperator.Subscript,create.unresolved_name(name),
+                     create.expression(StandardOperator.Div,
+                         create.expression(StandardOperator.Minus,
+                             create.local_name(vname),
+                             rewrite(e.getArg(1))
+                         ),
+                         rewrite(e.getArg(2))
+                     )
+                  )             
+              )
             )
         );
         tmp.setOrigin(e.getOrigin());
@@ -271,6 +307,8 @@ public class RewriteArray extends AbstractRewriter {
           ensures_block.add(create.expression(StandardOperator.Assume, tmp));
         } else if (in_loop_invariant) {
           currentBlock.add_statement(create.expression(StandardOperator.Assume, tmp));
+          // needed but inconsistent
+          //((BlockStatement)current_loop.getBody()).add_statement(create.expression(StandardOperator.Assume, tmp));
         } else {
           Fail("ArrayPerm in unknown/unimplemented context");
         }

@@ -68,7 +68,7 @@ public class RewriteArrayPerms extends AbstractRewriter {
             Fail("exit");
           }
           OperatorExpression idx2=(OperatorExpression)idx.getArg(0);
-          if (idx2.getArg(0).isName(decl.getName()) && (idx2.getArg(1) instanceof ConstantExpression)){
+          if (idx2.getArg(0).isName(decl.getName())/* && (idx2.getArg(1) instanceof ConstantExpression)*/){
             result=create.expression(StandardOperator.ArrayPerm,
                 rewrite(array_name),
                 rewrite(lower),
@@ -88,7 +88,7 @@ public class RewriteArrayPerms extends AbstractRewriter {
             Fail("exit");
           }
           OperatorExpression idx2=(OperatorExpression)idx.getArg(0);
-          if (idx2.getArg(1).isName(decl.getName()) && (idx2.getArg(0) instanceof ConstantExpression)){
+          if (idx2.getArg(1).isName(decl.getName())/* && (idx2.getArg(0) instanceof ConstantExpression)*/){
             result=create.expression(StandardOperator.ArrayPerm,
                 rewrite(array_name),
                 create.expression(StandardOperator.Plus,
@@ -108,7 +108,10 @@ public class RewriteArrayPerms extends AbstractRewriter {
             Fail("exit");
           }
         } else {
-          Fail("unrecognized array index expression");
+          Warning("unrecognized array index expression");
+          JavaPrinter.dump_expr(System.err,index_expr);
+          System.err.println();
+          Fail("exit");          
         }
       } else {
         Warning("unrecognized main");

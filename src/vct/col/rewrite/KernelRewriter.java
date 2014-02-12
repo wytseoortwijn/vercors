@@ -23,6 +23,7 @@ import vct.col.ast.ParallelBarrier;
 import vct.col.ast.ParallelBlock;
 import vct.col.ast.PrimitiveType.Sort;
 import vct.col.ast.ProgramUnit;
+import vct.col.ast.RecursiveVisitor;
 import vct.col.ast.StandardOperator;
 import vct.col.ast.Type;
 import vct.col.util.ASTUtils;
@@ -130,6 +131,8 @@ public class KernelRewriter extends AbstractRewriter {
   }
 
   public void visit(ParallelBarrier pb){
+    Integer no=barrier_map.get(pb);
+/*
     barrier_no++;
     barrier_map.put(pb,barrier_no);
     for(ASTNode clause:ASTUtils.conjuncts(pb.contract.pre_condition)){
@@ -150,8 +153,41 @@ public class KernelRewriter extends AbstractRewriter {
         ));
       }
     }
-    result=create_barrier_call(barrier_no);
+    */
+    result=create_barrier_call(no.intValue());
   }
+  
+  private class BarrierScan extends RecursiveVisitor<Object> {
+
+    public BarrierScan(ProgramUnit source) {
+      super(source);
+    }
+    
+    public void visit(ParallelBarrier pb){
+      barrier_no++;
+      barrier_map.put(pb,barrier_no);
+      for(ASTNode clause:ASTUtils.conjuncts(pb.contract.pre_condition)){
+        add(barrier_pre,barrier_no,clause);
+        barrier_cb.requires(create(clause).expression(StandardOperator.Implies,
+            create.expression(StandardOperator.EQ,create.local_name("this_barrier"),create.constant(barrier_no)),
+            rewrite(clause)
+        ));
+      }
+      for(ASTNode clause:ASTUtils.conjuncts(pb.contract.post_condition)){
+        if (clause.getType().isPrimitive(Sort.Resource)){
+          add(resources,barrier_no,clause);
+        } else {
+          add(barrier_post,barrier_no,clause);
+          barrier_cb.ensures(create(clause).expression(StandardOperator.Implies,
+              create.expression(StandardOperator.EQ,create.local_name("this_barrier"),create.constant(barrier_no)),
+              rewrite(clause)
+          ));
+        }
+      }
+    }
+  }
+
+  private BarrierScan barrier_scan=new BarrierScan(source());
   
   private ASTVisitor cfa=new ControlFlowAnalyzer(source());
   
@@ -278,6 +314,8 @@ public class KernelRewriter extends AbstractRewriter {
         barrier_no=0;
         barrier_map=new HashMap<ParallelBarrier, Integer>();
         barrier_cb=new ContractBuilder();
+        barrier_scan=new BarrierScan(source());
+        m.accept(barrier_scan);
         ContractBuilder thread_cb=new ContractBuilder();
         thread_cb.requires(create.fold(StandardOperator.Star, kernel_main_invariant));
         thread_cb.ensures(create.fold(StandardOperator.Star, kernel_main_invariant));
@@ -319,7 +357,43 @@ public class KernelRewriter extends AbstractRewriter {
           ASTNode s=orig_block.getStatement(i);
           block.add_statement(rewrite(s));
         }
-        res.add_dynamic(create(m).method_decl(returns,thread_cb.getContract(),base_name+"_main", args, block)); 
+        Contract tc=thread_cb.getContract();
+        res.add_dynamic(create(m).method_decl(returns,tc,base_name+"_main", args, block));
+        
+        /* dumping kernel contract */
+        AbstractRewriter filter_resource=new FilterClause(this,true);
+        AbstractRewriter filter_booleans=new FilterClause(this,false);
+        AbstractRewriter simplify=new Simplify(this);
+        System.err.printf("kernel %s%n", base_name);
+        System.err.printf("// resources%n");
+        for(ASTNode clause:ASTUtils.conjuncts(filter_resource.rewrite(contract.pre_condition))){
+          System.err.printf("requires (\\forall* int tid; 0 <= tid && tid < tcount ;%n            ");
+          vct.java.printer.JavaPrinter.dump(System.out,simplify.rewrite(clause));
+          System.err.printf(");%n");
+        }
+        System.err.printf("// required properties%n");
+        for(ASTNode clause:ASTUtils.conjuncts(filter_booleans.rewrite(contract.pre_condition))){
+          System.err.printf("requires (\\forall int tid; 0 <= tid && tid < tcount ;%n            ");
+          vct.java.printer.JavaPrinter.dump(System.out,simplify.rewrite(clause));
+          System.err.printf(");%n");
+        }
+        System.err.printf("// ensured properties%n");
+        for(ASTNode clause:ASTUtils.conjuncts(filter_booleans.rewrite(contract.post_condition))){
+          System.err.printf("ensures  (\\forall int tid; 0 <= tid && tid < tcount ;%n            ");
+          vct.java.printer.JavaPrinter.dump(System.out,simplify.rewrite(clause));
+          System.err.printf(");%n");
+        }        
+        
+        
+        /* end kernel contract */
+        /*
+        System.err.printf("kernel %s%n", base_name);
+        System.err.printf("thread level contract:%n");
+        for(ASTNode clause:ASTUtils.conjuncts(tc.pre_condition)){
+          System.err.printf("requires ");
+          vct.java.printer.JavaPrinter.dump(System.out,clause);
+        }
+        */
         barrier_cb.requires(create_resources(create.local_name("last_barrier")),false);
         barrier_cb.requires(create.fold(StandardOperator.Star, kernel_main_invariant),false);
         for(ParallelBarrier barrier : barrier_map.keySet()){
@@ -426,13 +500,15 @@ public class KernelRewriter extends AbstractRewriter {
           for(DeclarationStatement d:private_decls){
             resource_decls.add(copy_rw.rewrite(d));
           }
-          res.add_dynamic(create.method_decl(
+          if (Configuration.enable_resource_check.get()){
+            res.add_dynamic(create.method_decl(
               create.primitive_type(Sort.Void),
               resource_cb.getContract(),
               base_name+"_resources_of_"+i,
               resource_decls.toArray(new DeclarationStatement[0]),
               create.block()
-          ));
+            ));
+          }
         }
         
         for (int i=1;i<=barrier_no;i++){
@@ -453,9 +529,12 @@ public class KernelRewriter extends AbstractRewriter {
           Substitution sigma=new Substitution(source(),map);
 
           ASTNode min;
+          ASTNode low;
           if (Configuration.assume_single_group.get()){
+            low=create.constant(0);
             min=create.local_name("gsize");
           } else {
+            low=create.expression(StandardOperator.Mult,create.local_name("gid"),create.local_name("gsize"));
               min=create.expression(StandardOperator.Mult,create.local_name("gsize"),
                   create.expression(StandardOperator.Plus,create.local_name("gid"),create.constant(1)));
               min=create.expression(StandardOperator.ITE,
@@ -465,9 +544,7 @@ public class KernelRewriter extends AbstractRewriter {
           }
           
           ASTNode guard=create.expression(StandardOperator.And,
-              create.expression(StandardOperator.LTE,
-                  create.expression(StandardOperator.Mult,create.local_name("gid"),create.local_name("gsize")),
-                  create.local_name("_x_tid")),
+              create.expression(StandardOperator.LTE,low,create.local_name("_x_tid")),
               create.expression(StandardOperator.LT,create.local_name("_x_tid"),min)
           );
           
@@ -514,13 +591,15 @@ public class KernelRewriter extends AbstractRewriter {
           cb.ensures(create.fold(StandardOperator.Star,constraint));
           if (resources.get(i)!=null) cb.ensures(create.fold(StandardOperator.Star, resources.get(i)));
           if (barrier_post.get(i)!=null) cb.ensures(create.fold(StandardOperator.Star, barrier_post.get(i)));
-          res.add_dynamic(create.method_decl(
+          if(Configuration.enable_post_check.get()){
+            res.add_dynamic(create.method_decl(
               create.primitive_type(Sort.Void),
               cb.getContract(),
               base_name+"_post_check_"+i,
               post_check_decls.toArray(new DeclarationStatement[0]),
               create.block()
-          ));          
+            ));
+          }
         }
       }
       result=res;
@@ -545,19 +624,11 @@ public class KernelRewriter extends AbstractRewriter {
     for(ASTNode inv:kernel_main_invariant){
       res.appendInvariant(copy_rw.rewrite(inv));
     }
-    for(ASTNode inv:s.getInvariants()){
-      res.appendInvariant(inv.apply(this));
-    }
-    tmp=s.getBody();
-    res.setBody(tmp.apply(this));
-    res.set_before(rewrite(s.get_before()));
-    res.set_after(rewrite(s.get_after()));
-    res.setOrigin(s.getOrigin());
     ASTNode inv1=create.constant(false);
     Set<Integer> preds=new HashSet<Integer>();
     find_predecessors(preds,s.getBody());
     for(Integer i : preds){
-//      Warning("    %d",i);
+      //Warning("    %d",i);
       inv1=create.expression(StandardOperator.Or,inv1,
             create.expression(StandardOperator.EQ,
                 create.local_name("__last_barrier"),
@@ -566,7 +637,16 @@ public class KernelRewriter extends AbstractRewriter {
           );
     }
     res.appendInvariant(inv1);
-    result=res; return ;
+    res.appendInvariant(create_resources(create.local_name("__last_barrier")));
+    for(ASTNode inv:s.getInvariants()){
+      res.appendInvariant(inv.apply(this));
+    }
+    tmp=s.getBody();
+    res.setBody(tmp.apply(this));
+    res.set_before(rewrite(s.get_before()));
+    res.set_after(rewrite(s.get_after()));
+    res.setOrigin(s.getOrigin());
+    result=res;
   }
 
 }

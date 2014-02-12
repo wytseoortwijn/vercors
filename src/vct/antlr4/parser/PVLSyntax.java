@@ -85,6 +85,7 @@ public class PVLSyntax {
       syntax.addLeftFix(Or,"||",30);
       //  2 ternary   ? :
        * */
+      syntax.addInfix(Implies,"->",30);
       syntax.addOperator(ITE,20,"","?",":","");
       syntax.addPrefix(BindOutput,"?",666);
       /*
