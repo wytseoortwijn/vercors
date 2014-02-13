@@ -45,6 +45,7 @@ import vct.col.rewrite.ReorderAssignments;
 import vct.col.rewrite.RewriteArray;
 import vct.col.rewrite.RewriteArrayPerms;
 import vct.col.rewrite.SimplifyCalls;
+import vct.col.rewrite.SimplifyExpressions;
 import vct.col.rewrite.Standardize;
 import vct.col.rewrite.StripConstructors;
 import vct.col.rewrite.VoidCalls;
@@ -342,6 +343,11 @@ public class Main
         return new SimplifyCalls(arg).rewriteAll();
       }
     });
+    defined_passes.put("simplify_expr",new CompilerPass("Simplify expressions"){
+      public ProgramUnit apply(ProgramUnit arg){
+        return new SimplifyExpressions(arg).rewriteAll();
+      }
+    });
     defined_passes.put("standardize",new CompilerPass("Standardize representation"){
       public ProgramUnit apply(ProgramUnit arg){
         return new Standardize(arg).rewriteAll();
@@ -451,6 +457,7 @@ public class Main
       }
       if (features.usesKernels()){
         passes.add("kernel-split");
+        passes.add("simplify_expr");
         passes.add("standardize");
         passes.add("check");       
       }
