@@ -33,7 +33,7 @@ specificationPrimary
     : '\\old' '(' expression ')'
     | '\\result'
     | type '{' expressionList? '}'
-    | '(' '\\forall' formalParameter ';' expression ';' expression ')'
+    | '(' '\\forall' formalParameter ';' expression ';' resourceExpression ')'
     | '[' expressionList? ']'
     | '*'
     ;
