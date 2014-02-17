@@ -181,7 +181,7 @@ public class WandEncoder extends AbstractRewriter {
 	  cl.add_dynamic(create.field_decl("lemma",create.primitive_type(Sort.Integer)));
 	  ArrayList<ASTNode> valid_list=new ArrayList();
 	  valid_list.add(create.expression(StandardOperator.Value,create.field_name("lemma")));
-	  valid_list.add(create.expression(StandardOperator.GT,create.field_name("lemma"),create.constant(0)));
+	  valid_list.add(create.expression(StandardOperator.LTE,create.constant(1),create.field_name("lemma")));
 	  ContractBuilder cb=new ContractBuilder();
 	  cb.requires(create.invokation(create.reserved_name(This), null, VALID));
 	  Contract get_contract=cb.getContract();
