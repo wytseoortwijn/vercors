@@ -47,8 +47,15 @@ public class Parser implements vct.col.util.Parser {
 
         Debug("parser got: %s",tree.toStringTree(parser));
 
-        return PVLtoCOL.convert(tree,file_name,tokens,parser);
-
+        CompilationUnit cu=PVLtoCOL.convert(tree,file_name,tokens,parser);
+        
+        ProgramUnit pu=new ProgramUnit();
+        pu.add(cu);
+        pu=new FlattenVariableDeclarations(pu).rewriteAll();
+        if (pu.size()!=1){
+          Fail("bad program unit size");
+        }
+        return pu.get(0);
       } catch (FileNotFoundException e) {
         Fail("File %s has not been found",file_name);
       } catch (Exception e) {

@@ -21,7 +21,7 @@ kernel_field : ('global' | 'local') type ID ( ',' ID )* ';' ;
 
 field : type ID ( ',' ID )* ';' ;
 
-function : contract type ID '(' args ')' '=' expr ';' ;
+function : contract 'static'? type ID '(' args ')' '=' expr ';' ;
 
 method : contract type ID '(' args ')' block ;
 
