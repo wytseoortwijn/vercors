@@ -50,10 +50,14 @@ public class GlobalizeStaticsParameter extends GlobalizeStatics {
         for(int i=1;i<args.length;i++){
           args[i]=rewrite(m.getArgs()[i-1]);
         }
+        ContractBuilder cb=new ContractBuilder();
+        cb.requires(create.expression(StandardOperator.NEQ,
+            create.argument_name("global"),create.reserved_name(ASTReserved.Null)));
+        rewrite(m.getContract(),cb);
         result=create.method_kind(
             m.getKind(),
             rewrite(m.getReturnType()),
-            rewrite(m.getContract()),
+            cb.getContract(),
             m.getName(),
             args,
             rewrite(m.getBody()));

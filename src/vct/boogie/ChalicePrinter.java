@@ -380,7 +380,12 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
       //TODO: fix assumed global argument!
       //possibly fork label:expression ... join label.
       //out.lnprintf("fork tok_%s := %s.run(global);",name,name);
-      out.lnprintf("fork tok_%s := %s.run();",name,name);
+      //Warning("first arg of method: %s",current_method().getArgType(0).toString());
+      if (current_method().getArity()>0 && current_method().getArgType(0).toString().equals("Global")){
+        out.lnprintf("fork tok_%s := %s.run(global);",name,name);
+      } else {
+        out.lnprintf("fork tok_%s := %s.run();",name,name);
+      }
       break;
     }
       case Join:{

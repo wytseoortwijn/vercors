@@ -91,7 +91,8 @@ public abstract class GlobalizeStatics extends AbstractRewriter {
     if (prefix!=null){
       String save=prefix;
       prefix=null;
-      result=create.method_decl(
+      result=create.method_kind(
+          m.kind,
           rewrite(m.getReturnType()),
           rewrite(m.getContract()),
           save+"_"+m.getName(),

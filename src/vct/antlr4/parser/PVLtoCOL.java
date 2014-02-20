@@ -50,6 +50,7 @@ import vct.col.ast.Type;
 import vct.col.ast.ASTClass.ClassKind;
 import vct.col.ast.Method.Kind;
 import vct.col.ast.PrimitiveType.Sort;
+import vct.col.ast.VariableDeclaration;
 import vct.util.Syntax;
 import static vct.col.ast.ASTReserved.*;
 
@@ -93,7 +94,12 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
     String name=getIdentifier(ctx,1);
     ASTClass cl=create.ast_class(name,ClassKind.Plain,null,null);
     for(int i=3;i<ctx.children.size()-1;i++){
-      cl.add_dynamic(convert(ctx.children.get(i)));
+      ASTNode node=convert(ctx.children.get(i));
+      if (node.isValidFlag(ASTNode.STATIC) && node.isStatic()){
+        cl.add_static(node);
+      } else {
+        cl.add_dynamic(node);
+      } 
     }
     return cl;
   }
@@ -301,10 +307,16 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
   @Override
   public ASTNode visitFunction(FunctionContext ctx) {
     Contract c=(Contract) convert(ctx.children.get(0));
-    Type returns=(Type)convert(ctx.children.get(1));
-    String name=getIdentifier(ctx,2);
-    DeclarationStatement args[]=convertArgs((ArgsContext) ctx.children.get(4));
-    ASTNode body=convert(ctx.children.get(7));
+    int offset;
+    if (match(1,true,ctx,"static")){
+      offset=1;
+    } else {
+      offset=0;
+    }
+    Type returns=(Type)convert(ctx.children.get(offset+1));
+    String name=getIdentifier(ctx,offset+2);
+    DeclarationStatement args[]=convertArgs((ArgsContext) ctx.children.get(offset+4));
+    ASTNode body=convert(ctx.children.get(offset+7));
     Kind kind;
     if (returns.isPrimitive(Sort.Resource)) {
       kind=Kind.Predicate;
@@ -312,7 +324,7 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
       kind=Kind.Pure;
     }
     ASTNode res=create.method_kind(kind,returns,c, name, args ,body);
-    res.setStatic(false);
+    res.setStatic(offset==1);
     return res;
   }
   
@@ -395,8 +407,18 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
 
   @Override
   public ASTNode visitField(FieldContext ctx) {
-    if (ctx.children.size()>3) visit(ctx);
-    return create.field_decl(getIdentifier(ctx,1),(Type)convert(ctx.children.get(0)));
+    if (ctx.children.size()==3){
+      return create.field_decl(getIdentifier(ctx,1),(Type)convert(ctx.children.get(0)));
+    } else {
+      VariableDeclaration decl=new VariableDeclaration((Type)convert(ctx.children.get(0)));
+      int N=ctx.children.size();
+      for(int i=1;i<N;i+=2){
+        Type t=create.class_type("basetype");
+        decl.add(create.field_decl(getIdentifier(ctx,i),t));
+      }
+      decl.setOrigin(create.getOrigin());
+      return decl;
+    }
   }
 
   @Override
