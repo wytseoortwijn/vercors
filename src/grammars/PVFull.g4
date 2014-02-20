@@ -99,3 +99,6 @@ WS  :   (   ' '
         |   '\n'
         )+ -> channel(WHITESPACE) ;
 
+EmbeddedLatex
+    : '#' ~[\r\n]* '#' -> skip
+    ;
