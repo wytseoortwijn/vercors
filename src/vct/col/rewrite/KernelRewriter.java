@@ -154,7 +154,14 @@ public class KernelRewriter extends AbstractRewriter {
       }
     }
     */
-    result=create_barrier_call(no.intValue());
+    currentBlock.add(create.comment("// pre barrier marker"));
+    currentBlock.add(create_barrier_call(no.intValue()));
+    for(ASTNode clause : ASTUtils.conjuncts(pb.contract.post_condition)){
+      if (clause.getType().isBoolean()){
+        currentBlock.add(create.expression(StandardOperator.Assert, rewrite(clause)));
+      }
+    }
+    result=null;
   }
   
   private class BarrierScan extends RecursiveVisitor<Object> {
@@ -353,10 +360,14 @@ public class KernelRewriter extends AbstractRewriter {
             private_args.add(create.local_name(d.getName()));
           }
         }
+        BlockStatement save_block=currentBlock;
+        currentBlock=block;
         for(int i=0;i<K;i++){
           ASTNode s=orig_block.getStatement(i);
-          block.add_statement(rewrite(s));
+          ASTNode r=rewrite(s);
+          if (r!=null) block.add_statement(r);
         }
+        currentBlock=save_block;
         Contract tc=thread_cb.getContract();
         res.add_dynamic(create(m).method_decl(returns,tc,base_name+"_main", args, block));
         
