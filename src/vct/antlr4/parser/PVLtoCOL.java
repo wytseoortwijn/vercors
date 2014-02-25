@@ -72,24 +72,6 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
   }
 
   @Override
-  public ASTNode visitKernel_field(Kernel_fieldContext ctx) {
-    if (ctx.children.size()>4) visit(ctx);
-    ASTNode res=create.field_decl(getIdentifier(ctx,2),(Type)convert(ctx.children.get(1)));
-    String keyword=ctx.children.get(0).toString();
-    switch(keyword){
-    case "global":
-      res.setStatic(true);
-      break;
-    case "local":
-      res.setStatic(false);
-      break;
-    default:
-      Fail("bad variable class %s",keyword);
-    }
-    return res;
-  }
-
-  @Override
   public ASTNode visitClaz(ClazContext ctx) {
     String name=getIdentifier(ctx,1);
     ASTClass cl=create.ast_class(name,ClassKind.Plain,null,null);
@@ -403,6 +385,35 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
       return create.barrier(c,fences);
     }
     return visit(ctx);
+  }
+
+  @Override
+  public ASTNode visitKernel_field(Kernel_fieldContext ctx) {
+    ASTNode res;
+    if (ctx.children.size()==4){
+      res=create.field_decl(getIdentifier(ctx,2),(Type)convert(ctx.children.get(1)));
+    } else {
+      VariableDeclaration decl=new VariableDeclaration((Type)convert(ctx.children.get(1)));
+      int N=ctx.children.size();
+      for(int i=2;i<N;i+=2){
+        Type t=create.class_type("basetype");
+        decl.add(create.field_decl(getIdentifier(ctx,i),t));
+      }
+      decl.setOrigin(create.getOrigin());
+      res=decl;
+    }
+    String keyword=ctx.children.get(0).toString();
+    switch(keyword){
+    case "global":
+      res.setStatic(true);
+      break;
+    case "local":
+      res.setStatic(false);
+      break;
+    default:
+      Fail("bad variable class %s",keyword);
+    }
+    return res;
   }
 
   @Override
