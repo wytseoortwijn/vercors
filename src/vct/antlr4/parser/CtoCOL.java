@@ -100,7 +100,6 @@ import vct.parsers.CParser.UnaryOperatorContext;
 import vct.parsers.CVisitor;
 import vct.util.ClassName;
 import vct.util.Syntax;
-
 import static hre.System.*;
 
 /**
@@ -371,12 +370,13 @@ public class CtoCOL extends AbstractCtoCOL implements CVisitor<ASTNode> {
   }
 
   @Override
-  public ASTNode visitExpressionStatement(ExpressionStatementContext ctx) {
-    if (match(ctx,null,";")){
-      return convert(ctx,0);
-    } else if (match(ctx,";")){
-      return create.block();
-    }
+  public ASTNode visitExpressionStatement(ExpressionStatementContext ctx) 
+  {	
+	if (match(ctx,"Expression",";"))
+	{//DRB
+      return create.special(ASTSpecial.Kind.Expression,convert(ctx,0));                	   
+    } 
+	if (match(ctx,";")){  return create.block(); }
     return null;
   }
 
@@ -476,7 +476,7 @@ public class CtoCOL extends AbstractCtoCOL implements CVisitor<ASTNode> {
 
   @Override
   public ASTNode visitGenericSelection(GenericSelectionContext ctx) {
-    // TODO Auto-generated method stub
+
     return null;
   }
 
@@ -518,8 +518,12 @@ public class CtoCOL extends AbstractCtoCOL implements CVisitor<ASTNode> {
 
   @Override
   public ASTNode visitIterationStatement(IterationStatementContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
+
+    // TODO Auto-generated method stub	
+	if (match(ctx,"while","(","ExpressionContext",")",null)){ //DRB --Added	
+	      return (LoopStatement)create.while_loop(convert(ctx,2),convert(ctx,4));
+	}
+	else{ return null; }
   }
 
   @Override
@@ -543,7 +547,7 @@ public class CtoCOL extends AbstractCtoCOL implements CVisitor<ASTNode> {
     // TODO Auto-generated method stub
     return null;
   }
-
+  
   @Override
   public ASTNode visitLogicalOrExpression(LogicalOrExpressionContext ctx) {
     // TODO Auto-generated method stub
@@ -594,14 +598,14 @@ public class CtoCOL extends AbstractCtoCOL implements CVisitor<ASTNode> {
   @Override
   public ASTNode visitPostfixExpression(PostfixExpressionContext ctx) {
     // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitPrimaryExpression(PrimaryExpressionContext ctx) {
     return visitPrimaryExpression((ParserRuleContext)ctx);
   }
-
+  
+  @Override
+  public ASTNode visitPrimaryExpression(PrimaryExpressionContext ctx) {	   
+	    return null;
+  }
+  
   @Override
   public ASTNode visitRelationalExpression(RelationalExpressionContext ctx) {
     // TODO Auto-generated method stub
@@ -610,7 +614,13 @@ public class CtoCOL extends AbstractCtoCOL implements CVisitor<ASTNode> {
 
   @Override
   public ASTNode visitSelectionStatement(SelectionStatementContext ctx) {
-    // TODO Auto-generated method stub
+    // TODO Auto-generated method stub	  
+	  if (match(ctx,"if","(","ExpressionContext",")",null)){	//DRB --Added	  
+	      return create.ifthenelse(convert(ctx,2),convert(ctx,4));
+	  }
+	  else if (match(ctx,"if","(","ExpressionContext",")",null,"else",null)){ //DRB --Added		  
+	      return create.ifthenelse(convert(ctx,2),convert(ctx,4),convert(ctx,6));
+	  }
     return null;
   }
 

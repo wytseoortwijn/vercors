@@ -2,6 +2,7 @@ grammar CML;
 
 import C;
 
+specificationSequence : ( specificationStatement)* contract? ;
 
 contract : contractClause+ ;
 
@@ -10,6 +11,10 @@ contractClause
  | 'ensures' resource ';'
  ;
 
+specificationStatement
+    : 'loop_invariant' resource ';'
+    ;    
+    
 resource
  : resource '**' resource
  | expression '==>' resource
@@ -17,9 +22,9 @@ resource
  | expression
  ;
 
-
 primaryExpression
     :   Identifier
     |   Constant
     | 'old'  '(' expression ')'
     ;
+ 
