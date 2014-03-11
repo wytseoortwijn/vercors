@@ -1,19 +1,46 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 package vct.col.ast;
 
+import hre.HREError;
 import hre.ast.MessageOrigin;
 
 import java.util.ArrayList;
 import java.util.Collection;
 
+import vct.col.util.ASTUtils;
+
 public class LoopStatement extends ASTNode implements BeforeAfterAnnotations {
-  private ArrayList<ASTNode> invariants=new ArrayList();
+
+  private ContractBuilder cb=new ContractBuilder(); 
+  private Contract contract;
   private ASTNode body;
   private ASTNode entry_guard;
   private ASTNode exit_guard;
   private ASTNode init_block;
   private ASTNode update_block;
+
+  public void fixate(){
+    if (cb==null){
+      throw new HREError("loop contract has already been fixated");
+    }
+    contract=cb.getContract(false);
+  }
   
+  public void setContract(Contract contract){
+    if (cb==null){
+      throw new HREError("loop contract has already been fixated");
+    }
+    cb=null;
+    this.contract=contract;
+  }
+  
+  public Contract getContract(){
+    if (contract==null){
+      throw new HREError("contract has not been fixated");
+    }
+    return contract;
+  }
+
   public void setInitBlock(ASTNode init_block){
     this.init_block=init_block;
   }
@@ -54,15 +81,15 @@ public class LoopStatement extends ASTNode implements BeforeAfterAnnotations {
   }
 
   public void prependInvariant(ASTNode inv){
-    invariants.add(0,inv);
+    cb.prependInvariant(inv);
   }
   
   public void appendInvariant(ASTNode inv){
-    invariants.add(inv);
+    cb.appendInvariant(inv);
   }
   
-  public Collection<ASTNode> getInvariants(){
-    return invariants;
+  public Iterable<ASTNode> getInvariants(){
+    return ASTUtils.conjuncts(contract.invariant);
   }
 
   /** Block of proof hints to be executed just before
@@ -93,6 +120,12 @@ public class LoopStatement extends ASTNode implements BeforeAfterAnnotations {
       after.setOrigin(new MessageOrigin("after block"));
     }
     return after;
+  }
+
+  public void appendContract(Contract contract) {
+    cb.appendInvariant(contract.invariant);
+    cb.requires(contract.pre_condition);
+    cb.ensures(contract.post_condition);
   }
 
 }

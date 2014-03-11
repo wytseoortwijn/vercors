@@ -166,10 +166,14 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
       }
     }
     auto_labels=true;
+    if (result!=null && result instanceof LoopStatement){
+      ((LoopStatement)result).fixate();
+    }
     create.leave();
     super.post_visit(n);
   }
 
+  protected boolean in_invariant=false;
   protected boolean in_requires=false;
   protected boolean in_ensures=false;
   
@@ -178,7 +182,12 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
     if (c==null) return;
     cb.given(rewrite(c.given));
     cb.yields(rewrite(c.yields));
-    if (c.modifies!=null) cb.modifies(rewrite(c.modifies));
+    if (c.modifies!=null) cb.modifies(rewrite(c.modifies)); 
+    in_invariant=true;
+    for(ASTNode clause:ASTUtils.conjuncts(c.invariant)){
+      cb.appendInvariant(rewrite(clause));
+    }
+    in_invariant=false;
     in_requires=true;
     for(ASTNode clause:ASTUtils.conjuncts(c.pre_condition)){
       cb.requires(rewrite(clause));
@@ -329,6 +338,11 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   }
   
   @Override
+  public void visit(Contract c){
+    result=rewrite(c);
+  }
+  
+  @Override
   public void visit(ConstantExpression e) {
     //checkPermission(e);
     result=new ConstantExpression(e.getValue(),e.getType(),e.getOrigin());
@@ -397,9 +411,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
     if (tmp!=null) res.setEntryGuard(tmp.apply(this));
     tmp=s.getExitGuard();
     if (tmp!=null) res.setExitGuard(tmp.apply(this));
-    for(ASTNode inv:s.getInvariants()){
-      res.appendInvariant(inv.apply(this));
-    }
+    res.appendContract(rewrite(s.getContract()));
     tmp=s.getBody();
     res.setBody(tmp.apply(this));
     res.set_before(rewrite(s.get_before()));

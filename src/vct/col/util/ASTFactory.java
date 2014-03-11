@@ -4,41 +4,10 @@ package vct.col.util;
 import java.util.ArrayList;
 import java.util.EnumSet;
 
-import vct.col.ast.ASTClass;
+import vct.col.ast.*;
 import vct.col.ast.ASTClass.ClassKind;
-import vct.col.ast.ASTNode;
-import vct.col.ast.ASTReserved;
-import vct.col.ast.ASTSpecial;
-import vct.col.ast.ASTVisitor;
-import vct.col.ast.ASTWith.Kind;
-import vct.col.ast.ASTWith;
-import vct.col.ast.AssignmentStatement;
-import vct.col.ast.BindingExpression;
 import vct.col.ast.BindingExpression.Binder;
-import vct.col.ast.ClassType;
-import vct.col.ast.ConstantExpression;
-import vct.col.ast.Contract;
-import vct.col.ast.ContractBuilder;
-import vct.col.ast.DeclarationStatement;
-import vct.col.ast.Dereference;
-import vct.col.ast.FunctionType;
-import vct.col.ast.IfStatement;
-import vct.col.ast.Lemma;
-import vct.col.ast.LoopStatement;
-import vct.col.ast.Method;
-import vct.col.ast.MethodInvokation;
-import vct.col.ast.NameExpression;
-import vct.col.ast.OperatorExpression;
-import vct.col.ast.ParallelBarrier;
-import vct.col.ast.ParallelBlock;
-import vct.col.ast.PrimitiveType;
 import vct.col.ast.PrimitiveType.Sort;
-import vct.col.ast.ReturnStatement;
-import vct.col.ast.StandardOperator;
-import vct.col.ast.TupleType;
-import vct.col.ast.Type;
-import vct.col.ast.BlockStatement;
-import vct.col.ast.VariableDeclaration;
 import hre.ast.Origin;
 import hre.util.FrameControl;
 import hre.util.FrameReference;
@@ -423,17 +392,30 @@ public class ASTFactory<E> implements FrameControl {
       return res;
     }
 
-  public LoopStatement for_loop(ASTNode init, ASTNode test, ASTNode update, ASTNode body,ASTNode ... invariant){
-	    LoopStatement res=new LoopStatement();
-	    res.setEntryGuard(test);
-	    res.setInitBlock(init);
-	    res.setUpdateBlock(update);
-	    res.setBody(body);
-	    res.setOrigin(origin_stack.get());
-	    for (ASTNode inv:invariant) res.appendInvariant(inv);
-	    res.accept_if(post);
-	    return res;    
-	  }
+    public LoopStatement for_loop(ASTNode init, ASTNode test, ASTNode update, ASTNode body,ASTNode ... invariant){
+      LoopStatement res=new LoopStatement();
+      res.setEntryGuard(test);
+      res.setInitBlock(init);
+      res.setUpdateBlock(update);
+      res.setBody(body);
+      res.setOrigin(origin_stack.get());
+      for (ASTNode inv:invariant) res.appendInvariant(inv);
+      res.fixate();
+      res.accept_if(post);
+      return res;    
+    }
+          
+    public LoopStatement for_loop(ASTNode init, ASTNode test, ASTNode update, ASTNode body,Contract contract){
+      LoopStatement res=new LoopStatement();
+      res.setEntryGuard(test);
+      res.setInitBlock(init);
+      res.setUpdateBlock(update);
+      res.setBody(body);
+      res.setOrigin(origin_stack.get());
+      res.setContract(contract);
+      res.accept_if(post);
+      return res;    
+    }
           
   public BindingExpression forall(ASTNode guard, ASTNode claim, DeclarationStatement ... decl) {
     BindingExpression res=new BindingExpression(
@@ -791,6 +773,20 @@ public LoopStatement while_loop(ASTNode test,ASTNode body,ASTNode ... invariant)
   res.setBody(body);
   res.setOrigin(origin_stack.get());
   for (ASTNode inv:invariant) res.appendInvariant(inv);
+  res.fixate();
+  res.accept_if(post);
+  return res;    
+}
+
+/**
+ * Create a new while loop.
+ */
+public LoopStatement while_loop(ASTNode test,ASTNode body,Contract contract){
+  LoopStatement res=new LoopStatement();
+  res.setEntryGuard(test);
+  res.setBody(body);
+  res.setOrigin(origin_stack.get());
+  res.setContract(contract);
   res.accept_if(post);
   return res;    
 }
@@ -798,7 +794,7 @@ public LoopStatement while_loop(ASTNode test,ASTNode body,ASTNode ... invariant)
 /**
  * Create a new auxiliary with node.
  */
-public ASTNode with(String[] from, Kind kind, boolean all, ASTNode body) {
+public ASTNode with(String[] from, ASTWith.Kind kind, boolean all, ASTNode body) {
   // types are irrelevant for a with node.
   ASTNode res=new ASTWith(from,kind,all,body);
   res.setOrigin(origin_stack.get());

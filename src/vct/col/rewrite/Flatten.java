@@ -263,10 +263,7 @@ public class Flatten extends AbstractRewriter {
     Contract mc=m.getContract();
     Contract c=null;
     if (mc!=null){
-      ASTNode pre=mc.pre_condition.apply(copy_pure);
-      ASTNode post=mc.post_condition.apply(copy_pure);
-      c=new Contract(copy_pure.rewrite(mc.given),copy_pure.rewrite(mc.yields),
-          copy_pure.rewrite(mc.modifies),pre,post);
+      c=copy_pure.rewrite(mc);
     }
     Method.Kind kind=m.kind;
     Method res=create.method_kind(kind,rewrite(m.getReturnType()) , c, name, args, m.usesVarArgs(),null);
