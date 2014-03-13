@@ -603,7 +603,7 @@ public class CtoCOL extends AbstractCtoCOL implements CVisitor<ASTNode> {
   
   @Override
   public ASTNode visitPrimaryExpression(PrimaryExpressionContext ctx) {	   
-	    return null;
+	  return visitPrimaryExpression((ParserRuleContext)ctx);
   }
   
   @Override
