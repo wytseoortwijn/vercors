@@ -22,7 +22,6 @@ import org.antlr.v4.runtime.tree.RuleNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
 import pv.parser.PVFullLexer;
-
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTSequence;
 import vct.col.ast.BeforeAfterAnnotations;
@@ -39,7 +38,6 @@ import vct.col.util.ASTFactory;
 import vct.parsers.CLexer;
 import vct.parsers.CParser.AdditiveExpressionContext;
 import vct.util.Syntax;
-
 import static hre.System.*;
 
 /**
@@ -178,17 +176,21 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
    *  in the AST factory.
    */
   public void enter(ParseTree node){
+	 
     create.enter();
+    
     Origin origin;
-    if (node instanceof ParserRuleContext){
-      ParserRuleContext ctx=(ParserRuleContext)node;
-      origin=origin(ctx.start,ctx.stop);
-    } else  if (node instanceof TerminalNode) {
+    if (node instanceof ParserRuleContext){    	
+    	ParserRuleContext ctx=(ParserRuleContext)node;    	
+    	origin=origin(ctx.start,ctx.stop);
+      
+    } else  if (node instanceof TerminalNode) {    	
       Token tok=((TerminalNode)node).getSymbol();
       origin=origin(tok,tok);
     } else {
       throw Failure("unknown parse tree node: %s",node.getClass());
     }
+    
     create.setOrigin(origin);
   }
   
@@ -313,12 +315,15 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
     if (upto>from) scan_comments_after(unit,ctx.getChild(upto-1));
   }
   private void scan_to_rec(ASTSequence<?> unit,ParseTree tree){
-    enter(tree);
+	
+	enter(tree);
+    
     ASTNode res=tree.accept(this);
     if (res==null){
       res=visit(tree);
     }
     leave(tree,res);
+    
     scan_comments_before(unit,tree);
     if (res==null){
       if (tree instanceof ParserRuleContext){
@@ -550,6 +555,12 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
         return false;
       } else {
         if (item.toString().equals(pattern[i])) continue;
+        if (item instanceof ParserRuleContext)
+        {//BLM - DRB --added
+        ParserRuleContext item_ctx = (ParserRuleContext) item;
+        if(item_ctx.children.size() ==1 )            
+        	if (item_ctx.children.get(0).toString().equals(pattern[i])) continue;
+        }
         return false;
       }
     }
@@ -579,11 +590,11 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
   
   public Contract getContract(ParserRuleContext ctx){
     ContractBuilder cb=new ContractBuilder();
-    for(ParseTree t:ctx.children){
+    for(ParseTree t:ctx.children){      
       if (t instanceof ParserRuleContext){
-        ParserRuleContext clause=(ParserRuleContext)t;
-        enter(clause);
-        if (match(clause,"requires",null,";")){
+        ParserRuleContext clause=(ParserRuleContext)t;        
+        enter(clause);        
+        if (match(clause,"requires",null,";")){                   	
           cb.requires(convert(clause,1));
         } else if (match(clause,"ensures",null,";")){
           cb.ensures(convert(clause,1));

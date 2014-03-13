@@ -5,11 +5,13 @@ import hre.ast.MessageOrigin;
 import org.antlr.v4.runtime.BufferedTokenStream;
 import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.misc.NotNull;
 import org.antlr.v4.runtime.tree.ParseTree;
 
 import vct.clang.printer.CSyntax;
 import vct.col.ast.*;
 import vct.parsers.CMLLexer;
+import vct.parsers.CMLParser;
 import vct.parsers.CMLParser.AbstractDeclaratorContext;
 import vct.parsers.CMLParser.AdditiveExpressionContext;
 import vct.parsers.CMLParser.AlignmentSpecifierContext;
@@ -97,8 +99,10 @@ import vct.parsers.CMLParser.TypeSpecifierContext;
 import vct.parsers.CMLParser.TypedefNameContext;
 import vct.parsers.CMLParser.UnaryExpressionContext;
 import vct.parsers.CMLParser.UnaryOperatorContext;
-import vct.parsers.CMLVisitor;
-import vct.util.Syntax;
+import vct.parsers.CMLParser.SpecificationStatementContext; //DRB  
+import vct.parsers.CMLParser.SpecificationSequenceContext;//DRB
+import vct.parsers.CMLVisitor; 
+import vct.util.Syntax;   
 
 /**
  * Convert CML (C Modeling Language) parse trees to COL.
@@ -216,6 +220,7 @@ public class CMLtoCOL extends AbstractCtoCOL implements CMLVisitor<ASTNode> {
 
   @Override
   public ASTNode visitContract(ContractContext ctx) {
+	 System.out.println("\n visitContract");//DRB
     return getContract(ctx);
   }
 
@@ -320,7 +325,7 @@ public class CMLtoCOL extends AbstractCtoCOL implements CMLVisitor<ASTNode> {
   public ASTNode visitEqualityExpression(EqualityExpressionContext ctx) {
     // TODO Auto-generated method stub
     return null;
-  }
+  }//
 
   @Override
   public ASTNode visitExclusiveOrExpression(ExclusiveOrExpressionContext ctx) {
@@ -332,7 +337,7 @@ public class CMLtoCOL extends AbstractCtoCOL implements CMLVisitor<ASTNode> {
   public ASTNode visitExpression(ExpressionContext ctx) {
     // TODO Auto-generated method stub
     return null;
-  }
+  }// //
 
   @Override
   public ASTNode visitExpressionStatement(ExpressionStatementContext ctx) {
@@ -531,6 +536,7 @@ public class CMLtoCOL extends AbstractCtoCOL implements CMLVisitor<ASTNode> {
   @Override
   public ASTNode visitSelectionStatement(SelectionStatementContext ctx) {
     // TODO Auto-generated method stub
+	  
     return null;
   }
 
@@ -540,15 +546,28 @@ public class CMLtoCOL extends AbstractCtoCOL implements CMLVisitor<ASTNode> {
     return null;
   }
 
+  @Override  
+  public ASTNode visitSpecificationSequence(SpecificationSequenceContext ctx) {//DRB --Added	  
+    return null;
+  }
+  
+  @Override
+  public ASTNode visitSpecificationStatement(SpecificationStatementContext ctx) {//DRB --Added	  
+	    if (match(ctx,"loop_invariant",null,";")){	      
+	      return create.special(ASTSpecial.Kind.Invariant,convert(ctx,1));
+	    }
+	    return null;
+  }
+  
   @Override
   public ASTNode visitSpecifierQualifierList(SpecifierQualifierListContext ctx) {
-    // TODO Auto-generated method stub
+    // TODO Auto-generated method stub	  
     return null;
   }
 
   @Override
   public ASTNode visitStatement(StatementContext ctx) {
-    // TODO Auto-generated method stub
+    // TODO Auto-generated method stub	  
     return null;
   }
 
