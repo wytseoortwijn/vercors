@@ -219,8 +219,7 @@ public class CMLtoCOL extends AbstractCtoCOL implements CMLVisitor<ASTNode> {
   }
 
   @Override
-  public ASTNode visitContract(ContractContext ctx) {
-	 System.out.println("\n visitContract");//DRB
+  public ASTNode visitContract(ContractContext ctx) {	 
     return getContract(ctx);
   }
 
