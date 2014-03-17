@@ -2,6 +2,8 @@ package vct.col.util;
 
 import vct.col.ast.ASTClass;
 import vct.col.ast.ASTNode;
+import vct.col.ast.Contract;
+import vct.col.ast.LoopStatement;
 import vct.col.ast.ParallelBlock;
 import vct.col.ast.PrimitiveType.Sort;
 import vct.col.ast.RecursiveVisitor;
@@ -19,6 +21,7 @@ public class FeatureScanner extends RecursiveVisitor<Object> {
   private boolean has_longs=false;
   private boolean has_inheritance=false;
   private boolean has_kernels=false;
+  private boolean has_iteration_contracts=false;
   
   public boolean usesDoubles(){
     return has_doubles;
@@ -42,6 +45,10 @@ public class FeatureScanner extends RecursiveVisitor<Object> {
   
   public boolean usesKernels(){
     return has_kernels;
+  }
+  
+  public boolean usesIterationContracts(){
+    return has_iteration_contracts;
   }
 
   public void pre_visit(ASTNode node){
@@ -81,4 +88,12 @@ public class FeatureScanner extends RecursiveVisitor<Object> {
     super.visit(pb);
   }
 
+  public void visit(LoopStatement s){
+    super.visit(s);
+    if (has_iteration_contracts) return;
+    Contract c=s.getContract();
+    if (c!=null){
+      has_iteration_contracts=(c.pre_condition != c.default_true || c.post_condition != c.default_true);
+    }
+  }
 }

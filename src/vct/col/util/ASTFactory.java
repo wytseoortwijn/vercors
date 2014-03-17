@@ -181,14 +181,20 @@ public class ASTFactory<E> implements FrameControl {
    * Create a new block, with the given statements as (initial) contents.
    */
   public BlockStatement block(ASTNode ... args) {
-    BlockStatement res=new BlockStatement();
-    for(ASTNode node:args){
-      res.add_statement(node);
-    }
-    res.setOrigin(origin_stack.get());
-    res.accept_if(post);
-    return res;        
+    return block(origin_stack.get(),args);        
   }
+
+public BlockStatement block(Origin origin, ASTNode ... args) {
+  BlockStatement res=new BlockStatement();
+  for(ASTNode node:args){
+    res.add_statement(node);
+  }
+  res.setOrigin(origin);
+  res.accept_if(post);
+  return res;        
+}
+
+
   public ClassType class_type(E origin,String name[],ASTNode ... args){
     return class_type(origin_source.create(origin),name,args);
   }
@@ -822,6 +828,5 @@ public ASTNode arrow_type(Type[] types, Type tgt) {
   res.accept_if(post);
   return res;
 }
-
 
 }
