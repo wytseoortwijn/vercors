@@ -40,6 +40,7 @@ import vct.col.rewrite.GlobalizeStaticsField;
 import vct.col.rewrite.GlobalizeStaticsParameter;
 import vct.col.rewrite.InheritanceRewriter;
 import vct.col.rewrite.InlinePredicatesRewriter;
+import vct.col.rewrite.IterationContractEncoder;
 import vct.col.rewrite.KernelRewriter;
 import vct.col.rewrite.ReorderAssignments;
 import vct.col.rewrite.RewriteArray;
@@ -300,6 +301,11 @@ public class Main
     defined_passes.put("inline",new CompilerPass("Inline predicates with arguments"){
       public ProgramUnit apply(ProgramUnit arg){
         return new InlinePredicatesRewriter(arg).rewriteAll();
+      }
+    });
+    defined_passes.put("iter",new CompilerPass("Encode iteration contracts as method calls"){
+      public ProgramUnit apply(ProgramUnit arg){
+        return new IterationContractEncoder(arg).rewriteAll();
       }
     });
     defined_passes.put("kernel-split",new CompilerPass("Split kernels into main, thread and barrier."){
