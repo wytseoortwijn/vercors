@@ -179,6 +179,7 @@ public class ExplicitPermissionEncoding extends AbstractRewriter {
     for(ASTNode inv:s.getInvariants()){
       res.appendInvariant(inv.apply(clause_rw));
     }
+    res.fixate();
     tmp=s.getBody();
     res.setBody(tmp.apply(this));
     res.setOrigin(s.getOrigin());

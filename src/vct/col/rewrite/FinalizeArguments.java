@@ -57,9 +57,13 @@ public class FinalizeArguments extends AbstractRewriter {
         Contract c=null;
         if (mc!=null){
           Substitution sigma=new Substitution(source(),subst);
+          ASTNode inv=mc.invariant.apply(sigma);
           ASTNode pre=mc.pre_condition.apply(sigma);
           ASTNode post=mc.post_condition.apply(sigma);
-          c=new Contract(rewrite(mc.given),rewrite(mc.yields),rewrite(mc.modifies),pre,post);
+          c=new Contract(rewrite(mc.given),rewrite(mc.yields),rewrite(mc.modifies),inv,pre,post);
+          if (mc.getOrigin()!=null){
+            c.setOrigin(mc);
+          }
         }
         { // this flattening could also be done by a generic pass.
           BlockStatement orig=(BlockStatement)body;

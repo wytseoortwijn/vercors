@@ -10,13 +10,12 @@ import java.util.*;
 
 
 import static vct.col.ast.StandardOperator.And;
+import static vct.col.ast.Contract.default_true;
 
 public class ContractBuilder {
 
   private boolean empty=true;
   
-  private final static Origin origin=new MessageOrigin("contract builder default true");
-  public final static ASTNode default_true=new ConstantExpression(true,origin);
   private ASTNode pre_condition=default_true;
   private ASTNode post_condition=default_true;
   private ASTNode invariant=default_true;
@@ -122,17 +121,29 @@ public class ContractBuilder {
     }
   }
 
-  public void invariant(ASTNode condition){
-	    empty=false;
-	    if (condition.getOrigin()==null) throw new Error("condition "+condition.getClass()+" without origin");
-	    if (invariant==default_true) {
-	      invariant=condition;
-	    } else {
-	      ASTNode tmp=invariant;
-	      invariant=new OperatorExpression(StandardOperator.And,invariant,condition);
-	      invariant.setOrigin(new CompositeOrigin(tmp.getOrigin(),condition.getOrigin()));
-	    }
-	  }
+  public void appendInvariant(ASTNode condition){
+    empty=false;
+    if (condition.getOrigin()==null) throw new Error("condition "+condition.getClass()+" without origin");
+    if (invariant==default_true) {
+      invariant=condition;
+    } else {
+      ASTNode tmp=invariant;
+      invariant=new OperatorExpression(StandardOperator.Star,invariant,condition);
+      invariant.setOrigin(new CompositeOrigin(tmp.getOrigin(),condition.getOrigin()));
+    }
+  }
+  
+  public void prependInvariant(ASTNode condition){
+    empty=false;
+    if (condition.getOrigin()==null) throw new Error("condition "+condition.getClass()+" without origin");
+    if (invariant==default_true) {
+      invariant=condition;
+    } else {
+      ASTNode tmp=invariant;
+      invariant=new OperatorExpression(StandardOperator.Star,condition,invariant);
+      invariant.setOrigin(new CompositeOrigin(tmp.getOrigin(),condition.getOrigin()));
+    }
+  }
  
   public Contract getContract(){
     return getContract(true);
@@ -145,7 +156,7 @@ public class ContractBuilder {
     if (modifiable!=null){
       mods=modifiable.toArray(new ASTNode[0]);
     }
-    return new Contract(given.toArray(decls),yields.toArray(decls),mods,pre_condition,post_condition,signals.toArray(decls));
+    return new Contract(given.toArray(decls),yields.toArray(decls),mods,invariant,pre_condition,post_condition,signals.toArray(decls));
   }
   public void modifies(ASTNode ... locs) {
     empty=false;
@@ -156,7 +167,7 @@ public class ContractBuilder {
   }
 
   public static Contract emptyContract() {
-    return new Contract(new DeclarationStatement[0],new DeclarationStatement[0],default_true,default_true);
+    return new Contract(new DeclarationStatement[0],new DeclarationStatement[0],default_true,default_true,default_true);
   }
 
   public void signals(ClassType type, String name, ASTNode expr) {

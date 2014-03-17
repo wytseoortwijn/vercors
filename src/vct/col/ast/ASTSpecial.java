@@ -17,7 +17,8 @@ public class ASTSpecial extends ASTNode {
     Proof,
     Import,
     Throw,
-    Label
+    Label,
+    Contract
   };
 
   public final Kind kind;

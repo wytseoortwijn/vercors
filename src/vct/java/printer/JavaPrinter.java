@@ -274,6 +274,12 @@ public class JavaPrinter extends AbstractPrinter {
         out.printf("given ");
         d.accept(this);
       }
+      for(ASTNode e:ASTUtils.conjuncts(contract.invariant)){
+        out.printf("invariant ");
+        nextExpr();
+        e.accept(this);
+        out.lnprintf(";");
+      }
       for(ASTNode e:ASTUtils.conjuncts(contract.pre_condition)){
         out.printf("requires ");
         nextExpr();
@@ -681,12 +687,7 @@ public class JavaPrinter extends AbstractPrinter {
   }
 
   public void visit(LoopStatement s){
-    for(ASTNode inv:s.getInvariants()){
-      out.printf("/*@ loop_invariant ");
-      nextExpr();
-      inv.accept(this);
-      out.lnprintf("; */");
-    }
+    visit(s.getContract());
     ASTNode tmp;
     if (s.getInitBlock()!=null){
       out.printf("for(");

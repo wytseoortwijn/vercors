@@ -18,6 +18,7 @@ import vct.parsers.CMLLexer;
 import vct.parsers.CMLParser;
 import static hre.System.*;
 import static vct.col.ast.ASTSpecial.Kind.Comment;
+
 import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.Lexer;
 
@@ -82,7 +83,7 @@ public class CommentRewriter extends AbstractRewriter {
   @Override
   public void enter(ASTNode node){
     super.enter(node);
-    if (!(node instanceof ASTSpecial) || ((ASTSpecial)node).kind!=Comment){
+    if ((!(node instanceof ASTSpecial) || ((ASTSpecial)node).kind!=Comment) && !(node instanceof ConstantExpression)){
       if (queue.size()>0){
         contract=parser.contract(current_sequence(),grabQueue());
       }
@@ -146,21 +147,43 @@ public class CommentRewriter extends AbstractRewriter {
   
   @Override
   public void visit(LoopStatement s){
-    BlockStatement filtered=create.block();
+    BlockStatement new_before=create.block();
+    BlockStatement new_after=create.block();
     super.visit(s);
     s=(LoopStatement)result;
-    BlockStatement before=s.get_before();
-    s.set_before(filtered);
-    for(ASTNode n:before){
-      n.clearParent();
-      if (n instanceof ASTSpecial && ((ASTSpecial)n).kind==ASTSpecial.Kind.Invariant){
-        s.appendInvariant(((ASTSpecial)n).args[0]);
-      } else {
-        filtered.add(n);
-      }
-    }
+    BlockStatement old_before=s.get_before();
+    BlockStatement old_after=s.get_after();
+    s.set_before(new_before);
+    s.set_after(new_after);
+    filter(s,new_before,new_after,new_before,old_before);
+    filter(s,new_before,new_after,new_after,old_after);
   }
   
+  private void filter(LoopStatement s,BlockStatement new_before, BlockStatement new_after,
+      BlockStatement new_current, BlockStatement old_current)
+  {
+    for(ASTNode n:old_current){
+      n.clearParent();
+      if (n instanceof ASTSpecial){
+        //Warning("filtering %s",((ASTSpecial)n).kind);
+        switch (((ASTSpecial)n).kind) {
+        case Invariant:
+          Debug("appending invariant");
+          s.appendInvariant(((ASTSpecial)n).args[0]);
+          break;
+        case Contract:
+          Debug("appending contract");
+          s.appendContract((Contract)((ASTSpecial)n).args[0]);
+          break;
+        default:
+          new_current.add(n);
+        }
+      } else {
+        new_current.add(n);
+      }
+    }
+    
+  }
   @Override
   public void visit(BlockStatement block){
     BlockStatement save=currentBlock;
@@ -168,7 +191,12 @@ public class CommentRewriter extends AbstractRewriter {
     for(ASTNode item:block){
       currentBlock.add(rewrite(item));
     }
-    if (queue.size()>0) parser.contract(currentBlock,grabQueue());
+    if (queue.size()>0) {
+      Contract c=parser.contract(currentBlock,grabQueue());
+      if (c!=null) {
+        currentBlock.add_statement(create.special(ASTSpecial.Kind.Contract, c));
+      }
+    }
     result=currentBlock;
     currentBlock=save;
   }

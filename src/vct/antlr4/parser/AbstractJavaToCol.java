@@ -313,6 +313,16 @@ public class AbstractJavaToCol extends ANTLRtoCOL {
       scan_comments_after(res.get_after(), ctx.getChild(1));
       return res;
     }
+    if (match(ctx,"for","(",null,")",null)){
+      //ASTNode init=convert(ctx,2);
+      //ASTNode test=convert(ctx,4);
+      //ASTNode update=convert(ctx,6);
+      ASTNode body=convert(ctx,4);
+      //LoopStatement res=create.for_loop(init, test, update, body);
+      LoopStatement res=create.while_loop(create.constant(true),body);
+      scan_comments_after(res.get_after(), ctx.getChild(3));
+      return res;
+    }
     if (match(ctx,"assert",null,";")){
       return create.special(ASTSpecial.Kind.Assert,convert(ctx,1));
     }
