@@ -461,6 +461,11 @@ public class Main
         passes.add("standardize");
         passes.add("check");
       }
+      if (features.usesIterationContracts()){
+        passes.add("iter");
+        passes.add("standardize");
+        passes.add("check");
+      }
       if (features.usesKernels()){
         passes.add("kernel-split");
         passes.add("simplify_expr");
