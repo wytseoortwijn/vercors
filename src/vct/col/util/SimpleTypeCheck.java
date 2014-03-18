@@ -760,7 +760,7 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     for(ASTNode inv:s.getInvariants()){
       Type t=inv.getType();
       if (t==null || !(t.isBoolean() || t.isPrimitive(Sort.Resource))){
-        Abort("loop invariant is not a boolean");
+        Abort("loop invariant is not a boolean or resource (%s)",t);
       }
     }
     ASTNode tmp;
@@ -779,7 +779,7 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       }      
     }
   }
-  
+ 
   @Override
   public void visit(BindingExpression e){
     super.visit(e);

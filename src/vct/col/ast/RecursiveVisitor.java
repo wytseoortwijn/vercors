@@ -214,6 +214,7 @@ public abstract class RecursiveVisitor<T> extends ASTFrame<T> implements
   }
 
   public void visit(Contract c){
+    dispatch(c.invariant);
     dispatch(c.pre_condition);
     dispatch(c.post_condition);
   }
