@@ -19,15 +19,23 @@ public class NameScanner extends RecursiveVisitor<Object> {
   }
   
   public void visit(NameExpression e){
-    if (e.getKind()==NameExpression.Kind.Reserved) return;
-    String name=e.getName();
-    Type t=e.getType();
-    if (vars.contains(name)){
-      if (!t.equals(vars.get(name))) {
-        Fail("type mismatch %s != %s",t,vars.get(name));
-      }
-    } else {
-      vars.put(name,t);
+    switch(e.getKind()){
+      case Reserved: return;
+      case Field:
+      case Local:
+      case Argument:
+        String name=e.getName();
+        Type t=e.getType();
+        if (vars.contains(name)){
+          if (!t.equals(vars.get(name))) {
+            Fail("type mismatch %s != %s",t,vars.get(name));
+          }
+        } else {
+          vars.put(name,t);
+        }
+        return;
+      default:
+        Abort("missing case %s %s in name scanner",e.getKind(),e.getName());
     }
   }
   

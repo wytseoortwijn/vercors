@@ -148,9 +148,8 @@ public abstract class RecursiveVisitor<T> extends ASTFrame<T> implements
     dispatch(s.get_before());
     dispatch(s.getInitBlock());
     dispatch(s.getEntryGuard());
-    for(ASTNode inv:s.getInvariants()){
-      inv.accept(this);
-    }
+    dispatch(s.getUpdateBlock());
+    dispatch(s.getContract());
     s.getBody().accept(this);
     dispatch(s.getExitGuard());
     dispatch(s.get_after());
@@ -215,6 +214,7 @@ public abstract class RecursiveVisitor<T> extends ASTFrame<T> implements
   }
 
   public void visit(Contract c){
+    dispatch(c.invariant);
     dispatch(c.pre_condition);
     dispatch(c.post_condition);
   }
