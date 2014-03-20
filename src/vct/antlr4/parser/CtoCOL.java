@@ -519,10 +519,18 @@ public class CtoCOL extends AbstractCtoCOL implements CVisitor<ASTNode> {
   @Override
   public ASTNode visitIterationStatement(IterationStatementContext ctx) {
 
-    // TODO Auto-generated method stub	
-	if (match(ctx,"while","(","ExpressionContext",")",null)){ //DRB --Added	
-	      return (LoopStatement)create.while_loop(convert(ctx,2),convert(ctx,4));
-	}
+    // TODO Auto-generated method stub		
+	if (match(ctx,"while","(",null,")",null)){ //DRB --Added		
+		  LoopStatement res=(LoopStatement)create.while_loop(convert(ctx,2),convert(ctx,4));
+	      scan_comments_after(res.get_after(), ctx.getChild(3));	      
+	      return res;
+	}	
+	else if (match(ctx,"for","(",null,";",null,";",null,")",null)){ //DRB --Added		 
+	      ASTNode body=convert(ctx,8);
+	      LoopStatement res=create.while_loop(create.constant(true),body);
+	      scan_comments_after(res.get_after(), ctx.getChild(7));
+	      return res;
+	}	 
 	else{ return null; }
   }
 
@@ -615,7 +623,7 @@ public class CtoCOL extends AbstractCtoCOL implements CVisitor<ASTNode> {
   @Override
   public ASTNode visitSelectionStatement(SelectionStatementContext ctx) {
     // TODO Auto-generated method stub	  
-	  if (match(ctx,"if","(","ExpressionContext",")",null)){	//DRB --Added	  
+	  if (match(ctx,"if","(","ExpressionContext",")",null)){	//DRB --Added  
 	      return create.ifthenelse(convert(ctx,2),convert(ctx,4));
 	  }
 	  else if (match(ctx,"if","(","ExpressionContext",")",null,"else",null)){ //DRB --Added		  
