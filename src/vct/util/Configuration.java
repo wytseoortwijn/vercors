@@ -11,6 +11,7 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import vct.java.printer.JavaSyntax;
 import hre.config.BooleanSetting;
 import hre.config.OptionParser;
 import hre.config.StringSetting;
@@ -182,5 +183,11 @@ public class Configuration {
       throw new Error(e.getMessage());
     }
     return shell;
+  }
+  /**
+   * Get the syntax that is to be used for diagnostic output.
+   */
+  public static Syntax getDiagSyntax(){
+    return JavaSyntax.getJavaJML();
   }
 }

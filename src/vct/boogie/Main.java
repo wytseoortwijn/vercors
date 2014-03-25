@@ -68,14 +68,8 @@ public class Main {
         OutputStream encoded=new FileOutputStream(encoded_file);
         boogie_input=new PrintStream(new SplittingOutputStream(temp,encoded));
       }
-      TrackingOutput boogie_code=new TrackingOutput(boogie_input);
-      BoogiePrinter printer=new BoogiePrinter(boogie_code);
-      for(ASTClass cl:arg.classes()){
-        if (cl.getDynamicCount()>0 && cl.getStaticCount()>0) {
-          throw Failure("mixed static(%d)/dynamic(%d) boogie program.",cl.getStaticCount(),cl.getDynamicCount());
-        }  
-        printer.print(cl);
-      }
+      TrackingOutput boogie_code=new TrackingOutput(boogie_input,true);
+      BoogieSyntax.getBoogie().print(boogie_code,arg);
       TrackingTree tree=boogie_code.close();
       File boogie_xml_file=File.createTempFile("boogie-output",".xml",shell.shell_dir.toFile());
       boogie_xml_file.deleteOnExit();
@@ -121,7 +115,9 @@ public class Main {
         OutputStream encoded=new FileOutputStream(encoded_file);
         chalice_input=new PrintStream(new SplittingOutputStream(temp,encoded));
       }
-      final TrackingOutput chalice_code=new TrackingOutput(chalice_input);
+      final TrackingOutput chalice_code=new TrackingOutput(chalice_input,true);
+      BoogieSyntax.getChalice().print(chalice_code, program);
+      /*
       final ChalicePrinter printer=new ChalicePrinter(chalice_code);
       
       for(ASTClass cl:program.classes()){
@@ -131,7 +127,7 @@ public class Main {
           cl.accept(printer);
         }
       }
-      
+      */
       TrackingTree tree=chalice_code.close();
         //shell.send("which chalice");
         //shell.send("pwd");

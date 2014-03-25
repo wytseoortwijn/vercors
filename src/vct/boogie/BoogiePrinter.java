@@ -127,7 +127,7 @@ public class BoogiePrinter extends AbstractBoogiePrinter {
   }
 
 
-  public void print(ASTClass cl){
+  public void visit(ASTClass cl){
     int N=cl.getStaticCount();
     int M=cl.getDynamicCount();
     if (M==1 && cl.getDynamic(0) instanceof Method){
@@ -138,12 +138,12 @@ public class BoogiePrinter extends AbstractBoogiePrinter {
       throw new Error("mixed static/dynamic "+N+"/"+M+" in boogie");
     }
     if (N==1 && cl.getStatic(0) instanceof ASTClass){
-      print((ASTClass)cl.getStatic(0));
+      visit((ASTClass)cl.getStatic(0));
     } else for(int i=0;i<N;i++){
       cl.getStatic(i).accept(this);
     }
     if (M==1 && cl.getDynamic(0) instanceof ASTClass){
-      print((ASTClass)cl.getDynamic(0));
+      visit((ASTClass)cl.getDynamic(0));
     } else for(int i=0;i<M;i++){
       cl.getDynamic(i).accept(this);
     }

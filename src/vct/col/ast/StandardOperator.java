@@ -185,7 +185,11 @@ public enum StandardOperator {
   /** Bind an output argument of a method to this pattern.
    *  E.g. <code>?x</code> and <code>?(x,y)M</code>. 
    */
-  BindOutput(1);
+  BindOutput(1),
+  /**
+   * Building a tuple, also used to represent parenthesized expressions.
+   */
+  Tuple(-1);
 
   private final int arity;
   

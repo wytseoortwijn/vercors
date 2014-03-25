@@ -1,11 +1,17 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 package vct.util;
 
+import vct.col.ast.ASTNode;
 import vct.col.ast.ASTReserved;
+import vct.col.ast.CompilationUnit;
 import vct.col.ast.PrimitiveType.Sort;
+import vct.col.ast.ProgramUnit;
 import vct.col.ast.StandardOperator;
 import vct.util.Syntax.Associativity;
+import hre.HREError;
+import hre.ast.TrackingOutput;
 
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Map;
@@ -22,6 +28,11 @@ import java.util.EnumMap;
  */
 public class Syntax {
 
+  public final String language;
+  
+  public Syntax(String language){
+    this.language=language;
+  }
   public static enum Associativity{Left,Right,None};
 
   private Map<StandardOperator,Integer> precedence_map = new EnumMap<StandardOperator, Integer>(StandardOperator.class);
@@ -127,6 +138,10 @@ public class Syntax {
     pattern_map.put(op, pattern);
   }
   
+  public void addList(StandardOperator op,final String ... full_syntax){
+    syntax_map.put(op,full_syntax);
+  }
+  
   /** Add a standard operation that is represented with function call syntax */
   public void addFunction(StandardOperator op,final String syntax){
     int N=op.arity();
@@ -196,5 +211,26 @@ public class Syntax {
   public String getSyntax(ASTReserved word) {
     return reserved2syntax.get(word);
   }
+
+  public void print(TrackingOutput out,ASTNode n){
+    throw new HREError("Pretty printing %s is not implemented",language);
+  }
+
+  public void print(PrintStream out,ASTNode n){
+    print(new TrackingOutput(out,false),n);
+  }
+  public void print(PrintStream outs, ProgramUnit program) {
+    TrackingOutput out=new TrackingOutput(outs,false);
+    print(out,program);
+  }
+  public void print(TrackingOutput out, ProgramUnit program) {
+    for(CompilationUnit cu : program.get()){
+      out.lnprintf("//==== %s ====",cu.getFileName());
+      for(ASTNode item : cu.get()){
+        print(out,item);
+      }
+    }
+  }
+
 }
 

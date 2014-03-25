@@ -55,15 +55,15 @@ public class RewriteArrayPerms extends AbstractRewriter {
           OperatorExpression idx=(OperatorExpression)index_expr;
           if (!sameAST(upper,idx.getArg(1))){
             System.out.printf("upper: ");
-            JavaPrinter.dump(System.out,upper);
+            vct.util.Configuration.getDiagSyntax().print(System.out,upper);
             System.out.printf("%nidx: ");
-            JavaPrinter.dump(System.out,idx.getArg(1));
+            vct.util.Configuration.getDiagSyntax().print(System.out,idx.getArg(1));
             System.out.printf("%n");
             Fail("modulo support is limited to modulo upper limit");
           }
           if (!idx.getArg(0).isa(StandardOperator.Plus) && !idx.getArg(0).isa(StandardOperator.Minus)){
             Warning("unrecognized array index expression");
-            JavaPrinter.dump_expr(System.err,idx.getArg(0));
+            vct.util.Configuration.getDiagSyntax().print(System.err,idx.getArg(0));
             System.err.println();
             Fail("exit");
           }
@@ -83,7 +83,7 @@ public class RewriteArrayPerms extends AbstractRewriter {
           OperatorExpression idx=(OperatorExpression)index_expr;
           if (!idx.getArg(0).isa(StandardOperator.Mult)){
             Warning("array index expression not of form c * x + e");
-            JavaPrinter.dump_expr(System.err,idx);
+            vct.util.Configuration.getDiagSyntax().print(System.err,idx);
             System.err.println();
             Fail("exit");
           }
@@ -103,19 +103,19 @@ public class RewriteArrayPerms extends AbstractRewriter {
             );            
           } else {
             Warning("array index expression not of form c * x + e");
-            JavaPrinter.dump_expr(System.err,idx);
+            vct.util.Configuration.getDiagSyntax().print(System.err,idx);
             System.err.println();
             Fail("exit");
           }
         } else {
           Warning("unrecognized array index expression");
-          JavaPrinter.dump_expr(System.err,index_expr);
+          vct.util.Configuration.getDiagSyntax().print(System.err,index_expr);
           System.err.println();
           Fail("exit");          
         }
       } else {
         Warning("unrecognized main");
-        JavaPrinter.dump_expr(System.err,e.main);
+        vct.util.Configuration.getDiagSyntax().print(System.err,e.main);
         System.err.println();
         Fail("exit");
       }

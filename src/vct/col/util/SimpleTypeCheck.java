@@ -692,6 +692,25 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       }
       break;
     }
+    case Tuple:{
+      ASTNode args[]=e.getArguments();
+      switch(args.length){
+      case 0:
+        e.setType(new PrimitiveType(Sort.Void));      
+        break;
+      case 1:
+        e.setType(args[0].getType());
+        break;
+      default:
+        Type types[]=new Type[args.length];
+        for(int i=0;i<args.length;i++){
+          types[i]=args[i].getType();
+        }
+        e.setType(new TupleType(types));
+        break;
+      }
+      break;
+    }
     default:
       Abort("missing case of operator %s",op);
       break;

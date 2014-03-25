@@ -379,19 +379,19 @@ public class KernelRewriter extends AbstractRewriter {
         System.err.printf("// resources%n");
         for(ASTNode clause:ASTUtils.conjuncts(filter_resource.rewrite(contract.pre_condition))){
           System.err.printf("requires (\\forall* int tid; 0 <= tid && tid < tcount ;%n            ");
-          vct.java.printer.JavaPrinter.dump(System.out,simplify.rewrite(clause));
+          vct.util.Configuration.getDiagSyntax().print(System.out,simplify.rewrite(clause));
           System.err.printf(");%n");
         }
         System.err.printf("// required properties%n");
         for(ASTNode clause:ASTUtils.conjuncts(filter_booleans.rewrite(contract.pre_condition))){
           System.err.printf("requires (\\forall int tid; 0 <= tid && tid < tcount ;%n            ");
-          vct.java.printer.JavaPrinter.dump(System.out,simplify.rewrite(clause));
+          vct.util.Configuration.getDiagSyntax().print(System.out,simplify.rewrite(clause));
           System.err.printf(");%n");
         }
         System.err.printf("// ensured properties%n");
         for(ASTNode clause:ASTUtils.conjuncts(filter_booleans.rewrite(contract.post_condition))){
           System.err.printf("ensures  (\\forall int tid; 0 <= tid && tid < tcount ;%n            ");
-          vct.java.printer.JavaPrinter.dump(System.out,simplify.rewrite(clause));
+          vct.util.Configuration.getDiagSyntax().print(System.out,simplify.rewrite(clause));
           System.err.printf(");%n");
         }        
         

@@ -2,6 +2,9 @@
 
 package vct.java.printer;
 
+import hre.ast.TrackingOutput;
+import vct.col.ast.ASTNode;
+import vct.col.rewrite.Parenthesize;
 import vct.util.Syntax;
 import static vct.col.ast.StandardOperator.*;
 import static vct.col.ast.PrimitiveType.Sort.*;
@@ -10,13 +13,18 @@ import static vct.col.ast.ASTReserved.*;
 /**
  * Create a Syntax object for Java.
  */
-public class JavaSyntax {
+public class JavaSyntax extends Syntax {
+
+  public JavaSyntax(String language) {
+    super(language);
+  }
 
   private static Syntax JavaSyntax;
   
+  
   public synchronized static Syntax getJava(){
     if (JavaSyntax==null){
-      Syntax syntax=new Syntax();
+      Syntax syntax=new JavaSyntax("Java");
       setCommon(syntax);
       JavaSyntax=syntax;
     }
@@ -27,7 +35,7 @@ public class JavaSyntax {
   
   public synchronized static Syntax getJavaJML(){
     if (JavaJMLSyntax==null){
-      Syntax syntax=new Syntax();
+      Syntax syntax=new JavaSyntax("Java + JML");
       setCommon(syntax);
       syntax.addInfix(SubType,"<:",90);
       syntax.addInfix(SuperType,":>",90);
@@ -140,6 +148,13 @@ public class JavaSyntax {
     syntax.addReserved(Null,"null");
     syntax.addReserved(Super,"super");
     syntax.addReserved(Final,"final");
+  }
+
+  @Override
+  public void print(TrackingOutput out, ASTNode n) {
+    JavaPrinter p=new JavaPrinter(out);
+    ASTNode nn=new Parenthesize(this).rewrite(n);
+    nn.accept(p);
   } 
 }
 

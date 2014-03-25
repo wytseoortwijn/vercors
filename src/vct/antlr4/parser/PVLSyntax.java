@@ -1,6 +1,8 @@
 package vct.antlr4.parser;
 
 
+import hre.ast.TrackingOutput;
+import vct.col.ast.ASTNode;
 import vct.util.Syntax;
 import static vct.col.ast.StandardOperator.*;
 import static vct.col.ast.PrimitiveType.Sort.*;
@@ -18,7 +20,7 @@ public class PVLSyntax {
   
   public static Syntax get(){
     if(syntax==null){
-      syntax=new Syntax();
+      syntax=new Syntax("PVL");
 
 /*
       syntax.addInfix(SubType,"<:",90);
@@ -121,5 +123,6 @@ public class PVLSyntax {
       //syntax.addPrimitiveType(Short,"short");
     }
     return syntax;
-  } 
+  }
+
 }

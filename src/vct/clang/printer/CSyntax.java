@@ -1,13 +1,19 @@
 package vct.clang.printer;
 
+import hre.ast.TrackingOutput;
+import vct.col.ast.ASTNode;
 import vct.util.Syntax;
 import static vct.col.ast.StandardOperator.*;
 import static vct.col.ast.PrimitiveType.Sort.*;
 
-public class CSyntax {
+public class CSyntax extends Syntax{
   private static Syntax c_syntax;
   private static Syntax cml_syntax;
   
+  public CSyntax(String dialect) {
+    super(dialect);
+  }
+
   public static void setCommon(Syntax syntax){
     syntax.addPostfix(PostIncr, "++", 160);
     syntax.addPostfix(PostDecr, "--", 160);
@@ -48,7 +54,7 @@ public class CSyntax {
 
   public static Syntax getC() {
     if (c_syntax==null){
-      c_syntax=new Syntax();
+      c_syntax=new CSyntax("C");
       setCommon(c_syntax);
     }
     return c_syntax;
@@ -56,7 +62,7 @@ public class CSyntax {
   
   public static Syntax getCML() {
     if (cml_syntax==null){
-      cml_syntax=new Syntax();
+      cml_syntax=new CSyntax("C + CML");
       setCommon(cml_syntax);
       cml_syntax.addLeftFix(Star,"**",130); // TODO: priorities!
       cml_syntax.addLeftFix(Wand,"-*",120); // TODO: priorities!
@@ -64,6 +70,12 @@ public class CSyntax {
       cml_syntax.addFunction(Old,"old");
     }
     return cml_syntax;
+  }
+
+  @Override
+  public void print(TrackingOutput out, ASTNode n) {
+    CPrinter p=new CPrinter(out);
+    n.accept(p);
   } 
 
 }

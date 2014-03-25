@@ -1,6 +1,13 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 package vct.boogie;
 
+import hre.ast.TrackingOutput;
+import vct.col.ast.ASTNode;
+import vct.col.ast.ProgramUnit;
+import vct.col.rewrite.Parenthesize;
+import vct.col.rewrite.Standardize;
+import vct.col.util.SimpleTypeCheck;
+import vct.util.AbstractPrinter;
 import vct.util.Syntax;
 import static vct.col.ast.StandardOperator.*;
 import static vct.col.ast.ASTReserved.*;
@@ -10,9 +17,18 @@ import static vct.col.ast.ASTReserved.*;
  * 
  * @author Stefan Blom
  */
-public class BoogieSyntax {
-  private static Syntax boogie;
-  private static Syntax chalice;
+public class BoogieSyntax extends Syntax {
+  
+  public static enum Variant{Boogie, Chalice/*, Dafny?*/ };
+  
+  public final Variant variant;
+  public BoogieSyntax(String language,Variant variant) {
+    super(language);
+    this.variant=variant;
+  }
+
+  private static BoogieSyntax boogie;
+  private static BoogieSyntax chalice;
   
   private static void setCommon(Syntax syntax){
     syntax.addPrefix(Not,"!",130);
@@ -31,7 +47,7 @@ public class BoogieSyntax {
     syntax.addInfix(NEQ,"!=",80);
     syntax.addLeftFix(Star,"&&",40); // 40??
     syntax.addLeftFix(And,"&&",40); // 40??
-    syntax.addLeftFix(Or,"||",40); // 30??
+    syntax.addLeftFix(Or,"||",30); // 30??
     syntax.addLeftFix(Implies, "==>", 30); 
     syntax.addLeftFix(IFF, "<==>", 30);
     syntax.addRightFix(Assign,"=",10);
@@ -40,19 +56,20 @@ public class BoogieSyntax {
     syntax.addOperator(Size,0,"|","|");
     
     syntax.addReserved(Result,"result");
+    syntax.addList(Tuple,"(",",",")");
   }
 
   public static synchronized Syntax getBoogie(){
     if(boogie==null){
-      boogie=new Syntax();
+      boogie=new BoogieSyntax("Boogie",Variant.Boogie);
       setCommon(boogie);
     }
     return boogie;
   }
   
-  public static synchronized Syntax getChalice(){
+  public static synchronized BoogieSyntax getChalice(){
     if(chalice==null){
-      chalice=new Syntax();
+      chalice=new BoogieSyntax("Chalice",Variant.Chalice);
       setCommon(chalice);
       chalice.addFunction(Perm,"acc");
       chalice.addOperator(Nil,0,"nil<",">");
@@ -65,6 +82,43 @@ public class BoogieSyntax {
       chalice.addReserved(Any,"*");
     }
     return chalice;
+  }
+
+  @Override
+  public void print(TrackingOutput out,ASTNode n){
+    AbstractPrinter p;
+    switch(this.variant){
+    case Boogie:
+      p=new BoogiePrinter(out);
+      break;
+    case Chalice:
+      p=new ChalicePrinter(out);
+      break;
+    default:
+      super.print(out, n);
+      return;
+    }
+    ASTNode nn=new Parenthesize(this).rewrite(n);
+    nn.accept(p);
+  }
+  @Override
+  public void print(TrackingOutput out,ProgramUnit pu){
+    AbstractPrinter p;
+    switch(this.variant){
+    case Boogie:
+      p=new BoogiePrinter(out);
+      break;
+    case Chalice:
+      p=new ChalicePrinter(out);
+      break;
+    default:
+      super.print(out, pu);
+      return;
+    }
+    ProgramUnit nn=new Parenthesize(this,pu).rewriteAll();
+    nn=new Standardize(nn).rewriteAll();
+    new SimpleTypeCheck(nn).check();
+    nn.accept(p);
   }
 
 }

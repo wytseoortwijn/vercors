@@ -87,7 +87,7 @@ public abstract class ASTNode implements ASTFlags {
   }
 
   public boolean isGhost(){
-    if ((valid_flags & GHOST)==0) Abort("static flag has not been set");
+    if ((valid_flags & GHOST)==0) Abort("ghost flag has not been set");
     return (flags & GHOST)!=0 ;
   }
 

@@ -133,8 +133,10 @@ public class AbstractPrinter extends AbstractVisitor {
       throw new Error("no syntax defined for "+op+" operation");
     }
     int N=op.arity();
-    int precedence=current_precedence;
+    ASTNode args[]=e.getArguments();
     setExpr();
+    
+    /*
     if (syntax.isOperator(op)){
       int op_precedence=syntax.getPrecedence(op);
       if (op_precedence < precedence){
@@ -163,7 +165,26 @@ public class AbstractPrinter extends AbstractVisitor {
       }
       out.print(op_syntax[N]);
     }
-    current_precedence=precedence;
+    */
+    
+    if (N<0){
+      out.print(op_syntax[0]);
+      if(args.length>0){
+        args[0].accept(this);
+      }
+      for(int i=1;i<args.length;i++){
+        out.print(op_syntax[1]);
+        args[i].accept(this);
+      }      
+      out.print(op_syntax[2]);
+    } else {
+      out.print(op_syntax[0]);
+      for(int i=0;i<N;i++){
+        if (i>0) out.printf(" %s ",op_syntax[i]);
+        args[i].accept(this);
+      }
+      out.print(op_syntax[N]);
+    }
   }
 
   public void visit(ConstantExpression ce){

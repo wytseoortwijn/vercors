@@ -3,6 +3,7 @@ package vct.java.printer;
 
 import hre.ast.TrackingOutput;
 import hre.ast.TrackingTree;
+
 import java.io.PrintStream;
 
 import org.apache.commons.lang3.StringEscapeUtils;
@@ -23,7 +24,7 @@ import static hre.System.Warning;
  */
 public class JavaPrinter extends AbstractPrinter {
   
-  public JavaPrinter(TrackingOutput out){
+  protected JavaPrinter(TrackingOutput out){
     super(JavaSyntax.getJavaJML(),out);
   }
 
@@ -99,10 +100,14 @@ public class JavaPrinter extends AbstractPrinter {
       out.println(";");
       break;
     case Assert:
-      out.print("//@ assert ");
+      //if (s.isGhost()){
+        out.print("//@ assert ");
+      //} else {
+      //  out.print("assert ");
+      //}
       setExpr();
       s.args[0].accept(this);
-      out.println(";");
+      //out.println(";");
       break;
     case Import:
       out.print("import ");
@@ -188,36 +193,20 @@ public class JavaPrinter extends AbstractPrinter {
   }
 
   public void visit(BlockStatement block){
-    boolean nested=(block.getParent() instanceof IfStatement);
-    if (!nested){
-      if (in_expr) {
-        out.printf("{");
-      } else {
-        out.lnprintf("{");
-      }
-      out.incrIndent();
-    }
+    out.lnprintf("{");
+    out.incrIndent();
     int N=block.getLength();
     for(int i=0;i<N;i++){
       ASTNode statement=block.getStatement(i);
       statement.accept(this);
-      if (statement instanceof LoopStatement) continue;
-      if (statement instanceof DeclarationStatement) continue;
-      if (statement instanceof IfStatement) continue;
-      if (in_expr) {
-        out.printf(";");
+      if (self_terminating(statement)){
+        out.lnprintf("");
       } else {
         out.lnprintf(";");
       }
     }
-    if (!nested) {
-      out.decrIndent();
-      if (in_expr) {
-        out.printf("}");
-      } else {
-        out.lnprintf("}");
-      }
-    }
+    out.decrIndent();
+    out.printf("}");
   }
 
   public void visit(ASTClass cl){
@@ -398,6 +387,7 @@ public class JavaPrinter extends AbstractPrinter {
       out.lnprintf(";");
     } else if (body instanceof BlockStatement) {
       body.accept(this);
+      out.lnprintf("");
     } else {
       out.printf("=");
       nextExpr();
@@ -445,27 +435,33 @@ public class JavaPrinter extends AbstractPrinter {
       out.printf("if (");
       nextExpr();
       s.getGuard(0).accept(this);
-      out.lnprintf("){");
-      out.incrIndent();
+      out.print(") ");
       s.getStatement(0).accept(this);
-      out.decrIndent();
-      out.printf("}");
+      if (!self_terminating(s.getStatement(0))){
+        out.printf(";");
+      }
       for(int i=1;i<N;i++){
+        if (self_terminating(s.getStatement(i-1))){
+          out.printf(" ");
+        }
         if (i==N-1 && s.getGuard(i)==IfStatement.else_guard){
-          out.lnprintf(" else {");
+          out.printf("else ");
         } else {
           out.printf(" else if (");
           nextExpr();
           s.getGuard(i).accept(this);
-          out.lnprintf("){");
+          out.lnprintf(") ");
         }
-        out.incrIndent();
         s.getStatement(i).accept(this);
-        out.decrIndent();
-        out.printf("}");
+        if (!self_terminating(s.getStatement(i))){
+          out.lnprintf(";");
+        }        
       }
-      out.lnprintf("");
     }
+  }
+
+  private boolean self_terminating(ASTNode s) {
+    return (s instanceof BlockStatement) || (s instanceof IfStatement) || (s instanceof LoopStatement); 
   }
 
   public void visit(AssignmentStatement s){
@@ -500,6 +496,17 @@ public class JavaPrinter extends AbstractPrinter {
   
   public void visit(OperatorExpression e){
     switch(e.getOperator()){
+      case Tuple:{
+        out.print("(");
+        String sep="";
+        for(ASTNode arg:e.getArguments()){
+          arg.accept(this);
+          out.print(sep);
+          sep=",";
+        }
+        out.print(")");
+        break;
+      }
       case Fork:{
         ASTNode thread=e.getArg(0);
         String name;
@@ -754,40 +761,7 @@ public class JavaPrinter extends AbstractPrinter {
     //  out.printf(" */");
     //}    
   }
-  public static TrackingTree dump_expr(PrintStream out,ASTNode node){
-    TrackingOutput track_out=new TrackingOutput(out,false);
-    JavaPrinter printer=new JavaPrinter(track_out);
-    printer.setExpr();
-    node.accept(printer);
-    return track_out.close();
-  }
 
-  public static TrackingTree dump(PrintStream out,ProgramUnit program){
-    hre.System.Debug("Dumping Java code...");
-    try {
-      TrackingOutput track_out=new TrackingOutput(out,false);
-      JavaPrinter printer=new JavaPrinter(track_out);
-      for(CompilationUnit cu : program.get()){
-        track_out.lnprintf("//==== %s ====",cu.getFileName());
-        for(ASTNode item : cu.get()){
-          item.accept(printer);
-        }
-      }
-      return track_out.close();
-    } catch (Exception e) {
-      System.out.println("error: ");
-      e.printStackTrace();
-      throw new Error("abort");
-    }
-  }
-
-  public static void dump(PrintStream out, ASTNode cl) {
-    TrackingOutput track_out=new TrackingOutput(out,false);
-    JavaPrinter printer=new JavaPrinter(track_out);
-    cl.accept(printer);
-    track_out.close();    
-  }
-  
   public void visit(Dereference e){
     e.object.accept(this);
     out.printf(".%s",e.field);
