@@ -79,17 +79,17 @@ public class BoogieFOL {
             DeclarationStatement args[]=m.getArgs();
             ASTNode formula=e.getArg(0);
             System.err.printf("checking formula at %s%n",formula.getOrigin());
-            vct.java.printer.JavaPrinter.dump(System.out,formula);
+            vct.util.Configuration.getDiagSyntax().print(System.out,formula);
             for(ASTNode part:ASTUtils.conjuncts(formula)){
               System.err.print("conjuct: ");
-              vct.java.printer.JavaPrinter.dump(System.out,part);
+              vct.util.Configuration.getDiagSyntax().print(System.out,part);
             }
             BoogieReport res=check_boogie(args,formula);
             System.err.printf("formula at %s: %s%n",e.getOrigin(),res.getVerdict());
             report.addReport(res);
             for(ASTNode part:ASTUtils.conjuncts(formula)){
               System.err.print("conjuct ");
-              vct.java.printer.JavaPrinter.dump_expr(System.out,part);
+              vct.util.Configuration.getDiagSyntax().print(System.out,part);
               System.err.println();
               res=check_boogie(args,part);
             }

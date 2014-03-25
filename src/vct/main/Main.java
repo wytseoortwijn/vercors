@@ -53,6 +53,7 @@ import vct.col.rewrite.VoidCalls;
 import vct.col.rewrite.WandEncoder;
 import vct.col.util.FeatureScanner;
 import vct.col.util.SimpleTypeCheck;
+import vct.java.printer.JavaSyntax;
 import vct.util.ClassName;
 import vct.util.Configuration;
 import vct.util.Parser;
@@ -169,11 +170,11 @@ public class Main
     Hashtable<String,ValidationPass> defined_checks=new Hashtable<String,ValidationPass>();
     defined_passes.put("java",new CompilerPass("print AST in java syntax"){
         public ProgramUnit apply(ProgramUnit arg){
-          vct.java.printer.JavaPrinter.dump(System.out,arg);
+          JavaSyntax.getJavaJML().print(System.out,arg);
           return arg;
         }
       });
-    defined_passes.put("c",new CompilerPass("print AST in java syntax"){
+    defined_passes.put("c",new CompilerPass("print AST in C syntax"){
         public ProgramUnit apply(ProgramUnit arg){
           vct.clang.printer.CPrinter.dump(System.out,arg);
           return arg;
@@ -535,7 +536,7 @@ public class Main
         }
         CompilerPass task=defined_passes.get(pass);
         if (show_before.contains(pass)){
-          vct.java.printer.JavaPrinter.dump(System.out,program);
+          vct.util.Configuration.getDiagSyntax().print(System.out,program);
         }
         if (task!=null){
           Progress("Applying %s ...",pass);
@@ -554,7 +555,7 @@ public class Main
           }
         }
         if (show_after.contains(pass)){
-          vct.java.printer.JavaPrinter.dump(System.out,program);
+          vct.util.Configuration.getDiagSyntax().print(System.out,program);
         }
         if (stop_after.contains(pass)){
           Fail("exit after pass %s",pass);
