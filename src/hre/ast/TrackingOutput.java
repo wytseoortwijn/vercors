@@ -30,18 +30,14 @@ public class TrackingOutput {
   private int col=1;
   private int indent=0;
   private boolean atnewline=true;
-  private boolean closeout=true;
+  private boolean closeout;
   
   public TrackingOutput(PrintStream output,boolean closeout){
     this.closeout=closeout;
     this.output=output;
     frame=new Frame(line,col,new MessageOrigin("unknown"));
   }
-  
-  public TrackingOutput(PrintStream output){
-    this.output=output;
-    frame=new Frame(line,col,new MessageOrigin("unknown"));
-  }
+
   public void enter(Origin origin){
     stack.push(frame);
     frame=new Frame(line,col,origin);
