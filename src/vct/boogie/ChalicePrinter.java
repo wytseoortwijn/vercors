@@ -552,7 +552,7 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
       out.println(";");
       break;
     case Assert:
-      Warning("assertion origin is %s",s.getOrigin());
+      Debug("assertion origin is %s",s.getOrigin());
       out.print("assert ");
       setExpr();
       s.args[0].accept(this);

@@ -101,8 +101,9 @@ public class LoopStatement extends ASTNode implements BeforeAfterAnnotations {
    *  current node has been evaluated.
    */
   private BlockStatement after;
-  public void set_before(BlockStatement block){
+  public LoopStatement set_before(BlockStatement block){
     before=block;
+    return this;
   }
   public BlockStatement get_before(){
     if (before==null) {
@@ -111,8 +112,9 @@ public class LoopStatement extends ASTNode implements BeforeAfterAnnotations {
     }
     return before;
   }
-  public void set_after(BlockStatement block){
+  public LoopStatement set_after(BlockStatement block){
     after=block;
+    return this;
   }
   public BlockStatement get_after(){
     if (after==null) {

@@ -134,39 +134,7 @@ public class AbstractPrinter extends AbstractVisitor {
     }
     int N=op.arity();
     ASTNode args[]=e.getArguments();
-    setExpr();
-    
-    /*
-    if (syntax.isOperator(op)){
-      int op_precedence=syntax.getPrecedence(op);
-      if (op_precedence < precedence){
-        out.print("(");
-      }
-      for(int i=0;i<N;i++){
-        out.print(op_syntax[i]);
-        if (i==0 && syntax.getAssociativity(op)==Associativity.Left
-          ||i==(N-1) && syntax.getAssociativity(op)==Associativity.Right
-        ){
-          current_precedence=op_precedence;
-        } else {
-          current_precedence=op_precedence+1;
-        }
-        e.getArg(i).accept(this);
-      }
-      out.print(op_syntax[N]);
-      if (op_precedence < precedence){
-        out.print(")");
-      }
-    } else {
-      current_precedence=0;
-      for(int i=0;i<N;i++){
-        out.print(op_syntax[i]);
-        e.getArg(i).accept(this);
-      }
-      out.print(op_syntax[N]);
-    }
-    */
-    
+    setExpr();    
     if (N<0){
       out.print(op_syntax[0]);
       if(args.length>0){
@@ -178,12 +146,12 @@ public class AbstractPrinter extends AbstractVisitor {
       }      
       out.print(op_syntax[2]);
     } else {
-      out.print(op_syntax[0]);
+      if (op_syntax[0].length()>0) out.printf("%s ",op_syntax[0]);
       for(int i=0;i<N;i++){
         if (i>0) out.printf(" %s ",op_syntax[i]);
         args[i].accept(this);
       }
-      out.print(op_syntax[N]);
+      if (op_syntax[N].length()>0) out.printf(" %s",op_syntax[N]);
     }
   }
 
@@ -195,15 +163,16 @@ public class AbstractPrinter extends AbstractVisitor {
   public void visit(ASTSpecial s){
     switch(s.kind){
     case Comment:
-      for(String ln:s.args[0].toString().split("\n")){
-        out.println(ln);
+      String lines[]=s.args[0].toString().split("\n");
+      for(int i=0;i<lines.length;i++){
+        out.println(lines[i]);
       }
       break;
     case Invariant:
       setExpr();
-      out.print("// Special invariant : ");
+      out.print("invariant ");
       s.args[0].accept(this);
-      out.println("");
+      out.println(";");
       break;
     default:
       Abort("unimplemented special %s",s.kind);

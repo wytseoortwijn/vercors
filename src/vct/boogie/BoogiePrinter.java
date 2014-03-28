@@ -141,11 +141,13 @@ public class BoogiePrinter extends AbstractBoogiePrinter {
       visit((ASTClass)cl.getStatic(0));
     } else for(int i=0;i<N;i++){
       cl.getStatic(i).accept(this);
+      out.println("");
     }
     if (M==1 && cl.getDynamic(0) instanceof ASTClass){
       visit((ASTClass)cl.getDynamic(0));
     } else for(int i=0;i<M;i++){
       cl.getDynamic(i).accept(this);
+      out.println("");
     }
   }
 }

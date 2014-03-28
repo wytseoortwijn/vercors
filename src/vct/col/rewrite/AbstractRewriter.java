@@ -8,6 +8,7 @@ import hre.ast.Origin;
 import hre.util.FrameControl;
 import vct.col.ast.ASTClass;
 import vct.col.ast.ASTDeclaration;
+import vct.col.ast.ASTFlags;
 import vct.col.ast.ASTFrame;
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTSequence;

@@ -14,7 +14,7 @@ public abstract class ExpressionNode extends ASTNode implements BeforeAfterAnnot
    */
   private BlockStatement after;
   
-  public void set_before(BlockStatement block){
+  public ExpressionNode set_before(BlockStatement block){
     before=block;
     if (block!=null) {
       block.setParent(this);
@@ -22,13 +22,14 @@ public abstract class ExpressionNode extends ASTNode implements BeforeAfterAnnot
         block.setOrigin(new MessageOrigin("before block"));
       }
     }
+    return this;
   }
   public BlockStatement get_before(){
     if (before==null) set_before(new BlockStatement());
     return before;
   }
   
-  public void set_after(BlockStatement block){
+  public ExpressionNode set_after(BlockStatement block){
     after=block;
     if (block!=null) {
       block.setParent(this);
@@ -36,7 +37,7 @@ public abstract class ExpressionNode extends ASTNode implements BeforeAfterAnnot
         block.setOrigin(new MessageOrigin("after block"));
       }
     }
-
+    return this;
   }
   public BlockStatement get_after(){
     if (after==null) set_after(new BlockStatement());

@@ -643,7 +643,9 @@ public class JavaJMLtoCol extends AbstractJavaToCol implements JavaJMLVisitor<AS
 
   @Override
   public ASTNode visitStatement(StatementContext ctx) {
-    return getStatement(ctx);
+    ASTNode res=getStatement(ctx);
+    if (res!=null) res.setGhost(true);
+    return res;
   }
 
   @Override
@@ -766,32 +768,26 @@ public class JavaJMLtoCol extends AbstractJavaToCol implements JavaJMLVisitor<AS
 
   @Override
   public ASTNode visitSpecificationStatement(SpecificationStatementContext ctx) {
+    ASTNode res=null;
     if (match(ctx,"loop_invariant",null,";")){
-      return create.special(ASTSpecial.Kind.Invariant,convert(ctx,1));
-    }
-    if (match(ctx,"set",null,"=",null,";")){
-      return create.assignment(convert(ctx,1),convert(ctx,3));
-    }
-    if (match(ctx,"fold",null,";")){
-      return create.expression(StandardOperator.Fold,convert(ctx,1));
-    }
-    if (match(ctx,"unfold",null,";")){
-      return create.expression(StandardOperator.Unfold,convert(ctx,1));
-    }
-    if (match(ctx,"assert",null,";")){
-      return create.expression(StandardOperator.Assert,convert(ctx,1));
-    }
-    if (match(ctx,"assume",null,";")){
-      return create.expression(StandardOperator.Assume,convert(ctx,1));
+      res=create.special(ASTSpecial.Kind.Invariant,convert(ctx,1));
+    } else if (match(ctx,"set",null,"=",null,";")){
+      res=create.assignment(convert(ctx,1),convert(ctx,3));
+    } else if (match(ctx,"fold",null,";")){
+      res=create.expression(StandardOperator.Fold,convert(ctx,1));
+    } else if (match(ctx,"unfold",null,";")){
+      res=create.expression(StandardOperator.Unfold,convert(ctx,1));
+    } else if (match(ctx,"assert",null,";")){
+      res=create.expression(StandardOperator.Assert,convert(ctx,1));
+    } else if (match(ctx,"assume",null,";")){
+      res=create.expression(StandardOperator.Assume,convert(ctx,1));
     }
     if (match(ctx,"open",null,";")){
       return create.expression(StandardOperator.Open,convert(ctx,1));
     }
     if (match(ctx,"open",null,null,";")){
       ASTNode block=convert(ctx,2);
-      OperatorExpression res=create.expression(StandardOperator.Open,convert(ctx,1));
-      res.set_after((BlockStatement)block);
-      return res;
+      res=create.expression(StandardOperator.Open,convert(ctx,1)).set_after((BlockStatement)block);
     }
     if (match(ctx,"close",null,";")){
       return create.expression(StandardOperator.Close,convert(ctx,1));
@@ -828,18 +824,20 @@ public class JavaJMLtoCol extends AbstractJavaToCol implements JavaJMLVisitor<AS
         return create.expression(StandardOperator.QED,convert(ctx,1));
       }
     if (match(ctx,"apply",null,null,";")){
-      OperatorExpression res=create.expression(StandardOperator.Apply,convert(ctx,1));
-      add_proof_script(res,ctx.getChild(2));
-      return res;
+      OperatorExpression res2=create.expression(StandardOperator.Apply,convert(ctx,1));
+      add_proof_script(res2,ctx.getChild(2));
+      return res2;
     }
     if (match(ctx,"use",null,";")){
       return create.expression(StandardOperator.Use,convert(ctx,1));
     }
     if (match(ctx,"witness",null,";")){
-      ASTNode res=create.expression(StandardOperator.Witness,convert(ctx,1));
-      return res;
+      res=create.expression(StandardOperator.Witness,convert(ctx,1));
     }
-    return null;
+    if (res!=null){
+      res.setGhost(true);
+    }
+    return res;
   }
 
   private void add_proof_script(OperatorExpression res, ParseTree child) {

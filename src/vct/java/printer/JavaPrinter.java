@@ -44,7 +44,7 @@ public class JavaPrinter extends AbstractPrinter {
   }
   
   public void post_visit(ASTNode node){
-    if (node instanceof BeforeAfterAnnotations){
+    if (node instanceof BeforeAfterAnnotations && !(node instanceof LoopStatement)){
       BeforeAfterAnnotations baa=(BeforeAfterAnnotations)node;
       if (baa.get_before()!=null && baa.get_before().size()>0 || baa.get_after()!=null && baa.get_after().size()>0){
         out.printf("/*@ ");
@@ -100,14 +100,9 @@ public class JavaPrinter extends AbstractPrinter {
       out.println(";");
       break;
     case Assert:
-      //if (s.isGhost()){
-        out.print("//@ assert ");
-      //} else {
-      //  out.print("assert ");
-      //}
+      out.print("assert ");
       setExpr();
       s.args[0].accept(this);
-      //out.println(";");
       break;
     case Import:
       out.print("import ");
@@ -198,12 +193,18 @@ public class JavaPrinter extends AbstractPrinter {
     int N=block.getLength();
     for(int i=0;i<N;i++){
       ASTNode statement=block.getStatement(i);
+      if (statement.isValidFlag(ASTFlags.GHOST) && statement.isGhost()){
+        out.enterGhost();
+      }
       statement.accept(this);
       if (self_terminating(statement)){
-        out.lnprintf("");
+        out.clearline();
       } else {
         out.lnprintf(";");
       }
+      if (statement.isValidFlag(ASTFlags.GHOST) && statement.isGhost()){
+        out.leaveGhost();
+      }     
     }
     out.decrIndent();
     out.printf("}");
@@ -323,7 +324,7 @@ public class JavaPrinter extends AbstractPrinter {
       nextExpr();
       expr.accept(this);
     }
-    if (!in_expr) out.lnprintf(";");
+    if (!in_expr) out.printf(";");
   }
 
   public void visit(Method m){
@@ -461,7 +462,11 @@ public class JavaPrinter extends AbstractPrinter {
   }
 
   private boolean self_terminating(ASTNode s) {
-    return (s instanceof BlockStatement) || (s instanceof IfStatement) || (s instanceof LoopStatement); 
+    return (s instanceof BlockStatement)
+        || (s instanceof IfStatement)
+        || (s instanceof LoopStatement)
+        || (s instanceof ASTSpecial)
+        || (s instanceof DeclarationStatement); 
   }
 
   public void visit(AssignmentStatement s){
@@ -722,18 +727,25 @@ public class JavaPrinter extends AbstractPrinter {
     } else {
       out.printf("do");
     }
+    if (s.get_before()!=null || s.get_after()!=null){
+      out.println("");
+      out.println("/*@");
+      out.incrIndent();
+    }
     if (s.get_before()!=null){
-      out.printf("/*@ ");
       out.printf("with ");
       s.get_before().accept(this);
-      out.printf(" */");
+      out.println("");
     }
     if (s.get_after()!=null){
-      out.printf("/*@ ");
       out.printf("then ");
       s.get_after().accept(this);
-      out.printf(" */");
+      out.println("");
     }
+    if (s.get_before()!=null || s.get_after()!=null){
+      out.decrIndent();
+      out.println("@*/");
+    }    
     tmp=s.getBody();
     if (!(tmp instanceof BlockStatement)) { out.printf(" "); }
     tmp.accept(this);
