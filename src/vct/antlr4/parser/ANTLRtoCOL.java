@@ -24,6 +24,7 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 import pv.parser.PVFullLexer;
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTSequence;
+import vct.col.ast.ASTSpecial;
 import vct.col.ast.BeforeAfterAnnotations;
 import vct.col.ast.BlockStatement;
 import vct.col.ast.CompilationUnit;
@@ -420,6 +421,14 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
       }
       if (match(ctx,"(",null,")")){
         return convert(ctx,1);
+      } else if (match(ctx,"requires",null,";")){                     
+        return create.special(ASTSpecial.Kind.Requires,convert(ctx,1));
+      } else if (match(ctx,"ensures",null,";")){
+        return create.special(ASTSpecial.Kind.Ensures,convert(ctx,1));
+      } else if (match(ctx,"given",null,";")){
+        return create.special(ASTSpecial.Kind.Given,create.block(convert(ctx,1)));
+      } else if (match(ctx,"yields",null,";")){
+        return create.special(ASTSpecial.Kind.Yields,create.block(convert(ctx,1)));
       }
     } else if (arg0 instanceof TerminalNode){
       Token tok=((TerminalNode)arg0).getSymbol();

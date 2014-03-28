@@ -2,16 +2,7 @@ grammar JavaJML;
 
 import Java;
 
-specificationSequence : ( specificationDeclaration | statement )* contract? ;
-
-contract : contractClause+ ;
-
-contractClause
- : 'requires' resourceExpression ';'
- | 'ensures' resourceExpression ';'
- | 'given' localVariableDeclaration ';'
- | 'yields' localVariableDeclaration ';'
- ;
+specificationSequence : ( specificationDeclaration | statement )* ;
 
 resourceExpression
  : expression '->' Identifier '(' expressionList? ')'
@@ -71,7 +62,11 @@ specificationPrimitiveType
     ;
 
 specificationStatement
-    : 'loop_invariant' resourceExpression ';'
+    : 'requires' resourceExpression ';'
+    | 'ensures' resourceExpression ';'
+    | 'given' localVariableDeclaration ';'
+    | 'yields' localVariableDeclaration ';'
+    | 'loop_invariant' resourceExpression ';'
     | 'set' expression '=' expression ';'
     | 'fold' resourceExpression ';'
     | 'unfold' resourceExpression ';'
@@ -79,7 +74,7 @@ specificationStatement
     | 'with' block
     | 'proof' block
     | 'then' block
-    | ASSERT resourceExpression ';'
+    | 'assert' resourceExpression ';'
     | 'assume' resourceExpression ';'
     | 'create' resourceExpression block
     | 'create' block resourceExpression ';'
@@ -97,10 +92,10 @@ proofScript :
     ;
 
 specificationDeclaration
-    : contract? classBodyDeclaration
+    : classBodyDeclaration
     | functionDeclaration
     ;
     
 functionDeclaration
-    : contract? modifier* type Identifier formalParameters '=' resourceExpression ';' 
+    : modifier* type Identifier formalParameters '=' resourceExpression ';' 
     ;

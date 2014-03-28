@@ -1,7 +1,6 @@
 package vct.antlr4.parser;
 
 import static hre.System.*;
-
 import hre.ast.FileOrigin;
 
 import java.io.File;
@@ -14,7 +13,7 @@ import org.antlr.v4.runtime.tree.ParseTree;
 
 import pv.parser.PVFullLexer;
 import pv.parser.PVFullParser;
-
+import vct.java.printer.JavaSyntax;
 import vct.parsers.*;
 import vct.col.ast.ASTClass;
 import vct.col.ast.ASTClass.ClassKind;
@@ -149,7 +148,10 @@ public class Parser implements vct.col.util.Parser {
         ProgramUnit pu=new ProgramUnit();
         pu.add(cu);
         pu=new CommentRewriter(pu,new JMLCommentParser()).rewriteAll();
+        //JavaSyntax.getJavaJML().print(System.out, pu);
         pu=new FlattenVariableDeclarations(pu).rewriteAll();
+        //JavaSyntax.getJavaJML().print(System.out, pu);
+        pu=new SpecificationCollector(pu).rewriteAll();
         pu=new JavaPostProcessor(pu).rewriteAll();
         pu=new AnnotationInterpreter(pu).rewriteAll();
         if (pu.size()!=1){

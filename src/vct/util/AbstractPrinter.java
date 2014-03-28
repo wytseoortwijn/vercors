@@ -169,9 +169,17 @@ public class AbstractPrinter extends AbstractVisitor {
       }
       break;
     case Invariant:
+    case Given:
+    case Yields:
+    case Requires:
+    case Ensures:
       setExpr();
-      out.print("invariant ");
-      s.args[0].accept(this);
+      out.printf("%s ",s.kind);
+      if (s.args[0]==null) {
+        out.print("null");
+      } else {
+        s.args[0].accept(this);
+      }
       out.println(";");
       break;
     default:

@@ -248,8 +248,11 @@ public class JavaPrinter extends AbstractPrinter {
       if (item.isStatic()){
         if (item instanceof DeclarationStatement) out.printf("static ");
         else out.println("/* static */");
+      } else {
+        out.println("/* dynamic */");
       }
       item.accept(this);
+      out.println("");
     }
     out.decrIndent();
     out.lnprintf("}");    
@@ -263,6 +266,7 @@ public class JavaPrinter extends AbstractPrinter {
       for (DeclarationStatement d:contract.given){
         out.printf("given ");
         d.accept(this);
+        out.lnprintf("");
       }
       for(ASTNode e:ASTUtils.conjuncts(contract.invariant)){
         out.printf("invariant ");
@@ -279,6 +283,7 @@ public class JavaPrinter extends AbstractPrinter {
       for (DeclarationStatement d:contract.yields){
         out.printf("yields ");
         d.accept(this);
+        out.lnprintf("");
       }
       for(ASTNode e:ASTUtils.conjuncts(contract.post_condition)){
         out.printf("ensures ");
@@ -852,7 +857,7 @@ public class JavaPrinter extends AbstractPrinter {
   }
   
   public void visit(ConstantExpression ce){
-    if (!in_expr) Abort("constant %s outside of expression for %s",ce,ce.getOrigin());
+    //if (!in_expr) Abort("constant %s outside of expression for %s",ce,ce.getOrigin());
     if (ce.value instanceof StringValue){
       out.print("\""+StringEscapeUtils.escapeJava(ce.toString())+"\"");
     } else {
@@ -860,5 +865,21 @@ public class JavaPrinter extends AbstractPrinter {
     }
   }
 
+  @Override
+  public void visit(VariableDeclaration decl){
+    decl.basetype.accept(this);
+    String sep=" ";
+    for(DeclarationStatement d:decl.get()){
+      out.print(sep);
+      sep=",";
+      d.getType().accept(this);
+      ASTNode init=d.getInit();
+      if (init!=null){
+        out.print("=");
+        init.accept(this);
+      }
+    }
+    out.println(";");
+  }
 }
 

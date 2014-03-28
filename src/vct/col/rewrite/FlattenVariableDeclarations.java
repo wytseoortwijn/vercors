@@ -19,12 +19,7 @@ public class FlattenVariableDeclarations extends AbstractRewriter {
   
   @Override
   public void visit(VariableDeclaration decl) {
-    Map<String,Type> map=new HashMap();
-    AbstractRewriter rw=new MultiSubstitution(source(),map);
-    map.put("basetype",decl.basetype);
-    for(DeclarationStatement d:decl.get()){
-      Debug("duplicating declaration for %s",d.getName());
-      DeclarationStatement tmp=create.field_decl(d.getName(),rw.rewrite(d.getType()), rewrite(d.getInit()));
+    for(DeclarationStatement tmp:decl.flatten()){
       if (decl.isValidFlag(ASTFlags.STATIC)){
         tmp.setStatic(decl.isStatic());
       }

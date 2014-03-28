@@ -354,10 +354,11 @@ public class AbstractJavaToCol extends ANTLRtoCOL {
     for(int i=0;i<vars.length;i++){
       DeclarationStatement tmp;
       if (vars[i] instanceof NameExpression){
-        tmp=create.field_decl(((NameExpression)vars[i]).getName(),checkType(list[N]));
+        String name=((NameExpression)vars[i]).getName();
+        tmp=create.field_decl(name,create.class_type(name));
       } else if (vars[i] instanceof DeclarationStatement) {
         DeclarationStatement d=(DeclarationStatement)vars[i];
-        tmp=create.field_decl(d.getName(),checkType(list[N]),d.getInit());
+        tmp=create.field_decl(d.getName(),d.getType(),d.getInit());
       } else {
         throw hre.System.Failure("unexpected %s in variable list at %s",vars[i].getClass(),create.getOrigin());
       }
@@ -371,7 +372,7 @@ public class AbstractJavaToCol extends ANTLRtoCOL {
   
   public DeclarationStatement getVariableDeclaratorId(ParserRuleContext ctx){
     String name=getIdentifier(ctx,0);
-    Type t=create.class_type("basetype");
+    Type t=create.class_type(name);
     if (match(ctx,null,"[","]")){
       t=create.primitive_type(PrimitiveType.Sort.Array,t);
     }

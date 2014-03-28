@@ -20,6 +20,7 @@ public class LoopStatement extends ASTNode implements BeforeAfterAnnotations {
   private ASTNode update_block;
 
   public void fixate(){
+    if (contract!=null && cb==null) return;
     if (cb==null){
       throw new HREError("loop contract has already been fixated");
     }

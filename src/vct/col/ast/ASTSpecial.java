@@ -18,7 +18,7 @@ public class ASTSpecial extends ASTNode {
     Import,
     Throw,
     Label,
-    Contract
+    Contract, Requires, Ensures, Given, Yields
   };
 
   public final Kind kind;

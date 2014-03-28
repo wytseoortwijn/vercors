@@ -426,7 +426,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
     //checkPermission(m);
     String name=m.getName();
     int N=m.getArity();
-    currentContractBuilder=new ContractBuilder();
+    if (currentContractBuilder==null) currentContractBuilder=new ContractBuilder();
     DeclarationStatement args[]=rewrite(m.getArgs());
     Contract mc=m.getContract();
     if (mc!=null){
@@ -434,9 +434,9 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
     }
     Method.Kind kind=m.kind;
     Type rt=rewrite(m.getReturnType());
-    ASTNode body=rewrite(m.getBody());
     Contract c=currentContractBuilder.getContract();
     currentContractBuilder=null;
+    ASTNode body=rewrite(m.getBody());
     result=create.method_kind(kind, rt, c, name, args, m.usesVarArgs(), body);
   }
 

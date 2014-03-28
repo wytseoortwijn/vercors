@@ -216,17 +216,6 @@ public class JavaJMLtoCol extends AbstractJavaToCol implements JavaJMLVisitor<AS
   }
 
   @Override
-  public ASTNode visitContract(ContractContext ctx) {
-    return getContract(ctx);
-  }
-
-  @Override
-  public ASTNode visitContractClause(ContractClauseContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
   public ASTNode visitCreatedName(CreatedNameContext ctx) {
     // TODO Auto-generated method stub
     return null;

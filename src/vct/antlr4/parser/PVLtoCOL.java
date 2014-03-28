@@ -396,8 +396,9 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
       VariableDeclaration decl=new VariableDeclaration((Type)convert(ctx.children.get(1)));
       int N=ctx.children.size();
       for(int i=2;i<N;i+=2){
-        Type t=create.class_type("basetype");
-        decl.add(create.field_decl(getIdentifier(ctx,i),t));
+        String name=getIdentifier(ctx,i);
+        Type t=create.class_type(name);
+        decl.add(create.field_decl(name,t));
       }
       decl.setOrigin(create.getOrigin());
       res=decl;
@@ -424,8 +425,9 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
       VariableDeclaration decl=new VariableDeclaration((Type)convert(ctx.children.get(0)));
       int N=ctx.children.size();
       for(int i=1;i<N;i+=2){
-        Type t=create.class_type("basetype");
-        decl.add(create.field_decl(getIdentifier(ctx,i),t));
+        String name=getIdentifier(ctx,i);
+        Type t=create.class_type(name);
+        decl.add(create.field_decl(name,t));
       }
       decl.setOrigin(create.getOrigin());
       return decl;
