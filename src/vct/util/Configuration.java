@@ -26,6 +26,11 @@ import hre.io.ModuleShell;
 public class Configuration {
 
   /**
+   * Switch behavior of witenss encoding.
+   */
+  public static final BooleanSetting witness_constructors=new BooleanSetting(true);
+  
+  /**
    * Global options for controlling the deletion of temporary files.
    */
   public static final BooleanSetting keep_temp_files=new BooleanSetting(false);
@@ -81,6 +86,8 @@ public class Configuration {
     clops.add(assume_single_group.getEnable("enable single group assumptions"),"single-group");
     clops.add(enable_resource_check.getDisable("disable barrier resource check during kernel verification"),"disable-resource-check");
     clops.add(enable_post_check.getDisable("disable barrier post check during kernel verification"),"disable-post-check");
+    clops.add(witness_constructors.getEnable("use constructors for witnesses"),"witness-constructors");
+    clops.add(witness_constructors.getDisable("inline constructors for witnesses"),"witness-inline");
   }
 
   

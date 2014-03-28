@@ -26,6 +26,7 @@ import vct.col.ast.ProgramUnit;
 import vct.col.ast.StandardOperator;
 import vct.col.ast.Type;
 import vct.col.util.ASTUtils;
+import vct.util.Configuration;
 import static hre.System.*;
 import static vct.col.ast.ASTReserved.*;
 
@@ -255,7 +256,9 @@ public class ExplicitPermissionEncoding extends AbstractRewriter {
         String class_name=((ASTClass)pred.getDefinition().getParent()).getName();
         Type t=create.class_type(class_name+"_"+pred_name);
         ArrayList<ASTNode> args=new ArrayList();
+        ArrayList<ASTNode> cons_args=new ArrayList();
         args.add(pred.object.apply(copy_rw));
+        cons_args.add(pred.object.apply(copy_rw));
         BlockStatement block=create.block(
             create.assignment(create.local_name(lbl.getName()),create.new_object(t)),
             create.assignment(
@@ -270,6 +273,7 @@ public class ExplicitPermissionEncoding extends AbstractRewriter {
               rewrite(pred.getArg(i))
           ));
           args.add(pred.getArg(i).apply(copy_rw));
+          cons_args.add(pred.getArg(i).apply(copy_rw));
         }
         ASTNode pred_args[]=pred.getArgs();
         for(int i=decls.length;i<pred_args.length;i++){
@@ -277,6 +281,7 @@ public class ExplicitPermissionEncoding extends AbstractRewriter {
               create.dereference(create.local_name(lbl.getName()),pred_args[i].getLabel(0).getName()),
               rewrite(pred_args[i])
           ));
+          cons_args.add(rewrite(pred_args[i]));
         }
         block.add_statement(
             create.expression(e.getOperator(),
@@ -286,12 +291,12 @@ public class ExplicitPermissionEncoding extends AbstractRewriter {
             create.expression(StandardOperator.Assert,
                 create.invokation(create.local_name(lbl.getName()), null, "check",args.toArray(new ASTNode[0])))
         );
-        result=block;
-        result.setGhost(true);
-          //    create.new_object(type, args));
-          //result=create.expression(e.getOperator(),
-          //    create.invokation(create.local_name(lbl.getName()), false, ("valid"))
-          //    );
+        if (Configuration.witness_constructors.get()){
+          result=create.assignment(create.local_name(lbl.getName()),create.new_object(t,cons_args.toArray(new ASTNode[0])));
+        } else {
+          result=block;
+          result.setGhost(true);
+        }
         return;
       } else {
         super.visit(e);
@@ -475,7 +480,7 @@ class PredicateClassGenerator extends AbstractRewriter {
     if (m.getBody()!=null) {
       cb.requires(m.getBody().apply(new ClauseEncoding(source()){
         public void visit(NameExpression e){
-          if (e.getKind()==NameExpression.Kind.Reserved && e.getName()=="this"){
+          if (e.isReserved(This)){
             result=create.local_name("ref");
           } else {
             super.visit(e);
@@ -526,17 +531,18 @@ class PredicateClassGenerator extends AbstractRewriter {
       ));
       */
     }
-    /* skip adding specific constructor;
-    pred_class.add_dynamic(create.method_kind(Method.Kind.Constructor,
-        create.primitive_type(Sort.Void),
-        cb.getContract(),
-        pred_class_name,
-        cons_decls.toArray(new DeclarationStatement[0]),
-        cons_body
-    ));
-    */
-    // Add default constructor.
-    create.addZeroConstructor(pred_class);
+    if (Configuration.witness_constructors.get()){
+      pred_class.add_dynamic(create.method_kind(Method.Kind.Constructor,
+          create.primitive_type(Sort.Void),
+          cb.getContract(),
+          pred_class_name,
+          cons_decls.toArray(new DeclarationStatement[0]),
+          cons_body
+      ));
+    } else {
+      // Add default constructor.
+      create.addZeroConstructor(pred_class);
+    }
     
     // Add getters;
     ArrayList<Method> getters=new ArrayList<Method>();
