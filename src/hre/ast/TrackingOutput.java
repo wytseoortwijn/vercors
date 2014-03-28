@@ -30,8 +30,28 @@ public class TrackingOutput {
   private int col=1;
   private int indent=0;
   private boolean atnewline=true;
+  private boolean delayed_ghost;
   private boolean closeout;
   
+  protected int ghost_level;
+  
+  public void enterGhost(){
+    if (ghost_level==0){
+      if (delayed_ghost){
+        delayed_ghost=false;
+      } else {
+        println("/*@");
+        incrIndent();
+      }
+    }
+    ghost_level++;
+  }
+  
+  public void leaveGhost(){
+    ghost_level--;
+    delayed_ghost=true;
+  }
+
   public TrackingOutput(PrintStream output,boolean closeout){
     this.closeout=closeout;
     this.output=output;
@@ -55,7 +75,20 @@ public class TrackingOutput {
     frame=parent;
   }
   public void incrIndent(){ indent+=2; }
-  public void decrIndent(){ indent-=2; }
+  public void decrIndent(){ 
+    if (delayed_ghost){
+      delayed_ghost=false;
+      indent-=2;
+      println("@*/");
+    }
+    indent-=2;
+  }
+  
+  
+  public void clearline(){
+    if(!atnewline) newline();
+  }
+  
   public void newline(){
 //    if(atnewline && show){
 //      System.err.printf("%4d ",line);
@@ -67,6 +100,9 @@ public class TrackingOutput {
     col=1;
   }
   public void print(String s){
+    if (delayed_ghost){
+      indent-=2;
+    }
     if(atnewline){
 //      if (show) System.err.printf("%4d ",line);
       for(int i=0;i<indent;i++) {
@@ -74,6 +110,14 @@ public class TrackingOutput {
 //        if (show) System.err.print(" ");
       }
       atnewline=false;
+      col+=indent;
+    }
+    if (delayed_ghost){
+      delayed_ghost=false;
+      output.println("@*/");
+      for(int i=0;i<indent;i++) {
+        output.print(" ");
+      }
       col+=indent;
     }
     output.print(s);
