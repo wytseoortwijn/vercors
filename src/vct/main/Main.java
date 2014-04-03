@@ -53,6 +53,7 @@ import vct.col.rewrite.VoidCalls;
 import vct.col.rewrite.WandEncoder;
 import vct.col.util.FeatureScanner;
 import vct.col.util.SimpleTypeCheck;
+import vct.java.printer.JavaDialect;
 import vct.java.printer.JavaSyntax;
 import vct.util.ClassName;
 import vct.util.Configuration;
@@ -170,7 +171,7 @@ public class Main
     Hashtable<String,ValidationPass> defined_checks=new Hashtable<String,ValidationPass>();
     defined_passes.put("java",new CompilerPass("print AST in java syntax"){
         public ProgramUnit apply(ProgramUnit arg){
-          JavaSyntax.getJavaJML().print(System.out,arg);
+          JavaSyntax.getJava(JavaDialect.JavaVerCors).print(System.out,arg);
           return arg;
         }
       });
