@@ -34,14 +34,14 @@ public class JavaSyntax extends Syntax {
     return JavaSyntax;
   }
   
-  private static Syntax JavaVerCorsSyntax;
-  private static Syntax JavaVeriFastSyntax;
+  private static JavaSyntax JavaVerCorsSyntax;
+  private static JavaSyntax JavaVeriFastSyntax;
   
-  public synchronized static Syntax getJava(JavaDialect dialect){
+  public synchronized static JavaSyntax getJava(JavaDialect dialect){
     switch(dialect){
     case JavaVerCors:
       if (JavaVerCorsSyntax==null){
-        Syntax syntax=new JavaSyntax("Java + JML",dialect);
+        JavaSyntax syntax=new JavaSyntax("Java + JML",dialect);
         setCommon(syntax);
         syntax.addInfix(SubType,"<:",90);
         syntax.addInfix(SuperType,":>",90);
@@ -74,7 +74,7 @@ public class JavaSyntax extends Syntax {
       return JavaVerCorsSyntax;
     case JavaVeriFast:
       if (JavaVeriFastSyntax==null){
-        Syntax syntax=new JavaSyntax("Java + VeriFast",dialect);
+        JavaSyntax syntax=new JavaSyntax("Java + VeriFast",dialect);
         setCommon(syntax);
         syntax.addLeftFix(Star,"&*&",40);
         syntax.addPrefix(BindOutput,"?",666);     
