@@ -31,7 +31,7 @@ public class MessageProcess {
     Runtime runtime=Runtime.getRuntime();
     queue=new LinkedBlockingQueue<Message>();
     try {
-      process=runtime.exec(command_line,null,path.toFile());
+      process=runtime.exec(command_line,null,path==null?null:path.toFile());
     } catch (IOException e){
       queue.add(new Message("exec error %s",e.getMessage()));
       return;
