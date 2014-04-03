@@ -5,6 +5,7 @@ package vct.java.printer;
 import hre.ast.TrackingOutput;
 import vct.col.ast.ASTNode;
 import vct.col.rewrite.Parenthesize;
+import hre.HREError;
 import vct.util.Syntax;
 import static vct.col.ast.StandardOperator.*;
 import static vct.col.ast.PrimitiveType.Sort.*;
@@ -15,8 +16,10 @@ import static vct.col.ast.ASTReserved.*;
  */
 public class JavaSyntax extends Syntax {
 
-  public JavaSyntax(String language) {
+  public final JavaDialect dialect;
+  public JavaSyntax(String language,JavaDialect dialect) {
     super(language);
+    this.dialect=dialect;
   }
 
   private static Syntax JavaSyntax;
@@ -24,48 +27,63 @@ public class JavaSyntax extends Syntax {
   
   public synchronized static Syntax getJava(){
     if (JavaSyntax==null){
-      Syntax syntax=new JavaSyntax("Java");
+      Syntax syntax=new JavaSyntax("Java",null);
       setCommon(syntax);
       JavaSyntax=syntax;
     }
     return JavaSyntax;
   }
   
-  private static Syntax JavaJMLSyntax;
+  private static Syntax JavaVerCorsSyntax;
+  private static Syntax JavaVeriFastSyntax;
   
-  public synchronized static Syntax getJavaJML(){
-    if (JavaJMLSyntax==null){
-      Syntax syntax=new JavaSyntax("Java + JML");
-      setCommon(syntax);
-      syntax.addInfix(SubType,"<:",90);
-      syntax.addInfix(SuperType,":>",90);
-      syntax.addInfix(Implies,"==>",30);
-      syntax.addInfix(IFF,"<==>",30);
-      syntax.addLeftFix(Wand,"-*",30);
-      syntax.addFunction(Perm,"Perm");
-      syntax.addFunction(Head,"head");
-      syntax.addFunction(Tail,"tail");
-      syntax.addFunction(Value,"Value");
-      syntax.addFunction(PointsTo,"PointsTo");
-      syntax.addFunction(ArrayPerm,"ArrayPerm");
-      syntax.addFunction(Old,"\\old");
-      syntax.addOperator(Size,999,"|","|");
-      syntax.addOperator(Nil,999,"nil<",">");
-      syntax.addLeftFix(Append,"+++",110);
-      syntax.addLeftFix(Star,"**",40);
+  public synchronized static Syntax getJava(JavaDialect dialect){
+    switch(dialect){
+    case JavaVerCors:
+      if (JavaVerCorsSyntax==null){
+        Syntax syntax=new JavaSyntax("Java + JML",dialect);
+        setCommon(syntax);
+        syntax.addInfix(SubType,"<:",90);
+        syntax.addInfix(SuperType,":>",90);
+        syntax.addInfix(Implies,"==>",30);
+        syntax.addInfix(IFF,"<==>",30);
+        syntax.addLeftFix(Wand,"-*",30);
+        syntax.addFunction(Perm,"Perm");
+        syntax.addFunction(Head,"head");
+        syntax.addFunction(Tail,"tail");
+        syntax.addFunction(Value,"Value");
+        syntax.addFunction(PointsTo,"PointsTo");
+        syntax.addFunction(ArrayPerm,"ArrayPerm");
+        syntax.addFunction(Old,"\\old");
+        syntax.addOperator(Size,999,"|","|");
+        syntax.addOperator(Nil,999,"nil<",">");
+        syntax.addLeftFix(Append,"+++",110);
+        syntax.addLeftFix(Star,"**",40);
 
-      syntax.addPrimitiveType(ZFraction,"zfrac");
-      syntax.addPrimitiveType(Fraction,"frac");
-      syntax.addPrimitiveType(Resource,"resource");
-      syntax.addPrimitiveType(Class,"classtype");
-      
-      syntax.addReserved(Result,"\\result");
-      syntax.addReserved(Pure,"pure");
-      syntax.addReserved(Any,"*");
-      syntax.addPrefix(BindOutput,"?",666);
-      JavaJMLSyntax=syntax;
+        syntax.addPrimitiveType(ZFraction,"zfrac");
+        syntax.addPrimitiveType(Fraction,"frac");
+        syntax.addPrimitiveType(Resource,"resource");
+        syntax.addPrimitiveType(Class,"classtype");
+        
+        syntax.addReserved(Result,"\\result");
+        syntax.addReserved(Pure,"pure");
+        syntax.addReserved(Any,"*");
+        syntax.addPrefix(BindOutput,"?",666);
+        JavaVerCorsSyntax=syntax;        
+      }
+      return JavaVerCorsSyntax;
+    case JavaVeriFast:
+      if (JavaVeriFastSyntax==null){
+        Syntax syntax=new JavaSyntax("Java + VeriFast",dialect);
+        setCommon(syntax);
+        syntax.addLeftFix(Star,"&*&",40);
+        syntax.addPrefix(BindOutput,"?",666);     
+        JavaVeriFastSyntax=syntax;  
+      }
+      return JavaVeriFastSyntax;
+    default:
+      throw new HREError("Java specification language dialect %s not supported",dialect);
     }
-    return JavaJMLSyntax;
   }
   
   private static  void setCommon(Syntax syntax){
@@ -152,7 +170,7 @@ public class JavaSyntax extends Syntax {
 
   @Override
   public void print(TrackingOutput out, ASTNode n) {
-    JavaPrinter p=new JavaPrinter(out);
+    JavaPrinter p=new JavaPrinter(out,dialect);
     ASTNode nn=new Parenthesize(this).rewrite(n);
     nn.accept(p);
   } 

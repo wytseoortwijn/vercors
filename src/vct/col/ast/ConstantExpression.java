@@ -85,13 +85,7 @@ public class ConstantExpression extends ASTNode {
   }
   
   public boolean equals(Object o){
-    // TODO: fix inconsistentency with the hash function!
-    // TODO: which equality is the default equality on ASTNodes?
-    if (o instanceof ConstantExpression){
-      ConstantExpression c=(ConstantExpression)o;
-      return value.equals(c.value);
-    }
-    return false;
+    return value.equals(o);
   }
 }
 

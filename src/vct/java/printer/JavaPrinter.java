@@ -24,8 +24,10 @@ import static hre.System.Warning;
  */
 public class JavaPrinter extends AbstractPrinter {
   
-  protected JavaPrinter(TrackingOutput out){
-    super(JavaSyntax.getJavaJML(),out);
+  public final JavaDialect dialect;
+  protected JavaPrinter(TrackingOutput out,JavaDialect dialect){
+    super(JavaSyntax.getJava(dialect),out);
+    this.dialect=dialect;
   }
 
   public void pre_visit(ASTNode node){
@@ -347,7 +349,7 @@ public class JavaPrinter extends AbstractPrinter {
       out.incrIndent();
       out.print("predicate ");
     }
-    if (contract!=null && !predicate){
+    if (contract!=null && dialect!=JavaDialect.JavaVeriFast && !predicate){
       visit(contract);
     }
     if (m.isStatic()) out.printf("static ");
@@ -388,6 +390,9 @@ public class JavaPrinter extends AbstractPrinter {
       }
     }
     out.printf(")");
+    if (contract!=null && dialect==JavaDialect.JavaVeriFast && !predicate){
+      visitVeriFast(contract);
+    }
     ASTNode body=m.getBody();
     if (body==null) {
       out.lnprintf(";");
@@ -404,6 +409,17 @@ public class JavaPrinter extends AbstractPrinter {
       out.decrIndent();
       out.lnprintf("*/");
     }
+  }
+
+  private void visitVeriFast(Contract contract) {
+    out.printf("//@ requires ");
+    nextExpr();
+    contract.pre_condition.accept(this);
+    out.lnprintf(";");
+    out.printf("//@ ensures ");
+    nextExpr();
+    contract.post_condition.accept(this);
+    out.lnprintf(";");
   }
 
   public void visit(IfStatement s){
@@ -505,6 +521,39 @@ public class JavaPrinter extends AbstractPrinter {
   }
   
   public void visit(OperatorExpression e){
+    switch(dialect){
+    case JavaVerCors:
+      visitVerCors(e);
+      break;
+    case JavaVeriFast:
+      visitVeriFast(e);
+      break;
+      default:
+        super.visit(e);
+    }
+  }
+  private void visitVeriFast(OperatorExpression e){
+    switch(e.getOperator()){
+    case PointsTo:{
+      if (e.getArg(1) instanceof ConstantExpression
+      && ((ConstantExpression)e.getArg(1)).equals(1)
+      ){
+        // [1] is implicit.
+      } else {
+        out.printf("[");
+        e.getArg(1).accept(this);
+        out.printf("]");
+      }
+      e.getArg(0).accept(this);
+      out.printf(" |-> ");
+      e.getArg(2).accept(this);
+      break;
+    }
+    default:{
+      super.visit(e);
+    }}
+  }
+  private void visitVerCors(OperatorExpression e){
     switch(e.getOperator()){
       case Tuple:{
         out.print("(");
@@ -777,6 +826,41 @@ public class JavaPrinter extends AbstractPrinter {
     //  s.get_after().accept(this);
     //  out.printf(" */");
     //}    
+  }
+
+
+  public static TrackingTree dump_expr(PrintStream out,JavaDialect dialect,ASTNode node){
+    TrackingOutput track_out=new TrackingOutput(out,false);
+    JavaPrinter printer=new JavaPrinter(track_out, dialect);
+    printer.setExpr();
+    node.accept(printer);
+    return track_out.close();
+  }
+
+  public static TrackingTree dump(PrintStream out,JavaDialect dialect,ProgramUnit program){
+    hre.System.Debug("Dumping Java code...");
+    try {
+      TrackingOutput track_out=new TrackingOutput(out,false);
+      JavaPrinter printer=new JavaPrinter(track_out, dialect);
+      for(CompilationUnit cu : program.get()){
+        track_out.lnprintf("//==== %s ====",cu.getFileName());
+        for(ASTNode item : cu.get()){
+          item.accept(printer);
+        }
+      }
+      return track_out.close();
+    } catch (Exception e) {
+      System.out.println("error: ");
+      e.printStackTrace();
+      throw new Error("abort");
+    }
+  }
+
+  public static void dump(PrintStream out,JavaDialect dialect, ASTNode cl) {
+    TrackingOutput track_out=new TrackingOutput(out,false);
+    JavaPrinter printer=new JavaPrinter(track_out,dialect);
+    cl.accept(printer);
+    track_out.close();    
   }
 
   public void visit(Dereference e){

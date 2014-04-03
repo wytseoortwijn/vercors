@@ -6,6 +6,7 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.Parser;
 
 import vct.col.ast.*;
+import vct.java.printer.JavaDialect;
 import vct.java.printer.JavaSyntax;
 import vct.parsers.JavaJMLParser.*;
 import vct.parsers.*;
@@ -30,7 +31,7 @@ public class JavaJMLtoCol extends AbstractJavaToCol implements JavaJMLVisitor<AS
   
   public static CompilationUnit convert(ParseTree tree, String file_name,BufferedTokenStream tokens,Parser parser) {
     CompilationUnit unit=new CompilationUnit(file_name);
-    JavaJMLtoCol visitor=new JavaJMLtoCol(JavaSyntax.getJavaJML(),file_name,tokens,parser);
+    JavaJMLtoCol visitor=new JavaJMLtoCol(JavaSyntax.getJava(JavaDialect.JavaVerCors),file_name,tokens,parser);
     visitor.scan_to(unit,tree);
     return unit;
   }

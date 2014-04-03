@@ -11,5 +11,8 @@ public class IntegerValue implements Value {
   public String toString(){
     return Integer.toString(value);
   }
+  public boolean equals(Object o){
+    return o.equals(value);
+  }
 }
 
