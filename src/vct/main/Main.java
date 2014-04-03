@@ -366,6 +366,12 @@ public class Main
         return new StripConstructors(arg).rewriteAll();
       }
     });
+    defined_checks.put("verifast",new ValidationPass("verify with VeriFast"){
+      public TestReport apply(ProgramUnit arg){
+        vct.java.printer.JavaPrinter.dump(System.out,JavaDialect.JavaVeriFast,arg);
+        return vct.verifast.Main.TestVerifast(arg);
+      }
+    });
     defined_passes.put("voidcalls",new CompilerPass("???"){
       public ProgramUnit apply(ProgramUnit arg){
         return new VoidCalls(arg).rewriteAll();
