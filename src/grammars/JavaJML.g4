@@ -13,9 +13,11 @@ resourceExpression
  | resourceExpression '-*' resourceExpression 
  | expression '==>' resourceExpression
  | 'ArrayPerm' '(' expression ',' expression ',' expression ',' expression ',' expression ')'
+ | 'AddsTo' '(' expression ',' expression ')'
  | 'Perm' '(' expression ',' expression ')'
  | 'PointsTo' '(' expression ',' expression ',' expression ')'
  | 'Value' '(' expression ')'
+ | 'Volatile' '(' expression ')'
  | '(' resourceExpression ')'
  | expression
  ;

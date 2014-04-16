@@ -106,6 +106,10 @@ public enum StandardOperator {
   PointsTo(3),
   /** Immutable permission predicate.  */
   Value(1),
+  /**
+   * Declare a location to be volatile. That is, accessible by multiple threads.
+   */
+  Volatile(1),
   /** Array permission predicate.
    *  ArrayPerm(name,first,step,count,p);
    *  The arguments are
@@ -123,6 +127,10 @@ public enum StandardOperator {
   Select(2),
   Guarded member selection. (Selection with built-in null test.)
   GuardedSelect(2),*/
+  /**
+   * Declare that a volatile field has been incremented by adding another value.
+   */
+  AddsTo(2),
   /** Array subscript. */
   Subscript(2),
   /** Fork statement. */

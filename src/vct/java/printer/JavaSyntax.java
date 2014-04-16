@@ -54,6 +54,8 @@ public class JavaSyntax extends Syntax {
         syntax.addFunction(Value,"Value");
         syntax.addFunction(PointsTo,"PointsTo");
         syntax.addFunction(ArrayPerm,"ArrayPerm");
+        syntax.addFunction(AddsTo,"AddsTo");
+        syntax.addFunction(Volatile, "Volatile");
         syntax.addFunction(Old,"\\old");
         syntax.addOperator(Size,999,"|","|");
         syntax.addOperator(Nil,999,"nil<",">");

@@ -361,9 +361,11 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       e.setType(new PrimitiveType(Sort.Resource));
       break;
     }
+    case AddsTo:
     case PointsTo:
     case Perm:
     case Value:
+    case Volatile:
     case ArrayPerm:
       // TODO: check arguments
       e.setType(new PrimitiveType(Sort.Resource));
