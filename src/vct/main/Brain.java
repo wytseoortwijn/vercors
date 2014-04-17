@@ -1,8 +1,5 @@
 package vct.main;
 
-import hre.ast.Context;
-import static hre.ast.Context.globalContext;
-
 import java.util.*;
 
 import vct.col.ast.ASTClass;
@@ -52,7 +49,7 @@ public class Brain {
 					assist.add(temp);
 				}
 			}
-			globalContext.report("error", node.getOrigin(), assist);
+			node.getOrigin().report("error", assist);
 			//System.out.println(temp);
 			ans = true;
 		}

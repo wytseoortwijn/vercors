@@ -2,6 +2,7 @@
 
 package vct.main;
 
+import hre.ast.FileOrigin;
 import hre.config.BooleanSetting;
 import hre.config.OptionParser;
 import hre.config.StringListSetting;
@@ -59,7 +60,6 @@ import vct.util.ClassName;
 import vct.util.Configuration;
 import vct.util.Parser;
 import static hre.System.*;
-import static hre.ast.Context.globalContext;
 
 /**
  * VerCors Tool main verifier.
@@ -122,6 +122,8 @@ public class Main
     clops.add(boogie.getEnable("select Boogie backend"),"boogie");
     BooleanSetting chalice=new BooleanSetting(false);
     clops.add(chalice.getEnable("select Chalice backend"),"chalice");
+    BooleanSetting silicon=new BooleanSetting(false);
+    clops.add(silicon.getEnable("select Silicon backend"),"silicon");
     final BooleanSetting separate_checks=new BooleanSetting(false);
     clops.add(separate_checks.getEnable("validate classes separately"),"separate");
     BooleanSetting help_passes=new BooleanSetting(false);
@@ -196,6 +198,11 @@ public class Main
     defined_checks.put("boogie",new ValidationPass("verify with Boogie"){
       public TestReport apply(ProgramUnit arg){
         return vct.boogie.Main.TestBoogie(arg);
+      }
+    });
+    defined_checks.put("silicon",new ValidationPass("verify with Boogie"){
+      public TestReport apply(ProgramUnit arg){
+        return vct.boogie.Main.TestSilicon(arg);
       }
     });
     defined_passes.put("box",new CompilerPass("box class types with parameters"){
@@ -392,7 +399,7 @@ public class Main
       }
       System.exit(0);
     }
-    if (!(boogie.get() || chalice.get() || pass_list.iterator().hasNext())) {
+    if (!(boogie.get() || chalice.get() || silicon.get() || pass_list.iterator().hasNext())) {
       Fail("no back-end or passes specified");
     }
     Progress("parsing inputs...");
@@ -401,7 +408,7 @@ public class Main
     for(String name : input){
       File f=new File(name);
       if (!no_context.get()){
-        globalContext.add(name);
+        FileOrigin.add(name);
       }
       parseFile(f.getPath());
       cnt++;
@@ -449,7 +456,7 @@ public class Main
       passes.add("standardize");
       passes.add("check");
     	passes.add("boogie");
-    } else if (chalice.get()) {
+    } else if (chalice.get()||silicon.get()) {
       passes=new ArrayList<String>();
       passes.add("standardize");
       passes.add("check");        
@@ -530,7 +537,11 @@ public class Main
       passes.add("check");
       passes.add("chalice-preprocess");
       passes.add("check");
-    	passes.add("chalice");
+      if (chalice.get()){
+        passes.add("chalice");
+      } else {
+        passes.add("silicon");
+      }
     } else {
     	if (!pass_list.iterator().hasNext()) Abort("no back-end or passes specified");
     }
