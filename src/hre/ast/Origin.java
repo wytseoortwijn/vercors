@@ -6,6 +6,7 @@ package hre.ast;
  * AST nodes through transformations to the original file(s).
  */
 public interface Origin {
-    
+  public void report(String level, Iterable<String> message);
+  public void report(String level, String ... message);
 }
 

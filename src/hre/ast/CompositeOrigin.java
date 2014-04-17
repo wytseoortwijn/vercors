@@ -22,6 +22,16 @@ public class CompositeOrigin implements Origin {
       }
       return result;
     }
+    @Override
+    public void report(String level, Iterable<String> message) {
+      // TODO Auto-generated method stub
+      origins[0].report(level,message);
+    }
+    @Override
+    public void report(String level, String... message) {
+      // TODO Auto-generated method stub
+      origins[0].report(level,message);      
+    }
 
 }
 

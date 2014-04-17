@@ -1,12 +1,55 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 package hre.ast;
 
+import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.Hashtable;
+
 /**
  * Origin that denotes a range of characters in a File.
  * @author sccblom
  *
  */
 public class FileOrigin implements Origin {
+
+  public int linesBefore=2;
+  public int linesAfter=2;
+  
+  
+  private static Hashtable<String,FileContext> data=new Hashtable<String,FileContext>();
+  
+  public void printContext(PrintStream out,int before,int after){
+    String file=getName();
+    FileContext fc=data.get(file);
+    if (fc==null){
+      System.out.println("=========================================");
+      System.out.printf("error at %s: ",this);
+    } else {
+      out.printf("=== %-30s ===%n",file);
+      fc.printContext(out,this,before,after);
+      int N=8+file.length();
+      System.out.println("-----------------------------------------");
+    }
+  }
+  
+  public static void add(String file){
+    data.put(file,new FileContext(file));
+  }
+  public synchronized void report(String level, Iterable<String> message) {
+    printContext(System.out,linesBefore,linesAfter);     
+    for(String line:message){
+      System.out.printf("  %s%n",line);
+    }
+    System.out.println("=========================================");
+  }
+  
+  public synchronized void report(String level, String ... message) {
+    printContext(System.out, linesBefore,linesAfter);     
+    for(String line:message){
+      System.out.printf("  %s%n",line);
+    }
+    System.out.println("=========================================");
+  }
 
     private String file_name;
     private int first_line, first_col, last_line, last_col;
