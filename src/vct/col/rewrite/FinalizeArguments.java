@@ -1,6 +1,8 @@
 package vct.col.rewrite;
 
 import java.util.HashMap;
+
+import vct.col.ast.ASTClass;
 import vct.col.ast.ASTFlags;
 import vct.col.ast.ASTNode;
 import vct.col.ast.BlockStatement;
@@ -40,6 +42,8 @@ public class FinalizeArguments extends AbstractRewriter {
         DeclarationStatement args[]=new DeclarationStatement[N];
         BlockStatement block=new BlockStatement();
         block.setOrigin(body);
+        //System.out.printf("%s: origin of create is %s%n",m.name,create.getOrigin());
+        create.enter();
         for(int i=0;i<N;i++){
           String old_name=m.getArgument(i);
           String new_name="__"+m.getArgument(i);
@@ -52,6 +56,8 @@ public class FinalizeArguments extends AbstractRewriter {
           block.add_statement(create.assignment(create.local_name(old_name),create.local_name(new_name)));
           subst.put(create.local_name(old_name),create.local_name(new_name));
         }
+        create.leave();
+        //System.out.printf("%s: origin of create is %s%n",m.name,create.getOrigin());
         Method.Kind kind=m.kind;
         Contract mc=m.getContract();
         Contract c=null;

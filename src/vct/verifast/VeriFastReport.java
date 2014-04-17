@@ -13,7 +13,6 @@ import vct.col.ast.*;
 import vct.util.*;
 import static hre.System.Debug;
 import static hre.System.Warning;
-import static hre.ast.Context.globalContext;
 
 public class VeriFastReport  extends hre.util.TestReport {
 
@@ -49,7 +48,7 @@ public class VeriFastReport  extends hre.util.TestReport {
           int col_no=Integer.parseInt(line.substring(comma+1,dash));
           Origin msg_origin=tree.getOrigin(line_no,col_no);
           String error=msg_origin.toString()+line.substring(close+1);
-          globalContext.report("error",msg_origin,error);
+          msg_origin.report("error",error);
         }
       }
     } catch (Exception e) {

@@ -14,7 +14,6 @@ import vct.col.ast.*;
 import vct.util.*;
 import static hre.System.Debug;
 import static hre.System.Warning;
-import static hre.ast.Context.globalContext;
 
 /**
  * This class contains a parser for the output of the Chalice tool.
@@ -65,7 +64,7 @@ public class ChaliceReport extends hre.util.TestReport {
             }
             message=message.replaceAll(" at [0-9]+[.][0-9]+ "," ");
             Debug("error at %s: %s%n",origin,message);
-            globalContext.report("error",origin,message);
+            origin.report("error",message);
           } else {
             ArrayList<String> error=new ArrayList<String>();
             String parts[]=line.substring(colon+2).split("[0-9]+[.][0-9]+");
@@ -86,7 +85,7 @@ public class ChaliceReport extends hre.util.TestReport {
               current=end+parts[i].length();
             }
             //System.out.println("");
-            globalContext.report("error",origin,error);
+            origin.report("error",error);
           }
           continue;
         }

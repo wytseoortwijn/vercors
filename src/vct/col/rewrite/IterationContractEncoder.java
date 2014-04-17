@@ -1,9 +1,12 @@
 package vct.col.rewrite;
 
+import hre.ast.BranchOrigin;
+
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import vct.col.ast.ASTClass;
 import vct.col.ast.ASTNode;
 import vct.col.ast.BindingExpression.Binder;
 import vct.col.ast.BlockStatement;
@@ -21,12 +24,12 @@ import vct.col.ast.Type;
 import vct.col.ast.VariableDeclaration;
 import vct.col.util.ASTUtils;
 import vct.col.util.NameScanner;
+import vct.col.util.OriginWrapper;
 
 public class IterationContractEncoder extends AbstractRewriter {
 
   private AtomicInteger counter=new AtomicInteger();
-  
-  
+    
   public IterationContractEncoder(ProgramUnit arg) {
     super(arg);
   }
@@ -117,6 +120,8 @@ public class IterationContractEncoder extends AbstractRewriter {
           main_name, 
           main_decl.toArray(new DeclarationStatement[0]),
           null);
+      BranchOrigin branch=new BranchOrigin("Loop Contract",null);
+      OriginWrapper.wrap(null,main_method, branch);
       currentClass.add_dynamic(main_method);
       Method main_body=create.method_decl(
           create.primitive_type(PrimitiveType.Sort.Void),
@@ -125,10 +130,16 @@ public class IterationContractEncoder extends AbstractRewriter {
           body_decl.toArray(new DeclarationStatement[0]),
           rewrite(s.getBody())
       );
+      branch=new BranchOrigin("Iteration Body",null);
+      OriginWrapper.wrap(null,main_body, branch);
+      System.out.printf("generated %s at %s%n",main_body.name,main_body.getOrigin());
       currentClass.add_dynamic(main_body);
       result=create.invokation(null,null,main_name,main_args.toArray(new ASTNode[0]));
+      branch=new BranchOrigin("Parallel Loop",null);
+      OriginWrapper.wrap(null,result, branch);
     } else {
       super.visit(s);
     }
   }
+  
 }

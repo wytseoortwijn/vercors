@@ -34,6 +34,7 @@ public class Main {
   // The default timeout is set to half an hour, to give Z3 plenty of time yet avoid run-aways. 
   public static IntegerSetting boogie_timeout=new IntegerSetting(1800);
   public static StringSetting chalice_module;
+  public static StringSetting silicon_module;
   
   static {
 	  String OS=System.getProperty("os.name");
@@ -41,11 +42,13 @@ public class Main {
 		  z3_module=new StringSetting("z3/3.2");
 		  boogie_module=new StringSetting("boogie/2012-06-15");
 		  chalice_module=new StringSetting("chalice/2012-06-15");
+		  
 	  } else {
 		  z3_module=new StringSetting("z3/4.3.1");
 		  boogie_module=new StringSetting("boogie/2012-10-22");
 		  chalice_module=new StringSetting("chalice/2012-11-20");
 	  }
+	  silicon_module=new StringSetting("chalice2sil");
   }
   
   /**
@@ -144,6 +147,47 @@ public class Main {
     }
   }
 
+  /**
+   * Pretty print a Chalice program and optionally verify it.
+   * 
+   * @param program AST of the Chalice program.
+   *
+   */
+  public static SiliconReport TestSilicon(final ProgramUnit program){
+    ModuleShell shell=Configuration.getShell(z3_module.get(),silicon_module.get());
+    File shell_dir=shell.shell_dir.toFile();
+    System.err.println("Checking with chalice2sil and silicon");
+    try {
+      File chalice_input_file=File.createTempFile("chalice-input",".chalice",shell_dir);
+      //if (!vct.util.Configuration.keep_temp_files.get()){
+        chalice_input_file.deleteOnExit();
+      //}
+      final PrintStream chalice_input;
+      
+      if (vct.util.Configuration.backend_file.get()==null){
+        chalice_input=new PrintStream(chalice_input_file);
+      } else {
+        OutputStream temp=new FileOutputStream(chalice_input_file);
+        File encoded_file=new File(vct.util.Configuration.backend_file.get());
+        OutputStream encoded=new FileOutputStream(encoded_file);
+        chalice_input=new PrintStream(new SplittingOutputStream(temp,encoded));
+      }
+      final TrackingOutput chalice_code=new TrackingOutput(chalice_input,true);
+      BoogieSyntax.getChalice().print(chalice_code, program);
+      TrackingTree tree=chalice_code.close();
+      File silicon_xml_file=File.createTempFile("silicon-output",".xml",shell.shell_dir.toFile());
+      silicon_xml_file.deleteOnExit();
+      shell.send("chalice --xml %s %s",silicon_xml_file.getName(),chalice_input_file.getName());
+      shell.send("exit");
+      SiliconReport output=new SiliconReport(shell,silicon_xml_file,tree);
+      return output;
+    } catch (Exception e) {
+      Warning("error: ");
+      e.printStackTrace();
+      return null;
+    }
+
+  }
 }
 
 
