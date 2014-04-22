@@ -7,12 +7,13 @@ import vct.col.ast.ASTNode;
 import vct.col.ast.AssignmentStatement;
 import vct.col.ast.Contract;
 import vct.col.ast.ContractBuilder;
+import vct.col.ast.Dereference;
 import vct.col.ast.Method;
 import vct.col.ast.MethodInvokation;
+import vct.col.ast.NameExpression;
 import vct.col.ast.OperatorExpression;
 import vct.col.ast.RecursiveVisitor;
 import vct.col.ast.Type;
-
 import static hre.System.Abort;
 import static hre.System.Fail;
 
@@ -26,8 +27,21 @@ public class ModificationScanner extends RecursiveVisitor<Object> {
     this.cache=cache;
   }
 
+  private void modifies_loc(ASTNode n){
+    if (n instanceof NameExpression){
+      NameExpression name=(NameExpression)n;
+      if (name.getSite() instanceof ASTClass){
+        builder.modifies(n);
+      }
+    } else if (n instanceof Dereference){
+      builder.modifies(n);
+    } else {
+      Abort("unimplemented location type %s",n.getClass());
+    }
+  }
+  
   public void visit(AssignmentStatement s){
-    builder.modifies(s.getLocation());
+    modifies_loc(s.getLocation());
   }
   
   public void visit(MethodInvokation e){
@@ -36,7 +50,7 @@ public class ModificationScanner extends RecursiveVisitor<Object> {
     Contract c=m.getContract();
     if (c!=null && c.modifies!=null) {
       for (ASTNode loc : c.modifies) {
-        builder.modifies(loc);
+        modifies_loc(loc);
       }
     }
   }
@@ -47,7 +61,7 @@ public class ModificationScanner extends RecursiveVisitor<Object> {
     case PostIncr:
     case PreDecr:
     case PostDecr:
-      builder.modifies(e.getArg(0));
+      modifies_loc(e.getArg(0));
     }
   }
   

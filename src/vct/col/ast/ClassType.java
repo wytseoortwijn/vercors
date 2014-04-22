@@ -8,6 +8,8 @@ import java.util.Arrays;
 
 public class ClassType extends Type {
 
+  public static final ClassType label_type=new ClassType("<<label>>");
+      
   private final String name[];
   
   public ClassType(String name[],ASTNode ... args){

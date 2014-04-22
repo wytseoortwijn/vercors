@@ -4,9 +4,11 @@ import hre.ast.MessageOrigin;
 
 import java.util.Stack;
 
+import vct.col.ast.ASTClass;
 import vct.col.ast.ASTNode;
 import vct.col.ast.AssignmentStatement;
 import vct.col.ast.BlockStatement;
+import vct.col.ast.ClassType;
 import vct.col.ast.Contract;
 import vct.col.ast.DeclarationStatement;
 import vct.col.ast.Dereference;
@@ -154,8 +156,25 @@ public class Flatten extends AbstractRewriter {
   
   @Override
   public void visit(AssignmentStatement s) {
+    if (//s.getLocation().getType().equals(ClassType.label_type)||
+        s.getExpression().getType().equals(ClassType.label_type)){
+      ASTNode loc=s.getLocation().apply(this);
+      ASTNode val=s.getExpression().apply(this);
+      result=create.assignment(loc,val);
+      return;
+    }
     ASTNode loc=s.getLocation().apply(this);
-    ASTNode val=s.getExpression().apply(this);
+    ASTNode val=s.getExpression();
+    if (val instanceof NameExpression){
+      NameExpression e=(NameExpression)val;
+      if (e.getSite() instanceof ASTClass){
+        val=add_as_var(val);
+      } else {
+        val=rewrite(val);
+      }
+    } else {
+      val=add_as_var(val);
+    }
     if (loc instanceof Dereference){
       Dereference d=(Dereference)loc;
       if (d.field.equals("item")){
@@ -184,6 +203,8 @@ public class Flatten extends AbstractRewriter {
   }
 
   private ASTNode add_as_var(ASTNode e){
+    create.enter();
+    create(e);
     String name="__flatten_"+(++counter);
     if (e.getType()==null){
       Abort("result type unknown at %s",e.getOrigin());
@@ -197,7 +218,9 @@ public class Flatten extends AbstractRewriter {
     declaration_block.add_statement(n);
     ASTNode ee=e.apply(this);
     current_block.add_statement(create.assignment(create.local_name(name),ee));
-    return create.local_name(name);
+    ASTNode tmp=create.local_name(name);
+    create.leave();
+    return tmp;
   }
 
   public void visit(ReturnStatement s){
