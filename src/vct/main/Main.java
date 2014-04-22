@@ -450,6 +450,7 @@ public class Main
       passes.add("standardize");
       passes.add("check");
       passes.add("flatten");
+      passes.add("reorder");
       passes.add("standardize");
       passes.add("check");
       passes.add("strip_constructors");
