@@ -8,6 +8,9 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
 import vct.col.ast.ASTNode;
+import vct.col.ast.DeclarationStatement;
+import vct.col.ast.PrimitiveType;
+import vct.col.ast.Type;
 import vct.parsers.CParser.PrimaryExpressionContext;
 import vct.util.Syntax;
 
@@ -43,5 +46,13 @@ public abstract class AbstractCtoCOL extends ANTLRtoCOL {
     return null;
   }
 
-  
+  public DeclarationStatement getDirectDeclarator(ParserRuleContext ctx) {
+    String name=getIdentifier(ctx,0);
+    Type t=create.class_type(name);
+    if (match(ctx,null,"[","]")){
+      t=create.primitive_type(PrimitiveType.Sort.Array,t);
+    }
+    return create.field_decl(name, t);
+  }
+
 }

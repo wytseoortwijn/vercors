@@ -323,8 +323,7 @@ public class CtoCOL extends AbstractCtoCOL implements CVisitor<ASTNode> {
 
   @Override
   public ASTNode visitDirectDeclarator(DirectDeclaratorContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
+    return getDirectDeclarator(ctx);
   }
 
   @Override
@@ -579,8 +578,17 @@ public class CtoCOL extends AbstractCtoCOL implements CVisitor<ASTNode> {
   public ASTNode visitParameterDeclaration(ParameterDeclarationContext ctx) {
     if (match(ctx,null,null)){
       Type t=(Type)convert(ctx,0);
-      String name=getIdentifier(ctx,1);
-      return create.field_decl(name,t);
+      ParseTree var=ctx.getChild(1);
+      if (var instanceof ParserRuleContext){
+        ASTNode v=convert(ctx,1);
+        VariableDeclaration decl=create.variable_decl(t);
+        decl.add((DeclarationStatement)v);
+        DeclarationStatement vars[]=decl.flatten();
+        if (vars.length==1) return vars[0];
+      } else {
+        String name=getIdentifier(ctx,1);
+        return create.field_decl(name,t);
+      }
     }
     return null;
   }

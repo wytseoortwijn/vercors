@@ -15,6 +15,8 @@ public class CSyntax extends Syntax{
   }
 
   public static void setCommon(Syntax syntax){
+    syntax.addOperator(Subscript,145,"","[","]"); // check priority!!!
+    
     syntax.addPostfix(PostIncr, "++", 160);
     syntax.addPostfix(PostDecr, "--", 160);
     syntax.addPrefix(PreIncr, "++", 160);
@@ -66,6 +68,7 @@ public class CSyntax extends Syntax{
       setCommon(cml_syntax);
       cml_syntax.addLeftFix(Star,"**",130); // TODO: priorities!
       cml_syntax.addLeftFix(Wand,"-*",120); // TODO: priorities!
+      cml_syntax.addFunction(ArrayPerm,"ArrayPerm");
       cml_syntax.addFunction(Perm,"perm");
       cml_syntax.addFunction(Old,"old");
     }
