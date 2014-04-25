@@ -10,8 +10,7 @@ import org.antlr.v4.runtime.tree.ParseTree;
 
 import vct.clang.printer.CSyntax;
 import vct.col.ast.*;
-import vct.parsers.CMLLexer;
-import vct.parsers.CMLParser;
+import vct.parsers.*;
 import vct.parsers.CMLParser.AbstractDeclaratorContext;
 import vct.parsers.CMLParser.AdditiveExpressionContext;
 import vct.parsers.CMLParser.AlignmentSpecifierContext;
@@ -47,6 +46,7 @@ import vct.parsers.CMLParser.EnumeratorListContext;
 import vct.parsers.CMLParser.EqualityExpressionContext;
 import vct.parsers.CMLParser.ExclusiveOrExpressionContext;
 import vct.parsers.CMLParser.ExpressionContext;
+import vct.parsers.CMLParser.ExpressionListContext;
 import vct.parsers.CMLParser.ExpressionStatementContext;
 import vct.parsers.CMLParser.ExternalDeclarationContext;
 import vct.parsers.CMLParser.FunctionDefinitionContext;
@@ -66,6 +66,7 @@ import vct.parsers.CMLParser.InitializerContext;
 import vct.parsers.CMLParser.InitializerListContext;
 import vct.parsers.CMLParser.IterationStatementContext;
 import vct.parsers.CMLParser.JumpStatementContext;
+import vct.parsers.CMLParser.LabeledExpressionContext;
 import vct.parsers.CMLParser.LabeledStatementContext;
 import vct.parsers.CMLParser.LogicalAndExpressionContext;
 import vct.parsers.CMLParser.LogicalOrExpressionContext;
@@ -79,8 +80,12 @@ import vct.parsers.CMLParser.PostfixExpressionContext;
 import vct.parsers.CMLParser.PrimaryExpressionContext;
 import vct.parsers.CMLParser.RelationalExpressionContext;
 import vct.parsers.CMLParser.ResourceContext;
+import vct.parsers.CMLParser.ResourceExpressionContext;
 import vct.parsers.CMLParser.SelectionStatementContext;
 import vct.parsers.CMLParser.ShiftExpressionContext;
+import vct.parsers.CMLParser.SpecificResourceExpressionContext;
+import vct.parsers.CMLParser.SpecificationPrimaryContext;
+import vct.parsers.CMLParser.SpecificationPrimitiveTypeContext;
 import vct.parsers.CMLParser.SpecifierQualifierListContext;
 import vct.parsers.CMLParser.StatementContext;
 import vct.parsers.CMLParser.StaticAssertDeclarationContext;
@@ -92,6 +97,7 @@ import vct.parsers.CMLParser.StructDeclaratorListContext;
 import vct.parsers.CMLParser.StructOrUnionContext;
 import vct.parsers.CMLParser.StructOrUnionSpecifierContext;
 import vct.parsers.CMLParser.TranslationUnitContext;
+import vct.parsers.CMLParser.TypeContext;
 import vct.parsers.CMLParser.TypeNameContext;
 import vct.parsers.CMLParser.TypeQualifierContext;
 import vct.parsers.CMLParser.TypeQualifierListContext;
@@ -101,7 +107,6 @@ import vct.parsers.CMLParser.UnaryExpressionContext;
 import vct.parsers.CMLParser.UnaryOperatorContext;
 import vct.parsers.CMLParser.SpecificationStatementContext; //DRB  
 import vct.parsers.CMLParser.SpecificationSequenceContext;//DRB
-import vct.parsers.CMLVisitor; 
 import vct.util.Syntax;   
 
 /**
@@ -662,6 +667,49 @@ public class CMLtoCOL extends AbstractCtoCOL implements CMLVisitor<ASTNode> {
 
   @Override
   public ASTNode visitUnaryOperator(UnaryOperatorContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitSpecificResourceExpression(
+      SpecificResourceExpressionContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitResourceExpression(ResourceExpressionContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitExpressionList(ExpressionListContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitType(TypeContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitLabeledExpression(LabeledExpressionContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitSpecificationPrimary(SpecificationPrimaryContext ctx) {
+    return getSpecificationPrimary(ctx);
+  }
+
+  @Override
+  public ASTNode visitSpecificationPrimitiveType(
+      SpecificationPrimitiveTypeContext ctx) {
     // TODO Auto-generated method stub
     return null;
   }

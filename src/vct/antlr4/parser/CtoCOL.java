@@ -79,6 +79,7 @@ import vct.parsers.CParser.PrimaryExpressionContext;
 import vct.parsers.CParser.RelationalExpressionContext;
 import vct.parsers.CParser.SelectionStatementContext;
 import vct.parsers.CParser.ShiftExpressionContext;
+import vct.parsers.CParser.SpecificationPrimaryContext;
 import vct.parsers.CParser.SpecifierQualifierListContext;
 import vct.parsers.CParser.StatementContext;
 import vct.parsers.CParser.StaticAssertDeclarationContext;
@@ -256,6 +257,22 @@ public class CtoCOL extends AbstractCtoCOL implements CVisitor<ASTNode> {
   public ASTNode visitDeclaration(DeclarationContext ctx) {
     if (match(ctx,null,";")){
       return convert(ctx,0);
+    } else if (match(ctx,null,null,";")){
+      VariableDeclaration res=create.variable_decl(checkType(convert(ctx,0)));
+      ParserRuleContext list=(ParserRuleContext)ctx.getChild(1);
+      ASTNode decls[]=convert_list(list,",");
+      for(int i=0;i<decls.length;i++){
+        if (decls[i] instanceof DeclarationStatement){
+          res.add((DeclarationStatement)decls[i]);
+        } else if (decls[i] instanceof OperatorExpression){
+          OperatorExpression e=(OperatorExpression)decls[i];
+          DeclarationStatement d=(DeclarationStatement)e.getArg(0);
+          res.add(create.field_decl(d.getName(),d.getType(),e.getArg(1)));
+        } else {
+          return null;
+        }
+      }
+      return res;
     }
     return null;
   }
@@ -519,18 +536,30 @@ public class CtoCOL extends AbstractCtoCOL implements CVisitor<ASTNode> {
   public ASTNode visitIterationStatement(IterationStatementContext ctx) {
 
     // TODO Auto-generated method stub		
-	if (match(ctx,"while","(",null,")",null)){ //DRB --Added		
-		  LoopStatement res=(LoopStatement)create.while_loop(convert(ctx,2),convert(ctx,4));
-	      scan_comments_after(res.get_after(), ctx.getChild(3));	      
-	      return res;
-	}	
-	else if (match(ctx,"for","(",null,";",null,";",null,")",null)){ //DRB --Added		 
-	      ASTNode body=convert(ctx,8);
-	      LoopStatement res=create.while_loop(create.constant(true),body);
-	      scan_comments_after(res.get_after(), ctx.getChild(7));
-	      return res;
-	}	 
-	else{ return null; }
+  	if (match(ctx,"while","(",null,")",null)){ //DRB --Added		
+  		  LoopStatement res=(LoopStatement)create.while_loop(convert(ctx,2),convert(ctx,4));
+  	      scan_comments_after(res.get_after(), ctx.getChild(3));	      
+  	      return res;
+    } else if (match(ctx,"for","(",null,";",null,";",null,")",null)){ //DRB --Added    
+      ASTNode body=convert(ctx,8);
+      ASTNode init=convert(ctx,2);
+      ASTNode test=convert(ctx,4);
+      ASTNode update=convert(ctx,6);
+      LoopStatement res=create.for_loop(init,test,update,body);
+      scan_comments_after(res.get_after(), ctx.getChild(7));
+      return res;
+    } else if (match(ctx,"for","(",null,null,";",null,")",null)){ 
+      ASTNode body=convert(ctx,7);
+      ASTNode init=convert(ctx,2);
+      init=((VariableDeclaration)init).flatten()[0];
+      ASTNode test=convert(ctx,3);
+      ASTNode update=convert(ctx,5);
+      LoopStatement res=create.for_loop(init,test,update,body);
+      scan_comments_after(res.get_after(), ctx.getChild(6));
+      return res;
+    }	else {
+      return null;
+    }
   }
 
   @Override
@@ -749,6 +778,12 @@ public class CtoCOL extends AbstractCtoCOL implements CVisitor<ASTNode> {
 
   @Override
   public ASTNode visitUnaryOperator(UnaryOperatorContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitSpecificationPrimary(SpecificationPrimaryContext ctx) {
     // TODO Auto-generated method stub
     return null;
   }

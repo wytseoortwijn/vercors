@@ -48,7 +48,10 @@ primaryExpression
     |   '__extension__'? '(' compoundStatement ')' // Blocks (GCC extension)
     |   '__builtin_va_arg' '(' unaryExpression ',' typeName ')'
     |   '__builtin_offsetof' '(' typeName ',' unaryExpression ')'
+    |   specificationPrimary
     ;
+
+specificationPrimary : EOF EOF ;
 
 genericSelection
     :   '_Generic' '(' assignmentExpression ',' genericAssocList ')'

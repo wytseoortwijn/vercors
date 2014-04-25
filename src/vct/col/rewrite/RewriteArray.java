@@ -333,6 +333,10 @@ public class RewriteArray extends AbstractRewriter {
         Fail("Cannot use Perm for array elements, use ArrayPerm instead.");
       }
     }
+    if (e.getOperator()==StandardOperator.Length){
+      result=create.expression(StandardOperator.Size,copy_rw.rewrite(e.getArg(0)));
+      return;
+    }
     super.visit(e);
     if (e.getOperator()==StandardOperator.Subscript && ((PrimitiveType)e.getArg(0).getType()).sort==Array){
        result=create.dereference(result,"item");

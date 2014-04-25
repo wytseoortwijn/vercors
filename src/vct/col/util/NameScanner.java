@@ -3,6 +3,7 @@ package vct.col.util;
 import java.util.ArrayList;
 import java.util.Hashtable;
 
+import vct.col.ast.ASTNode;
 import vct.col.ast.DeclarationStatement;
 import vct.col.ast.NameExpression;
 import vct.col.ast.RecursiveVisitor;
@@ -41,6 +42,12 @@ public class NameScanner extends RecursiveVisitor<Object> {
   
   public void visit(DeclarationStatement d){
     Abort("missing case in free variable detection");
+  }
+
+  public static boolean occurCheck(ASTNode invariant, String var_name) {
+    Hashtable<String, Type> vars=new Hashtable<String, Type>();
+    invariant.accept(new NameScanner(vars));
+    return vars.containsKey(var_name);
   }
 
 }

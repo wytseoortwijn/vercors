@@ -7,6 +7,7 @@ import vct.col.ast.ASTNode;
 import vct.col.rewrite.Parenthesize;
 import hre.HREError;
 import vct.util.Syntax;
+import vct.util.VerCorsSyntax;
 import static vct.col.ast.StandardOperator.*;
 import static vct.col.ast.PrimitiveType.Sort.*;
 import static vct.col.ast.ASTReserved.*;
@@ -43,34 +44,8 @@ public class JavaSyntax extends Syntax {
       if (JavaVerCorsSyntax==null){
         JavaSyntax syntax=new JavaSyntax("Java + JML",dialect);
         setCommon(syntax);
-        syntax.addInfix(SubType,"<:",90);
-        syntax.addInfix(SuperType,":>",90);
-        syntax.addInfix(Implies,"==>",30);
-        syntax.addInfix(IFF,"<==>",30);
-        syntax.addLeftFix(Wand,"-*",30);
-        syntax.addFunction(Perm,"Perm");
-        syntax.addFunction(Head,"head");
-        syntax.addFunction(Tail,"tail");
-        syntax.addFunction(Value,"Value");
-        syntax.addFunction(PointsTo,"PointsTo");
-        syntax.addFunction(ArrayPerm,"ArrayPerm");
-        syntax.addFunction(AddsTo,"AddsTo");
-        syntax.addFunction(Volatile, "Volatile");
-        syntax.addFunction(Old,"\\old");
-        syntax.addOperator(Size,999,"|","|");
-        syntax.addOperator(Nil,999,"nil<",">");
-        syntax.addLeftFix(Append,"+++",110);
-        syntax.addLeftFix(Star,"**",40);
-
-        syntax.addPrimitiveType(ZFraction,"zfrac");
-        syntax.addPrimitiveType(Fraction,"frac");
-        syntax.addPrimitiveType(Resource,"resource");
-        syntax.addPrimitiveType(Class,"classtype");
-        
-        syntax.addReserved(Result,"\\result");
-        syntax.addReserved(Pure,"pure");
-        syntax.addReserved(Any,"*");
-        syntax.addPrefix(BindOutput,"?",666);
+        VerCorsSyntax.add(syntax);
+        syntax.addLeftFix(StructSelect,".",-1);
         JavaVerCorsSyntax=syntax;        
       }
       return JavaVerCorsSyntax;

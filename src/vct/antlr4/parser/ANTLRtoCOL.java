@@ -23,6 +23,7 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 
 import pv.parser.PVFullLexer;
 import vct.col.ast.ASTNode;
+import vct.col.ast.ASTReserved;
 import vct.col.ast.ASTSequence;
 import vct.col.ast.ASTSpecial;
 import vct.col.ast.BeforeAfterAnnotations;
@@ -31,13 +32,16 @@ import vct.col.ast.CompilationUnit;
 import vct.col.ast.Contract;
 import vct.col.ast.ContractBuilder;
 import vct.col.ast.DeclarationStatement;
+import vct.col.ast.NameExpression;
 import vct.col.ast.PrimitiveType;
 import vct.col.ast.ProgramUnit;
 import vct.col.ast.StandardOperator;
+import vct.col.ast.Type;
 import vct.col.ast.VariableDeclaration;
 import vct.col.util.ASTFactory;
 import vct.parsers.CLexer;
 import vct.parsers.CParser.AdditiveExpressionContext;
+import vct.parsers.JavaJMLParser.SpecificationPrimaryContext;
 import vct.util.Syntax;
 import static hre.System.*;
 
@@ -633,8 +637,41 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
     res.setOrigin(origin(ctx.start,ctx.stop));
     return res;    
   }
+  public Type checkType(ASTNode n){
+    if (n instanceof Type) {
+      return (Type)n;
+    }
+    if (n instanceof NameExpression){
+      return create.class_type(n.getOrigin(),((NameExpression)n).getName());
+    }
+    throw hre.System.Failure("%d node at %s is not a type",n.getClass(),n.getOrigin());
+  }
 
   protected HREError MissingCase(ParserRuleContext ctx){
     return new HREError("missing case: %s",ctx.toStringTree(parser));
   }
+  
+  public ASTNode getSpecificationPrimary(ParserRuleContext ctx) {
+    if (match(ctx,"TypeContext","{","}")){
+      return create.expression(StandardOperator.Build,convert(ctx,0));
+    }
+    if (match(ctx,"TypeContext","{","ExpressionListContext","}")){
+      ASTNode tmp[]=convert_list((ParserRuleContext)ctx.getChild(2),",");
+      ASTNode args[]=new ASTNode[tmp.length+1];
+      args[0]=convert(ctx,0);
+      for(int i=0;i<tmp.length;i++){
+        args[i+1]=tmp[i];
+      }
+      return create.expression(StandardOperator.Build,args);
+    }
+    if (match(ctx,"*")){
+      return create.reserved_name(ASTReserved.Any);
+    }
+    if (match(ctx,"(","\\forall",null,null,";",null,";",null,")")){
+      return create.forall(convert(ctx,5),convert(ctx,7),
+          create.field_decl(getIdentifier(ctx,3),checkType(convert(ctx,2))));
+    }
+    return null;
+  }
+
 }

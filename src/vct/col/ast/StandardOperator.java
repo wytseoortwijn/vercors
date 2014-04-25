@@ -123,8 +123,14 @@ public enum StandardOperator {
    *  the first argument is the name of the array.
    */
   ArrayPerm(5),
-  /* Member selection is replaced by Dereference
-  Select(2),
+  /** Select a member from a struct.
+   * Member selection form classes is represented by Dereference */
+  StructSelect(2),
+  /**
+   * dereference a pointer to a struct and select a member.
+   */
+  StructDeref(2),
+  /*
   Guarded member selection. (Selection with built-in null test.)
   GuardedSelect(2),*/
   /**
@@ -175,6 +181,8 @@ public enum StandardOperator {
   Continue(1),
   /** Create a new uninitialized object */
   New(1),
+  /** Length of an array */
+  Length(1),
   /** Get the size of a container, such as a sequence. */
   Size(1),
   /** Empty list */

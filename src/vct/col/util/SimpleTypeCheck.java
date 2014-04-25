@@ -655,6 +655,14 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       e.setType(new PrimitiveType(Sort.Integer));      
       break;
     }
+    case Length:
+    {
+      Type t=e.getArg(0).getType();
+      if (t==null) Fail("type of argument is unknown at %s",e.getOrigin());
+      if (!t.isPrimitive(Sort.Array)) Fail("argument of length is not an array");
+      e.setType(new PrimitiveType(Sort.Integer));      
+      break;
+    }
     case Nil:
     {
       e.setType(new PrimitiveType(Sort.Sequence,e.getArg(0)));

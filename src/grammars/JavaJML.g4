@@ -1,35 +1,14 @@
 grammar JavaJML;
 
-import Java;
+import VerCorsML, Java;
 
 specificationSequence : ( specificationDeclaration | statement )* ;
 
-resourceExpression
+specificResourceExpression
  : expression '->' Identifier '(' expressionList? ')'
  | ( expression . )? Identifier '@' Identifier '(' expressionList? ')'
- | Identifier ':' resourceExpression
- | expression '?' resourceExpression ':' resourceExpression
- | resourceExpression '**' resourceExpression
- | resourceExpression '-*' resourceExpression 
- | expression '==>' resourceExpression
- | 'ArrayPerm' '(' expression ',' expression ',' expression ',' expression ',' expression ')'
- | 'AddsTo' '(' expression ',' expression ')'
- | 'Perm' '(' expression ',' expression ')'
- | 'PointsTo' '(' expression ',' expression ',' expression ')'
- | 'Value' '(' expression ')'
- | 'Volatile' '(' expression ')'
- | '(' resourceExpression ')'
- | expression
  ;
 
-specificationPrimary
-    : '\\old' '(' expression ')'
-    | '\\result'
-    | type '{' expressionList? '}'
-    | '(' '\\forall' formalParameter ';' expression ';' resourceExpression ')'
-    | '[' expressionList? ']'
-    | '*'
-    ;
     
 type
   : type '[' ']'
@@ -44,23 +23,8 @@ arguments
     :   '(' expressionList? ')'
     ;
     
-expressionList
-    :   labeledExpression (',' labeledExpression)*
-    ;
-
-labeledExpression
-    : ( Identifier ':' )? expression
-    ;
-
 specificationModifier
     : 'pure'
-    ;
-
-specificationPrimitiveType
-    : 'frac'
-    | 'zfrac'
-    | 'resource'
-    | 'classtype'
     ;
 
 specificationStatement

@@ -73,7 +73,7 @@ public class Parser implements vct.col.util.Parser {
         
         ParseTree tree = parser.compilationUnit();
         
-        System.out.printf("parser got: %s%n",tree.toStringTree(parser));
+        Debug("parser got: %s",tree.toStringTree(parser));
 
         return CtoCOL.convert(tree,file_name,tokens,parser);
 
@@ -103,7 +103,7 @@ public class Parser implements vct.col.util.Parser {
         
         ParseTree tree = parser.compilationUnit();
         
-        System.out.printf("parser got: %s%n",tree.toStringTree(parser));
+        Debug("parser got: %s",tree.toStringTree(parser));
 
         CompilationUnit cu=CtoCOL.convert(tree,file_name,tokens,parser);
         

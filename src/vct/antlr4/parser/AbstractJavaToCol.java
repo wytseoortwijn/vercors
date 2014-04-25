@@ -178,15 +178,6 @@ public class AbstractJavaToCol extends ANTLRtoCOL {
     Debug("no class creator");
     return null;
   }
-  public Type checkType(ASTNode n){
-    if (n instanceof Type) {
-      return (Type)n;
-    }
-    if (n instanceof NameExpression){
-      return create.class_type(n.getOrigin(),((NameExpression)n).getName());
-    }
-    throw hre.System.Failure("%d node at %s is not a type",n.getClass(),n.getOrigin());
-  }
   protected DeclarationStatement[] getFormalParameters(ParseTree tree){
     DeclarationStatement args[];
     ParserRuleContext arg_ctx=(ParserRuleContext)tree;

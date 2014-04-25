@@ -69,42 +69,54 @@ public class IterationContractEncoder extends AbstractRewriter {
           create.expression(op,create.unresolved_name(var_name),high)
       );
       for(ASTNode clause:ASTUtils.conjuncts(c.invariant)){
-        if (clause.getType().isBoolean()){
-          cb.appendInvariant(create.forall(
+        if (NameScanner.occurCheck(clause,var_name)){
+          if (clause.getType().isBoolean()){
+            cb.appendInvariant(create.forall(
+                copy_rw.rewrite(guard),
+                copy_rw.rewrite(clause),
+                create.field_decl(var_name,create.primitive_type(Sort.Integer))));
+          } else {
+            cb.appendInvariant(create.starall(
               copy_rw.rewrite(guard),
               copy_rw.rewrite(clause),
               create.field_decl(var_name,create.primitive_type(Sort.Integer))));
+          }
         } else {
-          cb.appendInvariant(create.starall(
-            copy_rw.rewrite(guard),
-            copy_rw.rewrite(clause),
-            create.field_decl(var_name,create.primitive_type(Sort.Integer))));
+          cb.appendInvariant(copy_rw.rewrite(clause));
         }
       }
       for(ASTNode clause:ASTUtils.conjuncts(c.pre_condition)){
-        if (clause.getType().isBoolean()){
-          cb.requires(create.forall(
+        if (NameScanner.occurCheck(clause,var_name)){
+          if (clause.getType().isBoolean()){
+            cb.requires(create.forall(
+                copy_rw.rewrite(guard),
+                copy_rw.rewrite(clause),
+                create.field_decl(var_name,create.primitive_type(Sort.Integer))));
+          } else {
+            cb.requires(create.starall(
               copy_rw.rewrite(guard),
               copy_rw.rewrite(clause),
               create.field_decl(var_name,create.primitive_type(Sort.Integer))));
+          }
         } else {
-          cb.requires(create.starall(
-            copy_rw.rewrite(guard),
-            copy_rw.rewrite(clause),
-            create.field_decl(var_name,create.primitive_type(Sort.Integer))));
+          cb.requires(copy_rw.rewrite(clause));
         }
       }
       for(ASTNode clause:ASTUtils.conjuncts(c.post_condition)){
-        if (clause.getType().isBoolean()){
-          cb.ensures(create.forall(
-            copy_rw.rewrite(guard),
-            copy_rw.rewrite(clause),
-            create.field_decl(var_name,create.primitive_type(Sort.Integer))));
-        } else {
-          cb.ensures(create.starall(
+        if (NameScanner.occurCheck(clause,var_name)){
+          if (clause.getType().isBoolean()){
+            cb.ensures(create.forall(
               copy_rw.rewrite(guard),
               copy_rw.rewrite(clause),
               create.field_decl(var_name,create.primitive_type(Sort.Integer))));
+          } else {
+            cb.ensures(create.starall(
+                copy_rw.rewrite(guard),
+                copy_rw.rewrite(clause),
+                create.field_decl(var_name,create.primitive_type(Sort.Integer))));
+          }
+        } else {
+          cb.ensures(copy_rw.rewrite(clause));
         }
       }
       for(String var:vars.keySet()){
@@ -123,9 +135,14 @@ public class IterationContractEncoder extends AbstractRewriter {
       BranchOrigin branch=new BranchOrigin("Loop Contract",null);
       OriginWrapper.wrap(null,main_method, branch);
       currentClass.add_dynamic(main_method);
+      cb=new ContractBuilder();
+      //cb.prependInvariant(guard);
+      cb.requires(guard);
+      cb.ensures(guard);
+      rewrite(c,cb);
       Method main_body=create.method_decl(
           create.primitive_type(PrimitiveType.Sort.Void),
-          rewrite(c),
+          cb.getContract(),
           body_name,
           body_decl.toArray(new DeclarationStatement[0]),
           rewrite(s.getBody())

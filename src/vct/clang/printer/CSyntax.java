@@ -3,6 +3,7 @@ package vct.clang.printer;
 import hre.ast.TrackingOutput;
 import vct.col.ast.ASTNode;
 import vct.util.Syntax;
+import vct.util.VerCorsSyntax;
 import static vct.col.ast.StandardOperator.*;
 import static vct.col.ast.PrimitiveType.Sort.*;
 
@@ -15,7 +16,10 @@ public class CSyntax extends Syntax{
   }
 
   public static void setCommon(Syntax syntax){
-    syntax.addOperator(Subscript,145,"","[","]"); // check priority!!!
+    
+    syntax.addOperator(Subscript,160,"","[","]");
+    syntax.addLeftFix(StructSelect,".",160);
+    syntax.addLeftFix(StructDeref,"->",160);
     
     syntax.addPostfix(PostIncr, "++", 160);
     syntax.addPostfix(PostDecr, "--", 160);
@@ -40,6 +44,11 @@ public class CSyntax extends Syntax{
     syntax.addInfix(EQ,"==",90);
     syntax.addInfix(NEQ,"!=",90);
     
+    syntax.addLeftFix(And, "&&", 50);
+    
+    syntax.addLeftFix(Or, "||", 40);
+    
+    syntax.addOperator(ITE,30,"","?",":","");
     syntax.addRightFix(Assign,"=",30);
     
     syntax.addPrimitiveType(Double,"double");
@@ -66,11 +75,7 @@ public class CSyntax extends Syntax{
     if (cml_syntax==null){
       cml_syntax=new CSyntax("C + CML");
       setCommon(cml_syntax);
-      cml_syntax.addLeftFix(Star,"**",130); // TODO: priorities!
-      cml_syntax.addLeftFix(Wand,"-*",120); // TODO: priorities!
-      cml_syntax.addFunction(ArrayPerm,"ArrayPerm");
-      cml_syntax.addFunction(Perm,"perm");
-      cml_syntax.addFunction(Old,"old");
+      VerCorsSyntax.add(cml_syntax);
     }
     return cml_syntax;
   }

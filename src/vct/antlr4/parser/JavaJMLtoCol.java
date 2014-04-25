@@ -14,6 +14,7 @@ import vct.parsers.JavaJMLParser.FunctionDeclarationContext;
 import vct.parsers.JavaJMLParser.LabeledExpressionContext;
 import vct.parsers.JavaJMLParser.ProofScriptContext;
 import vct.parsers.JavaJMLParser.ResourceExpressionContext;
+import vct.parsers.JavaJMLParser.SpecificResourceExpressionContext;
 import vct.parsers.JavaJMLParser.SpecificationDeclarationContext;
 import vct.parsers.JavaJMLParser.SpecificationModifierContext;
 import vct.parsers.JavaJMLParser.SpecificationPrimaryContext;
@@ -542,6 +543,10 @@ public class JavaJMLtoCol extends AbstractJavaToCol implements JavaJMLVisitor<AS
 
   @Override
   public ASTNode visitResourceExpression(ResourceExpressionContext ctx) {
+    return getResourceExpression(ctx);
+  }
+  
+  public ASTNode getResourceExpression(ParserRuleContext ctx) {
     String label=null;
     int offset=0;
     if (match(ctx,null,":",null)){
@@ -610,25 +615,7 @@ public class JavaJMLtoCol extends AbstractJavaToCol implements JavaJMLVisitor<AS
 
   @Override
   public ASTNode visitSpecificationPrimary(SpecificationPrimaryContext ctx) {
-    if (match(ctx,"TypeContext","{","}")){
-      return create.expression(StandardOperator.Build,convert(ctx,0));
-    }
-    if (match(ctx,"TypeContext","{","ExpressionListContext","}")){
-      ASTNode tmp[]=convert_list((ParserRuleContext)ctx.getChild(2),",");
-      ASTNode args[]=new ASTNode[tmp.length+1];
-      args[0]=convert(ctx,0);
-      for(int i=0;i<tmp.length;i++){
-        args[i+1]=tmp[i];
-      }
-      return create.expression(StandardOperator.Build,args);
-    }
-    if (match(ctx,"*")){
-      return create.reserved_name(ASTReserved.Any);
-    }
-    if (match(ctx,"(","\\forall",null,";",null,";",null,")")){
-      return create.forall(convert(ctx,4),convert(ctx,6), getFormalParameter((ParserRuleContext) ctx.getChild(2)));
-    }
-    return null;
+    return getSpecificationPrimary(ctx);
   }
 
   @Override
@@ -891,6 +878,11 @@ public class JavaJMLtoCol extends AbstractJavaToCol implements JavaJMLVisitor<AS
   public ASTNode visitProofScript(ProofScriptContext ctx) {
     // TODO Auto-generated method stub
     return null;
+  }
+
+  @Override
+  public ASTNode visitSpecificResourceExpression(SpecificResourceExpressionContext ctx) {
+     return getResourceExpression(ctx);
   }
 
 }

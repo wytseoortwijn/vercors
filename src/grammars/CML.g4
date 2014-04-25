@@ -1,30 +1,31 @@
 grammar CML;
 
-import C;
+import VerCorsML, C;
 
 specificationSequence : ( specificationStatement)* contract? ;
 
 contract : contractClause+ ;
 
 contractClause
- : 'requires' resource ';'
- | 'ensures' resource ';'
+ : 'requires' resourceExpression ';'
+ | 'ensures' resourceExpression ';'
  ;
 
 specificationStatement
-    : 'loop_invariant' resource ';'
+    : 'loop_invariant' resourceExpression ';'
     ;    
-    
+
+specificResourceExpression : EOF EOF ;
+
 resource
  : resource '**' resource
  | expression '==>' resource
  | 'perm' '(' expression ',' expression ')'
  | expression
  ;
-
-primaryExpression
-    :   Identifier
-    |   Constant
-    | 'old'  '(' expression ')'
-    ;
+ 
+ type
+   : specificationPrimitiveType
+   | typeName
+   ;
  
