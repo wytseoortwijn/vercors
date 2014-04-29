@@ -502,7 +502,7 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
                 sep=",";
                 args[i].accept(this);
               }
-              out.print("]");
+              out.print(" ]");
             }
           } else {
             Abort("illegal build type %s",t);

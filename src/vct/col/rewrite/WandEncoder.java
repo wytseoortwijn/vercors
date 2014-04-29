@@ -211,7 +211,7 @@ public class WandEncoder extends AbstractRewriter {
         for (int i=0;i<N;i++){
           Type tt=m_def.getArgType(i);
           add_field_and_getter(cl, valid_list, get_contract, var+"_"+i, tt);
-          if (tt instanceof ClassType) cb.requires(create.non_null(create.invokation(null,null,"get_"+var+"_"+i)));
+          //if (tt instanceof ClassType) cb.requires(create.non_null(create.invokation(null,null,"get_"+var+"_"+i)));
           args[i]=create.invokation(null,null,"get_"+var+"_"+i);
         }
         ASTNode tmp=create.invokation(create.invokation(null,null,"get_"+var),null,m.method,args);
@@ -244,7 +244,7 @@ public class WandEncoder extends AbstractRewriter {
         for (int i=0;i<N;i++){
           Type tt=m_def.getArgType(i);
           add_field_and_getter(cl, valid_list, get_contract, var+"_"+i, tt);
-          if (tt instanceof ClassType) cb.requires(create.non_null(create.invokation(null,null,"get_"+var+"_"+i)));
+          //if (tt instanceof ClassType) cb.requires(create.non_null(create.invokation(null,null,"get_"+var+"_"+i)));
           args[i]=create.expression(StandardOperator.Old,create.invokation(null,null,"get_"+var+"_"+i));
         }
         ASTNode tmp=create.invokation(
@@ -384,8 +384,9 @@ public class WandEncoder extends AbstractRewriter {
     	}
     	proof_body.add_statement(rename_for_proof.rewrite(tmp));
     }
-    
-   
+    create.enter();
+    proof_body.add_statement(create(l.block).return_statement());
+    create.leave();
     
 	  int count=0;
     for(ASTNode n:ASTUtils.conjuncts(wand.getArg(0))){
