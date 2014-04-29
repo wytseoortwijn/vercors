@@ -1,6 +1,8 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 package hre.ast;
 
+import hre.HREError;
+
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Hashtable;
@@ -54,6 +56,7 @@ public class FileOrigin implements Origin {
     private String file_name;
     private int first_line, first_col, last_line, last_col;
     public FileOrigin(String file_name,int first_line, int first_col, int last_line, int last_col){
+        if (first_line <0) throw new HREError("bad first line : %d",first_line);
         this.file_name=file_name;
         this.first_line=first_line;
         this.first_col=first_col;
@@ -82,6 +85,7 @@ public class FileOrigin implements Origin {
     }
 
     public FileOrigin(String file_name,int first_line, int first_col){
+      if (first_line <0) throw new HREError("bad first line : %d",first_line);
       this.file_name=file_name;
       this.first_line=first_line;
       this.first_col=first_col;
