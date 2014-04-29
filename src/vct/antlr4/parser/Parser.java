@@ -75,7 +75,26 @@ public class Parser implements vct.col.util.Parser {
         
         Debug("parser got: %s",tree.toStringTree(parser));
 
-        return CtoCOL.convert(tree,file_name,tokens,parser);
+        CompilationUnit cu=CtoCOL.convert(tree,file_name,tokens,parser);
+        
+        ProgramUnit pu=new ProgramUnit();
+        pu.add(cu);
+        
+        AbstractRewriter rw=new CommentRewriter(pu,new CMLCommentParser());
+        pu=rw.rewriteAll();
+        
+        if (pu.size()!=1){
+          Fail("bad program unit size");
+        }
+        
+        cu=new CompilationUnit(file_name);
+        ASTClass cl=new ASTClass("Main",ClassKind.Plain);
+        cl.setOrigin(new FileOrigin(file_name,1,1));
+        cu.add(cl);
+        for(ASTNode n:pu.get(0).get()){
+          cl.add_dynamic(n);
+        }
+        return cu;
 
       } catch (FileNotFoundException e) {
         Fail("File %s has not been found",file_name);
@@ -88,7 +107,11 @@ public class Parser implements vct.col.util.Parser {
         Runtime runtime=Runtime.getRuntime();
         
     	Progress("pre-processing %s",file_name);
-        
+      
+    	// the cpp pre processor turns \r\n line endings into \n\n !
+    	// hence, we use may have to use clang
+    	
+    	//Process process=runtime.exec("clang -E -C -I. "+file_name);
     	Process process=runtime.exec("cpp -C -I. "+file_name);
 
         //ANTLRInputStream input = new ANTLRInputStream(new FileInputStream(file));

@@ -143,17 +143,21 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
   public Origin origin(Token tok1,Token tok2){
     List<Token> direction=tokens.getHiddenTokensToLeft(tok1.getTokenIndex(),ch_line_direction);
     if (direction!=null) {
-      for(Token tok:direction){
-        int id=tok.getTokenIndex();
-        if (interpreted_directions.contains(id)) continue;
-        interpreted_directions.add(id);
+      Token tok=direction.get(direction.size()-1);
+      //for(Token tok:direction){
+        //int id=tok.getTokenIndex();
+        //if (interpreted_directions.contains(id)) continue;
+        //interpreted_directions.add(id);
         String line[]=tok.getText().split("([ \t])+");
         Debug("line %d maps to line %s of file %s",tok.getLine(),line[1],line[2]);
         line_offset=Integer.parseInt(line[1])-tok.getLine()-1;
         current_filename=line[2].substring(1,line[2].length()-1);
         
-      }
+      //}
       Debug("line offset in %s is %d",current_filename,line_offset);
+    }
+    if (line_offset+tok1.getLine()<0){
+      throw new HREError("line %d while offset is %d",tok1.getLine(),line_offset);
     }
     return new FileOrigin(current_filename,line_offset+tok1.getLine(),tok1.getCharPositionInLine()+1,
         line_offset+tok2.getLine(),tok2.getCharPositionInLine()+tok2.getStopIndex()-tok2.getStartIndex()+1);
@@ -349,6 +353,7 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
   
   public ASTNode comment(Token tk){
     create.enter();
+    Debug("comment at line %d",tk.getLine());
     create.setOrigin(origin(tk,tk));
     ASTNode res=create.comment(tk.getText());
     create.leave();    
