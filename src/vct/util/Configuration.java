@@ -95,6 +95,8 @@ public class Configuration {
   private static Path home;
   private static Path generic_deps;
   private static Path system_deps;
+  private static Path module_deps;
+  
   private static boolean windows;
   static {
     String tmp=System.getenv("VCT_HOME");
@@ -133,7 +135,7 @@ public class Configuration {
     } else {
       throw new Error("The "+OS+" Operating System is not supported");
     }
-
+    module_deps=home.getParent().getParent().resolve(Paths.get("modules"));
   }
 
   /**
@@ -151,7 +153,7 @@ public class Configuration {
     ModuleShell shell;
     try {
       //System.err.printf("home: %s%ngeneric:%s%nsystem:%s%n",getHome(),generic_deps,system_deps);
-      shell = new ModuleShell(getHome().resolve(Paths.get("modules")),generic_deps,system_deps);
+      shell = new ModuleShell(getHome().resolve(Paths.get("modules")),module_deps,generic_deps,system_deps);
       for (String m:modules){
         shell.send("module load %s",m);
       }
