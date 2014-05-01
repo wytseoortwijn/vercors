@@ -31,7 +31,7 @@ public class Parser implements vct.col.util.Parser {
 
   @Override
   public CompilationUnit parse(File file) {
-    String file_name=file.getName();
+    String file_name=file.toString();
     if (file_name.endsWith(".pvl")){
       try {
         ANTLRInputStream input = new ANTLRInputStream(new FileInputStream(file));
