@@ -30,7 +30,8 @@ public class ModuleShell {
       } else {
         shell=new MessageProcess(shell_dir,"/bin/bash");
         Debug("initializing modules from %s",modules_home);
-        shell.send("source %s/init/bash",modules_home);        
+        shell.send("export MODULESHOME=%s",modules_home);
+        shell.send("module() { eval `tclsh %s/modulecmd.tcl bash $*`; }",modules_home);
       }
     for (Path p : modules_path){
       Debug("using modules in %s",p);
