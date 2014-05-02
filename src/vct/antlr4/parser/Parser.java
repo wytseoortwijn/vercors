@@ -111,8 +111,8 @@ public class Parser implements vct.col.util.Parser {
     	// the cpp pre processor turns \r\n line endings into \n\n !
     	// hence, we use may have to use clang
     	
-    	//Process process=runtime.exec("clang -E -C -I. "+file_name);
-    	Process process=runtime.exec("cpp -C -I. "+file_name);
+    	Process process=runtime.exec("clang -E -C -I. "+file_name);
+    	//Process process=runtime.exec("cpp -C -I. "+file_name);
 
         //ANTLRInputStream input = new ANTLRInputStream(new FileInputStream(file));
         

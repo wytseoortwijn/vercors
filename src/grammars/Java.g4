@@ -1085,7 +1085,9 @@ LineComment
     :   '//' ~[\r\n]* -> channel(COMMENT)
     ;
 
+FileName : '"' ~[\r\n"]* '"' ;
+
 LineDirective
-    :   '#' WS? IntegerLiteral WS? StringLiteral ~[\r\n]*
+    :   '#' WS? IntegerLiteral WS? FileName ~[\r\n]*
         -> channel(LINEDIRECTION)
     ;
