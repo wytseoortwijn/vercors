@@ -39,15 +39,12 @@ public class Main {
   static {
 	  String OS=System.getProperty("os.name");
 	  if(OS.startsWith("Windows")){
-		  z3_module=new StringSetting("z3/3.2");
-		  boogie_module=new StringSetting("boogie/2012-06-15");
-		  chalice_module=new StringSetting("chalice/2012-06-15");
-		  
+		  z3_module=new StringSetting("z3/4.3.0");
 	  } else {
 		  z3_module=new StringSetting("z3/4.3.1");
-		  boogie_module=new StringSetting("boogie/2012-10-22");
-		  chalice_module=new StringSetting("chalice/2012-11-20");
 	  }
+	  boogie_module=new StringSetting("boogie/2012-10-22");
+	  chalice_module=new StringSetting("chalice/2012-11-20");
 	  silicon_module=new StringSetting("chalice2sil");
   }
   

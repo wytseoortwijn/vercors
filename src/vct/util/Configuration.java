@@ -95,7 +95,7 @@ public class Configuration {
     clops.add(enable_post_check.getDisable("disable barrier post check during kernel verification"),"disable-post-check");
     clops.add(witness_constructors.getEnable("use constructors for witnesses"),"witness-constructors");
     clops.add(witness_constructors.getDisable("inline constructors for witnesses"),"witness-inline");
-    clops.add(Configuration.modulepath.getAppendOption("configure path for finding back end modules"));
+    clops.add(Configuration.modulepath.getAppendOption("configure path for finding back end modules"),"module-path");
   }
 
   /**
@@ -120,30 +120,8 @@ public class Configuration {
     if (!home.toFile().isDirectory()){
       throw new Error("VCT_HOME value "+tmp+" is not a directory");
     }
-    Path generic_deps=home.resolve(Paths.get("deps","generic","modules"));
-    String OS=System.getProperty("os.name");
-    String arch=System.getProperty("os.arch");
-    Path system_deps;
-    if(windows=OS.startsWith("Windows")){
-      system_deps=home.resolve(Paths.get("deps","Windows","modules"));
-    } else if (OS.equals("Linux")){
-      switch(arch){
-      case "x86":
-        system_deps=home.resolve(Paths.get("deps","Linux-i386","modules"));
-        break;
-      case "amd64":
-        system_deps=home.resolve(Paths.get("deps","Linux-x86_64","modules"));
-        break;
-      default:
-        throw new Error("unknown "+OS+"architecure: "+arch);
-      }
-    } else if (OS.equals("Mac OS X")||OS.equals("Darwin")){
-      system_deps=home.resolve(Paths.get("deps","Darwin-x86_64","modules"));
-    } else {
-      throw new Error("The "+OS+" Operating System is not supported");
-    }
     Path module_deps=home.getParent().getParent().resolve(Paths.get("modules"));
-    modulepath=new StringListSetting(module_deps.toString(),system_deps.toString(),generic_deps.toString());
+    modulepath=new StringListSetting(module_deps.toString());
   }
 
   /**
