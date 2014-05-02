@@ -15,6 +15,7 @@ import vct.java.printer.JavaDialect;
 import vct.java.printer.JavaSyntax;
 import hre.config.BooleanSetting;
 import hre.config.OptionParser;
+import hre.config.StringListSetting;
 import hre.config.StringSetting;
 import hre.io.Message;
 import hre.io.ModuleShell;
@@ -27,7 +28,12 @@ import hre.io.ModuleShell;
 public class Configuration {
 
   /**
-   * Switch behavior of witenss encoding.
+   * 
+   */
+  public static final StringListSetting modulepath;
+  
+  /**
+   * Switch behavior of witness encoding.
    */
   public static final BooleanSetting witness_constructors=new BooleanSetting(true);
   
@@ -89,13 +95,13 @@ public class Configuration {
     clops.add(enable_post_check.getDisable("disable barrier post check during kernel verification"),"disable-post-check");
     clops.add(witness_constructors.getEnable("use constructors for witnesses"),"witness-constructors");
     clops.add(witness_constructors.getDisable("inline constructors for witnesses"),"witness-inline");
+    clops.add(Configuration.modulepath.getAppendOption("configure path for finding back end modules"));
   }
 
-  
+  /**
+   * Contains the absolute path to the home of the tool set installation.
+   */
   private static Path home;
-  private static Path generic_deps;
-  private static Path system_deps;
-  private static Path module_deps;
   
   private static boolean windows;
   static {
@@ -114,9 +120,10 @@ public class Configuration {
     if (!home.toFile().isDirectory()){
       throw new Error("VCT_HOME value "+tmp+" is not a directory");
     }
-    generic_deps=home.resolve(Paths.get("deps","generic","modules"));
+    Path generic_deps=home.resolve(Paths.get("deps","generic","modules"));
     String OS=System.getProperty("os.name");
     String arch=System.getProperty("os.arch");
+    Path system_deps;
     if(windows=OS.startsWith("Windows")){
       system_deps=home.resolve(Paths.get("deps","Windows","modules"));
     } else if (OS.equals("Linux")){
@@ -135,7 +142,8 @@ public class Configuration {
     } else {
       throw new Error("The "+OS+" Operating System is not supported");
     }
-    module_deps=home.getParent().getParent().resolve(Paths.get("modules"));
+    Path module_deps=home.getParent().getParent().resolve(Paths.get("modules"));
+    modulepath=new StringListSetting(module_deps.toString(),system_deps.toString(),generic_deps.toString());
   }
 
   /**
@@ -153,7 +161,10 @@ public class Configuration {
     ModuleShell shell;
     try {
       //System.err.printf("home: %s%ngeneric:%s%nsystem:%s%n",getHome(),generic_deps,system_deps);
-      shell = new ModuleShell(getHome().resolve(Paths.get("modules")),module_deps,generic_deps,system_deps);
+      shell = new ModuleShell(getHome().resolve(Paths.get("modules")));
+      for (String p:modulepath){
+        shell.send("module use %s",p);
+      }
       for (String m:modules){
         shell.send("module load %s",m);
       }
