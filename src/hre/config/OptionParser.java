@@ -42,9 +42,6 @@ public class OptionParser {
       if(namelist!=null) namelist+=", "; else namelist="";
       if (name instanceof Character){
         namelist+="-"+name;
-        if (option.needsArgument()){
-          Fail("Short options cannot have an argument.");
-        }
         short_options.put((Character)name, option);
       } else if (name instanceof String){
         namelist+="--"+name;
@@ -98,10 +95,21 @@ public class OptionParser {
         }
       } else if (args[i].startsWith("-")) {
         int N=args[i].length();
+        if (N>2){
+          Option opt=short_options.get(args[i].charAt(1));
+          if (opt !=null && opt.needsArgument()){
+            String arg=args[i].substring(2);
+            opt.pass(arg);
+            continue;
+          }
+        }
         for(int j=1;j<N;j++){
           Option opt=short_options.get(args[i].charAt(j));
           if (opt==null){
             Fail("unknown flag %c",args[i].charAt(j));
+          }
+          if (opt.needsArgument()){
+            Fail("option %c needs an argument.",args[i].charAt(j));
           }
           opt.pass();
         }
