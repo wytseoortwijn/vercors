@@ -15,6 +15,7 @@ import pv.parser.PVFullLexer;
 import pv.parser.PVFullParser;
 import vct.java.printer.JavaSyntax;
 import vct.parsers.*;
+import vct.util.Configuration;
 import vct.col.ast.ASTClass;
 import vct.col.ast.ASTClass.ClassKind;
 import vct.col.ast.ASTNode;
@@ -105,17 +106,16 @@ public class Parser implements vct.col.util.Parser {
     } else if (file_name.endsWith(".c")||file_name.endsWith(".cl")){
       try {
         Runtime runtime=Runtime.getRuntime();
-        
-    	Progress("pre-processing %s",file_name);
-      
-    	// the cpp pre processor turns \r\n line endings into \n\n !
-    	// hence, we use may have to use clang
-    	
-    	Process process=runtime.exec("clang -E -C -I. "+file_name);
-    	//Process process=runtime.exec("cpp -C -I. "+file_name);
-
-        //ANTLRInputStream input = new ANTLRInputStream(new FileInputStream(file));
-        
+                    	
+      	String command=Configuration.cpp_command.get();
+      	for(String p:Configuration.cpp_include_path){
+      	  command+=" -I"+p;
+      	}
+      	command+=" "+file_name;
+      	
+      	Progress("pre-processing command line: %s",command);
+      	Process process=runtime.exec(command);
+          
         ANTLRInputStream input = new ANTLRInputStream(process.getInputStream());
         
         CLexer lexer = new CLexer(input);

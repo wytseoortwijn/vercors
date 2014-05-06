@@ -79,6 +79,16 @@ public class Configuration {
   public static final BooleanSetting enable_post_check=new BooleanSetting(true);
   
   /**
+   * The include path passed to the C pre processor.
+   */
+  public static final StringListSetting cpp_include_path=new StringListSetting();
+  
+  /**
+   * The command that invokes the C pre processor.
+   */
+  public static final StringSetting cpp_command=new StringSetting("clang -C -E");
+  
+  /**
    * Add the VCT library options to the given option parser.
    * @param clops Option parser.
    */
@@ -96,6 +106,8 @@ public class Configuration {
     clops.add(witness_constructors.getEnable("use constructors for witnesses"),"witness-constructors");
     clops.add(witness_constructors.getDisable("inline constructors for witnesses"),"witness-inline");
     clops.add(Configuration.modulepath.getAppendOption("configure path for finding back end modules"),"module-path");
+    clops.add(cpp_command.getAssign("set the C Pre Processor command"),"cpp");
+    clops.add(cpp_include_path.getAppendOption("add to the CPP include path"),'I',"include");
   }
 
   /**
