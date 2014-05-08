@@ -225,24 +225,17 @@ public class CtoCOL extends AbstractCtoCOL implements CVisitor<ASTNode> {
   public ASTNode visitCompoundStatement(CompoundStatementContext ctx) {
     BlockStatement block=create.block();
     if (match(ctx,"{","}")) return block;
-    if (!match(ctx,"{","BlockItemListContext","}")) return null;
-    System.out.printf("\n\nvisitCompoundStatement: %s",ctx.getText()); //DRB
+    if (!match(ctx,"{","BlockItemListContext","}")) return null;    
     doblock(block,(BlockItemListContext)ctx.getChild(1)); 
     return block;
   }
-  private void doblock(BlockStatement block, BlockItemListContext ctx) {
-	System.out.printf("\n\n%s",ctx.getText());
-    if (match(ctx,"BlockItemContext")){
-    	  System.out.printf("\n\nBlockItemContext: %s",ctx.getText()); //DRB
-    	  
+  private void doblock(BlockStatement block, BlockItemListContext ctx) {	
+    if (match(ctx,"BlockItemContext")){    	      	  
     	  ASTNode temp = convert(ctx,0);
-    	  scan_comments_before(block,ctx.getChild(0)); //DRB    	  
+    	  scan_comments_before(block,ctx.getChild(0)); //DRB	  
     	  block.add_statement(temp);
-    	  scan_comments_after(block,ctx.getChild(0));//DRB
-    } else if (match(ctx,"BlockItemListContext","BlockItemContext")){
-    	
-  	  	   System.out.printf("\n\nBlockItemListContext: %s",ctx.getText()); //DRB
-  	  	   
+    	  scan_comments_after(block,ctx.getChild(0));//DRB 
+    } else if (match(ctx,"BlockItemListContext","BlockItemContext")){    	  	  	     	  	
     	   doblock(block,(BlockItemListContext)ctx.getChild(0));
       
     	   ASTNode temp = convert(ctx,1);    	         
