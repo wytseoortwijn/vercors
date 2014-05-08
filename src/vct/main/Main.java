@@ -124,6 +124,11 @@ public class Main
     clops.add(chalice.getEnable("select Chalice backend"),"chalice");
     BooleanSetting silicon=new BooleanSetting(false);
     clops.add(silicon.getEnable("select Silicon backend"),"silicon");
+    BooleanSetting verifast=new BooleanSetting(false);
+    clops.add(verifast.getEnable("select Verifast backend"),"verifast");
+    BooleanSetting dafny=new BooleanSetting(false);
+    clops.add(dafny.getEnable("select Dafny backend"),"dafny");
+
     final BooleanSetting separate_checks=new BooleanSetting(false);
     clops.add(separate_checks.getEnable("validate classes separately"),"separate");
     BooleanSetting help_passes=new BooleanSetting(false);
@@ -198,6 +203,11 @@ public class Main
     defined_checks.put("boogie",new ValidationPass("verify with Boogie"){
       public TestReport apply(ProgramUnit arg){
         return vct.boogie.Main.TestBoogie(arg);
+      }
+    });
+    defined_checks.put("dafny",new ValidationPass("verify with Dafny"){
+      public TestReport apply(ProgramUnit arg){
+        return vct.boogie.Main.TestDafny(arg);
       }
     });
     defined_checks.put("silicon",new ValidationPass("verify with Boogie"){
@@ -399,7 +409,7 @@ public class Main
       }
       System.exit(0);
     }
-    if (!(boogie.get() || chalice.get() || silicon.get() || pass_list.iterator().hasNext())) {
+    if (!(boogie.get() || chalice.get() || silicon.get() || dafny.get() || verifast.get() || pass_list.iterator().hasNext())) {
       Fail("no back-end or passes specified");
     }
     Progress("parsing inputs...");
@@ -543,6 +553,22 @@ public class Main
       } else {
         passes.add("silicon");
       }
+    } else if (dafny.get()) {
+    	passes=new ArrayList<String>();
+      passes.add("standardize");
+      passes.add("check");
+      passes.add("voidcalls");
+      passes.add("standardize");
+      passes.add("check");
+      //passes.add("flatten");
+      //passes.add("reorder");
+      //passes.add("check");
+      passes.add("dafny");
+    } else if (verifast.get()) {
+			passes=new ArrayList<String>();
+      passes.add("standardize");
+      passes.add("check");
+      passes.add("verifast");
     } else {
     	if (!pass_list.iterator().hasNext()) Abort("no back-end or passes specified");
     }

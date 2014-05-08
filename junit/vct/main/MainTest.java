@@ -385,6 +385,50 @@ testReentrantLock (){
     }
   }
   
+  @Test
+  public void testDafnyIncr(){
+    sem_get();
+    try {
+      VCTResult res=run("vct","--dafny","//java_examples/DafnyIncr.java");
+      res.checkVerdict(Verdict.Pass);
+    } finally {
+      sem.release();
+    }
+  }
+  @Test
+  public void testDafnyIncrE1(){
+    sem_get();
+    try {
+      VCTResult res=run("vct","--dafny","//java_examples/DafnyIncrE1.java");
+      res.checkVerdict(Verdict.Fail);
+    } finally {
+      sem.release();
+    }
+  }
+  
+  @Test
+  public void testOutputBinderPVL(){
+    sem_get();
+    try {
+      VCTResult res=run("vct","--verifast","//pvl_examples/outputbinder.pvl");
+      res.checkVerdict(Verdict.Pass);
+    } finally {
+      sem.release();
+    }
+  }
+  
+  @Test
+  public void testOutputBinderPVLerr1(){
+    sem_get();
+    try {
+      VCTResult res=run("vct","--verifast","//pvl_examples/outputbinder-e1.pvl");
+      res.checkVerdict(Verdict.Fail);
+    } finally {
+      sem.release();
+    }
+  }
+  
+
   public VCTResult run(String ... args){
     VCTResult res=new VCTResult();
     ClassLoader loader=Configuration.class.getClassLoader();
