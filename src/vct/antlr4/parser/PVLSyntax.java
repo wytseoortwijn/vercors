@@ -22,25 +22,26 @@ public class PVLSyntax {
     if(syntax==null){
       syntax=new Syntax("PVL");
 
-/*
-      syntax.addInfix(SubType,"<:",90);
-      syntax.addInfix(SuperType,":>",90);
+
+      //syntax.addInfix(SubType,"<:",90);
+      //syntax.addInfix(SuperType,":>",90);
       syntax.addInfix(Implies,"==>",30);
-      syntax.addInfix(IFF,"<==>",30);
+      //syntax.addInfix(IFF,"<==>",30);
       syntax.addLeftFix(Wand,"-*",30);
       syntax.addFunction(Perm,"Perm");
-      syntax.addFunction(Head,"head");
-      syntax.addFunction(Tail,"tail");
+      //syntax.addFunction(Head,"head");
+      //syntax.addFunction(Tail,"tail");
       syntax.addFunction(Value,"Value");
-      syntax.addFunction(PointsTo,"PointsTo");
-      syntax.addFunction(ArrayPerm,"ArrayPerm");
+      //syntax.addFunction(PointsTo,"PointsTo");
+      //syntax.addFunction(ArrayPerm,"ArrayPerm");
       syntax.addFunction(Old,"\\old");
+/*
       syntax.addOperator(Size,999,"|","|");
       syntax.addOperator(Nil,999,"nil<",">");
       syntax.addOperator(Subscript,145,"","[","]"); // TODO: check if relative order to Select is OK!
       syntax.addOperator(Cast,145,"((",")",")");
       syntax.addLeftFix(Append,"+++",110);
-    
+
       // Java Operators  Precedence
       // 14 postfix  expr++ expr--
       syntax.addPostfix(PostIncr,"++",140);
@@ -54,9 +55,9 @@ public class PVLSyntax {
       syntax.addPrefix(PreIncr, "--", 130);
 */
       // 12 multiplicative  * / %
-      syntax.addLeftFix(Mult,"mul",120);
-      syntax.addLeftFix(Div,"div",120);
-      syntax.addLeftFix(Mod,"mod",120);
+      syntax.addLeftFix(Mult,"*",120);
+      syntax.addLeftFix(Div,"/",120);
+      syntax.addLeftFix(Mod,"%",120);
       // 11 additive  + -
       syntax.addLeftFix(Plus,"+",110);
       syntax.addLeftFix(Minus,"-",110);
@@ -87,7 +88,7 @@ public class PVLSyntax {
       syntax.addLeftFix(Or,"||",30);
       //  2 ternary   ? :
        * */
-      syntax.addInfix(Implies,"->",30);
+      syntax.addInfix(Implies,"==>",30);
       syntax.addOperator(ITE,20,"","?",":","");
       syntax.addPrefix(BindOutput,"?",666);
       /*

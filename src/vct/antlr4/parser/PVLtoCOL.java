@@ -180,13 +180,13 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
     }
     if (ctx.children.get(0) instanceof TerminalNode){
       switch(ctx.children.get(0).toString()){
-      case "old":
+      case "\\old":
         return create.expression(StandardOperator.Old,getTuple((ParserRuleContext)ctx.children.get(1)));
-      case "perm":
+      case "Perm":
         return create.expression(StandardOperator.Perm,getTuple((ParserRuleContext)ctx.children.get(1)));
-      case "value":
+      case "Value":
         return create.expression(StandardOperator.Value,getTuple((ParserRuleContext)ctx.children.get(1)));
-      case "pointsto":
+      case "PointsTo":
         return create.expression(StandardOperator.PointsTo,getTuple((ParserRuleContext)ctx.children.get(1)));
       }
     }
@@ -206,10 +206,10 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
       case ">=": return create.expression(StandardOperator.GTE,e1,e2);
       case "<": return create.expression(StandardOperator.LT,e1,e2);
       case "<=": return create.expression(StandardOperator.LTE,e1,e2);
-      case "*": return create.expression(StandardOperator.Star,e1,e2);
+      case "**": return create.expression(StandardOperator.Star,e1,e2);
       case "&": return create.expression(StandardOperator.And,e1,e2);
       case "|": return create.expression(StandardOperator.Or,e1,e2);
-      case "->": return create.expression(StandardOperator.Implies,e1,e2);
+      case "==>": return create.expression(StandardOperator.Implies,e1,e2);
 //      case "+": return create.expression(StandardOperator.Plus,e1,e2);
 //      case "-": return create.expression(StandardOperator.Minus,e1,e2);
       case "=": return create.expression(StandardOperator.EQ,e1,e2);

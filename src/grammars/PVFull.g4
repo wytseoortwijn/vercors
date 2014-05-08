@@ -37,21 +37,22 @@ args : type ID ( ',' type ID )* | ;
 expr
  : lexpr
  | ('!'|'-') expr
- | expr ('mul'|'div'|'mod') expr
+ | expr ('*'|'/'|'%') expr
  | expr ( '+' | '-' ) expr
  | expr ( '<' | '<=' | '>=' | '>') expr
  | expr ( '=' | '!=' ) expr
- | expr ('&' | '*') expr
+ | expr ('&' | '**') expr
  | expr ('|' | '->') expr
  | expr '?' expr ':' expr
  | '?' ID
- | (lexpr | 'value' | 'perm' | 'pointsto' | 'old' | '?' ) tuple
- | '(' ('exists'|'forall'|'forall*') type ID ';' expr (';' expr )? ')'
+ | (lexpr | 'Value' | 'Perm' | 'PointsTo' | '\\old' | '?' ) tuple
+ | '(' ('\\exists'|'\\forall'|'\\forall*') type ID ';' expr (';' expr )? ')'
  | '(' expr ')'
  | 'new' ID
  | 'null'
  | 'true'
  | 'false'
+ | '\\result'
  | ID
  | NUMBER
  ;
