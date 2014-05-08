@@ -108,9 +108,13 @@ public class JavaSyntax extends Syntax {
     syntax.addLeftFix(And,"&&",40);
     //  3 logical OR  ||
     syntax.addLeftFix(Or,"||",30);
-    //  2 ternary   ? :
+    //Send annotation -- sending permission to verify parallel loops 
+    syntax.addOperator(Send,20,"//@Send","to",",",""); //DRB
+    
+    //  2 ternary   ? :    
     syntax.addOperator(ITE,20,"","?",":","");
     //  1 assignment  = += -= *= /= %= &= ^= |= <<= >>= >>>=
+        
     syntax.addRightFix(Assign,"=",10);
     syntax.addRightFix(AddAssign,"+=",10);
     syntax.addRightFix(SubAssign,"-=",10);

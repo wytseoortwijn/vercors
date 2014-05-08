@@ -32,7 +32,7 @@ public enum StandardOperator {
   Not(1),
   /** Logical implication. */
   Implies(2),
-  /** Logical if and only if. */
+  /** Logical if and only if. */  
   IFF(2),
   /** Equality test. */
   EQ(2),
@@ -205,8 +205,12 @@ public enum StandardOperator {
   /**
    * Building a tuple, also used to represent parenthesized expressions.
    */
-  Tuple(-1);
-
+  Tuple(-1),
+  /**
+   * send permission statement for parallel loops : /DRB
+   */
+  Send(3);
+  
   private final int arity;
   
   StandardOperator(int arity){

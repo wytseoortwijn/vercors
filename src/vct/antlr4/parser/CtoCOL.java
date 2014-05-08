@@ -226,17 +226,30 @@ public class CtoCOL extends AbstractCtoCOL implements CVisitor<ASTNode> {
     BlockStatement block=create.block();
     if (match(ctx,"{","}")) return block;
     if (!match(ctx,"{","BlockItemListContext","}")) return null;
-    doblock(block,(BlockItemListContext)ctx.getChild(1));
+    System.out.printf("\n\nvisitCompoundStatement: %s",ctx.getText()); //DRB
+    doblock(block,(BlockItemListContext)ctx.getChild(1)); 
     return block;
   }
-
   private void doblock(BlockStatement block, BlockItemListContext ctx) {
+	System.out.printf("\n\n%s",ctx.getText());
     if (match(ctx,"BlockItemContext")){
-      block.add_statement(convert(ctx,0));
+    	  System.out.printf("\n\nBlockItemContext: %s",ctx.getText()); //DRB
+    	  
+    	  ASTNode temp = convert(ctx,0);
+    	  scan_comments_before(block,ctx.getChild(0)); //DRB    	  
+    	  block.add_statement(temp);
+    	  scan_comments_after(block,ctx.getChild(0));//DRB
     } else if (match(ctx,"BlockItemListContext","BlockItemContext")){
-      doblock(block,(BlockItemListContext)ctx.getChild(0));
-      block.add_statement(convert(ctx,1));
-    } else {
+    	
+  	  	   System.out.printf("\n\nBlockItemListContext: %s",ctx.getText()); //DRB
+  	  	   
+    	   doblock(block,(BlockItemListContext)ctx.getChild(0));
+      
+    	   ASTNode temp = convert(ctx,1);    	         
+    	   block.add_statement(temp);
+    	   scan_comments_after(block,ctx.getChild(1)); //DRB
+
+    } else {      
       throw hre.System.Failure("unknown BlockItemList");
     }
   }
