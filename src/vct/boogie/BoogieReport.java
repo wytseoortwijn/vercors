@@ -68,7 +68,7 @@ public class BoogieReport extends hre.util.TestReport {
 	}
 
   //public BoogieReport(InputStream stream,String filename,TrackingTree tree) throws IOException {
-  public BoogieReport(ModuleShell shell, File boogie_xml_file, TrackingTree tree) throws IOException {
+  public BoogieReport(String tool, ModuleShell shell, File boogie_xml_file, TrackingTree tree) throws IOException {
     String line;
     for(;;){
       Message msg=shell.recv();
@@ -80,7 +80,7 @@ public class BoogieReport extends hre.util.TestReport {
       } else {
         continue;
       }
-      if (line.matches(".*Boogie program verifier finished.*")){
+      if (line.matches(".*"+tool+" program verifier finished.*")){
         finished=true;
         String words[]=line.split(" ");
         for(int i=1;i<words.length;i++){

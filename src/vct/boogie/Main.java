@@ -31,6 +31,7 @@ public class Main {
 
   public static StringSetting z3_module;
   public static StringSetting boogie_module;
+  public static StringSetting dafny_module;
   // The default timeout is set to half an hour, to give Z3 plenty of time yet avoid run-aways. 
   public static IntegerSetting boogie_timeout=new IntegerSetting(1800);
   public static StringSetting chalice_module;
@@ -45,6 +46,7 @@ public class Main {
 	  }
 	  boogie_module=new StringSetting("boogie/2012-10-22");
 	  chalice_module=new StringSetting("chalice/2012-11-20");
+	  dafny_module=new StringSetting("dafny/1.8.2");
 	  silicon_module=new StringSetting("chalice2sil");
   }
   
@@ -79,7 +81,7 @@ public class Main {
       shell.send("boogie /timeLimit:%s /xml:%s %s",timeout,boogie_xml_file.getName(),boogie_input_file.getName());
       //shell.send("ls -al");
       shell.send("exit");
-      BoogieReport output=new BoogieReport(shell,boogie_xml_file,tree);
+      BoogieReport output=new BoogieReport("Boogie",shell,boogie_xml_file,tree);
       return output;
     } catch (Exception e) {
       System.out.println("error: ");
@@ -89,6 +91,47 @@ public class Main {
     }
   }
 
+  /**
+   * Generate Dafny code and optionally verify a class.
+   * @param arg The class for which code must be generated.
+   */
+  public static DafnyReport TestDafny(ProgramUnit arg){
+    int timeout=boogie_timeout.get();
+    ModuleShell shell=Configuration.getShell(z3_module.get(),dafny_module.get());
+    try {
+      File boogie_input_file=File.createTempFile("dafny-input",".dfy",shell.shell_dir.toFile());
+      boogie_input_file.deleteOnExit();
+      final PrintStream boogie_input;
+      
+      if (vct.util.Configuration.backend_file.get()==null){
+        boogie_input=new PrintStream(boogie_input_file);
+      } else {
+        OutputStream temp=new FileOutputStream(boogie_input_file);
+        File encoded_file=new File(vct.util.Configuration.backend_file.get());
+        OutputStream encoded=new FileOutputStream(encoded_file);
+        boogie_input=new PrintStream(new SplittingOutputStream(temp,encoded));
+      }
+      TrackingOutput boogie_code=new TrackingOutput(boogie_input,true);
+      BoogieSyntax.getDafny().print(boogie_code,arg);
+      TrackingTree tree=boogie_code.close();
+      //File boogie_xml_file=File.createTempFile("dafny-output",".xml",shell.shell_dir.toFile());
+      //boogie_xml_file.deleteOnExit();
+      //shell.send("which boogie");
+      //shell.send("pwd");
+      //shell.send("ls -al");
+      //shell.send("dafny /compile:0 /timeLimit:%s /xml:%s %s",timeout,boogie_xml_file.getName(),boogie_input_file.getName());
+      shell.send("dafny /compile:0 /timeLimit:%s %s",timeout,boogie_input_file.getName());
+      //shell.send("ls -al");
+      shell.send("exit");
+      DafnyReport output=new DafnyReport(shell,tree);
+      return output;
+    } catch (Exception e) {
+      System.out.println("error: ");
+      e.printStackTrace();
+      hre.System.Abort("internal error");
+      return null;
+    }
+  }
   /**
    * Pretty print a Chalice program and optionally verify it.
    * 

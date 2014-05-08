@@ -97,6 +97,7 @@ public class Configuration {
     clops.add(detailed_errors.getEnable("produce detailed error messages"),"detail");
     clops.add(backend_file.getAssign("filename for storing the back-end input"),"encoded");
     clops.add(vct.boogie.Main.boogie_module.getAssign("name of the boogie environment module"),"boogie-module");
+    clops.add(vct.boogie.Main.dafny_module.getAssign("name of the dafny environment module"),"dafny-module");
     clops.add(vct.boogie.Main.boogie_timeout.getAssign("boogie time limit"),"boogie-limit");
     clops.add(vct.boogie.Main.chalice_module.getAssign("name of the chalice environment module"),"chalice-module");
 //    clops.add(pvl_type_check.getDisable("disable type check in PVL parser"),"no-pvl-check");

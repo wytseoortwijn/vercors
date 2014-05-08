@@ -19,7 +19,7 @@ import static vct.col.ast.ASTReserved.*;
  */
 public class BoogieSyntax extends Syntax {
   
-  public static enum Variant{Boogie, Chalice/*, Dafny?*/ };
+  public static enum Variant{Boogie, Chalice, Dafny };
   
   public final Variant variant;
   public BoogieSyntax(String language,Variant variant) {
@@ -29,6 +29,8 @@ public class BoogieSyntax extends Syntax {
 
   private static BoogieSyntax boogie;
   private static BoogieSyntax chalice;
+  
+  private static BoogieSyntax dafny;
   
   private static void setCommon(Syntax syntax){
     syntax.addPrefix(Not,"!",130);
@@ -67,6 +69,16 @@ public class BoogieSyntax extends Syntax {
     return boogie;
   }
   
+  public static synchronized Syntax getDafny(){
+    if(dafny==null){
+      dafny=new BoogieSyntax("Dafny",Variant.Dafny);
+      setCommon(dafny);
+      dafny.addReserved(This,"this");
+      dafny.addReserved(Null,"null");
+    }
+    return dafny;
+  }
+
   public static synchronized BoogieSyntax getChalice(){
     if(chalice==null){
       chalice=new BoogieSyntax("Chalice",Variant.Chalice);
@@ -111,6 +123,9 @@ public class BoogieSyntax extends Syntax {
     case Chalice:
       p=new ChalicePrinter(out);
       break;
+    case Dafny:
+    	p=new DafnyPrinter(out);
+    	break;
     default:
       super.print(out, pu);
       return;

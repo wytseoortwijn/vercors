@@ -40,6 +40,7 @@ public class SpecificationCollector extends AbstractRewriter {
     case Requires:
     case Ensures:
     case Invariant:
+    case Modifies:
       break;
     case Comment:
       // discard comment!
@@ -54,6 +55,10 @@ public class SpecificationCollector extends AbstractRewriter {
     }
     if (currentContractBuilder==null) currentContractBuilder=new ContractBuilder();
     switch(s.kind){
+    case Modifies:{
+    	currentContractBuilder.modifies(rewrite(s.args));
+    	break;
+    }
     case Given:
     {
       BlockStatement block=(BlockStatement)s.args[0];

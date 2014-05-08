@@ -40,7 +40,7 @@ public class VoidCalls extends AbstractRewriter {
       DeclarationStatement m_args[]=m.getArgs();
       int N=m_args.length;
       DeclarationStatement args[]=new DeclarationStatement[N+1];
-      args[0]=new DeclarationStatement("__result",rewrite(m.getReturnType()));
+      args[0]=new DeclarationStatement("sys__result",rewrite(m.getReturnType()));
       args[0].setOrigin(m);
       args[0].setFlag(ASTFlags.OUT_ARG, true);
       for(int i=0;i<N;i++){
@@ -51,7 +51,7 @@ public class VoidCalls extends AbstractRewriter {
       Contract c=m.getContract();
       if(c!=null){
         HashMap<NameExpression,ASTNode>map=new HashMap<NameExpression,ASTNode>();
-        map.put(create.reserved_name(ASTReserved.Result),create.local_name("__result"));
+        map.put(create.reserved_name(ASTReserved.Result),create.local_name("sys__result"));
         Substitution subst=new Substitution(source(),map);
         cb.requires(c.pre_condition.apply(subst));
         cb.ensures(c.post_condition.apply(subst));
@@ -75,7 +75,7 @@ public class VoidCalls extends AbstractRewriter {
     ASTNode expr=s.getExpression();
     if (expr!=null){
       BlockStatement res=create.block();
-      res.add(create.assignment(create.local_name("__result"),rewrite(expr)));
+      res.add(create.assignment(create.local_name("sys__result"),rewrite(expr)));
       for(ASTNode n : s.get_after()){
         res.add(rewrite(n));
       }
