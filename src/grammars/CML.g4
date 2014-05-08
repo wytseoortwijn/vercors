@@ -13,7 +13,7 @@ contractClause
 
 specificationStatement
     : 'loop_invariant' resourceExpression ';'        
-    | 'send' resourceExpression 'to' identifier ',' expression ';'
+    | 'send' resourceExpression 'to' Identifier ',' expression ';'
     ;    
 
 specificResourceExpression : EOF EOF ;
