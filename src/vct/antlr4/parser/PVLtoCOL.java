@@ -190,31 +190,10 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
         return create.expression(StandardOperator.PointsTo,getTuple((ParserRuleContext)ctx.children.get(1)));
       }
     }
-    if (ctx.children.size()==3
-        && ctx.children.get(0) instanceof PVFullParser.ExprContext
-        && ctx.children.get(1) instanceof TerminalNode
-        && ctx.children.get(2) instanceof PVFullParser.ExprContext
-    ){
+    if (match(ctx,"ExprContext",".","ExprContext")){
       ASTNode e1=convert(ctx.children.get(0));
       ASTNode e2=convert(ctx.children.get(2));
-      switch(ctx.children.get(1).toString()){
-      case ".": return create.dereference(e1,e2.toString());
-//      case "mul": return create.expression(StandardOperator.Mult,e1,e2);
-//      case "div": return create.expression(StandardOperator.Div,e1,e2);
-//      case "mod": return create.expression(StandardOperator.Mod,e1,e2);
-      case ">": return create.expression(StandardOperator.GT,e1,e2);
-      case ">=": return create.expression(StandardOperator.GTE,e1,e2);
-      case "<": return create.expression(StandardOperator.LT,e1,e2);
-      case "<=": return create.expression(StandardOperator.LTE,e1,e2);
-      case "**": return create.expression(StandardOperator.Star,e1,e2);
-      case "&": return create.expression(StandardOperator.And,e1,e2);
-      case "|": return create.expression(StandardOperator.Or,e1,e2);
-      case "==>": return create.expression(StandardOperator.Implies,e1,e2);
-//      case "+": return create.expression(StandardOperator.Plus,e1,e2);
-//      case "-": return create.expression(StandardOperator.Minus,e1,e2);
-      case "=": return create.expression(StandardOperator.EQ,e1,e2);
-      case "!=": return create.expression(StandardOperator.NEQ,e1,e2);
-      }
+      return create.dereference(e1,e2.toString());
     }
     if (match(ctx,"!",null)){
       return create.expression(StandardOperator.Not,convert(ctx,1));
@@ -315,7 +294,7 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
 
   @Override
   public ASTNode visitStatement(StatementContext ctx) {
-    if (match(ctx,null,":=",null,";")){
+    if (match(ctx,null,"=",null,";")){
       return create.assignment(convert(ctx,0),convert(ctx,2));
     }
     if (match(ctx,"return",null,";")){
@@ -324,7 +303,7 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
     if (match(ctx,type_expr,null,";")){
       return create.field_decl(getIdentifier(ctx,1),(Type)convert(ctx,0));
     }
-    if (match(ctx,type_expr,null,":=",null,";")){
+    if (match(ctx,type_expr,null,"=",null,";")){
       return create.field_decl(getIdentifier(ctx,1),(Type)convert(ctx,0),convert(ctx,3));
     }
     if (match(ctx,"if","(",null,")",null)){

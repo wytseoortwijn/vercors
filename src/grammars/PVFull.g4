@@ -40,11 +40,12 @@ expr
  | expr ('*'|'/'|'%') expr
  | expr ( '+' | '-' ) expr
  | expr ( '<' | '<=' | '>=' | '>') expr
- | expr ( '=' | '!=' ) expr
- | expr ('&' | '**') expr
- | expr ('|' | '->') expr
+ | expr ( '==' | '!=' ) expr
+ | expr ('&&' | '**') expr
+ | expr ('||' | '==>') expr
  | expr '?' expr ':' expr
  | '?' ID
+ | lexpr '->' ID tuple
  | (lexpr | 'Value' | 'Perm' | 'PointsTo' | '\\old' | '?' ) tuple
  | '(' ('\\exists'|'\\forall'|'\\forall*') type ID ';' expr (';' expr )? ')'
  | '(' expr ')'
@@ -74,10 +75,10 @@ statement
  | 'if' '(' expr ')' block ( 'else' block )?
  | 'barrier' '(' fence_list ')' '{' contract '}' 
  | invariant 'while' '(' expr ')' block
- | 'call' lexpr tuple ';'
+ | lexpr tuple ';'
  | block
- | type ID (':=' expr | (',' ID)* ) ';'
- | lexpr ':=' expr ';'
+ | type ID ('=' expr | (',' ID)* ) ';'
+ | lexpr '=' expr ';'
  ;
 
 fence_list : ( 'local' | 'global' )* ;
