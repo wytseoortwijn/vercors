@@ -33,6 +33,9 @@ class VCTResult {
     }
     fail("expected output "+string+" not found");
   };
+  public void checkVerdict(Verdict res){
+    if (verdict != res) fail("bad result : "+verdict);
+  }
 }
 
 @RunWith(ConcurrentTestRunner.class) 
@@ -303,8 +306,85 @@ testReentrantLock (){
 }
 
  */
-    
 
+  /* template:
+  @Test
+  public void test(){
+    sem_get();
+    try {
+      VCTResult res=run("vct","--chalice","//examples/sequential/BoogieTest.java");
+      checkVerdict(Verdict.Pass);
+    } finally {
+      sem.release();
+    }
+*/
+  
+  @Test
+  public void testCounterPVL(){
+    sem_get();
+    try {
+      VCTResult res=run("vct","--chalice","//pvl_examples/Counter.pvl");
+      res.checkVerdict(Verdict.Pass);
+    } finally {
+      sem.release();
+    }
+  }
+
+  @Test
+  public void testCounterPVLerr1(){
+    sem_get();
+    try {
+      VCTResult res=run("vct","--chalice","//pvl_examples/Counter-e1.pvl");
+      res.checkVerdict(Verdict.Fail);
+    } finally {
+      sem.release();
+    }
+  }
+
+  @Test
+  public void testFibonacciPVL(){
+    sem_get();
+    try {
+      VCTResult res=run("vct","--chalice","//pvl_examples/fibonacci.pvl");
+      res.checkVerdict(Verdict.Pass);
+    } finally {
+      sem.release();
+    }
+  }
+  
+  @Test
+  public void testFibonacciPVLerr1(){
+    sem_get();
+    try {
+      VCTResult res=run("vct","--chalice","//pvl_examples/fibonacci-e1.pvl");
+      res.checkVerdict(Verdict.Fail);
+    } finally {
+      sem.release();
+    }
+  }
+  
+  @Test
+  public void testAdditionPVL(){
+    sem_get();
+    try {
+      VCTResult res=run("vct","--chalice","--single-group","//pvl_examples/addition.pvl");
+      res.checkVerdict(Verdict.Pass);
+    } finally {
+      sem.release();
+    }
+  }
+  
+  @Test
+  public void testAdditionPVLerr1(){
+    sem_get();
+    try {
+      VCTResult res=run("vct","--chalice","--single-group","//pvl_examples/addition-e1.pvl");
+      res.checkVerdict(Verdict.Fail);
+    } finally {
+      sem.release();
+    }
+  }
+  
   public VCTResult run(String ... args){
     VCTResult res=new VCTResult();
     ClassLoader loader=Configuration.class.getClassLoader();
