@@ -36,6 +36,7 @@ import vct.col.rewrite.FilterClass;
 import vct.col.rewrite.FinalizeArguments;
 import vct.col.rewrite.Flatten;
 import vct.col.rewrite.FlattenBeforeAfter;
+import vct.col.rewrite.ForkJoinCompilation;
 import vct.col.rewrite.GenericPass1;
 import vct.col.rewrite.GlobalizeStaticsField;
 import vct.col.rewrite.GlobalizeStaticsParameter;
@@ -315,6 +316,11 @@ public class Main
     defined_passes.put("flatten_before_after",new CompilerPass("move before/after instructions"){
       public ProgramUnit apply(ProgramUnit arg){
         return new FlattenBeforeAfter(arg).rewriteAll();
+      }
+    });
+    defined_passes.put("forkjoin",new CompilerPass("compile fork/join statements"){
+      public ProgramUnit apply(ProgramUnit arg){
+        return new ForkJoinCompilation(arg).rewriteAll();
       }
     });
     defined_passes.put("inline",new CompilerPass("Inline predicates with arguments"){
