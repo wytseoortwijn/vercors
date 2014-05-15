@@ -597,4 +597,35 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
     result=res;
   }
 
+  public ASTNode constant(int c){
+  	return create.constant(c);
+  }
+  public ASTNode name(String name){
+  	return create.unresolved_name(name);
+  }
+  public ASTNode name(DeclarationStatement decl){
+  	create.enter();
+  	ASTNode res=create(decl.getOrigin()).unresolved_name(decl.getName());
+  	create.leave();
+  	return res;
+  }
+  
+  public ASTNode plus(ASTNode e1,ASTNode e2){
+  	return create.expression(StandardOperator.Plus,e1,e2);
+  }
+  public ASTNode less(ASTNode e1,ASTNode e2){
+  	return create.expression(StandardOperator.LT,e1,e2);
+  }
+  public ASTNode lte(ASTNode e1,ASTNode e2){
+  	return create.expression(StandardOperator.LTE,e1,e2);
+  }
+  public ASTNode neq(ASTNode e1,ASTNode e2){
+  	return create.expression(StandardOperator.NEQ,e1,e2);
+  }
+  public ASTNode star(ASTNode e1,ASTNode e2){
+  	return create.expression(StandardOperator.Star,e1,e2);
+  }
+  public ASTNode invoke(ASTNode object,String method,ASTNode ... args){
+  	return create.invokation(object, null, method, args);
+  }
 }

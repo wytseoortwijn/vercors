@@ -343,13 +343,10 @@ class ClauseEncoding extends AbstractRewriter {
         Abort("At %s: every predicate invokation with must be labeled.",i.getOrigin());
       }
       NameExpression lbl=i.getLabel(0);
-      ASTNode body=create.expression(StandardOperator.NEQ,create.unresolved_name(lbl.getName()),create.reserved_name(Null));
-      body=create.expression(StandardOperator.Star,body,
-          create.invokation(create.unresolved_name(lbl.getName()), null, ("valid")));
-      body=create.expression(StandardOperator.Star,body,
-          create.invokation(
+      ASTNode body=neq(create.unresolved_name(lbl.getName()),create.reserved_name(Null));
+      body=star(body,invoke(create.unresolved_name(lbl.getName()),"valid"));
+      body=star(body,invoke(
               create.unresolved_name(lbl.getName()),
-              null,
               ("check"),
               rewrite(i.object,i.getArgs())
           ));
@@ -402,20 +399,12 @@ class PredicateClassGenerator extends AbstractRewriter {
     for (int i=0;i<args.length;i++){
       pred_class.add_dynamic(args[i].apply(copy_rw));
       if (args[i].getType().isPrimitive(PrimitiveType.Sort.Fraction)){
-        cons_req=create.expression(StandardOperator.Star,cons_req,
-            create.expression(StandardOperator.LT,create.constant(0),create.unresolved_name(args[i].getName()))
-            );
-        cons_req=create.expression(StandardOperator.Star,cons_req,
-            create.expression(StandardOperator.LTE,create.unresolved_name(args[i].getName()),create.constant(100))
-            );
+        cons_req=star(cons_req,less(constant(0),name(args[i])));
+        cons_req=star(cons_req,lte(name(args[i]),constant(100)));
       }
       if (args[i].getType().isPrimitive(PrimitiveType.Sort.ZFraction)){
-        cons_req=create.expression(StandardOperator.Star,cons_req,
-            create.expression(StandardOperator.LTE,create.constant(0),create.unresolved_name(args[i].getName()))
-            );
-        cons_req=create.expression(StandardOperator.Star,cons_req,
-            create.expression(StandardOperator.LTE,create.unresolved_name(args[i].getName()),create.constant(100))
-            );
+        cons_req=star(cons_req,lte(constant(0),name(args[i])));
+        cons_req=star(cons_req,lte(name(args[i]),constant(100)));
       }
     }
     
