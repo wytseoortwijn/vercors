@@ -45,7 +45,9 @@ public class JavaSyntax extends Syntax {
         JavaSyntax syntax=new JavaSyntax("Java + JML",dialect);
         setCommon(syntax);
         VerCorsSyntax.add(syntax);
+        syntax.addLeftFix(Exp,"^^",125);
         syntax.addLeftFix(StructSelect,".",-1);
+        syntax.addOperator(HoarePredicate,-1,"/*{","}*/");
         JavaVerCorsSyntax=syntax;        
       }
       return JavaVerCorsSyntax;

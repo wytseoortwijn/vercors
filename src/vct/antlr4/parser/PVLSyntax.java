@@ -21,7 +21,7 @@ public class PVLSyntax {
   public static Syntax get(){
     if(syntax==null){
       syntax=new Syntax("PVL");
-
+      syntax.addOperator(HoarePredicate,999,"{*","*}");
 
       //syntax.addInfix(SubType,"<:",90);
       //syntax.addInfix(SuperType,":>",90);
@@ -54,6 +54,8 @@ public class PVLSyntax {
       syntax.addPrefix(PreIncr, "++", 130);
       syntax.addPrefix(PreIncr, "--", 130);
 */
+      
+      syntax.addLeftFix(Exp,"^^",130);
       // 12 multiplicative  * / %
       syntax.addLeftFix(Mult,"*",120);
       syntax.addLeftFix(Div,"/",120);

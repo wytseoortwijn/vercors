@@ -6,6 +6,8 @@ public enum StandardOperator {
   UPlus(1),
   /** Unary minus. */
   UMinus(1),
+  /** Exponentiation */
+  Exp(2),
   /** Addition. */
   Plus(2),
   /** Binary minus or subtraction. */

@@ -496,7 +496,7 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
       return create.unresolved_name(text);
     case "this":
       return create.reserved_name(This);
-    case "result": return create.reserved_name(Result);
+    case "\\result": return create.reserved_name(Result);
     case "null": return create.reserved_name(Null);
     case "true": return create.constant(true);
     case "false": return create.constant(false);

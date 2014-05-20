@@ -460,6 +460,20 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       e.setType(t);
       break;
     }
+    case Exp:{
+      Type t1=e.getArg(0).getType();
+      if (t1==null) Fail("type of left argument unknown at %s",e.getOrigin());
+      if (!t1.isNumeric()){
+        Fail("First argument of %s is %s rather than a numeric type",op,t1);
+      }
+      Type t2=e.getArg(1).getType();
+      if (t2==null) Fail("type of right argument unknown at %s",e.getOrigin());
+      if (!t2.isInteger()){
+        Fail("Second argument of %s is %s rather than integer",op,t2);
+      }
+      e.setType(t1);
+      break;
+    }
     case Plus:
     { // handle concatenation meaning of +
       Type t1=e.getArg(0).getType();

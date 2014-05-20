@@ -37,6 +37,7 @@ args : type ID ( ',' type ID )* | ;
 expr
  : lexpr
  | ('!'|'-') expr
+ | expr '^^' expr
  | expr ('*'|'/'|'%') expr
  | expr ( '+' | '-' ) expr
  | expr ( '<' | '<=' | '>=' | '>') expr
@@ -79,6 +80,7 @@ statement
  | block
  | type ID ('=' expr | (',' ID)* ) ';'
  | lexpr '=' expr ';'
+ | '{*' expr '*}'
  ;
 
 fence_list : ( 'local' | 'global' )* ;
