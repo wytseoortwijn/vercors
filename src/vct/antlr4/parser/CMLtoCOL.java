@@ -552,7 +552,7 @@ public class CMLtoCOL extends AbstractCtoCOL implements CMLVisitor<ASTNode> {
 
   @Override  
   public ASTNode visitSpecificationSequence(SpecificationSequenceContext ctx) {//DRB --Added	  
-    return null;
+	return null;
   }
   
   @Override
@@ -562,9 +562,17 @@ public class CMLtoCOL extends AbstractCtoCOL implements CMLVisitor<ASTNode> {
 	      res= create.special(ASTSpecial.Kind.Invariant,convert(ctx,1));
 	    }
 	    else if (match(ctx,"send",null,"to",null,",",null,";")){//DRB	    	
-		    res= create.expression(StandardOperator.Send,convert(ctx,1),convert(ctx,3),convert(ctx,5));		   		
+		    res= create.expression(StandardOperator.Send,convert(ctx,1),convert(ctx,3),convert(ctx,5));		
+		    res.setGhost(true);
   		} else if (match(ctx,"assert",null,";")){ // DRB
   			res=create.expression(StandardOperator.Assert,convert(ctx,1));
+  			res.setGhost(true);
+  		} else if (match(ctx,"fold",null,";")){//DRB
+  			res=create.expression(StandardOperator.Fold,convert(ctx,1));
+  			res.setGhost(true);
+  		} else if (match(ctx,"unfold",null,";")){//DRB
+  			res=create.expression(StandardOperator.Unfold,convert(ctx,1));
+  			res.setGhost(true);
   		}
 	    return res;
   }
@@ -577,8 +585,8 @@ public class CMLtoCOL extends AbstractCtoCOL implements CMLVisitor<ASTNode> {
 
   @Override
   public ASTNode visitStatement(StatementContext ctx) {
-    // TODO Auto-generated method stub	  
-    return null;
+    // TODO Auto-generated method stub
+	  return null;
   }
 
   @Override
@@ -686,9 +694,57 @@ public class CMLtoCOL extends AbstractCtoCOL implements CMLVisitor<ASTNode> {
 
   @Override
   public ASTNode visitResourceExpression(ResourceExpressionContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
+    // TODO Auto-generated method stub	  
+    return getResourceExpression(ctx); //DRB
   }
+  public ASTNode getResourceExpression(ParserRuleContext ctx) {//DRB
+	  String label=null;
+	    int offset=0;
+	    if (match(ctx,null,":",null)){
+	      label=getIdentifier(ctx,0);
+	      ASTNode res=convert(ctx,2);
+	      if (res.isa(StandardOperator.Implies)){
+	        ((OperatorExpression)res).getArg(1).labeled(label);
+	      } else {
+	        res.labeled(label);
+	      }
+	      return res;
+	    }
+	    if (match(0,true,ctx,null,":")){
+	      label=getIdentifier(ctx,0);
+	      offset=2;
+	    }
+	    if (match(offset,true,ctx,null,"->",null,"(")){
+	      ASTNode object=convert(ctx,offset);
+	      String name=getIdentifier(ctx,offset+2);
+	      ASTNode args[];
+	      if (ctx.getChildCount()==offset+5){
+	        args=new ASTNode[0];
+	      } else {
+	        args=convert_list((ParserRuleContext)(ctx.getChild(offset+4)),",");
+	      }
+	      ASTNode call=create.invokation(object, null, name, args);
+	      if (label!=null) call.labeled(label);
+	      return create.expression(StandardOperator.Implies,
+	            create.expression(StandardOperator.NEQ,object,create.reserved_name(ASTReserved.Null)),
+	            call);
+	    }
+	    if (match(ctx,null,".",null,"@",null,"(",")")){
+	      return create.invokation(convert(ctx,0),forceClassType(convert(ctx,4)), getIdentifier(ctx,2));
+	    }
+	    if (match(ctx,null,".",null,"@",null,"(",null,")")){
+	      ASTNode args[]=convert_list((ParserRuleContext)(ctx.getChild(6)),",");
+	      return create.invokation(convert(ctx,0),forceClassType(convert(ctx,4)), getIdentifier(ctx,2),args);
+	    }
+	    if (match(ctx,null,"@",null,"(",")")){
+	      return create.invokation(null,forceClassType(convert(ctx,2)), getIdentifier(ctx,0));
+	    }
+	    if (match(ctx,null,"@",null,"(",null,")")){
+	      ASTNode args[]=convert_list((ParserRuleContext)(ctx.getChild(4)),",");
+	      return create.invokation(null,forceClassType(convert(ctx,2)), getIdentifier(ctx,0),args);
+	    }
+	    return null;
+	  }
 
   @Override
   public ASTNode visitExpressionList(ExpressionListContext ctx) {

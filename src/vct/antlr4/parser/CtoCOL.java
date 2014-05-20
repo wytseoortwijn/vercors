@@ -580,8 +580,14 @@ public class CtoCOL extends AbstractCtoCOL implements CVisitor<ASTNode> {
 
   @Override
   public ASTNode visitLabeledStatement(LabeledStatementContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
+    // TODO Auto-generated method stub	  	
+	  if (match(ctx,null,":",null))		  
+	  {//DRB			  		  
+		  ASTNode res = convert(ctx,2);
+		  res.addLabel(create.label(ctx.getChild(0).getText()));
+		  return res; 		  		  		  	   
+	  }	  
+      return null;
   }
 
   @Override
@@ -689,7 +695,15 @@ public class CtoCOL extends AbstractCtoCOL implements CVisitor<ASTNode> {
 
   @Override
   public ASTNode visitStatement(StatementContext ctx) {
-    // TODO Auto-generated method stub
+    // TODO Auto-generated method stub	 
+	 /* System.out.printf("\n%s\n",ctx.getText());
+	  
+	  if (match(ctx,null,":",null))		  
+	  {			  
+		  System.out.println("sssssssssssssssssssss");
+		  ASTNode A;		  
+		  return null;	      
+	  }*/
     return null;
   }
 
