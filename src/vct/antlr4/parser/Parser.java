@@ -13,6 +13,7 @@ import org.antlr.v4.runtime.tree.ParseTree;
 
 import pv.parser.PVFullLexer;
 import pv.parser.PVFullParser;
+import vct.java.printer.JavaDialect;
 import vct.java.printer.JavaSyntax;
 import vct.parsers.*;
 import vct.util.Configuration;
@@ -171,12 +172,13 @@ public class Parser implements vct.col.util.Parser {
         ProgramUnit pu=new ProgramUnit();
         pu.add(cu);
         pu=new CommentRewriter(pu,new JMLCommentParser()).rewriteAll();
-        //JavaSyntax.getJavaJML().print(System.out, pu);
         pu=new FlattenVariableDeclarations(pu).rewriteAll();
-        //JavaSyntax.getJavaJML().print(System.out, pu);
         pu=new SpecificationCollector(pu).rewriteAll();
+        //vct.util.Configuration.getDiagSyntax().print(System.out,pu);
         pu=new JavaPostProcessor(pu).rewriteAll();
+        //vct.util.Configuration.getDiagSyntax().print(System.out,pu);
         pu=new AnnotationInterpreter(pu).rewriteAll();
+        //vct.util.Configuration.getDiagSyntax().print(System.out,pu);
         if (pu.size()!=1){
           Fail("bad program unit size");
         }

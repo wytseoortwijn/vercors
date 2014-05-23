@@ -552,15 +552,15 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     case LT:
     case GT:
     {
-      Type res=new PrimitiveType(Sort.Byte);
       Type t1=e.getArg(0).getType();
       if (t1==null) Fail("type of left argument unknown at %s",e.getOrigin());
-      if (!t1.supertypeof(null, res)) Fail("type of first argument of %s is wrong at %s",op,e.getOrigin());
+      if (!t1.isNumeric()){
+        Fail("First argument of %s is %s rather than a numeric type",op,t1);
+      }
       Type t2=e.getArg(1).getType();
       if (t2==null) Fail("type of right argument unknown at %s",e.getOrigin());
-      if (!t2.supertypeof(null, res)) Fail("type of second argument of %s is wrong at %s",op,e.getOrigin());
-      if (t1.getClass()!=t2.getClass()) {
-        Fail("Types of left and right-hand side argument are uncomparable at %s",e.getOrigin());
+      if (!t2.isNumeric()){
+        Fail("Second argument of %s is %s rather than a numeric type",op,t2);
       }
       e.setType(new PrimitiveType(Sort.Boolean));      
       break;

@@ -13,7 +13,7 @@ package pv.parser;
 
 program  : (claz|kernel)* (block)? ;
 
-claz : 'class' ID '{'( field | method | function /* | predicate | invariant | function */ )* '}' ;
+claz : 'class' ID '{'( field | method | function | constructor )* '}' ;
 
 kernel : 'kernel' ID '{' ( kernel_field | method | function )* '}' ;
 
@@ -24,6 +24,8 @@ field : type ID ( ',' ID )* ';' ;
 function : contract 'static'? type ID '(' args ')' '=' expr ';' ;
 
 method : contract type ID '(' args ')' block ;
+
+constructor : contract ID '(' args ')' block ;
 
 contract :
  ( 'requires' expr ';'
@@ -36,6 +38,9 @@ args : type ID ( ',' type ID )* | ;
 
 expr
  : lexpr
+ | ID ':' expr
+ | expr 'with' block 
+ | expr 'then' block 
  | ('!'|'-') expr
  | expr '^^' expr
  | expr ('*'|'/'|'%') expr
@@ -50,13 +55,14 @@ expr
  | (lexpr | 'Value' | 'Perm' | 'PointsTo' | '\\old' | '?' ) tuple
  | '(' ('\\exists'|'\\forall'|'\\forall*') type ID ';' expr (';' expr )? ')'
  | '(' expr ')'
- | 'new' ID
+ | 'new' ID tuple
  | 'null'
  | 'true'
  | 'false'
  | '\\result'
  | ID
  | NUMBER
+ | '[' type ( ',' expr )* ']'
  ;
 
 tuple : '(' ( | expr (',' expr)*) ')';
@@ -73,10 +79,11 @@ statement
  | 'unfold' expr ';'
  | 'assert' expr ';' 
  | 'assume' expr ';' 
+ | 'witness' expr ';' 
  | 'if' '(' expr ')' block ( 'else' block )?
  | 'barrier' '(' fence_list ')' '{' contract '}' 
  | invariant 'while' '(' expr ')' block
- | lexpr tuple ';'
+ | expr ';'
  | block
  | type ID ('=' expr | (',' ID)* ) ';'
  | lexpr '=' expr ';'
@@ -85,11 +92,14 @@ statement
 
 fence_list : ( 'local' | 'global' )* ;
 
-invariant : ( 'invariant' expr ';' )* ;
+invariant : ( 'loop_invariant' expr ';' )* ;
 
 lexpr : ('this' | 'result' | ID ) ('.' ID | '[' expr ']' )* ; 
 
-type : ('int' | ID ) ('[' expr ']')*;
+type
+ : ('int' | ID ) ('[' expr ']')*
+ | 'seq' '<' type '>'
+ ;
 
 ID  : ('a'..'z'|'A'..'Z') ('a'..'z'|'A'..'Z'|'0'..'9'|'_')*;
 NUMBER : ('0'..'9')+;
