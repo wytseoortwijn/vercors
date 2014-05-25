@@ -53,6 +53,7 @@ import vct.col.rewrite.Standardize;
 import vct.col.rewrite.StripConstructors;
 import vct.col.rewrite.VoidCalls;
 import vct.col.rewrite.WandEncoder;
+import vct.col.util.ASTFactory;
 import vct.col.util.FeatureScanner;
 import vct.col.util.SimpleTypeCheck;
 import vct.java.printer.JavaDialect;
@@ -417,6 +418,9 @@ public class Main
     }
     if (!(boogie.get() || chalice.get() || silicon.get() || dafny.get() || verifast.get() || pass_list.iterator().hasNext())) {
       Fail("no back-end or passes specified");
+    }
+    if (verifast.get()){
+      ASTFactory.fullPermission=1;
     }
     Progress("parsing inputs...");
     int cnt = 0;
