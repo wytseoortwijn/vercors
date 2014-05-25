@@ -8,6 +8,7 @@ import vct.col.ast.*;
 import vct.col.ast.ASTClass.ClassKind;
 import vct.col.ast.BindingExpression.Binder;
 import vct.col.ast.PrimitiveType.Sort;
+import vct.util.Configuration;
 import hre.ast.Origin;
 import hre.util.FrameControl;
 import hre.util.FrameReference;
@@ -89,7 +90,9 @@ public class ASTFactory<E> implements FrameControl {
     cl.add_dynamic(cons);
     leave();
   }
-  
+ 
+  public static int fullPermission=100;
+
   public void addZeroConstructor(ASTClass cl){
     enter();
     setOrigin(cl.getOrigin());
@@ -101,7 +104,7 @@ public class ASTFactory<E> implements FrameControl {
       cb.ensures(expression(
            StandardOperator.PointsTo,
            field_name(field.getName()),
-           constant(100),
+           constant(fullPermission),
            zero
       ));
       body.add_statement(assignment(field_name(field.getName()),zero));

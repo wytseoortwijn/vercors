@@ -97,7 +97,7 @@ invariant : ( 'loop_invariant' expr ';' )* ;
 lexpr : ('this' | 'result' | ID ) ('.' ID | '[' expr ']' )* ; 
 
 type
- : ('int' | ID ) ('[' expr ']')*
+ : ('int' | ID ) ('[' expr? ']')*
  | 'seq' '<' type '>'
  ;
 

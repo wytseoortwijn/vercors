@@ -44,6 +44,7 @@ import vct.col.ast.Contract;
 import vct.col.ast.ContractBuilder;
 import vct.col.ast.DeclarationStatement;
 import vct.col.ast.Dereference;
+import vct.col.ast.Method;
 import vct.col.ast.NameExpression;
 import vct.col.ast.ParallelBarrier;
 import vct.col.ast.ProgramUnit;
@@ -287,10 +288,15 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
     } else {
       Fail("unknown type %s",ctx.toStringTree());
     }
-    int N=ctx.children.size()/3;
-    for(int i=0;i<N;i++){
-      if (match(3*i+1,true,ctx,"[","ExprContext","]")){
-        res=create.primitive_type(Sort.Array,res,convert(ctx.children.get(3*i+2)));
+    int N=ctx.children.size();
+    int i=1;
+    while(i<N){
+      if (match(i,true,ctx,"[","ExprContext","]")){
+        res=create.primitive_type(Sort.Array,res,convert(ctx.children.get(i+1)));
+        i+=3;
+      } else if (match(i,true,ctx,"[","]")) {
+        res=create.primitive_type(Sort.Array,res);
+        i+=2;
       } else {
         Fail("unknown type %s",ctx.toStringTree());
       }

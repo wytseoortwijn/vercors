@@ -56,6 +56,10 @@ public class Parser implements vct.col.util.Parser {
         if (pu.size()!=1){
           Fail("bad program unit size");
         }
+        pu=new PVLPostProcessor(pu).rewriteAll();
+        if (pu.size()!=1){
+          Fail("bad program unit size");
+        }
         return pu.get(0);
       } catch (FileNotFoundException e) {
         Fail("File %s has not been found",file_name);
