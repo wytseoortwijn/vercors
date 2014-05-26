@@ -66,6 +66,7 @@ public class JavaSyntax extends Syntax {
   }
   
   private static  void setCommon(Syntax syntax){
+    syntax.addOperator(NewArray,-1,"new ","[","]");
     syntax.addOperator(Subscript,145,"","[","]"); // TODO: check if relative order to Select is OK!
     syntax.addOperator(Cast,145,"((",")",")");
     

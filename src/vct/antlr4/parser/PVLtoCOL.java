@@ -228,6 +228,11 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
       String name=getIdentifier(ctx,1);
       return create.invokation(create.class_type(name), null,  name, args);
     }
+    if (match(ctx,"new",null,"[",null,"]")){
+      Type t=checkType(convert(ctx,1));
+      ASTNode size=convert(ctx,3);
+      return create.new_array(t,size);
+    }
     if (match(ctx,"(","\\forall*",null,null,";",null,";",null,")")){
       return create.starall(convert(ctx,5),convert(ctx,7),create.field_decl(getIdentifier(ctx,3),(Type)convert(ctx,2)));
     }

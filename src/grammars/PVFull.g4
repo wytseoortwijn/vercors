@@ -56,6 +56,7 @@ expr
  | '(' ('\\exists'|'\\forall'|'\\forall*') type ID ';' expr (';' expr )? ')'
  | '(' expr ')'
  | 'new' ID tuple
+ | 'new' type '[' expr ']'
  | 'null'
  | 'true'
  | 'false'
@@ -94,7 +95,7 @@ fence_list : ( 'local' | 'global' )* ;
 
 invariant : ( 'loop_invariant' expr ';' )* ;
 
-lexpr : ('this' | 'result' | ID ) ('.' ID | '[' expr ']' )* ; 
+lexpr : ('this' | '\\result' | ID ) ('.' ID | '[' expr ']' )* ; 
 
 type
  : ('int' | ID ) ('[' expr? ']')*

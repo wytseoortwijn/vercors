@@ -183,6 +183,8 @@ public enum StandardOperator {
   Continue(1),
   /** Create a new uninitialized object */
   New(1),
+  /** Create a new uninitialized array */
+  NewArray(2),
   /** Length of an array */
   Length(1),
   /** Get the size of a container, such as a sequence. */

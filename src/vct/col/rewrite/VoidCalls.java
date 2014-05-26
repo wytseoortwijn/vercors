@@ -25,6 +25,17 @@ public class VoidCalls extends AbstractRewriter {
     super(source);
   }
   
+  /* TODO: we have a serious order bug, where
+   * statements about result are made before result is assigned.
+  public void visit(NameExpression e){
+    if (e.isReserved(ASTReserved.Result)){
+      result=create.unresolved_name("sys__result");
+    } else {
+      super.visit(e);;
+    }
+  }
+  */
+  
   public void visit(Method m){
     switch(m.kind){
     case Predicate:

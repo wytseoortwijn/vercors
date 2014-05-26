@@ -336,6 +336,17 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       e.setType(new PrimitiveType(Sort.Boolean));
       break;
     }
+    case NewArray:
+    {
+      Type t1=(Type)e.getArg(0);
+      Type t2=e.getArg(1).getType();
+      if (t2==null) Fail("type of subscript unknown at %s",e.getOrigin());
+      if (!t2.isInteger()) {
+        Fail("subcript has type %s rather than integer",t2);
+      }
+      e.setType(new PrimitiveType(Sort.Array,t1));
+      break;
+    }
     case Implies:
     {
       Type t1=e.getArg(0).getType();
@@ -754,7 +765,7 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
         e.setType((Type)object_type.getArg(0));
         return;
       }
-      Fail("%s is not a pseudo field.",e.field);
+      Fail("%s is not a pseudo field of (%s).",e.field,object_type);
     }
     if (!(object_type instanceof ClassType)) {
       Fail("cannot select member %s of non-object type %s",e.field,object_type.getClass());

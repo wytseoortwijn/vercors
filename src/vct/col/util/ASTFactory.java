@@ -832,4 +832,8 @@ public ASTNode arrow_type(Type[] types, Type tgt) {
   return res;
 }
 
+public ASTNode new_array(Type t, ASTNode size) {
+  return expression(StandardOperator.NewArray,t,size);
+}
+
 }
