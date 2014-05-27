@@ -48,6 +48,9 @@ public class JavaSyntax extends Syntax {
         syntax.addLeftFix(Exp,"^^",125);
         syntax.addLeftFix(StructSelect,".",-1);
         syntax.addOperator(HoarePredicate,-1,"/*{","}*/");
+
+        syntax.addOperator(Member,45,"","in","");
+
         JavaVerCorsSyntax=syntax;        
       }
       return JavaVerCorsSyntax;

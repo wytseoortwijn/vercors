@@ -195,6 +195,8 @@ public enum StandardOperator {
   Cons(2),
   /** append two lists */
   Append(2),
+  /** check if an element is a member of a container. */
+  Member(2),
   AddrOf(1),
   /** head of a list. */
   Head(1),

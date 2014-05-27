@@ -33,6 +33,7 @@ public class BoogieSyntax extends Syntax {
   private static BoogieSyntax dafny;
   
   private static void setCommon(Syntax syntax){
+    
     syntax.addPrefix(Not,"!",130);
     syntax.addPrefix(UMinus,"-",130);
     syntax.addPrefix(UPlus,"+",130);
@@ -89,6 +90,7 @@ public class BoogieSyntax extends Syntax {
       chalice.addOperator(Subscript,0,"(",")[","]");
       chalice.addLeftFix(Append,"++",100);
       
+      chalice.addOperator(Member,45,"","in","");
       chalice.addReserved(This,"this");
       chalice.addReserved(Null,"null");
       chalice.addReserved(Any,"*");

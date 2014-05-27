@@ -49,6 +49,7 @@ expr
  | expr ( '==' | '!=' ) expr
  | expr ('&&' | '**') expr
  | expr ('||' | '==>') expr
+ | expr 'in' expr
  | expr '?' expr ':' expr
  | '?' ID
  | lexpr '->' ID tuple
@@ -64,6 +65,7 @@ expr
  | ID
  | NUMBER
  | '[' type ( ',' expr )* ']'
+ | '|' expr '|'
  ;
 
 tuple : '(' ( | expr (',' expr)*) ')';

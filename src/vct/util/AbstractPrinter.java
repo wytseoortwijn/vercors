@@ -146,12 +146,12 @@ public class AbstractPrinter extends AbstractVisitor {
       }      
       out.print(op_syntax[2]);
     } else {
-      if (op_syntax[0].length()>0) out.printf("%s ",op_syntax[0]);
+      if (op_syntax[0]!=null && op_syntax[0].length()>0) out.printf("%s ",op_syntax[0]);
       for(int i=0;i<N;i++){
         if (i>0) out.printf(" %s ",op_syntax[i]);
         args[i].accept(this);
       }
-      if (op_syntax[N].length()>0) out.printf(" %s",op_syntax[N]);
+      if (op_syntax[0]!=null && op_syntax[N].length()>0) out.printf(" %s",op_syntax[N]);
     }
   }
 

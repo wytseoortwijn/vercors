@@ -35,8 +35,10 @@ public class PVLSyntax {
       syntax.addFunction(PointsTo,"PointsTo");
       //syntax.addFunction(ArrayPerm,"ArrayPerm");
       syntax.addFunction(Old,"\\old");
+
+      syntax.addOperator(Size,-1,"|","|");
+      syntax.addOperator(Member,45,"","in","");
 /*
-      syntax.addOperator(Size,999,"|","|");
       syntax.addOperator(Nil,999,"nil<",">");
       syntax.addOperator(Subscript,145,"","[","]"); // TODO: check if relative order to Select is OK!
       syntax.addOperator(Cast,145,"((",")",")");

@@ -7,13 +7,12 @@ import vct.col.ast.CompilationUnit;
 import vct.col.ast.PrimitiveType.Sort;
 import vct.col.ast.ProgramUnit;
 import vct.col.ast.StandardOperator;
-import vct.util.Syntax.Associativity;
 import hre.HREError;
 import hre.ast.TrackingOutput;
 
 import java.io.PrintStream;
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.EnumMap;
@@ -172,7 +171,12 @@ public class Syntax {
   
   public void addOperator(StandardOperator op,int precedence,final String ... full_syntax){
     precedence_map.put(op,precedence);
-    syntax_map.put(op,full_syntax);
+    for(int i=0;i<full_syntax.length;i++){
+      if (full_syntax[i]==null){
+        hre.System.Abort("syntax of %s contain null at position %d",op,i);
+      }
+    }
+    syntax_map.put(op,Arrays.copyOf(full_syntax,full_syntax.length));
     associativity_map.put(op,Associativity.None);
     ArrayList<String> pattern=new ArrayList<String>();
     //System.err.printf("pattern for operator %s is:",op);
