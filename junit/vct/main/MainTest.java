@@ -8,8 +8,6 @@ import hre.util.TestReport.Verdict;
 import java.io.File;
 import java.net.URL;
 import java.security.Permission;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.Semaphore;
 
 import junit.framework.TestCase;
@@ -22,36 +20,8 @@ import vct.util.Configuration;
 
 import com.google.code.tempusfugit.concurrency.ConcurrentTestRunner;
 
-class VCTResult {
-  public Verdict verdict=null;
-  public final List<Message> log=new ArrayList<Message>();
-  public void mustSay(String string) {
-    for(Message msg:log){
-      if (msg.getFormat().equals("stdout: %s")||msg.getFormat().equals("stderr: %s")){
-        if (((String)msg.getArg(0)).indexOf(string)>=0) return;
-      }
-    }
-    fail("expected output "+string+" not found");
-  };
-  public void checkVerdict(Verdict res){
-    if (verdict != res) fail("bad result : "+verdict);
-  }
-}
-
 @RunWith(ConcurrentTestRunner.class) 
-public class MainTest extends TestCase {
-  
-  private static Semaphore sem=new Semaphore(Runtime.getRuntime().availableProcessors());
-  
-  public void sem_get(){
-    try {
-      sem.acquire();
-    } catch (InterruptedException e) {
-      fail("test interrupted");
-      return;
-    }
-   
-  }
+public class MainTest extends ToolTest {
   
   @Test
   public void testBoogieExample(){
@@ -383,99 +353,6 @@ testReentrantLock (){
     } finally {
       sem.release();
     }
-  }
-  
-  @Test
-  public void testDafnyIncr(){
-    sem_get();
-    try {
-      VCTResult res=run("vct","--dafny","//java_examples/DafnyIncr.java");
-      res.checkVerdict(Verdict.Pass);
-    } finally {
-      sem.release();
-    }
-  }
-  @Test
-  public void testDafnyIncrE1(){
-    sem_get();
-    try {
-      VCTResult res=run("vct","--dafny","//java_examples/DafnyIncrE1.java");
-      res.checkVerdict(Verdict.Fail);
-    } finally {
-      sem.release();
-    }
-  }
-  
-  @Test
-  public void testOutputBinderPVL(){
-    sem_get();
-    try {
-      VCTResult res=run("vct","--verifast","//pvl_examples/outputbinder.pvl");
-      res.checkVerdict(Verdict.Pass);
-    } finally {
-      sem.release();
-    }
-  }
-  
-  @Test
-  public void testOutputBinderPVLerr1(){
-    sem_get();
-    try {
-      VCTResult res=run("vct","--verifast","//pvl_examples/outputbinder-e1.pvl");
-      res.checkVerdict(Verdict.Fail);
-    } finally {
-      sem.release();
-    }
-  }
-  
-
-  public VCTResult run(String ... args){
-    VCTResult res=new VCTResult();
-    ClassLoader loader=Configuration.class.getClassLoader();
-    URL url=loader.getResource("vct/util/Configuration.class");
-    File f=new File(url.getFile());
-    for(int i=0;i<5;i++) f=f.getParentFile();
-    System.err.printf("home is %s%n", f);
-    String OS=System.getProperty("os.name");
-    String vct;
-    if (OS.startsWith("Windows")){
-      vct=f+"/windows/bin/";
-    } else {
-      vct=f+"/unix/bin/";
-    }
-    args[0]=vct+args[0];
-    for(int i=1;i<args.length;i++){
-      if (args[i].startsWith("//")){
-        args[i]=f+args[i].substring(1);
-      }
-    }
-    MessageProcess p=new MessageProcess(args);
-    for(;;){
-      Message msg=p.recv();
-      res.log.add(msg);
-      if (msg==null){
-        fail("unexpected null message");
-      }
-      System.err.printf(msg.getFormat(), msg.getArgs());
-      System.err.println();
-      if (msg.getFormat().equals("exit %d")){
-        int n=(Integer)msg.getArg(0);
-        if (n>0){
-          fail("bad exit status "+n);
-        }
-        break;
-      }
-      if (((String)msg.getArg(0)).contains("The final verdict is Pass")){
-        if (res.verdict!=null) fail("repeated verdict");
-        res.verdict=Verdict.Pass;
-      }
-      if (((String)msg.getArg(0)).contains("The final verdict is Fail")){
-        if (res.verdict!=null) fail("repeated verdict");
-        res.verdict=Verdict.Fail;
-      }
-    }
-    if (res.verdict==null) fail("missing verdict");
-    return res;
   }
 
 }
