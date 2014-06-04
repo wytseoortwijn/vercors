@@ -15,6 +15,7 @@ import vct.java.printer.JavaDialect;
 import vct.java.printer.JavaSyntax;
 import hre.config.BooleanSetting;
 import hre.config.OptionParser;
+import hre.config.StringListSetting;
 import hre.config.StringSetting;
 import hre.io.Message;
 import hre.io.ModuleShell;
@@ -27,7 +28,12 @@ import hre.io.ModuleShell;
 public class Configuration {
 
   /**
-   * Switch behavior of witenss encoding.
+   * 
+   */
+  public static final StringListSetting modulepath;
+  
+  /**
+   * Switch behavior of witness encoding.
    */
   public static final BooleanSetting witness_constructors=new BooleanSetting(true);
   
@@ -73,6 +79,16 @@ public class Configuration {
   public static final BooleanSetting enable_post_check=new BooleanSetting(true);
   
   /**
+   * The include path passed to the C pre processor.
+   */
+  public static final StringListSetting cpp_include_path=new StringListSetting();
+  
+  /**
+   * The command that invokes the C pre processor.
+   */
+  public static final StringSetting cpp_command=new StringSetting("clang -C -E");
+  
+  /**
    * Add the VCT library options to the given option parser.
    * @param clops Option parser.
    */
@@ -81,6 +97,7 @@ public class Configuration {
     clops.add(detailed_errors.getEnable("produce detailed error messages"),"detail");
     clops.add(backend_file.getAssign("filename for storing the back-end input"),"encoded");
     clops.add(vct.boogie.Main.boogie_module.getAssign("name of the boogie environment module"),"boogie-module");
+    clops.add(vct.boogie.Main.dafny_module.getAssign("name of the dafny environment module"),"dafny-module");
     clops.add(vct.boogie.Main.boogie_timeout.getAssign("boogie time limit"),"boogie-limit");
     clops.add(vct.boogie.Main.chalice_module.getAssign("name of the chalice environment module"),"chalice-module");
 //    clops.add(pvl_type_check.getDisable("disable type check in PVL parser"),"no-pvl-check");
@@ -89,12 +106,16 @@ public class Configuration {
     clops.add(enable_post_check.getDisable("disable barrier post check during kernel verification"),"disable-post-check");
     clops.add(witness_constructors.getEnable("use constructors for witnesses"),"witness-constructors");
     clops.add(witness_constructors.getDisable("inline constructors for witnesses"),"witness-inline");
+    clops.add(Configuration.modulepath.getAppendOption("configure path for finding back end modules"),"module-path");
+    clops.add(cpp_command.getAssign("set the C Pre Processor command"),"cpp");
+    clops.add(cpp_include_path.getAppendOption("add to the CPP include path"),'I',"include");
   }
 
-  
+  /**
+   * Contains the absolute path to the home of the tool set installation.
+   */
   private static Path home;
-  private static Path generic_deps;
-  private static Path system_deps;
+  
   private static boolean windows;
   static {
     String tmp=System.getenv("VCT_HOME");
@@ -112,28 +133,8 @@ public class Configuration {
     if (!home.toFile().isDirectory()){
       throw new Error("VCT_HOME value "+tmp+" is not a directory");
     }
-    generic_deps=home.resolve(Paths.get("deps","generic","modules"));
-    String OS=System.getProperty("os.name");
-    String arch=System.getProperty("os.arch");
-    if(windows=OS.startsWith("Windows")){
-      system_deps=home.resolve(Paths.get("deps","Windows","modules"));
-    } else if (OS.equals("Linux")){
-      switch(arch){
-      case "x86":
-        system_deps=home.resolve(Paths.get("deps","Linux-i386","modules"));
-        break;
-      case "amd64":
-        system_deps=home.resolve(Paths.get("deps","Linux-x86_64","modules"));
-        break;
-      default:
-        throw new Error("unknown "+OS+"architecure: "+arch);
-      }
-    } else if (OS.equals("Mac OS X")||OS.equals("Darwin")){
-      system_deps=home.resolve(Paths.get("deps","Darwin-x86_64","modules"));
-    } else {
-      throw new Error("The "+OS+" Operating System is not supported");
-    }
-
+    Path module_deps=home.getParent().getParent().resolve(Paths.get("modules"));
+    modulepath=new StringListSetting(module_deps.toString());
   }
 
   /**
@@ -151,7 +152,10 @@ public class Configuration {
     ModuleShell shell;
     try {
       //System.err.printf("home: %s%ngeneric:%s%nsystem:%s%n",getHome(),generic_deps,system_deps);
-      shell = new ModuleShell(getHome().resolve(Paths.get("modules")),generic_deps,system_deps);
+      shell = new ModuleShell(getHome().resolve(Paths.get("modules")));
+      for (String p:modulepath){
+        shell.send("module use %s",p);
+      }
       for (String m:modules){
         shell.send("module load %s",m);
       }

@@ -1,12 +1,16 @@
 package vct.col.util;
 
+import java.util.EnumSet;
+
 import vct.col.ast.ASTClass;
 import vct.col.ast.ASTNode;
 import vct.col.ast.Contract;
 import vct.col.ast.LoopStatement;
+import vct.col.ast.OperatorExpression;
 import vct.col.ast.ParallelBlock;
 import vct.col.ast.PrimitiveType.Sort;
 import vct.col.ast.RecursiveVisitor;
+import vct.col.ast.StandardOperator;
 import vct.col.ast.Type;
 
 public class FeatureScanner extends RecursiveVisitor<Object> {
@@ -22,6 +26,12 @@ public class FeatureScanner extends RecursiveVisitor<Object> {
   private boolean has_inheritance=false;
   private boolean has_kernels=false;
   private boolean has_iteration_contracts=false;
+  private EnumSet<StandardOperator> ops_used=EnumSet.noneOf(StandardOperator.class);
+  
+  
+  public boolean usesOperator(StandardOperator op){
+    return ops_used.contains(op);
+  }
   
   public boolean usesDoubles(){
     return has_doubles;
@@ -95,5 +105,9 @@ public class FeatureScanner extends RecursiveVisitor<Object> {
     if (c!=null){
       has_iteration_contracts=(c.pre_condition != c.default_true || c.post_condition != c.default_true);
     }
+  }
+  
+  public void visit(OperatorExpression e){
+    ops_used.add(e.getOperator());
   }
 }

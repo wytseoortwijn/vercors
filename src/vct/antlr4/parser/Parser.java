@@ -13,8 +13,10 @@ import org.antlr.v4.runtime.tree.ParseTree;
 
 import pv.parser.PVFullLexer;
 import pv.parser.PVFullParser;
+import vct.java.printer.JavaDialect;
 import vct.java.printer.JavaSyntax;
 import vct.parsers.*;
+import vct.util.Configuration;
 import vct.col.ast.ASTClass;
 import vct.col.ast.ASTClass.ClassKind;
 import vct.col.ast.ASTNode;
@@ -31,7 +33,7 @@ public class Parser implements vct.col.util.Parser {
 
   @Override
   public CompilationUnit parse(File file) {
-    String file_name=file.getName();
+    String file_name=file.toString();
     if (file_name.endsWith(".pvl")){
       try {
         ANTLRInputStream input = new ANTLRInputStream(new FileInputStream(file));
@@ -51,6 +53,10 @@ public class Parser implements vct.col.util.Parser {
         ProgramUnit pu=new ProgramUnit();
         pu.add(cu);
         pu=new FlattenVariableDeclarations(pu).rewriteAll();
+        if (pu.size()!=1){
+          Fail("bad program unit size");
+        }
+        pu=new PVLPostProcessor(pu).rewriteAll();
         if (pu.size()!=1){
           Fail("bad program unit size");
         }
@@ -105,17 +111,16 @@ public class Parser implements vct.col.util.Parser {
     } else if (file_name.endsWith(".c")||file_name.endsWith(".cl")){
       try {
         Runtime runtime=Runtime.getRuntime();
-        
-    	Progress("pre-processing %s",file_name);
-      
-    	// the cpp pre processor turns \r\n line endings into \n\n !
-    	// hence, we use may have to use clang
-    	
-    	//Process process=runtime.exec("clang -E -C -I. "+file_name);
-    	Process process=runtime.exec("cpp -C -I. "+file_name);
-
-        //ANTLRInputStream input = new ANTLRInputStream(new FileInputStream(file));
-        
+                    	
+      	String command=Configuration.cpp_command.get();
+      	for(String p:Configuration.cpp_include_path){
+      	  command+=" -I"+p;
+      	}
+      	command+=" "+file_name;
+      	
+      	Progress("pre-processing command line: %s",command);
+      	Process process=runtime.exec(command);
+          
         ANTLRInputStream input = new ANTLRInputStream(process.getInputStream());
         
         CLexer lexer = new CLexer(input);
@@ -171,12 +176,13 @@ public class Parser implements vct.col.util.Parser {
         ProgramUnit pu=new ProgramUnit();
         pu.add(cu);
         pu=new CommentRewriter(pu,new JMLCommentParser()).rewriteAll();
-        //JavaSyntax.getJavaJML().print(System.out, pu);
         pu=new FlattenVariableDeclarations(pu).rewriteAll();
-        //JavaSyntax.getJavaJML().print(System.out, pu);
         pu=new SpecificationCollector(pu).rewriteAll();
+        //vct.util.Configuration.getDiagSyntax().print(System.out,pu);
         pu=new JavaPostProcessor(pu).rewriteAll();
+        //vct.util.Configuration.getDiagSyntax().print(System.out,pu);
         pu=new AnnotationInterpreter(pu).rewriteAll();
+        //vct.util.Configuration.getDiagSyntax().print(System.out,pu);
         if (pu.size()!=1){
           Fail("bad program unit size");
         }

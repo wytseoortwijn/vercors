@@ -30,6 +30,7 @@ specificationModifier
 specificationStatement
     : 'requires' resourceExpression ';'
     | 'ensures' resourceExpression ';'
+    | 'modifies' expressionList ';'
     | 'given' localVariableDeclaration ';'
     | 'yields' localVariableDeclaration ';'
     | 'loop_invariant' resourceExpression ';'

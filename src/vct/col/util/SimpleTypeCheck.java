@@ -336,6 +336,33 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       e.setType(new PrimitiveType(Sort.Boolean));
       break;
     }
+    case Member:
+    {
+      Type t1=e.getArg(0).getType();
+      if (t1==null) Fail("type of left argument unknown at "+e.getOrigin());
+      Type t2=e.getArg(1).getType();
+      if (t2==null) Fail("type of right argument unknown at %s",e.getOrigin());
+      if (t2.isPrimitive(Sort.Sequence)){
+        if (!t1.equals(t2.getArg(0))){
+          Fail("%s cannot be a member of %s",t1,t2);
+        }
+      } else {
+        Fail("cannot determine members of %s",t2);
+      }
+      e.setType(new PrimitiveType(Sort.Boolean));
+      break;
+    }
+    case NewArray:
+    {
+      Type t1=(Type)e.getArg(0);
+      Type t2=e.getArg(1).getType();
+      if (t2==null) Fail("type of subscript unknown at %s",e.getOrigin());
+      if (!t2.isInteger()) {
+        Fail("subcript has type %s rather than integer",t2);
+      }
+      e.setType(new PrimitiveType(Sort.Array,t1));
+      break;
+    }
     case Implies:
     {
       Type t1=e.getArg(0).getType();
@@ -460,6 +487,20 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       e.setType(t);
       break;
     }
+    case Exp:{
+      Type t1=e.getArg(0).getType();
+      if (t1==null) Fail("type of left argument unknown at %s",e.getOrigin());
+      if (!t1.isNumeric()){
+        Fail("First argument of %s is %s rather than a numeric type",op,t1);
+      }
+      Type t2=e.getArg(1).getType();
+      if (t2==null) Fail("type of right argument unknown at %s",e.getOrigin());
+      if (!t2.isInteger()){
+        Fail("Second argument of %s is %s rather than integer",op,t2);
+      }
+      e.setType(t1);
+      break;
+    }
     case Plus:
     { // handle concatenation meaning of +
       Type t1=e.getArg(0).getType();
@@ -538,15 +579,15 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     case LT:
     case GT:
     {
-      Type res=new PrimitiveType(Sort.Byte);
       Type t1=e.getArg(0).getType();
       if (t1==null) Fail("type of left argument unknown at %s",e.getOrigin());
-      if (!t1.supertypeof(null, res)) Fail("type of first argument of %s is wrong at %s",op,e.getOrigin());
+      if (!t1.isNumeric()){
+        Fail("First argument of %s is %s rather than a numeric type",op,t1);
+      }
       Type t2=e.getArg(1).getType();
       if (t2==null) Fail("type of right argument unknown at %s",e.getOrigin());
-      if (!t2.supertypeof(null, res)) Fail("type of second argument of %s is wrong at %s",op,e.getOrigin());
-      if (t1.getClass()!=t2.getClass()) {
-        Fail("Types of left and right-hand side argument are uncomparable at %s",e.getOrigin());
+      if (!t2.isNumeric()){
+        Fail("Second argument of %s is %s rather than a numeric type",op,t2);
       }
       e.setType(new PrimitiveType(Sort.Boolean));      
       break;
@@ -740,7 +781,7 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
         e.setType((Type)object_type.getArg(0));
         return;
       }
-      Fail("%s is not a pseudo field.",e.field);
+      Fail("%s is not a pseudo field of (%s).",e.field,object_type);
     }
     if (!(object_type instanceof ClassType)) {
       Fail("cannot select member %s of non-object type %s",e.field,object_type.getClass());

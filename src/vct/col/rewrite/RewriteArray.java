@@ -337,6 +337,46 @@ public class RewriteArray extends AbstractRewriter {
       result=create.expression(StandardOperator.Size,copy_rw.rewrite(e.getArg(0)));
       return;
     }
+    if (e.getOperator()==StandardOperator.NewArray){
+      String name="new_array_"+e.getArg(0).toString();
+      boolean missing=true;
+      for(Method m:currentClass.dynamicMethods()){
+        if (m.name.equals(name)){
+          missing=false;
+          break;
+        }
+      }
+      if (missing){
+        ContractBuilder cb=new ContractBuilder();
+        DeclarationStatement decl=create.field_decl("len",create.primitive_type(Sort.Integer));
+        cb.requires(create.expression(StandardOperator.GTE,create.unresolved_name("len"),create.constant(0)));
+        cb.ensures(create.expression(StandardOperator.EQ,
+            create.expression(StandardOperator.Size,create.reserved_name(ASTReserved.Result)),
+            create.unresolved_name("len")
+        ));
+        cb.ensures(create.forall(
+            create.expression(StandardOperator.And,
+                create.expression(StandardOperator.LTE,create.constant(0),create.unresolved_name("i")),
+                create.expression(StandardOperator.LT,create.unresolved_name("i"),create.unresolved_name("len"))
+            ),
+            create.expression(StandardOperator.NEQ,
+                create.expression(StandardOperator.Subscript,create.reserved_name(ASTReserved.Result),create.unresolved_name("i")),
+                create.reserved_name(ASTReserved.Null)
+            ),    
+            create.field_decl("i",create.primitive_type(Sort.Integer))));
+        cb.ensures(create.expression(StandardOperator.Perm,
+            create.dereference(create.expression(StandardOperator.Subscript,
+                create.reserved_name(ASTReserved.Result),
+                create.reserved_name(ASTReserved.Any)),
+                "item"),
+            create.constant(create.fullPermission)));
+        Type t=create.primitive_type(Sequence,create.primitive_type(Cell,rewrite(e.getArg(0))));
+        currentClass.add_dynamic(create.method_decl(
+            t, cb.getContract(), name, new DeclarationStatement[]{decl}, null));
+      }
+      result=create.invokation(null, null,name,rewrite(e.getArg(1)));
+      return;
+    }    
     super.visit(e);
     if (e.getOperator()==StandardOperator.Subscript && ((PrimitiveType)e.getArg(0).getType()).sort==Array){
        result=create.dereference(result,"item");

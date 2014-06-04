@@ -430,6 +430,9 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
       }
       if (match(ctx,"(",null,")")){
         return convert(ctx,1);
+      } else if (match(ctx,"modifies",null,";")){
+      	ASTNode list[]=convert_list((ParserRuleContext) ctx.getChild(1), ",");
+        return create.special(ASTSpecial.Kind.Modifies,list);
       } else if (match(ctx,"requires",null,";")){                     
         return create.special(ASTSpecial.Kind.Requires,convert(ctx,1));
       } else if (match(ctx,"ensures",null,";")){

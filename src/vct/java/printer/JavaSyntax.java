@@ -45,7 +45,12 @@ public class JavaSyntax extends Syntax {
         JavaSyntax syntax=new JavaSyntax("Java + JML",dialect);
         setCommon(syntax);
         VerCorsSyntax.add(syntax);
+        syntax.addLeftFix(Exp,"^^",125);
         syntax.addLeftFix(StructSelect,".",-1);
+        syntax.addOperator(HoarePredicate,-1,"/*{","}*/");
+
+        syntax.addOperator(Member,45,"","in","");
+
         JavaVerCorsSyntax=syntax;        
       }
       return JavaVerCorsSyntax;
@@ -64,6 +69,7 @@ public class JavaSyntax extends Syntax {
   }
   
   private static  void setCommon(Syntax syntax){
+    syntax.addOperator(NewArray,-1,"new ","[","]");
     syntax.addOperator(Subscript,145,"","[","]"); // TODO: check if relative order to Select is OK!
     syntax.addOperator(Cast,145,"((",")",")");
     

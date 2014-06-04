@@ -6,6 +6,8 @@ public enum StandardOperator {
   UPlus(1),
   /** Unary minus. */
   UMinus(1),
+  /** Exponentiation */
+  Exp(2),
   /** Addition. */
   Plus(2),
   /** Binary minus or subtraction. */
@@ -181,6 +183,8 @@ public enum StandardOperator {
   Continue(1),
   /** Create a new uninitialized object */
   New(1),
+  /** Create a new uninitialized array */
+  NewArray(2),
   /** Length of an array */
   Length(1),
   /** Get the size of a container, such as a sequence. */
@@ -191,6 +195,8 @@ public enum StandardOperator {
   Cons(2),
   /** append two lists */
   Append(2),
+  /** check if an element is a member of a container. */
+  Member(2),
   AddrOf(1),
   /** head of a list. */
   Head(1),
