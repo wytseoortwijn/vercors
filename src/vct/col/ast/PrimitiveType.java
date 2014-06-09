@@ -70,6 +70,9 @@ public final class PrimitiveType extends Type {
   public boolean isBoolean() {
     return sort==Sort.Boolean;
   }
+  public boolean isResource() {
+    return sort==Sort.Resource || sort==Sort.Boolean;
+  }
   public boolean isDouble() {
     return sort==Sort.Double;
   }

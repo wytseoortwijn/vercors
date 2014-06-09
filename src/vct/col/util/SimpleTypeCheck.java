@@ -273,6 +273,9 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
             e.setType(new PrimitiveType(Sort.Integer));
             break;
           default:
+            for(String n:this.variables.keySet()){
+              Debug("var %s: ...",n);
+            }
             Abort("unresolved name %s found during type check at %s",name,e.getOrigin());
         }
         break;
@@ -306,6 +309,13 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     }
     super.visit(e);
     switch(op){
+    case Send:{
+      Type t1=e.getArg(0).getType();
+      if (t1==null) Fail("type of left argument unknown at "+e.getOrigin());
+      if (!t1.isResource()) Fail("type of left argument is %s rather than resource at %s",t1,e.getOrigin());
+      e.setType(new PrimitiveType(Sort.Void));
+      break;
+    }
     case Instance:
     case SubType:
     case SuperType:

@@ -22,6 +22,7 @@ public class NameScanner extends RecursiveVisitor<Object> {
   public void visit(NameExpression e){
     switch(e.getKind()){
       case Reserved: return;
+      case Label: return;
       case Field:
       case Local:
       case Argument:
