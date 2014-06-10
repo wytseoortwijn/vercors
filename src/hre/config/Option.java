@@ -10,4 +10,6 @@ public interface Option {
 
   public String getHelp();
 
+  public boolean used();
+
 }

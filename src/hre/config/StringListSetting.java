@@ -68,6 +68,7 @@ public class StringListSetting implements Iterable<String> {
      * The first time strings are added, the default value is erased.
      */
     public void pass(String arg){
+      used=true;
       if (!override){
         override=true;
         list.clear();

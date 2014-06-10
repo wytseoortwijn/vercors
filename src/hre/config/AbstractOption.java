@@ -28,5 +28,11 @@ public abstract class AbstractOption implements Option {
   public String getHelp(){
     return help;
   }
+  
+  protected boolean used=false;
+  
+  public boolean used(){
+    return used;
+  }
 
 }

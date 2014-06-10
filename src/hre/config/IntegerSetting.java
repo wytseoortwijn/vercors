@@ -17,6 +17,7 @@ public class IntegerSetting {
       this.about=about;
     }
     public void pass(String value){
+      used=true;
       about.value=Integer.parseInt(value);
     }
   }

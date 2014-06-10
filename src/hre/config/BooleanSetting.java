@@ -15,6 +15,7 @@ public class BooleanSetting {
       super(false,help);
     }
     public void pass(){
+      used=true;
       value=true;
     }
   }
@@ -23,6 +24,7 @@ public class BooleanSetting {
       super(false,help);
     }
     public void pass(){
+      used=true;
       value=false;
     }
   }
@@ -31,6 +33,7 @@ public class BooleanSetting {
       super(true,help);
     }
     public void pass(String value){
+      used=true;
       if (value.equalsIgnoreCase("true")||value.equalsIgnoreCase("on")){
         set(true);
       } else if (value.equalsIgnoreCase("false")||value.equalsIgnoreCase("off")){

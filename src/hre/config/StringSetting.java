@@ -17,6 +17,7 @@ public class StringSetting {
       this.about=about;
     }
     public void pass(String value){
+      used=true;
       about.value=value;
     }
   }

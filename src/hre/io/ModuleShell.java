@@ -16,6 +16,10 @@ public class ModuleShell {
   private MessageProcess shell;
   public Path shell_dir;
   
+  public MessageProcess getProcess(){
+    return shell;
+  }
+  
   public ModuleShell(Path modules_home,Path ... modules_path) throws IOException{
     shell_dir=Files.createTempDirectory("modsh");
     shell_dir.toFile().deleteOnExit();
