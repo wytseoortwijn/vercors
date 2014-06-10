@@ -466,6 +466,7 @@ class RewriteArrayArguments extends AbstractRewriter {
   @Override
   public void visit(MethodInvokation e){
     Method m=e.getDefinition();
+    int N=m.getArity();
     Contract c=m.getContract();
     if (c!=null){
       BlockStatement init_block=e.get_before();
@@ -478,6 +479,10 @@ class RewriteArrayArguments extends AbstractRewriter {
           String let_name=given_name+"_"+(++count);
           currentBlock.add_statement(create.field_decl(let_name, rewrite(decl.getType())));
           Hashtable<NameExpression,ASTNode> map=new Hashtable<NameExpression,ASTNode>();
+          map.put(create.reserved_name(ASTReserved.This),e.object);
+          for(int i=0;i<N;i++){
+            map.put(create.argument_name(m.getArgument(i)),e.getArg(i));
+          }
           map.put(create.local_name(given_name),create.local_name(let_name));
           Substitution sigma=new Substitution(source(),map);
           for (ASTNode s:requires_table.get(given_name)){
@@ -495,6 +500,10 @@ class RewriteArrayArguments extends AbstractRewriter {
           String let_name=given_name+"_"+(++count);
           currentBlock.add_statement(create.field_decl(let_name, rewrite(decl.getType())));
           Hashtable<NameExpression,ASTNode> map=new Hashtable<NameExpression,ASTNode>();
+          map.put(create.reserved_name(ASTReserved.This),e.object);
+          for(int i=0;i<N;i++){
+            map.put(create.argument_name(m.getArgument(i)),e.getArg(i));
+          }
           map.put(create.local_name(given_name),create.local_name(let_name));
           Substitution sigma=new Substitution(source(),map);
           ASTNode tmp=create.assignment(create.local_name(let_name),create.label(given_name));

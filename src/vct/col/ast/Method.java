@@ -169,6 +169,55 @@ public class Method extends ASTDeclaration {
     visitor.visit(this);
   }
 
+  public boolean isRecursive() {
+    if (this.body==null) return true;
+    HashSet<Method> scanned=new HashSet();
+    boolean res=find(this,scanned,body);
+    if (res){
+      Warning("function %s is recursive",name);
+    }
+    return res;
+  }
+
+  private boolean find(Method target,HashSet<Method> scanned){
+    if (this==target) return true;
+    if (scanned.contains(this)) return false;
+    scanned.add(this);
+    if (this.body==null) return false;
+    return find(target,scanned,this.body);
+  }
+  
+  private static boolean find(Method target,HashSet<Method> scanned,ASTNode node){
+    if (node instanceof NameExpression) return false;
+    if (node instanceof ConstantExpression) return false;
+    if (node instanceof OperatorExpression){
+      OperatorExpression expr=(OperatorExpression)node;
+      for(ASTNode child:expr.getArguments()){
+        if (find(target,scanned,child)) return true;
+      }
+      return false;
+    }
+    if (node instanceof MethodInvokation){
+      MethodInvokation s=(MethodInvokation)node;
+      if (s.getDefinition()==target) return true;
+      if (find(target,scanned,s.object)) return true;
+      for(ASTNode child:s.getArgs()){
+        if (find(target,scanned,child)) return true;
+      }
+      return s.getDefinition().find(target, scanned);
+    }
+    if (node instanceof Dereference){
+      Dereference expr=(Dereference)node;
+      return find(target,scanned,expr.object);
+    }
+    if (node instanceof BindingExpression){
+      BindingExpression abs=(BindingExpression)node;
+      if (find(target,scanned,abs.main)) return true;
+      return find(target,scanned,abs.select);
+    }
+    Abort("missing case in isRecursive: %s",node.getClass());
+    return true;
+  }
 }
 
 

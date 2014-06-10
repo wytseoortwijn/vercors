@@ -23,7 +23,7 @@ public class InlinePredicatesRewriter extends AbstractRewriter {
       Abort("invokation of undefined method.");
     }
     int N=def.getArity();
-    if (N==0 || def.kind!=Method.Kind.Predicate){
+    if (def.kind!=Method.Kind.Predicate || def.isRecursive()){
       super.visit(e);
     } else {
       HashMap<NameExpression,ASTNode> map=new HashMap<NameExpression, ASTNode>();
@@ -38,7 +38,7 @@ public class InlinePredicatesRewriter extends AbstractRewriter {
 
   @Override
   public void visit(Method m){
-    if (m.getArity()!=0 && m.kind==Method.Kind.Predicate){
+    if (m.kind==Method.Kind.Predicate && !m.isRecursive()){
       result=null;
     } else {
       super.visit(m);

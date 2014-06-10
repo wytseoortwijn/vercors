@@ -203,6 +203,9 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       case Field:{
         VariableInfo info=variables.lookup(name);
         if (info==null) {
+          for(String v:variables.keySet()){
+            Debug("var %s : %s",v,variables.lookup(v).reference.getType());
+          }
           Abort("%s name %s is undefined",kind,name);
         }
         if (info.kind!=kind){
