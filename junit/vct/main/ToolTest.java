@@ -35,11 +35,12 @@ public class ToolTest extends TestCase {
     String OS=System.getProperty("os.name");
     String vct;
     if (OS.startsWith("Windows")){
-      vct=f+"/windows/bin/";
+      vct=f+"\\windows\\bin\\";
+      args[0]=vct+args[0]+".cmd"; //DRB --added
     } else {
       vct=f+"/unix/bin/";
-    }
-    args[0]=vct+args[0];
+      args[0]=vct+args[0]; //DRB --added
+    }       
     for(int i=1;i<args.length;i++){
       if (args[i].startsWith("//")){
         args[i]=f+args[i].substring(1);
