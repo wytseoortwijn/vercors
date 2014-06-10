@@ -22,6 +22,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import org.junit.runner.JUnitCore;
+import org.junit.runner.Result;
+import org.junit.runner.notification.Failure;
+
 import vct.clang.printer.CPrinter;
 import vct.col.annotate.DeriveModifies;
 import vct.col.ast.*;
@@ -120,6 +124,7 @@ public class Main
     OptionParser clops=new OptionParser();
     clops.add(clops.getHelpOption(),'h',"help");
 
+    
     BooleanSetting boogie=new BooleanSetting(false);
     clops.add(boogie.getEnable("select Boogie backend"),"boogie");
     BooleanSetting chalice=new BooleanSetting(false);
@@ -130,6 +135,7 @@ public class Main
     clops.add(verifast.getEnable("select Verifast backend"),"verifast");
     BooleanSetting dafny=new BooleanSetting(false);
     clops.add(dafny.getEnable("select Dafny backend"),"dafny");
+    CommandLineTesting.add_options(clops);
 
     final BooleanSetting separate_checks=new BooleanSetting(false);
     clops.add(separate_checks.getEnable("validate classes separately"),"separate");
@@ -414,6 +420,10 @@ public class Main
       for (Entry<String, ValidationPass> entry:defined_checks.entrySet()){
         System.out.printf(" %-12s : %s%n",entry.getKey(),entry.getValue().getDescripion());
       }
+      System.exit(0);
+    }
+    if (CommandLineTesting.enabled()){
+      CommandLineTesting.run_testsuites();
       System.exit(0);
     }
     if (!(boogie.get() || chalice.get() || silicon.get() || dafny.get() || verifast.get() || pass_list.iterator().hasNext())) {

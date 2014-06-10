@@ -2,10 +2,13 @@ package vct.main;
 
 import hre.io.Message;
 import hre.io.MessageProcess;
+import hre.io.ModuleShell;
 import hre.util.TestReport.Verdict;
 
 import java.io.File;
 import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.concurrent.Semaphore;
 
 import vct.util.Configuration;
@@ -27,26 +30,63 @@ public class ToolTest extends TestCase {
 
   public VCTResult run(String ... args) {
     VCTResult res=new VCTResult();
-    ClassLoader loader=Configuration.class.getClassLoader();
-    URL url=loader.getResource("vct/util/Configuration.class");
-    File f=new File(url.getFile());
-    for(int i=0;i<5;i++) f=f.getParentFile();
+    Path f=Configuration.getHome();
     System.err.printf("home is %s%n", f);
     String OS=System.getProperty("os.name");
-    String vct;
-    if (OS.startsWith("Windows")){
-      vct=f+"\\windows\\bin\\";
-      args[0]=vct+args[0]+".cmd"; //DRB --added
-    } else {
-      vct=f+"/unix/bin/";
-      args[0]=vct+args[0]; //DRB --added
-    }       
     for(int i=1;i<args.length;i++){
       if (args[i].startsWith("//")){
         args[i]=f+args[i].substring(1);
       }
     }
-    MessageProcess p=new MessageProcess(args);
+    MessageProcess p=null;
+    ModuleShell sh=null;
+    switch(args[0]){
+    case "vct":
+      if (OS.startsWith("Windows")){
+        args[0]=f+"\\windows\\bin\\"+args[0]+".cmd"; //DRB --added
+      } else {
+        args[0]=f+"/unix/bin/"+args[0]; //DRB --added
+      }
+      p=new MessageProcess(args);
+      break;
+    case "z3":
+      sh=Configuration.getShell(vct.boogie.Main.z3_module.get());
+      break;
+    case "boogie":
+      sh=Configuration.getShell(
+          vct.boogie.Main.z3_module.get(),
+          vct.boogie.Main.boogie_module.get());
+      break;
+    case "chalice":
+      sh=Configuration.getShell(
+          vct.boogie.Main.z3_module.get(),
+          vct.boogie.Main.boogie_module.get(),
+          vct.boogie.Main.chalice_module.get());
+      /*
+        because Chalice assumes that every argument that starts with / is an option,
+        we translate absolute path to relative paths.
+       */
+      for(int i=1;i<args.length;i++){
+        if (args[i].startsWith("/") && new File(args[i]).isFile()){
+          Path path=sh.shell_dir.relativize(Paths.get(args[i]));
+          args[i]=path.toString();
+        }
+      }
+      break;
+    default:
+      fail("unknown executable: "+args[0]);
+      return res;
+    }
+    if (sh!=null){
+      String cmd=args[0];
+      for(int i=1;i<args.length;i++){
+        cmd+=" "+args[i];
+      }
+      sh.send("%s",cmd);
+      sh.send("exit");
+      p=sh.getProcess();
+      res.verdict=Verdict.Inconclusive;
+    }
     for(;;){
       Message msg=p.recv();
       res.log.add(msg);
