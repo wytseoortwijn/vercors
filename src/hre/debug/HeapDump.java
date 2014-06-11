@@ -6,6 +6,7 @@ import hre.io.PrefixPrintStream;
 
 import java.io.PrintStream;
 import java.lang.reflect.Field;
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
@@ -62,6 +63,10 @@ public class HeapDump {
           } else {
             tree_dump(out,visited,val,base_classes);
           }
+        } else if (val instanceof Integer){
+          out.printf(" %s = %d%n",field.getName(),val);
+        } else if (val instanceof String || val instanceof Path){
+          out.printf(" %s = %s%n",field.getName(),val);
         } else if (val!=null && val instanceof Collection) {
           for(Object i:(Collection)val){
             if (i!=null && is_instance(i,base_classes)){
@@ -91,7 +96,7 @@ public class HeapDump {
             }
           }
         } else {
-          out.printf("skipping field %s%n",field.getName());
+          out.printf("skipping field %s : %s%n",field.getName(),field.getType());
         }         
       } catch (IllegalAccessException e){
         out.printf("unreadable field %s%n",field.getName());
