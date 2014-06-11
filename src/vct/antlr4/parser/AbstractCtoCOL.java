@@ -8,7 +8,9 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
 import vct.col.ast.ASTNode;
+import vct.col.ast.ClassType;
 import vct.col.ast.DeclarationStatement;
+import vct.col.ast.NameExpression;
 import vct.col.ast.PrimitiveType;
 import vct.col.ast.Type;
 import vct.parsers.CParser.PrimaryExpressionContext;
@@ -46,6 +48,12 @@ public abstract class AbstractCtoCOL extends ANTLRtoCOL {
     return null;
   }
 
+  public ClassType forceClassType(ASTNode convert) {
+	    if (convert instanceof ClassType) return (ClassType)convert;
+	    if (convert instanceof NameExpression) return create.class_type(convert.toString());
+	    throw hre.System.Failure("cannot convert %s to ClassType",convert.getClass());
+	  }
+  
   public DeclarationStatement getDirectDeclarator(ParserRuleContext ctx) {
     String name=getIdentifier(ctx,0);
     Type t=create.class_type(name);

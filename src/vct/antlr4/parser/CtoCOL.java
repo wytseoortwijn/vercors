@@ -225,18 +225,24 @@ public class CtoCOL extends AbstractCtoCOL implements CVisitor<ASTNode> {
   public ASTNode visitCompoundStatement(CompoundStatementContext ctx) {
     BlockStatement block=create.block();
     if (match(ctx,"{","}")) return block;
-    if (!match(ctx,"{","BlockItemListContext","}")) return null;
-    doblock(block,(BlockItemListContext)ctx.getChild(1));
+    if (!match(ctx,"{","BlockItemListContext","}")) return null;    
+    doblock(block,(BlockItemListContext)ctx.getChild(1)); 
     return block;
   }
+  private void doblock(BlockStatement block, BlockItemListContext ctx) {	
+    if (match(ctx,"BlockItemContext")){    	      	  
+    	  ASTNode temp = convert(ctx,0);
+    	  scan_comments_before(block,ctx.getChild(0)); //DRB	  
+    	  block.add_statement(temp);
+    	  scan_comments_after(block,ctx.getChild(0));//DRB 
+    } else if (match(ctx,"BlockItemListContext","BlockItemContext")){    	  	  	     	  	
+    	   doblock(block,(BlockItemListContext)ctx.getChild(0));
+      
+    	   ASTNode temp = convert(ctx,1);    	         
+    	   block.add_statement(temp);
+    	   scan_comments_after(block,ctx.getChild(1)); //DRB
 
-  private void doblock(BlockStatement block, BlockItemListContext ctx) {
-    if (match(ctx,"BlockItemContext")){
-      block.add_statement(convert(ctx,0));
-    } else if (match(ctx,"BlockItemListContext","BlockItemContext")){
-      doblock(block,(BlockItemListContext)ctx.getChild(0));
-      block.add_statement(convert(ctx,1));
-    } else {
+    } else {      
       throw hre.System.Failure("unknown BlockItemList");
     }
   }
@@ -574,8 +580,14 @@ public class CtoCOL extends AbstractCtoCOL implements CVisitor<ASTNode> {
 
   @Override
   public ASTNode visitLabeledStatement(LabeledStatementContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
+    // TODO Auto-generated method stub	  	
+	  if (match(ctx,null,":",null))		  
+	  {//DRB			  		  
+		  ASTNode res = convert(ctx,2);
+		  res.addLabel(create.label(ctx.getChild(0).getText()));
+		  return res; 		  		  		  	   
+	  }	  
+      return null;
   }
 
   @Override
@@ -683,7 +695,15 @@ public class CtoCOL extends AbstractCtoCOL implements CVisitor<ASTNode> {
 
   @Override
   public ASTNode visitStatement(StatementContext ctx) {
-    // TODO Auto-generated method stub
+    // TODO Auto-generated method stub	 
+	 /* System.out.printf("\n%s\n",ctx.getText());
+	  
+	  if (match(ctx,null,":",null))		  
+	  {			  
+		  System.out.println("sssssssssssssssssssss");
+		  ASTNode A;		  
+		  return null;	      
+	  }*/
     return null;
   }
 
