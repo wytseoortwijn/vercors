@@ -129,7 +129,7 @@ public class Configuration {
       //throw new Error("variable VCT_HOME is not set");
       tmp=f.toString();
     }
-    home=Paths.get(tmp).toAbsolutePath();
+    home=Paths.get(tmp).toAbsolutePath().normalize();
     if (!home.toFile().isDirectory()){
       throw new Error("VCT_HOME value "+tmp+" is not a directory");
     }
