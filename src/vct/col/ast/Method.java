@@ -215,6 +215,13 @@ public class Method extends ASTDeclaration {
       if (find(target,scanned,abs.main)) return true;
       return find(target,scanned,abs.select);
     }
+    if (node instanceof PrimitiveType){
+      return false;
+    }
+    if (node instanceof BlockStatement){
+      //TODO this breaks is resources uses blocks!
+      return false;
+    }
     Abort("missing case in isRecursive: %s",node.getClass());
     return true;
   }

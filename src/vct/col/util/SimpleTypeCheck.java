@@ -311,6 +311,15 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       return;
     }
     super.visit(e);
+    ASTNode argss[]=e.getArguments();
+    Type tt[]=new Type[argss.length];
+    for(int i=0;i<argss.length;i++){
+      if (argss[i] instanceof Type) continue;
+      tt[i]=argss[i].getType();
+      if (tt[i]==null){
+        Fail("type of argument %d is unknown at %s",i+1,e.getOrigin());
+      }
+    }
     switch(op){
     case Send:{
       Type t1=e.getArg(0).getType();
@@ -401,9 +410,33 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       e.setType(new PrimitiveType(Sort.Resource));
       break;
     }
-    case AddsTo:
-    case PointsTo:
     case Perm:
+    {
+      Type t1=e.getArg(0).getType();
+      if (t1==null) Fail("type of left argument unknown at %s",e.getOrigin());
+      Type t2=e.getArg(1).getType();
+      if (t2==null) Fail("type of right argument unknown at %s",e.getOrigin());
+      if (!t2.isBoolean() && !t2.isNumeric()) Fail("type of right argument is %s rather than a numeric type at %s",t2,e.getOrigin());
+      e.setType(new PrimitiveType(Sort.Resource));
+      break;
+    }
+    case PointsTo:
+    {
+      Type t1=e.getArg(0).getType();
+      if (t1==null) Fail("type of left argument unknown at %s",e.getOrigin());
+      Type t2=e.getArg(1).getType();
+      if (t2==null) Fail("type of middle argument unknown at %s",e.getOrigin());
+      if (!t2.isBoolean() && !t2.isNumeric()) Fail("type of middle argument is %s rather than a numeric type at %s",t2,e.getOrigin());
+      e.setType(new PrimitiveType(Sort.Resource));
+      Type t3=e.getArg(2).getType();
+      if (t3==null) Fail("type of right argument unknown at %s",e.getOrigin());
+      if (!t3.comparableWith(source(), t1)){
+        Fail("types of location and value (%s/%s) incomparable at %s",
+            t1,t3,e.getOrigin());
+      }
+      break;
+    }     
+    case AddsTo:
     case Value:
     case Volatile:
     case ArrayPerm:
@@ -746,13 +779,13 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       e.setType(t);
       t=(Type)t.getArg(0);
       for(int i=1;i<args.length;i++){
-        Type tt=args[i].getType();
-        if (tt==null){
+        Type t2=args[i].getType();
+        if (t2==null){
           Abort("untyped build argument %d",i);
         }
-        if (t.equals(tt)) continue;
-        if (t.supertypeof(source(), tt)) continue;
-        Abort("cannot use %s to initialize %s",tt,t);
+        if (t.equals(t2)) continue;
+        if (t.supertypeof(source(), t2)) continue;
+        Abort("cannot use %s to initialize %s",t2,t);
       }
       break;
     }

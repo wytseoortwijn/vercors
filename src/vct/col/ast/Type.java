@@ -63,8 +63,8 @@ public abstract  class Type extends ASTNode {
   }
 
   public boolean comparableWith(ProgramUnit context, Type t2){
-    if (isIntegerType()){
-      return t2.isIntegerType();
+    if (isNumeric()){
+      return t2.isNumeric();
     }
     if(equals(t2)) return true;
     if(this.supertypeof(context,t2)) return true;
