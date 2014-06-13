@@ -46,6 +46,7 @@ public class MainTest extends ToolTest {
       res.mustSay("method good_incr_1: Pass");
       res.mustSay("method good_incr_2: Pass");
       res.mustSay("method good_incr_3: Pass");
+      if (res.verdict != Verdict.Fail) fail("bad result : "+res.verdict);
     } finally {
       sem.release();
     }
@@ -55,54 +56,72 @@ public class MainTest extends ToolTest {
   /*
 
 testBoogieGlobals(){
-  runVCT "--boogie --infer-modifies --no-context" BoogieWithGlobals
+  sem_get();
+    try {
+      VCTResult res=run( "vct","--boogie --infer-modifies --no-context" BoogieWithGlobals
   mustSay "method add: Pass"
-  mustSay "The final verdict is Pass"
+  if (res.verdict != Verdict.Pass) fail("bad result : "+res.verdict);
 }
 
 testLoopInv(){
-  runVCT "--boogie --no-context" LoopInv
+  sem_get();
+    try {
+      VCTResult res=run( "vct","--boogie --no-context" LoopInv
   mustSay "method f_ok: Pass"
   mustSay "method f_bad: Fail"
-  mustSay "The final verdict is Fail"
+  if (res.verdict != Verdict.Fail) fail("bad result : "+res.verdict);
 }
 
 testSimpleExamples(){
-  runVCT "--boogie --no-context" SimpleExamples
-  mustSay "The final verdict is Pass"
+  sem_get();
+    try {
+      VCTResult res=run( "vct","--boogie --no-context" SimpleExamples
+  if (res.verdict != Verdict.Pass) fail("bad result : "+res.verdict);
 }
 
 testIncr(){
-  runVCT "--chalice --no-context" Incr
-  mustSay "The final verdict is Fail"
+  sem_get();
+    try {
+      VCTResult res=run( "vct","--chalice --no-context" Incr
+  if (res.verdict != Verdict.Fail) fail("bad result : "+res.verdict);
 }
 
 testRosterFixed(){
-  runVCT "--chalice --no-context" RosterFixed
-  mustSay "The final verdict is Pass"
+  sem_get();
+    try {
+      VCTResult res=run( "vct","--chalice --no-context" RosterFixed
+  if (res.verdict != Verdict.Pass) fail("bad result : "+res.verdict);
 }
 
 testSwapInteger(){
-  runVCT "--chalice --no-context" SwapInteger
-  mustSay "The final verdict is Fail"
+  sem_get();
+    try {
+      VCTResult res=run( "vct","--chalice --no-context" SwapInteger
+  if (res.verdict != Verdict.Fail) fail("bad result : "+res.verdict);
   mustSay "error at file .* line 34 .* The postcondition might not hold."
 }
 
 testSwapLong(){
-  runVCT "--chalice --no-context" SwapLong
-  mustSay "The final verdict is Fail"
+  sem_get();
+    try {
+      VCTResult res=run( "vct","--chalice --no-context" SwapLong
+  if (res.verdict != Verdict.Fail) fail("bad result : "+res.verdict);
   mustSay "error at file .* line 34 .* The postcondition might not hold."
 }
 
 testSwapDouble(){
-  runVCT "--chalice --no-context" SwapDouble
-  mustSay "The final verdict is Fail"
+  sem_get();
+    try {
+      VCTResult res=run( "vct","--chalice --no-context" SwapDouble
+  if (res.verdict != Verdict.Fail) fail("bad result : "+res.verdict);
   mustSay "error at file .* line 34 .* The postcondition might not hold."
 }
 
 testCounter(){
-  runVCT "--chalice --no-context" Counter
-  mustSay "The final verdict is Pass"
+  sem_get();
+    try {
+      VCTResult res=run( "vct","--chalice --no-context" Counter
+  if (res.verdict != Verdict.Pass) fail("bad result : "+res.verdict);
 }
 
    */
@@ -139,143 +158,292 @@ testCounter(){
     }
   }
   
-/*
-
+  @Test
+  public void 
 testIntegerList(){
-  runVCT "--chalice --no-context" IntegerList
-  mustSay "The final verdict is Fail"
+  sem_get();
+    try {
+      VCTResult res=run( "vct","--chalice", "//examples/predicates/IntegerList.java");
+  if (res.verdict != Verdict.Fail) fail("bad result : "+res.verdict);
+}finally {
+  sem.release();
 }
-
+}
+  @Test
+  public void 
 testTreeWand(){
-  runVCT "--chalice --inline --no-context" TreeWand
-  mustSay "The final verdict is Pass"
+  sem_get();
+    try {
+      VCTResult res=run( "vct","--chalice","--inline","//examples/encoding/TreeWand.java");
+  if (res.verdict != Verdict.Pass) fail("bad result : "+res.verdict);
+}finally {
+  sem.release();
 }
-
+}
+  @Test
+  public void 
 testRoster(){
-  runVCT "--chalice --explicit --no-context" Roster
-  mustSay "The final verdict is Pass"
+  sem_get();
+    try {
+      VCTResult res=run( "vct","--chalice","--explicit","//examples/encoding/Roster.java");
+  if (res.verdict != Verdict.Pass) fail("bad result : "+res.verdict);
+}finally {
+  sem.release();
 }
-
+}
+  @Test
+  public void 
 testCounterState(){
-  runVCT "--chalice --explicit --no-context" CounterState
-  mustSay "The final verdict is Pass"
+  sem_get();
+    try {
+      VCTResult res=run( "vct","--chalice","--explicit" ,"//examples/encoding/CounterState.java");
+  if (res.verdict != Verdict.Pass) fail("bad result : "+res.verdict);
+}finally {
+  sem.release();
 }
-
+}
+  @Test
+  public void 
 testTwice(){
-  runVCT "--chalice --explicit --no-context" Twice
-  mustSay "The final verdict is Pass"
+  sem_get();
+    try {
+      VCTResult res=run( "vct","--chalice","--explicit" ,"//examples/encoding/Twice.java");
+  if (res.verdict != Verdict.Pass) fail("bad result : "+res.verdict);
+}finally {
+  sem.release();
 }
-
+}
+  @Test
+  public void 
 testAtomicReadWrite(){
-  runVCT "--chalice --explicit --no-context" AtomicReadWrite
-  mustSay "The final verdict is Pass"
+  sem_get();
+    try {
+      VCTResult res=run( "vct","--chalice","--explicit" ,"//examples/atomics/AtomicReadWrite.java");
+  if (res.verdict != Verdict.Pass) fail("bad result : "+res.verdict);
+}finally {
+  sem.release();
 }
-
+}
+  @Test
+  public void 
 testGetters(){
-  runVCT "--chalice --explicit --no-context --witness-inline" Getters
-  mustSay "The final verdict is Pass"
+  sem_get();
+    try {
+      VCTResult res=run( "vct","--chalice","--explicit","--witness-inline" ,"//examples/encoding/Getters.java");
+  if (res.verdict != Verdict.Pass) fail("bad result : "+res.verdict);
+}finally {
+  sem.release();
 }
-
+}
+  @Test
+  public void 
 testDWLock(){
-  runVCT "--chalice --explicit --no-context" DWLock
-  mustSay "The final verdict is Pass"
+  sem_get();
+    try {
+      VCTResult res=run("vct", "--chalice","--explicit" ,"//examples/atomics/DWLock.java");
+  if (res.verdict != Verdict.Pass) fail("bad result : "+res.verdict);
+}finally {
+  sem.release();
 }
-
+}
+  @Test
+  public void 
 testSingleCell(){
-  runVCT "--chalice --explicit --no-context" SingleCell
-  mustSay "The final verdict is Pass"
+  sem_get();
+    try {
+      VCTResult res=run( "vct","--chalice","--explicit" ,"//examples/atomics/SingleCell.java");
+  if (res.verdict != Verdict.Pass) fail("bad result : "+res.verdict);
+}finally {
+  sem.release();
 }
-
+}
+  @Test
+  public void 
 testLockExample(){
-  runVCT "--chalice --explicit --no-context" LockExample
-  mustSay "The final verdict is Fail"
+  sem_get();
+    try {
+      VCTResult res=run( "vct","--chalice","--explicit" ,"//examples/locks/LockExample.java");
+  if (res.verdict != Verdict.Fail) fail("bad result : "+res.verdict);
+}finally {
+  sem.release();
 }
-
+}
+  @Test
+  public void 
 testReentLock(){
-  runVCT "--chalice --explicit --no-context" ReentLock
-  mustSay "The final verdict is Pass"
+  sem_get();
+    try {
+      VCTResult res=run( "vct","--chalice","--explicit" ,"//examples/atomics/ReentLock.java");
+  if (res.verdict != Verdict.Pass) fail("bad result : "+res.verdict);
+}finally {
+  sem.release();
 }
-
+}
+  @Test
+  public void 
 testSimpleThread(){
-  runVCT "--chalice --no-context" SimpleThread SimpleThreadMain SimpleThreadInstance
-  mustSay "The final verdict is Pass"
+  sem_get();
+    try {
+      VCTResult res=run( "vct","--chalice",
+          "//examples/inheritance/SimpleThread.java",
+          "//examples/inheritance/SimpleThreadMain.java",
+          "//examples/inheritance/SimpleThreadInstance.java");
+  if (res.verdict != Verdict.Pass) fail("bad result : "+res.verdict);
+}finally {
+  sem.release();
+}
 }
 
+/*
 # too slow in current version
 #testFullThread(){
-#  runVCT "--chalice --explicit --no-context" FullThreadInstance FullThread FullThreadMain
-#  mustSay "The final verdict is Pass"
+#  sem_get();
+    try {
+      VCTResult res=run( "vct","--chalice --explicit --no-context" FullThreadInstance FullThread FullThreadMain
+#  if (res.verdict != Verdict.Pass) fail("bad result : "+res.verdict);
 #}
 
 # too slow in current version
 #testFibonacci (){
-#  runVCT "--chalice --explicit --no-context" Fibonacci FullThread
-#  mustSay "The final verdict is Pass"
+#  sem_get();
+    try {
+      VCTResult res=run( "vct","--chalice --explicit --no-context" Fibonacci FullThread
+#  if (res.verdict != Verdict.Pass) fail("bad result : "+res.verdict);
 #}
-
+*/
+  @Test
+  public void 
 testZeroArray (){
-  runVCT "--chalice --no-context" ZeroArray
-  mustSay "The final verdict is Pass"
+  sem_get();
+    try {
+      VCTResult res=run("vct","--chalice", "//examples/arrays/ZeroArray.java");
+  if (res.verdict != Verdict.Pass) fail("bad result : "+res.verdict);
+}finally {
+  sem.release();
 }
-
+}
+  @Test
+  public void 
 testRBLock (){
-  runVCT "--chalice --explicit --no-context" RBLock
-  mustSay "The final verdict is Pass"
+  sem_get();
+    try {
+      VCTResult res=run( "vct","--chalice","--explicit" ,"//examples/atomics/RBLock.java");
+  if (res.verdict != Verdict.Pass) fail("bad result : "+res.verdict);
+}finally {
+  sem.release();
 }
-
+}
+  @Test
+  public void 
 testRBProdCons (){
-  runVCT "--chalice --explicit --no-context" RBProdCons
-  mustSay "The final verdict is Pass"
+  sem_get();
+    try {
+      VCTResult res=run( "vct","--chalice","--explicit" ,"//examples/atomics/RBProdCons.java");
+  if (res.verdict != Verdict.Pass) fail("bad result : "+res.verdict);
+}finally {
+  sem.release();
 }
-
+}
+  @Test
+  public void 
 testRBSingleCell (){
-  runVCT "--chalice --explicit --no-context" RBSingleCell
-  mustSay "The final verdict is Pass"
+  sem_get();
+    try {
+      VCTResult res=run( "vct","--chalice","--explicit" ,"//examples/atomics/RBSingleCell.java");
+  if (res.verdict != Verdict.Pass) fail("bad result : "+res.verdict);
+}finally {
+  sem.release();
 }
-
+}
+  @Test
+  public void 
 testTreeRecursive (){
-  runVCT "--chalice --no-context" TreeRecursive
-  mustSay "The final verdict is Pass"
+  sem_get();
+    try {
+      VCTResult res=run("vct",  "--chalice","//examples/predicates/TreeRecursive.java");
+  if (res.verdict != Verdict.Pass) fail("bad result : "+res.verdict);
+}finally {
+  sem.release();
 }
-
+}
+  @Test
+  public void 
 testListAppend (){
-  runVCT "--chalice --inline --no-context" ListAppend
-  mustSay "The final verdict is Pass"
+  sem_get();
+    try {
+      VCTResult res=run( "vct","--chalice","--inline","//examples/encoding/ListAppend.java");
+  if (res.verdict != Verdict.Pass) fail("bad result : "+res.verdict);
+}finally {
+  sem.release();
+}
 }
 
+/*
 # too slow in current version
 #testListIterator (){
-#  runVCT "--chalice --inline --no-context" ListIterator
-#  mustSay "The final verdict is Pass"
+#  sem_get();
+    try {
+      VCTResult res=run( "vct","--chalice --inline --no-context" ListIterator
+#  if (res.verdict != Verdict.Pass) fail("bad result : "+res.verdict);
 #}
-
+*/
+  @Test
+  public void 
 testWandDemo (){
-  runVCT "--chalice --no-context" WandDemo
-  mustSay "The final verdict is Pass"
+  sem_get();
+    try {
+      VCTResult res=run( "vct","--chalice","//examples/encoding/WandDemo.java");
+  if (res.verdict != Verdict.Pass) fail("bad result : "+res.verdict);
+}finally {
+  sem.release();
 }
-
+}
+  @Test
+  public void 
 testWitnessDemo (){
-  runVCT "--chalice --explicit --no-context" WitnessDemo
-  mustSay "The final verdict is Pass"
+  sem_get();
+    try {
+      VCTResult res=run( "vct","--chalice","--explicit","//examples/encoding/WitnessDemo.java");
+  if (res.verdict != Verdict.Pass) fail("bad result : "+res.verdict);
+}finally {
+  sem.release();
 }
-
+}
+  @Test
+  public void 
 testCountDownLatch (){
-  runVCT "--chalice --explicit --no-context" CountDownLatch
-  mustSay "The final verdict is Pass"
+  sem_get();
+    try {
+      VCTResult res=run( "vct", "--chalice","--explicit","//examples/synchronizers/CountDownLatch.java");
+  if (res.verdict != Verdict.Pass) fail("bad result : "+res.verdict);
 }
-
+    finally {
+      sem.release();
+    }
+  }
+/*
 # commented out because it triggers a bug in the Chalice/Boogie/Z3 stack.
 #testSemaphore (){
-#  runVCT "--chalice --explicit --no-context" Semaphore
-#  mustSay "The final verdict is Pass"
+#  sem_get();
+    try {
+      VCTResult res=run( "vct","--chalice --explicit --no-context" Semaphore
+#  if (res.verdict != Verdict.Pass) fail("bad result : "+res.verdict);
 #}
-
+*/
+  
+  @Test
+  public void 
 testReentrantLock (){
-  runVCT "--chalice --explicit --no-context" ReentrantLock
-  mustSay "The final verdict is Pass"
+  sem_get();
+    try {
+      VCTResult res=run( "vct","--chalice","--explicit","//examples/synchronizers/ReentrantLock.java");
+  if (res.verdict != Verdict.Pass) fail("bad result : "+res.verdict);
 }
+    finally {
+      sem.release();
+    }
+  }
 
- */
 
   /* template:
   @Test
