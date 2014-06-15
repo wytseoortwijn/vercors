@@ -133,7 +133,13 @@ public class Configuration {
     if (!home.toFile().isDirectory()){
       throw new Error("VCT_HOME value "+tmp+" is not a directory");
     }
-    Path module_deps=home.getParent().getParent().resolve(Paths.get("modules"));
+    Path module_deps=home.resolve("deps").resolve("modules");
+    if (!module_deps.toFile().isDirectory()){
+      module_deps=home.getParent().getParent().resolve(Paths.get("modules"));
+      if (!module_deps.toFile().isDirectory()){
+        hre.System.Fail("dependency modules not found");
+      }
+    }
     modulepath=new StringListSetting(module_deps.toString());
   }
 
