@@ -9,7 +9,11 @@ import java.io.File;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.EnumSet;
 import java.util.concurrent.Semaphore;
+
+import org.junit.Assume;
+import org.junit.Test;
 
 import vct.util.Configuration;
 import junit.framework.TestCase;
@@ -18,7 +22,27 @@ public class ToolTest extends TestCase {
 
   protected static Semaphore sem = new Semaphore(Runtime.getRuntime().availableProcessors());
 
-  public void sem_get() {
+  private EnumSet<Feature> allowed=EnumSet.noneOf(Feature.class);
+  private EnumSet<Feature> required=EnumSet.noneOf(Feature.class);
+  
+  public void allow(Feature ... tests){
+    for(Feature test:tests){
+      allowed.add(test);
+    }
+  }
+  public void require(Feature ...tests){
+    for(Feature test:tests){
+      required.add(test);
+    }
+  }
+  
+  public void sem_get(Feature ... tests) {
+    int count=0;
+    for(Feature test:tests){
+      Assume.assumeTrue(allowed.isEmpty()||allowed.contains(test));
+      if (required.contains(test)) count++;
+    }
+    Assume.assumeTrue(count==required.size());
     try {
       sem.acquire();
     } catch (InterruptedException e) {

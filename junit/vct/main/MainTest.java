@@ -19,6 +19,7 @@ import sun.applet.Main;
 import vct.util.Configuration;
 
 import com.google.code.tempusfugit.concurrency.ConcurrentTestRunner;
+import static vct.main.Feature.*;
 
 @RunWith(ConcurrentTestRunner.class) 
 public class MainTest extends ToolTest {
@@ -172,7 +173,7 @@ testIntegerList(){
   @Test
   public void 
 testTreeWand(){
-  sem_get();
+  sem_get(MagicWand);
     try {
       VCTResult res=run( "vct","--chalice","--inline","//examples/encoding/TreeWand.java");
   if (res.verdict != Verdict.Pass) fail("bad result : "+res.verdict);
@@ -369,9 +370,9 @@ testTreeRecursive (){
   @Test
   public void 
 testListAppend (){
-  sem_get();
+  sem_get(MagicWand);
     try {
-      VCTResult res=run( "vct","--chalice","--inline","//examples/encoding/ListAppend.java");
+      VCTResult res=run( "vct","--chalice","--witness-inline","--inline","//examples/encoding/ListAppend.java");
   if (res.verdict != Verdict.Pass) fail("bad result : "+res.verdict);
 }finally {
   sem.release();
@@ -390,7 +391,7 @@ testListAppend (){
   @Test
   public void 
 testWandDemo (){
-  sem_get();
+  sem_get(MagicWand);
     try {
       VCTResult res=run( "vct","--chalice","//examples/encoding/WandDemo.java");
   if (res.verdict != Verdict.Pass) fail("bad result : "+res.verdict);
@@ -401,7 +402,7 @@ testWandDemo (){
   @Test
   public void 
 testWitnessDemo (){
-  sem_get();
+  sem_get(MagicWand);
     try {
       VCTResult res=run( "vct","--chalice","--explicit","//examples/encoding/WitnessDemo.java");
   if (res.verdict != Verdict.Pass) fail("bad result : "+res.verdict);
