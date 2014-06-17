@@ -9,8 +9,10 @@ import vct.col.ast.ASTClass.ClassKind;
 import vct.col.ast.ASTFlags;
 import vct.col.ast.ASTNode;
 import vct.col.ast.BlockStatement;
+import vct.col.ast.BooleanValue;
 import vct.col.ast.ClassType;
 import vct.col.ast.CompilationUnit;
+import vct.col.ast.ConstantExpression;
 import vct.col.ast.Contract;
 import vct.col.ast.ContractBuilder;
 import vct.col.ast.DeclarationStatement;
@@ -392,40 +394,48 @@ class PredicateClassGenerator extends AbstractRewriter {
     // Start with ref field:
     pred_class.add_dynamic(create.field_decl("ref",class_type));
     DeclarationStatement args[]=m.getArgs();
-    ASTNode cons_req=create.expression(StandardOperator.NEQ,create.unresolved_name("ref"),create.reserved_name(Null));
+    ArrayList<ASTNode> cons_req=new ArrayList();
+    cons_req.add(create.expression(StandardOperator.NEQ,create.unresolved_name("ref"),create.reserved_name(Null)));
     // Note that permission for fields will be added later.
     
     // Add arguments as fields:
     for (int i=0;i<args.length;i++){
       pred_class.add_dynamic(args[i].apply(copy_rw));
       if (args[i].getType().isPrimitive(PrimitiveType.Sort.Fraction)){
-        cons_req=star(cons_req,less(constant(0),name(args[i])));
-        cons_req=star(cons_req,lte(name(args[i]),constant(100)));
+        cons_req.add(less(constant(0),name(args[i])));
+        cons_req.add(lte(name(args[i]),constant(100)));
       }
       if (args[i].getType().isPrimitive(PrimitiveType.Sort.ZFraction)){
-        cons_req=star(cons_req,lte(constant(0),name(args[i])));
-        cons_req=star(cons_req,lte(name(args[i]),constant(100)));
+        cons_req.add(lte(constant(0),name(args[i])));
+        cons_req.add(lte(name(args[i]),constant(100)));
       }
     }
     
     // Rewrite the body, which will cause fields to be created.
-    ASTNode valid_body;
+    ArrayList<ASTNode> valid_body=new ArrayList();
     if (m.getBody()==null){
       pred_class.add_dynamic(create.predicate("abstract_valid", null , new DeclarationStatement[0] ));
-      valid_body=create.invokation(null,null, ("abstract_valid"), new DeclarationStatement[0]);
+      valid_body.add(create.invokation(null,null, ("abstract_valid"), new DeclarationStatement[0]));
     } else {
-      valid_body=rewrite(m.getBody());
+      ASTNode body=m.getBody();
+      boolean non_true=true;
+      if (body instanceof ConstantExpression){
+        ConstantExpression e= (ConstantExpression)body;
+        if (e.value instanceof BooleanValue){
+          BooleanValue b=(BooleanValue)e.value;
+          non_true=!b.value;
+        }
+      }
+      if (non_true) valid_body.add(rewrite(m.getBody()));
     }
-    valid_body=create.expression(StandardOperator.Star,cons_req,valid_body);
-    // Add permissions to read/write all fields:
+    valid_body.addAll(cons_req);
+    // Add permissions to render all fields immutable.
     for(DeclarationStatement field:pred_class.dynamicFields()){
-      valid_body=create.expression(StandardOperator.Star,
-          create.expression(StandardOperator.Perm,create.field_name(field.getName()),create.constant(100))
-          ,valid_body);
-     
+      //valid_body.add(0,create.expression(StandardOperator.Perm,create.field_name(field.getName()),create.constant(100)));
+      valid_body.add(0,create.expression(StandardOperator.Value,create.field_name(field.getName())));
     }
     // Add valid predicate;
-    pred_class.add_dynamic(create.predicate("valid", valid_body , new DeclarationStatement[0] ));
+    pred_class.add_dynamic(create.predicate("valid", create.fold(StandardOperator.Star, valid_body) , new DeclarationStatement[0] ));
     
     // Prepare check function;
     ContractBuilder cb=new ContractBuilder();

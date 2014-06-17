@@ -243,11 +243,6 @@ public abstract class ASTNode implements ASTFlags {
     return false;
   }
   
-  public boolean match(ASTNode pattern,Set<String> open,Map<String,ASTNode> match){
-    Abort("AST node %s does not implement the match method",this.getClass());
-    return false;
-  }
-  
   private HashSet<ASTNode> predecessors;
   
   public void setPredecessor(ASTNode item){

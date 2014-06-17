@@ -185,6 +185,9 @@ public class WandEncoder extends AbstractRewriter {
 	  ContractBuilder cb=new ContractBuilder();
 	  cb.requires(create.invokation(create.reserved_name(This), null, VALID));
 	  Contract get_contract=cb.getContract();
+	  cb.ensures(create.expression(StandardOperator.NEQ,
+	      create.reserved_name(Result),create.reserved_name(Null)));
+	  Contract get_contract_non_null=cb.getContract();
 	  
 	  // now we build the contract of the apply method.
 	  cb=new ContractBuilder();
@@ -200,8 +203,8 @@ public class WandEncoder extends AbstractRewriter {
         if (t.getOrigin()==null){
           t.setOrigin(cl);
         }
-        add_field_and_getter(cl, valid_list, get_contract, var, t);
-        cb.requires(create.non_null(create.invokation(null,null,"get_"+var)));
+        add_field_and_getter(cl, valid_list, get_contract_non_null, var, t,true);
+        //cb.requires(create.non_null(create.invokation(null,null,"get_"+var)));
         Method m_def=m.getDefinition();
         if (m_def==null){
           Abort("applied method is is undefined");
@@ -210,7 +213,7 @@ public class WandEncoder extends AbstractRewriter {
         ASTNode args[]=new ASTNode[N];
         for (int i=0;i<N;i++){
           Type tt=m_def.getArgType(i);
-          add_field_and_getter(cl, valid_list, get_contract, var+"_"+i, tt);
+          add_field_and_getter(cl, valid_list, get_contract, var+"_"+i, tt,false);
           //if (tt instanceof ClassType) cb.requires(create.non_null(create.invokation(null,null,"get_"+var+"_"+i)));
           args[i]=create.invokation(null,null,"get_"+var+"_"+i);
         }
@@ -233,7 +236,8 @@ public class WandEncoder extends AbstractRewriter {
         if (t.getOrigin()==null){
           t.setOrigin(cl);
         }
-        add_field_and_getter(cl, valid_list, get_contract, var, t);
+        add_field_and_getter(cl, valid_list, get_contract_non_null, var, t,true);
+        //??
         cb.requires(create.non_null(create.invokation(null,null,"get_"+var)));
         Method m_def=m.getDefinition();
         if (m_def==null){
@@ -243,7 +247,7 @@ public class WandEncoder extends AbstractRewriter {
         ASTNode args[]=new ASTNode[N];
         for (int i=0;i<N;i++){
           Type tt=m_def.getArgType(i);
-          add_field_and_getter(cl, valid_list, get_contract, var+"_"+i, tt);
+          add_field_and_getter(cl, valid_list, get_contract, var+"_"+i, tt,false);
           //if (tt instanceof ClassType) cb.requires(create.non_null(create.invokation(null,null,"get_"+var+"_"+i)));
           args[i]=create.expression(StandardOperator.Old,create.invokation(null,null,"get_"+var+"_"+i));
         }
@@ -277,10 +281,11 @@ public class WandEncoder extends AbstractRewriter {
 	  create.leave();
 	}
   private void add_field_and_getter(ASTClass cl, ArrayList<ASTNode> valid_list,
-      Contract get_contract, String var, Type t) {
+      Contract get_contract, String var, Type t, boolean non_null) {
     ASTNode decl=create.field_decl(var,rewrite(t));
     cl.add_dynamic(decl);
     valid_list.add(create.expression(StandardOperator.Value,create.field_name(var)));
+    if (non_null) valid_list.add(create.non_null(create.field_name(var)));
     ASTNode body=create.field_name(var);
     Method getter=create.function_decl(t,get_contract, "get_"+var, new DeclarationStatement[0], body);
     cl.add_dynamic(getter);
