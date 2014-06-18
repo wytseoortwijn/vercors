@@ -68,7 +68,7 @@ public class IterationContractEncoder extends AbstractRewriter {
           create.expression(StandardOperator.LTE,low,create.unresolved_name(var_name)),
           create.expression(op,create.unresolved_name(var_name),high)
       );
-      for(ASTNode clause:ASTUtils.conjuncts(c.invariant)){
+      for(ASTNode clause:ASTUtils.conjuncts(c.invariant,StandardOperator.Star)){
         if (NameScanner.occurCheck(clause,var_name)){
           if (clause.getType().isBoolean()){
             cb.appendInvariant(create.forall(
@@ -85,7 +85,7 @@ public class IterationContractEncoder extends AbstractRewriter {
           cb.appendInvariant(copy_rw.rewrite(clause));
         }
       }
-      for(ASTNode clause:ASTUtils.conjuncts(c.pre_condition)){
+      for(ASTNode clause:ASTUtils.conjuncts(c.pre_condition,StandardOperator.Star)){
         if (NameScanner.occurCheck(clause,var_name)){
           if (clause.getType().isBoolean()){
             cb.requires(create.forall(
@@ -102,7 +102,7 @@ public class IterationContractEncoder extends AbstractRewriter {
           cb.requires(copy_rw.rewrite(clause));
         }
       }
-      for(ASTNode clause:ASTUtils.conjuncts(c.post_condition)){
+      for(ASTNode clause:ASTUtils.conjuncts(c.post_condition,StandardOperator.Star)){
         if (NameScanner.occurCheck(clause,var_name)){
           if (clause.getType().isBoolean()){
             cb.ensures(create.forall(

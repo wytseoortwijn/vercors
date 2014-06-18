@@ -90,7 +90,7 @@ public class LoopStatement extends ASTNode implements BeforeAfterAnnotations {
   }
   
   public Iterable<ASTNode> getInvariants(){
-    return ASTUtils.conjuncts(contract.invariant);
+    return ASTUtils.conjuncts(contract.invariant,StandardOperator.Star);
   }
 
   /** Block of proof hints to be executed just before

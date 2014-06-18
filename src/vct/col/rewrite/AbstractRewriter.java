@@ -185,17 +185,17 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
     cb.yields(rewrite(c.yields));
     if (c.modifies!=null) cb.modifies(rewrite(c.modifies)); 
     in_invariant=true;
-    for(ASTNode clause:ASTUtils.conjuncts(c.invariant)){
+    for(ASTNode clause:ASTUtils.conjuncts(c.invariant,StandardOperator.Star)){
       cb.appendInvariant(rewrite(clause));
     }
     in_invariant=false;
     in_requires=true;
-    for(ASTNode clause:ASTUtils.conjuncts(c.pre_condition)){
+    for(ASTNode clause:ASTUtils.conjuncts(c.pre_condition,StandardOperator.Star)){
       cb.requires(rewrite(clause));
     }
     in_requires=false;
     in_ensures=true;
-    for(ASTNode clause:ASTUtils.conjuncts(c.post_condition)){
+    for(ASTNode clause:ASTUtils.conjuncts(c.post_condition,StandardOperator.Star)){
       cb.ensures(rewrite(clause));
     }
     in_ensures=false;

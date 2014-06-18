@@ -156,7 +156,7 @@ public class KernelRewriter extends AbstractRewriter {
     */
     currentBlock.add(create.comment("// pre barrier marker"));
     currentBlock.add(create_barrier_call(no.intValue()));
-    for(ASTNode clause : ASTUtils.conjuncts(pb.contract.post_condition)){
+    for(ASTNode clause : ASTUtils.conjuncts(pb.contract.post_condition,StandardOperator.Star)){
       if (clause.getType().isBoolean()){
         currentBlock.add(create.expression(StandardOperator.Assert, rewrite(clause)));
       }
@@ -173,14 +173,14 @@ public class KernelRewriter extends AbstractRewriter {
     public void visit(ParallelBarrier pb){
       barrier_no++;
       barrier_map.put(pb,barrier_no);
-      for(ASTNode clause:ASTUtils.conjuncts(pb.contract.pre_condition)){
+      for(ASTNode clause:ASTUtils.conjuncts(pb.contract.pre_condition,StandardOperator.Star)){
         add(barrier_pre,barrier_no,clause);
         barrier_cb.requires(create(clause).expression(StandardOperator.Implies,
             create.expression(StandardOperator.EQ,create.local_name("this_barrier"),create.constant(barrier_no)),
             rewrite(clause)
         ));
       }
-      for(ASTNode clause:ASTUtils.conjuncts(pb.contract.post_condition)){
+      for(ASTNode clause:ASTUtils.conjuncts(pb.contract.post_condition,StandardOperator.Star)){
         if (clause.getType().isPrimitive(Sort.Resource)){
           add(resources,barrier_no,clause);
         } else {
@@ -327,7 +327,7 @@ public class KernelRewriter extends AbstractRewriter {
         thread_cb.requires(create.fold(StandardOperator.Star, kernel_main_invariant));
         thread_cb.ensures(create.fold(StandardOperator.Star, kernel_main_invariant));
         thread_cb.ensures(create.fold(StandardOperator.Star, constraint));
-        for(ASTNode clause:ASTUtils.conjuncts(contract.pre_condition)){
+        for(ASTNode clause:ASTUtils.conjuncts(contract.pre_condition,StandardOperator.Star)){
           thread_cb.requires(clause);
           if(clause.getType().isPrimitive(Sort.Resource)){
             add(resources,0,clause);
@@ -336,7 +336,7 @@ public class KernelRewriter extends AbstractRewriter {
             group_inv.add(clause);
           }
         }
-        for(ASTNode clause:ASTUtils.conjuncts(contract.post_condition)){
+        for(ASTNode clause:ASTUtils.conjuncts(contract.post_condition,StandardOperator.Star)){
           thread_cb.ensures(clause);
         }        
         DeclarationStatement args[]=new DeclarationStatement[]{
@@ -377,19 +377,19 @@ public class KernelRewriter extends AbstractRewriter {
         AbstractRewriter simplify=new Simplify(this);
         System.err.printf("kernel %s%n", base_name);
         System.err.printf("// resources%n");
-        for(ASTNode clause:ASTUtils.conjuncts(filter_resource.rewrite(contract.pre_condition))){
+        for(ASTNode clause:ASTUtils.conjuncts(filter_resource.rewrite(contract.pre_condition),StandardOperator.Star)){
           System.err.printf("requires (\\forall* int tid; 0 <= tid && tid < tcount ;%n            ");
           vct.util.Configuration.getDiagSyntax().print(System.out,simplify.rewrite(clause));
           System.err.printf(");%n");
         }
         System.err.printf("// required properties%n");
-        for(ASTNode clause:ASTUtils.conjuncts(filter_booleans.rewrite(contract.pre_condition))){
+        for(ASTNode clause:ASTUtils.conjuncts(filter_booleans.rewrite(contract.pre_condition),StandardOperator.Star)){
           System.err.printf("requires (\\forall int tid; 0 <= tid && tid < tcount ;%n            ");
           vct.util.Configuration.getDiagSyntax().print(System.out,simplify.rewrite(clause));
           System.err.printf(");%n");
         }
         System.err.printf("// ensured properties%n");
-        for(ASTNode clause:ASTUtils.conjuncts(filter_booleans.rewrite(contract.post_condition))){
+        for(ASTNode clause:ASTUtils.conjuncts(filter_booleans.rewrite(contract.post_condition),StandardOperator.Star)){
           System.err.printf("ensures  (\\forall int tid; 0 <= tid && tid < tcount ;%n            ");
           vct.util.Configuration.getDiagSyntax().print(System.out,simplify.rewrite(clause));
           System.err.printf(");%n");

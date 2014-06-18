@@ -187,7 +187,7 @@ public abstract class AbstractBoogiePrinter extends AbstractPrinter {
     if (contract.pre_condition.getOrigin()==null) {
       throw new Error("pre condition has no origin");
     }
-    for (ASTNode clause:ASTUtils.conjuncts(contract.pre_condition)){
+    for (ASTNode clause:ASTUtils.conjuncts(contract.pre_condition,StandardOperator.And)){
       out.printf("requires ");
       nextExpr();
       current_precedence=0;
@@ -198,7 +198,7 @@ public abstract class AbstractBoogiePrinter extends AbstractPrinter {
       if (contract.post_condition.getOrigin()==null) {
         throw new Error("post condition has no origin");
       }
-      for (ASTNode clause:ASTUtils.conjuncts(contract.post_condition)){
+      for (ASTNode clause:ASTUtils.conjuncts(contract.post_condition,StandardOperator.And)){
         out.printf("ensures ");
         nextExpr();
         current_precedence=0;

@@ -61,12 +61,12 @@ public class Contract extends ASTNode {
   }
 
   public void build_labels(){
-    for(ASTNode part:ASTUtils.conjuncts(pre_condition)){
+    for(ASTNode part:ASTUtils.conjuncts(pre_condition,StandardOperator.Star)){
       for(NameExpression lbl:part.getLabels()){
         labels.add(lbl.getName());
       }
     }
-    for(ASTNode part:ASTUtils.conjuncts(post_condition)){
+    for(ASTNode part:ASTUtils.conjuncts(post_condition,StandardOperator.Star)){
       for(NameExpression lbl:part.getLabels()){
         labels.add(lbl.getName());
       }     

@@ -106,7 +106,7 @@ public class WandEncoder extends AbstractRewriter {
 		    	ASTNode tmp=create.invokation(create.local_name(lbl), null, VALID);
 		    	res=create.expression(StandardOperator.Star,res,tmp);
 		    	int count=0;
-		    	for(ASTNode n:ASTUtils.conjuncts(e.getArg(0))){
+		    	for(ASTNode n:ASTUtils.conjuncts(e.getArg(0),StandardOperator.Star)){
 		    		count++;
 		    		if (n instanceof MethodInvokation){
 		    			MethodInvokation m=(MethodInvokation)n;
@@ -130,7 +130,7 @@ public class WandEncoder extends AbstractRewriter {
 		    	}
 		    	count=0;
     			type_name+="_for";
-		    	for(ASTNode n:ASTUtils.conjuncts(e.getArg(1))){
+		    	for(ASTNode n:ASTUtils.conjuncts(e.getArg(1),StandardOperator.Star)){
 		    		count++;
 		    		if (n instanceof MethodInvokation){
 		    			MethodInvokation m=(MethodInvokation)n;
@@ -194,7 +194,7 @@ public class WandEncoder extends AbstractRewriter {
 	  cb.requires(create.invokation(create.reserved_name(This), null, VALID));
 	  
     int count=0;
-    for(ASTNode n:ASTUtils.conjuncts(e.getArg(0))){
+    for(ASTNode n:ASTUtils.conjuncts(e.getArg(0),StandardOperator.Star)){
       count++;
       if (n instanceof MethodInvokation){
         MethodInvokation m=(MethodInvokation)n;
@@ -227,7 +227,7 @@ public class WandEncoder extends AbstractRewriter {
       }
     }
     count=0;
-    for(ASTNode n:ASTUtils.conjuncts(e.getArg(1))){
+    for(ASTNode n:ASTUtils.conjuncts(e.getArg(1),StandardOperator.Star)){
       count++;
       if (n instanceof MethodInvokation){
         MethodInvokation m=(MethodInvokation)n;
@@ -394,7 +394,7 @@ public class WandEncoder extends AbstractRewriter {
     create.leave();
     
 	  int count=0;
-    for(ASTNode n:ASTUtils.conjuncts(wand.getArg(0))){
+    for(ASTNode n:ASTUtils.conjuncts(wand.getArg(0),StandardOperator.Star)){
       count++;
       if (n instanceof MethodInvokation){
         MethodInvokation m=(MethodInvokation)n;
@@ -420,7 +420,7 @@ public class WandEncoder extends AbstractRewriter {
       }
     }
     count=0;
-    for(ASTNode n:ASTUtils.conjuncts(wand.getArg(1))){
+    for(ASTNode n:ASTUtils.conjuncts(wand.getArg(1),StandardOperator.Star)){
       count++;
       if (n instanceof MethodInvokation){
         MethodInvokation m=(MethodInvokation)n;
@@ -534,7 +534,7 @@ public class WandEncoder extends AbstractRewriter {
 	private String get_wand_type(OperatorExpression e){
     String type_name="Wand";
     int count=0;
-    for(ASTNode n:ASTUtils.conjuncts(e.getArg(0))){
+    for(ASTNode n:ASTUtils.conjuncts(e.getArg(0),StandardOperator.Star)){
       count++;
       if (n instanceof MethodInvokation){
         MethodInvokation m=(MethodInvokation)n;
@@ -545,7 +545,7 @@ public class WandEncoder extends AbstractRewriter {
     }
     count=0;
     type_name+="_for";
-    for(ASTNode n:ASTUtils.conjuncts(e.getArg(1))){
+    for(ASTNode n:ASTUtils.conjuncts(e.getArg(1),StandardOperator.Star)){
       count++;
       if (n instanceof MethodInvokation){
         MethodInvokation m=(MethodInvokation)n;

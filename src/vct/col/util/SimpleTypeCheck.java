@@ -412,6 +412,12 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     }
     case Perm:
     {
+      if (!(e.getArg(0) instanceof Dereference)
+      && !e.getArg(0).isa(StandardOperator.Subscript)
+      && !((e.getArg(0) instanceof NameExpression) && (((NameExpression)e.getArg(0)).getKind()==Kind.Field))
+      ){
+        Fail("first argument of Perm must be a field or an array element");
+      }
       Type t1=e.getArg(0).getType();
       if (t1==null) Fail("type of left argument unknown at %s",e.getOrigin());
       Type t2=e.getArg(1).getType();
@@ -422,6 +428,12 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     }
     case PointsTo:
     {
+      if (!(e.getArg(0) instanceof Dereference)
+      && !e.getArg(0).isa(StandardOperator.Subscript)
+      && !((e.getArg(0) instanceof NameExpression) && (((NameExpression)e.getArg(0)).getKind()==Kind.Field))
+      ){
+        Fail("first argument of PointsTo must be a field or an array element");
+      }
       Type t1=e.getArg(0).getType();
       if (t1==null) Fail("type of left argument unknown at %s",e.getOrigin());
       Type t2=e.getArg(1).getType();
