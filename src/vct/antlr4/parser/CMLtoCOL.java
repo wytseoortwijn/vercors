@@ -558,13 +558,19 @@ public class CMLtoCOL extends AbstractCtoCOL implements CMLVisitor<ASTNode> {
   @Override
   public ASTNode visitSpecificationStatement(SpecificationStatementContext ctx) {//DRB --Added	    
 	    ASTNode res=null;
+	    System.out.printf("dfsdfsdfsdfsdf  %s\n",ctx.getText());
 	  	if (match(ctx,"loop_invariant",null,";")){	      
 	      res= create.special(ASTSpecial.Kind.Invariant,convert(ctx,1));
 	    }
 	    else if (match(ctx,"send",null,"to",null,",",null,";")){//DRB	    	
 		    res= create.expression(StandardOperator.Send,convert(ctx,1),convert(ctx,3),convert(ctx,5));		
 		    res.setGhost(true);
-  		} else if (match(ctx,"assert",null,";")){ // DRB
+  		} else if (match(ctx,"recv",null,"from",null,",",null,";")){//DRB
+  			
+		    res= create.expression(StandardOperator.Recv,convert(ctx,1),convert(ctx,3),convert(ctx,5));		
+		    res.setGhost(true);
+  		}
+	    else if (match(ctx,"assert",null,";")){ // DRB
   			res=create.expression(StandardOperator.Assert,convert(ctx,1));
   			res.setGhost(true);
   		} else if (match(ctx,"fold",null,";")){//DRB

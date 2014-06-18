@@ -215,7 +215,11 @@ public enum StandardOperator {
   /**
    * send permission statement for parallel loops : /DRB
    */
-  Send(3);
+  Send(3),
+  /**
+   * receive permission statement for parallel loops : /DRB
+   */
+  Recv(3);
   
   private final int arity;
   

@@ -14,6 +14,7 @@ contractClause
 specificationStatement
     : 'loop_invariant' resourceExpression ';'        
     | 'send' resourceExpression 'to' Identifier ',' expression ';'
+    | 'recv' resourceExpression 'from' Identifier ',' expression ';'
     | 'assert' resourceExpression ';'
     ;    
 

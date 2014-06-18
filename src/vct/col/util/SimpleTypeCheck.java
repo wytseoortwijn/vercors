@@ -329,6 +329,13 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       e.setType(new PrimitiveType(Sort.Void));
       break;
     }
+    case Recv:{ //DRB
+        Type t1=e.getArg(0).getType();
+        if (t1==null) Fail("type of left argument unknown at "+e.getOrigin());
+        if (!t1.isResource()) Fail("type of left argument is %s rather than resource at %s",t1,e.getOrigin());
+        e.setType(new PrimitiveType(Sort.Void));
+        break;
+      }
     case Instance:
     case SubType:
     case SuperType:
