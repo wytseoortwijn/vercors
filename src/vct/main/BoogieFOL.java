@@ -80,14 +80,14 @@ public class BoogieFOL {
             ASTNode formula=e.getArg(0);
             System.err.printf("checking formula at %s%n",formula.getOrigin());
             vct.util.Configuration.getDiagSyntax().print(System.out,formula);
-            for(ASTNode part:ASTUtils.conjuncts(formula)){
+            for(ASTNode part:ASTUtils.conjuncts(formula,StandardOperator.And)){
               System.err.print("conjuct: ");
               vct.util.Configuration.getDiagSyntax().print(System.out,part);
             }
             BoogieReport res=check_boogie(args,formula);
             System.err.printf("formula at %s: %s%n",e.getOrigin(),res.getVerdict());
             report.addReport(res);
-            for(ASTNode part:ASTUtils.conjuncts(formula)){
+            for(ASTNode part:ASTUtils.conjuncts(formula,StandardOperator.And)){
               System.err.print("conjuct ");
               vct.util.Configuration.getDiagSyntax().print(System.out,part);
               System.err.println();

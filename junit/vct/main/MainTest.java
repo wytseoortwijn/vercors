@@ -325,6 +325,30 @@ testZeroArray (){
 }
   @Test
   public void 
+testBadTypePVL (){
+  sem_get();
+    try {
+      VCTResult res=run("vct","--chalice", "//examples/manual/BadType.pvl");
+  res.mustSay("type of left argument is Resource rather than boolean");
+  sem.release();
+}finally {
+  sem.release();
+}
+}
+  @Test
+  public void 
+testBadTypeJava (){
+  sem_get();
+    try {
+      VCTResult res=run("vct","--chalice", "//examples/manual/BadType.java");
+  res.mustSay("first argument of Perm must be");
+  sem.release();
+}finally {
+  sem.release();
+}
+}
+  @Test
+  public void 
 testRBLock (){
   sem_get();
     try {
