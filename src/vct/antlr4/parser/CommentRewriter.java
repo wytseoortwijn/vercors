@@ -102,6 +102,12 @@ public class CommentRewriter extends AbstractRewriter {
     super.visit(c);
     c=(ASTClass)result;
     c.setContract(cb.getContract());
+    if (queue.size()>0) {
+      Contract c2=parser.contract(c,grabQueue());
+      if (c2!=null) {
+        throw Failure("at %s: Dangling contract at the end of class %s",c2.getOrigin(),c.getName());
+      }
+    }
     result=c;
   }
   @Override
