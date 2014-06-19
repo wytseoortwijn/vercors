@@ -117,6 +117,11 @@ public class JavaPrinter extends AbstractPrinter {
       setExpr();
       s.args[0].accept(this);
       out.println(";");
+    case Exhale:
+      out.print("exhale ");
+      setExpr();
+      s.args[0].accept(this);
+      out.println(";");
       break;    
     default:
       super.visit(s);
