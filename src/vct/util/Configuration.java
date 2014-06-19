@@ -123,11 +123,12 @@ public class Configuration {
       ClassLoader loader=Configuration.class.getClassLoader();
       URL url=loader.getResource("vct/util/Configuration.class");
       File f=new File(url.getFile());
-      //Warning("origin is %s", f);
+      Debug("origin is %s", f);
       for(int i=0;i<5;i++) f=f.getParentFile();
-      //Warning("home is %s", f);
-      //throw new Error("variable VCT_HOME is not set");
+      Debug("home is %s", f);
       tmp=f.toString();
+      // Remove the file: prefix that shows up while executing under ant.
+      if (tmp.startsWith("file:")) tmp=tmp.substring(5);
     }
     home=Paths.get(tmp).toAbsolutePath().normalize();
     if (!home.toFile().isDirectory()){
