@@ -38,6 +38,46 @@ public class MainTest extends ToolTest {
       sem.release();
     }
   }
+  @Test
+  public void testBoogieExamplePVL() {
+    sem_get();
+    try {
+      VCTResult res = run("vct", "--boogie",
+          "//examples/sequential/boogie-example.pvl");
+      res.mustSay("method F: Pass");
+      res.mustSay("method G: Fail");
+      if (res.verdict != Verdict.Fail)
+        fail("bad result : " + res.verdict);
+    } finally {
+      sem.release();
+    }
+  }
+  
+  @Test
+  public void testNestedLoops() {
+    sem_get();
+    try {
+      VCTResult res = run("vct", "--boogie",
+          "//examples/sequential/nested-loops.pvl");
+      res.checkVerdict(Verdict.Pass);
+    } finally {
+      sem.release();
+    }
+  }
+  @Test
+  public void testLoopsPVL() {
+    sem_get();
+    try {
+      VCTResult res = run("vct", "--boogie",
+          "//examples/sequential/loopinv-pvl.pvl");
+      res.mustSay("method f_ok: Pass");
+      res.mustSay("method f_bad: Fail");
+      if (res.verdict != Verdict.Fail)
+        fail("bad result : " + res.verdict);
+    } finally {
+      sem.release();
+    }
+  }
 
   @Test
   public void testBoogieTest() {
@@ -174,6 +214,30 @@ public class MainTest extends ToolTest {
     try {
       VCTResult res = run("vct", "--chalice",
           "//examples/permissions/Counter.java");
+      if (res.verdict != Verdict.Pass)
+        fail("bad result : " + res.verdict);
+    } finally {
+      sem.release();
+    }
+  }
+  @Test
+  public void testTreeStack() {
+    sem_get();
+    try {
+      VCTResult res = run("vct", "--chalice",
+          "//examples/permissions/TreeStack.java");
+      if (res.verdict != Verdict.Pass)
+        fail("bad result : " + res.verdict);
+    } finally {
+      sem.release();
+    }
+  }
+  @Test
+  public void testBox() {
+    sem_get();
+    try {
+      VCTResult res = run("vct", "--chalice",
+          "//examples/permissions/box.pvl");
       if (res.verdict != Verdict.Pass)
         fail("bad result : " + res.verdict);
     } finally {
@@ -616,8 +680,19 @@ public class MainTest extends ToolTest {
   public void testUpdatePoint() {
     sem_get();
     try {
-      VCTResult res = run("vct", "--chalice", "--single-group",
+      VCTResult res = run("vct", "--chalice",
           "//examples/forkjoin/update-point.pvl");
+      res.checkVerdict(Verdict.Pass);
+    } finally {
+      sem.release();
+    }
+  }
+  @Test
+  public void testMinMax() {
+    sem_get();
+    try {
+      VCTResult res = run("vct", "--chalice",
+          "//examples/predicates/minmax-list.pvl");
       res.checkVerdict(Verdict.Pass);
     } finally {
       sem.release();
