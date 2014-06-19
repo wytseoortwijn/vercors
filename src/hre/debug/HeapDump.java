@@ -61,7 +61,12 @@ public class HeapDump {
           if (val==null) {
             out.printf("null field %s%n",field.getName());
           } else {
+            out.printf("<field %s %s>%n",field.getName(),field.getType());
+            out.enter();
+            out.prefixAdd("  ");
             tree_dump(out,visited,val,base_classes);
+            out.leave();
+            out.printf("</field>%n");
           }
         } else if (val instanceof Integer){
           out.printf(" %s = %d%n",field.getName(),val);
