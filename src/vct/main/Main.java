@@ -217,9 +217,14 @@ public class Main
         return vct.boogie.Main.TestDafny(arg);
       }
     });
-    defined_checks.put("silicon",new ValidationPass("verify with Boogie"){
+    defined_checks.put("silicon-chalice",new ValidationPass("verify Chalice code with Silicon"){
       public TestReport apply(ProgramUnit arg){
         return vct.boogie.Main.TestSilicon(arg);
+      }
+    });
+    defined_checks.put("silicon",new ValidationPass("verify native input with Silicon"){
+      public TestReport apply(ProgramUnit arg){
+        return example.Main.TestSilicon(arg);
       }
     });
     defined_passes.put("box",new CompilerPass("box class types with parameters"){
