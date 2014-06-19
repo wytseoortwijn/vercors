@@ -122,7 +122,7 @@ public class ToolTest extends TestCase {
       if (msg.getFormat().equals("exit %d")){
         int n=(Integer)msg.getArg(0);
         if (n>0){
-          fail("bad exit status "+n);
+          res.verdict=Verdict.Error;
         }
         break;
       }
