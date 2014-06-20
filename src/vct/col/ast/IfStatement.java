@@ -45,8 +45,13 @@ public class IfStatement extends ASTNode {
   
   public ASTNode getStatement(int i){ return cases.get(i).statement; }
 
-  public void accept_simple(ASTVisitor visitor){
+  @Override
+  public <T> void accept_simple(ASTVisitor<T> visitor){
     visitor.visit(this);
+  }
+  @Override
+  public <T> T accept_simple(ASTMapping<T> map){
+    return map.map(this);
   }
 
 }

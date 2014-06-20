@@ -132,10 +132,18 @@ public abstract class ASTNode implements ASTFlags {
 
   protected abstract <T> void accept_simple(ASTVisitor<T> visitor);
   
+  protected abstract <T> T accept_simple(ASTMapping<T> map);
+  
   public final <T> void accept(ASTVisitor<T> visitor){
     visitor.pre_visit(this);
     this.accept_simple(visitor);
     visitor.post_visit(this);
+  }
+  
+  public final <T> T apply(ASTMapping<T> map){
+    map.pre_map(this);
+    T res=this.accept_simple(map);
+    return map.post_map(this, res);  
   }
   
   public final <T> T apply(ASTVisitor<T> visitor){

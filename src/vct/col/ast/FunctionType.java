@@ -22,9 +22,19 @@ public class FunctionType extends Type {
   
   public Type getArgument(int i){ return args[i]; }
   
-  public void accept_simple(ASTVisitor visitor){
+  @Override
+  public <T> void accept_simple(ASTVisitor<T> visitor){
     visitor.visit(this);
   }
+  @Override
+  public <T> T accept_simple(ASTMapping<T> map){
+    return map.map(this);
+  }
+  @Override
+  public <T> T accept_simple(TypeMapping<T> map){
+    return map.map(this);
+  }
+
   @Override
   public boolean supertypeof(ProgramUnit context, Type t) {
     // TODO Auto-generated method stub

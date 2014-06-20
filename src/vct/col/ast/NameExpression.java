@@ -72,8 +72,13 @@ public class NameExpression extends ASTNode {
   }
   public String getName() { return name; }
 
-  public void accept_simple(ASTVisitor visitor){
+  @Override
+  public <T> void accept_simple(ASTVisitor<T> visitor){
     visitor.visit(this);
+  }
+  @Override
+  public <T> T accept_simple(ASTMapping<T> map){
+    return map.map(this);
   }
 
   public String toString(){ return name; }

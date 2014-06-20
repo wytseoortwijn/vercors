@@ -1,6 +1,7 @@
 package vct.col.ast;
 
 import java.util.ArrayList;
+
 import static hre.System.Abort;
 
 public class BindingExpression extends ASTNode {
@@ -36,9 +37,11 @@ public class BindingExpression extends ASTNode {
     return decls.toArray(new DeclarationStatement[0]);
   }
   
-  @Override
-  public <T> void accept_simple(ASTVisitor<T> visitor) {
+  public <T> void accept_simple(ASTVisitor<T> visitor){
     visitor.visit(this);
+  }
+  public <T> T accept_simple(ASTMapping<T> map){
+    return map.map(this);
   }
 
 }

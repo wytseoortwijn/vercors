@@ -19,6 +19,14 @@ public abstract  class Type extends ASTNode {
   
   protected ASTNode args[];
   
+  protected abstract <T> T accept_simple(TypeMapping<T> map);
+
+  public final <T> T apply(TypeMapping<T> map){
+    map.pre_map(this);
+    T res=this.accept_simple(map);
+    return map.post_map(this, res);  
+  }
+
   public Type(ASTNode ... args){
     this.args=Arrays.copyOf(args,args.length);
   }

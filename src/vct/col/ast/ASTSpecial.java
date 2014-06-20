@@ -30,9 +30,11 @@ public class ASTSpecial extends ASTNode {
     this.args=Arrays.copyOf(args,args.length);
   }
 
-  @Override
-  protected <T> void accept_simple(ASTVisitor<T> visitor) {
+  public <T> void accept_simple(ASTVisitor<T> visitor){
     visitor.visit(this);
+  }
+  public <T> T accept_simple(ASTMapping<T> map){
+    return map.map(this);
   }
   
   public boolean isSpecial(Kind with) {

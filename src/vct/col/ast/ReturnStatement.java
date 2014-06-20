@@ -19,8 +19,13 @@ public class ReturnStatement extends ASTNode implements BeforeAfterAnnotations {
   
   public ASTNode getExpression() { return expression; }
 
-  public void accept_simple(ASTVisitor visitor){
+  @Override
+  public <T> void accept_simple(ASTVisitor<T> visitor){
     visitor.visit(this);
+  }
+  @Override
+  public <T> T accept_simple(ASTMapping<T> map){
+    return map.map(this);
   }
 
   /** Block of proof hints to be executed just before

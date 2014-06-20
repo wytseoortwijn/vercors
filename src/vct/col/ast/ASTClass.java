@@ -13,7 +13,6 @@ import vct.col.rewrite.MultiSubstitution;
 import vct.col.util.DeclarationFilter;
 import vct.col.util.MethodFilter;
 import vct.util.ClassName;
-
 import static hre.System.Abort;
 import static hre.System.Debug;
 import static hre.System.Warning;
@@ -211,11 +210,11 @@ public class ASTClass extends ASTDeclaration implements ASTSequence<ASTClass> {
     implemented_classes=Arrays.copyOf(supports,supports.length);
   }
   
-  /** Accept a visitor.
-   * @see ASTVisitor 
-   */
-  public void accept_simple(ASTVisitor visitor){
+  public <T> void accept_simple(ASTVisitor<T> visitor){
     visitor.visit(this);
+  }
+  public <T> T accept_simple(ASTMapping<T> map){
+    return map.map(this);
   }
 
   /** Perform a lookup of a full class name in a hierarchy.

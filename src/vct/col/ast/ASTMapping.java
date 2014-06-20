@@ -1,0 +1,63 @@
+package vct.col.ast;
+
+public interface ASTMapping<R> {
+  
+  public void pre_map(ASTNode n);
+  
+  public R post_map(ASTNode n,R res);
+  
+  public R map(StandardProcedure p);
+  
+  public R map(ConstantExpression e);
+  
+  public R map(OperatorExpression e);
+  
+  public R map(NameExpression e);
+  
+  public R map(ClassType t);
+  
+  public R map(FunctionType t);
+  
+  public R map(PrimitiveType t);
+  
+  public R map(RecordType t);
+  
+  public R map(MethodInvokation e);
+
+  public R map(BlockStatement s);
+  
+  public R map(IfStatement s);
+  
+  public R map(ReturnStatement s);
+  
+  public R map(AssignmentStatement s);
+
+  public R map(DeclarationStatement s);
+  
+  public R map(LoopStatement s);
+  
+  public R map(Method m);
+
+  public R map(ASTClass c);
+
+  public R map(ASTWith astWith);
+
+  public R map(BindingExpression e);
+
+  public R map(Dereference e);
+
+  public R map(Lemma lemma);
+
+  public R map(ParallelBarrier parallelBarrier);
+
+  public R map(ParallelBlock parallelBlock);
+
+  public R map(Contract contract);
+
+  public R map(ASTSpecial special);
+
+  public R map(VariableDeclaration variableDeclaration);
+
+  public R map(TupleType tupleType);
+
+}
