@@ -64,7 +64,6 @@ import vct.java.printer.JavaDialect;
 import vct.java.printer.JavaSyntax;
 import vct.util.ClassName;
 import vct.util.Configuration;
-import vct.util.Parser;
 import static hre.System.*;
 
 /**
@@ -87,7 +86,7 @@ public class Main
       vct.col.ast.ASTNode.pvl_mode=true;
     }
     Progress("Parsing %s file %s",lang,name);
-    CompilationUnit unit=Parser.parse(lang,name);
+    CompilationUnit unit=Parsers.getParser(lang).parse(new File(name));
     Progress("Read %s succesfully",name);
     program.add(unit);
     Progress("Merged %s succesfully",name);
