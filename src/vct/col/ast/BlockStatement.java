@@ -16,6 +16,9 @@ public class BlockStatement extends ASTNode implements ASTSequence<BlockStatemen
   
   public ASTNode getStatement(int i){ return block.get(i); }
   
+  public ASTNode[] getStatements(){
+    return block.toArray(new ASTNode[0]);
+  }
   public boolean isEmpty(){
     return block.isEmpty();
   }

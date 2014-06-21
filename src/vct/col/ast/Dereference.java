@@ -19,4 +19,8 @@ public class Dereference extends ASTNode {
     this.field=field;
   }
 
+  public final ASTNode getObject(){
+    return object;
+  }
 }
+
