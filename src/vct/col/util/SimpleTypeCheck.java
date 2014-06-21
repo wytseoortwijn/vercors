@@ -208,6 +208,7 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
           }
           Abort("%s name %s is undefined",kind,name);
         }
+        e.setSite(info.reference);
         if (info.kind!=kind){
           if ((kind==NameExpression.Kind.Local && info.kind==NameExpression.Kind.Argument)
             ||(kind==NameExpression.Kind.Argument && info.kind==NameExpression.Kind.Local)){
