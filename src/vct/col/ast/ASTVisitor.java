@@ -63,6 +63,10 @@ public interface ASTVisitor<T> {
 
   public void visit(TupleType tupleType);
 
+  public void visit(AxiomaticDataType adt);
+
+  public void visit(Axiom axiom);
+
 }
 
 

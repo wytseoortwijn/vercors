@@ -137,22 +137,35 @@ public class Method extends ASTDeclaration {
       Debug("object type has no arguments");
       return sigma;
     }
-    if (getParent()==null){
+    ASTNode parent=getParent();
+    if (parent==null){
       Debug("missing parent");
       return sigma;
     }
-    Contract c=((ASTClass)getParent()).getContract();
-    if (c==null) {
-      Debug("missing contract");
-      return sigma;
-    }
-    Debug("building map...");
-    for(int i=0;i<c.given.length&&i<object_type.args.length;i++){
-      if (c.given[i].getType().isPrimitive(Sort.Class)){
-        Debug("%s = %s",c.given[i].getName(),object_type.args[i]);
-        map.put(c.given[i].getName(),(Type)object_type.args[i]);
-      } else {
-        Debug("skipping %s",c.given[i].getName());
+    if (parent instanceof ASTClass){
+      Contract c=((ASTClass)parent).getContract();
+      if (c==null) {
+        Debug("missing contract");
+        return sigma;
+      }
+      Debug("building map...");
+      for(int i=0;i<c.given.length&&i<object_type.args.length;i++){
+        if (c.given[i].getType().isPrimitive(Sort.Class)){
+          Debug("%s = %s",c.given[i].getName(),object_type.args[i]);
+          map.put(c.given[i].getName(),(Type)object_type.args[i]);
+        } else {
+          Debug("skipping %s",c.given[i].getName());
+        }
+      }
+    } else if(parent instanceof AxiomaticDataType) {
+      AxiomaticDataType adt=(AxiomaticDataType)parent;
+      Warning("%s: computing substitution (%s)...",object_type.getOrigin(),adt.name);
+      DeclarationStatement decl[]=adt.getParameters();
+      for(int i=0;i<decl.length;i++){
+        if (i<object_type.args.length){
+          Warning("%s -> %s",decl[i].name,(Type)object_type.args[i]);
+          map.put(decl[i].name,(Type)object_type.args[i]);          
+        }
       }
     }
     return sigma;
@@ -160,8 +173,12 @@ public class Method extends ASTDeclaration {
 
   @Override
   public ClassName getDeclName() {
-    // TODO Auto-generated method stub
-    return null;
+    ASTDeclaration parent=((ASTDeclaration)getParent());
+    if (parent ==null || parent instanceof AxiomaticDataType){
+      return new ClassName(name);
+    } else {
+      return new ClassName(parent.getDeclName(),name);
+    }
   }
 
   @Override

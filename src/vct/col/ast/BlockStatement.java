@@ -28,6 +28,17 @@ public class BlockStatement extends ASTNode implements ASTSequence<BlockStatemen
     return block.iterator();
   }
 
+  public void chain(ASTNode item){
+    if (item instanceof BlockStatement){
+      for(ASTNode n:((BlockStatement)item).block){
+        n.clearParent();
+        add(n);
+      }
+    } else {
+      add(item);
+    }
+  }
+  
   @Override
   public BlockStatement add(ASTNode item) {
     if (item!=null) {

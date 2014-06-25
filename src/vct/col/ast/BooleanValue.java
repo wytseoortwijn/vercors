@@ -11,5 +11,9 @@ public class BooleanValue implements Value {
   public String toString(){
     return value?"true":"false";
   }
+  public boolean equals(Object o){
+    return o.equals(value);
+  }
 }
+
 

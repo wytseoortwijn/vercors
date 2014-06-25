@@ -149,6 +149,14 @@ public abstract class ASTFrame<T> {
   public void enter(ASTNode node){
     node_stack.push(node);
     Debug("entering %s",node.getClass());
+    if (node instanceof AxiomaticDataType){
+      variables.enter();
+      AxiomaticDataType adt=(AxiomaticDataType)node;
+      for(DeclarationStatement decl:adt.getParameters()){
+        Warning("ADT: adding %s",decl.getName());
+        variables.add(decl.getName(),new VariableInfo(decl,NameExpression.Kind.Argument));
+      }
+    }
     if (node instanceof ASTClass){
       ASTClass cl=(ASTClass)node;
       class_stack.push(cl);
@@ -316,6 +324,9 @@ public abstract class ASTFrame<T> {
   }
 
   public void leave(ASTNode node){
+    if (node instanceof AxiomaticDataType){
+      variables.leave();
+    }
     if (node instanceof ASTClass){
       variables.leave();
       class_stack.pop(); 

@@ -166,7 +166,7 @@ public abstract class RecursiveVisitor<T> extends ASTFrame<T> implements
   }
 
   @Override
-  public void visit(ASTClass c) {
+  public void visit(ASTClass c){
     int N;
     N=c.getStaticCount();
     for(int i=0;i<N;i++){
@@ -233,4 +233,15 @@ public abstract class RecursiveVisitor<T> extends ASTFrame<T> implements
     }
   }
 
+  @Override
+  public void visit(AxiomaticDataType adt){
+    for(Axiom ax:adt.axioms()){
+      dispatch(ax);
+    }
+  }
+  
+  @Override
+  public void visit(Axiom axiom){
+    dispatch(axiom.getRule());
+  }
 }

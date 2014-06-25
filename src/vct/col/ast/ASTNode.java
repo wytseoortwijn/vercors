@@ -327,4 +327,7 @@ public abstract class ASTNode implements ASTFlags {
     return false;
   }
 
+  public boolean isConstant(Object o){
+    return false;
+  }
 }

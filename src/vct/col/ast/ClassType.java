@@ -12,6 +12,16 @@ public class ClassType extends Type {
       
   private final String name[];
   
+  private ASTDeclaration def;
+  
+  public void setDefinition(ASTDeclaration def){
+    this.def=def;
+  }
+  
+  public ASTDeclaration getDefinition(){
+    return def;
+  }
+  
   public ClassType(String name[],ASTNode ... args){
     super(args);
     if (name.length==0) Abort("illegal name of length 0");

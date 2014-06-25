@@ -506,7 +506,6 @@ public BlockStatement block(Origin origin, ASTNode ... args) {
     res.accept_if(post);
     return res;
   }
-  
 
   /**
    * Create a name expression that refers to a label.
@@ -655,8 +654,8 @@ public BlockStatement block(Origin origin, ASTNode ... args) {
    */
   public Method predicate(String name, ASTNode body,DeclarationStatement ... args) {
     return method_kind(Method.Kind.Predicate,primitive_type(Sort.Resource),null,name,args,false,body);
-  }
-
+  } 
+  
   public PrimitiveType primitive_type(E origin,PrimitiveType.Sort sort,ASTNode ... args){
     return primitive_type(origin_source.create(origin),sort,args);
   }
@@ -845,4 +844,17 @@ public ASTNode new_array(Type t, ASTNode size) {
   return expression(StandardOperator.NewArray,t,size);
 }
 
+public AxiomaticDataType adt(String name,DeclarationStatement ... pars) {
+  AxiomaticDataType res=new AxiomaticDataType(name,pars);
+  res.setOrigin(origin_stack.get());
+  res.accept_if(post);
+  return res;
+}
+
+public Axiom axiom(String name,ASTNode exp){
+  Axiom res=new Axiom(name,exp);
+  res.setOrigin(origin_stack.get());
+  res.accept_if(post);
+  return res;
+}
 }

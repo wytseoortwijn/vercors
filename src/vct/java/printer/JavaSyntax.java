@@ -50,8 +50,14 @@ public class JavaSyntax extends Syntax {
         syntax.addOperator(HoarePredicate,-1,"/*{","}*/");
 
         syntax.addOperator(Member,45,"","in","");
-
-        JavaVerCorsSyntax=syntax;        
+        syntax.addFunction(CurrentPerm,"perm");
+        syntax.addFunction(Scale,"scale");
+        syntax.addOperator(Unfolding,140,"unfolding","in","");
+        JavaVerCorsSyntax=syntax;
+        syntax.addReserved(FullPerm,"(( 100 ))");
+        syntax.addReserved(ReadPerm,"(( epsilon ))");
+        syntax.addReserved(NoPerm,"(( 0 ))");
+        
       }
       return JavaVerCorsSyntax;
     case JavaVeriFast:

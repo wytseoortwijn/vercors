@@ -219,7 +219,20 @@ public enum StandardOperator {
   /**
    * send permission statement for parallel loops : /DRB
    */
-  Send(3);
+  Send(3),
+  /**
+   * Current permission on a location.
+   */
+  CurrentPerm(1),
+  /**
+   * Scale the permissions on a resource.
+   */
+  Scale(2),
+  /**
+   * Unfold in expression temporarily.
+   */
+  Unfolding(2)
+  ;
 
 
   private final int arity;

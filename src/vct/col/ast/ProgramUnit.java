@@ -12,7 +12,6 @@ import vct.col.rewrite.AbstractRewriter;
 import vct.col.util.ASTFactory;
 import vct.col.util.FeatureScanner;
 import vct.util.ClassName;
-
 import static hre.System.*;
 
 /**
@@ -69,6 +68,14 @@ public class ProgramUnit {
    */
   HashMap<ClassName,ASTClass> classes=new HashMap<ClassName, ASTClass>();
   
+  /**
+   * Index of declarations that are contained within this program unit. 
+   */
+  private HashMap<ClassName,ASTDeclaration> decl_map=new HashMap<ClassName,ASTDeclaration>();
+  
+  
+  private HashMap<ClassName,Method> adt_map=new HashMap<ClassName,Method>();
+  
   /*
   public void addClass(ClassName name,ASTClass cl){
     classes.put(name,cl);
@@ -94,10 +101,34 @@ public class ProgramUnit {
   public void add(CompilationUnit unit){
     contents.add(unit);
     for(ASTNode n:unit.get()){
+      if (n instanceof ASTDeclaration){
+        ASTDeclaration d=(ASTDeclaration)n;
+        decl_map.put(d.getDeclName(), d);
+      }
       if (n instanceof ASTClass){
         ASTClass cl=(ASTClass)n;
         Debug("indexing %s as %s",cl.name,cl.getDeclName());
         classes.put(cl.getDeclName(),cl);
+        for(Method m : cl.staticMethods()){
+          if (m.kind==Method.Kind.Predicate){
+            decl_map.put(m.getDeclName(),m);
+          }          
+        }
+        for(Method m : cl.dynamicMethods()){
+          if (m.kind==Method.Kind.Predicate){
+            decl_map.put(m.getDeclName(),m);
+          }
+        }
+      }
+      if (n instanceof AxiomaticDataType) {
+        AxiomaticDataType adt=(AxiomaticDataType)n;
+        for(Method m:adt.constructors()){
+          Warning("putting adt entry %s",m.getDeclName().toString("."));
+          adt_map.put(m.getDeclName(),m);
+        }
+        for(Method m:adt.mappings()){
+          adt_map.put(m.getDeclName(),m);
+        }
       }
     }
   }
@@ -116,7 +147,7 @@ public class ProgramUnit {
     }
   }
 
-  public ASTClass find(String[] name) {
+  public ASTClass find(String ... name) {
     return find(new ClassName(name));
   }
 
@@ -144,5 +175,15 @@ public class ProgramUnit {
       Debug("predicate %s not found in class %s",nameFull[nameFull.length-1],class_name[0]);
     }
     return m;
+  }
+
+  public ASTDeclaration find_decl(String[] nameFull) {
+    ClassName class_name=new ClassName(nameFull);
+    return decl_map.get(class_name);
+  }
+  
+  public Method find_adt(String ... nameFull) {
+    ClassName class_name=new ClassName(nameFull);
+    return adt_map.get(class_name);
   }
 }

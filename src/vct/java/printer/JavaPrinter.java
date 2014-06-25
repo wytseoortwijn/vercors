@@ -83,8 +83,40 @@ public class JavaPrinter extends AbstractPrinter {
     }
     super.post_visit(node);
   }
-  */ 
+  */
   
+  @Override 
+  public void visit(Axiom ax){
+    out.printf("axioms %s: ", ax.name);
+    ax.getRule().accept(this);
+    out.println(";");
+  }
+
+  @Override
+  public void visit(AxiomaticDataType adt){
+    out.printf("ADT %s [",adt.name);
+    String sep="";
+    for(DeclarationStatement d:adt.getParameters()){
+      out.printf("%s%s",sep,d.name);
+      sep=", ";
+    }
+    out.println("] {");
+    out.incrIndent();
+    out.println("//constructors");
+    for(Method f:adt.constructors()){
+      f.accept(this);
+    }
+    out.println("//mappings");
+    for(Method f:adt.mappings()){
+      f.accept(this);
+    }
+    out.println("//axioms");
+    for(Axiom ax:adt.axioms()){
+      ax.accept(this);
+    }
+    out.decrIndent();
+    out.println("}");
+  }
   @Override
   public void visit(ASTSpecial s){
     switch(s.kind){
@@ -119,6 +151,12 @@ public class JavaPrinter extends AbstractPrinter {
       out.println(";");
     case Exhale:
       out.print("exhale ");
+      setExpr();
+      s.args[0].accept(this);
+      out.println(";");
+      break;    
+    case Inhale:
+      out.print("inhale ");
       setExpr();
       s.args[0].accept(this);
       out.println(";");
@@ -364,7 +402,10 @@ public class JavaPrinter extends AbstractPrinter {
     if (m.getKind()==Method.Kind.Pure){
       out.printf("/*@pure@*/ ");
     }
-    if (((ASTClass)m.getParent()).getName().equals(name)){
+    if ( m.getParent()!=null
+      && m.getParent() instanceof ASTClass
+      && ((ASTClass)m.getParent()).getName().equals(name)
+    ){
       //out.printf("/*constructor*/");
     } else {
       result_type.accept(this);

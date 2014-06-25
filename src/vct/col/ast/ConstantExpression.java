@@ -92,5 +92,9 @@ public class ConstantExpression extends ASTNode {
   public boolean equals(Object o){
     return value.equals(o);
   }
+  
+  public boolean isConstant(Object o){
+    return value.equals(o);
+  }
 }
 

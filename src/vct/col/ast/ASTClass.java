@@ -210,9 +210,12 @@ public class ASTClass extends ASTDeclaration implements ASTSequence<ASTClass> {
     implemented_classes=Arrays.copyOf(supports,supports.length);
   }
   
+  @Override
   public <T> void accept_simple(ASTVisitor<T> visitor){
     visitor.visit(this);
   }
+  
+  @Override
   public <T> T accept_simple(ASTMapping<T> map){
     return map.map(this);
   }

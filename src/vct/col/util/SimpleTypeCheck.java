@@ -6,6 +6,7 @@ import vct.col.ast.*;
 import vct.col.ast.NameExpression.Kind;
 import vct.col.ast.PrimitiveType.Sort;
 import vct.col.rewrite.MultiSubstitution;
+import vct.util.ClassName;
 import static hre.System.Abort;
 import static hre.System.Debug;
 import static hre.System.Fail;
@@ -14,8 +15,10 @@ import static hre.System.Warning;
 public class SimpleTypeCheck extends RecursiveVisitor<Type> {
 
   public void check(){
-    for(ASTClass cl:source().classes()){
-      cl.accept(this);
+    for(CompilationUnit cu:source().get()){
+      for(ASTNode entry:cu){
+        entry.accept(this);
+      }
     }
   }
 
@@ -27,6 +30,10 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     Debug("constant %s",e);
     super.visit(e);
     if (e.getType()==null) Abort("untyped constant %s",e);
+  }
+  
+  public void visit(PrimitiveType t){
+    t.setType(new PrimitiveType(PrimitiveType.Sort.Class));
   }
   public void visit(ClassType t){
     super.visit(t);
@@ -42,6 +49,17 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
         Debug("not a variable");
       }
     }
+    ASTDeclaration decl=source().find_decl(t.getNameFull());
+    if (decl==null){
+      Fail("type error: defined type "+t.getFullName()+" not found");
+    }
+    if (decl instanceof AxiomaticDataType){
+      Warning("%s : %d",decl.name,((AxiomaticDataType) decl).getParameters().length);
+      t.setType(t);
+      t.setDefinition(decl);
+      return;
+    }
+    
     ASTClass cl=source().find(t.getNameFull());
     if (cl==null) {
       Method m=null;
@@ -66,6 +84,18 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
  
   public void visit(MethodInvokation e){
     super.visit(e);
+    Method m=source().find_adt(e.method);
+    if (m!=null){
+      Warning("skipping ADT method");
+      e.setDefinition(m);
+      Type t=m.getReturnType();
+      if (t instanceof PrimitiveType) {
+        e.setType(t); 
+      } else {
+        e.setType(new ClassType("<<null>>"));
+      }
+      return;
+    }
     if (e.object==null) Abort("unresolved method invokation at "+e.getOrigin());
     if (e.object.getType()==null) Abort("object has no type at %s",e.object.getOrigin());
     if (!(e.object.getType() instanceof ClassType)) Abort("invokation on non-class");
@@ -87,10 +117,13 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     }
     ASTClass cl=source().find(object_type.getNameFull());
     if (cl==null) Fail("could not find class %s",object_type.getFullName());
-    Method m=cl.find(e.method,object_type,type);
+    m=cl.find(e.method,object_type,type);
     while(m==null && cl.super_classes.length>0){
       cl=source().find(cl.super_classes[0].getNameFull());
       m=cl.find(e.method,object_type,type);
+    }
+    if (m==null){
+      m=source().find_adt(e.method);
     }
     if (m==null) {
       String parts[]=e.method.split("_");
@@ -147,10 +180,13 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     ASTNode val=s.getExpression();
     val.accept(this);
     Type val_type=val.getType();
-    if (val_type==null) Abort("Value has no type has no type.");
+    if (val_type==null) Abort("Value %s has no type.",val);
     if (val_type.toString().equals("<<label>>")) return;
     s.getLocation().accept(this);
     check_loc_val(s.getLocation().getType(),s.getExpression());
+    if (s.getLocation().getType().isPrimitive(Sort.Fraction)){
+      force_frac(s.getExpression());
+    }
   }
   
   public void visit(DeclarationStatement s){
@@ -236,8 +272,20 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
           e.setType(new ClassType(cl.getFullName()));
           break;
         }
-      case Null:{
+        case Null:{
           e.setType(new ClassType("<<null>>"));
+          break;
+        }
+        case FullPerm:{
+          e.setType(new PrimitiveType(PrimitiveType.Sort.Fraction));
+          break;
+        }
+        case ReadPerm:{
+          e.setType(new PrimitiveType(PrimitiveType.Sort.Fraction));
+          break;
+        }
+        case NoPerm:{
+          e.setType(new PrimitiveType(PrimitiveType.Sort.ZFraction));
           break;
         }
       case Result:{
@@ -390,7 +438,7 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     {
       Type t1=e.getArg(0).getType();
       if (t1==null) Fail("type of left argument unknown at "+e.getOrigin());
-      if (!t1.isBoolean()) Fail("type of right argument is %s rather than boolean at %s",t1,e.getOrigin());
+      if (!t1.isBoolean()) Fail("type of left argument is %s rather than boolean at %s",t1,e.getOrigin());
       Type t2=e.getArg(1).getType();
       if (t2==null) Fail("type of right argument unknown at %s",e.getOrigin());
       if (!t2.isBoolean()&&!t2.isPrimitive(Sort.Resource)){
@@ -411,6 +459,39 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       e.setType(new PrimitiveType(Sort.Resource));
       break;
     }
+    case CurrentPerm:{
+      if (!(e.getArg(0) instanceof Dereference)
+      && !e.getArg(0).isa(StandardOperator.Subscript)
+      && !((e.getArg(0) instanceof NameExpression) && (((NameExpression)e.getArg(0)).getKind()==Kind.Field))
+      ){
+        Fail("first argument of Perm must be a field or an array element");
+      }
+      Type t1=e.getArg(0).getType();
+      if (t1==null) Fail("type of argument unknown at %s",e.getOrigin());
+      e.setType(new PrimitiveType(Sort.Fraction));
+      break;
+    }
+    case Scale:
+    {
+      Type t1=e.getArg(0).getType();
+      if (t1==null) Fail("type of left argument unknown at %s",e.getOrigin());
+      if (!t1.isResource()) Fail("Cannot scale type %s",t1);
+      Type t2=e.getArg(1).getType();
+      if (t2==null) Fail("type of right argument unknown at %s",e.getOrigin());
+      if (!t2.isBoolean() && !t2.isNumeric()) Fail("type of right argument is %s rather than a numeric type at %s",t2,e.getOrigin());
+      force_frac(e.getArg(1));
+      e.setType(new PrimitiveType(Sort.Resource));
+      break;      
+    }
+    case Unfolding:{
+      Type t1=e.getArg(0).getType();
+      if (t1==null) Fail("type of left argument unknown at %s",e.getOrigin());
+      if (!t1.isResource()) Fail("Cannot scale type %s",t1);
+      Type t2=e.getArg(1).getType();
+      if (t2==null) Fail("type of right argument unknown at %s",e.getOrigin());
+      e.setType(t2);
+      break;  
+    }
     case Perm:
     {
       if (!(e.getArg(0) instanceof Dereference)
@@ -424,6 +505,7 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       Type t2=e.getArg(1).getType();
       if (t2==null) Fail("type of right argument unknown at %s",e.getOrigin());
       if (!t2.isBoolean() && !t2.isNumeric()) Fail("type of right argument is %s rather than a numeric type at %s",t2,e.getOrigin());
+      force_frac(e.getArg(1));
       e.setType(new PrimitiveType(Sort.Resource));
       break;
     }
@@ -440,6 +522,7 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       Type t2=e.getArg(1).getType();
       if (t2==null) Fail("type of middle argument unknown at %s",e.getOrigin());
       if (!t2.isBoolean() && !t2.isNumeric()) Fail("type of middle argument is %s rather than a numeric type at %s",t2,e.getOrigin());
+      force_frac(e.getArg(1));
       e.setType(new PrimitiveType(Sort.Resource));
       Type t3=e.getArg(2).getType();
       if (t3==null) Fail("type of right argument unknown at %s",e.getOrigin());
@@ -663,12 +746,14 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     case Close:
     {
       ASTNode arg=e.getArg(0);
-      if (!(arg instanceof MethodInvokation)){
-        Fail("At %s: argument of [%s] must be a predicate invokation.",arg.getOrigin(),op);
+      if (!(arg instanceof MethodInvokation) && !(arg.isa(StandardOperator.Scale))){
+        Fail("At %s: argument of [%s] must be a (scaled) predicate invokation",arg.getOrigin(),op);
       }
-      MethodInvokation prop=(MethodInvokation)arg;
-      if (prop.getDefinition().kind != Method.Kind.Predicate){
-        Fail("At %s: argument of [%s] must be predicate and not %s",arg.getOrigin(),op,prop.getDefinition().kind);
+      if (arg instanceof MethodInvokation){
+        MethodInvokation prop=(MethodInvokation)arg;
+        if (prop.getDefinition().kind != Method.Kind.Predicate){
+          Fail("At %s: argument of [%s] must be predicate and not %s",arg.getOrigin(),op,prop.getDefinition().kind);
+        }
       }
       e.setType(new PrimitiveType(Sort.Void));      
       break;
@@ -828,6 +913,18 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     }
   }
   
+  private void force_frac(ASTNode arg) {
+    if (arg.getType().isPrimitive(Sort.ZFraction)) return;
+    if (arg.getType().isPrimitive(Sort.Fraction)) return;
+    arg.setType(new PrimitiveType(Sort.Fraction));
+    if (arg instanceof OperatorExpression){
+      OperatorExpression e=(OperatorExpression)arg;
+      for(ASTNode n:e.getArguments()){
+        force_frac(n);
+      }
+    }
+  }
+
   public void visit(Dereference e){
     super.visit(e);
     Type object_type=e.object.getType();

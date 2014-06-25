@@ -43,5 +43,17 @@ public enum ASTReserved {
   /**
    * Java final keyword.
    */
-  Final
+  Final,
+  /**
+   * Full Write Permission
+   */
+  FullPerm,
+  /**
+   * Full Write Permission
+   */
+  ReadPerm,
+  /**
+   * Full Write Permission
+   */
+  NoPerm
 }

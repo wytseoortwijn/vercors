@@ -15,6 +15,8 @@ import vct.col.ast.ASTSequence;
 import vct.col.ast.ASTSpecial;
 import vct.col.ast.ASTWith;
 import vct.col.ast.AbstractVisitor;
+import vct.col.ast.Axiom;
+import vct.col.ast.AxiomaticDataType;
 import vct.col.ast.BindingExpression;
 import vct.col.ast.CompilationUnit;
 import vct.col.ast.ContractBuilder;
@@ -596,7 +598,31 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
     }
     result=res;
   }
-
+  
+  @Override
+  public void visit(AxiomaticDataType adt){
+    AxiomaticDataType res=create.adt(adt.name,rewrite(adt.getParameters()));
+    for(Method c:adt.constructors()){
+      res.add_cons(rewrite(c));
+    }
+    for(Method m:adt.mappings()){
+      res.add_cons(rewrite(m));
+    }
+    for(Axiom ax:adt.axioms()){
+      res.add_axiom(rewrite(ax));
+    }
+    result=res;
+  }
+  
+  public void visit(Axiom ax){
+    Axiom res=create.axiom(ax.name,rewrite(ax.getRule()));
+    result=res;
+  }
+  
+  /*
+   * The following functions make generating code easier...
+   */
+  
   public ASTNode constant(int c){
   	return create.constant(c);
   }

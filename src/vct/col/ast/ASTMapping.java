@@ -60,4 +60,8 @@ public interface ASTMapping<R> {
 
   public R map(TupleType tupleType);
 
+  public R map(AxiomaticDataType adt);
+
+  public R map(Axiom axiom);
+
 }
