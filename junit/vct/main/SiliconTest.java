@@ -189,5 +189,53 @@ public class SiliconTest extends ToolTest {
       sem.release();
     }
   }
+  
+  @Test
+  public void testQuantSeqArray(){
+    sem_get();
+    try {
+      VCTResult res=run("vct","--passes=standardize,check,java,silicon",
+          "//silver/examples/quantifiedpermissions/sequences/array.sil");
+      res.checkVerdict(Verdict.Pass);
+    } finally {
+      sem.release();
+    }
+  }
+
+  @Test
+  public void testQuantSeqTestopt(){
+    sem_get();
+    try {
+      VCTResult res=run("vct","--passes=standardize,check,java,silicon",
+          "//silver/examples/quantifiedpermissions/sequences/testopt.sil");
+      res.checkVerdict(Verdict.Pass);
+    } finally {
+      sem.release();
+    }
+  }
+  
+  @Test
+  public void testQuantSeqBsearch(){
+    sem_get();
+    try {
+      VCTResult res=run("vct","--passes=standardize,check,java,silicon",
+          "//silver/examples/quantifiedpermissions/sequences/bsearch.sil");
+      res.checkVerdict(Verdict.Fail);
+    } finally {
+      sem.release();
+    }
+  }
+  
+  @Test
+  public void testQuantSeqMergesort(){
+    sem_get();
+    try {
+      VCTResult res=run("vct","--passes=standardize,check,java,silicon",
+          "//silver/examples/quantifiedpermissions/sequences/mergesort.sil");
+      res.checkVerdict(Verdict.Pass);
+    } finally {
+      sem.release();
+    }
+  }
 
 }

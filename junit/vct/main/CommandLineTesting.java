@@ -25,6 +25,7 @@ public class CommandLineTesting {
     testmap.put("main",vct.main.MainTest.class);
     testmap.put("verifast",vct.main.VerifastTest.class);
     testmap.put("refute",vct.main.RefuteTest.class);
+    testmap.put("silicon", vct.main.SiliconTest.class);
   }
   
   public static void run_testsuites(){
