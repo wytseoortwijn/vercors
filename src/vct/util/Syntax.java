@@ -216,7 +216,7 @@ public class Syntax {
     return reserved2syntax.get(word);
   }
 
-  public void print(TrackingOutput out,ASTNode n){
+  public AbstractPrinter print(TrackingOutput out,ASTNode n){
     throw new HREError("Pretty printing %s is not implemented",language);
   }
 
@@ -227,13 +227,15 @@ public class Syntax {
     TrackingOutput out=new TrackingOutput(outs,false);
     print(out,program);
   }
-  public void print(TrackingOutput out, ProgramUnit program) {
+  public AbstractPrinter print(TrackingOutput out, ProgramUnit program) {
+    AbstractPrinter p = null;
     for(CompilationUnit cu : program.get()){
       out.lnprintf("//==== %s ====",cu.getFileName());
       for(ASTNode item : cu.get()){
-        print(out,item);
+        p=print(out,item);
       }
     }
+    return p;
   }
 
 }

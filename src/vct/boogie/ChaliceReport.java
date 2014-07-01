@@ -26,7 +26,9 @@ public class ChaliceReport extends hre.util.TestReport {
   private boolean boogie_started;
   private boolean boogie_completed;
   
-  public ChaliceReport(ModuleShell shell,TrackingTree tree){
+  public ChaliceReport(ModuleShell shell,HashSet<Origin> must_refute, TrackingTree tree){
+    HashSet<Origin> has_refuted=new HashSet<Origin>();
+    int real_errors=0;
     try {
       String line;
       for(;;){
@@ -64,7 +66,14 @@ public class ChaliceReport extends hre.util.TestReport {
             }
             message=message.replaceAll(" at [0-9]+[.][0-9]+ "," ");
             Debug("error at %s: %s%n",origin,message);
-            origin.report("error",message);
+            if (must_refute.contains(origin)){
+              Warning("expected error found: %s",message);
+              has_refuted.add(origin);
+            } else {
+              Warning("unexpected error found: %s",message);
+              origin.report("error",message);
+              real_errors++;
+            }
           } else {
             ArrayList<String> error=new ArrayList<String>();
             String parts[]=line.substring(colon+2).split("[0-9]+[.][0-9]+");
@@ -84,8 +93,15 @@ public class ChaliceReport extends hre.util.TestReport {
               error.add(msg_origin+parts[i]);
               current=end+parts[i].length();
             }
-            //System.out.println("");
-            origin.report("error",error);
+            //System.out.println("")
+            if (must_refute.contains(origin)){
+              Warning("expected error found: %s",error);
+              has_refuted.add(origin);
+            } else {
+              Warning("unexpected error found: %s",error);
+              origin.report("error",error);
+              real_errors++;
+            }
           }
           continue;
         }
@@ -94,6 +110,13 @@ public class ChaliceReport extends hre.util.TestReport {
           continue;
         }
         if (line.startsWith("Boogie program verifier finished")){
+          Warning("checking if all refutes have succeeded");
+          for(Origin ref:must_refute){
+            if (!has_refuted.contains(ref)){
+              ref.report("error","failed to refute property");
+              real_errors++;
+            }
+          }
           boogie_completed=true;
           String words[]=line.split(" ");
           int verified_count=-1;
@@ -104,11 +127,12 @@ public class ChaliceReport extends hre.util.TestReport {
             if (words[i].matches("error.*")) error_count=Integer.parseInt(words[i-1]);
             if (words[i].equals("time")) timeout_count=Integer.parseInt(words[i-1]);
           }
-          if (error_count==0 && timeout_count==0){
+          //if (error_count==0 && timeout_count==0){
+          if (real_errors==0 && timeout_count==0){
             setVerdict(Verdict.Pass);
-          } else if (error_count==0) {
-        	Warning("Chalice/Boogie finished with %d timeouts",timeout_count);
-        	setVerdict(Verdict.Inconclusive);
+          } else if (timeout_count>0) {
+        	  Warning("Chalice/Boogie finished with %d timeouts",timeout_count);
+        	  setVerdict(Verdict.Inconclusive);
           } else {
             setVerdict(Verdict.Fail);
           }

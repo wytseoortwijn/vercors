@@ -159,6 +159,10 @@ public enum StandardOperator {
   Fold(1),
   /** Unfold statement. */
   Unfold(1),
+  /**
+   * Refute statement. Refute a fact at a point in the program.
+   */
+  Refute(1),
   /** Assert Statement. */
   Assert(1),
   /** Assume statement. */
@@ -216,7 +220,8 @@ public enum StandardOperator {
    * send permission statement for parallel loops : /DRB
    */
   Send(3);
-  
+
+
   private final int arity;
   
   StandardOperator(int arity){

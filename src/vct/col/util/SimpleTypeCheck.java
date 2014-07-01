@@ -676,6 +676,7 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     case Use:
     case QED:
     case Apply:
+    case Refute:
     case Assert:
     case HoarePredicate:
     case Assume:

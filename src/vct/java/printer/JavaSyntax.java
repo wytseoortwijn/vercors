@@ -156,10 +156,13 @@ public class JavaSyntax extends Syntax {
   }
 
   @Override
-  public void print(TrackingOutput out, ASTNode n) {
+  public JavaPrinter print(TrackingOutput out, ASTNode n) {
     JavaPrinter p=new JavaPrinter(out,dialect);
-    ASTNode nn=new Parenthesize(this).rewrite(n);
-    nn.accept(p);
+    if (n!=null) {
+      ASTNode nn=new Parenthesize(this).rewrite(n);
+      nn.accept(p);
+    }
+    return p;
   } 
 }
 

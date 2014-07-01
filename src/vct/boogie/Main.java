@@ -159,7 +159,7 @@ public class Main {
         chalice_input=new PrintStream(new SplittingOutputStream(temp,encoded));
       }
       final TrackingOutput chalice_code=new TrackingOutput(chalice_input,true);
-      BoogieSyntax.getChalice().print(chalice_code, program);
+      AbstractBoogiePrinter printer=BoogieSyntax.getChalice().print(chalice_code, program);
       /*
       final ChalicePrinter printer=new ChalicePrinter(chalice_code);
       
@@ -178,7 +178,7 @@ public class Main {
         shell.send("chalice -boogieOpt:timeLimit:%d -noTermination %s",timeout,chalice_input_file.getName());
         //shell.send("ls -al");
         shell.send("exit");
-        ChaliceReport output=new ChaliceReport(shell,tree);
+        ChaliceReport output=new ChaliceReport(shell,((ChalicePrinter)printer).refutes,tree);
         return output;
     } catch (Exception e) {
       Warning("error: ");

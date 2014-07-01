@@ -99,8 +99,8 @@ public class BoogieSyntax extends Syntax {
   }
 
   @Override
-  public void print(TrackingOutput out,ASTNode n){
-    AbstractPrinter p;
+  public AbstractBoogiePrinter print(TrackingOutput out,ASTNode n){
+    AbstractBoogiePrinter p;
     switch(this.variant){
     case Boogie:
       p=new BoogiePrinter(out);
@@ -109,15 +109,17 @@ public class BoogieSyntax extends Syntax {
       p=new ChalicePrinter(out);
       break;
     default:
-      super.print(out, n);
-      return;
+      throw new hre.HREError("cannot print boogie language family member %s", variant);
     }
-    ASTNode nn=new Parenthesize(this).rewrite(n);
-    nn.accept(p);
+    if (n!=null){
+      ASTNode nn=new Parenthesize(this).rewrite(n);
+      nn.accept(p);
+    }
+    return p;
   }
   @Override
-  public void print(TrackingOutput out,ProgramUnit pu){
-    AbstractPrinter p;
+  public AbstractBoogiePrinter print(TrackingOutput out,ProgramUnit pu){
+    AbstractBoogiePrinter p;
     switch(this.variant){
     case Boogie:
       p=new BoogiePrinter(out);
@@ -129,13 +131,15 @@ public class BoogieSyntax extends Syntax {
     	p=new DafnyPrinter(out);
     	break;
     default:
-      super.print(out, pu);
-      return;
+      throw new hre.HREError("cannot print boogie language family member %s", variant);
     }
-    ProgramUnit nn=new Parenthesize(this,pu).rewriteAll();
-    nn=new Standardize(nn).rewriteAll();
-    new SimpleTypeCheck(nn).check();
-    nn.accept(p);
+    if (pu!=null){
+      ProgramUnit nn=new Parenthesize(this,pu).rewriteAll();
+      nn=new Standardize(nn).rewriteAll();
+      new SimpleTypeCheck(nn).check();
+      nn.accept(p);
+    }
+    return p;
   }
 
 }

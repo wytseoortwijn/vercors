@@ -3,6 +3,7 @@ package vct.boogie;
 
 import java.util.HashSet;
 
+import hre.ast.Origin;
 import hre.ast.TrackingOutput;
 import vct.col.ast.*;
 import vct.col.ast.PrimitiveType.Sort;
@@ -22,6 +23,11 @@ import static hre.System.Warning;
 public class ChalicePrinter extends AbstractBoogiePrinter {
   
   boolean in_class=false;
+  boolean uses_refute=false;
+  int refute_count=0;
+  
+  public HashSet<Origin> refutes=new HashSet<Origin>();
+  
   HashSet<String> classParameters=new HashSet();
   
   public ChalicePrinter(TrackingOutput out){
@@ -90,6 +96,10 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
     int N=c.getDynamicCount();
     for(int i=0;i<N;i++) c.getDynamic(i).accept(this);
     out.decrIndent();
+    if (uses_refute){
+      out.println("method refute_random_bool() returns (b:bool) { }");
+      uses_refute=false;
+    }
     out.lnprintf("}//end class %s",class_name);
     in_class=false;
   }
@@ -344,6 +354,25 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
   
   public void visit(OperatorExpression e){
     switch(e.getOperator()){
+    case Refute:{
+      uses_refute=true;
+      refutes.add(e.getOrigin());
+      int no=refute_count++;
+      out.println("call b"+no+":=refute_random_bool()");
+      out.println("if (b"+no+"){");
+      out.incrIndent();
+      in_clause=true;
+      out.printf("assert ");
+      current_precedence=0;
+      setExpr();
+      ASTNode prop=e.getArg(0);
+      prop.accept(this);
+      out.lnprintf(";");
+      in_clause=false;    
+      out.decrIndent();
+      out.println("}");
+      break;
+    }
     case Fold:{
       if (in_expr) throw new Error("fold is a statement");
       in_clause=true;

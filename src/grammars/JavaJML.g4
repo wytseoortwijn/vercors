@@ -41,6 +41,7 @@ specificationStatement
     | 'with' block
     | 'proof' block
     | 'then' block
+    | 'refute' resourceExpression ';'
     | 'assert' resourceExpression ';'
     | 'assume' resourceExpression ';'
     | 'create' resourceExpression block

@@ -81,9 +81,10 @@ public class CSyntax extends Syntax{
   }
 
   @Override
-  public void print(TrackingOutput out, ASTNode n) {
+  public CPrinter print(TrackingOutput out, ASTNode n) {
     CPrinter p=new CPrinter(out);
-    n.accept(p);
+    if (n!=null) n.accept(p);
+    return p;
   } 
 
 }
