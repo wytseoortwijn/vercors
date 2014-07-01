@@ -370,6 +370,21 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       }
     }
     switch(op){
+    case NewSilver:{
+      // TODO: check arguments.
+      e.setType(new ClassType("Ref"));
+      break;
+    }
+    case RangeSeq:{
+      Type t1=e.getArg(0).getType();
+      if (t1==null) Fail("type of left argument unknown");
+      if (!t1.isInteger()) Fail("type of left argument is %s rather than integer",t1);
+      Type t2=e.getArg(1).getType();
+      if (t2==null) Fail("type of right argument unknown");
+      if (!t2.isInteger()) Fail("type of right argument is %s rather than integer",t2);
+      e.setType(new PrimitiveType(Sort.Sequence,t1));
+      break;
+    }
     case Send:{
       Type t1=e.getArg(0).getType();
       if (t1==null) Fail("type of left argument unknown at "+e.getOrigin());
@@ -796,6 +811,20 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       e.setType((Type)t);
       break;
     }
+    case Drop:
+    case Take:
+    {
+      Type t1=e.getArg(0).getType();
+      if (t1==null) Fail("type of base unknown at %s",e.getOrigin());
+      if (!t1.isPrimitive(PrimitiveType.Sort.Sequence)) Fail("base must be sequence type.");
+      Type t2=e.getArg(1).getType();
+      if (t2==null) Fail("type of number unknown at %s",e.getOrigin());
+      if (!t2.isInteger()) {
+        Fail("count has type %s rather than integer",t2);
+      }
+      e.setType(t1);
+      break;
+    }      
     case Subscript:
     {
       Type t1=e.getArg(0).getType();

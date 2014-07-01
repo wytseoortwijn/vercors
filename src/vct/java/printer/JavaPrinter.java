@@ -601,6 +601,10 @@ public class JavaPrinter extends AbstractPrinter {
   }
   private void visitVerCors(OperatorExpression e){
     switch(e.getOperator()){
+      case NewSilver:{
+        out.print("new ");
+        // no break on purpose!
+      }
       case Tuple:{
         out.print("(");
         String sep="";

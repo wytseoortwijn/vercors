@@ -48,10 +48,14 @@ public class JavaSyntax extends Syntax {
         syntax.addLeftFix(Exp,"^^",125);
         syntax.addLeftFix(StructSelect,".",-1);
         syntax.addOperator(HoarePredicate,-1,"/*{","}*/");
+        syntax.addOperator(RangeSeq,-1,"[",",",")");
 
         syntax.addOperator(Member,45,"","in","");
         syntax.addFunction(CurrentPerm,"perm");
         syntax.addFunction(Scale,"scale");
+        syntax.addFunction(Drop,"drop");
+        syntax.addFunction(Take,"take");
+        
         syntax.addOperator(Unfolding,140,"unfolding","in","");
         JavaVerCorsSyntax=syntax;
         syntax.addReserved(FullPerm,"(( 100 ))");

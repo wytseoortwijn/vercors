@@ -187,6 +187,8 @@ public enum StandardOperator {
   Continue(1),
   /** Create a new uninitialized object */
   New(1),
+  /** Create a new uninitialized object, Silver style. */
+  NewSilver(-1),
   /** Create a new uninitialized array */
   NewArray(2),
   /** Length of an array */
@@ -197,6 +199,10 @@ public enum StandardOperator {
   Nil(1),
   /** pre-pre element to list */
   Cons(2),
+  /** Drop elements from a list */
+  Drop(2),
+  /** Take elements from a list */
+  Take(2),
   /** append two lists */
   Append(2),
   /** check if an element is a member of a container. */
@@ -228,6 +234,10 @@ public enum StandardOperator {
    * Scale the permissions on a resource.
    */
   Scale(2),
+  /**
+   * Build a range [low,high).
+   */
+  RangeSeq(2),
   /**
    * Unfold in expression temporarily.
    */
