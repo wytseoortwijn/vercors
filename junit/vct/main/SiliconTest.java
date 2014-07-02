@@ -237,5 +237,32 @@ public class SiliconTest extends ToolTest {
       sem.release();
     }
   }
+  
+  @Test
+  public void testBasicAssertOK(){
+    sem_get();
+    try {
+      VCTResult res=run("vct","--passes=standardize,check,silicon",
+          "//examples/silver/BasicAssert.java");
+      res.checkVerdict(Verdict.Pass);
+    } finally {
+      sem.release();
+    }
+  }
 
+  @Test
+  public void testBasicAssertE1(){
+    sem_get();
+    try {
+      VCTResult res=run("vct","--passes=standardize,check,silicon",
+          "//examples/silver/BasicAssert-e1.java");
+      res.checkVerdict(Verdict.Fail);
+    } finally {
+      sem.release();
+    }
+  }
+
+
+  
+  
 }
