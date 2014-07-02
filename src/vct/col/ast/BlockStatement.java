@@ -71,5 +71,10 @@ public class BlockStatement extends ASTNode implements ASTSequence<BlockStatemen
     return map.map(this);
   }
 
+	public void prepend(ASTNode item) {
+		block.add(0,item);
+	  item.setParent(this);
+  }
+
 }
 

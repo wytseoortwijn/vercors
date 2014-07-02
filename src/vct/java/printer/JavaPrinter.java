@@ -646,6 +646,14 @@ public class JavaPrinter extends AbstractPrinter {
         prop.accept(this);
         break;
       }
+      case Refute:{
+        out.printf("refute ");
+        current_precedence=0;
+        setExpr();
+        ASTNode prop=e.getArg(0);
+        prop.accept(this);
+        break;
+      }
       case Continue:{
         out.printf("continue ");
         current_precedence=0;
