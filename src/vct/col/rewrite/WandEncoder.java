@@ -60,23 +60,12 @@ public class WandEncoder extends AbstractRewriter {
 		      }
 		      String lbl=arg1.getLabel(0).getName();
 		      if (arg1.isa(StandardOperator.Wand)){
+		        // instantiate magic wand witnesses only
 		        Type t=create.class_type(get_wand_type((OperatorExpression)arg1));
             result=create.field_decl(lbl, t);
-            break;		        
+		      } else {
+		        super.visit(e);
 		      }
-		      if (arg1 instanceof MethodInvokation){
-            String base[]=((ClassType)(((MethodInvokation)arg1).object.getType())).getNameFull();
-            String pred=((MethodInvokation)arg1).method;
-            String name[]=new String[base.length+1];
-            for(int i=0;i<base.length;i++){
-              name[i]=base[i];
-            }
-            name[base.length]=pred;
-            Type t=create.class_type(name);
-            result=create.field_decl(lbl, t);
-            break;            		        
-		      }
-		      Fail("cannot declare this witness");
 		      break;
 		    }
 		    case Apply:{

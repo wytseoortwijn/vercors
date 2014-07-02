@@ -218,18 +218,21 @@ public class ExplicitPermissionEncoding extends AbstractRewriter {
         Fail("Witness must have precisely one label.");
       }
       String lbl=arg1.getLabel(0).getName();
-      //TODO:
-      //if (arg1.isa(StandardOperator.Wand)){
-      //}
       if (arg1 instanceof MethodInvokation){
+        // instantiate predicate witnesses only
         MethodInvokation pred=(MethodInvokation)arg1;
         String pred_name=pred.method;
         String class_name=((ASTClass)pred.getDefinition().getParent()).getName();
-        Type t=create.class_type(class_name+"_"+pred_name);
+        Type t;
+        if (pred.dispatch==null){
+          t=create.class_type(class_name+"_"+pred_name);
+        } else {
+          t=create.class_type(class_name+"_"+pred_name+"_at_"+pred.dispatch);
+        }
         result=create.field_decl(lbl, t);
-        break;
+      } else {
+        super.visit(e);
       }
-      Fail("cannot declare this witness");
       break;
     }
     case Unfold:{
