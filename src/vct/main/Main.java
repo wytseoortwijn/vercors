@@ -51,6 +51,7 @@ import vct.col.rewrite.KernelRewriter;
 import vct.col.rewrite.ReorderAssignments;
 import vct.col.rewrite.RewriteArray;
 import vct.col.rewrite.RewriteArrayPerms;
+import vct.col.rewrite.SatCheckRewriter;
 import vct.col.rewrite.SimplifyCalls;
 import vct.col.rewrite.SimplifyExpressions;
 import vct.col.rewrite.Standardize;
@@ -171,6 +172,10 @@ public class Main
     
     BooleanSetting progress=new BooleanSetting(false);
     clops.add(progress.getEnable("print progress messages"),"progress");
+    
+    BooleanSetting sat_check=new BooleanSetting(true);
+    clops.add(sat_check.getDisable("Disable checking if method pre-conditions are satisfiable"), "disable-sat");
+    
     Configuration.add_options(clops);
     
     String input[]=clops.parse(args);
@@ -375,6 +380,11 @@ public class Main
         return new ConstructorRewriter(arg).rewriteAll();
       }
     });
+    defined_passes.put("sat_check",new CompilerPass("insert satisfyability checks for all methods"){
+      public ProgramUnit apply(ProgramUnit arg){
+        return new SatCheckRewriter(arg).rewriteAll();
+      }
+    });
     defined_passes.put("simplify_calls",new CompilerPass("???"){
       public ProgramUnit apply(ProgramUnit arg){
         return new SimplifyCalls(arg).rewriteAll();
@@ -488,6 +498,7 @@ public class Main
     	passes.add("boogie");
     } else if (chalice.get()||silicon.get()) {
       passes=new ArrayList<String>();
+      if (sat_check.get()) passes.add("sat_check");
       passes.add("standardize");
       passes.add("check");        
       passes.add("magicwand");
