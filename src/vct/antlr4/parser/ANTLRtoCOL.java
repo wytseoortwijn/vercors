@@ -393,11 +393,14 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
         }
         if (tmp instanceof TerminalNode){
           Token tok=((TerminalNode)tmp).getSymbol();
-          if (tok.getType()==id_token) {
-            return create.unresolved_name(tok.getText());
-          }
+          /* By testing for reserved names first, we do not need
+           * to enumerate all reserved names in the grammar.
+           */
           if(syntax.is_reserved(tok.getText())){
             return create.reserved_name(syntax.reserved(tok.getText()));
+          }
+          if (tok.getType()==id_token) {            
+            return create.unresolved_name(tok.getText());
           }
         }
         return null;
