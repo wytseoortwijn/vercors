@@ -5,6 +5,9 @@ import hre.ast.TrackingOutput;
 import vct.col.ast.ASTNode;
 import vct.util.Syntax;
 import static vct.col.ast.StandardOperator.*;
+import static vct.col.ast.ASTReserved.FullPerm;
+import static vct.col.ast.ASTReserved.NoPerm;
+import static vct.col.ast.ASTReserved.ReadPerm;
 import static vct.col.ast.PrimitiveType.Sort.*;
 
 /**
@@ -135,6 +138,10 @@ public class PVLSyntax {
       //syntax.addPrimitiveType(ULong,"/*unsigned*/ long");
       //syntax.addPrimitiveType(UShort,"/*unsigned*/ short");
       //syntax.addPrimitiveType(Short,"short");
+      
+      syntax.addReserved(FullPerm,"write");
+      syntax.addReserved(ReadPerm,"read");
+      syntax.addReserved(NoPerm,"none");
     }
     return syntax;
   }

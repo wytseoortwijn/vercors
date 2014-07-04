@@ -46,6 +46,7 @@ public class Main {
 	  }
 	  boogie_module=new StringSetting("boogie/2012-10-22");
 	  chalice_module=new StringSetting("chalice/2012-11-20");
+	  //chalice_module=new StringSetting("chalice/2013-12-17");
 	  dafny_module=new StringSetting("dafny/1.8.2");
 	  silicon_module=new StringSetting("chalice2sil");
   }

@@ -37,6 +37,7 @@ import pv.parser.PVFullParser.TypeContext;
 import pv.parser.PVFullVisitor;
 import vct.col.ast.ASTClass;
 import vct.col.ast.ASTNode;
+import vct.col.ast.ASTReserved;
 import vct.col.ast.BeforeAfterAnnotations;
 import vct.col.ast.BlockStatement;
 import vct.col.ast.CompilationUnit;
@@ -552,6 +553,10 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
   }
 
   private ASTNode try_specials(String text){
+    ASTReserved res=syntax.reserved(text);
+    if (res!=null){
+      return create.reserved_name(res);
+    }
     switch(text){
     case "tcount":
     case "gsize":

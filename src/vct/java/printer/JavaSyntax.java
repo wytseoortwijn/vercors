@@ -59,8 +59,8 @@ public class JavaSyntax extends Syntax {
         syntax.addOperator(Unfolding,140,"unfolding","in","");
         JavaVerCorsSyntax=syntax;
         syntax.addReserved(FullPerm,"write");
-        syntax.addReserved(ReadPerm,"(( epsilon ))");
-        syntax.addReserved(NoPerm,"(( 0 ))");
+        syntax.addReserved(ReadPerm,"read");
+        syntax.addReserved(NoPerm,"none");
         
       }
       return JavaVerCorsSyntax;
