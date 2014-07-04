@@ -51,6 +51,7 @@ import vct.col.rewrite.KernelRewriter;
 import vct.col.rewrite.ReorderAssignments;
 import vct.col.rewrite.RewriteArray;
 import vct.col.rewrite.RewriteArrayPerms;
+import vct.col.rewrite.RewriteArrayRef;
 import vct.col.rewrite.SatCheckRewriter;
 import vct.col.rewrite.SimplifyCalls;
 import vct.col.rewrite.SimplifyExpressions;
@@ -129,6 +130,8 @@ public class Main
     clops.add(boogie.getEnable("select Boogie backend"),"boogie");
     BooleanSetting chalice=new BooleanSetting(false);
     clops.add(chalice.getEnable("select Chalice backend"),"chalice");
+    BooleanSetting chalice2sil=new BooleanSetting(false);
+    clops.add(chalice2sil.getEnable("select Silicon backend via chalice2sil"),"chalice2sil");
     BooleanSetting silicon=new BooleanSetting(false);
     clops.add(silicon.getEnable("select Silicon backend"),"silicon");
     BooleanSetting verifast=new BooleanSetting(false);
@@ -370,6 +373,11 @@ public class Main
         return new RewriteArrayPerms(arg).rewriteAll();
       }
     });
+    defined_passes.put("ref_array",new CompilerPass("rewrite array as a sequence of Refs"){
+      public ProgramUnit apply(ProgramUnit arg){
+        return new RewriteArrayRef(arg).rewriteAll();
+      }
+    });
     defined_passes.put("reorder",new CompilerPass("reorder statements (e.g. all declarations at the start of a bock"){
       public ProgramUnit apply(ProgramUnit arg){
         return new ReorderAssignments(arg).rewriteAll();
@@ -440,7 +448,7 @@ public class Main
       CommandLineTesting.run_testsuites();
       System.exit(0);
     }
-    if (!(boogie.get() || chalice.get() || silicon.get() || dafny.get() || verifast.get() || pass_list.iterator().hasNext())) {
+    if (!(boogie.get() || chalice.get() || chalice2sil.get() || silicon.get() || dafny.get() || verifast.get() || pass_list.iterator().hasNext())) {
       Fail("no back-end or passes specified");
     }
     if (verifast.get()){
@@ -501,7 +509,7 @@ public class Main
       passes.add("standardize");
       passes.add("check");
     	passes.add("boogie");
-    } else if (chalice.get()||silicon.get()) {
+    } else if (chalice.get()||chalice2sil.get()) {
       passes=new ArrayList<String>();
       if (sat_check.get()) passes.add("sat_check");
       passes.add("standardize");
@@ -586,10 +594,10 @@ public class Main
       if (chalice.get()){
         passes.add("chalice");
       } else {
-        passes.add("silicon");
+        passes.add("silicon-chalice");
       }
     } else if (dafny.get()) {
-    	passes=new ArrayList<String>();
+      passes=new ArrayList<String>();
       passes.add("standardize");
       passes.add("check");
       passes.add("voidcalls");
@@ -600,10 +608,27 @@ public class Main
       //passes.add("check");
       passes.add("dafny");
     } else if (verifast.get()) {
-			passes=new ArrayList<String>();
+      passes=new ArrayList<String>();
       passes.add("standardize");
       passes.add("check");
       passes.add("verifast");
+    } else if (silicon.get()) {
+      passes=new ArrayList<String>();
+      passes.add("standardize");
+      passes.add("check");
+      if (features.usesKernels()){
+        passes.add("kernel-split");
+        passes.add("simplify_expr");
+        passes.add("standardize");
+        passes.add("check");       
+      }
+      passes.add("ref_array");
+      passes.add("standardize");
+      passes.add("check");
+      passes.add("voidcalls");
+      passes.add("standardize");
+      passes.add("check");
+      passes.add("silicon");     
     } else {
     	if (!pass_list.iterator().hasNext()) Abort("no back-end or passes specified");
     }

@@ -90,10 +90,12 @@ public class ToolTest extends TestCase {
         because Chalice assumes that every argument that starts with / is an option,
         we translate absolute path to relative paths.
        */
+      System.err.printf("shel dir is %s %n", sh.shell_dir);
       for(int i=1;i<args.length;i++){
         if (args[i].startsWith("/") && new File(args[i]).isFile()){
           Path path=sh.shell_dir.relativize(Paths.get(args[i]));
           args[i]=path.toString();
+          System.err.printf("relative argument is %s %n", args[i]);
         }
       }
       break;
