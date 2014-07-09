@@ -60,7 +60,7 @@ public class StringListSetting implements Iterable<String> {
      * @param help Help message.
      */
     public AppendOption(String help){
-      super(true,help);
+      super(true,true,help);
     }
     
     /**

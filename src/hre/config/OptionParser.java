@@ -77,21 +77,20 @@ public class OptionParser {
         if (opt==null){
           Fail("unknown option %s",name);
         }
-        if (opt.needsArgument()){
-          if (arg==null) {
-            if (i+1<args.length){
-              i++;
-              arg=args[i];
-            } else {
-              Fail("options %s: missing argument",name);
-            }
-          }
-          opt.pass(arg);
-        } else {
-          if (arg!=null){
-            Fail("option %s does not allow an argument",name);
+        if (arg==null && opt.needsArgument() && i+1<args.length){
+          i++;
+          arg=args[i];
+        }
+        if (arg==null){
+          if (opt.needsArgument()){
+            Fail("options %s: missing argument",name);
           }
           opt.pass();
+        } else {
+          if(!opt.allowsArgument()){
+            Fail("option %s does not allow an argument",name);
+          }
+          opt.pass(arg);
         }
       } else if (args[i].startsWith("-")) {
         int N=args[i].length();
@@ -127,7 +126,7 @@ public class OptionParser {
   private class HelpOption extends AbstractOption {
 
     public HelpOption() {
-      super(false,"print help message");
+      super(false,false,"print help message");
     }
 
     public void pass(){

@@ -13,7 +13,7 @@ public class IntegerSetting {
   private class AssignOption extends AbstractOption {
     IntegerSetting about;
     public AssignOption(IntegerSetting about,String help){
-      super(true,help);
+      super(true,true,help);
       this.about=about;
     }
     public void pass(String value){

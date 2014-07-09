@@ -12,7 +12,7 @@ public class BooleanSetting {
   
   private class EnableOption extends AbstractOption {
     public EnableOption(String help) {
-      super(false,help);
+      super(false,false,help);
     }
     public void pass(){
       used=true;
@@ -21,7 +21,7 @@ public class BooleanSetting {
   }
   private class DisableOption extends AbstractOption {
     public DisableOption(String help) {
-      super(false,help);
+      super(false,false,help);
     }
     public void pass(){
       used=true;
@@ -30,7 +30,7 @@ public class BooleanSetting {
   }
   private class AssignOption extends AbstractOption {
     public AssignOption(String help) {
-      super(true,help);
+      super(true,true,help);
     }
     public void pass(String value){
       used=true;

@@ -6,6 +6,12 @@ public class StringSetting {
 
   private String value;
   
+  private boolean opt_used=false;
+  
+  public boolean used(){
+    return opt_used;
+  }
+  
   public StringSetting(String default_setting){
     value=default_setting;
   }
@@ -13,15 +19,19 @@ public class StringSetting {
   private class AssignOption extends AbstractOption {
     StringSetting about;
     public AssignOption(StringSetting about,String help){
-      super(true,help);
+      super(value==null,true,help);
       this.about=about;
     }
     public void pass(String value){
+      opt_used=true;
       used=true;
       about.value=value;
     }
+    public void pass(){
+      opt_used=true;
+      used=true;
+    }
   }
-  
   public Option getAssign(String help){
     return new AssignOption(this,help);
   }

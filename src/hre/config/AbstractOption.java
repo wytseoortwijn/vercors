@@ -6,8 +6,10 @@ public abstract class AbstractOption implements Option {
 
   private final String help;
   private final boolean arg_needed;
-  public AbstractOption(boolean arg, String help){
-    arg_needed=arg;
+  private final boolean arg_allowed;
+  public AbstractOption(boolean arg_needed,boolean arg_allowed,String help){
+    this.arg_needed=arg_needed;
+    this.arg_allowed=arg_allowed;
     this.help=help;
   }
   @Override
@@ -16,8 +18,17 @@ public abstract class AbstractOption implements Option {
   }
 
   @Override
+  public boolean allowsArgument() {
+    return arg_allowed;
+  }
+
+  @Override
   public void pass() {
-    Abort("illegal call to pass()");
+    if (arg_allowed){
+      used=true;
+    } else {
+      Abort("illegal call to pass()");
+    }
   }
 
   @Override
