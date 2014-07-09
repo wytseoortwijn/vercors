@@ -67,6 +67,8 @@ public interface ASTVisitor<T> {
 
   public void visit(Axiom axiom);
 
+  public void visit(Hole hole);
+
 }
 
 

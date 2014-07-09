@@ -5,6 +5,7 @@ import vct.col.ast.ASTNode;
 import vct.col.ast.CompilationUnit;
 import vct.col.ast.Dereference;
 import vct.col.ast.MethodInvokation;
+import vct.col.ast.NameExpression;
 import vct.col.ast.OperatorExpression;
 import vct.col.ast.PrimitiveType;
 import vct.col.ast.PrimitiveType.Sort;

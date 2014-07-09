@@ -62,14 +62,35 @@ public class BlockStatement extends ASTNode implements ASTSequence<BlockStatemen
     return block.get(i);
   }
 
+  
+  
   @Override
   public <T> void accept_simple(ASTVisitor<T> visitor){
-    visitor.visit(this);
+    try {
+      visitor.visit(this);
+    } catch (Throwable t){
+      if (thrown.get()!=t){
+        System.err.printf("Triggered by %s:%n",getOrigin());
+        thrown.set(t);
+    }
+      throw t;
+    }
   }
+  
   @Override
   public <T> T accept_simple(ASTMapping<T> map){
-    return map.map(this);
+    try {
+      return map.map(this);
+    } catch (Throwable t){
+      if (thrown.get()!=t){
+        System.err.printf("Triggered by %s:%n",getOrigin());
+        thrown.set(t);
+     }
+      throw t;
+    }
   }
+ 
+ 
 
 	public void prepend(ASTNode item) {
 		block.add(0,item);

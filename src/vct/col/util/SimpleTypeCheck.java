@@ -1054,8 +1054,15 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     if (t==null){
       Abort("Binding expression without type.");
     }
-    
-    e.setType(new PrimitiveType(Sort.Boolean));
+    switch(e.binder){
+    case STAR:
+      e.setType(new PrimitiveType(Sort.Resource));
+      break;
+    case EXISTS:
+    case FORALL:
+      e.setType(new PrimitiveType(Sort.Boolean));
+      break;
+    }
   }
 
 }

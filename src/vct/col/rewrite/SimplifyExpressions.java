@@ -44,6 +44,14 @@ public class SimplifyExpressions extends AbstractRewriter {
                 result=create.expression(StandardOperator.Implies,sigma.rewrite(e.select),rewrite(implication.getArg(1)));
                 return;
               }
+            } else {
+              result=create.binder(e.binder, rewrite(e.getType()),rewrite(e.getDeclarations()),
+                  create.expression(StandardOperator.And,
+                      rewrite(e.select),
+                      rewrite(implication.getArg(0))
+                      ),
+                  rewrite(implication.getArg(1)));
+              return;
             }
           }
         }

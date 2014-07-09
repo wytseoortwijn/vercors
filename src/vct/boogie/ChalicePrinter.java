@@ -33,7 +33,19 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
   public ChalicePrinter(TrackingOutput out){
     super(BoogieSyntax.getChalice(),out,false);
   }
-  
+
+  @Override
+  public void visit(NameExpression n){
+    if(n.getKind()==NameExpression.Kind.Reserved){
+      switch(n.reserved()){
+        case FullPerm:
+          out.print("100");
+          return;
+      }
+    }
+    super.visit(n);
+  }
+
   public void visit(ClassType t){
     String name[]=t.getNameFull();
     ASTNode args[]=t.getArgs();

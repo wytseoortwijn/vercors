@@ -73,14 +73,33 @@ public class ConstantExpression extends ASTNode {
     setType(new PrimitiveType(Sort.Double));
   }
   
+  
   @Override
   public <T> void accept_simple(ASTVisitor<T> visitor){
-    visitor.visit(this);
+    try {
+      visitor.visit(this);
+    } catch (Throwable t){
+      if (thrown.get()!=t){
+        System.err.printf("Triggered by %s:%n",getOrigin());
+        thrown.set(t);
+     }
+      throw t;
+    }
   }
+  
   @Override
   public <T> T accept_simple(ASTMapping<T> map){
-    return map.map(this);
+    try {
+      return map.map(this);
+    } catch (Throwable t){
+      if (thrown.get()!=t){
+        System.err.printf("Triggered by %s:%n",getOrigin());
+        thrown.set(t);
+      }
+      throw t;
+    }
   }
+ 
 
   public Value getValue(){
     return value;
@@ -96,5 +115,14 @@ public class ConstantExpression extends ASTNode {
   public boolean isConstant(Object o){
     return value.equals(o);
   }
+  
+  public boolean match(ASTNode ast){
+    if (ast instanceof Hole){
+      return ast.match(this);
+    } else { 
+      return ast.equals(value);
+    }
+  }
+
 }
 

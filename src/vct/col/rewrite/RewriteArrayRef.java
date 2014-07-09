@@ -76,6 +76,8 @@ public class RewriteArrayRef extends AbstractRewriter {
 	public void visit(Method m){
 	  if (m.kind==Method.Kind.Constructor){
 	    result=null;
+	  } else if (m.isStatic()){
+	    super.visit(m);
 	  } else {
 	    String name=m.getName();
 	    int N=m.getArity();
@@ -100,36 +102,49 @@ public class RewriteArrayRef extends AbstractRewriter {
 	    result=create.method_kind(kind, rt, c, name, args.toArray(new DeclarationStatement[0]), m.usesVarArgs(), body);
 	  }
 	}
-	  @Override
-	  public void visit(MethodInvokation e) {
-	    ASTNode object=rewrite(e.object);
-	    int N=e.getArity();
-	    ASTNode args[]=new ASTNode[N+1];
-	    args[0]=create.reserved_name(ASTReserved.This);
-	    for(int i=0;i<N;i++){
-	      args[i+1]=e.getArg(i).apply(this);
-	    }
-	    MethodInvokation res=create.invokation(object,rewrite(e.dispatch),e.method,args);
-	    res.set_before(rewrite(e.get_before()));
-	    res.set_after(rewrite(e.get_after()));
-	    result=res;
-	  }
-
+	
+  @Override
+  public void visit(MethodInvokation e) {
+    if (e.getDefinition().isStatic()) {
+      super.visit(e);
+    } else {
+      ASTNode object = rewrite(e.object);
+      int N = e.getArity();
+      ASTNode args[] = new ASTNode[N + 1];
+      args[0] = create.reserved_name(ASTReserved.This);
+      for (int i = 0; i < N; i++) {
+        args[i + 1] = e.getArg(i).apply(this);
+      }
+      MethodInvokation res = create.invokation(object, rewrite(e.dispatch),
+          e.method, args);
+      res.set_before(rewrite(e.get_before()));
+      res.set_after(rewrite(e.get_after()));
+      result = res;
+    }
+  }
 	
 	@Override
 	public void visit(BindingExpression e){
 	  if (e.binder==BindingExpression.Binder.STAR){
-	    if (e.getDeclCount()!=1) Fail("no rules for more than one declaration");
+	    if (e.getDeclCount()!=1){
+	      //Fail("no rules for more than one declaration");
+          super.visit(e);
+          return;
+	    }
 	    DeclarationStatement decl=e.getDeclaration(0);
 	    if (!e.select.isa(StandardOperator.And)) {
-	      Fail("select is not a conjunction");
+	      //Fail("select is not a conjunction");
+          super.visit(e);
+          return;
 	    }
 	    ASTNode left=((OperatorExpression)e.select).getArg(0);
 	    ASTNode right=((OperatorExpression)e.select).getArg(1);
 	    if (!left.isa(StandardOperator.LTE)
 	        ||!right.isa(StandardOperator.LT)
 	        ){
-	      Fail("not a . <= . && . < . pattern");
+	      //Fail("not a . <= . && . < . pattern");
+          super.visit(e);
+          return;
 	    }
 	    ASTNode lower=((OperatorExpression)left).getArg(0);
 	    ASTNode var1=((OperatorExpression)left).getArg(1);
@@ -140,7 +155,9 @@ public class RewriteArrayRef extends AbstractRewriter {
 	        ||  !(var2 instanceof NameExpression)
 	        ||  !(((NameExpression)var2).getName().equals(decl.getName()))
 	        ){
-	      Fail("not a . <= i && i < . pattern");
+	      //Fail("not a . <= i && i < . pattern");
+          super.visit(e);
+          return;
 	    }
 	    ASTNode select=create.expression(StandardOperator.Member,rewrite(var1),create.expression(StandardOperator.RangeSeq,rewrite(lower),rewrite(upper)));
 	    result=create.binder(e.binder,rewrite(e.result_type),rewrite(e.getDeclarations()), select , rewrite(e.main));

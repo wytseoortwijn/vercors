@@ -330,4 +330,18 @@ public abstract class ASTNode implements ASTFlags {
   public boolean isConstant(Object o){
     return false;
   }
+  
+  /**
+   * Test for a match between two ASTs.
+   */
+  public boolean match(ASTNode ast){
+    if (ast instanceof Hole){
+      return ast.match(this);
+    }
+    Warning("class %s does not implement matching",ast.getClass().getName());
+    return false;
+  }
+  
+  protected static ThreadLocal<Throwable> thrown=new ThreadLocal();
+  
 }

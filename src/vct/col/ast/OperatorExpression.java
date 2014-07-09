@@ -17,13 +17,31 @@ public class OperatorExpression extends ExpressionNode {
     this.args=Arrays.copyOf(args,args.length);
     if (op.arity()>=0 && args.length != op.arity()) Abort("wrong number of arguments for %s, got %d expected %d",op,args.length,op.arity());
   }
+  
   @Override
   public <T> void accept_simple(ASTVisitor<T> visitor){
-    visitor.visit(this);
+    try {
+      visitor.visit(this);
+    } catch (Throwable t){
+      if (thrown.get()!=t){
+        System.err.printf("Triggered by %s:%n",getOrigin());
+        thrown.set(t);
+   }
+      throw t;
+    }
   }
+  
   @Override
   public <T> T accept_simple(ASTMapping<T> map){
-    return map.map(this);
+    try {
+      return map.map(this);
+    } catch (Throwable t){
+      if (thrown.get()!=t){
+        System.err.printf("Triggered by %s:%n",getOrigin());
+        thrown.set(t);
+    }
+      throw t;
+    }
   }
  
   public StandardOperator getOperator(){
@@ -63,6 +81,22 @@ public class OperatorExpression extends ExpressionNode {
   }
   public boolean isa(StandardOperator op) {
     return op==this.op;
+  }
+  
+  @Override
+  public boolean match(ASTNode ast){
+    if (ast instanceof Hole){
+      return ast.match(this);
+    } else if (ast.isa(this.op)) {
+      boolean res=true;
+      OperatorExpression e=(OperatorExpression)ast;
+      for(int i=0;res && i<op.arity();i++){
+        res=args[i].match(e.args[i]);
+      }
+      return res;
+    } else {
+      return false;
+    }
   }
 
 }

@@ -127,6 +127,8 @@ public abstract class AbstractVisitor<T> extends ASTFrame<T> implements ASTVisit
   @Override public void visit(AxiomaticDataType adt) { visit_any(adt); }
 
   @Override public void visit(Axiom axiom) { visit_any(axiom); }
+  
+  @Override public void visit(Hole hole) { visit_any(hole); }
 
 }
 

@@ -32,12 +32,33 @@ public class ASTSpecial extends ASTNode {
     this.args=Arrays.copyOf(args,args.length);
   }
 
+  
+  @Override
   public <T> void accept_simple(ASTVisitor<T> visitor){
-    visitor.visit(this);
+    try {
+      visitor.visit(this);
+    } catch (Throwable t){
+      if (thrown.get()!=t){
+        System.err.printf("Triggered by %s:%n",getOrigin());
+        thrown.set(t);
+      }
+      throw t;
+    }
   }
+  
+  @Override
   public <T> T accept_simple(ASTMapping<T> map){
-    return map.map(this);
+    try {
+      return map.map(this);
+    } catch (Throwable t){
+      if (thrown.get()!=t){
+        System.err.printf("Triggered by %s:%n",getOrigin());
+        thrown.set(t);
+      }
+      throw t;
+    }
   }
+ 
   
   public boolean isSpecial(Kind with) {
     return kind==with;

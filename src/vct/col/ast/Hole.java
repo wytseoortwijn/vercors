@@ -1,22 +1,8 @@
 package vct.col.ast;
 
-import java.util.Arrays;
+public class Hole extends ASTNode {
 
-
-public class ASTWith extends ASTNode {
-
-  public static enum Kind{Static,Classes};
-  public final String from[];
-  public final Kind kind;
-  public final boolean all;
-  public final ASTNode body;
-  
-  public ASTWith(String from[],Kind kind,boolean all,ASTNode body){
-    this.from=Arrays.copyOf(from,from.length);
-    this.kind=kind;
-    this.all=all;
-    this.body=body;
-  }
+  private ThreadLocal<ASTNode> match=new ThreadLocal<ASTNode>();
   
   
   @Override
@@ -27,7 +13,7 @@ public class ASTWith extends ASTNode {
       if (thrown.get()!=t){
         System.err.printf("Triggered by %s:%n",getOrigin());
         thrown.set(t);
-     }
+   }
       throw t;
     }
   }
@@ -40,17 +26,18 @@ public class ASTWith extends ASTNode {
       if (thrown.get()!=t){
         System.err.printf("Triggered by %s:%n",getOrigin());
         thrown.set(t);
-      }
+     }
       throw t;
     }
   }
  
-
-  public String fromString() {
-    String res=from[0];
-    for(int i=1;i<from.length;i++) res+="."+from[i];
-    if (all) res+=".*";
-    return res;
-  }
  
+  public ASTNode get(){
+    return match.get();
+  }
+
+  public boolean match(ASTNode n){
+    match.set(n);
+    return true;
+  }
 }

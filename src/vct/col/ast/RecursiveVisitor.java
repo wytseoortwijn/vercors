@@ -244,4 +244,10 @@ public abstract class RecursiveVisitor<T> extends ASTFrame<T> implements
   public void visit(Axiom axiom){
     dispatch(axiom.getRule());
   }
+  
+  @Override
+  public void visit(Hole hole){
+    dispatch(hole.get());
+  }
+
 }

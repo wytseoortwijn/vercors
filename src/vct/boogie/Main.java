@@ -45,8 +45,8 @@ public class Main {
 		  z3_module=new StringSetting("z3/4.3.1");
 	  }
 	  boogie_module=new StringSetting("boogie/2012-10-22");
-	  chalice_module=new StringSetting("chalice/2012-11-20");
-	  //chalice_module=new StringSetting("chalice/2013-12-17");
+	  //chalice_module=new StringSetting("chalice/2012-11-20");
+	  chalice_module=new StringSetting("chalice/2013-12-17");
 	  dafny_module=new StringSetting("dafny/1.8.2");
 	  silicon_module=new StringSetting("chalice2sil");
   }

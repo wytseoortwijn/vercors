@@ -64,4 +64,6 @@ public interface ASTMapping<R> {
 
   public R map(Axiom axiom);
 
+  public R map(Hole hole);
+
 }
