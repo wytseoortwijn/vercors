@@ -38,7 +38,6 @@ public class RewriteArrayRef extends AbstractRewriter {
 	public void visit(OperatorExpression e){
 		switch (e.getOperator()){
 		  case Subscript:
-		  	Warning("subscript %s",e.getArg(0).getType());
 		  	super.visit(e);
 			  if (e.getArg(0).getType().isPrimitive(Sort.Array)){
 			  	ASTNode res=result;
