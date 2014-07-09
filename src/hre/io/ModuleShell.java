@@ -21,7 +21,7 @@ public class ModuleShell {
   }
   
   public ModuleShell(Path modules_home,Path ... modules_path) throws IOException{
-    shell_dir=Files.createTempDirectory("modsh");
+    shell_dir=Files.createTempDirectory("modsh").toRealPath();
     shell_dir.toFile().deleteOnExit();
     String OS=System.getProperty("os.name");
     Progress("starting shell on %s in %s",OS,shell_dir);
