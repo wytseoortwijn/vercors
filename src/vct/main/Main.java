@@ -6,6 +6,7 @@ import hre.ast.FileOrigin;
 import hre.config.BooleanSetting;
 import hre.config.OptionParser;
 import hre.config.StringListSetting;
+import hre.config.StringSetting;
 import hre.debug.HeapDump;
 import hre.io.PrefixPrintStream;
 import hre.util.CompositeReport;
@@ -132,8 +133,8 @@ public class Main
     clops.add(chalice.getEnable("select Chalice backend"),"chalice");
     BooleanSetting chalice2sil=new BooleanSetting(false);
     clops.add(chalice2sil.getEnable("select Silicon backend via chalice2sil"),"chalice2sil");
-    BooleanSetting silicon=new BooleanSetting(false);
-    clops.add(silicon.getEnable("select Silicon backend"),"silicon");
+    final StringSetting silver=new StringSetting("silicon");
+    clops.add(silver.getAssign("select Silver backend (silicon/carbon)"),"silver");
     BooleanSetting verifast=new BooleanSetting(false);
     clops.add(verifast.getEnable("select Verifast backend"),"verifast");
     BooleanSetting dafny=new BooleanSetting(false);
@@ -230,9 +231,9 @@ public class Main
         return vct.boogie.Main.TestSilicon(arg);
       }
     });
-    defined_checks.put("silicon",new ValidationPass("verify native input with Silicon"){
+    defined_checks.put("silver",new ValidationPass("verify input with Silver"){
       public TestReport apply(ProgramUnit arg){
-        return example.Main.TestSilicon(arg);
+        return example.Main.TestSilicon(arg,silver.get());
       }
     });
     defined_passes.put("box",new CompilerPass("box class types with parameters"){
@@ -448,7 +449,7 @@ public class Main
       CommandLineTesting.run_testsuites();
       System.exit(0);
     }
-    if (!(boogie.get() || chalice.get() || chalice2sil.get() || silicon.get() || dafny.get() || verifast.get() || pass_list.iterator().hasNext())) {
+    if (!(boogie.get() || chalice.get() || chalice2sil.get() || silver.used() || dafny.get() || verifast.get() || pass_list.iterator().hasNext())) {
       Fail("no back-end or passes specified");
     }
     if (verifast.get()){
@@ -612,7 +613,7 @@ public class Main
       passes.add("standardize");
       passes.add("check");
       passes.add("verifast");
-    } else if (silicon.get()) {
+    } else if (silver.used()) {
       passes=new ArrayList<String>();
       passes.add("standardize");
       passes.add("check");
@@ -628,7 +629,7 @@ public class Main
       passes.add("voidcalls");
       passes.add("standardize");
       passes.add("check");
-      passes.add("silicon");     
+      passes.add("silver");     
     } else {
     	if (!pass_list.iterator().hasNext()) Abort("no back-end or passes specified");
     }
