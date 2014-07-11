@@ -233,7 +233,7 @@ public class IterationContractEncoder extends AbstractRewriter {
   	                    		  (((OperatorExpression)((OperatorExpression)clause).getArg(0)).getArg(1))/*len-1*/);
   	                      
   	                      Substitution sigma=new Substitution(source(),map);
-  	                      
+  	                       
   	                      cb.requires(sigma.rewrite(((OperatorExpression)clause).getArg(1)));
   	                      
   	                      cb_main_loop.requires(sigma.rewrite(((OperatorExpression)clause).getArg(1)));
@@ -254,12 +254,12 @@ public class IterationContractEncoder extends AbstractRewriter {
             	            );
                         cb.requires(create.starall(
                                 copy_rw.rewrite(new_guard),
-                                copy_rw.rewrite(((OperatorExpression)clause).getArg(1)), /*the other side of implication */
+                                copy_rw.rewrite(((OperatorExpression)clause).getArg(1)), /*the resource formula at the right hand of implication */
                                 create.field_decl(var_name,create.primitive_type(Sort.Integer))));                        
                         
                         cb_main_loop.requires(create.starall(
                                 copy_rw.rewrite(new_guard),
-                                copy_rw.rewrite(((OperatorExpression)clause).getArg(1)), /*the other side of implication */
+                                copy_rw.rewrite(((OperatorExpression)clause).getArg(1)), /*the resource formula at the right hand of implication */
                                 create.field_decl(var_name,create.primitive_type(Sort.Integer))));
                     }
           	  	else // < and >= (missing case) 
