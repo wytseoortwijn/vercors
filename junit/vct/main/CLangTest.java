@@ -29,9 +29,9 @@ public class CLangTest extends ToolTest {
 	    try {	    	
 	      VCTResult res=run("vct","--chalice","//examples/clang/SimpleC.c");  
 	      
-	      res.mustSay("method F: Pass");
-	      res.mustSay("method G: Fail");      	      
-	      if (res.verdict != Verdict.Fail) fail("bad result : "+res.verdict);
+	      if (res.verdict != Verdict.Pass)
+	          fail("bad result : " + res.verdict);
+	      
 	    } finally {
 	      sem.release();
 	    }
@@ -43,9 +43,8 @@ public class CLangTest extends ToolTest {
 	    try {	    	
 	      VCTResult res=run("vct","--chalice","//examples/clang/LoopInvariant.c");  
 	      
-	      res.mustSay("method F: Pass");
-	      res.mustSay("method G: Fail");      	      
-	      if (res.verdict != Verdict.Fail) fail("bad result : "+res.verdict);
+	      if (res.verdict != Verdict.Pass)
+	          fail("bad result : " + res.verdict);
 	    } finally {
 	      sem.release();
 	    }
@@ -54,10 +53,10 @@ public class CLangTest extends ToolTest {
   public void testIterationContract(){
     sem_get();
     try {    	
-      VCTResult res=run("vct","--chalice","//examples/clang/ZeroArrayIC.c");                 
-      res.mustSay("method F: Pass");
-      res.mustSay("method G: Fail");      
-      if (res.verdict != Verdict.Fail) fail("bad result : "+res.verdict);
+      VCTResult res=run("vct","--chalice","//examples/clang/ZeroArrayIC.c");  
+      
+      if (res.verdict != Verdict.Pass)
+          fail("bad result : " + res.verdict);
     } finally {
     	
       sem.release();
@@ -67,10 +66,10 @@ public class CLangTest extends ToolTest {
 	public void testIndepParLoop(){
 	    sem_get();
 	    try {
-	      VCTResult res=run("vct","--chalice","//examples/clang/Indep_ParLoop.c");           
-	      res.mustSay("method F: Pass");
-	      res.mustSay("method G: Fail");      
-	      if (res.verdict != Verdict.Fail) fail("bad result : "+res.verdict);
+	      VCTResult res=run("vct","--chalice","//examples/clang/Indep_ParLoop.c");    
+	      
+	      if (res.verdict != Verdict.Pass)
+	          fail("bad result : " + res.verdict);
 	    } finally {
 	      sem.release();
 	    }
@@ -79,10 +78,10 @@ public class CLangTest extends ToolTest {
 	public void testDepParLoop(){
 	    sem_get();
 	    try {
-	      VCTResult res=run("vct","--chalice","//examples/clang/Dep_ParLoop.c");           
-	      res.mustSay("method F: Pass");
-	      res.mustSay("method G: Fail");      
-	      if (res.verdict != Verdict.Fail) fail("bad result : "+res.verdict);
+	      VCTResult res=run("vct","--chalice","//examples/clang/Dep_ParLoop.c");   
+	      
+	      if (res.verdict != Verdict.Pass)
+	          fail("bad result : " + res.verdict);
 	    } finally {
 	      sem.release();
 	    }
