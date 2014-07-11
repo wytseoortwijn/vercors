@@ -18,8 +18,11 @@ public class ASTWith extends ASTNode {
     this.body=body;
   }
   
-  public void accept_simple(ASTVisitor visitor){
+  public <T> void accept_simple(ASTVisitor<T> visitor){
     visitor.visit(this);
+  }
+  public <T> T accept_simple(ASTMapping<T> map){
+    return map.map(this);
   }
 
   public String fromString() {

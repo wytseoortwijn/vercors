@@ -34,7 +34,7 @@ public class IterationContractEncoder extends AbstractRewriter {
   public IterationContractEncoder(ProgramUnit arg) {
     super(arg);
   }
-
+//
   public void visit(OperatorExpression e)
   { //DRB
 
@@ -48,9 +48,10 @@ public class IterationContractEncoder extends AbstractRewriter {
 	  case Send:
 		  // create method contract
 		  //and call the method
+
 		  //vct.util.Configuration.getDiagSyntax().print(System.out,e.getArg(0));
 		  //System.out.printf("\n");		  
-		  		  
+  		  
 		  String send_name="send_body_"+N;
 		  
 	      ArrayList<DeclarationStatement> send_decl=new ArrayList();// declaration of parameters for send_check
@@ -67,7 +68,7 @@ public class IterationContractEncoder extends AbstractRewriter {
 		  
 	      cb = new ContractBuilder();		  		 
 		  cb.requires(copy_rw.rewrite(e.getArg(0))); //update new contract
-		  
+  
 		  Method send_body=create.method_decl(
 		          create.primitive_type(PrimitiveType.Sort.Void),
 		          cb.getContract(), //method contract 
@@ -82,6 +83,7 @@ public class IterationContractEncoder extends AbstractRewriter {
 	      //Error management  --> line numbers, origins , ...
 	      
 	      //System.out.printf("\n generated %s at %s%n \n",send_body.name,send_body.getOrigin());
+
 	      currentClass.add_dynamic(send_body);
 	      
 	      result=create.invokation(null,null,send_name,send_args.toArray(new ASTNode[0]));
@@ -121,7 +123,9 @@ public class IterationContractEncoder extends AbstractRewriter {
 	      OriginWrapper.wrap(null,recv_body, branch);      
 	      //Error management  --> line numbers, origins , ...
 	      
+
 	      //System.out.printf("generated %s at %s%n",recv_body.name,recv_body.getOrigin());
+
 	      currentClass.add_dynamic(recv_body);
 	      
 	      result=create.invokation(null,null,recv_name,recv_args.toArray(new ASTNode[0]));
@@ -145,7 +149,7 @@ public class IterationContractEncoder extends AbstractRewriter {
       Hashtable<String,Type> iters=new Hashtable<String,Type>();
       s.getUpdateBlock().accept(new NameScanner(iters));
       for(String var:iters.keySet()){
-    	  System.err.printf("iter %s : %s%n", var,iters.get(var));
+    	  System.err.printf("iter %s : %s%n", var,iters.get(var));    	 
       }
       int N=counter.incrementAndGet();
       String main_name="loop_main_"+N;
@@ -156,8 +160,9 @@ public class IterationContractEncoder extends AbstractRewriter {
       
       /////////////////////////////////////////////// Encoding of loop to method call
       ContractBuilder cb=new ContractBuilder();
+
       ContractBuilder cb_main_loop=new ContractBuilder();
-      
+
       ////create loop guard///////////////////////////////////////////////
       // lower bound of loop
       ASTNode low=s.getInitBlock(); //get loop low bound
@@ -180,7 +185,7 @@ public class IterationContractEncoder extends AbstractRewriter {
       ////create loop guard///////////////////////////////////////////////
       
       //create (star)conjunction of invariant and append it to cb
-      for(ASTNode clause:ASTUtils.conjuncts(c.invariant)){
+      for(ASTNode clause:ASTUtils.conjuncts(c.invariant, StandardOperator.Star)){
         if (NameScanner.occurCheck(clause,var_name)){
           if (clause.getType().isBoolean()){
             cb.appendInvariant(create.forall(
@@ -210,7 +215,7 @@ public class IterationContractEncoder extends AbstractRewriter {
       }
       //create (star)conjunction of pre_condition and append it to cb
       //Required fix : check for side-effects and free variables
-      for(ASTNode clause:ASTUtils.conjuncts(c.pre_condition)){
+      for(ASTNode clause:ASTUtils.conjuncts(c.pre_condition, StandardOperator.Star)){
     	  // same support of implication for precodition also required     	  
         if (NameScanner.occurCheck(clause,var_name)){
             if (clause.isa(StandardOperator.Implies)){
@@ -287,12 +292,13 @@ public class IterationContractEncoder extends AbstractRewriter {
           }
         } else {
           cb.requires(copy_rw.rewrite(clause)); //update new contract
+
           cb_main_loop.requires(copy_rw.rewrite(clause)); //update new contract
         }
       }
       //Create (star)conjunction of post_condition and append it to cb
       //Required fix : check for side-effects and free variables
-      for(ASTNode clause:ASTUtils.conjuncts(c.post_condition)){  
+      for(ASTNode clause:ASTUtils.conjuncts(c.post_condition, StandardOperator.Star)){  
         if (NameScanner.occurCheck(clause,var_name)){//check whether clause is in the list of free variables or not.
           if (clause.isa(StandardOperator.Implies)){
         	  //Fail("this form of implies is not supported");        	  
@@ -345,6 +351,7 @@ public class IterationContractEncoder extends AbstractRewriter {
         	  		}
                 }
           } else if (clause.getType().isBoolean()){ //binder method can be used for refactoring of starall and forall 
+
             cb.ensures(create.forall(
               copy_rw.rewrite(guard),
               copy_rw.rewrite(clause),
@@ -367,7 +374,9 @@ public class IterationContractEncoder extends AbstractRewriter {
           }
         } else {
           cb.ensures(copy_rw.rewrite(clause)); //update new contract
+
           cb_main_loop.ensures(copy_rw.rewrite(clause)); //update new contract
+
         }
       }
       // generate arguments and declaration of body (body_decl) and whole loop (main_decl and main_args) 
@@ -381,7 +390,9 @@ public class IterationContractEncoder extends AbstractRewriter {
       
       Method main_method=create.method_decl(
           create.primitive_type(PrimitiveType.Sort.Void), //return type
+
           cb_main_loop.getContract(),  //method contract 
+
           main_name,  //method name
           main_decl.toArray(new DeclarationStatement[0]),
           null);// no body

@@ -206,7 +206,7 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
             in_clause=true;
             if (contract!=null && !contract.pre_condition.equals(Contract.default_true)) {
               // this is an unsafe trick!
-              for(ASTNode part:ASTUtils.conjuncts(contract.pre_condition)){
+              for(ASTNode part:ASTUtils.conjuncts(contract.pre_condition,StandardOperator.Star)){
                 if (!(part instanceof MethodInvokation)) continue;
                 MethodInvokation mi=(MethodInvokation)part;
                 if (mi.getDefinition().kind != Method.Kind.Predicate) continue;

@@ -41,8 +41,12 @@ public class VariableDeclaration extends ASTNode {
   }
   
   @Override
-  protected <T> void accept_simple(ASTVisitor<T> visitor) {
+  public <T> void accept_simple(ASTVisitor<T> visitor){
     visitor.visit(this);
+  }
+  @Override
+  public <T> T accept_simple(ASTMapping<T> map){
+    return map.map(this);
   }
 
   /**

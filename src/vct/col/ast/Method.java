@@ -165,8 +165,12 @@ public class Method extends ASTDeclaration {
   }
 
   @Override
-  protected <T> void accept_simple(ASTVisitor<T> visitor) {
+  public <T> void accept_simple(ASTVisitor<T> visitor){
     visitor.visit(this);
+  }
+  @Override
+  public <T> T accept_simple(ASTMapping<T> map){
+    return map.map(this);
   }
 
   public boolean isRecursive() {
@@ -214,6 +218,13 @@ public class Method extends ASTDeclaration {
       BindingExpression abs=(BindingExpression)node;
       if (find(target,scanned,abs.main)) return true;
       return find(target,scanned,abs.select);
+    }
+    if (node instanceof PrimitiveType){
+      return false;
+    }
+    if (node instanceof BlockStatement){
+      //TODO this breaks is resources uses blocks!
+      return false;
     }
     Abort("missing case in isRecursive: %s",node.getClass());
     return true;

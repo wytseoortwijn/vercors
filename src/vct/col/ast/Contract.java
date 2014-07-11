@@ -61,12 +61,12 @@ public class Contract extends ASTNode {
   }
 
   public void build_labels(){
-    for(ASTNode part:ASTUtils.conjuncts(pre_condition)){
+    for(ASTNode part:ASTUtils.conjuncts(pre_condition,StandardOperator.Star)){
       for(NameExpression lbl:part.getLabels()){
         labels.add(lbl.getName());
       }
     }
-    for(ASTNode part:ASTUtils.conjuncts(post_condition)){
+    for(ASTNode part:ASTUtils.conjuncts(post_condition,StandardOperator.Star)){
       for(NameExpression lbl:part.getLabels()){
         labels.add(lbl.getName());
       }     
@@ -77,8 +77,12 @@ public class Contract extends ASTNode {
   }
 
   @Override
-  protected <T> void accept_simple(ASTVisitor<T> visitor) {
+  public <T> void accept_simple(ASTVisitor<T> visitor){
     visitor.visit(this);
+  }
+  @Override
+  public <T> T accept_simple(ASTMapping<T> map){
+    return map.map(this);
   }
   
 }

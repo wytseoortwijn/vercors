@@ -146,6 +146,9 @@ public class Flatten extends AbstractRewriter {
     String name=s.getName();
     ASTNode init=s.getInit();
     if (init!=null) {
+      if (current_block==null){
+        Abort("internal error: current block is null");
+      }
       current_block.add_statement(create.field_decl(name,t,null));
       init=init.apply(this);
       result=create.assignment(create.local_name(name),init);

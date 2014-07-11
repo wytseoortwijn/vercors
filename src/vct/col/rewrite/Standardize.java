@@ -10,6 +10,7 @@ import vct.col.ast.NameExpression;
 import vct.col.ast.OperatorExpression;
 import vct.col.ast.ProgramUnit;
 import vct.col.ast.StandardOperator;
+import vct.util.ClassName;
 import static hre.System.Debug;
 
 /**
@@ -104,9 +105,20 @@ public class Standardize extends AbstractRewriter {
         }
         break;
       }
-      default:
+      case Unresolved:{
+        String name=e.getName();
+        ClassName cl_name=new ClassName(name);
+        if (source().find(cl_name)!=null){
+          result=create.class_type(name);
+          break;
+        }
         super.visit(e);
         break;
+      }
+      default:{
+        super.visit(e);
+        break;
+      }
     }
   }
 }

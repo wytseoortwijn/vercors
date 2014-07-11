@@ -17,10 +17,15 @@ public class OperatorExpression extends ExpressionNode {
     this.args=Arrays.copyOf(args,args.length);
     if (op.arity()>=0 && args.length != op.arity()) Abort("wrong number of arguments for %s, got %d expected %d",op,args.length,op.arity());
   }
-  public void accept_simple(ASTVisitor visitor){
+  @Override
+  public <T> void accept_simple(ASTVisitor<T> visitor){
     visitor.visit(this);
   }
-  
+  @Override
+  public <T> T accept_simple(ASTMapping<T> map){
+    return map.map(this);
+  }
+ 
   public StandardOperator getOperator(){
     return op;
   }

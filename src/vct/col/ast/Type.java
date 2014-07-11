@@ -19,6 +19,14 @@ public abstract  class Type extends ASTNode {
   
   protected ASTNode args[];
   
+  protected abstract <T> T accept_simple(TypeMapping<T> map);
+
+  public final <T> T apply(TypeMapping<T> map){
+    map.pre_map(this);
+    T res=this.accept_simple(map);
+    return map.post_map(this, res);  
+  }
+
   public Type(ASTNode ... args){
     this.args=Arrays.copyOf(args,args.length);
   }
@@ -63,8 +71,8 @@ public abstract  class Type extends ASTNode {
   }
 
   public boolean comparableWith(ProgramUnit context, Type t2){
-    if (isIntegerType()){
-      return t2.isIntegerType();
+    if (isNumeric()){
+      return t2.isNumeric();
     }
     if(equals(t2)) return true;
     if(this.supertypeof(context,t2)) return true;

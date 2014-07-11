@@ -123,17 +123,24 @@ public class Configuration {
       ClassLoader loader=Configuration.class.getClassLoader();
       URL url=loader.getResource("vct/util/Configuration.class");
       File f=new File(url.getFile());
-      //Warning("origin is %s", f);
+      Debug("origin is %s", f);
       for(int i=0;i<5;i++) f=f.getParentFile();
-      //Warning("home is %s", f);
-      //throw new Error("variable VCT_HOME is not set");
+      Debug("home is %s", f);
       tmp=f.toString();
+      // Remove the file: prefix that shows up while executing under ant.
+      if (tmp.startsWith("file:")) tmp=tmp.substring(5);
     }
-    home=Paths.get(tmp).toAbsolutePath();
+    home=Paths.get(tmp).toAbsolutePath().normalize();
     if (!home.toFile().isDirectory()){
       throw new Error("VCT_HOME value "+tmp+" is not a directory");
     }
-    Path module_deps=home.getParent().getParent().resolve(Paths.get("modules"));
+    Path module_deps=home.resolve("deps").resolve("modules");
+    if (!module_deps.toFile().isDirectory()){
+      module_deps=home.getParent().getParent().resolve(Paths.get("modules"));
+      if (!module_deps.toFile().isDirectory()){
+        hre.System.Fail("dependency modules not found");
+      }
+    }
     modulepath=new StringListSetting(module_deps.toString());
   }
 

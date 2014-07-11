@@ -270,13 +270,13 @@ public class JavaPrinter extends AbstractPrinter {
         d.accept(this);
         out.lnprintf("");
       }
-      for(ASTNode e:ASTUtils.conjuncts(contract.invariant)){
+      for(ASTNode e:ASTUtils.conjuncts(contract.invariant,StandardOperator.Star)){
         out.printf("invariant ");
         nextExpr();
         e.accept(this);
         out.lnprintf(";");
       }
-      for(ASTNode e:ASTUtils.conjuncts(contract.pre_condition)){
+      for(ASTNode e:ASTUtils.conjuncts(contract.pre_condition,StandardOperator.Star)){
         out.printf("requires ");
         nextExpr();
         e.accept(this);
@@ -287,7 +287,7 @@ public class JavaPrinter extends AbstractPrinter {
         d.accept(this);
         out.lnprintf("");
       }
-      for(ASTNode e:ASTUtils.conjuncts(contract.post_condition)){
+      for(ASTNode e:ASTUtils.conjuncts(contract.post_condition,StandardOperator.Star)){
         out.printf("ensures ");
         nextExpr();
         e.accept(this);

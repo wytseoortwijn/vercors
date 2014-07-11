@@ -18,8 +18,13 @@ public class StandardProcedure extends ASTNode {
   public StandardProcedure(StandardOperator op){
     this.op=op;
   }
-  public void accept_simple(ASTVisitor visitor){
+  @Override
+  public <T> void accept_simple(ASTVisitor<T> visitor){
     visitor.visit(this);
+  }
+  @Override
+  public <T> T accept_simple(ASTMapping<T> map){
+    return map.map(this);
   }
 
   public StandardOperator getOperator(){

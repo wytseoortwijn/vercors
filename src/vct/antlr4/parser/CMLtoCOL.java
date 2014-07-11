@@ -554,10 +554,12 @@ public class CMLtoCOL extends AbstractCtoCOL implements CMLVisitor<ASTNode> {
   public ASTNode visitSpecificationSequence(SpecificationSequenceContext ctx) {//DRB --Added	  
 	return null;
   }
-  
+  //
   @Override
   public ASTNode visitSpecificationStatement(SpecificationStatementContext ctx) {//DRB --Added	    
+
 	    ASTNode res=null;	    
+
 	  	if (match(ctx,"loop_invariant",null,";")){	      
 	      res= create.special(ASTSpecial.Kind.Invariant,convert(ctx,1));
 	    }

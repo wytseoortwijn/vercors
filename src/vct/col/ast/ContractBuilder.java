@@ -8,7 +8,6 @@ import hre.ast.Origin;
 
 import java.util.*;
 
-
 import static vct.col.ast.StandardOperator.And;
 import static vct.col.ast.Contract.default_true;
 
@@ -176,6 +175,17 @@ public class ContractBuilder {
     FileOrigin o2=(FileOrigin)expr.getOrigin();
     decl.setOrigin(o1.merge(o2));
     signals.add(decl);
+  }
+
+  public void requires(Iterable<ASTNode> collection) {
+    for(ASTNode item:collection){
+      requires(item); 
+    }
+  }
+  public void ensures(Iterable<ASTNode> collection) {
+    for(ASTNode item:collection){
+      ensures(item); 
+    }
   }
 
 }

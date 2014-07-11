@@ -377,6 +377,15 @@ public BlockStatement block(Origin origin, ASTNode ... args) {
    * @return folded list.
    */
    public ASTNode fold(StandardOperator op, ArrayList<ASTNode> list) {
+     if (list.size()==0){
+       switch(op){
+       case And:
+       case Star:
+         return constant(true);
+       default:
+         Abort("cannot fold empty list, because neutral element of %s is not implemented",op);
+       }
+     }
      ASTNode res=list.get(0);
      int N=list.size();
      for(int i=1;i<N;i++){

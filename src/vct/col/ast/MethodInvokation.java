@@ -2,6 +2,7 @@
 package vct.col.ast;
 
 import java.util.*;
+
 import static hre.System.*;
 
 /**
@@ -33,8 +34,13 @@ public class MethodInvokation extends ExpressionNode {
     this.dispatch=dispatch;
   }
 
+  @Override
   public <T> void accept_simple(ASTVisitor<T> visitor){
     visitor.visit(this);
+  }
+  @Override
+  public <T> T accept_simple(ASTMapping<T> map){
+    return map.map(this);
   }
 
   public int getArity() { return args.length; }

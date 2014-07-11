@@ -28,8 +28,11 @@ public class AssignmentStatement extends ASTNode {
 
   public ASTNode getLocation() { return location; }
 
-  public void accept_simple(ASTVisitor visitor){
+  public <T> void accept_simple(ASTVisitor<T> visitor){
     visitor.visit(this);
+  }
+  public <T> T accept_simple(ASTMapping<T> map){
+    return map.map(this);
   }
 
 }
