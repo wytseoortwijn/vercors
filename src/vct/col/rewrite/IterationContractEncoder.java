@@ -15,6 +15,7 @@ import vct.col.ast.ContractBuilder;
 import vct.col.ast.DeclarationStatement;
 import vct.col.ast.LoopStatement;
 import vct.col.ast.Method;
+import vct.col.ast.NameExpression;
 import vct.col.ast.OperatorExpression;
 import vct.col.ast.PrimitiveType;
 import vct.col.ast.PrimitiveType.Sort;
@@ -47,8 +48,8 @@ public class IterationContractEncoder extends AbstractRewriter {
 	  case Send:
 		  // create method contract
 		  //and call the method
-		  vct.util.Configuration.getDiagSyntax().print(System.out,e.getArg(0));
-		  System.out.printf("\n");		  
+		  //vct.util.Configuration.getDiagSyntax().print(System.out,e.getArg(0));
+		  //System.out.printf("\n");		  
 		  		  
 		  String send_name="send_body_"+N;
 		  
@@ -65,7 +66,7 @@ public class IterationContractEncoder extends AbstractRewriter {
 	      }
 		  
 	      cb = new ContractBuilder();		  		 
-		  cb.ensures(copy_rw.rewrite(e.getArg(0))); //update new contract
+		  cb.requires(copy_rw.rewrite(e.getArg(0))); //update new contract
 		  
 		  Method send_body=create.method_decl(
 		          create.primitive_type(PrimitiveType.Sort.Void),
@@ -80,7 +81,7 @@ public class IterationContractEncoder extends AbstractRewriter {
 	      OriginWrapper.wrap(null,send_body, branch);      
 	      //Error management  --> line numbers, origins , ...
 	      
-	      System.out.printf("\n generated %s at %s%n \n",send_body.name,send_body.getOrigin());
+	      //System.out.printf("\n generated %s at %s%n \n",send_body.name,send_body.getOrigin());
 	      currentClass.add_dynamic(send_body);
 	      
 	      result=create.invokation(null,null,send_name,send_args.toArray(new ASTNode[0]));
@@ -120,7 +121,7 @@ public class IterationContractEncoder extends AbstractRewriter {
 	      OriginWrapper.wrap(null,recv_body, branch);      
 	      //Error management  --> line numbers, origins , ...
 	      
-	      System.out.printf("generated %s at %s%n",recv_body.name,recv_body.getOrigin());
+	      //System.out.printf("generated %s at %s%n",recv_body.name,recv_body.getOrigin());
 	      currentClass.add_dynamic(recv_body);
 	      
 	      result=create.invokation(null,null,recv_name,recv_args.toArray(new ASTNode[0]));
@@ -155,6 +156,7 @@ public class IterationContractEncoder extends AbstractRewriter {
       
       /////////////////////////////////////////////// Encoding of loop to method call
       ContractBuilder cb=new ContractBuilder();
+      ContractBuilder cb_main_loop=new ContractBuilder();
       
       ////create loop guard///////////////////////////////////////////////
       // lower bound of loop
@@ -174,8 +176,7 @@ public class IterationContractEncoder extends AbstractRewriter {
       ASTNode guard=create.expression(StandardOperator.And,
           create.expression(StandardOperator.LTE,low,create.unresolved_name(var_name)),
           create.expression(op,create.unresolved_name(var_name),high)
-      );
-      
+      );           
       ////create loop guard///////////////////////////////////////////////
       
       //create (star)conjunction of invariant and append it to cb
@@ -186,50 +187,187 @@ public class IterationContractEncoder extends AbstractRewriter {
                 copy_rw.rewrite(guard),
                 copy_rw.rewrite(clause),
                 create.field_decl(var_name,create.primitive_type(Sort.Integer))));
+            
+            cb_main_loop.appendInvariant(create.forall(
+                    copy_rw.rewrite(guard),
+                    copy_rw.rewrite(clause),
+                    create.field_decl(var_name,create.primitive_type(Sort.Integer))));
           } else {
             cb.appendInvariant(create.starall(
               copy_rw.rewrite(guard),
               copy_rw.rewrite(clause),
               create.field_decl(var_name,create.primitive_type(Sort.Integer))));
+            
+            cb_main_loop.appendInvariant(create.starall(
+                    copy_rw.rewrite(guard),
+                    copy_rw.rewrite(clause),
+                    create.field_decl(var_name,create.primitive_type(Sort.Integer))));
           }
         } else {
           cb.appendInvariant(copy_rw.rewrite(clause)); //update new contract
+          cb_main_loop.appendInvariant(copy_rw.rewrite(clause)); //update new contract
         }
       }
       //create (star)conjunction of pre_condition and append it to cb
+      //Required fix : check for side-effects and free variables
       for(ASTNode clause:ASTUtils.conjuncts(c.pre_condition)){
+    	  // same support of implication for precodition also required     	  
         if (NameScanner.occurCheck(clause,var_name)){
-          if (clause.getType().isBoolean()){
+            if (clause.isa(StandardOperator.Implies)){
+          	  //Fail("this form of implies is not supported");        	  
+          	  if (clause.getType().isBoolean()){  
+          		  Fail("this form of implies is not supported -- boolean experssions");
+                  } else {                                	                  	         	            	                       
+                    if(((OperatorExpression)clause).getArg(0).isa(StandardOperator.EQ)) //==
+                    {      
+                  	  boolean IsArr = false;
+                  	  if(IsArr){                	  
+  	                      Hashtable<NameExpression,ASTNode> map=new Hashtable();
+  	                      map.put((NameExpression)((OperatorExpression)(
+  	                    		  ((OperatorExpression)((OperatorExpression)clause).getArg(1)).getArg(0))).getArg(1)/*i*/,
+  	                    		  (((OperatorExpression)((OperatorExpression)clause).getArg(0)).getArg(1))/*len-1*/);
+  	                      
+  	                      Substitution sigma=new Substitution(source(),map);
+  	                      
+  	                      cb.requires(sigma.rewrite(((OperatorExpression)clause).getArg(1)));
+  	                      
+  	                      cb_main_loop.requires(sigma.rewrite(((OperatorExpression)clause).getArg(1)));
+  	                                           
+  	                      vct.util.Configuration.getDiagSyntax().print(System.out,sigma.rewrite(((OperatorExpression)clause).getArg(1))); 
+  	                	  System.out.printf("\nAssssssssssssssssssssss \n ");                                          
+                  	  }
+                  	  else {//IsArr == false 
+                  		  cb.requires(clause);
+                  		  cb_main_loop.requires(((OperatorExpression)clause).getArg(1));
+                  	  }
+                    }
+                    else if(((OperatorExpression)clause).getArg(0).isa(StandardOperator.GT)){ // > what about >= (missing case )
+                  	  //create new guard because of implication before the resource expression
+                  	  ASTNode new_guard=create.expression(StandardOperator.And,
+            	                create.expression(StandardOperator.LT,(((OperatorExpression)((OperatorExpression)clause).getArg(0)).getArg(1))/* new lower bound*/,create.unresolved_name(var_name)),
+            	                create.expression(op,create.unresolved_name(var_name),high)
+            	            );
+                        cb.requires(create.starall(
+                                copy_rw.rewrite(new_guard),
+                                copy_rw.rewrite(((OperatorExpression)clause).getArg(1)), /*the other side of implication */
+                                create.field_decl(var_name,create.primitive_type(Sort.Integer))));                        
+                        
+                        cb_main_loop.requires(create.starall(
+                                copy_rw.rewrite(new_guard),
+                                copy_rw.rewrite(((OperatorExpression)clause).getArg(1)), /*the other side of implication */
+                                create.field_decl(var_name,create.primitive_type(Sort.Integer))));
+                    }
+          	  	else // < and >= (missing case) 
+          	  		{        	        
+          	  		// should be filled up 
+          	  		Fail("this form of implies is not supported -- greater than");
+          	  		}
+                  }
+            }
+            else  if (clause.getType().isBoolean()){
             cb.requires(create.forall(
                 copy_rw.rewrite(guard),
                 copy_rw.rewrite(clause),
                 create.field_decl(var_name,create.primitive_type(Sort.Integer))));
+            
+            cb_main_loop.requires(create.forall(
+                    copy_rw.rewrite(guard),
+                    copy_rw.rewrite(clause),
+                    create.field_decl(var_name,create.primitive_type(Sort.Integer))));
           } else {
             cb.requires(create.starall(
               copy_rw.rewrite(guard),
               copy_rw.rewrite(clause),
               create.field_decl(var_name,create.primitive_type(Sort.Integer))));
+            
+            cb_main_loop.requires(create.starall(
+                    copy_rw.rewrite(guard),
+                    copy_rw.rewrite(clause),
+                    create.field_decl(var_name,create.primitive_type(Sort.Integer))));
           }
         } else {
           cb.requires(copy_rw.rewrite(clause)); //update new contract
+          cb_main_loop.requires(copy_rw.rewrite(clause)); //update new contract
         }
       }
-      //create (star)conjunction of post_condition and append it to cb
-      for(ASTNode clause:ASTUtils.conjuncts(c.post_condition)){
-        if (NameScanner.occurCheck(clause,var_name)){
-          if (clause.getType().isBoolean()){
+      //Create (star)conjunction of post_condition and append it to cb
+      //Required fix : check for side-effects and free variables
+      for(ASTNode clause:ASTUtils.conjuncts(c.post_condition)){  
+        if (NameScanner.occurCheck(clause,var_name)){//check whether clause is in the list of free variables or not.
+          if (clause.isa(StandardOperator.Implies)){
+        	  //Fail("this form of implies is not supported");        	  
+        	  if (clause.getType().isBoolean()){  
+        		  Fail("this form of implies is not supported -- boolean experssions");
+                } else {                                	                  	         	            	                       
+                  if(((OperatorExpression)clause).getArg(0).isa(StandardOperator.EQ)) //==
+                  {      
+                	  boolean IsArr = false;
+                	  if(IsArr){                	  
+	                      Hashtable<NameExpression,ASTNode> map=new Hashtable();
+	                      map.put((NameExpression)((OperatorExpression)(
+	                    		  ((OperatorExpression)((OperatorExpression)clause).getArg(1)).getArg(0))).getArg(1)/*i*/,
+	                    		  (((OperatorExpression)((OperatorExpression)clause).getArg(0)).getArg(1))/*len-1*/);
+	                      
+	                      Substitution sigma=new Substitution(source(),map);
+	                      
+	                      cb.ensures(sigma.rewrite(((OperatorExpression)clause).getArg(1)));
+	                      
+	                      cb_main_loop.ensures(sigma.rewrite(((OperatorExpression)clause).getArg(1)));
+	                                           
+	                      vct.util.Configuration.getDiagSyntax().print(System.out,sigma.rewrite(((OperatorExpression)clause).getArg(1))); 
+	                	  System.out.printf("\nAssssssssssssssssssssss \n ");                                          
+                	  }
+                	  else { //IsArr == false 
+                		  cb.ensures(clause);
+                		  cb_main_loop.ensures(((OperatorExpression)clause).getArg(1));
+                	  }
+                  }
+                  else if(((OperatorExpression)clause).getArg(0).isa(StandardOperator.GT)){ // > what about >= (missing case )
+                	  //create new guard because of implication before the resource expression
+                	  ASTNode new_guard=create.expression(StandardOperator.And,
+          	                create.expression(StandardOperator.LT,(((OperatorExpression)((OperatorExpression)clause).getArg(0)).getArg(1))/* new lower bound*/,create.unresolved_name(var_name)),
+          	                create.expression(op,create.unresolved_name(var_name),high)
+          	            );
+                      cb.ensures(create.starall(
+                              copy_rw.rewrite(new_guard),
+                              copy_rw.rewrite(((OperatorExpression)clause).getArg(1)), /*the other side of implication */
+                              create.field_decl(var_name,create.primitive_type(Sort.Integer))));                        
+                      
+                      cb_main_loop.ensures(create.starall(
+                              copy_rw.rewrite(new_guard),
+                              copy_rw.rewrite(((OperatorExpression)clause).getArg(1)), /*the other side of implication */
+                              create.field_decl(var_name,create.primitive_type(Sort.Integer))));
+                  }
+        	  	else // < and >= (missing case) 
+        	  		{        	        
+        	  		// should be filled up 
+        	  		Fail("this form of implies is not supported -- greater than");
+        	  		}
+                }
+          } else if (clause.getType().isBoolean()){ //binder method can be used for refactoring of starall and forall 
             cb.ensures(create.forall(
               copy_rw.rewrite(guard),
               copy_rw.rewrite(clause),
               create.field_decl(var_name,create.primitive_type(Sort.Integer))));
+            
+            cb_main_loop.ensures(create.forall(
+                    copy_rw.rewrite(guard),
+                    copy_rw.rewrite(clause),
+                    create.field_decl(var_name,create.primitive_type(Sort.Integer))));
           } else {
             cb.ensures(create.starall(
                 copy_rw.rewrite(guard),
                 copy_rw.rewrite(clause),
                 create.field_decl(var_name,create.primitive_type(Sort.Integer))));
+            
+            cb_main_loop.ensures(create.starall(
+                    copy_rw.rewrite(guard),
+                    copy_rw.rewrite(clause),
+                    create.field_decl(var_name,create.primitive_type(Sort.Integer))));
           }
         } else {
           cb.ensures(copy_rw.rewrite(clause)); //update new contract
+          cb_main_loop.ensures(copy_rw.rewrite(clause)); //update new contract
         }
       }
       // generate arguments and declaration of body (body_decl) and whole loop (main_decl and main_args) 
@@ -243,7 +381,7 @@ public class IterationContractEncoder extends AbstractRewriter {
       
       Method main_method=create.method_decl(
           create.primitive_type(PrimitiveType.Sort.Void), //return type
-          cb.getContract(),  //method contract 
+          cb_main_loop.getContract(),  //method contract 
           main_name,  //method name
           main_decl.toArray(new DeclarationStatement[0]),
           null);// no body
