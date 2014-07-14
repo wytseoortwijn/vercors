@@ -80,8 +80,9 @@ public class CLangTest extends ToolTest {
 	    try {
 	      VCTResult res=run("vct","--chalice","//examples/clang/Dep_ParLoop.c");   
 	      
-	      if (res.verdict != Verdict.Pass)
-	          fail("bad result : " + res.verdict);
+	      res.checkVerdict(Verdict.Error);
+	      
+	      res.mustSay("not a . <= . && . < . pattern");
 	    } finally {
 	      sem.release();
 	    }
