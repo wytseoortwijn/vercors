@@ -222,16 +222,16 @@ public class IterationContractEncoder extends AbstractRewriter {
           	  //Fail("this form of implies is not supported");        	  
           	  if (clause.getType().isBoolean()){  
           		  Fail("this form of implies is not supported -- boolean experssions");
-                  } else {                                	                  	         	            	                       
-                    if(((OperatorExpression)clause).getArg(0).isa(StandardOperator.EQ)) //==
-                    {      
-                  	  boolean IsArr = false;
-                  	  if(IsArr){                	  
+                  } else {
+                    OperatorExpression i_guard=(OperatorExpression)clause;
+                    if(i_guard.getArg(0).isa(StandardOperator.EQ)) //==
+                    {     
+                      ASTNode lhs=((OperatorExpression)i_guard.getArg(0)).getArg(0);
+                      ASTNode rhs=((OperatorExpression)i_guard.getArg(0)).getArg(1);
+                      if (lhs.isName(var_name) && !ASTUtils.find_name(rhs,var_name)){
+                        Warning("detected 'i==c ==> phi' pattern");
   	                      Hashtable<NameExpression,ASTNode> map=new Hashtable();
-  	                      map.put((NameExpression)((OperatorExpression)(
-  	                    		  ((OperatorExpression)((OperatorExpression)clause).getArg(1)).getArg(0))).getArg(1)/*i*/,
-  	                    		  (((OperatorExpression)((OperatorExpression)clause).getArg(0)).getArg(1))/*len-1*/);
-  	                      
+  	                      map.put(create.field_name(var_name),rhs);
   	                      Substitution sigma=new Substitution(source(),map);
   	                       
   	                      cb.requires(sigma.rewrite(((OperatorExpression)clause).getArg(1)));
@@ -241,9 +241,9 @@ public class IterationContractEncoder extends AbstractRewriter {
   	                      vct.util.Configuration.getDiagSyntax().print(System.out,sigma.rewrite(((OperatorExpression)clause).getArg(1))); 
   	                	  System.out.printf("\nAssssssssssssssssssssss \n ");                                          
                   	  }
-                  	  else {//IsArr == false 
-                  		  cb.requires(clause);
-                  		  cb_main_loop.requires(((OperatorExpression)clause).getArg(1));
+                  	  else {
+                  	    // TODO fix control flow to be able to return quantification.
+                  	    Fail("unexpect equality");
                   	  }
                     }
                     else if(((OperatorExpression)clause).getArg(0).isa(StandardOperator.GT)){ // > what about >= (missing case )
@@ -305,30 +305,30 @@ public class IterationContractEncoder extends AbstractRewriter {
         	  if (clause.getType().isBoolean()){  
         		  Fail("this form of implies is not supported -- boolean experssions");
                 } else {                                	                  	         	            	                       
-                  if(((OperatorExpression)clause).getArg(0).isa(StandardOperator.EQ)) //==
-                  {      
-                	  boolean IsArr = false;
-                	  if(IsArr){                	  
-	                      Hashtable<NameExpression,ASTNode> map=new Hashtable();
-	                      map.put((NameExpression)((OperatorExpression)(
-	                    		  ((OperatorExpression)((OperatorExpression)clause).getArg(1)).getArg(0))).getArg(1)/*i*/,
-	                    		  (((OperatorExpression)((OperatorExpression)clause).getArg(0)).getArg(1))/*len-1*/);
-	                      
-	                      Substitution sigma=new Substitution(source(),map);
-	                      
-	                      cb.ensures(sigma.rewrite(((OperatorExpression)clause).getArg(1)));
-	                      
-	                      cb_main_loop.ensures(sigma.rewrite(((OperatorExpression)clause).getArg(1)));
-	                                           
-	                      vct.util.Configuration.getDiagSyntax().print(System.out,sigma.rewrite(((OperatorExpression)clause).getArg(1))); 
-	                	  System.out.printf("\nAssssssssssssssssssssss \n ");                                          
-                	  }
-                	  else { //IsArr == false 
-                		  cb.ensures(clause);
-                		  cb_main_loop.ensures(((OperatorExpression)clause).getArg(1));
-                	  }
-                  }
-                  else if(((OperatorExpression)clause).getArg(0).isa(StandardOperator.GT)){ // > what about >= (missing case )
+                  OperatorExpression i_guard=(OperatorExpression)clause;
+                  if(i_guard.getArg(0).isa(StandardOperator.EQ)) //==
+                  {     
+                    ASTNode lhs=((OperatorExpression)i_guard.getArg(0)).getArg(0);
+                    ASTNode rhs=((OperatorExpression)i_guard.getArg(0)).getArg(1);
+                    if (lhs.isName(var_name) && !ASTUtils.find_name(rhs,var_name)){
+                      Warning("detected 'i==c ==> phi' pattern");
+                        Hashtable<NameExpression,ASTNode> map=new Hashtable();
+                        map.put(create.field_name(var_name),rhs);
+                        Substitution sigma=new Substitution(source(),map);
+                         
+                        cb.ensures(sigma.rewrite(((OperatorExpression)clause).getArg(1)));
+                        
+                        cb_main_loop.ensures(sigma.rewrite(((OperatorExpression)clause).getArg(1)));
+                                             
+                        vct.util.Configuration.getDiagSyntax().print(System.out,sigma.rewrite(((OperatorExpression)clause).getArg(1))); 
+                      System.out.printf("\nAssssssssssssssssssssss \n ");                                          
+                    }
+                    else {
+                      // TODO fix control flow to be able to return quantification.
+                      Fail("unexpect equality");
+                    }
+                 }
+                 else if(((OperatorExpression)clause).getArg(0).isa(StandardOperator.GT)){ // > what about >= (missing case )
                 	  //create new guard because of implication before the resource expression
                 	  ASTNode new_guard=create.expression(StandardOperator.And,
           	                create.expression(StandardOperator.LT,(((OperatorExpression)((OperatorExpression)clause).getArg(0)).getArg(1))/* new lower bound*/,create.unresolved_name(var_name)),
