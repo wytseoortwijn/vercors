@@ -51,9 +51,10 @@ public class ColIParser implements vct.col.util.Parser {
     ProgramUnit pu=new ProgramUnit();
     pu.add(cu);
     
-    AbstractRewriter rw=new CommentRewriter(pu,new CMLCommentParser());
-    pu=rw.rewriteAll();
-    
+    pu=new CommentRewriter(pu,new CMLCommentParser()).rewriteAll();
+    pu=new FlattenVariableDeclarations(pu).rewriteAll();
+    pu=new SpecificationCollector(pu).rewriteAll();
+
     if (pu.size()!=1){
       Fail("bad program unit size");
     }
