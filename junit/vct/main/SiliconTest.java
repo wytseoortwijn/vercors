@@ -214,7 +214,7 @@ public class SiliconTest extends ToolTest {
     }
   }
   
-  @Test
+  // disabled because it started taking too much time... @Test
   public void testQuantSeqBsearch(){
     sem_get();
     try {
@@ -256,6 +256,55 @@ public class SiliconTest extends ToolTest {
     try {
       VCTResult res=run("vct","--silver=silicon",
           "//examples/silver/BasicAssert-e1.java");
+      res.checkVerdict(Verdict.Fail);
+    } finally {
+      sem.release();
+    }
+  }
+
+
+  @Test
+  public void testZeroArray(){
+    sem_get();
+    try {
+      VCTResult res=run("vct","--silver=silicon",
+          "//examples/silicon/zero-array-ic.c");
+      res.checkVerdict(Verdict.Pass);
+    } finally {
+      sem.release();
+    }
+  }
+
+  @Test
+  public void testZeroArrayE1(){
+    sem_get();
+    try {
+      VCTResult res=run("vct","--silver=silicon",
+          "//examples/silicon/zero-array-ic-e1.c");
+      res.checkVerdict(Verdict.Fail);
+    } finally {
+      sem.release();
+    }
+  }
+
+  @Test
+  public void testDepParLoop(){
+    sem_get();
+    try {
+      VCTResult res=run("vct","--silver=silicon",
+          "//examples/silicon/dep-par-loop.c");
+      res.checkVerdict(Verdict.Pass);
+    } finally {
+      sem.release();
+    }
+  }
+  
+  @Test
+  public void testDepParLoopE1(){
+    sem_get();
+    try {
+      VCTResult res=run("vct","--silver=silicon",
+          "//examples/silicon/dep-par-loop-e1.c");
       res.checkVerdict(Verdict.Fail);
     } finally {
       sem.release();
