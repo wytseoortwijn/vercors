@@ -30,7 +30,8 @@ public class Standardize extends AbstractRewriter {
   public Standardize(ProgramUnit source) {
     super(source);
   }
-  
+
+  /*
   public void visit(BlockStatement s) {
     Debug("rewriting block");
     BlockStatement res=create.block();
@@ -81,7 +82,9 @@ public class Standardize extends AbstractRewriter {
     }
     result=res;
   }
-
+*/
+  
+  
   public void visit(MethodInvokation e){
     ASTNode object=rewrite(e.object);
     if (object==null && current_class()!=null) object=create.this_expression(create.class_type(current_class().getFullName()));
@@ -119,6 +122,50 @@ public class Standardize extends AbstractRewriter {
         super.visit(e);
         break;
       }
+    }
+  }
+  
+  @Override
+  public void visit(OperatorExpression e){
+    if (e.getParent() instanceof BlockStatement){
+      switch(e.getOperator()){
+      case Assign:
+      {
+        ASTNode var=e.getArg(0).apply(this);
+        ASTNode val=e.getArg(1).apply(this);
+        result=create.assignment(var,val);
+        break;
+      }
+      case PostIncr:
+      case PreIncr:
+      {
+        ASTNode arg=e.getArg(0);
+        if (arg instanceof NameExpression){
+          ASTNode incr=create.expression(e.getOrigin(),StandardOperator.Plus,rewrite(arg),create.constant(e.getOrigin(),1));
+          result=create.assignment(rewrite(arg),incr);
+        } else {
+          result=rewrite(e);
+        }
+        break;
+      }
+      case PostDecr:
+      case PreDecr:
+      {
+        ASTNode arg=e.getArg(0);
+        if (arg instanceof NameExpression){
+          ASTNode incr=create.expression(e.getOrigin(),StandardOperator.Minus,rewrite(arg),create.constant(e.getOrigin(),1));
+          result=create.assignment(rewrite(arg),incr);
+        } else {
+          result=rewrite(e);
+        }
+        break;
+      }
+      default:
+        super.visit(e);
+        break;
+      }
+    } else {
+      super.visit(e);
     }
   }
 }

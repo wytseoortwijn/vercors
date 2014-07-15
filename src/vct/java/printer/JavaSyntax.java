@@ -58,9 +58,6 @@ public class JavaSyntax extends Syntax {
         
         syntax.addOperator(Unfolding,140,"unfolding","in","");
         JavaVerCorsSyntax=syntax;
-        syntax.addReserved(FullPerm,"write");
-        syntax.addReserved(ReadPerm,"read");
-        syntax.addReserved(NoPerm,"none");
         
       }
       return JavaVerCorsSyntax;
@@ -126,6 +123,8 @@ public class JavaSyntax extends Syntax {
     syntax.addLeftFix(Or,"||",30);
     //Send annotation -- sending permission to verify parallel loops 
     syntax.addOperator(Send,20,"send","to",",",""); //DRB
+    //Recv annotation -- receiving permission to verify parallel loops 
+    syntax.addOperator(Recv,20,"recv","to",",","");
     
     //  2 ternary   ? :    
     syntax.addOperator(ITE,20,"","?",":","");

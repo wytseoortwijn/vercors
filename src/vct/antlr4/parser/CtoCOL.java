@@ -224,7 +224,10 @@ public class CtoCOL extends AbstractCtoCOL implements CVisitor<ASTNode> {
   @Override
   public ASTNode visitCompoundStatement(CompoundStatementContext ctx) {
     BlockStatement block=create.block();
-    if (match(ctx,"{","}")) return block;
+    if (match(ctx,"{","}")) {
+      scan_comments_after(block,ctx.getChild(0));
+      return block;
+    }
     if (!match(ctx,"{","BlockItemListContext","}")) return null;    
     doblock(block,(BlockItemListContext)ctx.getChild(1)); 
     return block;
@@ -396,7 +399,8 @@ public class CtoCOL extends AbstractCtoCOL implements CVisitor<ASTNode> {
   {	
 	if (match(ctx,"Expression",";"))
 	{//DRB
-      return create.special(ASTSpecial.Kind.Expression,convert(ctx,0));                	   
+      //return create.special(ASTSpecial.Kind.Expression,convert(ctx,0));
+	    return convert(ctx,0);
     } 
 	if (match(ctx,";")){  return create.block(); }
     return null;

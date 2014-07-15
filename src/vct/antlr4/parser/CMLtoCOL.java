@@ -79,7 +79,6 @@ import vct.parsers.CMLParser.PointerContext;
 import vct.parsers.CMLParser.PostfixExpressionContext;
 import vct.parsers.CMLParser.PrimaryExpressionContext;
 import vct.parsers.CMLParser.RelationalExpressionContext;
-import vct.parsers.CMLParser.ResourceContext;
 import vct.parsers.CMLParser.ResourceExpressionContext;
 import vct.parsers.CMLParser.SelectionStatementContext;
 import vct.parsers.CMLParser.ShiftExpressionContext;
@@ -530,14 +529,6 @@ public class CMLtoCOL extends AbstractCtoCOL implements CMLVisitor<ASTNode> {
   }
 
   @Override
-  public ASTNode visitResource(ResourceContext ctx) {
-    if (match(ctx,"perm","(",null,",",null,")")){
-      return create.expression(StandardOperator.Perm,convert(ctx,2),convert(ctx,4));
-    }
-    return null;
-  }
-
-  @Override
   public ASTNode visitSelectionStatement(SelectionStatementContext ctx) {
     // TODO Auto-generated method stub
 	  
@@ -749,6 +740,10 @@ public class CMLtoCOL extends AbstractCtoCOL implements CMLVisitor<ASTNode> {
 	    if (match(ctx,null,"@",null,"(",null,")")){
 	      ASTNode args[]=convert_list((ParserRuleContext)(ctx.getChild(4)),",");
 	      return create.invokation(null,forceClassType(convert(ctx,2)), getIdentifier(ctx,0),args);
+	    }
+	    if (match(ctx,"(","\\forall*",null,null,";",null,";",null,")")){
+	      return create.starall(convert(ctx,5),convert(ctx,7),
+	          create.field_decl(getIdentifier(ctx,3),checkType(convert(ctx,2))));
 	    }
 	    return null;
 	  }

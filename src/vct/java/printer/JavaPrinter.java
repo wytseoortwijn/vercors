@@ -395,7 +395,9 @@ public class JavaPrinter extends AbstractPrinter {
     if (contract!=null && dialect!=JavaDialect.JavaVeriFast && !predicate){
       visit(contract);
     }
-    if (m.isStatic()) out.printf("static ");
+    if (!m.isValidFlag(ASTFlags.STATIC)) {
+      out.printf("static?? ");
+    } else if (m.isStatic()) out.printf("static ");
     if (m.isValidFlag(ASTFlags.FINAL) && m.getFlag(ASTFlags.FINAL)){
       out.printf("final ");
     }

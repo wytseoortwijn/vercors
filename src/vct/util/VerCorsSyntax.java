@@ -1,7 +1,10 @@
 package vct.util;
 
 import static vct.col.ast.ASTReserved.Any;
+import static vct.col.ast.ASTReserved.FullPerm;
+import static vct.col.ast.ASTReserved.NoPerm;
 import static vct.col.ast.ASTReserved.Pure;
+import static vct.col.ast.ASTReserved.ReadPerm;
 import static vct.col.ast.ASTReserved.Result;
 import static vct.col.ast.PrimitiveType.Sort.Class;
 import static vct.col.ast.PrimitiveType.Sort.Fraction;
@@ -42,6 +45,10 @@ public class VerCorsSyntax {
     syntax.addReserved(Pure,"pure");
     syntax.addReserved(Any,"*");
     syntax.addPrefix(BindOutput,"?",666);
+    
+    syntax.addReserved(FullPerm,"write");
+    syntax.addReserved(ReadPerm,"read");
+    syntax.addReserved(NoPerm,"none");
   }
 
 }

@@ -11,6 +11,7 @@ contractClause
  | 'ensures' resourceExpression ';'
  ;
 
+
 specificationStatement
     : 'loop_invariant' resourceExpression ';'        
     | 'send' resourceExpression 'to' Identifier ',' expression ';'
@@ -18,16 +19,11 @@ specificationStatement
     | 'assert' resourceExpression ';'
     ;    
 
+// For C there are no specific resource expressions:
 specificResourceExpression : EOF EOF ;
 
-resource
- : resource '**' resource
- | expression '==>' resource
- | 'perm' '(' expression ',' expression ')'
- | expression
- ;
- 
- type
+// extend original type defininition with specification only types:
+type
    : specificationPrimitiveType
    | typeName
    ;

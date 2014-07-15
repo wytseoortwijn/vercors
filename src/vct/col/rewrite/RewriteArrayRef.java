@@ -6,10 +6,13 @@ import vct.col.ast.ASTClass;
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTReserved;
 import vct.col.ast.BindingExpression;
+import vct.col.ast.ConstantExpression;
 import vct.col.ast.Contract;
 import vct.col.ast.ContractBuilder;
 import vct.col.ast.DeclarationStatement;
 import vct.col.ast.Dereference;
+import vct.col.ast.Hole;
+import vct.col.ast.IntegerValue;
 import vct.col.ast.Method;
 import vct.col.ast.MethodInvokation;
 import vct.col.ast.NameExpression;
@@ -47,6 +50,7 @@ public class RewriteArrayRef extends AbstractRewriter {
 			  break;
 		  case Length:
 		    result=create.expression(StandardOperator.Size,rewrite(e.getArguments()));
+		    break;
 			default:
 				super.visit(e);
 		}
@@ -75,6 +79,7 @@ public class RewriteArrayRef extends AbstractRewriter {
 	@Override
 	public void visit(Method m){
 	  if (m.kind==Method.Kind.Constructor){
+	    Warning("discarding constructor");
 	    result=null;
 	  } else if (m.isStatic()){
 	    super.visit(m);
@@ -139,14 +144,24 @@ public class RewriteArrayRef extends AbstractRewriter {
 	    }
 	    ASTNode left=((OperatorExpression)e.select).getArg(0);
 	    ASTNode right=((OperatorExpression)e.select).getArg(1);
-	    if (!left.isa(StandardOperator.LTE)
+	    if (!(left.isa(StandardOperator.LTE)||left.isa(StandardOperator.LT))
 	        ||!right.isa(StandardOperator.LT)
 	        ){
-	      //Fail("not a . <= . && . < . pattern");
+	      //Fail("not a . <[=] . && . < . pattern");
           super.visit(e);
           return;
 	    }
 	    ASTNode lower=((OperatorExpression)left).getArg(0);
+	    if (left.isa(StandardOperator.LT)){
+	      if (lower instanceof ConstantExpression){
+	        create.enter();
+	        int v=((IntegerValue)((ConstantExpression)lower).value).value;
+	        lower=create(lower).constant(v+1);
+	        create.leave();
+	      } else {
+	        lower=create.expression(StandardOperator.Plus,lower,create.constant(1));
+	      }
+	    }
 	    ASTNode var1=((OperatorExpression)left).getArg(1);
 	    ASTNode var2=((OperatorExpression)right).getArg(0);
 	    ASTNode upper=((OperatorExpression)right).getArg(1);
@@ -159,11 +174,49 @@ public class RewriteArrayRef extends AbstractRewriter {
           super.visit(e);
           return;
 	    }
+	    ASTNode main;
+	    Hole p=new Hole();
+	    Hole ar=new Hole();
+	    Hole e1=new Hole();
+	    Hole e2=new Hole();
+	    ASTNode idx=create.expression(StandardOperator.Minus,e1,e2);
+	    ASTNode pattern=create.expression(StandardOperator.Perm,create.expression(StandardOperator.Subscript,ar,idx),p);
+	    if (pattern.match(e.main)
+	        && e1.get() instanceof NameExpression
+	        && e2.get() instanceof ConstantExpression
+      ){
+        lower=create.expression(StandardOperator.Minus,lower,e2.get());
+        upper=create.expression(StandardOperator.Minus,upper,e2.get());
+        ASTNode tmp=create.expression(StandardOperator.Subscript,rewrite(ar.get()),rewrite(e1.get()));
+        if (ar.get().getType().isPrimitive(Sort.Array)){
+          String field=ar.get().getType().getArg(0).toString()+"_value";
+          tmp=create.dereference(tmp,field);
+        }
+	      main=create.expression(StandardOperator.Perm,tmp,rewrite(p.get()));
+	    } else {
+	      main=rewrite(e.main);
+	    }
 	    ASTNode select=create.expression(StandardOperator.Member,rewrite(var1),create.expression(StandardOperator.RangeSeq,rewrite(lower),rewrite(upper)));
-	    result=create.binder(e.binder,rewrite(e.result_type),rewrite(e.getDeclarations()), select , rewrite(e.main));
+	    result=create.binder(e.binder,rewrite(e.result_type),rewrite(e.getDeclarations()), select , main);
 	  } else {
 	    result=create.binder(e.binder,rewrite(e.result_type),rewrite(e.getDeclarations()), rewrite(e.select), rewrite(e.main));
 	  }
 	}
+
+  private ASTNode simplify(ASTNode temp) {
+    Hole name=new Hole();
+    Hole lower=new Hole();
+    Hole upper=new Hole();
+    Hole p=new Hole();
+    Hole ar=new Hole();
+    Hole idx=new Hole();
+    ASTNode pattern=create.starall(create.expression(StandardOperator.Member,name,
+        create.expression(StandardOperator.RangeSeq,lower,upper)),
+        create.expression(StandardOperator.Perm,create.expression(StandardOperator.Subscript,ar,idx),p));
+    if (pattern.match(temp)){
+      Warning("MATCH!");
+    }
+    return temp;
+  }
 }
 

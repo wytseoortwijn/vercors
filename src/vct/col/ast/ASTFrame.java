@@ -190,11 +190,12 @@ public abstract class ASTFrame<T> {
         add_contract_vars(def);
       }
       BlockStatement block=(BlockStatement)node;
-      int N=block.size();  
+      int N=block.size();
       for(int i=0;i<N;i++){
-        for(NameExpression name:block.getStatement(i).getLabels()){
-          variables.add(name.getName(),new VariableInfo(node,NameExpression.Kind.Label));
-        }
+        scan_labels(block.getStatement(i));
+        //for(NameExpression name:block.getStatement(i).getLabels()){
+        //  variables.add(name.getName(),new VariableInfo(node,NameExpression.Kind.Label));
+        //}
       }
     }
     if (node instanceof DeclarationStatement){

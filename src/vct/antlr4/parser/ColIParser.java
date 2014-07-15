@@ -51,6 +51,9 @@ public class ColIParser implements vct.col.util.Parser {
     ProgramUnit pu=new ProgramUnit();
     pu.add(cu);
     
+    
+    vct.util.Configuration.getDiagSyntax().print(System.out,pu);
+    
     pu=new CommentRewriter(pu,new CMLCommentParser()).rewriteAll();
     pu=new FlattenVariableDeclarations(pu).rewriteAll();
     pu=new SpecificationCollector(pu).rewriteAll();
@@ -60,7 +63,7 @@ public class ColIParser implements vct.col.util.Parser {
     }
     
     cu=new CompilationUnit(file_name);
-    ASTClass cl=new ASTClass("Main",ClassKind.Plain);
+    ASTClass cl=new ASTClass("Ref",ClassKind.Plain);
     cl.setOrigin(new FileOrigin(file_name,1,1));
     cu.add(cl);
     for(ASTNode n:pu.get(0).get()){
