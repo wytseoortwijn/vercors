@@ -10,9 +10,11 @@ import vct.col.ast.ASTClass;
 import vct.col.ast.ASTNode;
 import vct.col.ast.BindingExpression.Binder;
 import vct.col.ast.BlockStatement;
+import vct.col.ast.ConstantExpression;
 import vct.col.ast.Contract;
 import vct.col.ast.ContractBuilder;
 import vct.col.ast.DeclarationStatement;
+import vct.col.ast.IntegerValue;
 import vct.col.ast.LoopStatement;
 import vct.col.ast.Method;
 import vct.col.ast.NameExpression;
@@ -34,12 +36,40 @@ public class IterationContractEncoder extends AbstractRewriter {
   public IterationContractEncoder(ProgramUnit arg) {
     super(arg);
   }
-//
+    
+  private int ConstantExpToInt(ConstantExpression e)
+  {	
+	  return ((IntegerValue)e.value).value;			  	
+	  
+  }  
+  private boolean sidecondition_check(OperatorExpression e)  {
+	   ///1. check the distance of dependence constant expressions 	  
+		  if(e.getArg(2) instanceof ConstantExpression)
+		  {	  			  							  	  						  				  		
+			  if(ConstantExpToInt((ConstantExpression)e.getArg(2)) > 0 //check for negative values as the dist of dep in send statement  					  
+					  && e.getOperator() == StandardOperator.Send)			  				  		
+				  			return true; 			  
+			  else 
+			  		  return false;			  
+		  }	
+		  else if(e.getArg(2) instanceof OperatorExpression){ //for recv iteration number which could be in -(number) form			  
+			  OperatorExpression temp = (OperatorExpression)e.getArg(2);
+			  if(e.getOperator() == StandardOperator.Recv)  
+				  return  temp.isa(StandardOperator.UMinus);								  								 			  
+			  else if(e.getOperator() == StandardOperator.Send)  
+				  return  temp.isa(StandardOperator.UPlus);
+			  else return false;				  
+		  }
+		  else{
+			  //should provide support for non-constant expressions as the distance of dep			  
+			  return false;			  
+			  }					  			  	
+	  }  
   public void visit(OperatorExpression e)
   { //DRB
-
+	  
 	  int N=counter.incrementAndGet();	  
-	  ContractBuilder cb = new ContractBuilder();
+	  ContractBuilder cb = new ContractBuilder();	  
 	  Hashtable<String,Type> vars=new Hashtable<String,Type>();
 	  BranchOrigin branch;
 	  
@@ -80,14 +110,19 @@ public class IterationContractEncoder extends AbstractRewriter {
 	      //Error management  --> line numbers, origins , ...
 		  branch=new BranchOrigin("Send Statement",null);
 	      OriginWrapper.wrap(null,send_body, branch);      
-	      //Error management  --> line numbers, origins , ...
+	      //Error management  --> line numbers, origins , ...	      
 	      
-	      //System.out.printf("\n generated %s at %s%n \n",send_body.name,send_body.getOrigin());
-
+		  //Check for side conditions 
+		  if(!sidecondition_check(e))
+		  {
+		      super.visit(e);
+		      Fail("\nThe distance of dependence in the \"send\" statement should be greater than 0.");		      
+		  }
+		  ///Check for side conditions	      		  
+		  
 	      currentClass.add_dynamic(send_body);
 	      
-	      result=create.invokation(null,null,send_name,send_args.toArray(new ASTNode[0]));
-	      
+	      result=create.invokation(null,null,send_name,send_args.toArray(new ASTNode[0]));	      
 		  break;
 	  case Recv:
 		  // create method contract
@@ -123,11 +158,17 @@ public class IterationContractEncoder extends AbstractRewriter {
 	      OriginWrapper.wrap(null,recv_body, branch);      
 	      //Error management  --> line numbers, origins , ...
 	      
-
 	      //System.out.printf("generated %s at %s%n",recv_body.name,recv_body.getOrigin());
 
-	      currentClass.add_dynamic(recv_body);
-	      
+	      //Check for side conditions
+		  		 
+		  if(!sidecondition_check(e))
+		  {			  
+		      super.visit(e);
+		      Fail("\nThe distance of dependence in the \"recv\" statement should be less than zero.");		      
+		  }
+		  ///Check for side conditions			  
+	      currentClass.add_dynamic(recv_body);	      
 	      result=create.invokation(null,null,recv_name,recv_args.toArray(new ASTNode[0]));
 	      		  
 		  break;
@@ -135,6 +176,7 @@ public class IterationContractEncoder extends AbstractRewriter {
 		  super.visit(e);
 			  
 	  }
+	  
   }
   public void visit(LoopStatement s){
 	  
@@ -238,8 +280,7 @@ public class IterationContractEncoder extends AbstractRewriter {
   	                      
   	                      cb_main_loop.requires(sigma.rewrite(((OperatorExpression)clause).getArg(1)));
   	                                           
-  	                      vct.util.Configuration.getDiagSyntax().print(System.out,sigma.rewrite(((OperatorExpression)clause).getArg(1))); 
-  	                	  System.out.printf("\nAssssssssssssssssssssss \n ");                                          
+  	                      vct.util.Configuration.getDiagSyntax().print(System.out,sigma.rewrite(((OperatorExpression)clause).getArg(1)));   	                	                                           
                   	  }
                   	  else {
                   	    // TODO fix control flow to be able to return quantification.
@@ -321,7 +362,7 @@ public class IterationContractEncoder extends AbstractRewriter {
                         cb_main_loop.ensures(sigma.rewrite(((OperatorExpression)clause).getArg(1)));
                                              
                         vct.util.Configuration.getDiagSyntax().print(System.out,sigma.rewrite(((OperatorExpression)clause).getArg(1))); 
-                      System.out.printf("\nAssssssssssssssssssssss \n ");                                          
+                                                                
                     }
                     else {
                       // TODO fix control flow to be able to return quantification.
