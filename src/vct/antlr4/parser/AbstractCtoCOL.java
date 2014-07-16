@@ -8,11 +8,15 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
 import vct.col.ast.ASTNode;
+import vct.col.ast.BlockStatement;
 import vct.col.ast.ClassType;
 import vct.col.ast.DeclarationStatement;
 import vct.col.ast.NameExpression;
 import vct.col.ast.PrimitiveType;
 import vct.col.ast.Type;
+import vct.parsers.CParser.BlockItemListContext;
+import vct.parsers.CParser.CompoundStatementContext;
+import vct.parsers.CParser.LabeledStatementContext;
 import vct.parsers.CParser.PrimaryExpressionContext;
 import vct.util.Syntax;
 
@@ -32,6 +36,56 @@ public abstract class AbstractCtoCOL extends ANTLRtoCOL {
       BufferedTokenStream tokens, Parser parser, int identifier, Class<?> lexer_class
   ) {
     super(syntax, filename, tokens, parser, identifier, lexer_class);
+  }
+
+  
+  public ASTNode getCompoundStatement(ParserRuleContext ctx) {
+    BlockStatement block=create.block();
+    if (match(ctx,"{","}")) {
+      scan_comments_after(block,ctx.getChild(0));
+      return block;
+    }
+    if (!match(ctx,"{","BlockItemListContext","}")) return null;    
+    doblock(block,(ParserRuleContext)ctx.getChild(1)); 
+    return block;
+  }
+  private void doblock(BlockStatement block, ParserRuleContext ctx) {  
+    if (match(ctx,"BlockItemContext")){               
+        ASTNode temp = convert(ctx,0);
+        scan_comments_before(block,ctx.getChild(0)); //DRB    
+        block.add_statement(temp);
+        scan_comments_after(block,ctx.getChild(0));//DRB 
+    } else if (match(ctx,"BlockItemListContext","BlockItemContext")){                       
+         doblock(block,(ParserRuleContext)ctx.getChild(0));
+      
+         ASTNode temp = convert(ctx,1);              
+         block.add_statement(temp);
+         scan_comments_after(block,ctx.getChild(1)); //DRB
+
+    } else {      
+      throw hre.System.Failure("unknown BlockItemList");
+    }
+  }
+
+
+  
+  public ASTNode getLabeledStatement(ParserRuleContext ctx) {
+    if (match(ctx, null, ":", null)) {
+      ASTNode res = convert(ctx, 2);
+      res.addLabel(create.label(ctx.getChild(0).getText()));
+      return res;
+    }
+    return null;
+  }
+  public ASTNode getSelectionStatement(ParserRuleContext ctx) {
+    // TODO Auto-generated method stub    
+    if (match(ctx,"if","(","ExpressionContext",")",null)){  //DRB --Added  
+        return create.ifthenelse(convert(ctx,2),convert(ctx,4));
+    }
+    else if (match(ctx,"if","(","ExpressionContext",")",null,"else",null)){ //DRB --Added     
+        return create.ifthenelse(convert(ctx,2),convert(ctx,4),convert(ctx,6));
+    }
+    return null;
   }
 
   public ASTNode visitPrimaryExpression(ParserRuleContext ctx) {

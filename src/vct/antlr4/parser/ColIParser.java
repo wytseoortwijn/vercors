@@ -50,9 +50,8 @@ public class ColIParser implements vct.col.util.Parser {
     
     ProgramUnit pu=new ProgramUnit();
     pu.add(cu);
-    
-    
-    vct.util.Configuration.getDiagSyntax().print(System.out,pu);
+
+    //vct.util.Configuration.getDiagSyntax().print(System.out,pu);
     
     pu=new CommentRewriter(pu,new CMLCommentParser()).rewriteAll();
     pu=new FlattenVariableDeclarations(pu).rewriteAll();

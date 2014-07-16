@@ -83,6 +83,7 @@ import vct.parsers.CMLParser.ResourceExpressionContext;
 import vct.parsers.CMLParser.SelectionStatementContext;
 import vct.parsers.CMLParser.ShiftExpressionContext;
 import vct.parsers.CMLParser.SpecificResourceExpressionContext;
+import vct.parsers.CMLParser.SpecificationDeclarationContext;
 import vct.parsers.CMLParser.SpecificationPrimaryContext;
 import vct.parsers.CMLParser.SpecificationPrimitiveTypeContext;
 import vct.parsers.CMLParser.SpecifierQualifierListContext;
@@ -206,8 +207,7 @@ public class CMLtoCOL extends AbstractCtoCOL implements CMLVisitor<ASTNode> {
 
   @Override
   public ASTNode visitCompoundStatement(CompoundStatementContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
+    return getCompoundStatement(ctx);
   }
 
   @Override
@@ -458,8 +458,7 @@ public class CMLtoCOL extends AbstractCtoCOL implements CMLVisitor<ASTNode> {
 
   @Override
   public ASTNode visitLabeledStatement(LabeledStatementContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
+    return getLabeledStatement(ctx);
   }
 
   @Override
@@ -530,9 +529,7 @@ public class CMLtoCOL extends AbstractCtoCOL implements CMLVisitor<ASTNode> {
 
   @Override
   public ASTNode visitSelectionStatement(SelectionStatementContext ctx) {
-    // TODO Auto-generated method stub
-	  
-    return null;
+    return getSelectionStatement(ctx);
   }
 
   @Override
@@ -774,6 +771,13 @@ public class CMLtoCOL extends AbstractCtoCOL implements CMLVisitor<ASTNode> {
   @Override
   public ASTNode visitSpecificationPrimitiveType(
       SpecificationPrimitiveTypeContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitSpecificationDeclaration(
+      SpecificationDeclarationContext ctx) {
     // TODO Auto-generated method stub
     return null;
   }

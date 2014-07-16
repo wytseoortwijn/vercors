@@ -466,8 +466,11 @@ statement
     |   selectionStatement
     |   iterationStatement
     |   jumpStatement
+    |   specificationStatement
     |   ('__asm' | '__asm__') ('volatile' | '__volatile__') '(' (logicalOrExpression (',' logicalOrExpression)*)? (':' (logicalOrExpression (',' logicalOrExpression)*)?)* ')' ';'
     ;
+    
+specificationStatement : EOF EOF ;
 
 labeledStatement
     :   Identifier ':' statement
@@ -524,9 +527,12 @@ translationUnit
 
 externalDeclaration
     :   functionDefinition
+    |   specificationDeclaration
     |   declaration
     |   ';' // stray ;
     ;
+
+specificationDeclaration : EOF EOF ;
 
 functionDefinition
     :   declarationSpecifiers? declarator declarationList? compoundStatement

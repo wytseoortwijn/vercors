@@ -18,6 +18,7 @@ import vct.col.ast.NameExpression;
 import vct.col.ast.PrimitiveType;
 import vct.col.ast.ProgramUnit;
 import vct.col.ast.ReturnStatement;
+import vct.col.ast.StandardOperator;
 
 public class VoidCalls extends AbstractRewriter {
 
@@ -90,7 +91,8 @@ public class VoidCalls extends AbstractRewriter {
       for(ASTNode n : s.get_after()){
         res.add(rewrite(n));
       }
-      res.add(create.return_statement());
+      res.add(create.expression(StandardOperator.Assert,rewrite(current_method().getContract().post_condition)));
+      res.add(create.expression(StandardOperator.Assume,create.constant(false)));
       result=res;
     } else {
       super.visit(s);

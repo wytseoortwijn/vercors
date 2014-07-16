@@ -2,7 +2,7 @@ grammar CML;
 
 import VerCorsML, C;
 
-specificationSequence : ( specificationStatement)* contract? ;
+specificationSequence : ( statement )* contract? ;
 
 contract : contractClause+ ;
 

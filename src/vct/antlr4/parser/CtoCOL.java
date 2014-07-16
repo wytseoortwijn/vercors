@@ -79,7 +79,9 @@ import vct.parsers.CParser.PrimaryExpressionContext;
 import vct.parsers.CParser.RelationalExpressionContext;
 import vct.parsers.CParser.SelectionStatementContext;
 import vct.parsers.CParser.ShiftExpressionContext;
+import vct.parsers.CParser.SpecificationDeclarationContext;
 import vct.parsers.CParser.SpecificationPrimaryContext;
+import vct.parsers.CParser.SpecificationStatementContext;
 import vct.parsers.CParser.SpecifierQualifierListContext;
 import vct.parsers.CParser.StatementContext;
 import vct.parsers.CParser.StaticAssertDeclarationContext;
@@ -223,33 +225,9 @@ public class CtoCOL extends AbstractCtoCOL implements CVisitor<ASTNode> {
 
   @Override
   public ASTNode visitCompoundStatement(CompoundStatementContext ctx) {
-    BlockStatement block=create.block();
-    if (match(ctx,"{","}")) {
-      scan_comments_after(block,ctx.getChild(0));
-      return block;
-    }
-    if (!match(ctx,"{","BlockItemListContext","}")) return null;    
-    doblock(block,(BlockItemListContext)ctx.getChild(1)); 
-    return block;
+    return getCompoundStatement(ctx);
   }
-  private void doblock(BlockStatement block, BlockItemListContext ctx) {	
-    if (match(ctx,"BlockItemContext")){    	      	  
-    	  ASTNode temp = convert(ctx,0);
-    	  scan_comments_before(block,ctx.getChild(0)); //DRB	  
-    	  block.add_statement(temp);
-    	  scan_comments_after(block,ctx.getChild(0));//DRB 
-    } else if (match(ctx,"BlockItemListContext","BlockItemContext")){    	  	  	     	  	
-    	   doblock(block,(BlockItemListContext)ctx.getChild(0));
-      
-    	   ASTNode temp = convert(ctx,1);    	         
-    	   block.add_statement(temp);
-    	   scan_comments_after(block,ctx.getChild(1)); //DRB
-
-    } else {      
-      throw hre.System.Failure("unknown BlockItemList");
-    }
-  }
-
+  
   @Override
   public ASTNode visitConditionalExpression(ConditionalExpressionContext ctx) {
     // TODO Auto-generated method stub
@@ -584,16 +562,9 @@ public class CtoCOL extends AbstractCtoCOL implements CVisitor<ASTNode> {
 
   @Override
   public ASTNode visitLabeledStatement(LabeledStatementContext ctx) {
-    // TODO Auto-generated method stub	  	
-	  if (match(ctx,null,":",null))		  
-	  {//DRB			  		  
-		  ASTNode res = convert(ctx,2);
-		  res.addLabel(create.label(ctx.getChild(0).getText()));
-		  return res; 		  		  		  	   
-	  }	  
-      return null;
+    return getLabeledStatement(ctx);
   }
-
+ 
   @Override
   public ASTNode visitLogicalAndExpression(LogicalAndExpressionContext ctx) {
     // TODO Auto-generated method stub
@@ -675,14 +646,7 @@ public class CtoCOL extends AbstractCtoCOL implements CVisitor<ASTNode> {
 
   @Override
   public ASTNode visitSelectionStatement(SelectionStatementContext ctx) {
-    // TODO Auto-generated method stub	  
-	  if (match(ctx,"if","(","ExpressionContext",")",null)){	//DRB --Added  
-	      return create.ifthenelse(convert(ctx,2),convert(ctx,4));
-	  }
-	  else if (match(ctx,"if","(","ExpressionContext",")",null,"else",null)){ //DRB --Added		  
-	      return create.ifthenelse(convert(ctx,2),convert(ctx,4),convert(ctx,6));
-	  }
-    return null;
+    return getSelectionStatement(ctx);
   }
 
   @Override
@@ -808,6 +772,19 @@ public class CtoCOL extends AbstractCtoCOL implements CVisitor<ASTNode> {
 
   @Override
   public ASTNode visitSpecificationPrimary(SpecificationPrimaryContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitSpecificationStatement(SpecificationStatementContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitSpecificationDeclaration(
+      SpecificationDeclarationContext ctx) {
     // TODO Auto-generated method stub
     return null;
   }
