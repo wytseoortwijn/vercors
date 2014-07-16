@@ -6,7 +6,7 @@ import org.junit.runner.RunWith;
 import com.google.code.tempusfugit.concurrency.ConcurrentTestRunner;
 
 @RunWith(ConcurrentTestRunner.class) 
-public class SiliconTest extends ToolTest {
+public class SiliconInternalTest extends ToolTest {
   
   @Test
   public void testBasicArithmetic(){
@@ -262,56 +262,4 @@ public class SiliconTest extends ToolTest {
     }
   }
 
-
-  @Test
-  public void testZeroArray(){
-    sem_get();
-    try {
-      VCTResult res=run("vct","--silver=silicon",
-          "//examples/silicon/zero-array-ic.c");
-      res.checkVerdict(Verdict.Pass);
-    } finally {
-      sem.release();
-    }
-  }
-
-  @Test
-  public void testZeroArrayE1(){
-    sem_get();
-    try {
-      VCTResult res=run("vct","--silver=silicon",
-          "//examples/silicon/zero-array-ic-e1.c");
-      res.checkVerdict(Verdict.Fail);
-    } finally {
-      sem.release();
-    }
-  }
-
-  @Test
-  public void testDepParLoop(){
-    sem_get();
-    try {
-      VCTResult res=run("vct","--silver=silicon",
-          "//examples/silicon/dep-par-loop.c");
-      res.checkVerdict(Verdict.Pass);
-    } finally {
-      sem.release();
-    }
-  }
-  
-  @Test
-  public void testDepParLoopE1(){
-    sem_get();
-    try {
-      VCTResult res=run("vct","--silver=silicon",
-          "//examples/silicon/dep-par-loop-e1.c");
-      res.checkVerdict(Verdict.Fail);
-    } finally {
-      sem.release();
-    }
-  }
-
-
-  
-  
 }

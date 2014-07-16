@@ -1,23 +1,8 @@
 package vct.main;
 
-import static org.junit.Assert.*;
-import hre.io.Message;
-import hre.io.MessageProcess;
 import hre.util.TestReport.Verdict;
-
-import java.io.File;
-import java.net.URL;
-import java.security.Permission;
-import java.util.concurrent.Semaphore;
-
-import junit.framework.TestCase;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import sun.applet.Main;
-import vct.util.Configuration;
-
 import com.google.code.tempusfugit.concurrency.ConcurrentTestRunner;
 
 @RunWith(ConcurrentTestRunner.class) 
