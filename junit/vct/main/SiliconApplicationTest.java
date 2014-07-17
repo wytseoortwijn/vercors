@@ -55,6 +55,29 @@ public class SiliconApplicationTest extends ToolTest {
       sem.release();
     }
   }
+  @Test
+  public void testDepParLoopBack(){
+    sem_get();
+    try {
+      VCTResult res=run("vct","--silver=silicon",
+          "//examples/silicon/dep-par-loop-back.c");
+      res.checkVerdict(Verdict.Pass);
+    } finally {
+      sem.release();
+    }
+  }
+  
+  @Test
+  public void testDepParLoopBackE1(){
+    sem_get();
+    try {
+      VCTResult res=run("vct","--silver=silicon",
+          "//examples/silicon/dep-par-loop-back-e1.c");
+      res.checkVerdict(Verdict.Fail);
+    } finally {
+      sem.release();
+    }
+  }
   
   @Test
   public void testLoopInvariant(){
