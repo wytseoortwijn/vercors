@@ -360,8 +360,17 @@ public class IterationContractEncoder extends AbstractRewriter {
         if (NameScanner.occurCheck(clause,var_name)){//check whether clause is in the list of free variables or not.
           if (clause.isa(StandardOperator.Implies)){
         	  //Fail("this form of implies is not supported");        	  
-        	  if (clause.getType().isBoolean()){  
-        		  Fail("this form of implies is not supported -- boolean experssions");
+        	  if (clause.getType().isBoolean()){ 
+
+              cb.ensures(create.forall(
+                copy_rw.rewrite(guard),
+                copy_rw.rewrite(clause),
+                create.field_decl(var_name,create.primitive_type(Sort.Integer))));
+              
+              cb_main_loop.ensures(create.forall(
+                      copy_rw.rewrite(guard),
+                      copy_rw.rewrite(clause),
+                      create.field_decl(var_name,create.primitive_type(Sort.Integer))));
                 } else {                                	                  	         	            	                       
                   OperatorExpression i_guard=(OperatorExpression)clause;
                   if(i_guard.getArg(0).isa(StandardOperator.EQ)) //==
@@ -425,17 +434,6 @@ public class IterationContractEncoder extends AbstractRewriter {
         	  		Fail("%s: this form of implies is not supported in ensures",((OperatorExpression)clause).getArg(0).getOrigin());
         	  		}
                 }
-          } else if (clause.getType().isBoolean()){ //binder method can be used for refactoring of starall and forall 
-
-            cb.ensures(create.forall(
-              copy_rw.rewrite(guard),
-              copy_rw.rewrite(clause),
-              create.field_decl(var_name,create.primitive_type(Sort.Integer))));
-            
-            cb_main_loop.ensures(create.forall(
-                    copy_rw.rewrite(guard),
-                    copy_rw.rewrite(clause),
-                    create.field_decl(var_name,create.primitive_type(Sort.Integer))));
           } else {
             cb.ensures(create.starall(
                 copy_rw.rewrite(guard),

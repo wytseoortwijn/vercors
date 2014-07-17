@@ -466,13 +466,21 @@ public class KernelRewriter extends AbstractRewriter {
                 create.local_name("tcount"),min
             );
           }
-          ASTNode guard=create.expression(StandardOperator.And,
-              create.expression(StandardOperator.LTE,
-                  create.expression(StandardOperator.Mult,create.local_name("gid"),create.local_name("gsize")),
-                  create.local_name("tid")),
-              create.expression(StandardOperator.LT,create.local_name("tid"),min)
-          );
-          
+          ASTNode guard;
+          if (Configuration.assume_single_group.get()){
+            guard=create.expression(StandardOperator.And,
+                create.expression(StandardOperator.LTE,create.constant(0),create.local_name("tid")),
+                create.expression(StandardOperator.LT,create.local_name("tid"),min)
+            );
+          }
+          else {
+            guard=create.expression(StandardOperator.And,
+                create.expression(StandardOperator.LTE,
+                    create.expression(StandardOperator.Mult,create.local_name("gid"),create.local_name("gsize")),
+                    create.local_name("tid")),
+                create.expression(StandardOperator.LT,create.local_name("tid"),min)
+            );
+          }
           ASTNode local_guard=create.expression(StandardOperator.And,
               create.expression(StandardOperator.LTE,create.constant(0),create.local_name("lid")),
               create.expression(StandardOperator.LT,create.local_name("lid"),create.local_name("gsize"))
