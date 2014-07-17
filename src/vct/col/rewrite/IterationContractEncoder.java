@@ -303,10 +303,27 @@ public class IterationContractEncoder extends AbstractRewriter {
                                 copy_rw.rewrite(((OperatorExpression)clause).getArg(1)), /*the resource formula at the right hand of implication */
                                 create.field_decl(var_name,create.primitive_type(Sort.Integer))));
                     }
+                    else if(((OperatorExpression)clause).getArg(0).isa(StandardOperator.LT)){
+                      //create new guard because of implication before the resource expression
+                      ASTNode new_guard=create.expression(StandardOperator.And,
+                              create.expression(StandardOperator.LTE,low,create.unresolved_name(var_name)),
+                              create.expression(StandardOperator.LT,create.unresolved_name(var_name),
+                                  (((OperatorExpression)((OperatorExpression)clause).getArg(0)).getArg(1))/* new lower bound*/)
+                          );
+                        cb.requires(create.starall(
+                                copy_rw.rewrite(new_guard),
+                                copy_rw.rewrite(((OperatorExpression)clause).getArg(1)), /*the other side of implication */
+                                create.field_decl(var_name,create.primitive_type(Sort.Integer))));                        
+                        
+                        cb_main_loop.requires(create.starall(
+                                copy_rw.rewrite(new_guard),
+                                copy_rw.rewrite(((OperatorExpression)clause).getArg(1)), /*the other side of implication */
+                                create.field_decl(var_name,create.primitive_type(Sort.Integer))));
+                    }
           	  	else // < and >= (missing case) 
           	  		{        	        
           	  		// should be filled up 
-          	  		Fail("this form of implies is not supported -- greater than");
+          	  		Fail("%s: this form of implies is not supported in requires",((OperatorExpression)clause).getArg(0).getOrigin());
           	  		}
                   }
             }
@@ -369,12 +386,12 @@ public class IterationContractEncoder extends AbstractRewriter {
                       Fail("unexpect equality");
                     }
                  }
-                 else if(((OperatorExpression)clause).getArg(0).isa(StandardOperator.GT)){ // > what about >= (missing case )
-                	  //create new guard because of implication before the resource expression
-                	  ASTNode new_guard=create.expression(StandardOperator.And,
-          	                create.expression(StandardOperator.LT,(((OperatorExpression)((OperatorExpression)clause).getArg(0)).getArg(1))/* new lower bound*/,create.unresolved_name(var_name)),
-          	                create.expression(op,create.unresolved_name(var_name),high)
-          	            );
+                  else if(((OperatorExpression)clause).getArg(0).isa(StandardOperator.GT)){ // > what about >= (missing case )
+                    //create new guard because of implication before the resource expression
+                    ASTNode new_guard=create.expression(StandardOperator.And,
+                            create.expression(StandardOperator.LT,(((OperatorExpression)((OperatorExpression)clause).getArg(0)).getArg(1))/* new lower bound*/,create.unresolved_name(var_name)),
+                            create.expression(op,create.unresolved_name(var_name),high)
+                        );
                       cb.ensures(create.starall(
                               copy_rw.rewrite(new_guard),
                               copy_rw.rewrite(((OperatorExpression)clause).getArg(1)), /*the other side of implication */
@@ -385,10 +402,27 @@ public class IterationContractEncoder extends AbstractRewriter {
                               copy_rw.rewrite(((OperatorExpression)clause).getArg(1)), /*the other side of implication */
                               create.field_decl(var_name,create.primitive_type(Sort.Integer))));
                   }
-        	  	else // < and >= (missing case) 
+                  else if(((OperatorExpression)clause).getArg(0).isa(StandardOperator.LT)){
+                    //create new guard because of implication before the resource expression
+                    ASTNode new_guard=create.expression(StandardOperator.And,
+                            create.expression(StandardOperator.LTE,low,create.unresolved_name(var_name)),
+                            create.expression(StandardOperator.LT,create.unresolved_name(var_name),
+                                (((OperatorExpression)((OperatorExpression)clause).getArg(0)).getArg(1))/* new lower bound*/)
+                        );
+                      cb.ensures(create.starall(
+                              copy_rw.rewrite(new_guard),
+                              copy_rw.rewrite(((OperatorExpression)clause).getArg(1)), /*the other side of implication */
+                              create.field_decl(var_name,create.primitive_type(Sort.Integer))));                        
+                      
+                      cb_main_loop.ensures(create.starall(
+                              copy_rw.rewrite(new_guard),
+                              copy_rw.rewrite(((OperatorExpression)clause).getArg(1)), /*the other side of implication */
+                              create.field_decl(var_name,create.primitive_type(Sort.Integer))));
+                  }
+             else // < and >= (missing case) 
         	  		{        	        
         	  		// should be filled up 
-        	  		Fail("this form of implies is not supported -- greater than");
+        	  		Fail("%s: this form of implies is not supported in ensures",((OperatorExpression)clause).getArg(0).getOrigin());
         	  		}
                 }
           } else if (clause.getType().isBoolean()){ //binder method can be used for refactoring of starall and forall 

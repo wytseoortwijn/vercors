@@ -179,9 +179,11 @@ public class RewriteArrayRef extends AbstractRewriter {
 	    Hole ar=new Hole();
 	    Hole e1=new Hole();
 	    Hole e2=new Hole();
-	    ASTNode idx=create.expression(StandardOperator.Minus,e1,e2);
-	    ASTNode pattern=create.expression(StandardOperator.Perm,create.expression(StandardOperator.Subscript,ar,idx),p);
-	    if (pattern.match(e.main)
+      ASTNode m_idx=create.expression(StandardOperator.Minus,e1,e2);
+      ASTNode m_pattern=create.expression(StandardOperator.Perm,create.expression(StandardOperator.Subscript,ar,m_idx),p);
+      ASTNode p_idx=create.expression(StandardOperator.Plus,e1,e2);
+      ASTNode p_pattern=create.expression(StandardOperator.Perm,create.expression(StandardOperator.Subscript,ar,p_idx),p);
+	    if (m_pattern.match(e.main)
 	        && e1.get() instanceof NameExpression
 	        && e2.get() instanceof ConstantExpression
       ){
@@ -193,7 +195,19 @@ public class RewriteArrayRef extends AbstractRewriter {
           tmp=create.dereference(tmp,field);
         }
 	      main=create.expression(StandardOperator.Perm,tmp,rewrite(p.get()));
-	    } else {
+	    } else if (p_pattern.match(e.main)
+          && e1.get() instanceof NameExpression
+          && e2.get() instanceof ConstantExpression
+      ){
+        lower=create.expression(StandardOperator.Plus,lower,e2.get());
+        upper=create.expression(StandardOperator.Plus,upper,e2.get());
+        ASTNode tmp=create.expression(StandardOperator.Subscript,rewrite(ar.get()),rewrite(e1.get()));
+        if (ar.get().getType().isPrimitive(Sort.Array)){
+          String field=ar.get().getType().getArg(0).toString()+"_value";
+          tmp=create.dereference(tmp,field);
+        }
+        main=create.expression(StandardOperator.Perm,tmp,rewrite(p.get()));
+      } else {
 	      main=rewrite(e.main);
 	    }
 	    ASTNode select=create.expression(StandardOperator.Member,rewrite(var1),create.expression(StandardOperator.RangeSeq,rewrite(lower),rewrite(upper)));
