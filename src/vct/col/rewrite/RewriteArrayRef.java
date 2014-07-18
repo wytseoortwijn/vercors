@@ -130,7 +130,7 @@ public class RewriteArrayRef extends AbstractRewriter {
 	
 	@Override
 	public void visit(BindingExpression e){
-	  if (e.binder==BindingExpression.Binder.STAR){
+	  if (e.binder==BindingExpression.Binder.STAR || e.binder==BindingExpression.Binder.FORALL){
 	    if (e.getDeclCount()!=1){
 	      //Fail("no rules for more than one declaration");
           super.visit(e);

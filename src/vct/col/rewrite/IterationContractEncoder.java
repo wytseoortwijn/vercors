@@ -220,9 +220,9 @@ public class IterationContractEncoder extends AbstractRewriter {
       high=((OperatorExpression)high).getArg(1);
       // high
       ////create loop guard 
-      ASTNode guard=create.expression(StandardOperator.And,
-          create.expression(StandardOperator.LTE,low,create.unresolved_name(var_name)),
-          create.expression(op,create.unresolved_name(var_name),high)
+      ASTNode guard=create.expression(StandardOperator.Member,
+          create.unresolved_name(var_name),
+          create.expression(StandardOperator.RangeSeq,low,high)
       );           
       ////create loop guard///////////////////////////////////////////////
       
@@ -258,13 +258,18 @@ public class IterationContractEncoder extends AbstractRewriter {
       //create (star)conjunction of pre_condition and append it to cb
       //Required fix : check for side-effects and free variables
       for(ASTNode clause:ASTUtils.conjuncts(c.pre_condition, StandardOperator.Star)){
-    	  // same support of implication for precodition also required     	  
-        if (NameScanner.occurCheck(clause,var_name)){
-            if (clause.isa(StandardOperator.Implies)){
-          	  //Fail("this form of implies is not supported");        	  
-          	  if (clause.getType().isBoolean()){  
-          		  Fail("this form of implies is not supported -- boolean experssions");
-                  } else {
+          if (NameScanner.occurCheck(clause,var_name)){
+            if (clause.getType().isBoolean()){
+              cb.requires(create.forall(
+                  copy_rw.rewrite(guard),
+                  copy_rw.rewrite(clause),
+                  create.field_decl(var_name,create.primitive_type(Sort.Integer))));
+              
+              cb_main_loop.requires(create.forall(
+                      copy_rw.rewrite(guard),
+                      copy_rw.rewrite(clause),
+                      create.field_decl(var_name,create.primitive_type(Sort.Integer))));
+            } else if (clause.isa(StandardOperator.Implies)){
                     OperatorExpression i_guard=(OperatorExpression)clause;
                     if(i_guard.getArg(0).isa(StandardOperator.EQ)) //==
                     {     
@@ -325,19 +330,8 @@ public class IterationContractEncoder extends AbstractRewriter {
           	  		// should be filled up 
           	  		Fail("%s: this form of implies is not supported in requires",((OperatorExpression)clause).getArg(0).getOrigin());
           	  		}
-                  }
             }
-            else  if (clause.getType().isBoolean()){
-            cb.requires(create.forall(
-                copy_rw.rewrite(guard),
-                copy_rw.rewrite(clause),
-                create.field_decl(var_name,create.primitive_type(Sort.Integer))));
-            
-            cb_main_loop.requires(create.forall(
-                    copy_rw.rewrite(guard),
-                    copy_rw.rewrite(clause),
-                    create.field_decl(var_name,create.primitive_type(Sort.Integer))));
-          } else {
+            else  {
             cb.requires(create.starall(
               copy_rw.rewrite(guard),
               copy_rw.rewrite(clause),
@@ -357,20 +351,20 @@ public class IterationContractEncoder extends AbstractRewriter {
       //Create (star)conjunction of post_condition and append it to cb
       //Required fix : check for side-effects and free variables
       for(ASTNode clause:ASTUtils.conjuncts(c.post_condition, StandardOperator.Star)){
-        if (clause.getType().isBoolean()){ 
-          cb.ensures(create.forall(
-            copy_rw.rewrite(guard),
-            copy_rw.rewrite(clause),
-            create.field_decl(var_name,create.primitive_type(Sort.Integer))
-          ));
-          cb_main_loop.ensures(create.forall(
-            copy_rw.rewrite(guard),
-            copy_rw.rewrite(clause),
-            create.field_decl(var_name,create.primitive_type(Sort.Integer))
-          ));
-        } else if (NameScanner.occurCheck(clause,var_name)){
+         if (NameScanner.occurCheck(clause,var_name)){
           // check whether clause uses iteration variable.
-          if (clause.isa(StandardOperator.Implies)){
+           if (clause.getType().isBoolean()){ 
+             cb.ensures(create.forall(
+               copy_rw.rewrite(guard),
+               copy_rw.rewrite(clause),
+               create.field_decl(var_name,create.primitive_type(Sort.Integer))
+             ));
+             cb_main_loop.ensures(create.forall(
+               copy_rw.rewrite(guard),
+               copy_rw.rewrite(clause),
+               create.field_decl(var_name,create.primitive_type(Sort.Integer))
+             ));
+           } else if (clause.isa(StandardOperator.Implies)){
                   OperatorExpression i_guard=(OperatorExpression)clause;
                   if(i_guard.getArg(0).isa(StandardOperator.EQ)) //==
                   {     
