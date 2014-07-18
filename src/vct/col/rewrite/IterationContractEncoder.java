@@ -356,22 +356,21 @@ public class IterationContractEncoder extends AbstractRewriter {
       }
       //Create (star)conjunction of post_condition and append it to cb
       //Required fix : check for side-effects and free variables
-      for(ASTNode clause:ASTUtils.conjuncts(c.post_condition, StandardOperator.Star)){  
-        if (NameScanner.occurCheck(clause,var_name)){//check whether clause is in the list of free variables or not.
+      for(ASTNode clause:ASTUtils.conjuncts(c.post_condition, StandardOperator.Star)){
+        if (clause.getType().isBoolean()){ 
+          cb.ensures(create.forall(
+            copy_rw.rewrite(guard),
+            copy_rw.rewrite(clause),
+            create.field_decl(var_name,create.primitive_type(Sort.Integer))
+          ));
+          cb_main_loop.ensures(create.forall(
+            copy_rw.rewrite(guard),
+            copy_rw.rewrite(clause),
+            create.field_decl(var_name,create.primitive_type(Sort.Integer))
+          ));
+        } else if (NameScanner.occurCheck(clause,var_name)){
+          // check whether clause uses iteration variable.
           if (clause.isa(StandardOperator.Implies)){
-        	  //Fail("this form of implies is not supported");        	  
-        	  if (clause.getType().isBoolean()){ 
-
-              cb.ensures(create.forall(
-                copy_rw.rewrite(guard),
-                copy_rw.rewrite(clause),
-                create.field_decl(var_name,create.primitive_type(Sort.Integer))));
-              
-              cb_main_loop.ensures(create.forall(
-                      copy_rw.rewrite(guard),
-                      copy_rw.rewrite(clause),
-                      create.field_decl(var_name,create.primitive_type(Sort.Integer))));
-                } else {                                	                  	         	            	                       
                   OperatorExpression i_guard=(OperatorExpression)clause;
                   if(i_guard.getArg(0).isa(StandardOperator.EQ)) //==
                   {     
@@ -433,7 +432,6 @@ public class IterationContractEncoder extends AbstractRewriter {
         	  		// should be filled up 
         	  		Fail("%s: this form of implies is not supported in ensures",((OperatorExpression)clause).getArg(0).getOrigin());
         	  		}
-                }
           } else {
             cb.ensures(create.starall(
                 copy_rw.rewrite(guard),

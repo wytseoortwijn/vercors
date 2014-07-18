@@ -28,14 +28,14 @@ public class VoidCalls extends AbstractRewriter {
   
   /* TODO: we have a serious order bug, where
    * statements about result are made before result is assigned.
+   */
   public void visit(NameExpression e){
     if (e.isReserved(ASTReserved.Result)){
       result=create.unresolved_name("sys__result");
     } else {
-      super.visit(e);;
+      super.visit(e);
     }
   }
-  */
   
   public void visit(Method m){
     switch(m.kind){
@@ -59,8 +59,9 @@ public class VoidCalls extends AbstractRewriter {
         args[i+1]=rewrite(m_args[i]);
       }
 
-      ContractBuilder cb=new ContractBuilder();
-      Contract c=m.getContract();
+      //ContractBuilder cb=new ContractBuilder();
+      Contract c=rewrite(m.getContract());
+      /*
       if(c!=null){
         HashMap<NameExpression,ASTNode>map=new HashMap<NameExpression,ASTNode>();
         map.put(create.reserved_name(ASTReserved.Result),create.local_name("sys__result"));
@@ -74,9 +75,10 @@ public class VoidCalls extends AbstractRewriter {
           cb.yields(rewrite(c.yields));
         }
       }
+      */
       result=create.method_decl(
           create.primitive_type(PrimitiveType.Sort.Void),
-          cb.getContract(),
+          c,
           m.getName(),
           args,
           rewrite(m.getBody()));

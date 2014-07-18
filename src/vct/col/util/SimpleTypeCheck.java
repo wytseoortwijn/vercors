@@ -601,6 +601,10 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       Type t2=e.getArg(1).getType();
       if (t2==null) Fail("type of right argument unknown at "+e.getOrigin());
       if (!t1.comparableWith(source(),t2)) {
+        //vct.util.Configuration.getDiagSyntax().print(System.out,e.getArg(0));
+        //System.out.print("/");
+        //vct.util.Configuration.getDiagSyntax().print(System.out,e.getArg(1));
+        //System.out.println();
         Fail("Types of left and right-hand side argument are uncomparable: %s/%s",t1,t2);
       }
       e.setType(new PrimitiveType(Sort.Boolean));

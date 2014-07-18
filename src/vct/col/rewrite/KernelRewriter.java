@@ -156,11 +156,12 @@ public class KernelRewriter extends AbstractRewriter {
     */
     currentBlock.add(create.comment("// pre barrier marker"));
     currentBlock.add(create_barrier_call(no.intValue()));
-    for(ASTNode clause : ASTUtils.conjuncts(pb.contract.post_condition,StandardOperator.Star)){
-      if (clause.getType().isBoolean()){
-        currentBlock.add(create.expression(StandardOperator.Assert, rewrite(clause)));
-      }
-    }
+    //Disabled these hints because old in barrier refers to before barrier... 
+    //for(ASTNode clause : ASTUtils.conjuncts(pb.contract.post_condition,StandardOperator.Star)){
+    //  if (clause.getType().isBoolean()){
+    //    currentBlock.add(create.expression(StandardOperator.Assert, rewrite(clause)));
+    //  }
+    //}
     result=null;
   }
   

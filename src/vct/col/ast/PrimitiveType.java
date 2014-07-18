@@ -151,6 +151,7 @@ public final class PrimitiveType extends Type {
       PrimitiveType pt=(PrimitiveType)t;
       if (equals(t)) return true;
       switch(this.sort){
+      case Void:
       case Sequence:
       case Array:
         return false;
