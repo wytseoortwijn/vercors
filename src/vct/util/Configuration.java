@@ -69,6 +69,12 @@ public class Configuration {
   public static final BooleanSetting assume_single_group=new BooleanSetting(false);
   
   /**
+   * This setting which is true by default controls if all resource
+   * are automatically revoked with every kernel barrier.
+   */
+  public static final BooleanSetting auto_barrier=new BooleanSetting(true);
+  
+  /**
    * Enable the resource check during kernel verification.
    */
   public static final BooleanSetting enable_resource_check=new BooleanSetting(true);
@@ -102,6 +108,7 @@ public class Configuration {
     clops.add(vct.boogie.Main.chalice_module.getAssign("name of the chalice environment module"),"chalice-module");
 //    clops.add(pvl_type_check.getDisable("disable type check in PVL parser"),"no-pvl-check");
     clops.add(assume_single_group.getEnable("enable single group assumptions"),"single-group");
+    clops.add(auto_barrier.getDisable("Disable automatic permission revokation for barriers"),"disable-auto-barrier");
     clops.add(enable_resource_check.getDisable("disable barrier resource check during kernel verification"),"disable-resource-check");
     clops.add(enable_post_check.getDisable("disable barrier post check during kernel verification"),"disable-post-check");
     clops.add(witness_constructors.getEnable("use constructors for witnesses"),"witness-constructors");

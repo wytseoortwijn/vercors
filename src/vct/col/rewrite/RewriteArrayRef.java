@@ -137,42 +137,57 @@ public class RewriteArrayRef extends AbstractRewriter {
           return;
 	    }
 	    DeclarationStatement decl=e.getDeclaration(0);
-	    if (!e.select.isa(StandardOperator.And)) {
-	      //Fail("select is not a conjunction");
+	    ASTNode var1;
+	    ASTNode lower;
+	    ASTNode upper;
+	    if (e.select.isa(StandardOperator.And)) {
+  	    ASTNode left=((OperatorExpression)e.select).getArg(0);
+  	    ASTNode right=((OperatorExpression)e.select).getArg(1);
+  	    if (!(left.isa(StandardOperator.LTE)||left.isa(StandardOperator.LT))
+  	        ||!right.isa(StandardOperator.LT)
+  	        ){
+  	      //Fail("not a . <[=] . && . < . pattern");
+            super.visit(e);
+            return;
+  	    }
+  	    lower=((OperatorExpression)left).getArg(0);
+  	    if (left.isa(StandardOperator.LT)){
+  	      if (lower instanceof ConstantExpression){
+  	        create.enter();
+  	        int v=((IntegerValue)((ConstantExpression)lower).value).value;
+  	        lower=create(lower).constant(v+1);
+  	        create.leave();
+  	      } else {
+  	        lower=create.expression(StandardOperator.Plus,lower,create.constant(1));
+  	      }
+  	    }
+  	    var1=((OperatorExpression)left).getArg(1);
+  	    ASTNode var2=((OperatorExpression)right).getArg(0);
+  	    upper=((OperatorExpression)right).getArg(1);
+  	    if (!(var1 instanceof NameExpression)
+  	        ||  !(((NameExpression)var1).getName().equals(decl.getName()))
+  	        ||  !(var2 instanceof NameExpression)
+  	        ||  !(((NameExpression)var2).getName().equals(decl.getName()))
+  	        ){
+  	      //Fail("not a . <= i && i < . pattern");
+            super.visit(e);
+            return;
+  	    }
+	    } else if (e.select.isa(StandardOperator.Member)){
+	      var1=((OperatorExpression)e.select).getArg(0);
+	      ASTNode right=((OperatorExpression)e.select).getArg(1);
+        if (!(var1 instanceof NameExpression)
+        ||  !(((NameExpression)var1).getName().equals(decl.getName()))
+        ||  !right.isa(StandardOperator.RangeSeq)
+        ){
           super.visit(e);
           return;
-	    }
-	    ASTNode left=((OperatorExpression)e.select).getArg(0);
-	    ASTNode right=((OperatorExpression)e.select).getArg(1);
-	    if (!(left.isa(StandardOperator.LTE)||left.isa(StandardOperator.LT))
-	        ||!right.isa(StandardOperator.LT)
-	        ){
-	      //Fail("not a . <[=] . && . < . pattern");
-          super.visit(e);
-          return;
-	    }
-	    ASTNode lower=((OperatorExpression)left).getArg(0);
-	    if (left.isa(StandardOperator.LT)){
-	      if (lower instanceof ConstantExpression){
-	        create.enter();
-	        int v=((IntegerValue)((ConstantExpression)lower).value).value;
-	        lower=create(lower).constant(v+1);
-	        create.leave();
-	      } else {
-	        lower=create.expression(StandardOperator.Plus,lower,create.constant(1));
-	      }
-	    }
-	    ASTNode var1=((OperatorExpression)left).getArg(1);
-	    ASTNode var2=((OperatorExpression)right).getArg(0);
-	    ASTNode upper=((OperatorExpression)right).getArg(1);
-	    if (!(var1 instanceof NameExpression)
-	        ||  !(((NameExpression)var1).getName().equals(decl.getName()))
-	        ||  !(var2 instanceof NameExpression)
-	        ||  !(((NameExpression)var2).getName().equals(decl.getName()))
-	        ){
-	      //Fail("not a . <= i && i < . pattern");
-          super.visit(e);
-          return;
+        }
+        lower=((OperatorExpression)right).getArg(0);
+        upper=((OperatorExpression)right).getArg(1);
+	    } else {
+        super.visit(e);
+        return;	      
 	    }
 	    ASTNode main;
 	    Hole p=new Hole();

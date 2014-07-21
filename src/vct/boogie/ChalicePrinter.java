@@ -553,6 +553,23 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
         }
         break;
       }
+      case Member:{
+        if (e.getArg(1).isa(StandardOperator.RangeSeq)){
+          OperatorExpression range=(OperatorExpression)e.getArg(1);
+          out.print("(");
+          range.getArg(0).accept(this);
+          out.print(" <= ");
+          e.getArg(0).accept(this);
+          out.print(" && ");
+          e.getArg(0).accept(this);
+          out.print(" < ");
+          range.getArg(1).accept(this);
+          out.print(")");
+        } else {
+          super.visit(e);
+        }
+        break;
+      }
       default:{
         super.visit(e);
       }

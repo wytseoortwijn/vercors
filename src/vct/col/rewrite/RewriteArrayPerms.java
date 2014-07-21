@@ -14,26 +14,45 @@ public class RewriteArrayPerms extends AbstractRewriter {
     if (e.binder==BindingExpression.Binder.STAR){
       if (e.getDeclCount()!=1) Fail("no rules for more than one declaration");
       DeclarationStatement decl=e.getDeclaration(0);
-      if (!e.select.isa(StandardOperator.And)) {
-        Fail("select is not a conjunction");
-      }
-      ASTNode left=((OperatorExpression)e.select).getArg(0);
-      ASTNode right=((OperatorExpression)e.select).getArg(1);
-      if (!left.isa(StandardOperator.LTE)
-        ||!right.isa(StandardOperator.LT)
-      ){
-        Fail("not a . <= . && . < . pattern");
-      }
-      ASTNode lower=((OperatorExpression)left).getArg(0);
-      ASTNode var1=((OperatorExpression)left).getArg(1);
-      ASTNode var2=((OperatorExpression)right).getArg(0);
-      ASTNode upper=((OperatorExpression)right).getArg(1);
-      if (!(var1 instanceof NameExpression)
-      ||  !(((NameExpression)var1).getName().equals(decl.getName()))
-      ||  !(var2 instanceof NameExpression)
-      ||  !(((NameExpression)var2).getName().equals(decl.getName()))
-      ){
-        Fail("not a . <= i && i < . pattern");
+      ASTNode lower=null;
+      ASTNode var1=null;
+      ASTNode upper=null;
+      if (e.select.isa(StandardOperator.And)) {
+        ASTNode left=((OperatorExpression)e.select).getArg(0);
+        ASTNode right=((OperatorExpression)e.select).getArg(1);
+        if (!left.isa(StandardOperator.LTE)
+          ||!right.isa(StandardOperator.LT)
+        ){
+          vct.util.Configuration.getDiagSyntax().print(System.out,e.select);
+          Fail(" is not a . <= . && . < . pattern");
+        }
+        lower=((OperatorExpression)left).getArg(0);
+        var1=((OperatorExpression)left).getArg(1);
+        ASTNode var2=((OperatorExpression)right).getArg(0);
+        upper=((OperatorExpression)right).getArg(1);
+        if (!(var1 instanceof NameExpression)
+        ||  !(((NameExpression)var1).getName().equals(decl.getName()))
+        ||  !(var2 instanceof NameExpression)
+        ||  !(((NameExpression)var2).getName().equals(decl.getName()))
+        ){
+          vct.util.Configuration.getDiagSyntax().print(System.out,e.select);
+          Fail(" is not a . <= i && i < . pattern");
+        }
+      } else if (e.select.isa(StandardOperator.Member)){
+        var1=((OperatorExpression)e.select).getArg(0);
+        if (!(var1 instanceof NameExpression)
+        ||  !(((NameExpression)var1).getName().equals(decl.getName()))
+        ){
+          Fail("not a i in [.,.) pattern");
+        }
+        ASTNode right=((OperatorExpression)e.select).getArg(1);
+        if (!right.isa(StandardOperator.RangeSeq)){
+          Fail("not a i in [.,.) pattern");
+        }
+        lower=((OperatorExpression)right).getArg(0);
+        upper=((OperatorExpression)right).getArg(1);
+      } else {
+        Fail("select is not recognized");
       }
       if (e.main.isa(StandardOperator.Perm)){
         ASTNode loc=((OperatorExpression)e.main).getArg(0);

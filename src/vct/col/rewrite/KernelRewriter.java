@@ -5,10 +5,12 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Set;
+import java.util.Stack;
 
 import vct.col.ast.ASTClass;
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTReserved;
+import vct.col.ast.ASTSpecial;
 import vct.col.ast.ASTVisitor;
 import vct.col.ast.BlockStatement;
 import vct.col.ast.Contract;
@@ -31,7 +33,12 @@ import vct.col.util.ControlFlowAnalyzer;
 import vct.util.Configuration;
 
 public class KernelRewriter extends AbstractRewriter {
-
+  
+  /**
+   * Holds the invariant for the group?
+   */
+  ArrayList<ASTNode> group_inv;
+  
   /** Holds the number of the current barrier during
    *  the rewrite of a kernel.
    *
@@ -132,36 +139,35 @@ public class KernelRewriter extends AbstractRewriter {
 
   public void visit(ParallelBarrier pb){
     Integer no=barrier_map.get(pb);
-/*
-    barrier_no++;
-    barrier_map.put(pb,barrier_no);
-    for(ASTNode clause:ASTUtils.conjuncts(pb.contract.pre_condition)){
-      add(barrier_pre,barrier_no,clause);
-      barrier_cb.requires(create(clause).expression(StandardOperator.Implies,
-          create.expression(StandardOperator.EQ,create.local_name("this_barrier"),create.constant(barrier_no)),
-          rewrite(clause)
-      ));
-    }
-    for(ASTNode clause:ASTUtils.conjuncts(pb.contract.post_condition)){
-      if (clause.getType().isPrimitive(Sort.Resource)){
-        add(resources,barrier_no,clause);
-      } else {
-        add(barrier_post,barrier_no,clause);
-        barrier_cb.ensures(create(clause).expression(StandardOperator.Implies,
-            create.expression(StandardOperator.EQ,create.local_name("this_barrier"),create.constant(barrier_no)),
-            rewrite(clause)
-        ));
+    currentBlock.add(create.comment("// pre barrier marker"));
+    if (Configuration.auto_barrier.get()){
+      currentBlock.add(create_barrier_call(no.intValue()));
+      //Disabled these hints because old in barrier refers to before barrier... 
+      //for(ASTNode clause : ASTUtils.conjuncts(pb.contract.post_condition,StandardOperator.Star)){
+      //  if (clause.getType().isBoolean()){
+      //    currentBlock.add(create.expression(StandardOperator.Assert, rewrite(clause)));
+      //  }
+      //}
+    } else {
+      Stack<ASTNode> resource_stack=new Stack();
+      // check and keep resources.
+      for(ASTNode clause:ASTUtils.conjuncts(pb.contract.pre_condition,StandardOperator.Star)){
+        if (clause.getType().isPrimitive(Sort.Resource)){
+          resource_stack.push(clause);
+        } else {
+          currentBlock.add(create.expression(StandardOperator.Assert,rewrite(clause)));
+        }
+      }
+      // exhale exported resources
+      while(!resource_stack.empty()){
+        ASTNode clause=resource_stack.pop();
+        currentBlock.add(create.special(ASTSpecial.Kind.Exhale,rewrite(clause)));
+      }
+      // inhale imported resources
+      for(ASTNode clause:ASTUtils.conjuncts(pb.contract.post_condition,StandardOperator.Star)){
+        currentBlock.add(create.special(ASTSpecial.Kind.Inhale,rewrite(clause)));
       }
     }
-    */
-    currentBlock.add(create.comment("// pre barrier marker"));
-    currentBlock.add(create_barrier_call(no.intValue()));
-    //Disabled these hints because old in barrier refers to before barrier... 
-    //for(ASTNode clause : ASTUtils.conjuncts(pb.contract.post_condition,StandardOperator.Star)){
-    //  if (clause.getType().isBoolean()){
-    //    currentBlock.add(create.expression(StandardOperator.Assert, rewrite(clause)));
-    //  }
-    //}
     result=null;
   }
   
@@ -313,7 +319,7 @@ public class KernelRewriter extends AbstractRewriter {
           continue;
           */
         }
-        ArrayList<ASTNode> group_inv=new ArrayList<ASTNode>(base_inv);
+        group_inv=new ArrayList<ASTNode>(base_inv);
         if (m.getArity()!=0) Fail("TODO: kernel argument support");
         Type returns=create(m).primitive_type(Sort.Void);
         Contract contract=m.getContract();
@@ -446,13 +452,16 @@ public class KernelRewriter extends AbstractRewriter {
         for(DeclarationStatement d:private_decls){
           barrier_decls.add(copy_rw.rewrite(d));
         }
-        res.add_dynamic(create.method_decl(
-            create.primitive_type(Sort.Integer),
-            barrier_cb.getContract(),
-            base_name+"_barrier",
-            barrier_decls.toArray(args),
-            null
-        ));
+        if (Configuration.auto_barrier.get()){
+          // auto barrier uses this method, while manual barrier uses in/ex-hale.
+          res.add_dynamic(create.method_decl(
+              create.primitive_type(Sort.Integer),
+              barrier_cb.getContract(),
+              base_name+"_barrier",
+              barrier_decls.toArray(args),
+              null
+          ));
+        }
         for (int i=1;i<=barrier_no;i++){
           ContractBuilder resource_cb;
           
@@ -469,41 +478,71 @@ public class KernelRewriter extends AbstractRewriter {
           }
           ASTNode guard;
           if (Configuration.assume_single_group.get()){
-            guard=create.expression(StandardOperator.And,
-                create.expression(StandardOperator.LTE,create.constant(0),create.local_name("tid")),
-                create.expression(StandardOperator.LT,create.local_name("tid"),min)
-            );
+            guard=create.expression(StandardOperator.Member,create.local_name("tid"),
+                create.expression(StandardOperator.RangeSeq,create.constant(0),min));
           }
           else {
-            guard=create.expression(StandardOperator.And,
-                create.expression(StandardOperator.LTE,
-                    create.expression(StandardOperator.Mult,create.local_name("gid"),create.local_name("gsize")),
-                    create.local_name("tid")),
-                create.expression(StandardOperator.LT,create.local_name("tid"),min)
-            );
+            guard=create.expression(StandardOperator.Member,create.local_name("tid"),
+               create.expression(StandardOperator.RangeSeq,
+                 create.expression(StandardOperator.Mult,create.local_name("gid"),create.local_name("gsize")),
+                 min
+            ));
           }
-          ASTNode local_guard=create.expression(StandardOperator.And,
-              create.expression(StandardOperator.LTE,create.constant(0),create.local_name("lid")),
-              create.expression(StandardOperator.LT,create.local_name("lid"),create.local_name("gsize"))
-          );
+          ASTNode local_guard=create.expression(StandardOperator.Member,create.local_name("lid"),
+              create.expression(StandardOperator.RangeSeq,create.constant(0),create.local_name("gsize")));
           resource_cb=new ContractBuilder();
           resource_cb.requires(create.fold(StandardOperator.Star, group_inv));
-          for(ASTNode claim:resources.get(0)){
-            if (ASTUtils.find_name(claim,"lid")){
-              resource_cb.requires(create.starall(
-                  copy_rw.rewrite(local_guard),
-                  copy_rw.rewrite(claim),
-                  create.field_decl("lid", create.primitive_type(Sort.Integer))
-              ));
-            } else {
-              resource_cb.requires(create.starall(
-                  copy_rw.rewrite(guard),
-                  copy_rw.rewrite(claim),
-                  create.field_decl("tid", create.primitive_type(Sort.Integer))
-              ));
+          if (Configuration.auto_barrier.get()){        
+            for(ASTNode claim:resources.get(0)){
+              if (ASTUtils.find_name(claim,"lid")){
+                resource_cb.requires(create.starall(
+                    copy_rw.rewrite(local_guard),
+                    copy_rw.rewrite(claim),
+                    create.field_decl("lid", create.primitive_type(Sort.Integer))
+                ));
+              } else {
+                resource_cb.requires(create.starall(
+                    copy_rw.rewrite(guard),
+                    copy_rw.rewrite(claim),
+                    create.field_decl("tid", create.primitive_type(Sort.Integer))
+                ));
+              }
+            }
+          } else {
+            for(ASTNode claim:barrier_pre.get(i)){
+              if(claim.getType().isBoolean()){
+                if (ASTUtils.find_name(claim,"lid")){
+                  resource_cb.requires(create.forall(
+                      copy_rw.rewrite(local_guard),
+                      copy_rw.rewrite(claim),
+                      create.field_decl("lid", create.primitive_type(Sort.Integer))
+                  ));
+                } else if (ASTUtils.find_name(claim,"tid")){
+                  resource_cb.requires(create.forall(
+                      copy_rw.rewrite(guard),
+                      copy_rw.rewrite(claim),
+                      create.field_decl("tid", create.primitive_type(Sort.Integer))
+                  ));
+                } else {
+                  resource_cb.requires(copy_rw.rewrite(claim));
+                }
+              } else {
+                if (ASTUtils.find_name(claim,"lid")){
+                  resource_cb.requires(create.starall(
+                      copy_rw.rewrite(local_guard),
+                      copy_rw.rewrite(claim),
+                      create.field_decl("lid", create.primitive_type(Sort.Integer))
+                  ));
+                } else {
+                  resource_cb.requires(create.starall(
+                      copy_rw.rewrite(guard),
+                      copy_rw.rewrite(claim),
+                      create.field_decl("tid", create.primitive_type(Sort.Integer))
+                  ));
+                }                
+              }
             }
           }
-
           resource_cb.ensures(create.fold(StandardOperator.Star, group_inv));
           resource_cb.ensures(create.fold(StandardOperator.Star, constraint));
           if (resources.get(i)!=null) for(ASTNode claim:resources.get(i)){
@@ -591,6 +630,15 @@ public class KernelRewriter extends AbstractRewriter {
           }
           //cb.requires(create.fold(StandardOperator.Star, barrier_pre.get(i)));
           if (barrier_pre.get(i)!=null) for(ASTNode claim:barrier_pre.get(i)){
+              if (!claim.getType().isBoolean()){
+                if (Configuration.auto_barrier.get()){
+                  Fail("%s: resource in requires clause while using auto barriers.",claim.getOrigin());
+                }
+                System.out.printf("skipping:");
+                vct.util.Configuration.getDiagSyntax().print(System.out,claim);
+                System.out.printf("%n");
+                continue;
+              }
               if (ASTUtils.find_name(claim,"lid")){
                 cb.requires(create.forall(
                     copy_rw.rewrite(local_guard),
@@ -644,20 +692,22 @@ public class KernelRewriter extends AbstractRewriter {
     for(ASTNode inv:kernel_main_invariant){
       res.appendInvariant(copy_rw.rewrite(inv));
     }
-    ASTNode inv1=create.constant(false);
-    Set<Integer> preds=new HashSet<Integer>();
-    find_predecessors(preds,s.getBody());
-    for(Integer i : preds){
-      //Warning("    %d",i);
-      inv1=create.expression(StandardOperator.Or,inv1,
-            create.expression(StandardOperator.EQ,
-                create.local_name("__last_barrier"),
-                create.constant(i.intValue())
-            )
-          );
+    if (Configuration.auto_barrier.get()){
+      ASTNode inv1=create.constant(false);
+      Set<Integer> preds=new HashSet<Integer>();
+      find_predecessors(preds,s.getBody());
+      for(Integer i : preds){
+        //Warning("    %d",i);
+        inv1=create.expression(StandardOperator.Or,inv1,
+              create.expression(StandardOperator.EQ,
+                  create.local_name("__last_barrier"),
+                  create.constant(i.intValue())
+              )
+            );
+      }
+      res.appendInvariant(inv1);
+      res.appendInvariant(create_resources(create.local_name("__last_barrier")));
     }
-    res.appendInvariant(inv1);
-    res.appendInvariant(create_resources(create.local_name("__last_barrier")));
     for(ASTNode inv:s.getInvariants()){
       res.appendInvariant(inv.apply(this));
     }
