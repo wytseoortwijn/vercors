@@ -153,6 +153,8 @@ public class Main
     clops.add(show_before.getAppendOption("Show source code before given passes"),"show-before");
     StringListSetting show_after=new StringListSetting();
     clops.add(show_after.getAppendOption("Show source code after given passes"),"show-after");
+    StringSetting show_file=new StringSetting(null);
+    clops.add(show_file.getAssign("redirect show output to files instead of stdout"),"save-show");
     StringListSetting stop_after=new StringListSetting();
     clops.add(stop_after.getAppendOption("Stop after given passes"),"stop-after");
     
@@ -647,7 +649,15 @@ public class Main
         }
         CompilerPass task=defined_passes.get(pass);
         if (show_before.contains(pass)){
-          vct.util.Configuration.getDiagSyntax().print(System.out,program);
+          String name=show_file.get();
+          if (name!=null){
+            String file=String.format(name, pass);
+            PrintStream out=new PrintStream(new FileOutputStream(file));
+            vct.util.Configuration.getDiagSyntax().print(out,program);
+            out.close();
+          } else {
+            vct.util.Configuration.getDiagSyntax().print(System.out,program);
+          }
         }
         if (task!=null){
           Progress("Applying %s ...",pass);
@@ -666,7 +676,15 @@ public class Main
           }
         }
         if (show_after.contains(pass)){
-          vct.util.Configuration.getDiagSyntax().print(System.out,program);
+          String name=show_file.get();
+          if (name!=null){
+            String file=String.format(name, pass);
+            PrintStream out=new PrintStream(new FileOutputStream(file));
+            vct.util.Configuration.getDiagSyntax().print(out,program);
+            out.close();
+          } else {
+            vct.util.Configuration.getDiagSyntax().print(System.out,program);
+          }
         }
         if (stop_after.contains(pass)){
           Fail("exit after pass %s",pass);
