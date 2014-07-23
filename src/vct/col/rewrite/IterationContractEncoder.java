@@ -46,24 +46,10 @@ public class IterationContractEncoder extends AbstractRewriter {
 	   ///1. check the distance of dependence constant expressions 	  
 		  if(e.getArg(2) instanceof ConstantExpression)
 		  {	  			  							  	  						  				  		
-			  if(ConstantExpToInt((ConstantExpression)e.getArg(2)) > 0 //check for negative values as the dist of dep in send statement  					  
-					  && e.getOperator() == StandardOperator.Send)			  				  		
-				  			return true; 			  
-			  else 
-			  		  return false;			  
-		  }	
-		  else if(e.getArg(2) instanceof OperatorExpression){ //for recv iteration number which could be in -(number) form			  
-			  OperatorExpression temp = (OperatorExpression)e.getArg(2);
-			  if(e.getOperator() == StandardOperator.Recv)  
-				  return  temp.isa(StandardOperator.UMinus);								  								 			  
-			  else if(e.getOperator() == StandardOperator.Send)  
-				  return  temp.isa(StandardOperator.UPlus);
-			  else return false;				  
-		  }
-		  else{
-			  //should provide support for non-constant expressions as the distance of dep			  
+			  return ConstantExpToInt((ConstantExpression)e.getArg(2)) > 0 ;			  		
+		  } else{
 			  return false;			  
-			  }					  			  	
+			}					  			  	
 	  }  
   public void visit(OperatorExpression e)
   { //DRB
@@ -116,7 +102,7 @@ public class IterationContractEncoder extends AbstractRewriter {
 		  if(!sidecondition_check(e))
 		  {
 		      super.visit(e);
-		      Fail("\nThe distance of dependence in the \"send\" statement should be greater than 0.");		      
+		      Fail("\nThe distance of dependence in the \"send\" statement should be positive.");		      
 		  }
 		  ///Check for side conditions	      		  
 		  
@@ -165,7 +151,7 @@ public class IterationContractEncoder extends AbstractRewriter {
 		  if(!sidecondition_check(e))
 		  {			  
 		      super.visit(e);
-		      Fail("\nThe distance of dependence in the \"recv\" statement should be less than zero.");		      
+		      Fail("\nThe distance of dependence in the \"recv\" statement should be positive.");		      
 		  }
 		  ///Check for side conditions			  
 	      currentClass.add_dynamic(recv_body);	      
