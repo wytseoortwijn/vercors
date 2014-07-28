@@ -3,7 +3,9 @@ package vct.col.rewrite;
 import hre.ast.BranchOrigin;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.Stack;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import vct.col.ast.ASTClass;
@@ -14,6 +16,7 @@ import vct.col.ast.ConstantExpression;
 import vct.col.ast.Contract;
 import vct.col.ast.ContractBuilder;
 import vct.col.ast.DeclarationStatement;
+import vct.col.ast.IfStatement;
 import vct.col.ast.IntegerValue;
 import vct.col.ast.LoopStatement;
 import vct.col.ast.Method;
@@ -24,6 +27,7 @@ import vct.col.ast.PrimitiveType.Sort;
 import vct.col.ast.ProgramUnit;
 import vct.col.ast.StandardOperator;
 import vct.col.ast.Type;
+import vct.col.ast.Value;
 import vct.col.ast.VariableDeclaration;
 import vct.col.util.ASTUtils;
 import vct.col.util.NameScanner;
@@ -50,7 +54,40 @@ public class IterationContractEncoder extends AbstractRewriter {
 		  } else{
 			  return false;			  
 			}					  			  	
-	  }  
+	  }
+  
+  private String current_label;
+  
+  private Stack<ASTNode> guard_stack=new Stack();
+  
+  private class SendRecvInfo {
+    final String label=current_label;
+    final ArrayList<ASTNode> guards=new ArrayList(guard_stack);
+    final ASTNode stat;
+    public SendRecvInfo(ASTNode stat){
+      this.stat=stat;
+    }
+  }
+  
+  private HashMap<String,SendRecvInfo> send_recv_map=new HashMap();
+  
+  @Override
+  public void enter(ASTNode node){
+    super.enter(node);
+    if (node.labels()>0){
+      current_label=node.getLabel(0).getName();
+      Warning("current label is %s",current_label);
+    }
+  }
+  
+  @Override
+  public void leave(ASTNode node){
+    if (node.labels()>0){
+      current_label=null;
+    }
+    super.leave(node);
+  }
+  
   public void visit(OperatorExpression e)
   { //DRB
 	  
@@ -62,6 +99,13 @@ public class IterationContractEncoder extends AbstractRewriter {
 	  switch(e.getOperator())
 	  {
 	  case Send:
+	    if (current_label==null){
+	      Fail("send in unlabeled position");
+	    }
+	    if (send_recv_map.get(current_label)!=null){
+        Fail("more than one send/recv in block %s.",current_label);
+	    }
+	    send_recv_map.put(current_label,new SendRecvInfo(e));
 		  // create method contract
 		  //and call the method
 
@@ -112,8 +156,15 @@ public class IterationContractEncoder extends AbstractRewriter {
 		  break;
 	  case Recv:
 		  // create method contract
-		  //and call the method
-		  vct.util.Configuration.getDiagSyntax().print(System.out,e.getArg(0));//DRB		        		  		  
+		  // and call the method
+		  // vct.util.Configuration.getDiagSyntax().print(System.out,e.getArg(0));//DRB		        		  		  
+      if (current_label==null){
+        Fail("recv in unlabeled position");
+      }
+      if (send_recv_map.get(current_label)!=null){
+        Fail("more than one send/recv in block %s.",current_label);
+      }
+      send_recv_map.put(current_label,new SendRecvInfo(e));
 		  
 		  String recv_name="recv_body_"+N;		  	      
 	      ArrayList<DeclarationStatement> recv_decl=new ArrayList();// declaration of parameters for send_check
@@ -483,10 +534,111 @@ public class IterationContractEncoder extends AbstractRewriter {
       branch=new BranchOrigin("Parallel Loop",null);
       OriginWrapper.wrap(null,result, branch);
       //Error management  --> line numbers, origins , ...
-      
+      for(String R:send_recv_map.keySet()){
+        SendRecvInfo recv_entry=send_recv_map.get(R);
+        if (recv_entry.stat.isa(StandardOperator.Recv)){
+          OperatorExpression recv=(OperatorExpression)recv_entry.stat;
+          String S=((NameExpression)recv.getArg(1)).getName();
+          SendRecvInfo send_entry=send_recv_map.get(S);
+          if (send_entry==null || !send_entry.stat.isa(StandardOperator.Send)){
+            Fail("unmatched recv");
+          }
+          OperatorExpression send=(OperatorExpression)send_entry.stat;
+          if (!R.equals(((NameExpression)send.getArg(1)).getName())){
+            Fail("wrong label in send");
+          }
+          int dr=getConstant(recv.getArg(2));
+          int ds=getConstant(send.getArg(2));
+          if (dr!=ds){
+            Fail("distances of send(%d) and recv(%d) are different",ds,dr);
+          }
+          // create shift substitution.
+          HashMap<NameExpression,ASTNode> shift_map=new HashMap();
+          NameExpression name=create.argument_name(var_name);
+          shift_map.put(name,create.expression(StandardOperator.Minus,name,create.constant(dr)));
+          Substitution shift=new Substitution(null,shift_map);
+          // create guard check.
+          cb=new ContractBuilder();
+          cb.requires(guard);
+          for(ASTNode g:recv_entry.guards){
+            cb.requires(g);
+          }
+          cb.ensures(create.expression(StandardOperator.LTE,
+              create.constant(dr),create.argument_name(var_name)
+          ));
+          for(ASTNode g:send_entry.guards){
+            cb.ensures(shift.rewrite(g));
+          }
+          Method guard_method=create.method_decl(
+              create.primitive_type(PrimitiveType.Sort.Void),
+              cb.getContract(),
+              String.format("guard_check_%s_%s",S,R),
+              body_decl.toArray(new DeclarationStatement[0]),
+              create.block()
+          );
+          branch=new BranchOrigin("Guard Check",null);
+          OriginWrapper.wrap(null,guard_method, branch);
+          currentClass.add_dynamic(guard_method);
+          //create resource check
+          cb=new ContractBuilder();
+          cb.requires(guard);
+          // lower bound is already guaranteed by guard check.
+          //cb.requires(create.expression(StandardOperator.LTE,
+          //    create.constant(dr),create.argument_name(var_name)
+          //));
+          for(ASTNode g:send_entry.guards){
+            cb.requires(shift.rewrite(g));
+          }
+          for(ASTNode g:recv_entry.guards){
+            cb.requires(g);
+          }
+          cb.requires(shift.rewrite(send.getArg(0)));
+          for(ASTNode g:send_entry.guards){
+            cb.ensures(shift.rewrite(g));
+          }
+          cb.ensures(copy_rw.rewrite(recv.getArg(0)));
+          Method resource_method=create.method_decl(
+              create.primitive_type(PrimitiveType.Sort.Void),
+              cb.getContract(),
+              String.format("resource_check_%s_%s",S,R),
+              body_decl.toArray(new DeclarationStatement[0]),
+              create.block()
+          );
+          branch=new BranchOrigin("Resource Check",null);
+          OriginWrapper.wrap(null,resource_method, branch);
+          currentClass.add_dynamic(resource_method);
+
+        }
+        // unmatched send statements are wasteful, but not incorrect. 
+      }
+      send_recv_map.clear();
     } else {
       super.visit(s);
     }
   }
   
+  private int getConstant(ASTNode arg) {
+    IntegerValue v=(IntegerValue)((ConstantExpression)arg).value;
+    return v.value;
+  }
+
+  @Override
+  public void visit(IfStatement s) {
+    IfStatement res=new IfStatement();
+    res.setOrigin(s.getOrigin());
+    int N=s.getCount();
+    for(int i=0;i<N;i++){
+      ASTNode guard=s.getGuard(i);
+      if (guard!=IfStatement.else_guard) guard=guard.apply(this);
+      Warning("pushing guard");
+      guard_stack.push(guard);
+      ASTNode body=s.getStatement(i);
+      body=body.apply(this);
+      Warning("popping guard");
+      guard_stack.pop();
+      res.addClause(guard,body);
+    }
+    result=res; return ;
+  }
+
 }

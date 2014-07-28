@@ -230,7 +230,7 @@ public class Syntax {
   public AbstractPrinter print(TrackingOutput out, ProgramUnit program) {
     AbstractPrinter p = null;
     for(CompilationUnit cu : program.get()){
-      out.lnprintf("//==== %s ====",cu.getFileName());
+      //out.lnprintf("//==== %s ====",cu.getFileName());
       for(ASTNode item : cu.get()){
         p=print(out,item);
       }

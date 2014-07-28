@@ -53,6 +53,8 @@ specificationStatement
     | 'witness' resourceExpression ';'
     | 'open' resourceExpression block? ';'
     | 'close' resourceExpression ';'
+    | 'send' resourceExpression 'to' Identifier ',' expression ';'
+    | 'recv' resourceExpression 'from' Identifier ',' expression ';'
     ;
 
 proofScript :

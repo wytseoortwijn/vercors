@@ -259,16 +259,16 @@ public class JavaPrinter extends AbstractPrinter {
     visit(cl.getContract());
     switch(cl.kind){
     case Plain:
-      out.lnprintf("class %s",cl.getName());
+      out.printf("class %s",cl.getName());
       break;
     case Abstract:
-      out.lnprintf("abstract class %s",cl.getName());
+      out.printf("abstract class %s",cl.getName());
       break;
     case Interface:
-      out.lnprintf("interface %s",cl.getName());
+      out.printf("interface %s",cl.getName());
       break;
     case Kernel:
-      out.lnprintf("kernel %s",cl.getName());
+      out.printf("kernel %s",cl.getName());
       break;
     default:
       Abort("unexpected class kind %s",cl.kind);
@@ -292,9 +292,7 @@ public class JavaPrinter extends AbstractPrinter {
     for(ASTNode item:cl){
       if (item.isStatic()){
         if (item instanceof DeclarationStatement) out.printf("static ");
-        else out.println("/* static */");
-      } else {
-        out.println("/* dynamic */");
+        // else out.println("/* static */");
       }
       item.accept(this);
       out.println("");
@@ -471,6 +469,7 @@ public class JavaPrinter extends AbstractPrinter {
   }
 
   public void visit(IfStatement s){
+    /* CaseSet conflicts with send/recv in ghost mode! 
     if (s.isValidFlag(ASTNode.GHOST) && s.getFlag(ASTNode.GHOST)){
       int N=s.getCount();
       out.printf ("/*@ CaseSet[");
@@ -499,8 +498,8 @@ public class JavaPrinter extends AbstractPrinter {
           out.lnprintf(",");
         }
       }
-      out.lnprintf("  @*/");
-    } else {
+      out.lnprintf("  @ * /");
+    } else {*/
       int N=s.getCount();
       out.printf("if (");
       nextExpr();
@@ -527,7 +526,7 @@ public class JavaPrinter extends AbstractPrinter {
           out.lnprintf(";");
         }        
       }
-    }
+    //}
   }
 
   private boolean self_terminating(ASTNode s) {

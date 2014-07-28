@@ -762,6 +762,12 @@ public class JavaJMLtoCol extends AbstractJavaToCol implements JavaJMLVisitor<AS
       res=create.expression(StandardOperator.Refute,convert(ctx,1));
     } else if (match(ctx,"assert",null,";")){
       res=create.expression(StandardOperator.Assert,convert(ctx,1));
+    } else if (match(ctx,"send",null,"to",null,",",null,";")){//DRB       
+      res= create.expression(StandardOperator.Send,convert(ctx,1),convert(ctx,3),convert(ctx,5));   
+      res.setGhost(true);
+    } else if (match(ctx,"recv",null,"from",null,",",null,";")){//DRB
+      res= create.expression(StandardOperator.Recv,convert(ctx,1),convert(ctx,3),convert(ctx,5));   
+      res.setGhost(true);
     } else if (match(ctx,"assume",null,";")){
       res=create.expression(StandardOperator.Assume,convert(ctx,1));
     }
