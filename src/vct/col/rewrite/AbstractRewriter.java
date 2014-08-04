@@ -98,10 +98,14 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
    */
   protected BlockStatement currentBlock=null;
   
+  /**
+   */
+  protected CompilationUnit currentTargetUnit=null;
   
   protected ASTSequence<?> current_sequence(){
     if (currentBlock!=null) return currentBlock;
-    return currentClass;
+    if (currentClass!=null) return currentClass;
+    return currentTargetUnit;
   }
   
   /**
@@ -292,7 +296,9 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
       res.setOrigin(c.getOrigin());
       currentClass=res;
       Contract contract=c.getContract();
-      currentContractBuilder=new ContractBuilder();
+      if (currentContractBuilder==null){
+        currentContractBuilder=new ContractBuilder();
+      }
       if (contract!=null){
         rewrite(contract,currentContractBuilder);
       }
@@ -501,6 +507,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
     for(CompilationUnit cu :source().get()){
       CompilationUnit res=new CompilationUnit(cu.getFileName());
       res.attach(target());
+      currentTargetUnit=res;
       for(ASTNode n:cu.get()){
         ASTNode tmp=rewrite(n);
         if (tmp!=null){
@@ -512,6 +519,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
       } else {
         Debug("discarding empty unit %s",cu.getFileName());
       }
+      currentTargetUnit=null;
     }
     return target();
   }
@@ -526,11 +534,13 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
         rewriteOrdered(done,target,source().find(parent));
       }
       Debug("rewriting %s",cl.getName());
+      CompilationUnit res=target.get(cl);
+      currentTargetUnit=res;
       ASTClass tmp=rewrite(cl);
       if (tmp!=null){
-        CompilationUnit res=target.get(cl);
         res.add(tmp);
-      }      
+      }
+      currentTargetUnit=null;   
     }
   }
 
@@ -555,6 +565,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
     for(CompilationUnit cu :source().get()){
       for(ASTNode n:cu.get()){
         if (n instanceof ASTClass) rewriteOrdered(done,target,(ASTClass)n);
+        else Abort("ordered rewrite on non-class entry %s",n.getClass());
       }
     }
     return target();

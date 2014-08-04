@@ -13,7 +13,7 @@ package pv.parser;
 
 program  : (claz|kernel)* (block)? ;
 
-claz : 'class' ID '{'( field | method | function | constructor )* '}' ;
+claz : contract 'class' ID '{'( field | method | function | constructor )* '}' ;
 
 kernel : 'kernel' ID '{' ( kernel_field | method | function )* '}' ;
 
@@ -41,6 +41,7 @@ expr
  | ID ':' expr
  | expr 'with' block 
  | expr 'then' block 
+ | ID '<' type '>' values  
  | ('!'|'-') expr
  | expr '^^' expr
  | expr ('*'|'/'|'%') expr
@@ -68,6 +69,8 @@ expr
  | '|' expr '|'
  ;
 
+values : '{' ( | expr (',' expr)*) '}';
+
 tuple : '(' ( | expr (',' expr)*) ')';
 
 block : '{' statement* '}' ;
@@ -86,9 +89,9 @@ statement
  | 'if' '(' expr ')' block ( 'else' block )?
  | 'barrier' '(' fence_list ')' '{' contract '}' 
  | invariant 'while' '(' expr ')' block
+ | type ID ('=' expr | (',' ID)* ) ';'
  | expr ';'
  | block
- | type ID ('=' expr | (',' ID)* ) ';'
  | lexpr '=' expr ';'
  | '{*' expr '*}'
  ;
@@ -100,9 +103,13 @@ invariant : ( 'loop_invariant' expr ';' )* ;
 lexpr : ('this' | '\\result' | ID ) ('.' ID | '[' expr ']' )* ; 
 
 type
- : ('int' | ID ) ('[' expr? ']')*
- | 'seq' '<' type '>'
+ : ID '<' type '>'
+ | ( 'int' | 'boolean' | 'zfrac' | 'frac' | 'resource' | 'void' | ID | classType ) ('[' expr? ']')*
  ;
+
+classType : ID typeArgs?;
+
+typeArgs : '<' expr (',' expr)* '>';
 
 ID  : ('a'..'z'|'A'..'Z') ('a'..'z'|'A'..'Z'|'0'..'9'|'_')*;
 NUMBER : ('0'..'9')+;

@@ -857,4 +857,13 @@ public Axiom axiom(String name,ASTNode exp){
   res.accept_if(post);
   return res;
 }
+
+public ASTNode expression(StandardOperator op, ASTNode arg0, ASTNode [] args){
+  ASTNode all_args[]=new ASTNode[args.length+1];
+  all_args[0]=arg0;
+  for(int i=0;i<args.length;i++){
+    all_args[i+1]=args[i];
+  }
+  return expression(op,all_args);
+}
 }

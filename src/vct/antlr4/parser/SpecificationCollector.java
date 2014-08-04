@@ -43,8 +43,8 @@ public class SpecificationCollector extends AbstractRewriter {
     case Modifies:
       break;
     case Comment:
-      // discard comment!
-      //super.visit(s);
+      // TODO: allow comments, which are removed to solve static/dynamic!
+      // super.visit(s);
       return;      
     default:
       if (currentContractBuilder!=null){

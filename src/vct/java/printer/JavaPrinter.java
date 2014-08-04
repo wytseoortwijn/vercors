@@ -967,6 +967,22 @@ public class JavaPrinter extends AbstractPrinter {
         t.getArg(0).accept(this);
         out.printf(">");
         break;
+      case Set:
+        if (t.getArgCount()!=1){
+          Fail("Set type constructor with %d arguments instead of 1",t.getArgCount());
+        }
+        out.printf("set<");
+        t.getArg(0).accept(this);
+        out.printf(">");
+        break;
+      case Bag:
+        if (t.getArgCount()!=1){
+          Fail("Bag type constructor with %d arguments instead of 1",t.getArgCount());
+        }
+        out.printf("bag<");
+        t.getArg(0).accept(this);
+        out.printf(">");
+        break;
       default:
         super.visit(t);
     }

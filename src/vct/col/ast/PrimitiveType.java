@@ -28,6 +28,8 @@ public final class PrimitiveType extends Type {
     Resource,
     Cell,
     Sequence,
+    Set,
+    Bag,
     Array};
 
   public final Sort sort;
@@ -36,6 +38,8 @@ public final class PrimitiveType extends Type {
     int N=args.length;
     switch(sort){
       case Sequence:
+      case Set:
+      case Bag:
       case Cell:
         if (N!=1) Abort("illegal argument count");
         break;
