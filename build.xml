@@ -59,7 +59,7 @@
   <target name="check.CML">
   	<uptodate property="CML.uptodate">
       <srcfiles dir="${src}/grammars"/>
-      <mapper type="regexp" from="CML.g4|C.g4" to="${gen}/vct/parsers/CML.tokens"/>
+      <mapper type="regexp" from="VerCorsML.g4|CML.g4|C.g4" to="${gen}/vct/parsers/CML.tokens"/>
     </uptodate>
   </target>
 
@@ -95,7 +95,7 @@
   <target name="check.JavaJML">
   	<uptodate property="JavaJML.uptodate">
       <srcfiles dir="${src}/grammars"/>
-      <mapper type="regexp" from="JavaJML.g4|Java.g4" to="${gen}/vct/parsers/JavaJML.tokens"/>
+      <mapper type="regexp" from="VerCorsML.g4|JavaJML.g4|Java.g4" to="${gen}/vct/parsers/JavaJML.tokens"/>
     </uptodate>
   </target>
   
