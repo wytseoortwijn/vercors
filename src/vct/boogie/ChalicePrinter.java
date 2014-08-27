@@ -570,6 +570,13 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
         }
         break;
       }
+      case Unfolding:{
+        out.print("unfolding ");
+        e.getArg(0).accept(this);
+        out.print(" in ");
+        e.getArg(1).accept(this);
+        break;
+      }
       default:{
         super.visit(e);
       }

@@ -27,9 +27,10 @@ specificationPrimary
     | '[' expressionList? ']'
     | '|' expression '|'
     | '\\length' '(' expression ')'
+    | '\\unfolding' resourceExpression '\\in' expression
     | '*'
     ;
-    
+
 expressionList
     :   labeledExpression (',' labeledExpression)*
     ;
