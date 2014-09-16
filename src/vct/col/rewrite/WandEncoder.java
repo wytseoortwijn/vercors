@@ -1,6 +1,7 @@
 package vct.col.rewrite;
 
 import hre.ast.MessageOrigin;
+import hre.config.StringSetting;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -37,6 +38,8 @@ public class WandEncoder extends AbstractRewriter {
 
   public static final String VALID = "valid_wand";
 
+  public static StringSetting apply_name=new StringSetting("_apply");
+  
   private class WandDefinition {
     ASTClass cl;
     ASTNode valid_body;
@@ -72,7 +75,7 @@ public class WandEncoder extends AbstractRewriter {
 		      ASTNode arg1=e.getArg(0);
 		      if (arg1.labels()==1){
 		        for(NameExpression lbl:arg1.getLabels()){
-		          MethodInvokation res=create.invokation(create.local_name(lbl.getName()), null, "apply");
+		          MethodInvokation res=create.invokation(create.local_name(lbl.getName()), null, apply_name.get());
 		          res.set_before(copy_rw.rewrite(e.get_before()));
 		          res.set_after(copy_rw.rewrite(e.get_after()));
 		          result=res;
@@ -263,7 +266,7 @@ public class WandEncoder extends AbstractRewriter {
         ), cases
     );
     Method apply=create.method_decl(create.primitive_type(Sort.Void),
-        cb.getContract(),"apply",new DeclarationStatement[0],apply_body);
+        cb.getContract(),apply_name.get(),new DeclarationStatement[0],apply_body);
     cl.add_dynamic(apply);
     def.apply_cases=cases;
 	  wand_unit.add(cl);
@@ -351,7 +354,7 @@ public class WandEncoder extends AbstractRewriter {
     		switch(e.getOperator()){
 	    		case Apply:{
 	    		  String label=e.getArg(0).getLabel(0).getName()+"_"+lemma_no;
-	    		  proof_body.add_statement(create.invokation(create.field_name(label), null , "apply"));
+	    		  proof_body.add_statement(create.invokation(create.field_name(label), null , apply_name.get()));
 	    		  // If a magic wand is applied, it is also used, so we continue with the use body.
 	    		}
 	    		case Use:{
