@@ -32,6 +32,7 @@ import vct.col.annotate.DeriveModifies;
 import vct.col.ast.*;
 import vct.col.rewrite.AssignmentRewriter;
 import vct.col.rewrite.BoxingRewriter;
+import vct.col.rewrite.CSLencoder;
 import vct.col.rewrite.ChalicePreProcess;
 import vct.col.rewrite.CheckHistoryAlgebra;
 import vct.col.rewrite.CheckProcessAlgebra;
@@ -305,6 +306,11 @@ public class Main
       public ProgramUnit apply(ProgramUnit arg){
         ProgramUnit tmp=new CheckHistoryAlgebra(arg).rewriteAll();
         return new RandomizedIf(tmp).rewriteAll();
+      }
+    });
+    defined_passes.put("csl-encode",new CompilerPass("Encode CSL atomic regions with methods"){
+      public ProgramUnit apply(ProgramUnit arg){
+        return new CSLencoder(arg).rewriteAll();
       }
     });
     defined_passes.put("define_double",new CompilerPass("Rewrite double as a non-native data type."){
