@@ -155,8 +155,13 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       }
     }
     e.setDefinition(m);
-    if (e.get_before()!=null) e.get_before().accept(this);
-    if (e.get_after()!=null) e.get_after().accept(this);
+    if (e.get_before()!=null) {
+      e.get_before().accept(this);
+    }
+    if (e.get_after()!=null) {
+      // should set result type different...
+      e.get_after().accept(this);
+    }
   }
   
   public final void check_loc_val(Type loc_type,ASTNode val){

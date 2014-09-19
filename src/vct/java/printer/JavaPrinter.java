@@ -189,6 +189,12 @@ public class JavaPrinter extends AbstractPrinter {
       s.args[2].accept(this);
       out.println(";");
       break;    
+    case Transfer:
+      out.print("transfer ");
+      setExpr();
+      s.args[0].accept(this);
+      out.println(";");
+      break;    
     default:
       super.visit(s);
       break;
