@@ -858,12 +858,19 @@ public Axiom axiom(String name,ASTNode exp){
   return res;
 }
 
-public ASTNode expression(StandardOperator op, ASTNode arg0, ASTNode [] args){
-  ASTNode all_args[]=new ASTNode[args.length+1];
-  all_args[0]=arg0;
-  for(int i=0;i<args.length;i++){
-    all_args[i+1]=args[i];
+  public ASTNode expression(StandardOperator op, ASTNode arg0, ASTNode [] args){
+    ASTNode all_args[]=new ASTNode[args.length+1];
+    all_args[0]=arg0;
+    for(int i=0;i<args.length;i++){
+      all_args[i+1]=args[i];
+    }
+    return expression(op,all_args);
   }
-  return expression(op,all_args);
-}
+  
+  public ActionBlock action_block(ASTNode action, ASTNode block) {
+    ActionBlock res=new ActionBlock(action,block);
+    res.setOrigin(origin_stack.get());
+    res.accept_if(post);
+    return res;
+  }
 }

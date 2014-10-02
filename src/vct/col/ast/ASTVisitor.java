@@ -69,6 +69,8 @@ public interface ASTVisitor<T> {
 
   public void visit(Hole hole);
 
+  public void visit(ActionBlock actionBlock);
+
 }
 
 

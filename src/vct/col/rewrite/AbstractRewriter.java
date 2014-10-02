@@ -15,6 +15,7 @@ import vct.col.ast.ASTSequence;
 import vct.col.ast.ASTSpecial;
 import vct.col.ast.ASTWith;
 import vct.col.ast.AbstractVisitor;
+import vct.col.ast.ActionBlock;
 import vct.col.ast.Axiom;
 import vct.col.ast.AxiomaticDataType;
 import vct.col.ast.BindingExpression;
@@ -664,5 +665,10 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   }
   public ASTNode invoke(ASTNode object,String method,ASTNode ... args){
   	return create.invokation(object, null, method, args);
+  }
+
+  @Override
+  public void visit(ActionBlock ab) {
+    result=create.action_block(rewrite(ab.action),rewrite(ab.block));
   }
 }

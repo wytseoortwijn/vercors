@@ -30,7 +30,8 @@ public final class PrimitiveType extends Type {
     Sequence,
     Set,
     Bag,
-    Array};
+    Array,
+    Location};
 
   public final Sort sort;
   public PrimitiveType(Sort sort,ASTNode ... args){

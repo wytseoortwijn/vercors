@@ -45,6 +45,14 @@ public class JavaPrinter extends AbstractPrinter {
     }
   }
   
+  @Override
+  public void visit(ActionBlock ab){
+    out.printf("action(");
+    nextExpr(); ab.action.accept(this);
+    out.printf(")");
+    ab.block.accept(this);
+  }
+  
   public void post_visit(ASTNode node){
     if (node instanceof BeforeAfterAnnotations && !(node instanceof LoopStatement)){
       BeforeAfterAnnotations baa=(BeforeAfterAnnotations)node;

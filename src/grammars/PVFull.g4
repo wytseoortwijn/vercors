@@ -13,7 +13,7 @@ package pv.parser;
 
 program  : (claz|kernel)* (block)? ;
 
-claz : contract 'class' ID '{'( field | method | function | constructor )* '}' ;
+claz : contract 'class' ID '{'( field | method | function | constructor | abs_decl )* '}' ;
 
 kernel : 'kernel' ID '{' ( kernel_field | method | function )* '}' ;
 
@@ -27,8 +27,11 @@ method : contract type ID '(' args ')' block ;
 
 constructor : contract ID '(' args ')' block ;
 
+abs_decl : contract type ID '(' args ')' ';' ;
+
 contract :
- ( 'requires' expr ';'
+ ( 'modifies' expr ';'
+ | 'requires' expr ';'
  | 'ensures' expr ';'
  | 'given' type ID ';'
  | 'yields' type ID ';'
@@ -67,6 +70,7 @@ expr
  | NUMBER
  | '[' type ( ',' expr )* ']'
  | '|' expr '|'
+ | values
  ;
 
 values : '{' ( | expr (',' expr)*) '}';
@@ -94,6 +98,7 @@ statement
  | block
  | lexpr '=' expr ';'
  | '{*' expr '*}'
+ | 'action' expr block 
  ;
 
 fence_list : ( 'local' | 'global' )* ;
@@ -104,7 +109,7 @@ lexpr : ('this' | '\\result' | ID ) ('.' ID | '[' expr ']' )* ;
 
 type
  : ID '<' type '>'
- | ( 'int' | 'boolean' | 'zfrac' | 'frac' | 'resource' | 'void' | ID | classType ) ('[' expr? ']')*
+ | ( 'process' | 'int' | 'boolean' | 'zfrac' | 'frac' | 'resource' | 'void' | ID | classType ) ('[' expr? ']')*
  ;
 
 classType : ID typeArgs?;

@@ -16,6 +16,7 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 
 import pv.parser.PVFullLexer;
 import pv.parser.PVFullParser;
+import pv.parser.PVFullParser.Abs_declContext;
 import pv.parser.PVFullParser.ArgsContext;
 import pv.parser.PVFullParser.BlockContext;
 import pv.parser.PVFullParser.ClassTypeContext;
@@ -108,6 +109,10 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
       int N=ctx.children.size();
       for(int i=0;i<N;){
         switch(ctx.children.get(i).toString()){
+        case "modifies":
+          cb.modifies(convert(ctx.children.get(i+1)));
+          i+=3;
+          break;
         case "requires":
           cb.requires(convert(ctx.children.get(i+1)));
           i+=3;
@@ -412,6 +417,11 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
     if (match(ctx,"if","(",null,")",null,"else",null)){
       return create.ifthenelse(convert(ctx,2),convert(ctx,4),convert(ctx,6));
     }
+    if (match(ctx,"action",null,null)){
+      ASTNode action=convert(ctx,1);
+      ASTNode block=convert(ctx,2);
+      return create.action_block(action,block);
+    }
     if (match(ctx,null,"while","(",null,")",null)){
       PVFullParser.InvariantContext inv_ctx=(PVFullParser.InvariantContext)ctx.children.get(0);
       int N = (inv_ctx.children==null) ? 0 : inv_ctx.children.size()/3;
@@ -658,8 +668,22 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
   }
   @Override
   public ASTNode visitValues(ValuesContext ctx) {
-    // TODO Auto-generated method stub
+    if (match(0,true,ctx,"{",null)){
+      ASTNode args[]=convert_list(ctx,"{",",","}");
+      Type t=create.primitive_type(Sort.Set,create.primitive_type(Sort.Location));
+      return create.expression(StandardOperator.Build,t,args); 
+    }
     return null;
+  }
+  @Override
+  public ASTNode visitAbs_decl(Abs_declContext ctx) {
+    Contract c=(Contract) convert(ctx.children.get(0));
+    Type returns=(Type)convert(ctx.children.get(1));
+    String name=getIdentifier(ctx,2);
+    DeclarationStatement args[]=convertArgs((ArgsContext) ctx.children.get(4));
+    ASTNode res=create.method_decl(returns,c, name, args , null);
+    res.setStatic(false);
+    return res;
   }
 
 }

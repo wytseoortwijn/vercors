@@ -66,4 +66,6 @@ public interface ASTMapping<R> {
 
   public R map(Hole hole);
 
+  public R map(ActionBlock actionBlock);
+
 }

@@ -10,6 +10,7 @@ import static vct.col.ast.PrimitiveType.Sort.Class;
 import static vct.col.ast.PrimitiveType.Sort.Fraction;
 import static vct.col.ast.PrimitiveType.Sort.Resource;
 import static vct.col.ast.PrimitiveType.Sort.ZFraction;
+import static vct.col.ast.PrimitiveType.Sort.Location;
 import static vct.col.ast.StandardOperator.*;
 
 public class VerCorsSyntax {
@@ -40,6 +41,7 @@ public class VerCorsSyntax {
     syntax.addPrimitiveType(Fraction,"frac");
     syntax.addPrimitiveType(Resource,"resource");
     syntax.addPrimitiveType(Class,"classtype");
+    syntax.addPrimitiveType(Location,"loc");
     
     syntax.addReserved(Result,"\\result");
     syntax.addReserved(Pure,"pure");
