@@ -332,6 +332,7 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
         case "int": res=create.primitive_type(Sort.Integer); break;
         case "resource": res=create.primitive_type(Sort.Resource); break;
         case "void": res=create.primitive_type(Sort.Void); break;
+        case "process": res=create.primitive_type(Sort.Process); break;
         default: res=create.class_type(ctx.children.get(0).toString());
       }
     } else if (match(0,true,ctx,"ClassType")) {

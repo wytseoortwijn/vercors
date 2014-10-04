@@ -154,6 +154,7 @@ public class JavaSyntax extends Syntax {
     syntax.addPrimitiveType(ULong,"/*unsigned*/ long");
     syntax.addPrimitiveType(UShort,"/*unsigned*/ short");
     syntax.addPrimitiveType(Short,"short");
+    syntax.addPrimitiveType(Process,"process");
 
     syntax.addReserved(Public,"public");
     syntax.addReserved(Private,"private");

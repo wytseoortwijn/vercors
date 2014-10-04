@@ -129,6 +129,7 @@ public class PVLSyntax {
       syntax.addPrimitiveType(Void,"void");
       syntax.addPrimitiveType(Resource,"resource");
       syntax.addPrimitiveType(Boolean,"boolean");
+      syntax.addPrimitiveType(Process,"process");
       /*
       syntax.addPrimitiveType(Class,"classtype");
       syntax.addPrimitiveType(Char,"char");
