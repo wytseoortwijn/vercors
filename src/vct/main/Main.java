@@ -33,6 +33,7 @@ import vct.col.ast.*;
 import vct.col.rewrite.AssignmentRewriter;
 import vct.col.rewrite.BoxingRewriter;
 import vct.col.rewrite.ChalicePreProcess;
+import vct.col.rewrite.CheckProcessAlgebra;
 import vct.col.rewrite.ConstructorRewriter;
 import vct.col.rewrite.DefineDouble;
 import vct.col.rewrite.DynamicStaticInheritance;
@@ -141,6 +142,10 @@ public class Main
     clops.add(dafny.getEnable("select Dafny backend"),"dafny");
     CommandLineTesting.add_options(clops);
 
+    final BooleanSetting check_defined=new BooleanSetting(false);
+    clops.add(check_defined.getEnable("check if defined processes satisfy their contracts."),"check-defined");
+    
+    
     final BooleanSetting separate_checks=new BooleanSetting(false);
     clops.add(separate_checks.getEnable("validate classes separately"),"separate");
     BooleanSetting help_passes=new BooleanSetting(false);
@@ -283,6 +288,11 @@ public class Main
       public ProgramUnit apply(ProgramUnit arg){
         new SimpleTypeCheck(arg).check();
         return arg;
+      }
+    });
+    defined_passes.put("check-defined",new CompilerPass("rewrite process algebra class to check if defined process match their contracts"){
+      public ProgramUnit apply(ProgramUnit arg){
+        return new CheckProcessAlgebra(arg).rewriteAll();
       }
     });
     defined_passes.put("define_double",new CompilerPass("Rewrite double as a non-native data type."){
@@ -550,6 +560,11 @@ public class Main
         passes.add("ds_inherit");
         passes.add("standardize");
         passes.add("check");       
+      }
+      if (check_defined.get()){
+        passes.add("check-defined");
+        passes.add("standardize");
+        passes.add("check");
       }
       if (explicit_encoding.get()){
         //passes.add("standardize");
