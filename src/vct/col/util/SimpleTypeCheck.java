@@ -971,6 +971,7 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     for(int i=0;i<N;i++){
       Type t=s.getGuard(i).getType();
       if (t==null || !(t instanceof PrimitiveType) || (((PrimitiveType)t).sort!=Sort.Boolean)){
+        if (s.getGuard(i).isReserved(ASTReserved.Any)) continue;
         Fail("Guard %d of if statement is not a boolean at %s",i,s.getOrigin());
       }
     }

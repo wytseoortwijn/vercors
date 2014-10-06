@@ -2,10 +2,15 @@ package vct.col.rewrite;
 
 import vct.col.ast.ASTClass;
 import vct.col.ast.ASTNode;
+import vct.col.ast.ASTReserved;
 import vct.col.ast.CompilationUnit;
+import vct.col.ast.DeclarationStatement;
 import vct.col.ast.Dereference;
+import vct.col.ast.IfStatement;
+import vct.col.ast.Method;
 import vct.col.ast.MethodInvokation;
 import vct.col.ast.NameExpression;
+import vct.col.ast.NameExpression.Kind;
 import vct.col.ast.OperatorExpression;
 import vct.col.ast.PrimitiveType;
 import vct.col.ast.PrimitiveType.Sort;
@@ -16,6 +21,7 @@ import hre.ast.MessageOrigin;
 
 import java.util.Hashtable;
 import java.util.Map.Entry;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class ChalicePreProcess extends AbstractRewriter {
 
@@ -99,5 +105,46 @@ public class ChalicePreProcess extends AbstractRewriter {
         break;
     }
   }
-     
+  
+  private AtomicInteger if_any_count;
+  private Method if_any_method;
+  
+  @Override
+  public void visit(IfStatement s){
+    int N=s.getCount();
+    IfStatement res=new IfStatement();
+    for(int i=0;i<N;i++){
+      ASTNode guard;
+      if (s.getGuard(i).isReserved(ASTReserved.Any)){
+        int id=if_any_count.incrementAndGet();
+        currentBlock.add(create.field_decl("if_any_bool"+id,create.primitive_type(Sort.Boolean)));
+        ASTNode name=create.name(Kind.Local,null,"if_any_bool"+id);
+        MethodInvokation rnd=create.invokation(create.reserved_name(ASTReserved.This),null,"if_any_random",name);
+        rnd.setDefinition(if_any_method);
+        currentBlock.add(rnd);
+        guard=name;
+      } else if (s.getGuard(i)==IfStatement.else_guard) {
+        guard=IfStatement.else_guard;
+      } else {
+        guard=rewrite(s.getGuard(i));
+      }
+      res.addClause(guard, rewrite(s.getStatement(i)));
+    }
+    res.setOrigin(s);
+    result=res;
+  }
+  
+  @Override
+  public void visit(ASTClass cl){
+    if_any_count=new AtomicInteger(0);
+    DeclarationStatement args[]=new DeclarationStatement[1];
+    args[0]=create.field_decl("random_bool", create.primitive_type(Sort.Boolean));    
+    if_any_method=create.method_decl(create.primitive_type(Sort.Void), null, "if_any_random", args, null);
+    super.visit(cl);
+    if (if_any_count.get()>0){
+      cl=(ASTClass)result;
+      cl.add(if_any_method);
+      result=cl;
+    }
+  }
 }
