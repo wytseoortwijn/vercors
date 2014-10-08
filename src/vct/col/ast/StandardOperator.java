@@ -245,7 +245,11 @@ public enum StandardOperator {
   /**
    * Unfold in expression temporarily.
    */
-  Unfolding(2)
+  Unfolding(2),
+  /**
+   * The process algebra operator left merge.
+   */
+  LeftMerge(2)
   ;
 
   private final int arity;

@@ -47,6 +47,7 @@ public class JavaSyntax extends Syntax {
         VerCorsSyntax.add(syntax);
         syntax.addLeftFix(Exp,"^^",125);
         syntax.addLeftFix(StructSelect,".",-1);
+        syntax.addLeftFix(LeftMerge,"||_",30);
         syntax.addOperator(HoarePredicate,-1,"/*{","}*/");
         syntax.addOperator(RangeSeq,-1,"[",",",")");
 
