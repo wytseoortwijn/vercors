@@ -628,25 +628,19 @@ public class JavaPrinter extends AbstractPrinter {
         break;
       }
       case Fork:{
-        ASTNode thread=e.getArg(0);
-        String name;
-        if (thread instanceof NameExpression){
-          name=((NameExpression)thread).toString();
-        } else {
-          throw new Error("fork/join are limited to name expressions");
-        }
-        out.lnprintf("Thread thread_%s := new Thread(%s).start()",name,name);
+        out.printf("fork ");
+        current_precedence=0;
+        setExpr();
+        ASTNode prop=e.getArg(0);
+        prop.accept(this);
         break;
       }
       case Join:{
-        ASTNode thread=e.getArg(0);
-        String name;
-        if (thread instanceof NameExpression){
-          name=((NameExpression)thread).toString();
-        } else {
-          throw new Error("fork/join are limited to name expressions");
-        }
-        out.lnprintf("thread_%s.join()",name);
+        out.printf("join ");
+        current_precedence=0;
+        setExpr();
+        ASTNode prop=e.getArg(0);
+        prop.accept(this);
         break;
       }
       case Assert:{

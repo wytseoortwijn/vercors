@@ -116,12 +116,11 @@ public class RewriteArrayRef extends AbstractRewriter {
       ASTNode object = rewrite(e.object);
       int N = e.getArity();
       ASTNode args[] = new ASTNode[N + 1];
-      args[0] = create.reserved_name(ASTReserved.This);
+      args[0] = object;
       for (int i = 0; i < N; i++) {
         args[i + 1] = e.getArg(i).apply(this);
       }
-      MethodInvokation res = create.invokation(object, rewrite(e.dispatch),
-          e.method, args);
+      MethodInvokation res = create.invokation(null, rewrite(e.dispatch), e.method, args);
       res.set_before(rewrite(e.get_before()));
       res.set_after(rewrite(e.get_after()));
       result = res;
