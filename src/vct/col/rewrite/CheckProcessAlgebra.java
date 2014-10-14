@@ -3,6 +3,7 @@ package vct.col.rewrite;
 import java.util.ArrayList;
 import java.util.Hashtable;
 
+import vct.col.ast.BindingExpression.Binder;
 import vct.col.ast.PrimitiveType.Sort;
 import vct.col.ast.*;
 import vct.col.util.ASTUtils;
@@ -17,10 +18,55 @@ public class CheckProcessAlgebra extends AbstractRewriter {
   private Hashtable<String,String> composite_map;
   private Hashtable<String,Method> process_map;
   
+  private Type adt_type;
+  private AxiomaticDataType adt;
+
   @Override
   public void visit(ASTClass cl){
     composite_map=new Hashtable<String,String>();
     process_map=new Hashtable<String,Method>();
+    adt=create.adt("Process");
+    adt_type=create.class_type("Process");
+    DeclarationStatement proc_p1=create.field_decl("p1", adt_type);
+    DeclarationStatement proc_p2=create.field_decl("p2", adt_type);
+    adt.add_cons(create.function_decl(adt_type,null,"p_merge",
+        new DeclarationStatement[]{proc_p1,proc_p2},null));
+    adt.add_cons(create.function_decl(adt_type,null,"p_seq",
+        new DeclarationStatement[]{proc_p1,proc_p2},null));
+    adt.add_axiom(create.axiom("empty_1L",
+        create.forall(create.constant(true),
+            create.expression(StandardOperator.EQ,
+                create.invokation(null, null, "p_merge",
+                    create.invokation(null, null, "p_empty"),
+                    create.local_name("p")
+                ),
+                create.local_name("p")
+            ),create.field_decl("p", adt_type)
+        )
+    ));
+    adt.add_axiom(create.axiom("empty_2L",
+        create.forall(create.constant(true),
+            create.expression(StandardOperator.EQ,
+                create.invokation(null, null, "p_seq",
+                    create.invokation(null, null, "p_empty"),
+                    create.local_name("p")
+                ),
+                create.local_name("p")
+            ),create.field_decl("p", adt_type)
+        )
+    ));
+    adt.add_axiom(create.axiom("empty_2R",
+        create.forall(create.constant(true),
+            create.expression(StandardOperator.EQ,
+                create.invokation(null, null, "p_seq",
+                    create.local_name("p"),
+                    create.invokation(null, null, "p_empty")
+                ),
+                create.local_name("p")
+            ),create.field_decl("p", adt_type)
+        )
+    ));
+    currentTargetUnit.add(adt);
     for(Method m:cl.dynamicMethods()){
       ASTNode body=m.getBody();
       process_map.put(m.name, m);
@@ -45,6 +91,16 @@ public class CheckProcessAlgebra extends AbstractRewriter {
   }
   
   @Override
+  public void visit(MethodInvokation e){
+    Method m=e.getDefinition();
+    if (m.getReturnType().isPrimitive(Sort.Process)){
+      result=create.invokation(null,null, "p_"+e.method,rewrite(e.getArgs()));
+    } else {
+      super.visit(e);
+    }
+  }
+  
+  @Override
   public void visit(Method m){
     if (m.getReturnType().isPrimitive(Sort.Process)){
       Contract c=m.getContract();
@@ -52,8 +108,8 @@ public class CheckProcessAlgebra extends AbstractRewriter {
       for (ASTNode v:c.modifies){
         create.enter();
         create.setOrigin(v.getOrigin());
-        cb.requires(create.expression(StandardOperator.Perm,rewrite(v),create.constant(100)));
-        cb.ensures(create.expression(StandardOperator.Perm,rewrite(v),create.constant(100)));
+        cb.requires(create.expression(StandardOperator.Perm,rewrite(v),create.reserved_name(ASTReserved.FullPerm)));
+        cb.ensures(create.expression(StandardOperator.Perm,rewrite(v),create.reserved_name(ASTReserved.FullPerm)));
         create.leave();
       }
       if (c.pre_condition!=null) cb.requires(rewrite(c.pre_condition));
@@ -67,7 +123,24 @@ public class CheckProcessAlgebra extends AbstractRewriter {
         m_body=normalize_body(m_body);
         create_body(body,m_body);
         create.leave();
+        int N=m.getArity();
+        ASTNode [] arg_names = new ASTNode[N];
+        for(int i=0;i<N;i++){
+          arg_names[i]=create.local_name(m.getArgument(i));
+        }
+        ASTNode eq=create.binder(
+            Binder.FORALL,
+            create.primitive_type(Sort.Boolean),
+            copy_rw.rewrite(m.getArgs()),
+            create.constant(true),
+            create.expression(StandardOperator.EQ,
+                rewrite(m.getBody()),
+                create.invokation(null, null,"p_"+m.name , arg_names)
+            )
+        );
+        adt.add_axiom(create.axiom(m.name+"_def",eq));
       }
+      adt.add_cons(create.function_decl(adt_type, null,"p_"+m.name,args,null));
       result=create.method_decl(create.primitive_type(Sort.Void), cb.getContract(), m.name, args, body);
     } else {
       super.visit(m);
@@ -86,6 +159,14 @@ public class CheckProcessAlgebra extends AbstractRewriter {
     return m_body;
   }
 
+  @Override
+  public void visit(PrimitiveType t){
+    if (t.sort==Sort.Process){
+      result=adt_type;
+    } else {
+      super.visit(t);
+    }
+  }
 
   private ASTNode expand_unguarded(ASTNode m_body) {
     if (m_body instanceof MethodInvokation){
@@ -200,7 +281,7 @@ public class CheckProcessAlgebra extends AbstractRewriter {
         create_body(lhs,e.getArg(1));
         BlockStatement rhs=create.block();
         create_body(rhs,e.getArg(2));
-        body.add(create.ifthenelse(rewrite(e.getArg(0)),lhs,rhs));
+        body.add(create.ifthenelse(copy_rw.rewrite(e.getArg(0)),lhs,rhs));
         break;
       }
       case Mult:{
@@ -223,11 +304,31 @@ public class CheckProcessAlgebra extends AbstractRewriter {
         Abort("skipping unknown process operator %s",e.getOperator());
       }
     } else if (m_body instanceof MethodInvokation) {
-      body.add(rewrite(m_body));
+      body.add(copy_rw.rewrite(m_body));
     } else {
       Abort("unknown process %s",m_body.getClass());
     }
     create.leave();
   }
 
+  @Override
+  public void visit(OperatorExpression e){
+    switch(e.getOperator()){
+    case Or:
+      if(e.getType().isPrimitive(Sort.Process)){
+        result=create.invokation(null,null,"p_merge",rewrite(e.getArguments()));
+        return;
+      }
+      break;
+    case Mult:
+      if(e.getType().isPrimitive(Sort.Process)){
+        result=create.invokation(null,null,"p_seq",rewrite(e.getArguments()));
+        return;
+      }
+      break;
+      default:
+        break;
+    }
+    super.visit(e);
+  }
 }
