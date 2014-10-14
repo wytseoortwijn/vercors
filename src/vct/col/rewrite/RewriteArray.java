@@ -369,7 +369,7 @@ public class RewriteArray extends AbstractRewriter {
                 create.reserved_name(ASTReserved.Result),
                 create.reserved_name(ASTReserved.Any)),
                 "item"),
-            create.constant(create.fullPermission)));
+            create.fullPermission()));
         Type t=create.primitive_type(Sequence,create.primitive_type(Cell,rewrite(e.getArg(0))));
         currentClass.add_dynamic(create.method_decl(
             t, cb.getContract(), name, new DeclarationStatement[]{decl}, null));

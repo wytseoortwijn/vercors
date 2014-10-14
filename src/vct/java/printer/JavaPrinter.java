@@ -620,9 +620,9 @@ public class JavaPrinter extends AbstractPrinter {
         out.print("(");
         String sep="";
         for(ASTNode arg:e.getArguments()){
-          arg.accept(this);
           out.print(sep);
           sep=",";
+          arg.accept(this);
         }
         out.print(")");
         break;

@@ -91,7 +91,9 @@ public class ASTFactory<E> implements FrameControl {
     leave();
   }
  
-  public static int fullPermission=100;
+  public ASTNode fullPermission(){
+    return reserved_name(ASTReserved.FullPerm);
+  }
 
   public void addZeroConstructor(ASTClass cl){
     enter();
@@ -104,7 +106,7 @@ public class ASTFactory<E> implements FrameControl {
       cb.ensures(expression(
            StandardOperator.PointsTo,
            field_name(field.getName()),
-           constant(fullPermission),
+           fullPermission(),
            zero
       ));
       body.add_statement(assignment(field_name(field.getName()),zero));
