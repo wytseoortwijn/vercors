@@ -223,13 +223,15 @@ public class JavaPrinter extends AbstractPrinter {
     setExpr();
     out.printf("(%s ",binder);
     int N=e.getDeclCount();
-    if (N!=1) Abort("cannot deal with multiple variables in binder (yet)");
-    DeclarationStatement decl=e.getDeclaration(0);
-    decl.getType().accept(this);
-    out.printf(" %s",decl.getName());
-    if (decl.getInit()!=null){
-      out.printf("= ");
-      decl.getInit().accept(this);
+    for(int i=0;i<N;i++){
+      if (i>0) out.printf(",");
+      DeclarationStatement decl=e.getDeclaration(i);
+      decl.getType().accept(this);
+      out.printf(" %s",decl.getName());
+      if (decl.getInit()!=null){
+        out.printf("= ");
+        decl.getInit().accept(this);
+      }
     }
     out.printf(";");
     if (e.select!=null){

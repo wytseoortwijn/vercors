@@ -67,13 +67,13 @@ public class AxiomaticDataType extends ASTDeclaration {
   }
 
   public void add_map(Method m){
-    m.setFlag(ASTFlags.STATIC,false);
+    m.setFlag(ASTFlags.STATIC,true);
     m.setParent(this);
     maps.add(m);
   }
   
   public void add_cons(Method c){
-    c.setFlag(ASTFlags.STATIC,false);
+    c.setFlag(ASTFlags.STATIC,true);
     c.setParent(this);
     cons.add(c);
   }
