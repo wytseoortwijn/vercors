@@ -50,6 +50,7 @@ import vct.col.rewrite.InheritanceRewriter;
 import vct.col.rewrite.InlinePredicatesRewriter;
 import vct.col.rewrite.IterationContractEncoder;
 import vct.col.rewrite.KernelRewriter;
+import vct.col.rewrite.RandomizedIf;
 import vct.col.rewrite.ReorderAssignments;
 import vct.col.rewrite.RewriteArray;
 import vct.col.rewrite.RewriteArrayPerms;
@@ -292,7 +293,8 @@ public class Main
     });
     defined_passes.put("check-defined",new CompilerPass("rewrite process algebra class to check if defined process match their contracts"){
       public ProgramUnit apply(ProgramUnit arg){
-        return new CheckProcessAlgebra(arg).rewriteAll();
+        ProgramUnit tmp=new CheckProcessAlgebra(arg).rewriteAll();
+        return new RandomizedIf(tmp).rewriteAll();
       }
     });
     defined_passes.put("define_double",new CompilerPass("Rewrite double as a non-native data type."){
@@ -644,6 +646,11 @@ public class Main
         passes.add("simplify_expr");
         passes.add("standardize");
         passes.add("check");       
+      }
+      if (check_defined.get()){
+        passes.add("check-defined");
+        passes.add("standardize");
+        passes.add("check");
       }
       passes.add("ref_array");
       passes.add("standardize");
