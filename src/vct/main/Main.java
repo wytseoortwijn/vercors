@@ -56,6 +56,7 @@ import vct.col.rewrite.RewriteArray;
 import vct.col.rewrite.RewriteArrayPerms;
 import vct.col.rewrite.RewriteArrayRef;
 import vct.col.rewrite.SatCheckRewriter;
+import vct.col.rewrite.SilverConstructors;
 import vct.col.rewrite.SimplifyCalls;
 import vct.col.rewrite.SimplifyExpressions;
 import vct.col.rewrite.Standardize;
@@ -413,6 +414,11 @@ public class Main
         return new SatCheckRewriter(arg).rewriteAll();
       }
     });
+    defined_passes.put("silver_constructors",new CompilerPass("convert constructors to silver style"){
+      public ProgramUnit apply(ProgramUnit arg){
+        return new SilverConstructors(arg).rewriteAll();
+      }
+    });
     defined_passes.put("simplify_calls",new CompilerPass("???"){
       public ProgramUnit apply(ProgramUnit arg){
         return new SimplifyCalls(arg).rewriteAll();
@@ -465,9 +471,6 @@ public class Main
     }
     if (!(boogie.get() || chalice.get() || chalice2sil.get() || silver.used() || dafny.get() || verifast.get() || pass_list.iterator().hasNext())) {
       Fail("no back-end or passes specified");
-    }
-    if (verifast.get()){
-      ASTFactory.fullPermission=1;
     }
     Progress("parsing inputs...");
     int cnt = 0;
@@ -652,6 +655,13 @@ public class Main
         passes.add("standardize");
         passes.add("check");
       }
+      passes.add("assign");
+      passes.add("reorder");
+      passes.add("standardize");
+      passes.add("check");
+      passes.add("silver_constructors");
+      passes.add("standardize");
+      passes.add("check");      
       passes.add("ref_array");
       passes.add("standardize");
       passes.add("check");
