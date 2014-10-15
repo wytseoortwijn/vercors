@@ -1,6 +1,7 @@
 package vct.col.rewrite;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Hashtable;
 
 import vct.col.ast.BindingExpression.Binder;
@@ -67,9 +68,14 @@ public class CheckProcessAlgebra extends AbstractRewriter {
         )
     ));
     currentTargetUnit.add(adt);
+    HashSet<NameExpression> hist_set=new HashSet<NameExpression>();
     for(Method m:cl.dynamicMethods()){
+      if (!m.getReturnType().isPrimitive(Sort.Process)) continue;
       ASTNode body=m.getBody();
       process_map.put(m.name, m);
+      for(ASTNode n:m.getContract().modifies){
+        hist_set.add((NameExpression)n);
+      }
       if (body==null) continue;
       if(body.isa(StandardOperator.Or)){
         String composite=":";
@@ -88,6 +94,14 @@ public class CheckProcessAlgebra extends AbstractRewriter {
       }
     }
     super.visit(cl);
+    cl=(ASTClass)result;
+    for(NameExpression n:hist_set){
+      String name=n.getName();
+      VariableInfo info=variables.lookup(name);
+      Type t=((DeclarationStatement)info.reference).getType();
+      cl.add(create.field_decl(n.getName()+"_old",copy_rw.rewrite(t)));
+    }
+    result=cl;
   }
   
   @Override
