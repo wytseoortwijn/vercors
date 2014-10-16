@@ -10,6 +10,12 @@ import vct.col.ast.*;
 import vct.col.util.ASTUtils;
 import vct.util.Configuration;
 
+/**
+ * This class checks if a specified process algebra is correct.
+ * 
+ * @author sccblom
+ *
+ */
 public class CheckProcessAlgebra extends AbstractRewriter {
 
   public CheckProcessAlgebra(ProgramUnit source) {
@@ -18,56 +24,11 @@ public class CheckProcessAlgebra extends AbstractRewriter {
 
   private Hashtable<String,String> composite_map;
   private Hashtable<String,Method> process_map;
-  
-  private Type adt_type;
-  private AxiomaticDataType adt;
 
   @Override
   public void visit(ASTClass cl){
     composite_map=new Hashtable<String,String>();
     process_map=new Hashtable<String,Method>();
-    adt=create.adt("Process");
-    adt_type=create.class_type("Process");
-    DeclarationStatement proc_p1=create.field_decl("p1", adt_type);
-    DeclarationStatement proc_p2=create.field_decl("p2", adt_type);
-    adt.add_cons(create.function_decl(adt_type,null,"p_merge",
-        new DeclarationStatement[]{proc_p1,proc_p2},null));
-    adt.add_cons(create.function_decl(adt_type,null,"p_seq",
-        new DeclarationStatement[]{proc_p1,proc_p2},null));
-    adt.add_axiom(create.axiom("empty_1L",
-        create.forall(create.constant(true),
-            create.expression(StandardOperator.EQ,
-                create.invokation(null, null, "p_merge",
-                    create.invokation(null, null, "p_empty"),
-                    create.local_name("p")
-                ),
-                create.local_name("p")
-            ),create.field_decl("p", adt_type)
-        )
-    ));
-    adt.add_axiom(create.axiom("empty_2L",
-        create.forall(create.constant(true),
-            create.expression(StandardOperator.EQ,
-                create.invokation(null, null, "p_seq",
-                    create.invokation(null, null, "p_empty"),
-                    create.local_name("p")
-                ),
-                create.local_name("p")
-            ),create.field_decl("p", adt_type)
-        )
-    ));
-    adt.add_axiom(create.axiom("empty_2R",
-        create.forall(create.constant(true),
-            create.expression(StandardOperator.EQ,
-                create.invokation(null, null, "p_seq",
-                    create.local_name("p"),
-                    create.invokation(null, null, "p_empty")
-                ),
-                create.local_name("p")
-            ),create.field_decl("p", adt_type)
-        )
-    ));
-    currentTargetUnit.add(adt);
     HashSet<NameExpression> hist_set=new HashSet<NameExpression>();
     for(Method m:cl.dynamicMethods()){
       if (!m.getReturnType().isPrimitive(Sort.Process)) continue;
@@ -178,9 +139,7 @@ public class CheckProcessAlgebra extends AbstractRewriter {
                 create.invokation(null, null,"p_"+m.name , arg_names)
             )
         );
-        adt.add_axiom(create.axiom(m.name+"_def",eq));
       }
-      adt.add_cons(create.function_decl(adt_type, null,"p_"+m.name,args,null));
       result=create.method_decl(create.primitive_type(Sort.Void), cb.getContract(), m.name, args, body);
     } else {
       super.visit(m);
@@ -202,7 +161,7 @@ public class CheckProcessAlgebra extends AbstractRewriter {
   @Override
   public void visit(PrimitiveType t){
     if (t.sort==Sort.Process){
-      result=adt_type;
+      Fail("illegal use of process type");
     } else {
       super.visit(t);
     }
