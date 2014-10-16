@@ -33,6 +33,7 @@ import vct.col.ast.*;
 import vct.col.rewrite.AssignmentRewriter;
 import vct.col.rewrite.BoxingRewriter;
 import vct.col.rewrite.ChalicePreProcess;
+import vct.col.rewrite.CheckHistoryAlgebra;
 import vct.col.rewrite.CheckProcessAlgebra;
 import vct.col.rewrite.ConstructorRewriter;
 import vct.col.rewrite.DefineDouble;
@@ -146,6 +147,8 @@ public class Main
 
     final BooleanSetting check_defined=new BooleanSetting(false);
     clops.add(check_defined.getEnable("check if defined processes satisfy their contracts."),"check-defined");
+    final BooleanSetting check_history=new BooleanSetting(false);
+    clops.add(check_history.getEnable("check if defined processes satisfy their contracts."),"check-history");
     
     
     final BooleanSetting separate_checks=new BooleanSetting(false);
@@ -295,6 +298,12 @@ public class Main
     defined_passes.put("check-defined",new CompilerPass("rewrite process algebra class to check if defined process match their contracts"){
       public ProgramUnit apply(ProgramUnit arg){
         ProgramUnit tmp=new CheckProcessAlgebra(arg).rewriteAll();
+        return new RandomizedIf(tmp).rewriteAll();
+      }
+    });
+    defined_passes.put("check-history",new CompilerPass("rewrite process algebra class to check if history accounting is correct"){
+      public ProgramUnit apply(ProgramUnit arg){
+        ProgramUnit tmp=new CheckHistoryAlgebra(arg).rewriteAll();
         return new RandomizedIf(tmp).rewriteAll();
       }
     });
@@ -652,6 +661,11 @@ public class Main
       }
       if (check_defined.get()){
         passes.add("check-defined");
+        passes.add("standardize");
+        passes.add("check");
+      }
+      if (check_history.get()){
+        passes.add("check-history");
         passes.add("standardize");
         passes.add("check");
       }
