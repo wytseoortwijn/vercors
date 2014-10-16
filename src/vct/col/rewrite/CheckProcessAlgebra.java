@@ -94,14 +94,40 @@ public class CheckProcessAlgebra extends AbstractRewriter {
       }
     }
     super.visit(cl);
-    cl=(ASTClass)result;
+    ASTClass res=(ASTClass)result;
     for(NameExpression n:hist_set){
       String name=n.getName();
       VariableInfo info=variables.lookup(name);
       Type t=((DeclarationStatement)info.reference).getType();
-      cl.add(create.field_decl(n.getName()+"_old",copy_rw.rewrite(t)));
+      res.add(create.field_decl(n.getName()+"_old",copy_rw.rewrite(t)));
     }
-    result=cl;
+    for(Method m:cl.dynamicMethods()){
+      if (!m.getReturnType().isPrimitive(Sort.Process)) continue;
+      if (m.getBody()!=null) continue;
+      // m defines an action.
+      create.enter();
+      create.setOrigin(m.getOrigin());
+      ContractBuilder begin_cb=new ContractBuilder();
+      ArrayList<DeclarationStatement> begin_args=new ArrayList();
+      ContractBuilder commit_cb=new ContractBuilder();
+      ArrayList<DeclarationStatement> commit_args=new ArrayList();
+      res.add(create.method_decl(
+          create.primitive_type(Sort.Void),
+          begin_cb.getContract(),
+          m.name+"_begin",
+          begin_args.toArray(new DeclarationStatement[0]),
+          null
+      ));
+      res.add(create.method_decl(
+          create.primitive_type(Sort.Void),
+          commit_cb.getContract(),
+          m.name+"_commit",
+          commit_args.toArray(new DeclarationStatement[0]),
+          null
+      ));
+      create.leave();
+    }
+    result=res;
   }
   
   @Override
