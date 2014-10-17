@@ -167,6 +167,7 @@ public abstract class RecursiveVisitor<T> extends ASTFrame<T> implements
 
   @Override
   public void visit(ActionBlock ab){
+    dispatch(ab.process);
     dispatch(ab.action);
     dispatch(ab.block);
   }

@@ -56,6 +56,7 @@ public class JavaSyntax extends Syntax {
         syntax.addFunction(Scale,"scale");
         syntax.addFunction(Drop,"drop");
         syntax.addFunction(Take,"take");
+        syntax.addFunction(History,"Hist");
         
         syntax.addOperator(Unfolding,140,"unfolding","in","");
         JavaVerCorsSyntax=syntax;

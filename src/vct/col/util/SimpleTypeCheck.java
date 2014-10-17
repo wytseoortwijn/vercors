@@ -86,7 +86,7 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     super.visit(e);
     Method m=source().find_adt(e.method);
     if (m!=null){
-      Warning("skipping ADT method");
+      //Warning("skipping ADT method");
       e.setDefinition(m);
       Type t=m.getReturnType();
       if (t instanceof PrimitiveType) {
@@ -379,6 +379,10 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     
     
     switch(op){
+    case History:{
+      e.setType(new PrimitiveType(Sort.Resource));
+      break;
+    }
     case NewSilver:{
       // TODO: check arguments.
       e.setType(new ClassType("Ref"));

@@ -48,6 +48,8 @@ public class JavaPrinter extends AbstractPrinter {
   @Override
   public void visit(ActionBlock ab){
     out.printf("action(");
+    nextExpr(); ab.process.accept(this);
+    out.printf(",");
     nextExpr(); ab.action.accept(this);
     out.printf(")");
     ab.block.accept(this);

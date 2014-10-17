@@ -237,6 +237,11 @@ public abstract class ASTNode implements ASTFlags {
   public int labels() {
     return labelset.size();
   }
+  
+  public void clearLabels() {
+    labelset.clear();    
+  }
+  
 
   /**
    * Check if this node is an operator expression.
@@ -343,5 +348,5 @@ public abstract class ASTNode implements ASTFlags {
   }
   
   protected static ThreadLocal<Throwable> thrown=new ThreadLocal();
-  
+
 }

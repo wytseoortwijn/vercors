@@ -2,10 +2,12 @@ package vct.col.ast;
 
 public class ActionBlock extends ASTNode {
 
+  public final ASTNode process;
   public final ASTNode action;
   public final ASTNode block;
   
-  public ActionBlock(ASTNode action,ASTNode block){
+  public ActionBlock(ASTNode process,ASTNode action,ASTNode block){
+    this.process=process;
     this.action=action;
     this.block=block;
   }

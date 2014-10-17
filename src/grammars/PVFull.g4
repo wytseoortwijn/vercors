@@ -57,7 +57,7 @@ expr
  | expr '?' expr ':' expr
  | '?' ID
  | lexpr '->' ID tuple
- | (lexpr | 'Value' | 'Perm' | 'PointsTo' | '\\old' | '?' ) tuple
+ | (lexpr | 'Value' | 'Perm' | 'PointsTo' | 'Hist' | '\\old' | '?' ) tuple
  | '(' ('\\exists'|'\\forall'|'\\forall*') type ID ';' expr (';' expr )? ')'
  | '(' expr ')'
  | 'new' ID tuple
@@ -98,7 +98,7 @@ statement
  | block
  | lexpr '=' expr ';'
  | '{*' expr '*}'
- | 'action' expr block 
+ | 'action' expr ',' expr block 
  ;
 
 fence_list : ( 'local' | 'global' )* ;

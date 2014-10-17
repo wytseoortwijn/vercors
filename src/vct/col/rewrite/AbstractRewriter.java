@@ -669,6 +669,6 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
 
   @Override
   public void visit(ActionBlock ab) {
-    result=create.action_block(rewrite(ab.action),rewrite(ab.block));
+    result=create.action_block(rewrite(ab.process),rewrite(ab.action),rewrite(ab.block));
   }
 }

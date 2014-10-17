@@ -201,6 +201,8 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
       switch(ctx.children.get(0).toString()){
       case "\\old":
         return create.expression(StandardOperator.Old,getTuple((ParserRuleContext)ctx.children.get(1)));
+      case "Hist":
+        return create.expression(StandardOperator.History,getTuple((ParserRuleContext)ctx.children.get(1)));
       case "Perm":
         return create.expression(StandardOperator.Perm,getTuple((ParserRuleContext)ctx.children.get(1)));
       case "Value":
@@ -418,10 +420,11 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
     if (match(ctx,"if","(",null,")",null,"else",null)){
       return create.ifthenelse(convert(ctx,2),convert(ctx,4),convert(ctx,6));
     }
-    if (match(ctx,"action",null,null)){
-      ASTNode action=convert(ctx,1);
-      ASTNode block=convert(ctx,2);
-      return create.action_block(action,block);
+    if (match(ctx,"action",null,",",null,null)){
+      ASTNode process=convert(ctx,1);
+      ASTNode action=convert(ctx,3);
+      ASTNode block=convert(ctx,4);
+      return create.action_block(process,action,block);
     }
     if (match(ctx,null,"while","(",null,")",null)){
       PVFullParser.InvariantContext inv_ctx=(PVFullParser.InvariantContext)ctx.children.get(0);

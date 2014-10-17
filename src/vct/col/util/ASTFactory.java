@@ -869,8 +869,8 @@ public Axiom axiom(String name,ASTNode exp){
     return expression(op,all_args);
   }
   
-  public ActionBlock action_block(ASTNode action, ASTNode block) {
-    ActionBlock res=new ActionBlock(action,block);
+  public ActionBlock action_block(ASTNode process,ASTNode action, ASTNode block) {
+    ActionBlock res=new ActionBlock(process,action,block);
     res.setOrigin(origin_stack.get());
     res.accept_if(post);
     return res;

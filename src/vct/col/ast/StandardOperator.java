@@ -249,7 +249,11 @@ public enum StandardOperator {
   /**
    * The process algebra operator left merge.
    */
-  LeftMerge(2)
+  LeftMerge(2),
+  /**
+   * The history predicate
+   */
+  History(1)
   ;
 
   private final int arity;

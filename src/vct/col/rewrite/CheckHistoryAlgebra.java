@@ -1,6 +1,7 @@
 package vct.col.rewrite;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 
@@ -125,10 +126,12 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
       commit_cb.ensures(create.invokation(null,null,"hist_idle",
           create.invokation(null,null,"p_seq",create.local_name("p"),
               create.invokation(null,null,"p_"+m.name))));
+      HashMap<NameExpression,ASTNode> old_map=new HashMap();
       for(ASTNode n:c.modifies){
         NameExpression name=(NameExpression)n;
         NameExpression name_old=create.field_name(name.getName()+"_old");
         mod_set.add(name);
+        old_map.put(name,name_old);
         ASTNode half=create.expression(StandardOperator.Div,create.constant(1),create.constant(2));
         ASTNode full=create.reserved_name(ASTReserved.FullPerm);
         begin_cb.requires(create.expression(Perm,name,full));
@@ -141,6 +144,9 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
         commit_cb.ensures(create.expression(StandardOperator.EQ,name,create.expression(StandardOperator.Old,name)));
         commit_cb.requires(create.expression(Perm,name_old,half));
       }
+      Substitution sigma=new Substitution(source(),old_map);
+      ApplyOld rw_old=new ApplyOld(sigma);
+      commit_cb.requires(rw_old.rewrite(c.post_condition));
       res.add(create.method_decl(
           create.primitive_type(Sort.Void),
           begin_cb.getContract(),
@@ -208,6 +214,28 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
       adt.add_cons(create.function_decl(adt_type, null,"p_"+m.name,args,null));
       result=null;
     } else {
+      /*
+      ArrayList<DeclarationStatement> args=new ArrayList();
+      Type returns=rewrite(m.getReturnType());
+      ContractBuilder cb=new ContractBuilder();
+      Contract c=m.getContract();
+      for(DeclarationStatement decl:m.getArgs()){
+        args.add(rewrite(decl));
+      }
+      for(ASTNode e:ASTUtils.conjuncts(c.pre_condition,StandardOperator.Star)){
+        if (e.isa(StandardOperator.History)){
+          NameExpression lbl=e.getLabel(0);
+          args.add(create.field_decl(lbl.getName(),create.class_type("Ref")));
+        }
+        ASTNode tmp=rewrite(e);
+        cb.requires(tmp);
+      }
+      for(ASTNode e:ASTUtils.conjuncts(c.pre_condition,StandardOperator.Star)){
+        ASTNode tmp=rewrite(e);
+        cb.ensures(tmp);
+      }
+      result=create.method_kind(m.kind,returns, cb.getContract(), m.name, args.toArray(new DeclarationStatement[0]), rewrite(m.getBody()));
+      */
       super.visit(m);
     }
   }
@@ -236,9 +264,29 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
         return;
       }
       break;
-      default:
-        break;
+    case History:{
+      NameExpression lbl=e.getLabel(0);
+      result=create.invokation(create.unresolved_name(lbl.getName()),null,"hist_idle",rewrite(e.getArguments()));
+      auto_labels=false;
+      return;
+    }
+    default:
+      break;
     }
     super.visit(e);
+  }
+  
+  @Override
+  public void visit(ActionBlock ab){
+    MethodInvokation act=(MethodInvokation)ab.action;
+    NameExpression lbl=ab.process.getLabel(0);
+    lbl=create.unresolved_name(lbl.getName());
+    ASTNode p_expr=rewrite(ab.process);
+    p_expr.clearLabels();
+    BlockStatement res=create.block();
+    res.add(create.invokation(lbl, null, act.method+"_begin", p_expr));
+    res.add(rewrite(ab.block));
+    res.add(create.invokation(lbl, null, act.method+"_commit", p_expr));
+    result=res;
   }
 }
