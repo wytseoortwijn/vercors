@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.Hashtable;
 
 import vct.col.ast.BindingExpression.Binder;
+import vct.col.ast.Method.Kind;
 import vct.col.ast.PrimitiveType.Sort;
 import vct.col.ast.*;
 import vct.col.util.ASTUtils;
@@ -213,8 +214,7 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
       }
       adt.add_cons(create.function_decl(adt_type, null,"p_"+m.name,args,null));
       result=null;
-    } else {
-      /*
+    } else if (m.kind == Kind.Plain || m.kind== Kind.Constructor){
       ArrayList<DeclarationStatement> args=new ArrayList();
       Type returns=rewrite(m.getReturnType());
       ContractBuilder cb=new ContractBuilder();
@@ -225,17 +225,22 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
       for(ASTNode e:ASTUtils.conjuncts(c.pre_condition,StandardOperator.Star)){
         if (e.isa(StandardOperator.History)){
           NameExpression lbl=e.getLabel(0);
+          //cb.given(create.field_decl(lbl.getName(),create.class_type("Ref")));
           args.add(create.field_decl(lbl.getName(),create.class_type("Ref")));
         }
         ASTNode tmp=rewrite(e);
         cb.requires(tmp);
       }
-      for(ASTNode e:ASTUtils.conjuncts(c.pre_condition,StandardOperator.Star)){
+      for(ASTNode e:ASTUtils.conjuncts(c.post_condition,StandardOperator.Star)){
+        if (e.isa(StandardOperator.History)){
+          NameExpression lbl=e.getLabel(0);
+          //cb.yields(create.field_decl(lbl.getName(),create.class_type("Ref")));
+        }
         ASTNode tmp=rewrite(e);
         cb.ensures(tmp);
       }
       result=create.method_kind(m.kind,returns, cb.getContract(), m.name, args.toArray(new DeclarationStatement[0]), rewrite(m.getBody()));
-      */
+    } else {
       super.visit(m);
     }
   }
