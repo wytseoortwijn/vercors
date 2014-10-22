@@ -42,6 +42,7 @@ import pv.parser.PVFullVisitor;
 import vct.col.ast.ASTClass;
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTReserved;
+import vct.col.ast.ASTSpecial;
 import vct.col.ast.BeforeAfterAnnotations;
 import vct.col.ast.BlockStatement;
 import vct.col.ast.CompilationUnit;
@@ -425,6 +426,12 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
       ASTNode action=convert(ctx,3);
       ASTNode block=convert(ctx,4);
       return create.action_block(process,action,block);
+    }
+    if (match(ctx,"create",null,",",null,";")){
+      return create.special(ASTSpecial.Kind.CreateHistory,convert(ctx,1),convert(ctx,3));
+    }
+    if (match(ctx,"destroy",null,",",null,",",null,";")){
+      return create.special(ASTSpecial.Kind.DestroyHistory,convert(ctx,1),convert(ctx,3),convert(ctx,5));
     }
     if (match(ctx,null,"while","(",null,")",null)){
       PVFullParser.InvariantContext inv_ctx=(PVFullParser.InvariantContext)ctx.children.get(0);

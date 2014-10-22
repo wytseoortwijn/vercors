@@ -99,6 +99,8 @@ statement
  | lexpr '=' expr ';'
  | '{*' expr '*}'
  | 'action' expr ',' expr block 
+ | 'create' expr ',' expr ';'
+ | 'destroy' expr ',' expr ',' expr ';'
  ;
 
 fence_list : ( 'local' | 'global' )* ;

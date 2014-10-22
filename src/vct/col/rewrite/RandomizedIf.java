@@ -30,7 +30,16 @@ public class RandomizedIf extends AbstractRewriter {
           create.field_decl("if_any_bool",
           create.primitive_type(PrimitiveType.Sort.Boolean))
       );
-      body.add_statement(rewrite(m.getBody()));
+      BlockStatement tmp=currentBlock;
+      currentBlock=body;
+      if (m.getBody() instanceof BlockStatement){
+        for(ASTNode s:(BlockStatement)m.getBody()){
+          body.add(rewrite(s));
+        }
+      } else {
+        body.add_statement(rewrite(m.getBody()));
+      }
+      currentBlock=tmp;
       result=create.method_decl(returns, contract, name, args, body);
     } else {
       super.visit(m);

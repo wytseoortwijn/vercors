@@ -20,7 +20,9 @@ public class ASTSpecial extends ASTNode {
     Label,
     Contract, Requires, Ensures, Given, Yields, Modifies,
     Exhale,
-    Inhale
+    Inhale,
+    CreateHistory,
+    DestroyHistory
   };
 
   public final Kind kind;

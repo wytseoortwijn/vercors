@@ -269,7 +269,7 @@ public class CheckProcessAlgebra extends AbstractRewriter {
     return null;   
   }
 
-  private void create_body(BlockStatement body, ASTNode m_body) {
+  protected void create_body(BlockStatement body, ASTNode m_body) {
     create.enter();
     create.setOrigin(m_body.getOrigin());
     if (m_body instanceof OperatorExpression) {

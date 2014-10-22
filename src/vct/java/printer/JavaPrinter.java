@@ -171,6 +171,24 @@ public class JavaPrinter extends AbstractPrinter {
       s.args[0].accept(this);
       out.println(";");
       break;    
+    case CreateHistory:
+      out.print("create ");
+      setExpr();
+      s.args[0].accept(this);
+      out.printf(",");
+      s.args[1].accept(this);
+      out.println(";");
+      break;    
+    case DestroyHistory:
+      out.print("destroy ");
+      setExpr();
+      s.args[0].accept(this);
+      out.printf(",");
+      s.args[1].accept(this);
+      out.printf(",");
+      s.args[2].accept(this);
+      out.println(";");
+      break;    
     default:
       super.visit(s);
       break;

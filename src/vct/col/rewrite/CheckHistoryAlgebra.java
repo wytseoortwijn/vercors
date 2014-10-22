@@ -105,8 +105,12 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
       Type t=((DeclarationStatement)info.reference).getType();
       res.add(create.field_decl(n.getName()+"_old",copy_rw.rewrite(t)));
     }
+    Type ref_t=create.class_type("Ref");
     
-    res.add(create.predicate("hist_idle", create.constant(true), new DeclarationStatement[]{create.field_decl("p",adt_type)}));
+    res.add(create.predicate("hist_idle", create.constant(true),
+        new DeclarationStatement[]{
+          create.field_decl("ref",ref_t),
+          create.field_decl("p",adt_type)}));
     for(Method m:cl.dynamicMethods()){
       if (!m.getReturnType().isPrimitive(Sort.Process)) continue;
       if (m.getBody()!=null) continue;
@@ -119,35 +123,42 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
       ArrayList<DeclarationStatement> commit_args=new ArrayList();
       HashSet<NameExpression> mod_set=new HashSet<NameExpression>();
       Contract c=m.getContract();
+      begin_args.add(create.field_decl("ref", ref_t));
       begin_args.add(create.field_decl("p", adt_type));
-      begin_cb.requires(create.invokation(null,null,"hist_idle",create.local_name("p")));
-      begin_cb.ensures(create.invokation(null,null,"hist_"+m.name,create.local_name("p")));
+      begin_cb.requires(create.invokation(null,null,"hist_idle",create.local_name("ref"),create.local_name("p")));
+      begin_cb.ensures(create.invokation(null,null,"hist_"+m.name,create.local_name("ref"),create.local_name("p")));
+      commit_args.add(create.field_decl("ref", ref_t));
       commit_args.add(create.field_decl("p", adt_type));
-      commit_cb.requires(create.invokation(null,null,"hist_"+m.name,create.local_name("p")));
+      commit_cb.requires(create.invokation(null,null,"hist_"+m.name,create.local_name("ref"),create.local_name("p")));
       commit_cb.ensures(create.invokation(null,null,"hist_idle",
+          create.local_name("ref"),
           create.invokation(null,null,"p_seq",create.local_name("p"),
               create.invokation(null,null,"p_"+m.name))));
       HashMap<NameExpression,ASTNode> old_map=new HashMap();
+      HashMap<NameExpression,ASTNode> new_map=new HashMap();
       for(ASTNode n:c.modifies){
         NameExpression name=(NameExpression)n;
+        ASTNode var=create.dereference(create.local_name("ref"),name.getName());
         NameExpression name_old=create.field_name(name.getName()+"_old");
         mod_set.add(name);
         old_map.put(name,name_old);
+        new_map.put(name,var);
         ASTNode half=create.expression(StandardOperator.Div,create.constant(1),create.constant(2));
         ASTNode full=create.reserved_name(ASTReserved.FullPerm);
-        begin_cb.requires(create.expression(Perm,name,full));
-        begin_cb.ensures(create.expression(Perm,name,full));
-        begin_cb.ensures(create.expression(StandardOperator.EQ,name,create.expression(StandardOperator.Old,name)));
+        begin_cb.requires(create.expression(Perm,var,full));
+        begin_cb.ensures(create.expression(Perm,var,full));
+        begin_cb.ensures(create.expression(StandardOperator.EQ,var,create.expression(StandardOperator.Old,var)));
         begin_cb.ensures(create.expression(Perm,name_old,half));
-        begin_cb.ensures(create.expression(StandardOperator.EQ,name,name_old));
-        commit_cb.requires(create.expression(Perm,name,full));
-        commit_cb.ensures(create.expression(Perm,name,full));
-        commit_cb.ensures(create.expression(StandardOperator.EQ,name,create.expression(StandardOperator.Old,name)));
+        begin_cb.ensures(create.expression(StandardOperator.EQ,var,name_old));
+        commit_cb.requires(create.expression(Perm,var,full));
+        commit_cb.ensures(create.expression(Perm,var,full));
+        commit_cb.ensures(create.expression(StandardOperator.EQ,var,create.expression(StandardOperator.Old,var)));
         commit_cb.requires(create.expression(Perm,name_old,half));
       }
       Substitution sigma=new Substitution(source(),old_map);
       ApplyOld rw_old=new ApplyOld(sigma);
-      commit_cb.requires(rw_old.rewrite(c.post_condition));
+      Substitution rw_new=new Substitution(source(),new_map);
+      commit_cb.requires(rw_new.rewrite(rw_old.rewrite(c.post_condition)));
       res.add(create.method_decl(
           create.primitive_type(Sort.Void),
           begin_cb.getContract(),
@@ -162,7 +173,10 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
           commit_args.toArray(new DeclarationStatement[0]),
           null
       ));
-      res.add(create.predicate("hist_"+m.name, create.constant(true), new DeclarationStatement[]{create.field_decl("p",adt_type)}));
+      res.add(create.predicate("hist_"+m.name, create.constant(true),
+          new DeclarationStatement[]{
+            create.field_decl("ref",ref_t),
+            create.field_decl("p",adt_type)}));
       create.leave();
     }
     result=res;
@@ -174,7 +188,16 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
     if (m.getReturnType().isPrimitive(Sort.Process)){
       result=create.invokation(null,null, "p_"+e.method,rewrite(e.getArgs()));
     } else {
-      super.visit(e);
+      ASTNode in_args[]=e.getArgs();
+      ASTNode args[]=new ASTNode[in_args.length];
+      for(int i=0;i<in_args.length;i++){
+        if (in_args[i].labels()>0 && in_args[i].isConstant(0)){
+          args[i]=create.local_name(in_args[i].getLabel(0).getName());
+        } else {
+          args[i]=rewrite(in_args[i]);
+        }
+      }
+      result=create.invokation(rewrite(e.object), e.dispatch, e.method, args);
     }
   }
   
@@ -289,9 +312,47 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
     ASTNode p_expr=rewrite(ab.process);
     p_expr.clearLabels();
     BlockStatement res=create.block();
-    res.add(create.invokation(lbl, null, act.method+"_begin", p_expr));
+    res.add(create.invokation(lbl, null, act.method+"_begin", create.reserved_name(ASTReserved.This) , p_expr));
     res.add(rewrite(ab.block));
-    res.add(create.invokation(lbl, null, act.method+"_commit", p_expr));
+    res.add(create.invokation(lbl, null, act.method+"_commit", create.reserved_name(ASTReserved.This) , p_expr));
     result=res;
   }
+  
+  @Override
+  public void visit(ASTSpecial s){
+    switch(s.kind){
+    case CreateHistory:{
+      NameExpression lbl=s.args[0].getLabel(0);
+      currentBlock.add_statement(create.field_decl(lbl.getName(), create.class_type("Ref")));
+      currentBlock.add_statement(create.expression(StandardOperator.Assert,rewrite(s.args[1])));
+      currentBlock.add_statement(create.special(ASTSpecial.Kind.Inhale,
+          create.invokation(create.local_name(lbl.getName()),null,"hist_idle",rewrite(((OperatorExpression)s.args[0]).getArguments()))
+      ));
+      result=null;//create.comment("// end of create");
+      break;
+    }
+    case DestroyHistory:{
+      NameExpression lbl=s.args[0].getLabel(0);
+      currentBlock.add_statement(create.special(ASTSpecial.Kind.Exhale,
+          create.invokation(create.local_name(lbl.getName()),null,"hist_idle",rewrite(((OperatorExpression)s.args[0]).getArguments()))
+      ));     
+      currentBlock.add_statement(create.expression(StandardOperator.Assume,rewrite(s.args[2])));
+      /* functional check impossible because process function headers are not generated.
+      ContractBuilder cb=new ContractBuilder();
+      Type returns=create.primitive_type(Sort.Void);
+      DeclarationStatement args[]=new DeclarationStatement[0];
+      BlockStatement body=create.block();
+      CheckProcessAlgebra cpa=new CheckProcessAlgebra(source());
+      cpa.create_body(body,((OperatorExpression)s.args[0]).getArg(1));
+      currentClass.add_dynamic(create.method_decl(returns,cb.getContract(), "check_destroy", args, body));
+      */
+      result=null;//create.comment("// end of destroy");;
+      break;
+    }
+    default:
+        super.visit(s);
+        break;
+    }
+  }
+
 }

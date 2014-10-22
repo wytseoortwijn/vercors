@@ -253,7 +253,7 @@ public enum StandardOperator {
   /**
    * The history predicate
    */
-  History(1)
+  History(2)
   ;
 
   private final int arity;
