@@ -20,7 +20,6 @@ import vct.util.Configuration;
 import vct.col.ast.ASTClass;
 import vct.col.ast.ASTClass.ClassKind;
 import vct.col.ast.ASTNode;
-import vct.col.ast.CompilationUnit;
 import vct.col.ast.ProgramUnit;
 import vct.col.rewrite.AbstractRewriter;
 import vct.col.rewrite.AnnotationInterpreter;
@@ -32,7 +31,7 @@ import vct.col.rewrite.FlattenVariableDeclarations;
 public class ColJavaParser implements vct.col.util.Parser {
 
   @Override
-  public CompilationUnit parse(File file) {
+  public ProgramUnit parse(File file) {
     String file_name=file.toString();
       try {
         ANTLRInputStream input = new ANTLRInputStream(new FileInputStream(file));
@@ -45,10 +44,11 @@ public class ColJavaParser implements vct.col.util.Parser {
         
         ParseTree tree = parser.compilationUnit();
 
-        CompilationUnit cu=JavaToCol.convert(tree,file_name,tokens,parser);
+        ProgramUnit pu=JavaToCol.convert(tree,file_name,tokens,parser);
         
-        ProgramUnit pu=new ProgramUnit();
-        pu.add(cu);
+        //System.out.printf("parsing got %d entries%n",pu.size());
+        //vct.util.Configuration.getDiagSyntax().print(System.out,pu);
+        
         pu=new CommentRewriter(pu,new JMLCommentParser()).rewriteAll();
         pu=new FlattenVariableDeclarations(pu).rewriteAll();
         pu=new SpecificationCollector(pu).rewriteAll();
@@ -57,10 +57,7 @@ public class ColJavaParser implements vct.col.util.Parser {
         //vct.util.Configuration.getDiagSyntax().print(System.out,pu);
         pu=new AnnotationInterpreter(pu).rewriteAll();
         //vct.util.Configuration.getDiagSyntax().print(System.out,pu);
-        if (pu.size()!=1){
-          Fail("bad program unit size");
-        }
-        return pu.get(0);
+        return pu;
       } catch (FileNotFoundException e) {
         Fail("File %s has not been found",file_name);
       } catch (Exception e) {

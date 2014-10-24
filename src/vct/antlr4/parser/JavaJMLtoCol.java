@@ -30,8 +30,8 @@ import vct.util.Syntax;
 */
 public class JavaJMLtoCol extends AbstractJavaToCol implements JavaJMLVisitor<ASTNode> {
   
-  public static CompilationUnit convert(ParseTree tree, String file_name,BufferedTokenStream tokens,Parser parser) {
-    CompilationUnit unit=new CompilationUnit(file_name);
+  public static ProgramUnit convert(ParseTree tree, String file_name,BufferedTokenStream tokens,Parser parser) {
+    ProgramUnit unit=new ProgramUnit();
     JavaJMLtoCol visitor=new JavaJMLtoCol(JavaSyntax.getJava(JavaDialect.JavaVerCors),file_name,tokens,parser);
     visitor.scan_to(unit,tree);
     return unit;
@@ -751,7 +751,7 @@ public class JavaJMLtoCol extends AbstractJavaToCol implements JavaJMLVisitor<AS
   public ASTNode visitSpecificationStatement(SpecificationStatementContext ctx) {
     ASTNode res=null;
     if (match(ctx,"loop_invariant",null,";")){
-      res=create.special(ASTSpecial.Kind.Invariant,convert(ctx,1));
+      res=create.special_decl(ASTSpecialDeclaration.Kind.Invariant,convert(ctx,1));
     } else if (match(ctx,"set",null,"=",null,";")){
       res=create.assignment(convert(ctx,1),convert(ctx,3));
     } else if (match(ctx,"fold",null,";")){

@@ -7,7 +7,6 @@ import vct.col.ast.ASTClass;
 import vct.col.ast.ASTClass.ClassKind;
 import vct.col.ast.ASTNode;
 import vct.col.ast.ClassType;
-import vct.col.ast.CompilationUnit;
 import vct.col.ast.DeclarationStatement;
 import vct.col.ast.Method;
 import vct.col.ast.ProgramUnit;
@@ -25,7 +24,7 @@ public class DefineDouble {
     return program;
   }
 
-  private static CompilationUnit generate_double_spec() {
+  private static ASTClass generate_double_spec() {
     final ASTFactory create=new ASTFactory();
     Origin origin=new MessageOrigin("Generated during fake double pass");
     create.setOrigin(origin);
@@ -36,9 +35,7 @@ public class DefineDouble {
     binary[1]=create.field_decl("y",type);
     Double.add_dynamic(create.method_decl(type, null , "plus" , binary , null));
     Double.add_dynamic(create.method_decl(type, null , "mult" , binary , null));
-    CompilationUnit unit=new CompilationUnit("Double.fake");
-    unit.add(Double);
-    return unit;
+    return Double;
   }
   
 }

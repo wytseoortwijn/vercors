@@ -925,11 +925,8 @@ public class JavaPrinter extends AbstractPrinter {
     try {
       TrackingOutput track_out=new TrackingOutput(out,false);
       JavaPrinter printer=new JavaPrinter(track_out, dialect);
-      for(CompilationUnit cu : program.get()){
-        track_out.lnprintf("//==== %s ====",cu.getFileName());
-        for(ASTNode item : cu.get()){
+      for(ASTDeclaration item : program.get()){
           item.accept(printer);
-        }
       }
       return track_out.close();
     } catch (Exception e) {

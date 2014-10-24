@@ -26,9 +26,9 @@ import vct.col.ast.ASTNode;
 import vct.col.ast.ASTReserved;
 import vct.col.ast.ASTSequence;
 import vct.col.ast.ASTSpecial;
+import vct.col.ast.ASTSpecialDeclaration;
 import vct.col.ast.BeforeAfterAnnotations;
 import vct.col.ast.BlockStatement;
-import vct.col.ast.CompilationUnit;
 import vct.col.ast.Contract;
 import vct.col.ast.ContractBuilder;
 import vct.col.ast.DeclarationStatement;
@@ -435,15 +435,15 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
         return convert(ctx,1);
       } else if (match(ctx,"modifies",null,";")){
       	ASTNode list[]=convert_list((ParserRuleContext) ctx.getChild(1), ",");
-        return create.special(ASTSpecial.Kind.Modifies,list);
+        return create.special_decl(ASTSpecialDeclaration.Kind.Modifies,list);
       } else if (match(ctx,"requires",null,";")){                     
-        return create.special(ASTSpecial.Kind.Requires,convert(ctx,1));
+        return create.special_decl(ASTSpecialDeclaration.Kind.Requires,convert(ctx,1));
       } else if (match(ctx,"ensures",null,";")){
-        return create.special(ASTSpecial.Kind.Ensures,convert(ctx,1));
+        return create.special_decl(ASTSpecialDeclaration.Kind.Ensures,convert(ctx,1));
       } else if (match(ctx,"given",null,";")){
-        return create.special(ASTSpecial.Kind.Given,create.block(convert(ctx,1)));
+        return create.special_decl(ASTSpecialDeclaration.Kind.Given,create.block(convert(ctx,1)));
       } else if (match(ctx,"yields",null,";")){
-        return create.special(ASTSpecial.Kind.Yields,create.block(convert(ctx,1)));
+        return create.special_decl(ASTSpecialDeclaration.Kind.Yields,create.block(convert(ctx,1)));
       }
     } else if (arg0 instanceof TerminalNode){
       Token tok=((TerminalNode)arg0).getSymbol();

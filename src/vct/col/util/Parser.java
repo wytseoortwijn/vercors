@@ -2,7 +2,6 @@ package vct.col.util;
 
 import java.io.File;
 
-import vct.col.ast.CompilationUnit;
 import vct.col.ast.ProgramUnit;
 
 /**
@@ -19,7 +18,7 @@ public interface Parser {
    * @param file Name of the file to be parsed.
    * @return CompilationUnit representation of the contents of the file.
    */
-  public CompilationUnit parse(File file);
+  public ProgramUnit parse(File file);
 
 }
 

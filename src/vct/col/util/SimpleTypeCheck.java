@@ -15,10 +15,8 @@ import static hre.System.Warning;
 public class SimpleTypeCheck extends RecursiveVisitor<Type> {
 
   public void check(){
-    for(CompilationUnit cu:source().get()){
-      for(ASTNode entry:cu){
-        entry.accept(this);
-      }
+    for(ASTDeclaration entry:source().get()){
+      entry.accept(this);
     }
   }
 

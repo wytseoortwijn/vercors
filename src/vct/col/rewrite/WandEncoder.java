@@ -13,7 +13,6 @@ import vct.col.ast.ASTNode;
 import vct.col.ast.ASTSpecial;
 import vct.col.ast.BlockStatement;
 import vct.col.ast.ClassType;
-import vct.col.ast.CompilationUnit;
 import vct.col.ast.Contract;
 import vct.col.ast.ContractBuilder;
 import vct.col.ast.DeclarationStatement;
@@ -47,11 +46,9 @@ public class WandEncoder extends AbstractRewriter {
     int case_count;
   }
   private Hashtable<String,WandDefinition> defined_wand_classes=new Hashtable<String,WandDefinition>();
-  private CompilationUnit wand_unit=new CompilationUnit("GeneratedWands");
   
 	public WandEncoder(ProgramUnit source) {
 		super(source);
-		target().add(wand_unit);
 	}
 	  public void visit(OperatorExpression e){
 		  	
@@ -269,7 +266,7 @@ public class WandEncoder extends AbstractRewriter {
         cb.getContract(),apply_name.get(),new DeclarationStatement[0],apply_body);
     cl.add_dynamic(apply);
     def.apply_cases=cases;
-	  wand_unit.add(cl);
+	  target().add(cl);
 	  create.leave();
 	}
   private void add_field_and_getter(ASTClass cl, ArrayList<ASTNode> valid_list,

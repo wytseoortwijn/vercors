@@ -20,7 +20,6 @@ import vct.util.Configuration;
 import vct.col.ast.ASTClass;
 import vct.col.ast.ASTClass.ClassKind;
 import vct.col.ast.ASTNode;
-import vct.col.ast.CompilationUnit;
 import vct.col.ast.ProgramUnit;
 import vct.col.rewrite.AbstractRewriter;
 import vct.col.rewrite.AnnotationInterpreter;
@@ -32,7 +31,7 @@ import vct.col.rewrite.FlattenVariableDeclarations;
 public class ColPVLParser implements vct.col.util.Parser {
 
   @Override
-  public CompilationUnit parse(File file) {
+  public ProgramUnit parse(File file) {
     String file_name=file.toString();
       try {
         ANTLRInputStream input = new ANTLRInputStream(new FileInputStream(file));
@@ -47,19 +46,10 @@ public class ColPVLParser implements vct.col.util.Parser {
 
         Debug("parser got: %s",tree.toStringTree(parser));
 
-        CompilationUnit cu=PVLtoCOL.convert(tree,file_name,tokens,parser);
-        
-        ProgramUnit pu=new ProgramUnit();
-        pu.add(cu);
+        ProgramUnit pu=PVLtoCOL.convert(tree,file_name,tokens,parser);        
         pu=new FlattenVariableDeclarations(pu).rewriteAll();
-        if (pu.size()!=1){
-          Fail("bad program unit size");
-        }
         pu=new PVLPostProcessor(pu).rewriteAll();
-        if (pu.size()!=1){
-          Fail("bad program unit size");
-        }
-        return pu.get(0);
+        return pu;
       } catch (FileNotFoundException e) {
         Fail("File %s has not been found",file_name);
       } catch (Exception e) {

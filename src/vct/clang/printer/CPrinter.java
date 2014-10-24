@@ -7,7 +7,6 @@ import vct.col.ast.ASTDeclaration;
 import vct.col.ast.ASTNode;
 import vct.col.ast.AssignmentStatement;
 import vct.col.ast.BlockStatement;
-import vct.col.ast.CompilationUnit;
 import vct.col.ast.Contract;
 import vct.col.ast.DeclarationStatement;
 import vct.col.ast.IfStatement;
@@ -172,8 +171,7 @@ public class CPrinter extends AbstractPrinter {
 		try {
 			TrackingOutput track_out = new TrackingOutput(out, false);
 			CPrinter printer = new CPrinter(track_out);
-			for (CompilationUnit cu: program.get()) {
-			  track_out.lnprintf("=== file: %s ===",cu.getFileName());
+			for (ASTDeclaration cu: program.get()) {
 				cu.accept(printer);
 			}
 			return track_out.close();

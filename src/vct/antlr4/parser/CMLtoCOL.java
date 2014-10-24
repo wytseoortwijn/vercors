@@ -120,8 +120,8 @@ import vct.util.Syntax;
 */
 public class CMLtoCOL extends AbstractCtoCOL implements CMLVisitor<ASTNode> {
 
-  public static CompilationUnit convert(ParseTree tree, String file_name,BufferedTokenStream tokens,org.antlr.v4.runtime.Parser parser) {
-    CompilationUnit unit=new CompilationUnit(file_name);
+  public static ProgramUnit convert(ParseTree tree, String file_name,BufferedTokenStream tokens,org.antlr.v4.runtime.Parser parser) {
+    ProgramUnit unit=new ProgramUnit();
     CMLtoCOL visitor=new CMLtoCOL(CSyntax.getCML(),file_name,tokens,parser,CMLLexer.Identifier,CMLLexer.COMMENT);
     visitor.scan_to(unit,tree);
     return unit;
@@ -549,7 +549,7 @@ public class CMLtoCOL extends AbstractCtoCOL implements CMLVisitor<ASTNode> {
 	    ASTNode res=null;	    
 
 	  	if (match(ctx,"loop_invariant",null,";")){	      
-	      res= create.special(ASTSpecial.Kind.Invariant,convert(ctx,1));
+	      res= create.special_decl(ASTSpecialDeclaration.Kind.Invariant,convert(ctx,1));
 	    }
 	    else if (match(ctx,"send",null,"to",null,",",null,";")){//DRB	    	
 		    res= create.expression(StandardOperator.Send,convert(ctx,1),convert(ctx,3),convert(ctx,5));		

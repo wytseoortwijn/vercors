@@ -232,6 +232,12 @@ public abstract class RecursiveVisitor<T> extends ASTFrame<T> implements
     }
   }
   
+  public void visit(ASTSpecialDeclaration s){
+    for(ASTNode n:s.args){
+      dispatch(n);
+    }
+  }
+  
   @Override
   public void visit(VariableDeclaration decl) {
     dispatch(decl.basetype);

@@ -20,7 +20,6 @@ import vct.util.Configuration;
 import vct.col.ast.ASTClass;
 import vct.col.ast.ASTClass.ClassKind;
 import vct.col.ast.ASTNode;
-import vct.col.ast.CompilationUnit;
 import vct.col.ast.ProgramUnit;
 import vct.col.rewrite.AbstractRewriter;
 import vct.col.rewrite.AnnotationInterpreter;
@@ -34,7 +33,7 @@ public class ColCParser extends ColIParser {
   
   
   @Override
-  public CompilationUnit parse(File file) {
+  public ProgramUnit parse(File file) {
     String file_name=file.toString();
        try {
         Runtime runtime=Runtime.getRuntime();

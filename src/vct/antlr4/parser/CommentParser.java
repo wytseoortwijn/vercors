@@ -7,9 +7,9 @@ import java.io.InputStream;
 
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTSequence;
-import vct.col.ast.CompilationUnit;
 import vct.col.ast.Contract;
 import vct.col.ast.Method;
+import vct.col.ast.ProgramUnit;
 import vct.parsers.CMLLexer;
 import vct.parsers.CMLParser;
 import hre.io.FifoStream;
@@ -45,7 +45,7 @@ public abstract class CommentParser<Parser extends org.antlr.v4.runtime.Parser,L
     tokens = new CommonTokenStream(lexer);
     parser.reset();
     parser.setTokenStream(tokens);
-    CompilationUnit cu=parse_contract(seq);;
+    ProgramUnit cu=parse_contract(seq);;
     Contract contract=null;
     for(ASTNode n:cu.get()){
       if (n instanceof Contract){
@@ -65,7 +65,7 @@ public abstract class CommentParser<Parser extends org.antlr.v4.runtime.Parser,L
     return contract;
   }
   
-  public abstract CompilationUnit parse_contract(ASTSequence<?> seq);
+  public abstract ProgramUnit parse_contract(ASTSequence<?> seq);
 
   public void annotations(ASTNode node, InputStream fifo){
     ANTLRInputStream input;
@@ -80,12 +80,12 @@ public abstract class CommentParser<Parser extends org.antlr.v4.runtime.Parser,L
     tokens = new CommonTokenStream(lexer);
     parser.reset();
     parser.setTokenStream(tokens);
-    CompilationUnit cu=parse_annotations();
+    ProgramUnit cu=parse_annotations();
     for(ASTNode n:cu.get()){
       node.attach(n);
     }
   }
 
-  public abstract CompilationUnit parse_annotations();
+  public abstract ProgramUnit parse_annotations();
   
 }

@@ -20,7 +20,7 @@ import static hre.System.*;
  * @author sccblom
  *
  */
-public class ProgramUnit {
+public class ProgramUnit implements ASTSequence<ProgramUnit> {
 
   private SpecificationFormat format=SpecificationFormat.Concurrent;
   
@@ -46,21 +46,20 @@ public class ProgramUnit {
   }
 
   /**
-   * The compilation units that make up this program/subsystem.
+   * A program is made up of declarations.
    */
-  private ArrayList<CompilationUnit> contents=new ArrayList<CompilationUnit>();
-  
-  
+  private ArrayList<ASTDeclaration> program=new ArrayList<ASTDeclaration>();
+
   public int size(){
-    return contents.size();
+    return program.size();
   }
   
-  public CompilationUnit get(int i){
-    return contents.get(i);
+  public ASTDeclaration get(int i){
+    return program.get(i);
   }
   
-  public Iterable<CompilationUnit> get(){
-    return contents;
+  public Iterable<ASTDeclaration> get(){
+    return program;
   }
   
   /**
@@ -98,41 +97,39 @@ public class ProgramUnit {
     
   }
 
-  public void add(CompilationUnit unit){
-    contents.add(unit);
-    for(ASTNode n:unit.get()){
-      if (n instanceof ASTDeclaration){
-        ASTDeclaration d=(ASTDeclaration)n;
-        decl_map.put(d.getDeclName(), d);
+  public void add(ASTDeclaration n){
+    program.add(n);
+    if (n instanceof ASTDeclaration){
+      ASTDeclaration d=(ASTDeclaration)n;
+      decl_map.put(d.getDeclName(), d);
+    }
+    if (n instanceof ASTClass){
+      ASTClass cl=(ASTClass)n;
+      Debug("indexing %s as %s",cl.name,cl.getDeclName());
+      classes.put(cl.getDeclName(),cl);
+      for(Method m : cl.staticMethods()){
+        if (m.kind==Method.Kind.Predicate){
+          decl_map.put(m.getDeclName(),m);
+        }          
       }
-      if (n instanceof ASTClass){
-        ASTClass cl=(ASTClass)n;
-        Debug("indexing %s as %s",cl.name,cl.getDeclName());
-        classes.put(cl.getDeclName(),cl);
-        for(Method m : cl.staticMethods()){
-          if (m.kind==Method.Kind.Predicate){
-            decl_map.put(m.getDeclName(),m);
-          }          
-        }
-        for(Method m : cl.dynamicMethods()){
-          if (m.kind==Method.Kind.Predicate){
-            decl_map.put(m.getDeclName(),m);
-          }
-        }
-      }
-      if (n instanceof AxiomaticDataType) {
-        AxiomaticDataType adt=(AxiomaticDataType)n;
-        for(Method m:adt.constructors()){
-          Warning("putting adt entry %s",m.getDeclName().toString("."));
-          adt_map.put(m.getDeclName(),m);
-        }
-        for(Method m:adt.mappings()){
-          adt_map.put(m.getDeclName(),m);
+      for(Method m : cl.dynamicMethods()){
+        if (m.kind==Method.Kind.Predicate){
+          decl_map.put(m.getDeclName(),m);
         }
       }
     }
+    if (n instanceof AxiomaticDataType) {
+      AxiomaticDataType adt=(AxiomaticDataType)n;
+      for(Method m:adt.constructors()){
+        Warning("putting adt entry %s",m.getDeclName().toString("."));
+        adt_map.put(m.getDeclName(),m);
+      }
+      for(Method m:adt.mappings()){
+        adt_map.put(m.getDeclName(),m);
+      }
+    }    
   }
-
+ 
   public Iterable<ASTClass> classes() {
     return classes.values();
   }
@@ -142,8 +139,8 @@ public class ProgramUnit {
   }
 
   public <T> void accept(ASTVisitor<T> visitor) {
-    for(CompilationUnit cu:contents){
-      cu.accept(visitor);
+    for(ASTDeclaration decl:program){
+      decl.accept(visitor);
     }
   }
 
@@ -185,5 +182,26 @@ public class ProgramUnit {
   public Method find_adt(String ... nameFull) {
     ClassName class_name=new ClassName(nameFull);
     return adt_map.get(class_name);
+  }
+
+  @Override
+  public Iterator<ASTNode> iterator() {
+    return (Iterator)program.iterator();
+  }
+
+  @Override
+  public ProgramUnit add(ASTNode item) {
+    if (item instanceof ASTDeclaration){
+      add((ASTDeclaration)item);
+    } else {
+      Abort("cannot insert %s into program unit.",item.getClass());
+    }
+    return this;
+  }
+
+  public void add(ProgramUnit unit) {
+    for(ASTDeclaration decl:unit.get()){
+      add(decl);
+    }
   }
 }

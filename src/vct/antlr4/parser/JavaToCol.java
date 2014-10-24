@@ -27,8 +27,8 @@ import vct.util.Syntax;
 */
 public class JavaToCol extends AbstractJavaToCol implements JavaVisitor<ASTNode> {
 
-  public static CompilationUnit convert(ParseTree tree, String file_name,BufferedTokenStream tokens,Parser parser) {
-    CompilationUnit unit=new CompilationUnit(file_name);
+  public static ProgramUnit convert(ParseTree tree, String file_name,BufferedTokenStream tokens,Parser parser) {
+    ProgramUnit unit=new ProgramUnit();
     JavaToCol visitor=new JavaToCol(JavaSyntax.getJava(),file_name,tokens,parser);
     visitor.scan_to(unit,tree);
     return unit;

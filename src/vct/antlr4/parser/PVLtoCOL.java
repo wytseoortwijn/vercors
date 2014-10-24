@@ -45,7 +45,6 @@ import vct.col.ast.ASTReserved;
 import vct.col.ast.ASTSpecial;
 import vct.col.ast.BeforeAfterAnnotations;
 import vct.col.ast.BlockStatement;
-import vct.col.ast.CompilationUnit;
 import vct.col.ast.Contract;
 import vct.col.ast.ContractBuilder;
 import vct.col.ast.DeclarationStatement;
@@ -70,8 +69,8 @@ import static vct.col.ast.ASTReserved.*;
 */
 public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
 
-  public static CompilationUnit convert(ParseTree tree, String file_name,BufferedTokenStream tokens,org.antlr.v4.runtime.Parser parser) {
-    CompilationUnit unit=new CompilationUnit(file_name);
+  public static ProgramUnit convert(ParseTree tree, String file_name,BufferedTokenStream tokens,org.antlr.v4.runtime.Parser parser) {
+    ProgramUnit unit=new ProgramUnit();
     PVLtoCOL visitor=new PVLtoCOL(PVLSyntax.get(),file_name,tokens,parser);
     visitor.scan_to(unit,tree);
     return unit;

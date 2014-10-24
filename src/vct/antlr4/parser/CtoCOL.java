@@ -127,9 +127,9 @@ public class CtoCOL extends AbstractCtoCOL implements CVisitor<ASTNode> {
    * @param parser The instance of the parser used.
    * @return COL Compilation unit with the contents of the parse tree.
    */
-  public static CompilationUnit convert(ParseTree tree, String file_name,BufferedTokenStream tokens,org.antlr.v4.runtime.Parser parser) {
+  public static ProgramUnit convert(ParseTree tree, String file_name,BufferedTokenStream tokens,org.antlr.v4.runtime.Parser parser) {
     // create a new compilation unit.
-    CompilationUnit unit=new CompilationUnit(file_name);
+    ProgramUnit unit=new ProgramUnit();
     // Create a visitor that can do the conversion.
     CtoCOL visitor=new CtoCOL(CSyntax.getC(),file_name,tokens,parser);
     // Invoke the generic conversion method in ANTLRtoCOL.

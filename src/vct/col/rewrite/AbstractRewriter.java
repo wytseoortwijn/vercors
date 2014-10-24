@@ -13,13 +13,13 @@ import vct.col.ast.ASTFrame;
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTSequence;
 import vct.col.ast.ASTSpecial;
+import vct.col.ast.ASTSpecialDeclaration;
 import vct.col.ast.ASTWith;
 import vct.col.ast.AbstractVisitor;
 import vct.col.ast.ActionBlock;
 import vct.col.ast.Axiom;
 import vct.col.ast.AxiomaticDataType;
 import vct.col.ast.BindingExpression;
-import vct.col.ast.CompilationUnit;
 import vct.col.ast.ContractBuilder;
 import vct.col.ast.Dereference;
 import vct.col.ast.Lemma;
@@ -99,14 +99,11 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
    */
   protected BlockStatement currentBlock=null;
   
-  /**
-   */
-  protected CompilationUnit currentTargetUnit=null;
   
   protected ASTSequence<?> current_sequence(){
     if (currentBlock!=null) return currentBlock;
     if (currentClass!=null) return currentClass;
-    return currentTargetUnit;
+    return target();
   }
   
   /**
@@ -505,69 +502,42 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   }
 
   public ProgramUnit rewriteAll() {
-    for(CompilationUnit cu :source().get()){
-      CompilationUnit res=new CompilationUnit(cu.getFileName());
-      res.attach(target());
-      currentTargetUnit=res;
-      for(ASTNode n:cu.get()){
+    for(ASTDeclaration n:source().get()){
         ASTNode tmp=rewrite(n);
         if (tmp!=null){
-          res.add(tmp);
+          target().add(tmp);
         }
-      }
-      if (res.size()>0){
-        target().add(res);
-      } else {
-        Debug("discarding empty unit %s",cu.getFileName());
-      }
-      currentTargetUnit=null;
     }
     return target();
   }
 
-  private void rewriteOrdered(HashSet<ASTClass> done,HashMap<ASTClass,CompilationUnit> target,ASTClass cl){
+  private void rewriteOrdered(HashSet<ASTClass> done,ASTClass cl){
     if (!done.contains(cl)){
       done.add(cl);
       for(ClassType parent:cl.implemented_classes){
         Fail("interfaces are not supported");
       }
       for(ClassType parent:cl.super_classes){
-        rewriteOrdered(done,target,source().find(parent));
+        rewriteOrdered(done,source().find(parent));
       }
       Debug("rewriting %s",cl.getName());
-      CompilationUnit res=target.get(cl);
-      currentTargetUnit=res;
       ASTClass tmp=rewrite(cl);
       if (tmp!=null){
-        res.add(tmp);
+        target().add(tmp);
       }
-      currentTargetUnit=null;   
     }
   }
 
   public ProgramUnit rewriteOrdered() {
     HashSet<ASTClass> done=new HashSet();
-    HashMap<ASTClass,CompilationUnit> target=new HashMap();
-    for(CompilationUnit cu :source().get()){
-      CompilationUnit res=new CompilationUnit(cu.getFileName());
-      res.attach(target());
-      target().add(res);
-      for(ASTNode n:cu.get()){
+    for(ASTNode n:source().get()){
         if (n instanceof ASTClass) {
-          target.put((ASTClass)n,res);
-          continue;
+          rewriteOrdered(done,(ASTClass)n);
         }
         ASTNode tmp=rewrite(n);
         if (tmp!=null){
-          res.add(tmp);
+          target().add(tmp);
         }
-      }
-    }
-    for(CompilationUnit cu :source().get()){
-      for(ASTNode n:cu.get()){
-        if (n instanceof ASTClass) rewriteOrdered(done,target,(ASTClass)n);
-        else Abort("ordered rewrite on non-class entry %s",n.getClass());
-      }
     }
     return target();
   }
@@ -600,6 +570,11 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   @Override
   public void visit(ASTSpecial special) {
     result=create.special(special.kind,rewrite(special.args));
+  }
+  
+  @Override
+  public void visit(ASTSpecialDeclaration special) {
+    result=create.special_decl(special.kind,rewrite(special.args));
   }
   
   @Override

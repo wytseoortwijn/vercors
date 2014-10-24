@@ -17,7 +17,6 @@ import vct.col.rewrite.AbstractRewriter;
 import vct.parsers.CMLLexer;
 import vct.parsers.CMLParser;
 import static hre.System.*;
-import static vct.col.ast.ASTSpecial.Kind.Comment;
 
 import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.Lexer;
@@ -32,8 +31,10 @@ public class SpecificationCollector extends AbstractRewriter {
     super(source);
   }
 
+  
+  
   @Override
-  public void visit(ASTSpecial s){
+  public void visit(ASTSpecialDeclaration s){
     switch(s.kind){
     case Given:
     case Yields:
@@ -42,10 +43,6 @@ public class SpecificationCollector extends AbstractRewriter {
     case Invariant:
     case Modifies:
       break;
-    case Comment:
-      // TODO: allow comments, which are removed to solve static/dynamic!
-      // super.visit(s);
-      return;      
     default:
       if (currentContractBuilder!=null){
         Abort("Special %s cannot be part of contract",s.kind);
@@ -137,7 +134,19 @@ public class SpecificationCollector extends AbstractRewriter {
   private void filter_with_then(BlockStatement new_before,
       BlockStatement new_after, BlockStatement new_current, BlockStatement old_current) {
     for(ASTNode n:old_current){
-      if (n instanceof ASTSpecial){
+      if (n instanceof ASTSpecialDeclaration){
+        ASTSpecialDeclaration sp=(ASTSpecialDeclaration)n; 
+        switch(sp.kind){
+        case Requires:{
+          currentContractBuilder.requires(copy_rw.rewrite(sp.args[0]));
+          continue;
+        }
+        case Ensures:{
+          currentContractBuilder.ensures(copy_rw.rewrite(sp.args[0]));
+          continue;
+        }
+        }
+      } else if (n instanceof ASTSpecial){
         ASTSpecial sp=(ASTSpecial)n; 
         switch(sp.kind){
         case With:{
@@ -150,14 +159,6 @@ public class SpecificationCollector extends AbstractRewriter {
           for(ASTNode s:(BlockStatement)sp.args[0]){
             new_after.add_statement(copy_rw.rewrite(s));
           }
-          continue;
-        }
-        case Requires:{
-          currentContractBuilder.requires(copy_rw.rewrite(sp.args[0]));
-          continue;
-        }
-        case Ensures:{
-          currentContractBuilder.ensures(copy_rw.rewrite(sp.args[0]));
           continue;
         }
         }

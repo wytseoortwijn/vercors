@@ -4,7 +4,7 @@ import org.antlr.v4.runtime.tree.ParseTree;
 
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTSequence;
-import vct.col.ast.CompilationUnit;
+import vct.col.ast.ProgramUnit;
 import vct.col.ast.Contract;
 import vct.parsers.JavaJMLLexer;
 import vct.parsers.JavaJMLParser;
@@ -19,13 +19,13 @@ public class JMLCommentParser extends CommentParser<JavaJMLParser,JavaJMLLexer> 
   }
 
   @Override
-  public CompilationUnit parse_contract(ASTSequence<?> seq) {
+  public ProgramUnit parse_contract(ASTSequence<?> seq) {
     ParseTree tree=parser.specificationSequence();
     return JavaJMLtoCol.convert(tree, "embedded_comments", tokens, parser);
   }
 
   @Override
-  public CompilationUnit parse_annotations() {
+  public ProgramUnit parse_annotations() {
 	ParseTree tree=parser.specificationModifier();
 	return JavaJMLtoCol.convert(tree, "embedded_comments", tokens, parser);
   }

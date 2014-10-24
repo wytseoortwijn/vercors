@@ -8,8 +8,8 @@ import org.antlr.v4.runtime.tree.ParseTree;
 
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTSequence;
-import vct.col.ast.CompilationUnit;
 import vct.col.ast.Contract;
+import vct.col.ast.ProgramUnit;
 import vct.parsers.CMLLexer;
 import vct.parsers.CMLParser;
 
@@ -24,14 +24,14 @@ public class CMLCommentParser extends CommentParser<CMLParser,CMLLexer> {
   }
 
   @Override
-  public CompilationUnit parse_contract(ASTSequence<?> seq) {
+  public ProgramUnit parse_contract(ASTSequence<?> seq) {
     ParseTree tree=parser.specificationSequence(); //DRB --Changed
     return CMLtoCOL.convert(tree, "embedded_com"
     		+ "..ments", tokens, parser);
   }
 
   @Override
-  public CompilationUnit parse_annotations() {
+  public ProgramUnit parse_annotations() {
 	throw new HREError("annotations for C not defined yet.");
   }
 

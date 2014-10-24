@@ -4,7 +4,6 @@ import hre.ast.MessageOrigin;
 import vct.col.ast.ASTClass;
 import vct.col.ast.ASTNode;
 import vct.col.ast.ClassType;
-import vct.col.ast.CompilationUnit;
 import vct.col.ast.DeclarationStatement;
 import vct.col.ast.OperatorExpression;
 import vct.col.ast.PrimitiveType.Sort;
@@ -17,7 +16,7 @@ public class ForkJoinCompilation extends AbstractRewriter {
 	  super(arg);
 	  create.enter();
     ASTClass global_class=create(new MessageOrigin("fork join class")).ast_class("ForkJoinBase",ClassKind.Plain,null,null);
-    target().add(new CompilationUnit("ForkJoinBase").add(global_class));
+    target().add(global_class);
     global_class.add_dynamic(create.method_decl(
     		create.primitive_type(Sort.Void),
     		null,

@@ -4,31 +4,20 @@ import java.util.Arrays;
 
 import vct.util.ClassName;
 
-public class ASTSpecial extends ASTNode {
+public class ASTSpecialDeclaration extends ASTDeclaration {
 
   public static enum Kind {
-    Assert,
-    Expression,
-    // Invariant,
-//    Fold
-    With,
-    Then,
-    Proof,
-    Import,
-    Throw,
-    Label,
-    //Contract, Requires, Ensures, Given, Yields, Modifies,
-    Exhale,
-    Inhale,
-    CreateHistory,
-    DestroyHistory
+    Comment,
+    Invariant,
+    Contract, Requires, Ensures, Given, Yields, Modifies,
   };
 
   public final Kind kind;
   
   public final ASTNode[] args;
   
-  public ASTSpecial(Kind kind,ASTNode ... args){
+  public ASTSpecialDeclaration(Kind kind,ASTNode ... args){
+    super("<<special>>");
     this.kind=kind;
     this.args=Arrays.copyOf(args,args.length);
   }
@@ -63,6 +52,13 @@ public class ASTSpecial extends ASTNode {
   
   public boolean isSpecial(Kind with) {
     return kind==with;
+  }
+
+
+  @Override
+  public ClassName getDeclName() {
+    // TODO Auto-generated method stub
+    return null;
   }
 
 }

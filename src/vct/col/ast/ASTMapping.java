@@ -68,4 +68,6 @@ public interface ASTMapping<R> {
 
   public R map(ActionBlock actionBlock);
 
+  public R map(ASTSpecialDeclaration s);
+
 }

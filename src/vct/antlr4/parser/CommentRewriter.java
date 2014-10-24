@@ -17,7 +17,7 @@ import vct.col.rewrite.AbstractRewriter;
 import vct.parsers.CMLLexer;
 import vct.parsers.CMLParser;
 import static hre.System.*;
-import static vct.col.ast.ASTSpecial.Kind.Comment;
+import static vct.col.ast.ASTSpecialDeclaration.Kind.Comment;
 
 import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.Lexer;
@@ -36,18 +36,18 @@ public class CommentRewriter extends AbstractRewriter {
     this.parser=parser;
   }
 
-  private ArrayList<ASTSpecial> queue=new ArrayList<ASTSpecial>();
+  private ArrayList<ASTSpecialDeclaration> queue=new ArrayList<ASTSpecialDeclaration>();
   private Contract contract;
 
   private InputStream grabQueue(){
     final FifoStream fifo=new FifoStream(4096);
-    final ArrayList<ASTSpecial> my_queue=new ArrayList<ASTSpecial>(queue);
+    final ArrayList<ASTSpecialDeclaration> my_queue=new ArrayList<ASTSpecialDeclaration>(queue);
     queue.clear();
     new Thread(){
       @Override
       public void run(){
         PrintStream out=new PrintStream(fifo.getOutputStream());
-        for (ASTSpecial s:my_queue){
+        for (ASTSpecialDeclaration s:my_queue){
           String comment=s.args[0].toString();
           if (comment.startsWith("//@")){
             FileOrigin o=(FileOrigin)s.getOrigin();
@@ -83,7 +83,7 @@ public class CommentRewriter extends AbstractRewriter {
   @Override
   public void enter(ASTNode node){
     super.enter(node);
-    if ((!(node instanceof ASTSpecial) || ((ASTSpecial)node).kind!=Comment) && !(node instanceof ConstantExpression)){
+    if ((!(node instanceof ASTSpecialDeclaration) || ((ASTSpecialDeclaration)node).kind!=Comment) && !(node instanceof ConstantExpression)){
       if (queue.size()>0){
         contract=parser.contract(current_sequence(),grabQueue());
       }
@@ -134,7 +134,7 @@ public class CommentRewriter extends AbstractRewriter {
   }
   
   @Override
-  public void visit(ASTSpecial s){
+  public void visit(ASTSpecialDeclaration s){
     switch(s.kind){
     case Comment:{
       String comment=s.args[0].toString();
@@ -170,16 +170,16 @@ public class CommentRewriter extends AbstractRewriter {
   {
     for(ASTNode n:old_current){
       n.clearParent();
-      if (n instanceof ASTSpecial){
+      if (n instanceof ASTSpecialDeclaration){
         //Warning("filtering %s",((ASTSpecial)n).kind);
-        switch (((ASTSpecial)n).kind) {
+        switch (((ASTSpecialDeclaration)n).kind) {
         case Invariant:
           Debug("appending invariant");
-          s.appendInvariant(((ASTSpecial)n).args[0]);
+          s.appendInvariant(((ASTSpecialDeclaration)n).args[0]);
           break;
         case Contract:
           Debug("appending contract");
-          s.appendContract((Contract)((ASTSpecial)n).args[0]);
+          s.appendContract((Contract)((ASTSpecialDeclaration)n).args[0]);
           break;
         default:
           new_current.add(n);
@@ -200,7 +200,7 @@ public class CommentRewriter extends AbstractRewriter {
     if (queue.size()>0) {
       Contract c=parser.contract(currentBlock,grabQueue());
       if (c!=null) {
-        currentBlock.add_statement(create.special(ASTSpecial.Kind.Contract, c));
+        currentBlock.add_statement(create.special_decl(ASTSpecialDeclaration.Kind.Contract, c));
       }
     }
     result=currentBlock;

@@ -162,12 +162,13 @@ public class AbstractPrinter extends AbstractVisitor {
   
   public void visit(ASTSpecial s){
     switch(s.kind){
-    case Comment:
-      String lines[]=s.args[0].toString().split("\n");
-      for(int i=0;i<lines.length;i++){
-        out.println(lines[i]);
-      }
-      break;
+    default:
+      Abort("unimplemented special %s",s.kind);
+    }
+  }
+  
+  public void visit(ASTSpecialDeclaration s){
+    switch(s.kind){
     case Invariant:
     case Given:
     case Yields:
@@ -182,8 +183,14 @@ public class AbstractPrinter extends AbstractVisitor {
       }
       out.println(";");
       break;
+    case Comment:
+      String lines[]=s.args[0].toString().split("\n");
+      for(int i=0;i<lines.length;i++){
+        out.println(lines[i]);
+      }
+      break;
     default:
-      Abort("unimplemented special %s",s.kind);
+      Abort("unimplemented special declaration %s",s.kind);
     }
   }
 }

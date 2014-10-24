@@ -71,7 +71,7 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
             ),create.field_decl("p", adt_type)
         )
     ));
-    currentTargetUnit.add(adt);
+    target().add(adt);
     HashSet<NameExpression> hist_set=new HashSet<NameExpression>();
     for(Method m:cl.dynamicMethods()){
       if (!m.getReturnType().isPrimitive(Sort.Process)) continue;

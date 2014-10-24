@@ -11,7 +11,6 @@ import vct.col.ast.ASTNode;
 import vct.col.ast.BlockStatement;
 import vct.col.ast.BooleanValue;
 import vct.col.ast.ClassType;
-import vct.col.ast.CompilationUnit;
 import vct.col.ast.ConstantExpression;
 import vct.col.ast.Contract;
 import vct.col.ast.ContractBuilder;
@@ -39,12 +38,9 @@ import static vct.col.ast.ASTReserved.*;
  *
  */
 public class ExplicitPermissionEncoding extends AbstractRewriter {
-  
-  CompilationUnit predicate_unit=new CompilationUnit("GeneratedPredicates");
-  
+ 
   public ExplicitPermissionEncoding(ProgramUnit source) {
     super(source);
-    target().add(predicate_unit);
   }
 
   public AbstractRewriter copy_rw=new AbstractRewriter(source()){
@@ -91,7 +87,7 @@ public class ExplicitPermissionEncoding extends AbstractRewriter {
       if (c!=null){
         pred_class.setContract(copy_rw.rewrite(c));
       }
-      predicate_unit.add(pred_class);
+      target().add(pred_class);
       result=null;
     } else {
       current_method=m;

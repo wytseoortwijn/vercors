@@ -22,7 +22,6 @@ import vct.util.Configuration;
 import vct.col.ast.ASTClass;
 import vct.col.ast.ASTClass.ClassKind;
 import vct.col.ast.ASTNode;
-import vct.col.ast.CompilationUnit;
 import vct.col.ast.ProgramUnit;
 import vct.col.rewrite.AbstractRewriter;
 import vct.col.rewrite.AnnotationInterpreter;
@@ -33,7 +32,7 @@ import vct.col.rewrite.FlattenVariableDeclarations;
  */
 public class ColIParser implements vct.col.util.Parser {
 
-  protected CompilationUnit parse(String file_name,InputStream stream) throws IOException{
+  protected ProgramUnit parse(String file_name,InputStream stream) throws IOException{
     ANTLRInputStream input = new ANTLRInputStream(stream);
     
     CLexer lexer = new CLexer(input);
@@ -46,21 +45,15 @@ public class ColIParser implements vct.col.util.Parser {
     
     Debug("parser got: %s",tree.toStringTree(parser));
 
-    CompilationUnit cu=CtoCOL.convert(tree,file_name,tokens,parser);
-    
-    ProgramUnit pu=new ProgramUnit();
-    pu.add(cu);
+    ProgramUnit pu=CtoCOL.convert(tree,file_name,tokens,parser);
 
     //vct.util.Configuration.getDiagSyntax().print(System.out,pu);
     
     pu=new CommentRewriter(pu,new CMLCommentParser()).rewriteAll();
     pu=new FlattenVariableDeclarations(pu).rewriteAll();
     pu=new SpecificationCollector(pu).rewriteAll();
-
-    if (pu.size()!=1){
-      Fail("bad program unit size");
-    }
-    
+   
+    /* skipping encoding procudural program into class
     cu=new CompilationUnit(file_name);
     ASTClass cl=new ASTClass("Ref",ClassKind.Plain);
     cl.setOrigin(new FileOrigin(file_name,1,1));
@@ -68,11 +61,12 @@ public class ColIParser implements vct.col.util.Parser {
     for(ASTNode n:pu.get(0).get()){
       cl.add_dynamic(n);
     }
-    return cu;
+    */
+    return pu;
   }
   
   @Override
-  public CompilationUnit parse(File file) {
+  public ProgramUnit parse(File file) {
     String file_name=file.toString();
     try {
       InputStream stream =new FileInputStream(file);

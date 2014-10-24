@@ -6,6 +6,7 @@ import java.util.EnumSet;
 
 import vct.col.ast.*;
 import vct.col.ast.ASTClass.ClassKind;
+import vct.col.ast.ASTSpecialDeclaration.Kind;
 import vct.col.ast.BindingExpression.Binder;
 import vct.col.ast.PrimitiveType.Sort;
 import vct.util.Configuration;
@@ -228,8 +229,8 @@ public BlockStatement block(Origin origin, ASTNode ... args) {
   public ClassType class_type(String name,ASTNode ... args){
     return class_type(origin_stack.get(),name,args);
   }
-  public ASTSpecial comment(String text) {
-    return special(vct.col.ast.ASTSpecial.Kind.Comment,constant(text));
+  public ASTSpecialDeclaration comment(String text) {
+    return special_decl(vct.col.ast.ASTSpecialDeclaration.Kind.Comment,constant(text));
   }
 
   public ConstantExpression constant(boolean b) {
@@ -733,7 +734,7 @@ public ASTFactory setOrigin(Origin origin) {
   this.origin_stack.set(origin);
   return this;
 }
- public ASTSpecial special(Origin origin, vct.col.ast.ASTSpecial.Kind kind, ASTNode ... args) {
+public ASTSpecial special(Origin origin, vct.col.ast.ASTSpecial.Kind kind, ASTNode ... args) {
   ASTSpecial res=new ASTSpecial(kind,args);
   res.setOrigin(origin);
   res.accept_if(post);
@@ -742,6 +743,16 @@ public ASTFactory setOrigin(Origin origin) {
  public ASTSpecial special(vct.col.ast.ASTSpecial.Kind kind, ASTNode ... args) {
   return special(origin_stack.get(),kind,args);
 }
+ public ASTSpecialDeclaration special_decl(Origin origin, vct.col.ast.ASTSpecialDeclaration.Kind kind, ASTNode ... args) {
+   ASTSpecialDeclaration res=new ASTSpecialDeclaration(kind,args);
+   res.setOrigin(origin);
+   res.accept_if(post);
+   return res;
+ }
+  public ASTSpecialDeclaration special_decl(vct.col.ast.ASTSpecialDeclaration.Kind kind, ASTNode ... args) {
+   return special_decl(origin_stack.get(),kind,args);
+ }
+
  public BindingExpression starall(ASTNode guard, ASTNode claim, DeclarationStatement ... decl) {
   BindingExpression res=new BindingExpression(
       Binder.STAR,

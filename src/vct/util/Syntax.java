@@ -1,9 +1,9 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 package vct.util;
 
+import vct.col.ast.ASTDeclaration;
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTReserved;
-import vct.col.ast.CompilationUnit;
 import vct.col.ast.PrimitiveType.Sort;
 import vct.col.ast.ProgramUnit;
 import vct.col.ast.StandardOperator;
@@ -229,11 +229,8 @@ public class Syntax {
   }
   public AbstractPrinter print(TrackingOutput out, ProgramUnit program) {
     AbstractPrinter p = null;
-    for(CompilationUnit cu : program.get()){
-      //out.lnprintf("//==== %s ====",cu.getFileName());
-      for(ASTNode item : cu.get()){
+    for(ASTDeclaration item : program.get()){
         p=print(out,item);
-      }
     }
     return p;
   }
