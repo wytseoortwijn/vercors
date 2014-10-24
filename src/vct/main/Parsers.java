@@ -7,7 +7,6 @@ import vct.antlr4.parser.ColCParser;
 import vct.antlr4.parser.ColIParser;
 import vct.antlr4.parser.ColJavaParser;
 import vct.antlr4.parser.ColPVLParser;
-import vct.col.ast.CompilationUnit;
 import vct.col.util.Parser;
 import static hre.System.Fail;
 

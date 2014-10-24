@@ -9,7 +9,6 @@ import vct.col.ast.ASTClass;
 import vct.col.ast.ASTClass.ClassKind;
 import vct.col.ast.ASTNode;
 import vct.col.ast.BlockStatement;
-import vct.col.ast.CompilationUnit;
 import vct.col.ast.Contract;
 import vct.col.ast.DeclarationStatement;
 import vct.col.ast.Method;
@@ -141,7 +140,7 @@ public class BoogieFOL {
         body));
     //hre.debug.HeapDump.tree_dump(new hre.io.PrefixPrintStream(System.err),program,ASTNode.class);
     ProgramUnit pgm=new ProgramUnit();
-    pgm.add(new CompilationUnit("main").add(program));
+    pgm.add(program);
     return vct.boogie.Main.TestBoogie(pgm);
   }
 }
