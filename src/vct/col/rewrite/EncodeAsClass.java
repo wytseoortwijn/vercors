@@ -21,6 +21,7 @@ public class EncodeAsClass extends AbstractRewriter {
           cl.add_dynamic(tmp);
         }
     }
+    target().add(cl);
     return target();
   }
 

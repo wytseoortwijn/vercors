@@ -93,7 +93,9 @@ public class VoidCalls extends AbstractRewriter {
       for(ASTNode n : s.get_after()){
         res.add(rewrite(n));
       }
-      res.add(create.expression(StandardOperator.Assert,rewrite(current_method().getContract().post_condition)));
+      if (current_method().getContract()!=null){
+        res.add(create.expression(StandardOperator.Assert,rewrite(current_method().getContract().post_condition)));
+      }
       res.add(create.expression(StandardOperator.Assume,create.constant(false)));
       result=res;
     } else {
