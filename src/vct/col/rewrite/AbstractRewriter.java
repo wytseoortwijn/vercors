@@ -533,10 +533,11 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
     for(ASTNode n:source().get()){
         if (n instanceof ASTClass) {
           rewriteOrdered(done,(ASTClass)n);
-        }
-        ASTNode tmp=rewrite(n);
-        if (tmp!=null){
-          target().add(tmp);
+        } else {
+          ASTNode tmp=rewrite(n);
+          if (tmp!=null){
+            target().add(tmp);
+          }
         }
     }
     return target();

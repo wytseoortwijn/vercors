@@ -106,6 +106,7 @@ public class ProgramUnit implements ASTSequence<ProgramUnit> {
     if (n instanceof ASTClass){
       ASTClass cl=(ASTClass)n;
       Debug("indexing %s as %s",cl.name,cl.getDeclName());
+      cl.attach(this,cl.getDeclName());
       classes.put(cl.getDeclName(),cl);
       for(Method m : cl.staticMethods()){
         if (m.kind==Method.Kind.Predicate){

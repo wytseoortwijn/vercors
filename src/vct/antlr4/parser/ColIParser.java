@@ -25,6 +25,7 @@ import vct.col.ast.ASTNode;
 import vct.col.ast.ProgramUnit;
 import vct.col.rewrite.AbstractRewriter;
 import vct.col.rewrite.AnnotationInterpreter;
+import vct.col.rewrite.EncodeAsClass;
 import vct.col.rewrite.FlattenVariableDeclarations;
 
 /**
@@ -53,15 +54,8 @@ public class ColIParser implements vct.col.util.Parser {
     pu=new FlattenVariableDeclarations(pu).rewriteAll();
     pu=new SpecificationCollector(pu).rewriteAll();
    
-    /* skipping encoding procudural program into class
-    cu=new CompilationUnit(file_name);
-    ASTClass cl=new ASTClass("Ref",ClassKind.Plain);
-    cl.setOrigin(new FileOrigin(file_name,1,1));
-    cu.add(cl);
-    for(ASTNode n:pu.get(0).get()){
-      cl.add_dynamic(n);
-    }
-    */
+    // TODO: do not encode here, but at top level!
+    pu=new EncodeAsClass(pu).rewriteAll();
     return pu;
   }
   

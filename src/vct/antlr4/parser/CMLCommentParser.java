@@ -24,14 +24,14 @@ public class CMLCommentParser extends CommentParser<CMLParser,CMLLexer> {
   }
 
   @Override
-  public ProgramUnit parse_contract(ASTSequence<?> seq) {
+  public TempSequence parse_contract(ASTSequence<?> seq) {
     ParseTree tree=parser.specificationSequence(); //DRB --Changed
     return CMLtoCOL.convert(tree, "embedded_com"
     		+ "..ments", tokens, parser);
   }
 
   @Override
-  public ProgramUnit parse_annotations() {
+  public TempSequence parse_annotations() {
 	throw new HREError("annotations for C not defined yet.");
   }
 

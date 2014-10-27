@@ -4,6 +4,7 @@ import static hre.System.Failure;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTSequence;
@@ -45,9 +46,9 @@ public abstract class CommentParser<Parser extends org.antlr.v4.runtime.Parser,L
     tokens = new CommonTokenStream(lexer);
     parser.reset();
     parser.setTokenStream(tokens);
-    ProgramUnit cu=parse_contract(seq);;
+    TempSequence cu=parse_contract(seq);;
     Contract contract=null;
-    for(ASTNode n:cu.get()){
+    for(ASTNode n:cu){
       if (n instanceof Contract){
         contract=(Contract)n;
       } else {
@@ -65,7 +66,7 @@ public abstract class CommentParser<Parser extends org.antlr.v4.runtime.Parser,L
     return contract;
   }
   
-  public abstract ProgramUnit parse_contract(ASTSequence<?> seq);
+  public abstract TempSequence parse_contract(ASTSequence<?> seq);
 
   public void annotations(ASTNode node, InputStream fifo){
     ANTLRInputStream input;
@@ -80,12 +81,12 @@ public abstract class CommentParser<Parser extends org.antlr.v4.runtime.Parser,L
     tokens = new CommonTokenStream(lexer);
     parser.reset();
     parser.setTokenStream(tokens);
-    ProgramUnit cu=parse_annotations();
-    for(ASTNode n:cu.get()){
+    TempSequence cu=parse_annotations();
+    for(ASTNode n:cu){
       node.attach(n);
     }
   }
 
-  public abstract ProgramUnit parse_annotations();
+  public abstract TempSequence parse_annotations();
   
 }

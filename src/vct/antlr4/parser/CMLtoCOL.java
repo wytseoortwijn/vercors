@@ -120,8 +120,8 @@ import vct.util.Syntax;
 */
 public class CMLtoCOL extends AbstractCtoCOL implements CMLVisitor<ASTNode> {
 
-  public static ProgramUnit convert(ParseTree tree, String file_name,BufferedTokenStream tokens,org.antlr.v4.runtime.Parser parser) {
-    ProgramUnit unit=new ProgramUnit();
+  public static TempSequence convert(ParseTree tree, String file_name,BufferedTokenStream tokens,org.antlr.v4.runtime.Parser parser) {
+    TempSequence unit=new TempSequence();
     CMLtoCOL visitor=new CMLtoCOL(CSyntax.getCML(),file_name,tokens,parser,CMLLexer.Identifier,CMLLexer.COMMENT);
     visitor.scan_to(unit,tree);
     return unit;

@@ -30,8 +30,8 @@ import vct.util.Syntax;
 */
 public class JavaJMLtoCol extends AbstractJavaToCol implements JavaJMLVisitor<ASTNode> {
   
-  public static ProgramUnit convert(ParseTree tree, String file_name,BufferedTokenStream tokens,Parser parser) {
-    ProgramUnit unit=new ProgramUnit();
+  public static TempSequence convert(ParseTree tree, String file_name,BufferedTokenStream tokens,Parser parser) {
+    TempSequence unit=new TempSequence();
     JavaJMLtoCol visitor=new JavaJMLtoCol(JavaSyntax.getJava(JavaDialect.JavaVerCors),file_name,tokens,parser);
     visitor.scan_to(unit,tree);
     return unit;
