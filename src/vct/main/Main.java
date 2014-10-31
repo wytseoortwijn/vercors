@@ -150,6 +150,8 @@ public class Main
     clops.add(check_defined.getEnable("check if defined processes satisfy their contracts."),"check-defined");
     final BooleanSetting check_history=new BooleanSetting(false);
     clops.add(check_history.getEnable("check if defined processes satisfy their contracts."),"check-history");
+    final BooleanSetting check_csl=new BooleanSetting(false);
+    clops.add(check_csl.getEnable("convert CSL syntax into plain SL"),"check-csl");
     
     
     final BooleanSetting separate_checks=new BooleanSetting(false);
@@ -583,6 +585,11 @@ public class Main
       }
       if (check_defined.get()){
         passes.add("check-defined");
+        passes.add("standardize");
+        passes.add("check");
+      }
+      if (check_csl.get()){
+        passes.add("csl-encode");
         passes.add("standardize");
         passes.add("check");
       }
