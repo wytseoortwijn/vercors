@@ -36,6 +36,7 @@ import vct.col.rewrite.CSLencoder;
 import vct.col.rewrite.ChalicePreProcess;
 import vct.col.rewrite.CheckHistoryAlgebra;
 import vct.col.rewrite.CheckProcessAlgebra;
+import vct.col.rewrite.ClassConversion;
 import vct.col.rewrite.ConstructorRewriter;
 import vct.col.rewrite.DefineDouble;
 import vct.col.rewrite.DynamicStaticInheritance;
@@ -313,6 +314,11 @@ public class Main
     defined_passes.put("csl-encode",new CompilerPass("Encode CSL atomic regions with methods"){
       public ProgramUnit apply(ProgramUnit arg){
         return new CSLencoder(arg).rewriteAll();
+      }
+    });
+    defined_passes.put("class-conversion",new CompilerPass("Convert classes into records and procedures"){
+      public ProgramUnit apply(ProgramUnit arg){
+        return new ClassConversion(arg).rewriteAll();
       }
     });
     defined_passes.put("define_double",new CompilerPass("Rewrite double as a non-native data type."){
