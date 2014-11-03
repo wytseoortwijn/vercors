@@ -34,7 +34,8 @@ public class ASTClass extends ASTDeclaration implements ASTSequence<ASTClass> {
     Interface,
     Abstract,
     Plain,
-    Kernel
+    Kernel,
+    Record
   };
   
   /** contains the kind of class. */

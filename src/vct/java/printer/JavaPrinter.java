@@ -306,6 +306,9 @@ public class JavaPrinter extends AbstractPrinter {
     case Kernel:
       out.printf("kernel %s",cl.getName());
       break;
+    case Record:
+      out.printf("record %s",cl.getName());
+      break;
     default:
       Abort("unexpected class kind %s",cl.kind);
     }
