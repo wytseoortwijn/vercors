@@ -75,6 +75,8 @@ public class ProgramUnit implements ASTSequence<ProgramUnit> {
   
   private HashMap<ClassName,Method> adt_map=new HashMap<ClassName,Method>();
   
+  private HashMap<ClassName,Method> proc_map=new HashMap<ClassName,Method>();
+  
   /*
   public void addClass(ClassName name,ASTClass cl){
     classes.put(name,cl);
@@ -102,6 +104,10 @@ public class ProgramUnit implements ASTSequence<ProgramUnit> {
     if (n instanceof ASTDeclaration){
       ASTDeclaration d=(ASTDeclaration)n;
       decl_map.put(d.getDeclName(), d);
+    }
+    if (n instanceof Method){
+      Method m=(Method)n;
+      proc_map.put(m.getDeclName(),m);
     }
     if (n instanceof ASTClass){
       ASTClass cl=(ASTClass)n;
@@ -183,6 +189,11 @@ public class ProgramUnit implements ASTSequence<ProgramUnit> {
   public Method find_adt(String ... nameFull) {
     ClassName class_name=new ClassName(nameFull);
     return adt_map.get(class_name);
+  }
+  
+  public Method find_procedure(String ... nameFull) {
+    ClassName class_name=new ClassName(nameFull);
+    return proc_map.get(class_name);
   }
 
   @Override

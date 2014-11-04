@@ -94,7 +94,29 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       }
       return;
     }
-    if (e.object==null) Abort("unresolved method invokation at "+e.getOrigin());
+    m=source().find_procedure(e.method);
+    if (m!=null){
+      //Warning("skipping ADT method");
+      e.setDefinition(m);
+      Type t=m.getReturnType();
+      e.setType(t);
+      int N=m.getArity();
+      if (e.getArity()!=N){
+        Fail("different number of arguments");
+      }
+      for(int i=0;i<N;i++){
+        Type ti=m.getArgType(i);
+        ASTNode arg=e.getArg(i);
+        if (!ti.supertypeof(source(), arg.getType())){
+          Fail("argument type %d incompatible",i);
+        }
+        if (ti.isPrimitive(PrimitiveType.Sort.Fraction)){
+          force_frac(arg);
+        }
+      }
+      return;
+    }    
+    if (e.object==null) Abort("unresolved method invokation (%s) at "+e.getOrigin(),e.method);
     if (e.object.getType()==null) Abort("object has no type at %s",e.object.getOrigin());
     if (!(e.object.getType() instanceof ClassType)) Abort("invokation on non-class");
     ClassType object_type=(ClassType)e.object.getType();
@@ -146,6 +168,14 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     switch(m.kind){
     case Constructor:
       e.setType((Type)e.object);
+      break;
+    case Predicate:
+      for(int i=0;i<N;i++){
+        if (type[i].isPrimitive(PrimitiveType.Sort.Fraction)){
+          force_frac(e.getArg(i));
+        }
+      }
+      e.setType(new PrimitiveType(PrimitiveType.Sort.Resource));
       break;
     default:
       {

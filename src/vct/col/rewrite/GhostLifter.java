@@ -1,0 +1,75 @@
+package vct.col.rewrite;
+
+import java.util.ArrayList;
+
+import vct.col.ast.*;
+
+public class GhostLifter extends AbstractRewriter {
+
+  public GhostLifter(ProgramUnit source) {
+    super(source);
+  }
+
+  @Override
+  public void visit(Method m){
+    ContractBuilder cb=new ContractBuilder();
+    ArrayList<DeclarationStatement> args=new ArrayList();
+    Contract c=m.getContract();
+    for(DeclarationStatement arg:m.getArgs()){
+      args.add(rewrite(arg));
+    }
+    if (c!=null){
+      for(DeclarationStatement arg:c.given){
+        args.add(rewrite(arg));
+      }
+      cb.requires(rewrite(c.pre_condition));
+      for(DeclarationStatement arg:c.yields){
+        arg=rewrite(arg);
+        arg.setFlag(ASTFlags.OUT_ARG, true);
+        args.add(arg);
+      }
+      cb.ensures(rewrite(c.post_condition));
+    }
+    result=create.method_kind(
+        m.kind,
+        rewrite(m.getReturnType()),
+        cb.getContract(), 
+        m.name, 
+        args.toArray(new DeclarationStatement[0]), 
+        m.usesVarArgs(), 
+        rewrite(m.getBody())
+    );
+  }
+  
+  @Override
+  public void visit(MethodInvokation m){
+    ArrayList<ASTNode> args=new ArrayList();
+    BlockStatement before=create.block();
+    BlockStatement after=create.block();
+    for(ASTNode n:m.getArgs()){
+      args.add(rewrite(n));
+    }
+    if (m.get_before()!=null) for(ASTNode n:m.get_before()){
+      if (n instanceof AssignmentStatement){
+        //TODO: use passing by name rather than position.
+        AssignmentStatement s=(AssignmentStatement)n;
+        args.add(rewrite(s.getExpression()));
+      } else {
+        before.add(rewrite(n));
+      }
+    }
+    if (m.get_after()!=null) for(ASTNode n:m.get_after()){
+      if (n instanceof AssignmentStatement){
+        //TODO: use passing by name rather than position.
+        AssignmentStatement s=(AssignmentStatement)n;
+        args.add(rewrite(s.getLocation()));
+      } else {
+        after.add(rewrite(n));
+      }
+    }
+    MethodInvokation res=create.invokation(rewrite(m.object), m.dispatch, m.method, args.toArray(new ASTNode[0]));
+    if (m.get_before()!=null) res.set_before(before);
+    if (m.get_after()!=null) res.set_after(after);
+    result=res;
+  }
+}

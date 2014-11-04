@@ -1,6 +1,7 @@
 package vct.col.rewrite;
 
 import java.util.ArrayList;
+import java.util.Stack;
 
 import vct.col.ast.*;
 
@@ -14,14 +15,25 @@ import vct.col.ast.*;
  */
 public class ClassConversion extends AbstractRewriter {
 
+  private static final String SEP="__";
+      
   public ClassConversion(ProgramUnit source) {
     super(source);
   }
 
+  private Stack<Boolean> constructor_this=new Stack();
+  {
+    constructor_this.push(false);
+  }
+  
   @Override
   public void visit(NameExpression e){
     if (e.isReserved(ASTReserved.This)){
-      result=create.unresolved_name("this");
+      if (constructor_this.peek()){
+        result=create.reserved_name(ASTReserved.Result);
+      } else {
+        result=create.unresolved_name("this");
+      }
     } else {
       super.visit(e);
     }
@@ -38,18 +50,24 @@ public class ClassConversion extends AbstractRewriter {
     for(Method m:cl.dynamicMethods()){
       create.enter();
       create.setOrigin(m.getOrigin());
-      Method.Kind kind=m.kind;
+      Method.Kind kind;
       Type returns;
       if (m.kind==Method.Kind.Constructor){
+        Warning("constructor %s",m.name);
         returns=create.class_type(cl.name);
+        kind=Method.Kind.Plain;
       } else {
         returns=rewrite(m.getReturnType());
+        kind=m.kind;
       }
-      Contract contract=rewrite(m.getContract());
-      String name=cl.name+"::"+m.name;
+      ContractBuilder cb=new ContractBuilder();
+      String name=cl.name+SEP+m.name;
       ArrayList<DeclarationStatement> args=new ArrayList();
       if (m.kind!=Method.Kind.Constructor){
         args.add(create.field_decl("this",create.class_type(cl.name)));
+        cb.requires(create.expression(StandardOperator.NEQ,
+            create.local_name("this"),
+            create.reserved_name(ASTReserved.Null)));
       }
       for(DeclarationStatement d:m.getArgs()){
         args.add(rewrite(d));
@@ -65,9 +83,19 @@ public class ClassConversion extends AbstractRewriter {
             body,
             create.return_statement(create.local_name("this"))
         );
+        cb.ensures(create.expression(StandardOperator.NEQ,
+            create.reserved_name(ASTReserved.Result),
+            create.reserved_name(ASTReserved.Null)));
       }
       boolean varArgs=m.usesVarArgs();
-      Method p=create.method_kind(kind, returns, contract, name, args.toArray(new DeclarationStatement[0]), varArgs, body);
+      if (m.kind==Method.Kind.Constructor) {
+        constructor_this.push(true);
+        rewrite(m.getContract(),cb);
+        constructor_this.pop();
+      } else {
+        rewrite(m.getContract(),cb);
+      }
+      Method p=create.method_kind(kind, returns,cb.getContract(), name, args.toArray(new DeclarationStatement[0]), varArgs, body);
       create.leave();
       p.setStatic(true);
       target().add(p);
@@ -80,16 +108,19 @@ public class ClassConversion extends AbstractRewriter {
     String method;
     ArrayList<ASTNode> args=new ArrayList();
     if (s.object instanceof ClassType){
-      method=((ClassType)s.object).getName()+"::"+s.method;
+      method=((ClassType)s.object).getName()+SEP+s.method;
     } else if (s.object==null){
       method=s.method;
     } else {
-      method=((ClassType)s.object.getType()).getName()+"::"+s.method;
+      method=((ClassType)s.object.getType()).getName()+SEP+s.method;
       args.add(rewrite(s.object));
     }
     for(ASTNode arg :s.getArgs()){
       args.add(rewrite(arg));
     }
-    result=create.invokation(null, s.dispatch, method, args.toArray(new ASTNode[0]));
+    MethodInvokation res=create.invokation(null, s.dispatch, method, args.toArray(new ASTNode[0]));
+    res.set_before(rewrite(s.get_before()));
+    res.set_after(rewrite(s.get_after()));
+    result=res;
   }
 }
