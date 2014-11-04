@@ -47,6 +47,7 @@ import vct.col.rewrite.Flatten;
 import vct.col.rewrite.FlattenBeforeAfter;
 import vct.col.rewrite.ForkJoinCompilation;
 import vct.col.rewrite.GenericPass1;
+import vct.col.rewrite.GhostLifter;
 import vct.col.rewrite.GlobalizeStaticsField;
 import vct.col.rewrite.GlobalizeStaticsParameter;
 import vct.col.rewrite.InheritanceRewriter;
@@ -59,6 +60,7 @@ import vct.col.rewrite.RewriteArray;
 import vct.col.rewrite.RewriteArrayPerms;
 import vct.col.rewrite.RewriteArrayRef;
 import vct.col.rewrite.SatCheckRewriter;
+import vct.col.rewrite.SilverClassReduction;
 import vct.col.rewrite.SilverConstructors;
 import vct.col.rewrite.SimplifyCalls;
 import vct.col.rewrite.SimplifyExpressions;
@@ -347,6 +349,11 @@ public class Main
         return new Flatten(arg).rewriteAll();
       }
     });
+    defined_passes.put("ghost-lift",new CompilerPass("Lift ghost code to real code"){
+      public ProgramUnit apply(ProgramUnit arg){
+        return new GhostLifter(arg).rewriteAll();
+      }
+    });
     if (global_with_field.get()){
       Warning("Using the incomplete and experimental field access for globals.");
       defined_passes.put("globalize",new CompilerPass("split classes into static and dynamic parts"){
@@ -440,6 +447,11 @@ public class Main
     defined_passes.put("silver_constructors",new CompilerPass("convert constructors to silver style"){
       public ProgramUnit apply(ProgramUnit arg){
         return new SilverConstructors(arg).rewriteAll();
+      }
+    });
+    defined_passes.put("silver-class-reduction",new CompilerPass("reduce classes to single Ref class"){
+      public ProgramUnit apply(ProgramUnit arg){
+        return new SilverClassReduction(arg).rewriteAll();
       }
     });
     defined_passes.put("simplify_calls",new CompilerPass("???"){
@@ -688,17 +700,31 @@ public class Main
         passes.add("standardize");
         passes.add("check");
       }
+      passes.add("flatten");
       passes.add("assign");
       passes.add("reorder");
       passes.add("standardize");
       passes.add("check");
-      passes.add("silver_constructors");
+      //passes.add("silver_constructors");
+      //passes.add("standardize");
+      //passes.add("check");      
+      //passes.add("ref_array");
+      //passes.add("standardize");
+      //passes.add("check");
+      passes.add("class-conversion");
       passes.add("standardize");
-      passes.add("check");      
-      passes.add("ref_array");
+      passes.add("check");
+      passes.add("silver-class-reduction");
       passes.add("standardize");
       passes.add("check");
       passes.add("voidcalls");
+      passes.add("standardize");
+      passes.add("check");
+      passes.add("ghost-lift");
+      passes.add("standardize");
+      passes.add("check");
+      passes.add("flatten");
+      passes.add("reorder");
       passes.add("standardize");
       passes.add("check");
       passes.add("silver");     
