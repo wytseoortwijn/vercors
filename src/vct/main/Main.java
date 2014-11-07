@@ -30,6 +30,7 @@ import org.junit.runner.notification.Failure;
 import vct.clang.printer.CPrinter;
 import vct.col.annotate.DeriveModifies;
 import vct.col.ast.*;
+import vct.col.rewrite.AbstractMethodResolver;
 import vct.col.rewrite.AssignmentRewriter;
 import vct.col.rewrite.BoxingRewriter;
 import vct.col.rewrite.CSLencoder;
@@ -227,6 +228,11 @@ public class Main
         PrefixPrintStream out=new PrefixPrintStream(System.out);
         HeapDump.tree_dump(out,arg,ASTNode.class);
         return arg;
+      }
+    });
+    defined_passes.put("abstract-resolve",new CompilerPass("convert abstract methods to assume false bodies"){
+      public ProgramUnit apply(ProgramUnit arg){
+        return new AbstractMethodResolver(arg).rewriteAll();
       }
     });
     defined_passes.put("assign",new CompilerPass("change inline assignments to statements"){
@@ -695,6 +701,11 @@ public class Main
         passes.add("standardize");
         passes.add("check");
       }
+      if (check_csl.get()){
+        passes.add("csl-encode");
+        passes.add("standardize");
+        passes.add("check");
+      }
       if (check_history.get()){
         passes.add("check-history");
         passes.add("standardize");
@@ -725,6 +736,7 @@ public class Main
       passes.add("check");
       passes.add("flatten");
       passes.add("reorder");
+      passes.add("abstract-resolve");
       passes.add("standardize");
       passes.add("check");
       passes.add("silver");     
