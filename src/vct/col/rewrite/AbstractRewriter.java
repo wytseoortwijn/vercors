@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 
+import hre.ast.MessageOrigin;
 import hre.ast.Origin;
 import hre.util.FrameControl;
 import vct.col.ast.ASTClass;
@@ -474,7 +475,11 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   public void visit(PrimitiveType t){
     //checkPermission(t);
     PrimitiveType res=new PrimitiveType(t.sort,rewrite(t.getArgs()));
-    res.setOrigin(t);
+    if (t.getOrigin()!=null){
+      res.setOrigin(t);
+    } else {
+      res.setOrigin(new MessageOrigin("fix problem??"));
+    }
     result=res;
   }
 

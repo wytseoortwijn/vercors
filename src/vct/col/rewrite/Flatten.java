@@ -4,26 +4,8 @@ import hre.ast.MessageOrigin;
 
 import java.util.Stack;
 
-import vct.col.ast.ASTClass;
-import vct.col.ast.ASTNode;
-import vct.col.ast.AssignmentStatement;
-import vct.col.ast.BlockStatement;
-import vct.col.ast.ClassType;
-import vct.col.ast.Contract;
-import vct.col.ast.DeclarationStatement;
-import vct.col.ast.Dereference;
-import vct.col.ast.FunctionType;
-import vct.col.ast.IfStatement;
-import vct.col.ast.LoopStatement;
-import vct.col.ast.Method;
-import vct.col.ast.MethodInvokation;
-import vct.col.ast.NameExpression;
-import vct.col.ast.OperatorExpression;
+import vct.col.ast.*;
 import vct.col.ast.PrimitiveType.Sort;
-import vct.col.ast.ProgramUnit;
-import vct.col.ast.ReturnStatement;
-import vct.col.ast.StandardOperator;
-import vct.col.ast.Type;
 import static hre.System.Abort;
 import static hre.System.Debug;
 import static hre.System.Fail;
@@ -43,6 +25,10 @@ public class Flatten extends AbstractRewriter {
   private BlockStatement declaration_block=null;
   private static long counter=0;
   
+  @Override
+  public void visit(ASTSpecial s){
+    result=copy_pure.rewrite(s);
+  }
   public void visit(BlockStatement s){
     int N=s.getLength();
     block_stack.push(current_block);

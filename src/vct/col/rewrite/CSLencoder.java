@@ -1,6 +1,7 @@
 package vct.col.rewrite;
 
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import vct.col.ast.*;
@@ -43,6 +44,9 @@ public class CSLencoder extends AbstractRewriter {
     String name=cl.getName();
     if (name.startsWith("Atomic")){
       int no=count.incrementAndGet();
+      String result_name="csl_result_"+no;
+      String return_label="csl_return_"+no;
+      /*
       String m_call_name="csl_call_"+no;
       String m_check_name="csl_check_"+no;
       ContractBuilder m_call_cb=new ContractBuilder();
@@ -106,6 +110,37 @@ public class CSLencoder extends AbstractRewriter {
           rewrite(m.getArgs()), m_check_body);
       currentClass.add(m_check);
       result=create.invokation(null, e.dispatch, m_call_name, rewrite(e.getArgs()));
+      */
+      BlockStatement block=currentBlock;
+      if (!m.getReturnType().isVoid()){
+        block.add(create.field_decl(result_name,rewrite(m.getReturnType())));
+      }
+      block.add(create.special(ASTSpecial.Kind.Inhale,create.invokation(null,null,"csl_invariant")));
+      block.add(create.expression(StandardOperator.Unfold,create.invokation(null,null,"csl_invariant")));
+      for(ASTNode s:e.get_before()){
+        if (s.isSpecial(ASTSpecial.Kind.Transfer)){
+          // skip
+        } else {
+          block.add(rewrite(s));
+        }
+      }
+      InlineMethod inline=new InlineMethod(source());
+      inline.inline(block,result_name,return_label,m,e.object,e.getArgs());    
+      block.add(create.special(ASTSpecial.Kind.Label,create.label(return_label)));
+      for(ASTNode s:e.get_after()){
+        if (s.isSpecial(ASTSpecial.Kind.Transfer)){
+          // skip
+        } else {
+          block.add(rewrite(s));
+        }
+      }
+      block.add(create.expression(StandardOperator.Fold,create.invokation(null,null,"csl_invariant")));
+      block.add(create.special(ASTSpecial.Kind.Exhale,create.invokation(null,null,"csl_invariant")));
+      if (m.getReturnType().isVoid()){
+        result=create.comment("// dummy");
+      } else {
+        result=create.local_name(result_name);
+      }
     } else {
       super.visit(e);
     }
