@@ -26,13 +26,14 @@ public class ClassConversion extends AbstractRewriter {
     constructor_this.push(false);
   }
   
+  public static final String THIS="diz";
   @Override
   public void visit(NameExpression e){
     if (e.isReserved(ASTReserved.This)){
       if (constructor_this.peek()){
         result=create.reserved_name(ASTReserved.Result);
       } else {
-        result=create.unresolved_name("this");
+        result=create.unresolved_name(THIS);
       }
     } else {
       super.visit(e);
@@ -64,9 +65,9 @@ public class ClassConversion extends AbstractRewriter {
       String name=cl.name+SEP+m.name;
       ArrayList<DeclarationStatement> args=new ArrayList();
       if (m.kind!=Method.Kind.Constructor){
-        args.add(create.field_decl("this",create.class_type(cl.name)));
+        args.add(create.field_decl(THIS,create.class_type(cl.name)));
         cb.requires(create.expression(StandardOperator.NEQ,
-            create.local_name("this"),
+            create.local_name(THIS),
             create.reserved_name(ASTReserved.Null)));
       }
       for(DeclarationStatement d:m.getArgs()){
@@ -75,13 +76,13 @@ public class ClassConversion extends AbstractRewriter {
       ASTNode body=rewrite(m.getBody());
       if (m.kind==Method.Kind.Constructor){
         body=create.block(
-            create.field_decl("this",create.class_type(cl.name)),
+            create.field_decl(THIS,create.class_type(cl.name)),
             create.assignment(
-                create.local_name("this"),
+                create.local_name(THIS),
                 create.expression(StandardOperator.New,create.class_type(cl.name))
             ),
             body,
-            create.return_statement(create.local_name("this"))
+            create.return_statement(create.local_name(THIS))
         );
         cb.ensures(create.expression(StandardOperator.NEQ,
             create.reserved_name(ASTReserved.Result),

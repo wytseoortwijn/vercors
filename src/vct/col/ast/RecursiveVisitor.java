@@ -25,6 +25,11 @@ public abstract class RecursiveVisitor<T> extends ASTFrame<T> implements
 
   @Override
   public void post_visit(ASTNode n) {
+    if(n instanceof BeforeAfterAnnotations){
+      BeforeAfterAnnotations baa=(BeforeAfterAnnotations)n;
+      dispatch(baa.get_before());
+      dispatch(baa.get_after());
+    }
     leave(n);
   }
 

@@ -49,6 +49,11 @@ public class SilverClassReduction extends AbstractRewriter {
   }
   @Override
   public void visit(Dereference e){
+    if (e.object.getType()==null){
+      Warning("untyped object %s",e.object.getOrigin());
+      result=create.dereference(rewrite(e.object),"????"+SEP+e.field);
+      return;
+    }
     result=create.dereference(rewrite(e.object),((ClassType)e.object.getType()).getName()+SEP+e.field);
   }
   

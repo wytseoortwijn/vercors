@@ -10,6 +10,20 @@ public class CSLencoder extends AbstractRewriter {
   public CSLencoder(ProgramUnit source) {
     super(source);
   }
+  
+  @Override
+  public void visit(ASTClass cl){
+    String name=cl.getName();
+    if (name.startsWith("Atomic")){
+      ASTClass res=create.ast_class(name, ASTClass.ClassKind.Plain, null,null);
+      for(DeclarationStatement decl:cl.dynamicFields()){
+        res.add_dynamic(rewrite(decl));
+      }
+      result=res;
+    } else {
+      super.visit(cl);
+    }
+  }
 
   private AtomicInteger count=new AtomicInteger();
   
