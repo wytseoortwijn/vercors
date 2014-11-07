@@ -685,6 +685,8 @@ public class Main
       passes=new ArrayList<String>();
       passes.add("standardize");
       passes.add("check");
+      passes.add("standardize");
+      passes.add("check");
       if (features.usesIterationContracts()){
         passes.add("iter");
         passes.add("standardize");
