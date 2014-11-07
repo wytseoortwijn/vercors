@@ -316,6 +316,13 @@ public abstract class ASTFrame<T> {
       for(NameExpression label:node.getLabels()){
         variables.add(label.getName(),new VariableInfo(node,NameExpression.Kind.Label));
       }
+      if (node instanceof ASTSpecial){
+        ASTSpecial s=(ASTSpecial)node;
+        if (s.kind==ASTSpecial.Kind.Label){
+          NameExpression label=(NameExpression)s.args[0];
+          variables.add(label.getName(),new VariableInfo(node,NameExpression.Kind.Label));
+        }
+      }
     //}
     if (node instanceof OperatorExpression){
       for(ASTNode arg:((OperatorExpression)node).getArguments()){

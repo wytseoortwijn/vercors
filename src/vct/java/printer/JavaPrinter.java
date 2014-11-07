@@ -130,6 +130,16 @@ public class JavaPrinter extends AbstractPrinter {
   @Override
   public void visit(ASTSpecial s){
     switch(s.kind){
+    case Goto:
+      out.print("goto ");
+      s.args[0].accept(this);
+      //out.println(";");
+      break;
+    case Label:
+      out.print("label ");
+      s.args[0].accept(this);
+      //out.println(";");
+      break;
     case With:
       out.print("WITH");
       s.args[0].accept(this);

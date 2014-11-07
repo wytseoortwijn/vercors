@@ -22,7 +22,8 @@ public class ASTSpecial extends ASTNode {
     Inhale,
     CreateHistory,
     DestroyHistory,
-    Transfer
+    Transfer,
+    Goto
   };
 
   public final Kind kind;

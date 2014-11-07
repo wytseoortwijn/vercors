@@ -101,6 +101,8 @@ statement
  | 'action' expr ',' expr block 
  | 'create' expr ',' expr ';'
  | 'destroy' expr ',' expr ',' expr ';'
+ | 'goto' ID ';'
+ | 'label' ID ';'
  ;
 
 fence_list : ( 'local' | 'global' )* ;

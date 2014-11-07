@@ -462,6 +462,13 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
     if (match(ctx,"witness",null,";")){
       return create.expression(StandardOperator.Witness,convert(ctx,1));
     }
+    if (match(ctx,"goto",null,";")){
+      return create.special(ASTSpecial.Kind.Goto,convert(ctx,1));
+    }
+    if (match(ctx,"label",null,";")){
+      return create.special(ASTSpecial.Kind.Label,convert(ctx,1));
+    }
+    
     //if (match(ctx,null,tuple,";")){
     //  return get_invokation(ctx,0);
     //}
