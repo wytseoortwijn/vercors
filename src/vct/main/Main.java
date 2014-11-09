@@ -718,12 +718,14 @@ public class Main
       passes.add("reorder");
       passes.add("standardize");
       passes.add("check");
+      // Split into class-conversion + silver-class-reduction
+      // TODO: check if no other functionality destroyed.
       //passes.add("silver_constructors");
       //passes.add("standardize");
       //passes.add("check");      
-      //passes.add("ref_array");
-      //passes.add("standardize");
-      //passes.add("check");
+      passes.add("ref_array");
+      passes.add("standardize");
+      passes.add("check");
       passes.add("class-conversion");
       passes.add("standardize");
       passes.add("check");

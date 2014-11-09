@@ -21,7 +21,7 @@ import vct.util.Configuration;
 import com.google.code.tempusfugit.concurrency.ConcurrentTestRunner;
 
 @RunWith(ConcurrentTestRunner.class)
-public class CARPTest extends ToolTest {
+public class CARPTestChalice extends ToolTest {
 
   @Test
   public void testZeroArrayC() {

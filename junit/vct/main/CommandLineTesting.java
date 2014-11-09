@@ -21,7 +21,7 @@ public class CommandLineTesting {
     testmap.put("backend",vct.main.DependencyTest.class);
     testmap.put("dafny",vct.main.DafnyTest.class);
     testmap.put("manual",vct.main.ManualTest.class);
-    testmap.put("carp",vct.main.CARPTest.class);
+    testmap.put("carp",vct.main.CARPTestChalice.class);
     testmap.put("main",vct.main.MainTest.class);
     testmap.put("verifast",vct.main.VerifastTest.class);
     testmap.put("refute",vct.main.RefuteTest.class);
