@@ -63,6 +63,7 @@ import vct.col.rewrite.RewriteArrayRef;
 import vct.col.rewrite.SatCheckRewriter;
 import vct.col.rewrite.SilverClassReduction;
 import vct.col.rewrite.SilverConstructors;
+import vct.col.rewrite.SilverReorder;
 import vct.col.rewrite.SimplifyCalls;
 import vct.col.rewrite.SimplifyExpressions;
 import vct.col.rewrite.Standardize;
@@ -460,6 +461,11 @@ public class Main
         return new SilverClassReduction(arg).rewriteAll();
       }
     });
+    defined_passes.put("silver-reorder",new CompilerPass("move declarations from inside if-then-else blocks to top"){
+      public ProgramUnit apply(ProgramUnit arg){
+        return new SilverReorder(arg).rewriteAll();
+      }
+    });
     defined_passes.put("simplify_calls",new CompilerPass("???"){
       public ProgramUnit apply(ProgramUnit arg){
         return new SimplifyCalls(arg).rewriteAll();
@@ -722,10 +728,12 @@ public class Main
       // TODO: check if no other functionality destroyed.
       //passes.add("silver_constructors");
       //passes.add("standardize");
-      //passes.add("check");      
-      passes.add("ref_array");
-      passes.add("standardize");
-      passes.add("check");
+      //passes.add("check");
+      if (!check_csl.get()){
+        passes.add("ref_array");
+        passes.add("standardize");
+        passes.add("check");
+      }
       passes.add("class-conversion");
       passes.add("standardize");
       passes.add("check");
@@ -740,6 +748,7 @@ public class Main
       passes.add("check");
       passes.add("flatten");
       passes.add("reorder");
+      passes.add("silver-reorder");
       passes.add("abstract-resolve");
       passes.add("standardize");
       passes.add("check");
