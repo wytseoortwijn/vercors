@@ -186,11 +186,14 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     }
     e.setDefinition(m);
     if (e.get_before()!=null) {
+      enter_before(e);
       e.get_before().accept(this);
+      leave_before(e);
     }
     if (e.get_after()!=null) {
-      // should set result type different...
+      enter_after(e);
       e.get_after().accept(this);
+      leave_after(e);
     }
   }
   

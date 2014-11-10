@@ -145,6 +145,24 @@ public abstract class ASTFrame<T> {
    */
   private Stack<Method> method_stack;
   
+  public void enter_before(ASTNode node){
+    
+  }
+  public void leave_before(ASTNode node){
+    
+  }
+  public void enter_after(ASTNode node){
+    if (node instanceof MethodInvokation){
+      MethodInvokation e=(MethodInvokation)node;
+      method_stack.push(e.getDefinition());
+    }
+  }
+  public void leave_after(ASTNode node){
+    if (node instanceof MethodInvokation){
+      MethodInvokation e=(MethodInvokation)node;
+      method_stack.pop();
+    }
+  }
 
   public void enter(ASTNode node){
     node_stack.push(node);

@@ -161,6 +161,8 @@ public class Flatten extends AbstractRewriter {
       } else {
         val=rewrite(val);
       }
+    } else if (val instanceof ConstantExpression) {
+      val=rewrite(val);
     } else {
       val=add_as_var(val);
     }
