@@ -29,15 +29,6 @@ public class CSLencoder extends AbstractRewriter {
   private AtomicInteger count=new AtomicInteger();
   
   @Override
-  public void visit(Method m){
-    if (m.kind==Method.Kind.Plain && m.getContract()==null  || m.kind==Method.Kind.Constructor){
-      result=null;
-      return;
-    }
-    super.visit(m);
-  }
-  
-  @Override
   public void visit(MethodInvokation e){
     Method m=e.getDefinition();
     ASTClass cl=(ASTClass)m.getParent();
