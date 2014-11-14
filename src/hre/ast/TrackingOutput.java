@@ -30,7 +30,7 @@ public class TrackingOutput {
   private int col=1;
   private int indent=0;
   private boolean atnewline=true;
-  private boolean delayed_ghost;
+  private boolean delayed_ghost=false;
   private boolean closeout;
   
   protected int ghost_level;
