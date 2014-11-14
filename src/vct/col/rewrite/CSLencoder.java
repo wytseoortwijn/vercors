@@ -20,6 +20,11 @@ public class CSLencoder extends AbstractRewriter {
       for(DeclarationStatement decl:cl.dynamicFields()){
         res.add_dynamic(rewrite(decl));
       }
+      for(Method m:cl.dynamicMethods()){
+        if (m.kind==Method.Kind.Constructor){
+          res.add_dynamic(rewrite(m));
+        }
+      }
       result=res;
     } else {
       super.visit(cl);
@@ -33,7 +38,7 @@ public class CSLencoder extends AbstractRewriter {
     Method m=e.getDefinition();
     ASTClass cl=(ASTClass)m.getParent();
     String name=cl.getName();
-    if (name.startsWith("Atomic")){
+    if (!(e.object instanceof ClassType) && name.startsWith("Atomic")){
       int no=count.incrementAndGet();
       String result_name="csl_result_"+no;
       String return_label="csl_return_"+no;

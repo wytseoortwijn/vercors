@@ -16,7 +16,7 @@ public class InlineMethod extends Substitution {
     super(source, new Hashtable<NameExpression, ASTNode>());
   }
 
-  private AtomicInteger count=new AtomicInteger();
+  private static AtomicInteger count=new AtomicInteger();
   
   public void inline(BlockStatement block, String return_name, String return_label, Method m,ASTNode object, ASTNode[] args) {
     create.setOrigin(m.getOrigin());
