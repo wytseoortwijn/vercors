@@ -121,7 +121,7 @@ public class CSLencoder extends AbstractRewriter {
         }
       }
       InlineMethod inline=new InlineMethod(source());
-      inline.inline(block,result_name,return_label,m,e.object,e.getArgs());    
+      inline.inline(block,result_name,return_label,m,e.object,e.getArgs(),e.getOrigin());    
       block.add(create.special(ASTSpecial.Kind.Label,create.label(return_label)));
       Hashtable map=new Hashtable();
       Substitution sigma=new Substitution(source(),map);

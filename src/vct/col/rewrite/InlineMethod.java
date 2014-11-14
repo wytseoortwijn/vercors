@@ -1,10 +1,14 @@
 package vct.col.rewrite;
 
+import hre.ast.BranchOrigin;
+import hre.ast.Origin;
+
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import vct.col.ast.*;
+import vct.col.util.OriginWrapper;
 
 public class InlineMethod extends Substitution {
 
@@ -18,22 +22,30 @@ public class InlineMethod extends Substitution {
 
   private static AtomicInteger count=new AtomicInteger();
   
-  public void inline(BlockStatement block, String return_name, String return_label, Method m,ASTNode object, ASTNode[] args) {
+  public void inline(BlockStatement block, String return_name, String return_label, Method m,ASTNode object, ASTNode[] args,Origin source) {
+    BranchOrigin branch=new BranchOrigin("inlined code at "+source,source);
+    ASTNode tmp;
     create.setOrigin(m.getOrigin());
     map.clear();
     map.put(create.reserved_name(ASTReserved.This),object);
     prefix="inline_"+count.incrementAndGet()+"_";
     DeclarationStatement decls[]=m.getArgs();
     for(int i=0;i<decls.length;i++){
-      block.add(create.field_decl(prefix+decls[i].name, copy_rw.rewrite(decls[i].getType())));
-      block.add(create.assignment(create.local_name(prefix+decls[i].name), copy_rw.rewrite(args[i])));
+      tmp=create.field_decl(prefix+decls[i].name, copy_rw.rewrite(decls[i].getType()));
+      OriginWrapper.wrap(null, tmp,branch);
+      block.add(tmp);
+      tmp=create.assignment(create.local_name(prefix+decls[i].name), copy_rw.rewrite(args[i]));
+      OriginWrapper.wrap(null, tmp,branch);
+      block.add(tmp);      
       map.put(create.local_name(decls[i].name),create.local_name(prefix+decls[i].name));
     }
     this.return_name=return_name;
     this.return_label=return_label;
     BlockStatement body=(BlockStatement)m.getBody();
     for(ASTNode s:body){
-      block.add(rewrite(s));
+      tmp=rewrite(s);
+      OriginWrapper.wrap(null, tmp,branch);
+      block.add(tmp);            
     }
   }
   
