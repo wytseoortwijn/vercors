@@ -49,7 +49,9 @@ public class TrackingOutput {
   
   public void leaveGhost(){
     ghost_level--;
-    delayed_ghost=true;
+    if (ghost_level==0){
+        delayed_ghost=true;
+    }
   }
 
   public TrackingOutput(PrintStream output,boolean closeout){
