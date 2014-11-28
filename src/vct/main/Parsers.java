@@ -2,7 +2,6 @@ package vct.main;
 
 import java.util.HashMap;
 
-import example.ColSilParser;
 import vct.antlr4.parser.ColCParser;
 import vct.antlr4.parser.ColIParser;
 import vct.antlr4.parser.ColJavaParser;
@@ -16,7 +15,6 @@ public class Parsers {
     switch(extension){
     case "c": return new ColCParser();
     case "i":return new ColIParser();
-    case "sil":return new ColSilParser();
     case "java":return new ColJavaParser();
     case "pvl":return new ColPVLParser();
     }

@@ -258,7 +258,7 @@ public class Main
     });
     defined_checks.put("silver",new ValidationPass("verify input with Silver"){
       public TestReport apply(ProgramUnit arg){
-        return example.Main.TestSilicon(arg,silver.get());
+        return vct.silver.SilverBackend.TestSilicon(new vct.silver.SilverImplementation(),arg,silver.get());
       }
     });
     defined_passes.put("box",new CompilerPass("box class types with parameters"){
