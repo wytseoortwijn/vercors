@@ -88,7 +88,8 @@ public class RewriteArrayRef extends AbstractRewriter {
 	    int N=m.getArity();
 	    if (currentContractBuilder==null) currentContractBuilder=new ContractBuilder();
 	    ArrayList<DeclarationStatement> args=new ArrayList();
-	    args.add(create.field_decl("this", create.class_type("Ref")));
+	    //do not add this!
+	    //args.add(create.field_decl("this", create.class_type("Ref")));
 	    for(DeclarationStatement decl:rewrite(m.getArgs())){
 	      args.add(decl);
 	    }
@@ -107,7 +108,8 @@ public class RewriteArrayRef extends AbstractRewriter {
 	    result=create.method_kind(kind, rt, c, name, args.toArray(new DeclarationStatement[0]), m.usesVarArgs(), body);
 	  }
 	}
-	
+
+	/*
   @Override
   public void visit(MethodInvokation e) {
     if (e.getDefinition().isStatic()) {
@@ -126,6 +128,7 @@ public class RewriteArrayRef extends AbstractRewriter {
       result = res;
     }
   }
+	*/
 	
 	@Override
 	public void visit(BindingExpression e){
