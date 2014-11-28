@@ -47,13 +47,13 @@ public class ColIParser implements vct.col.util.Parser {
     Debug("parser got: %s",tree.toStringTree(parser));
 
     ProgramUnit pu=CtoCOL.convert(tree,file_name,tokens,parser);
-
-    //vct.util.Configuration.getDiagSyntax().print(System.out,pu);
     
     pu=new CommentRewriter(pu,new CMLCommentParser()).rewriteAll();
+
     pu=new FlattenVariableDeclarations(pu).rewriteAll();
+
     pu=new SpecificationCollector(pu).rewriteAll();
-   
+
     // TODO: do not encode here, but at top level!
     pu=new EncodeAsClass(pu).rewriteAll();
     return pu;

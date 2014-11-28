@@ -1,5 +1,7 @@
 package vct.col.ast;
 
+import hre.ast.MessageOrigin;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -21,6 +23,15 @@ import vct.util.ClassName;
  */
 public class VariableDeclaration extends ASTNode {
 
+  /**
+   * 
+   */
+  public static final String COMMON_NAME="__common_type__";
+  public static final Type common_type=new ClassType(COMMON_NAME);
+  static {
+    common_type.setOrigin(new MessageOrigin("placeholder for common type"));
+  }
+  
   /**
    * Base type for all declarations 
    */
@@ -95,6 +106,7 @@ public class VariableDeclaration extends ASTNode {
     Map<String,Type> map=new HashMap();
     AbstractRewriter rw=new MultiSubstitution(null,map);
     rw.create.setOrigin(getOrigin());
+    map.put(COMMON_NAME,basetype);
     for(DeclarationStatement d:vars){
       String name=d.getName();
       map.put(name,basetype);

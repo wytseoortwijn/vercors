@@ -491,6 +491,20 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
     return res;
   }
   
+  private void convert_linked(ArrayList<ASTNode> res,ParserRuleContext ctx,String sep){
+    if (match(ctx,null,",",null)){
+      convert_linked(res,(ParserRuleContext)ctx.getChild(0),sep);
+      res.add(convert(ctx,2));
+    } else {
+      res.add(convert(ctx));
+    }
+  }
+  protected ASTNode[] convert_linked_list(ParserRuleContext ctx,String sep){
+    ArrayList<ASTNode> res=new ArrayList();
+    convert_linked(res,ctx,sep);
+    return res.toArray(new ASTNode[0]);
+  }
+  
   protected ASTNode[] convert_list(ParserRuleContext ctx,String open,String sep,String close){
     int N=ctx.getChildCount();
     if (match(0,true,ctx,open)&&match(N-1,true,ctx,close)){

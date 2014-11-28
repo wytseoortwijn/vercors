@@ -46,7 +46,8 @@ public class SpecificationCollector extends AbstractRewriter {
     case Comment:
         // TODO: find a way to keep comments.
         // For now, they are removed to solve static/dynamic issues!
-        return; 
+        //super.visit(s);
+        return;
     default:
       if (currentContractBuilder!=null){
         Abort("Special %s cannot be part of contract",s.kind);

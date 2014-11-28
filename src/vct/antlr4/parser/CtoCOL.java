@@ -278,14 +278,59 @@ public class CtoCOL extends AbstractCtoCOL implements CVisitor<ASTNode> {
 
   @Override
   public ASTNode visitDeclarationSpecifiers(DeclarationSpecifiersContext ctx) {
+    hre.System.Warning("\"decl specs\" %s",ctx.toStringTree(parser));
+    int i=ctx.getChildCount()-1;
+    ParserRuleContext tmp=(ParserRuleContext)((ParserRuleContext)ctx.getChild(i)).getChild(0);
+    hre.System.Warning("\"last:\" %s",tmp.toStringTree(parser));
+    String name;
+    if (match(tmp,"TypedefName")){
+      name=getIdentifier(tmp, 0);
+      i=i-1;
+      tmp=(ParserRuleContext)((ParserRuleContext)ctx.getChild(i)).getChild(0);
+      hre.System.Warning("\"name:\" %s",name);
+    } else {
+      name=null;
+    }
+    hre.System.Warning("\"type:\" %s",tmp.toStringTree(parser));
+    ASTNode t=convert(ctx,i);
+    Type type=null;
+    if (t instanceof Type){
+      type=(Type)t;
+    } else {
+      hre.System.Abort("cannot convert %s to type",tmp.toStringTree(parser));
+    }
+    i=i-1;
+    while(i>=0){
+      ASTNode n=convert(ctx,i);
+      if (n instanceof NameExpression){
+        NameExpression l=(NameExpression)n;
+        if (l.getKind()==NameExpression.Kind.Unresolved){
+          l.setKind(NameExpression.Kind.Label);
+        }
+        type.addLabel(l);
+      } else {
+        hre.System.Abort("cannot handle modifier %s",ctx.getChild(i).toStringTree(parser));
+      }
+      i=i-1;
+    }
+    if (name==null){
+      return type;
+    } else {
+      return create.field_decl(name,type);
+    }
+    /*
     if (match(ctx,null,null)){
       ASTNode t=convert(ctx,0);
       ASTNode v=convert(ctx,1);
       if (t instanceof Type && v instanceof NameExpression){
         return create.field_decl(((NameExpression)v).getName(), (Type)t);
       }
+      if (v instanceof Type) {
+        Warning("ignoring modifier...");
+        return v;
+      }
     }
-    return null;
+    */
   }
 
   @Override
@@ -294,9 +339,24 @@ public class CtoCOL extends AbstractCtoCOL implements CVisitor<ASTNode> {
     return null;
   }
 
+  private Type getPointer(Type t,ParserRuleContext ctx){
+    if(match(ctx,"*")){
+      return create.primitive_type(Sort.Pointer,t);
+    }
+    if(match(ctx,"*",null)){
+      t=getPointer(t,(ParserRuleContext)ctx.getChild(1));
+      return create.primitive_type(Sort.Pointer,t);
+    }
+    return null;
+  }
   @Override
   public ASTNode visitDeclarator(DeclaratorContext ctx) {
-    // TODO Auto-generated method stub
+    if (match(ctx,"Pointer",null)){
+      //hre.System.Warning("pointer declarator %s",ctx.toStringTree(parser));
+      DeclarationStatement d=(DeclarationStatement)convert(ctx,1);
+      Type t=getPointer(d.getType(),(ParserRuleContext)ctx.getChild(0));
+      return create.field_decl(d.name, t);//create.primitive_type(Sort.Pointer,d.getType()));
+    }
     return null;
   }
 
@@ -742,7 +802,9 @@ public class CtoCOL extends AbstractCtoCOL implements CVisitor<ASTNode> {
 
   @Override
   public ASTNode visitTypeQualifier(TypeQualifierContext ctx) {
-    // TODO Auto-generated method stub
+    if(match(ctx,"volatile")){
+      return create.label("volatile");
+    }
     return null;
   }
 
@@ -754,7 +816,9 @@ public class CtoCOL extends AbstractCtoCOL implements CVisitor<ASTNode> {
 
   @Override
   public ASTNode visitTypeSpecifier(TypeSpecifierContext ctx) {
-    // TODO Auto-generated method stub
+    if(match(ctx,"signed")){
+      return create.label("signed");
+    }
     return null;
   }
 

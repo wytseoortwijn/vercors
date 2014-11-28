@@ -205,6 +205,10 @@ public class ProgramUnit implements ASTSequence<ProgramUnit> {
   public ProgramUnit add(ASTNode item) {
     if (item instanceof ASTDeclaration){
       add((ASTDeclaration)item);
+    } else if(item instanceof VariableDeclaration) {
+      for(DeclarationStatement d:((VariableDeclaration)item).flatten()){
+        add(d);
+      }
     } else {
       Abort("cannot insert %s into program unit.",item.getClass());
     }

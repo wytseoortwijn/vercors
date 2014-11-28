@@ -26,8 +26,7 @@ public class CMLCommentParser extends CommentParser<CMLParser,CMLLexer> {
   @Override
   public TempSequence parse_contract(ASTSequence<?> seq) {
     ParseTree tree=parser.specificationSequence(); //DRB --Changed
-    return CMLtoCOL.convert(tree, "embedded_com"
-    		+ "..ments", tokens, parser);
+    return CMLtoCOL.convert(tree, "embedded_comments", tokens, parser);
   }
 
   @Override

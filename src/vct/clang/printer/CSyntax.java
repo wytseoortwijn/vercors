@@ -36,6 +36,9 @@ public class CSyntax extends Syntax{
     syntax.addLeftFix(Plus,"+",120);
     syntax.addLeftFix(Minus,"-",120);
     
+    syntax.addInfix(LeftShift,"<<", 110);
+    syntax.addInfix(RightShift,">>", 110);
+
     syntax.addInfix(LT,"<",100);
     syntax.addInfix(LTE,"<=",100);
     syntax.addInfix(GT,">",100);
@@ -50,7 +53,17 @@ public class CSyntax extends Syntax{
     
     syntax.addOperator(ITE,30,"","?",":","");
     syntax.addRightFix(Assign,"=",30);
-    
+    syntax.addRightFix(AddAssign,"+=",30);
+    syntax.addRightFix(SubAssign,"-=",30);
+    syntax.addRightFix(MulAssign,"*= ",30);
+    syntax.addRightFix(DivAssign,"/=",30);
+    syntax.addRightFix(RemAssign,"%=",30);
+    syntax.addRightFix(AndAssign,"&=",30);
+    syntax.addRightFix(XorAssign,"^=",30);
+    syntax.addRightFix(OrAssign,"|=",30);
+    syntax.addRightFix(ShlAssign,"<<=",30);
+    syntax.addRightFix(ShrAssign,">>=",30);
+
     syntax.addPrimitiveType(Double,"double");
     syntax.addPrimitiveType(Integer,"int");
     //syntax.addPrimitiveType(Fraction,"frac");

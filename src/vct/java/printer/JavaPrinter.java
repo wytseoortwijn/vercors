@@ -969,6 +969,11 @@ public class JavaPrinter extends AbstractPrinter {
   
   public void visit(PrimitiveType t){
     switch(t.sort){
+      case Pointer:{
+        t.getArg(0).accept(this);
+        out.printf("*");
+        break;
+      }
       case Array:
         t.getArg(0).accept(this);
         switch(t.getArgCount()){

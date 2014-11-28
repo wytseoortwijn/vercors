@@ -14,6 +14,7 @@ import vct.col.ast.DeclarationStatement;
 import vct.col.ast.NameExpression;
 import vct.col.ast.PrimitiveType;
 import vct.col.ast.Type;
+import vct.col.ast.VariableDeclaration;
 import vct.parsers.CParser.BlockItemListContext;
 import vct.parsers.CParser.CompoundStatementContext;
 import vct.parsers.CParser.LabeledStatementContext;
@@ -50,18 +51,18 @@ public abstract class AbstractCtoCOL extends ANTLRtoCOL {
     return block;
   }
   private void doblock(BlockStatement block, ParserRuleContext ctx) {  
-    if (match(ctx,"BlockItemContext")){               
+    if (match(ctx,"BlockItemContext")){
+        //hre.System.Warning("%s",ctx.getChild(0).toStringTree(parser));
         ASTNode temp = convert(ctx,0);
         scan_comments_before(block,ctx.getChild(0)); //DRB    
         block.add_statement(temp);
         scan_comments_after(block,ctx.getChild(0));//DRB 
     } else if (match(ctx,"BlockItemListContext","BlockItemContext")){                       
          doblock(block,(ParserRuleContext)ctx.getChild(0));
-      
+         //hre.System.Warning("%s",ctx.getChild(1).toStringTree(parser));
          ASTNode temp = convert(ctx,1);              
          block.add_statement(temp);
          scan_comments_after(block,ctx.getChild(1)); //DRB
-
     } else {      
       throw hre.System.Failure("unknown BlockItemList");
     }
@@ -91,6 +92,15 @@ public abstract class AbstractCtoCOL extends ANTLRtoCOL {
   public ASTNode visitPrimaryExpression(ParserRuleContext ctx) {
     ASTNode res=visit(ctx);
     if (res!=null) return res;
+    if (match(ctx,null,"(",null,")")){
+      String name=getIdentifier(ctx,0);
+      ASTNode args[]=convert_linked_list((ParserRuleContext)ctx.getChild(2),",");
+      return create.invokation(null,null,name, args);
+    }
+    if (match(ctx,null,"(",")")){
+      String name=getIdentifier(ctx,0);
+      return create.invokation(null,null,name,new ASTNode[0]);
+    }
     if (ctx.children.size()==1){
       ParseTree t=ctx.getChild(0);
       if (t instanceof TerminalNode){
@@ -109,12 +119,24 @@ public abstract class AbstractCtoCOL extends ANTLRtoCOL {
 	  }
   
   public DeclarationStatement getDirectDeclarator(ParserRuleContext ctx) {
-    String name=getIdentifier(ctx,0);
-    Type t=create.class_type(name);
-    if (match(ctx,null,"[","]")){
-      t=create.primitive_type(PrimitiveType.Sort.Array,t);
+    //hre.System.Warning("direct declarator %s",ctx.toStringTree(parser));
+    if (match(ctx,(String)null)){
+      String name=getIdentifier(ctx,0);
+      return create.field_decl(name, VariableDeclaration.common_type);
     }
-    return create.field_decl(name, t);
+    if (match(ctx,null,"[","]")){
+      DeclarationStatement d=(DeclarationStatement)convert(ctx,0);
+      Type t=d.getType();
+      t=create.primitive_type(PrimitiveType.Sort.Array,t);
+      return create.field_decl(d.getName(),t);
+    }
+    if (match(ctx,null,"[",null,"]")){
+      DeclarationStatement d=(DeclarationStatement)convert(ctx,0);
+      Type t=d.getType();
+      t=create.primitive_type(PrimitiveType.Sort.Array,t,convert(ctx,2));
+      return create.field_decl(d.getName(),t);
+    }
+    return null;
   }
 
 }

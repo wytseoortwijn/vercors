@@ -138,6 +138,7 @@ public class CommentRewriter extends AbstractRewriter {
     switch(s.kind){
     case Comment:{
       String comment=s.args[0].toString();
+      Warning("comment %s",comment);
       if (comment.startsWith("/*@")||comment.startsWith("//@")){
         queue.add(s);
         result=null;

@@ -32,7 +32,8 @@ public final class PrimitiveType extends Type {
     Bag,
     Array,
     Location,
-    Process};
+    Process,
+    Pointer};
 
   public final Sort sort;
   public PrimitiveType(Sort sort,ASTNode ... args){
@@ -43,6 +44,7 @@ public final class PrimitiveType extends Type {
       case Set:
       case Bag:
       case Cell:
+      case Pointer:
         if (N!=1) Abort("illegal argument count");
         break;
       case Array:
