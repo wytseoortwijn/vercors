@@ -13,12 +13,14 @@ public class Parsers {
   
   public static Parser getParser(String extension){
     switch(extension){
-    case "c": return new ColCParser();
+    case "cl":
+    case "c":
+      return new ColCParser();
     case "i":return new ColIParser();
     case "java":return new ColJavaParser();
     case "pvl":return new ColPVLParser();
     }
-    Fail("no parser for %s is known");
+    Fail("no parser for %s is known",extension);
     return null;
     
   }
