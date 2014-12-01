@@ -689,8 +689,11 @@ public class Main
       passes.add("verifast");
     } else if (silver.used()) {
       passes=new ArrayList<String>();
+//      passes.add("standardize");
+//      passes.add("check");
       passes.add("standardize");
-      passes.add("check");
+      passes.add("check");        
+      passes.add("magicwand");
       passes.add("standardize");
       passes.add("check");
       if (features.usesIterationContracts()){
