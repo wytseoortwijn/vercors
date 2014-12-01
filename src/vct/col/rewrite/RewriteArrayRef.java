@@ -76,6 +76,7 @@ public class RewriteArrayRef extends AbstractRewriter {
 		}
 	}
 	
+/*
 	@Override
 	public void visit(Method m){
 	  if (m.kind==Method.Kind.Constructor){
@@ -108,7 +109,7 @@ public class RewriteArrayRef extends AbstractRewriter {
 	    result=create.method_kind(kind, rt, c, name, args.toArray(new DeclarationStatement[0]), m.usesVarArgs(), body);
 	  }
 	}
-
+*/
 	/*
   @Override
   public void visit(MethodInvokation e) {

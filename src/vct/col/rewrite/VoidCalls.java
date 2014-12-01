@@ -87,9 +87,10 @@ public class VoidCalls extends AbstractRewriter {
   
   public void visit(ReturnStatement s){
     ASTNode expr=s.getExpression();
+    BlockStatement res=create.block();
     if (expr!=null){
-      BlockStatement res=create.block();
       res.add(create.assignment(create.local_name("sys__result"),rewrite(expr)));
+    }
       for(ASTNode n : s.get_after()){
         res.add(rewrite(n));
       }
@@ -98,9 +99,9 @@ public class VoidCalls extends AbstractRewriter {
       }
       res.add(create.expression(StandardOperator.Assume,create.constant(false)));
       result=res;
-    } else {
-      super.visit(s);
-    }
+//    } else {
+//      super.visit(s);
+//    }
   }
   
   public void visit(MethodInvokation e){
