@@ -696,6 +696,11 @@ public class Main
       passes.add("magicwand");
       passes.add("standardize");
       passes.add("check");
+      if (inline_predicates.get()){
+        passes.add("inline");
+        passes.add("standardize");
+        passes.add("check");        
+      }
       if (features.usesIterationContracts()){
         passes.add("iter");
         passes.add("standardize");
@@ -751,6 +756,9 @@ public class Main
       passes.add("check");
       passes.add("flatten");
       passes.add("reorder");
+      passes.add("flatten_before_after");
+      passes.add("standardize");
+      passes.add("check");        
       passes.add("silver-reorder");
       passes.add("abstract-resolve");
       passes.add("standardize");
