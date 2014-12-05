@@ -96,9 +96,9 @@ public class ApiGen {
       }
       out.println(");");
       out.printf("  } catch (NoSuchMethodException e) {%n");
-      out.printf("    throw new Error(e.getMessage());%n");
+      out.printf("    throw new Error(\"NoSuchMethodException: \"+e.getMessage());%n");
       out.printf("  } catch (SecurityException e) {%n");
-      out.printf("    throw new Error(e.getMessage());%n");
+      out.printf("    throw new Error(\"SecurityException: \"+e.getMessage());%n");
       out.printf("  }%n");
     }
     out.println("}");
@@ -121,8 +121,11 @@ public class ApiGen {
         out.printf(",arg%d", i);
       }
       out.println(");");
-      out.println("  } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {");
-      out.println("    throw new Error(e.getMessage());");
+      out.println("  } catch (IllegalAccessException | IllegalArgumentException e) {");
+      out.println("    throw new Error(e.getClass()+\" \"+e.getMessage());");
+      out.println("  } catch (InvocationTargetException e) {");
+      out.println("    e.getCause().printStackTrace();");
+      out.println("    throw new Error(\"in reflected call: \"+e.getCause().getClass()+\": \"+e.getCause().getMessage());");
       out.println("  }");
 
       out.println("}");
