@@ -2,6 +2,7 @@ package vct.silver;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,7 +33,14 @@ public class SilverBackend {
     Object obj;
     try {
       ClassLoader loader=new ContainerClassLoader(container);
-      Class v_class=loader.loadClass("vct.silver.SilverImplementation");
+      Class v_class;
+      if (tool.contains("silicon")){
+        v_class=loader.loadClass("vct.silver.SiliconVerifier");
+      } else if (tool.contains("carbon")) {
+        v_class=loader.loadClass("vct.silver.CarbonVerifier");
+      } else {
+        throw new HREError("cannot guess the main class of %s",tool);
+      }
       obj=v_class.newInstance();
     } catch(Exception e) {
       e.printStackTrace();
