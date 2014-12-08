@@ -5,6 +5,7 @@ import hre.io.Container;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import static hre.System.*;
@@ -53,6 +54,21 @@ public class ContainerClassLoader extends ClassLoader {
       // 4. turn the byte array into a Class
       try {
           cls = defineClass(className, classBytes, 0, classBytes.length);
+          Package pkg = cls.getPackage();
+          if(pkg==null){
+            Debug("class %s has no package%n", className);
+            String pkgName=className.substring(0,className.lastIndexOf('.'));
+            Debug("defining package %s%n", pkgName);
+            String name=pkgName;
+            String specTitle="specTitle";
+            String specVersion="specVersion";
+            String specVendor="specVendor";
+            String implTitle="implTitle";
+            String implVersion="implVersion";
+            String implVendor="implVendor";
+            URL sealBase=null;
+            definePackage(name, specTitle, specVersion, specVendor, implTitle, implVersion, implVendor, sealBase);
+          }
           if (resolve) {
               resolveClass(cls);
           }
@@ -72,6 +88,21 @@ public class ContainerClassLoader extends ClassLoader {
     	String fullname=System.mapLibraryName(libname);
     	return source.findFile(fullname);
     }
-
+    
+    @Override
+    public InputStream getResourceAsStream(String name){
+      if (source.contains(name)){
+        try {
+          Warning("resource %s found.",name);
+          return source.read(name);
+        } catch (IOException e) {
+          e.printStackTrace();
+          return null;
+        }
+      } else {
+        Warning("resource %s not found");
+        return null;
+      }
+    }
 }
 

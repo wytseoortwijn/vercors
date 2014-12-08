@@ -8,6 +8,7 @@ import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Comparator;
 
 public class ApiGen {
 
@@ -58,6 +59,23 @@ public class ApiGen {
     out.println(" */");
     TypeVariable pars[]=cl.getTypeParameters();
     Method methods[]=cl.getMethods();
+    java.util.Arrays.sort(methods,new Comparator<Method>(){
+      @Override
+      public int compare(Method o1, Method o2) {
+        int tmp=o1.getName().compareTo(o2.getName());
+        if (tmp!=0) return tmp;
+        Type t1[]=o1.getParameterTypes();
+        Type t2[]=o1.getParameterTypes();
+        if (t1.length!=t2.length) return t1.length-t2.length;
+        for(int i=0;i<t1.length;i++){
+          String s1=t1[i].toString();
+          String s2=t2[i].toString();
+          tmp=s1.compareTo(s2);
+          if (tmp!=0) return tmp;
+        }
+        return 0;
+      }
+    });
     if (pars.length>0){
       out.printf("class Wrapped%s", cl.getSimpleName());
       for(int i=0;i<pars.length;i++){
