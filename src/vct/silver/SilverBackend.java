@@ -2,10 +2,12 @@ package vct.silver;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 import hre.HREError;
 import hre.ast.Origin;
@@ -25,14 +27,22 @@ public class SilverBackend {
 
   public static <T,E,S,Decl,Program>
   TestReport TestSilicon(ProgramUnit arg, String tool) {
-    DirContainer dir=new DirContainer(Configuration.getHome().resolve("silver/bin").toFile());
-    File jarfile=Configuration.getHome().resolve("silver/libs/"+tool+".jar").toFile();
+    File jarfile=Configuration.getToolHome().resolve("silver/latest/"+tool+".jar").toFile();
     System.err.printf("adding jar %s to path%n",jarfile);
-    JarContainer jar=new JarContainer(jarfile);
-    Container container=new UnionContainer(dir,jar);
+    JarContainer container=new JarContainer(jarfile);
     Object obj;
+    Properties silver_props=new Properties();
+    Properties verifier_props=new Properties();
     try {
       ClassLoader loader=new ContainerClassLoader(container);
+      InputStream is=loader.getResourceAsStream("silver.hglog");
+      silver_props.load(is);
+      is.close();
+      System.err.printf("silver properties: %s%n", silver_props);
+      is=loader.getResourceAsStream("verifier.hglog");
+      verifier_props.load(is);
+      is.close();
+      System.err.printf("verifier properties: %s%n", verifier_props);
       Class v_class;
       if (tool.contains("silicon")){
         v_class=loader.loadClass("vct.silver.SiliconVerifier");
@@ -157,7 +167,7 @@ public class SilverBackend {
 
     TestReport report=new TestReport();
     try {
-      List<VerificationError> errs=verifier.verify(new ErrorFactory(),tool,program);
+      List<VerificationError> errs=verifier.verify(new ErrorFactory(),Configuration.getToolHome(),program);
       if (errs.size()>0){
         report.setVerdict(Verdict.Fail);
       } else {

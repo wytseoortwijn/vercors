@@ -101,14 +101,14 @@ public WrappedSilverVerifier(Object obj){
     throw new Error("SecurityException: "+e.getMessage());
   }
   try {
-    m2=cl.getMethod("Constant",java.lang.Object.class,int.class);
+    m2=cl.getMethod("Constant",java.lang.Object.class,boolean.class);
   } catch (NoSuchMethodException e) {
     throw new Error("NoSuchMethodException: "+e.getMessage());
   } catch (SecurityException e) {
     throw new Error("SecurityException: "+e.getMessage());
   }
   try {
-    m3=cl.getMethod("Constant",java.lang.Object.class,boolean.class);
+    m3=cl.getMethod("Constant",java.lang.Object.class,int.class);
   } catch (NoSuchMethodException e) {
     throw new Error("NoSuchMethodException: "+e.getMessage());
   } catch (SecurityException e) {
@@ -591,7 +591,7 @@ public WrappedSilverVerifier(Object obj){
     throw new Error("SecurityException: "+e.getMessage());
   }
   try {
-    m72=cl.getMethod("verify",java.lang.Object.class,java.lang.String.class,java.lang.Object.class);
+    m72=cl.getMethod("verify",java.lang.Object.class,java.nio.file.Path.class,java.lang.Object.class);
   } catch (NoSuchMethodException e) {
     throw new Error("NoSuchMethodException: "+e.getMessage());
   } catch (SecurityException e) {
@@ -639,7 +639,7 @@ public T Bool(){
     throw new Error("in reflected call: "+e.getCause().getClass()+": "+e.getCause().getMessage());
   }
 }
-public E Constant(O arg0,int arg1){
+public E Constant(O arg0,boolean arg1){
   try {
     return (E)m2.invoke(obj,arg0,arg1);
   } catch (IllegalAccessException | IllegalArgumentException e) {
@@ -649,7 +649,7 @@ public E Constant(O arg0,int arg1){
     throw new Error("in reflected call: "+e.getCause().getClass()+": "+e.getCause().getMessage());
   }
 }
-public E Constant(O arg0,boolean arg1){
+public E Constant(O arg0,int arg1){
   try {
     return (E)m3.invoke(obj,arg0,arg1);
   } catch (IllegalAccessException | IllegalArgumentException e) {
@@ -1339,7 +1339,7 @@ public E unfolding_in(O arg0,E arg1,E arg2){
     throw new Error("in reflected call: "+e.getCause().getClass()+": "+e.getCause().getMessage());
   }
 }
-public java.util.List<Err> verify(java.lang.Object arg0,java.lang.String arg1,P arg2){
+public java.util.List<Err> verify(java.lang.Object arg0,java.nio.file.Path arg1,P arg2){
   try {
     return (java.util.List<Err>)m72.invoke(obj,arg0,arg1,arg2);
   } catch (IllegalAccessException | IllegalArgumentException e) {

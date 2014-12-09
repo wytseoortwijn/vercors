@@ -1,6 +1,7 @@
 package vct.silver;
 
 import java.io.PrintWriter;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 
@@ -62,11 +63,11 @@ public interface SilverVerifier<O,Err,T,E,S,Decl,P>
   
   /**
    * Verify a program.
-   * @param tool The tool to be used for the verification.
+   * @param tool_home The root directory of the third party tools.
    * @param program The program to be verified.
    * @return test report
    */
-  public List<Err> verify(Object obj,String tool,P program);
+  public List<Err> verify(Object obj,Path tool_home,P program);
   
   public void write_program(PrintWriter pw,P program);
 }

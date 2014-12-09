@@ -122,8 +122,11 @@ public class Configuration {
    * Contains the absolute path to the home of the tool set installation.
    */
   private static Path home;
+ 
+  private static Path tool_home;
   
   private static boolean windows;
+ 
   static {
     String tmp=System.getenv("VCT_HOME");
     if (tmp==null){
@@ -148,6 +151,7 @@ public class Configuration {
         hre.System.Fail("dependency modules not found");
       }
     }
+    tool_home=module_deps.getParent();
     modulepath=new StringListSetting(module_deps.toString());
   }
 
@@ -157,6 +161,14 @@ public class Configuration {
    */
   public static Path getHome(){
     return home;
+  }
+  
+  /**
+   * Get the home of the Third party tools installation.
+   * @return Tools home.
+   */
+  public static Path getToolHome(){
+    return tool_home;
   }
 
   /**
