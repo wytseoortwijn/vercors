@@ -44,6 +44,8 @@ public class ApiGen {
     String res=t.toString();
     if (res.startsWith("class ")){
       res=res.substring(6);
+    } else if (res.startsWith("interface ")){
+      res=res.substring(10);
     }
     return res;
   }
