@@ -129,11 +129,11 @@ public class ToolTest extends TestCase {
         break;
       }
       if (((String)msg.getArg(0)).contains("The final verdict is Pass")){
-        if (res.verdict!=null) fail("repeated verdict");
+        if (res.verdict!=null && res.verdict != Verdict.Pass) fail("inconsistent repeated verdict ("+res.verdict+")");
         res.verdict=Verdict.Pass;
       }
       if (((String)msg.getArg(0)).contains("The final verdict is Fail")){
-        if (res.verdict!=null) fail("repeated verdict");
+        if (res.verdict!=null && res.verdict != Verdict.Fail) fail("inconsistent repeated verdict ("+res.verdict+")");
         res.verdict=Verdict.Fail;
       }
     }

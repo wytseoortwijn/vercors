@@ -12,7 +12,7 @@ public class SiliconApplicationTest extends ToolTest {
   public void testZeroArray(){
     sem_get();
     try {
-      VCTResult res=run("vct","--silver=silicon",
+      VCTResult res=run("vct","--silver=silicon_qp",
           "//examples/silicon/zero-array-ic.c");
       res.checkVerdict(Verdict.Pass);
     } finally {
@@ -24,7 +24,7 @@ public class SiliconApplicationTest extends ToolTest {
   public void testZeroArrayE1(){
     sem_get();
     try {
-      VCTResult res=run("vct","--silver=silicon",
+      VCTResult res=run("vct","--silver=silicon_qp",
           "//examples/silicon/zero-array-ic-e1.c");
       res.checkVerdict(Verdict.Fail);
     } finally {
@@ -36,7 +36,7 @@ public class SiliconApplicationTest extends ToolTest {
   public void testDepParLoop(){
     sem_get();
     try {
-      VCTResult res=run("vct","--silver=silicon",
+      VCTResult res=run("vct","--silver=silicon_qp",
           "//examples/silicon/dep-par-loop.c");
       res.checkVerdict(Verdict.Pass);
     } finally {
@@ -48,7 +48,7 @@ public class SiliconApplicationTest extends ToolTest {
   public void testDepParLoopE1(){
     sem_get();
     try {
-      VCTResult res=run("vct","--silver=silicon",
+      VCTResult res=run("vct","--silver=silicon_qp",
           "//examples/silicon/dep-par-loop-e1.c");
       res.checkVerdict(Verdict.Fail);
     } finally {
@@ -59,7 +59,7 @@ public class SiliconApplicationTest extends ToolTest {
   public void testDepParLoopBack(){
     sem_get();
     try {
-      VCTResult res=run("vct","--silver=silicon",
+      VCTResult res=run("vct","--silver=silicon_qp",
           "//examples/silicon/dep-par-loop-back.c");
       res.checkVerdict(Verdict.Pass);
     } finally {
@@ -71,7 +71,7 @@ public class SiliconApplicationTest extends ToolTest {
   public void testDepParLoopBackE1(){
     sem_get();
     try {
-      VCTResult res=run("vct","--silver=silicon",
+      VCTResult res=run("vct","--silver=silicon_qp",
           "//examples/silicon/dep-par-loop-back-e1.c");
       res.checkVerdict(Verdict.Fail);
     } finally {
@@ -83,7 +83,7 @@ public class SiliconApplicationTest extends ToolTest {
   public void testLoopInvariant(){
     sem_get();
     try {
-      VCTResult res=run("vct","--silver=silicon","//examples/silicon/LoopInvariant.c");
+      VCTResult res=run("vct","--silver=silicon_qp","//examples/silicon/LoopInvariant.c");
       res.checkVerdict(Verdict.Pass);
     } finally {
       sem.release();
@@ -94,7 +94,7 @@ public class SiliconApplicationTest extends ToolTest {
   public void testLoopInvariantE1(){
     sem_get();
     try {
-      VCTResult res=run("vct","--silver=silicon","//examples/silicon/LoopInvariant-e1.c");
+      VCTResult res=run("vct","--silver=silicon_qp","//examples/silicon/LoopInvariant-e1.c");
       res.checkVerdict(Verdict.Fail);
     } finally {
       sem.release();
