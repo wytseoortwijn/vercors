@@ -1,5 +1,7 @@
 package vct.antlr4.parser;
 
+import hre.Failure;
+
 import java.util.ArrayList;
 
 import org.antlr.v4.runtime.BufferedTokenStream;
@@ -301,15 +303,72 @@ public class CtoCOL extends AbstractCtoCOL implements CVisitor<ASTNode> {
     }
     i=i-1;
     while(i>=0){
-      ASTNode n=convert(ctx,i);
-      if (n instanceof NameExpression){
-        NameExpression l=(NameExpression)n;
-        if (l.getKind()==NameExpression.Kind.Unresolved){
-          l.setKind(NameExpression.Kind.Label);
+      if (i==0){
+        if (match((ParserRuleContext)ctx.getChild(0),"StorageClassSpecifier")){
+          hre.System.Warning("\"class:\" %s",ctx.getChild(0).toStringTree(parser));
+          String sclass=((ParserRuleContext)((ParserRuleContext)ctx.getChild(0))).getText();
+          hre.System.Warning("\"class:\" %s",sclass);
+          switch(sclass){
+          case "typedef":
+            return create.field_decl(name,create.primitive_type(Sort.Class) ,type);
+          }
+          hre.System.Abort("missing case");
         }
-        type.addLabel(l);
+      } if (match((ParserRuleContext)ctx.getChild(i),"TypeQualifier")){
+        hre.System.Warning("\"tspec:\" %s",ctx.getChild(i).toStringTree(parser));
+        String modifier=((ParserRuleContext)((ParserRuleContext)ctx.getChild(i))).getText();
+        switch(modifier){
+        case "const":
+          type=create.__const(type);
+          break;
+        case "short":
+          type=create.__short(type);
+          break;
+        case "signed":
+          type=create.__signed(type);
+          break;
+        case "unsigned":
+          type=create.__unsigned(type);
+          break;
+        case "long":
+          type=create.__long(type);
+          break;
+        default:
+          hre.System.Abort("unknown type modifier: %s",modifier);
+        }
+      } else  if (match((ParserRuleContext)ctx.getChild(i),"TypeSpecifier")){
+        hre.System.Warning("\"tspec:\" %s",ctx.getChild(i).toStringTree(parser));
+        String modifier=((ParserRuleContext)((ParserRuleContext)ctx.getChild(i))).getText();
+        switch(modifier){
+        case "const":
+          type=create.__const(type);
+          break;
+        case "short":
+          type=create.__short(type);
+          break;
+        case "signed":
+          type=create.__signed(type);
+          break;
+        case "unsigned":
+          type=create.__unsigned(type);
+          break;
+        case "long":
+          type=create.__long(type);
+          break;
+        default:
+          hre.System.Abort("unknown type modifier: %s",modifier);
+        }
       } else {
-        hre.System.Abort("cannot handle modifier %s",ctx.getChild(i).toStringTree(parser));
+        ASTNode n=convert(ctx,i);
+        if (n instanceof NameExpression){
+          NameExpression l=(NameExpression)n;
+          if (l.getKind()==NameExpression.Kind.Unresolved){
+            l.setKind(NameExpression.Kind.Label);
+          }
+          type.addLabel(l);
+        } else {
+          hre.System.Abort("cannot handle modifier %s at %s",ctx.getChild(i).toStringTree(parser),n.getOrigin());
+        }
       }
       i=i-1;
     }
@@ -446,6 +505,7 @@ public class CtoCOL extends AbstractCtoCOL implements CVisitor<ASTNode> {
 
   @Override
   public ASTNode visitExternalDeclaration(ExternalDeclarationContext ctx) {
+    Warning("external decl %s",ctx.toStringTree(parser));
     return null;
   }
 
@@ -456,6 +516,8 @@ public class CtoCOL extends AbstractCtoCOL implements CVisitor<ASTNode> {
     if (match(0,true,ctx,"DeclarationSpecifierContext")){
       ofs=1;
       t=(Type)convert(ctx,1);
+    } else {
+      t=(Type)convert(ctx,0);
     }
     ofs++;
     String name=null;
@@ -467,15 +529,7 @@ public class CtoCOL extends AbstractCtoCOL implements CVisitor<ASTNode> {
         name=getIdentifier(decl_ctx, 0);
         ParserRuleContext arg_ctx=(ParserRuleContext)decl_ctx.getChild(2);
         
-        if (match(arg_ctx,null,",","...")){
-          throw hre.System.Failure("C varargs are not supported.");
-        }
-        arg_ctx=(ParserRuleContext)arg_ctx.getChild(0);
-        while(match(arg_ctx,null,",",null)){
-          args.add(0,(DeclarationStatement)convert(arg_ctx,2));
-          arg_ctx=(ParserRuleContext)arg_ctx.getChild(0);
-        }
-        args.add(0,(DeclarationStatement)convert(arg_ctx));
+        convert_parameters(args, arg_ctx);
         leave(decl_ctx,null);
       } else if (match(decl_ctx,null,"(",")")) {
         name=getIdentifier(decl_ctx, 0);

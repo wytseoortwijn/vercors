@@ -16,4 +16,6 @@ public interface TypeMapping<R> {
   
   public R map(TupleType t);
 
+  public R map(TypeExpression t);
+
 }

@@ -310,8 +310,8 @@ atomicTypeSpecifier
     ;
 
 typeQualifier
-    :   'const'
-    |   'restrict'
+    :   'const' | '__const' | '__const__' 
+    |   'restrict' | '__restrict' | '__restrict__'
     |   'volatile'
     |   '_Atomic'
     ;
@@ -346,7 +346,7 @@ directDeclarator
     ;
 
 gccDeclaratorExtension
-    :   '__asm' '(' StringLiteral+ ')'
+    :   ('__asm' | '__asm__' ) '(' StringLiteral+ ')'
     |   gccAttributeSpecifier
     ;
 
@@ -887,7 +887,7 @@ LineDirective
 
 PragmaDirective
     :   '#' Whitespace? 'pragma' Whitespace ~[\r\n]*
-        -> channel(CONTROL)
+        -> channel(COMMENT)
     ;
 
 Whitespace

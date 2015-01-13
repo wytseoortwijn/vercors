@@ -846,7 +846,7 @@ public Type tuple_type(Type ... t) {
   return res;
 }
 
-public ASTNode arrow_type(Type[] types, Type tgt) {
+public Type arrow_type(Type[] types, Type tgt) {
   Type res=new FunctionType(types,tgt);
   res.setOrigin(origin_stack.get());
   res.accept_if(post);
@@ -882,6 +882,37 @@ public Axiom axiom(String name,ASTNode exp){
   
   public ActionBlock action_block(ASTNode process,ASTNode action, ASTNode block) {
     ActionBlock res=new ActionBlock(process,action,block);
+    res.setOrigin(origin_stack.get());
+    res.accept_if(post);
+    return res;
+  }
+
+  public Type __const(Type type) {
+    Type res=new TypeExpression(TypeOperator.Const,type);
+    res.setOrigin(origin_stack.get());
+    res.accept_if(post);
+    return res;
+  }
+  public Type __short(Type type) {
+    Type res=new TypeExpression(TypeOperator.Short,type);
+    res.setOrigin(origin_stack.get());
+    res.accept_if(post);
+    return res;
+  }
+  public Type __signed(Type type) {
+    Type res=new TypeExpression(TypeOperator.Signed,type);
+    res.setOrigin(origin_stack.get());
+    res.accept_if(post);
+    return res;
+  }
+  public Type __unsigned(Type type) {
+    Type res=new TypeExpression(TypeOperator.Unsigned,type);
+    res.setOrigin(origin_stack.get());
+    res.accept_if(post);
+    return res;
+  }
+  public Type __long(Type type) {
+    Type res=new TypeExpression(TypeOperator.Long,type);
     res.setOrigin(origin_stack.get());
     res.accept_if(post);
     return res;

@@ -322,6 +322,12 @@ public class SilverExpressionMap<T,E,Decl> implements ASTMapping<E>{
     // TODO Auto-generated method stub
     return null;
   }
+  
+  @Override
+  public E map(TypeExpression t) {
+    // TODO Auto-generated method stub
+    return null;
+  }
 
   @Override
   public E map(AxiomaticDataType adt) {

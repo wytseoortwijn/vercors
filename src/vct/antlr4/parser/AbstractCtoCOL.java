@@ -1,5 +1,9 @@
 package vct.antlr4.parser;
 
+import hre.Failure;
+
+import java.util.ArrayList;
+
 import org.antlr.v4.runtime.BufferedTokenStream;
 import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.ParserRuleContext;
@@ -13,6 +17,7 @@ import vct.col.ast.ClassType;
 import vct.col.ast.DeclarationStatement;
 import vct.col.ast.NameExpression;
 import vct.col.ast.PrimitiveType;
+import vct.col.ast.PrimitiveType.Sort;
 import vct.col.ast.Type;
 import vct.col.ast.VariableDeclaration;
 import vct.parsers.CParser.BlockItemListContext;
@@ -118,11 +123,40 @@ public abstract class AbstractCtoCOL extends ANTLRtoCOL {
 	    throw hre.System.Failure("cannot convert %s to ClassType",convert.getClass());
 	  }
   
+  protected void convert_parameters(ArrayList<DeclarationStatement> args,
+      ParserRuleContext arg_ctx) throws Failure {
+    if (match(arg_ctx,null,",","...")){
+      throw hre.System.Failure("C varargs are not supported.");
+    }
+    arg_ctx=(ParserRuleContext)arg_ctx.getChild(0);
+    while(match(arg_ctx,null,",",null)){
+      args.add(0,(DeclarationStatement)convert(arg_ctx,2));
+      arg_ctx=(ParserRuleContext)arg_ctx.getChild(0);
+    }
+    args.add(0,(DeclarationStatement)convert(arg_ctx));
+  }
+
+
   public DeclarationStatement getDirectDeclarator(ParserRuleContext ctx) {
     //hre.System.Warning("direct declarator %s",ctx.toStringTree(parser));
     if (match(ctx,(String)null)){
       String name=getIdentifier(ctx,0);
       return create.field_decl(name, VariableDeclaration.common_type);
+    }
+    boolean pars=false;
+    if (match(ctx,null,"(",")")||(pars=match(ctx,null,"(","ParameterTypeList",")"))){
+      String name=getIdentifier(ctx, 0);
+      ArrayList<Type> types=new ArrayList();
+      if (pars){
+        ArrayList<DeclarationStatement> args=new ArrayList();
+        convert_parameters(args,(ParserRuleContext)ctx.getChild(2));
+        for(DeclarationStatement d:args){
+          types.add(d.getType());
+        }
+      } else {
+        types.add(create.primitive_type(Sort.Void));
+      }
+      return create.field_decl(name,create.arrow_type(types.toArray(new Type[0]),VariableDeclaration.common_type));
     }
     if (match(ctx,null,"[","]")){
       DeclarationStatement d=(DeclarationStatement)convert(ctx,0);

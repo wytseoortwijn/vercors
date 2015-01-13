@@ -12,6 +12,7 @@ import vct.col.ast.DeclarationStatement;
 import vct.col.ast.IfStatement;
 import vct.col.ast.Method;
 import vct.col.ast.NameExpression;
+import vct.col.ast.OperatorExpression;
 import vct.col.ast.ProgramUnit;
 import vct.col.ast.ReturnStatement;
 import vct.util.AbstractPrinter;
@@ -39,12 +40,15 @@ public class CPrinter extends AbstractPrinter {
 	}
 
 	public void visit(ASTClass cl){
-		if (cl.getDynamicCount()>0) {
-			Fail("dynamic entries are illegal in C");
-		}
-		for(ASTNode item:cl.staticMembers()){
-			item.accept(this);
-		}
+		//if (cl.getDynamicCount()>0) {
+		//	Fail("dynamic entries are illegal in C");
+		//}
+    for(ASTNode item:cl.dynamicMembers()){
+      item.accept(this);
+    }
+    for(ASTNode item:cl.staticMembers()){
+      item.accept(this);
+    }
 	}
 	
 	public void visit(DeclarationStatement decl){
@@ -150,7 +154,11 @@ public class CPrinter extends AbstractPrinter {
 		}
 		int N=block.getLength();
 		for(int i=0;i<N;i++){
-			block.getStatement(i).accept(this);
+		  ASTNode S=block.getStatement(i);
+		  S.accept(this);
+			if (S instanceof OperatorExpression){
+			  if (block_expr) out.printf(";"); else out.lnprintf(";");
+			}
 		}
 		if (!block_expr) {
 			out.decrIndent();

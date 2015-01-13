@@ -72,4 +72,9 @@ public class SilverTypeMap<T> implements TypeMapping<T> {
     throw new HREError("tuple types are not supported");
   }
 
+  @Override
+  public T map(TypeExpression t) {
+    throw new HREError("type expressions are not supported");
+  }
+
 }

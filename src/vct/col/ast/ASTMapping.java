@@ -70,4 +70,6 @@ public interface ASTMapping<R> {
 
   public R map(ASTSpecialDeclaration s);
 
+  public R map(TypeExpression t);
+
 }

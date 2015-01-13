@@ -47,6 +47,7 @@ public class SpecificationCollector extends AbstractRewriter {
         // TODO: find a way to keep comments.
         // For now, they are removed to solve static/dynamic issues!
         //super.visit(s);
+        //result.setFlag(ASTFlags.STATIC, false);
         return;
     default:
       if (currentContractBuilder!=null){

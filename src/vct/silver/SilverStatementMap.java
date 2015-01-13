@@ -293,5 +293,11 @@ public class SilverStatementMap<T,E,S,Decl> implements ASTMapping<S>{
     }
   }
 
+  @Override
+  public S map(TypeExpression t) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
 
 }

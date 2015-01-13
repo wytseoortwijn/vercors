@@ -226,7 +226,8 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
             out.lnprintf("{");
             out.incrIndent();
             in_clause=true;
-            if (contract!=null && !contract.pre_condition.equals(Contract.default_true)) {
+            if (contract!=null && !contract.pre_condition.equals(Contract.default_true)
+                && !body.isa(StandardOperator.Unfolding)) {
               // this is an unsafe trick!
               for(ASTNode part:ASTUtils.conjuncts(contract.pre_condition,StandardOperator.Star)){
                 if (!(part instanceof MethodInvokation)) continue;
