@@ -20,6 +20,14 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     }
   }
 
+  @Override
+  public void enter_after(ASTNode node){
+    super.enter_after(node);
+    if (node.isa(StandardOperator.Open)){
+      variables.add("member",new VariableInfo(null,Kind.Label));
+    }
+  }
+  
   public SimpleTypeCheck(ProgramUnit arg){
     super(arg);
   }
