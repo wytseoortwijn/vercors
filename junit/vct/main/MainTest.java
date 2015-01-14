@@ -297,19 +297,6 @@ public class MainTest extends ToolTest {
   }
 
   @Test
-  public void testTreeWand() {
-    sem_get(MagicWand);
-    try {
-      VCTResult res = run("vct", "--chalice", "--inline",
-          "//examples/encoding/TreeWand.java");
-      if (res.verdict != Verdict.Pass)
-        fail("bad result : " + res.verdict);
-    } finally {
-      sem.release();
-    }
-  }
-
-  @Test
   public void testRoster() {
     sem_get();
     try {
