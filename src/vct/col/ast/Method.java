@@ -159,11 +159,11 @@ public class Method extends ASTDeclaration {
       }
     } else if(parent instanceof AxiomaticDataType) {
       AxiomaticDataType adt=(AxiomaticDataType)parent;
-      Warning("%s: computing substitution (%s)...",object_type.getOrigin(),adt.name);
+      Debug("%s: computing substitution (%s)...",object_type.getOrigin(),adt.name);
       DeclarationStatement decl[]=adt.getParameters();
       for(int i=0;i<decl.length;i++){
         if (i<object_type.args.length){
-          Warning("%s -> %s",decl[i].name,(Type)object_type.args[i]);
+          Debug("%s -> %s",decl[i].name,(Type)object_type.args[i]);
           map.put(decl[i].name,(Type)object_type.args[i]);          
         }
       }
@@ -214,7 +214,7 @@ public class Method extends ASTDeclaration {
     HashSet<Method> scanned=new HashSet();
     boolean res=find(this,scanned,body);
     if (res){
-      Warning("function %s is recursive",name);
+      Debug("function %s is recursive",name);
     }
     return res;
   }
