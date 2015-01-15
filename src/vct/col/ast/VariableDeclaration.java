@@ -23,6 +23,11 @@ import vct.util.ClassName;
  */
 public class VariableDeclaration extends ASTNode {
 
+  @Override
+  public <R,A> R accept_simple(ASTMapping1<R,A> map,A arg){
+    return map.map(this,arg);
+  }
+
   /**
    * 
    */

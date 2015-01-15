@@ -25,6 +25,11 @@ import static hre.System.Warning;
  *
  */
 public class ASTClass extends ASTDeclaration implements ASTSequence<ASTClass> {
+
+  @Override
+  public <R,A> R accept_simple(ASTMapping1<R,A> map,A arg){
+    return map.map(this,arg);
+  }
   /**
    * Enumeration of the kinds of classes that are considered.
    * 

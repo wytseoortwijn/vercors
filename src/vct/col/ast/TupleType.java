@@ -4,6 +4,11 @@ import java.util.Arrays;
 
 public class TupleType extends Type {
 
+  @Override
+  public <R,A> R accept_simple(ASTMapping1<R,A> map,A arg){
+    return map.map(this,arg);
+  }
+
   public final Type types[];
   
   public TupleType(Type ... t) {

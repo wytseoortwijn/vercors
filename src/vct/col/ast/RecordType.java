@@ -5,6 +5,11 @@ import java.util.*;
 
 public class RecordType extends Type {
 
+  @Override
+  public <R,A> R accept_simple(ASTMapping1<R,A> map,A arg){
+    return map.map(this,arg);
+  }
+
   private String name[];
   private Type type[];
   public RecordType(String name[],Type type[]){

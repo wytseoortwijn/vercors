@@ -253,7 +253,11 @@ public enum StandardOperator {
   /**
    * The history predicate
    */
-  History(2)
+  History(2),
+  /**
+   * Specifies that a sub-term in a higher order rewrite patterns is independent of a variable.
+   */
+  IndependentOf(2)
   ;
 
   private final int arity;

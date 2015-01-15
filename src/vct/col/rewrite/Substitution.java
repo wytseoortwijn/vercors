@@ -8,7 +8,9 @@ import vct.col.ast.ProgramUnit;
 
 public class Substitution extends AbstractRewriter {
   Map<NameExpression,ASTNode> map;
-    
+  
+  public boolean copy=true;
+  
   public Substitution(ProgramUnit source,Map<NameExpression,ASTNode> map){
     super(source);
    this.map=map;
@@ -18,8 +20,10 @@ public class Substitution extends AbstractRewriter {
     ASTNode res=map.get(e);
     if (res==null){
       super.visit(e);
-    } else {
+    } else if (copy) {
       result=res.apply(copy_rw);
+    } else {
+      result=res;
     }
   }
 }

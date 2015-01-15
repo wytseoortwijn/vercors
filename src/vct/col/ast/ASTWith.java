@@ -5,6 +5,11 @@ import java.util.Arrays;
 
 public class ASTWith extends ASTNode {
 
+  @Override
+  public <R,A> R accept_simple(ASTMapping1<R,A> map,A arg){
+    return map.map(this,arg);
+  }
+
   public static enum Kind{Static,Classes};
   public final String from[];
   public final Kind kind;

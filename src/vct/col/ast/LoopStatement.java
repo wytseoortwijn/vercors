@@ -11,6 +11,11 @@ import vct.col.util.ASTUtils;
 
 public class LoopStatement extends ASTNode implements BeforeAfterAnnotations {
 
+  @Override
+  public <R,A> R accept_simple(ASTMapping1<R,A> map,A arg){
+    return map.map(this,arg);
+  }
+
   private ContractBuilder cb=new ContractBuilder(); 
   private Contract contract;
   private ASTNode body;

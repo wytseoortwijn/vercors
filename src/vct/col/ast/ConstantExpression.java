@@ -15,6 +15,11 @@ import vct.col.ast.PrimitiveType.Sort;
  */
 public class ConstantExpression extends ASTNode {
 
+  @Override
+  public <R,A> R accept_simple(ASTMapping1<R,A> map,A arg){
+    return map.map(this,arg);
+  }
+
   public final Value value;
 
   public ConstantExpression(int i,Origin origin){

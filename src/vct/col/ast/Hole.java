@@ -2,6 +2,11 @@ package vct.col.ast;
 
 public class Hole extends ASTNode {
 
+  @Override
+  public <R,A> R accept_simple(ASTMapping1<R,A> map,A arg){
+    return map.map(this,arg);
+  }
+
   private ThreadLocal<ASTNode> match=new ThreadLocal<ASTNode>();
   
   

@@ -10,6 +10,11 @@ import vct.col.ast.NameExpression.Kind;
  */
 public class NameExpression extends ASTNode {
 
+  @Override
+  public <R,A> R accept_simple(ASTMapping1<R,A> map,A arg){
+    return map.map(this,arg);
+  }
+
   /** The possible kinds of defined names */
   public static enum Kind {
     /** an unresolved name */

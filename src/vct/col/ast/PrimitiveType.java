@@ -5,6 +5,11 @@ import static hre.System.Fail;
 import static hre.System.Warning;
 
 public final class PrimitiveType extends Type {
+
+  @Override
+  public <R,A> R accept_simple(ASTMapping1<R,A> map,A arg){
+    return map.map(this,arg);
+  }
   public static enum Sort {
     Boolean,
     Byte,

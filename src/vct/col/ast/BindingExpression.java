@@ -4,7 +4,12 @@ import java.util.ArrayList;
 
 import static hre.System.Abort;
 
-public class BindingExpression extends ASTNode {
+public class BindingExpression extends ExpressionNode {
+
+  @Override
+  public <R,A> R accept_simple(ASTMapping1<R,A> map,A arg){
+    return map.map(this,arg);
+  }
 
   public static enum Binder {LAMBDA,FORALL,EXISTS,SUM,PRODUCT,STAR,LET};
   

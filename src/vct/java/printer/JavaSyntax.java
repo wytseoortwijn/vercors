@@ -51,14 +51,15 @@ public class JavaSyntax extends Syntax {
         syntax.addOperator(HoarePredicate,-1,"/*{","}*/");
         syntax.addOperator(RangeSeq,-1,"[",",",")");
 
-        syntax.addOperator(Member,45,"","in","");
+        syntax.addOperator(Member,-1,"(","\\in",")");
         syntax.addFunction(CurrentPerm,"perm");
         syntax.addFunction(Scale,"scale");
         syntax.addFunction(Drop,"drop");
         syntax.addFunction(Take,"take");
         syntax.addFunction(History,"Hist");
         
-        syntax.addOperator(Unfolding,140,"unfolding","in","");
+        syntax.addOperator(Unfolding,140,"\\unfolding","\\in","");
+        syntax.addOperator(IndependentOf, -1 , "(" ,"!",")");
         JavaVerCorsSyntax=syntax;
         
       }

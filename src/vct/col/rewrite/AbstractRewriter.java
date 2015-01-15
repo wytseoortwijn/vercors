@@ -23,6 +23,7 @@ import vct.col.ast.AxiomaticDataType;
 import vct.col.ast.BindingExpression;
 import vct.col.ast.ContractBuilder;
 import vct.col.ast.Dereference;
+import vct.col.ast.Hole;
 import vct.col.ast.Lemma;
 import vct.col.ast.MethodInvokation;
 import vct.col.ast.AssignmentStatement;
@@ -652,4 +653,10 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   public void visit(ActionBlock ab) {
     result=create.action_block(rewrite(ab.process),rewrite(ab.action),rewrite(ab.block));
   }
+  
+  @Override
+  public void visit(Hole hole){
+    result=hole;
+  }
+
 }

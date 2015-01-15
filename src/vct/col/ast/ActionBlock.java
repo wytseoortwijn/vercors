@@ -2,6 +2,11 @@ package vct.col.ast;
 
 public class ActionBlock extends ASTNode {
 
+  @Override
+  public <R,A> R accept_simple(ASTMapping1<R,A> map,A arg){
+    return map.map(this,arg);
+  }
+    
   public final ASTNode process;
   public final ASTNode action;
   public final ASTNode block;

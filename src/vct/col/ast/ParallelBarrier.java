@@ -4,6 +4,11 @@ import java.util.EnumSet;
 
 public class ParallelBarrier extends ASTNode {
 
+  @Override
+  public <R,A> R accept_simple(ASTMapping1<R,A> map,A arg){
+    return map.map(this,arg);
+  }
+
   public enum Fence {
     /** fence global memory */
     Global,

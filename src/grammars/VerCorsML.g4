@@ -24,10 +24,14 @@ specificationPrimary
     | type '{' expressionList? '}'
     | '(' '\\forall' type Identifier ';' expression ';' resourceExpression ')'
     | '(' '\\exists' type Identifier ';' expression ';' resourceExpression ')'
+    | '(' '\\let' type Identifier '=' expression ';' expression ')'
     | '[' expressionList? ']'
     | '|' expression '|'
     | '\\length' '(' expression ')'
     | '\\unfolding' resourceExpression '\\in' expression
+    | '(' expression '!' Identifier ')'
+    | '(' expression '\in' Identifier ')'
+    | '['  expression ',' expression ')'
     | '*'
     ;
 

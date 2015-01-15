@@ -134,6 +134,8 @@ public abstract class ASTNode implements ASTFlags {
   
   protected abstract <T> T accept_simple(ASTMapping<T> map);
   
+  protected abstract <R,A> R accept_simple(ASTMapping1<R,A> map,A arg);
+
   public final <T> void accept(ASTVisitor<T> visitor){
     visitor.pre_visit(this);
     this.accept_simple(visitor);
@@ -144,6 +146,20 @@ public abstract class ASTNode implements ASTFlags {
     map.pre_map(this);
     T res=this.accept_simple(map);
     return map.post_map(this, res);  
+  }
+  
+  public final <R,A> R apply(ASTMapping1<R,A> map,A arg){
+    try {
+      map.pre_map(this,arg);
+      R res=this.accept_simple(map,arg);
+      return map.post_map(this, res,arg);
+    } catch (Throwable t){
+      if (thrown.get()!=t){
+        System.err.printf("Triggered by %s:%n",getOrigin());
+        thrown.set(t);
+      }
+      throw t;
+    }
   }
   
   public final <T> T apply(ASTVisitor<T> visitor){

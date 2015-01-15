@@ -8,6 +8,11 @@ import java.util.Arrays;
 
 public class ClassType extends Type {
 
+  @Override
+  public <R,A> R accept_simple(ASTMapping1<R,A> map,A arg){
+    return map.map(this,arg);
+  }
+
   public static final ClassType label_type=new ClassType("<<label>>");
       
   private final String name[];

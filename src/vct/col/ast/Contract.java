@@ -9,7 +9,12 @@ import java.util.HashSet;
 import vct.col.util.ASTUtils;
 
 public class Contract extends ASTNode {
-  
+
+  @Override
+  public <R,A> R accept_simple(ASTMapping1<R,A> map,A arg){
+    return map.map(this,arg);
+  }
+
   public final static ASTNode default_true;
   static {
     Origin origin=new MessageOrigin("contract default true");

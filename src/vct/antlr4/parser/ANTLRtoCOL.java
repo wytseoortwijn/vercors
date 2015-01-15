@@ -700,6 +700,9 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
       return create.exists(convert(ctx,5),convert(ctx,7),
           create.field_decl(getIdentifier(ctx,3),checkType(convert(ctx,2))));
     }
+    if (match(ctx,"(","\\let",null,null,"=",null,";",null,")")){
+      return create.let_expr(create.field_decl(getIdentifier(ctx,3),checkType(convert(ctx,2)),convert(ctx,5)),convert(ctx,7));
+    }
     if (match(ctx,"\\unfolding",null,"\\in",null)){
       return create.expression(StandardOperator.Unfolding,convert(ctx,1),convert(ctx,3));
     }

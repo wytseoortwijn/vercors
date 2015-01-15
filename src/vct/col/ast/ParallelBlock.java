@@ -2,6 +2,11 @@ package vct.col.ast;
 
 public class ParallelBlock extends ASTNode {
 
+  @Override
+  public <R,A> R accept_simple(ASTMapping1<R,A> map,A arg){
+    return map.map(this,arg);
+  }
+
   
   @Override
   public <T> void accept_simple(ASTVisitor<T> visitor){

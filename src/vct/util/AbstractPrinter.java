@@ -66,6 +66,10 @@ public class AbstractPrinter extends AbstractVisitor {
     current_precedence=0;
   }
 
+  public void visit(Hole hole){
+    out.printf("[.]");  
+  }
+  
   public void visit(PrimitiveType t){
     String s=syntax.getPrimitiveType(t.sort);
     if (s==null) throw new Error("unsupported primitive type: "+t.sort);

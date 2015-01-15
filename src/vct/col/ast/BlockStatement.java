@@ -6,6 +6,11 @@ import java.util.*;
 
 public class BlockStatement extends ASTNode implements ASTSequence<BlockStatement> {
 
+  @Override
+  public <R,A> R accept_simple(ASTMapping1<R,A> map,A arg){
+    return map.map(this,arg);
+  }
+
   private ArrayList<ASTNode> block=new ArrayList();
   
   public void add_statement(ASTNode s){

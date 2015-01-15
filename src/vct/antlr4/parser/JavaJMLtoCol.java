@@ -10,6 +10,7 @@ import vct.java.printer.JavaDialect;
 import vct.java.printer.JavaSyntax;
 import vct.parsers.JavaJMLParser.*;
 import vct.parsers.*;
+import vct.parsers.JavaJMLParser.AxiomDeclarationContext;
 import vct.parsers.JavaJMLParser.FunctionDeclarationContext;
 import vct.parsers.JavaJMLParser.LabeledExpressionContext;
 import vct.parsers.JavaJMLParser.ProofScriptContext;
@@ -898,6 +899,14 @@ public class JavaJMLtoCol extends AbstractJavaToCol implements JavaJMLVisitor<AS
   @Override
   public ASTNode visitSpecificResourceExpression(SpecificResourceExpressionContext ctx) {
      return getResourceExpression(ctx);
+  }
+
+  @Override
+  public ASTNode visitAxiomDeclaration(AxiomDeclarationContext ctx) {
+    if (match(ctx,"axiom",null,"{",null,"==",null,"}")){
+      return create.axiom(getIdentifier(ctx,1),create.expression(StandardOperator.EQ,convert(ctx,3),convert(ctx,5)));
+    }
+    return null;
   }
 
 }

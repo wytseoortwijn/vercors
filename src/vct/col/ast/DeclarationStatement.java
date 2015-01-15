@@ -7,6 +7,11 @@ import vct.util.ClassName;
 
 public class DeclarationStatement extends ASTDeclaration {
 
+  @Override
+  public <R,A> R accept_simple(ASTMapping1<R,A> map,A arg){
+    return map.map(this,arg);
+  }
+
   // Type should become part of ASTNode!!
   private Type type;
   private ASTNode expr;

@@ -20,6 +20,12 @@ import static hre.System.Warning;
  *
  */
 public class Method extends ASTDeclaration {
+
+  @Override
+  public <R,A> R accept_simple(ASTMapping1<R,A> map,A arg){
+    return map.map(this,arg);
+  }
+
   /** Enumeration of kinds of methods. */
   public static enum Kind{
     Constructor,

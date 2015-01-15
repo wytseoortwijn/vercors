@@ -13,6 +13,11 @@ import java.util.*;
 
 public class StandardProcedure extends ASTNode {
 
+  @Override
+  public <R,A> R accept_simple(ASTMapping1<R,A> map,A arg){
+    return map.map(this,arg);
+  }
+
   public final StandardOperator op;
 
   public StandardProcedure(StandardOperator op){

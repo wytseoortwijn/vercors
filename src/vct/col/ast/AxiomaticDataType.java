@@ -7,6 +7,11 @@ import vct.util.ClassName;
 
 public class AxiomaticDataType extends ASTDeclaration {
 
+  @Override
+  public <R,A> R accept_simple(ASTMapping1<R,A> map,A arg){
+    return map.map(this,arg);
+  }
+
   private ArrayList<Method> cons=new ArrayList<Method>();
   private ArrayList<Method> maps=new ArrayList<Method>();
   private ArrayList<Axiom> axioms=new ArrayList<Axiom>();

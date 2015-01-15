@@ -1079,6 +1079,9 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       Abort("Binding expression without type.");
     }
     switch(e.binder){
+    case LET:
+      e.setType(t);
+      break;
     case STAR:
       e.setType(new PrimitiveType(Sort.Resource));
       break;

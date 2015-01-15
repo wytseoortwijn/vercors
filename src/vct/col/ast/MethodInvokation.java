@@ -14,6 +14,11 @@ import static hre.System.*;
  */
 public class MethodInvokation extends ExpressionNode {
 
+  @Override
+  public <R,A> R accept_simple(ASTMapping1<R,A> map,A arg){
+    return map.map(this,arg);
+  }
+
   public final ASTNode object;
   public final String method;
   private Method definition;

@@ -9,6 +9,11 @@ import static hre.System.*;
 
 public class OperatorExpression extends ExpressionNode {
 
+  @Override
+  public <R,A> R accept_simple(ASTMapping1<R,A> map,A arg){
+    return map.map(this,arg);
+  }
+
   private StandardOperator op;
   private ASTNode args[];
 

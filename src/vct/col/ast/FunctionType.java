@@ -5,6 +5,11 @@ import java.util.*;
 
 public class FunctionType extends Type {
 
+  @Override
+  public <R,A> R accept_simple(ASTMapping1<R,A> map,A arg){
+    return map.map(this,arg);
+  }
+
   private Type args[];
   private Type result;
   public FunctionType(Type args[],Type result){

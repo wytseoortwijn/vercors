@@ -5,7 +5,12 @@ import java.util.ArrayList;
 import vct.util.ClassName;
 
 public class Axiom extends ASTDeclaration {
-  
+
+  @Override
+  public <R,A> R accept_simple(ASTMapping1<R,A> map,A arg){
+    return map.map(this,arg);
+  }
+
   private ASTNode rule;
   
   public Axiom(String name, ASTNode exp) {

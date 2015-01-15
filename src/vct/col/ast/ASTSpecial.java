@@ -6,6 +6,11 @@ import vct.util.ClassName;
 
 public class ASTSpecial extends ASTNode {
 
+  @Override
+  public <R,A> R accept_simple(ASTMapping1<R,A> map,A arg){
+    return map.map(this,arg);
+  }
+
   public static enum Kind {
     Assert,
     Expression,

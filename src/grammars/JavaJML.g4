@@ -65,8 +65,13 @@ proofScript :
 specificationDeclaration
     : classBodyDeclaration
     | functionDeclaration
+    | axiomDeclaration
     ;
     
 functionDeclaration
     : modifier* type Identifier formalParameters '=' resourceExpression ';' 
+    ;
+
+axiomDeclaration
+    : 'axiom' Identifier '{' resourceExpression '==' resourceExpression '}'
     ;
