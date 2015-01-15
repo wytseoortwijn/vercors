@@ -3,12 +3,14 @@
 package vct.main;
 
 import hre.ast.FileOrigin;
+import hre.ast.MessageOrigin;
 import hre.config.BooleanSetting;
 import hre.config.OptionParser;
 import hre.config.StringListSetting;
 import hre.config.StringSetting;
 import hre.debug.HeapDump;
 import hre.io.PrefixPrintStream;
+import hre.lang.Ref;
 import hre.util.CompositeReport;
 import hre.util.TestReport;
 
@@ -31,6 +33,7 @@ import vct.clang.printer.CPrinter;
 import vct.col.annotate.DeriveModifies;
 import vct.col.ast.*;
 import vct.col.rewrite.AbstractMethodResolver;
+import vct.col.rewrite.AbstractRewriter;
 import vct.col.rewrite.AssignmentRewriter;
 import vct.col.rewrite.BoxingRewriter;
 import vct.col.rewrite.CSLencoder;
@@ -60,17 +63,16 @@ import vct.col.rewrite.ReorderAssignments;
 import vct.col.rewrite.RewriteArray;
 import vct.col.rewrite.RewriteArrayPerms;
 import vct.col.rewrite.RewriteArrayRef;
+import vct.col.rewrite.RewriteSystem;
 import vct.col.rewrite.SatCheckRewriter;
 import vct.col.rewrite.SilverClassReduction;
 import vct.col.rewrite.SilverConstructors;
 import vct.col.rewrite.SilverReorder;
 import vct.col.rewrite.SimplifyCalls;
-import vct.col.rewrite.SimplifyExpressions;
 import vct.col.rewrite.Standardize;
 import vct.col.rewrite.StripConstructors;
 import vct.col.rewrite.VoidCalls;
 import vct.col.rewrite.WandEncoder;
-import vct.col.util.ASTFactory;
 import vct.col.util.FeatureScanner;
 import vct.col.util.SimpleTypeCheck;
 import vct.java.printer.JavaDialect;
@@ -473,7 +475,9 @@ public class Main
     });
     defined_passes.put("simplify_expr",new CompilerPass("Simplify expressions"){
       public ProgramUnit apply(ProgramUnit arg){
-        return new SimplifyExpressions(arg).rewriteAll();
+        RewriteSystem trs=RewriteSystems.getRewriteSystem("simplify_expr");
+        return trs.normalize(arg);
+        // return new SimplifyExpressions(arg).rewriteAll();
       }
     });
     defined_passes.put("standardize",new CompilerPass("Standardize representation"){
@@ -602,7 +606,7 @@ public class Main
       }
       if (features.usesKernels()){
         passes.add("kernel-split");
-        passes.add("simplify_expr");
+        //passes.add("simplify_expr");
         passes.add("standardize");
         passes.add("check");       
       }
@@ -708,7 +712,7 @@ public class Main
       }
       if (features.usesKernels()){
         passes.add("kernel-split");
-        passes.add("simplify_expr");
+        //passes.add("simplify_expr");
         passes.add("standardize");
         passes.add("check");       
       }
