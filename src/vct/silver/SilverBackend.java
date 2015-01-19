@@ -11,6 +11,7 @@ import java.util.Properties;
 
 import hre.HREError;
 import hre.ast.Origin;
+import hre.config.StringSetting;
 import hre.io.Container;
 import hre.io.DirContainer;
 import hre.io.JarContainer;
@@ -24,10 +25,11 @@ import vct.error.VerificationError;
 import vct.util.Configuration;
 
 public class SilverBackend {
-
+  
+  public static StringSetting silver_module=new StringSetting("silver/latest");;
   public static <T,E,S,Decl,Program>
   TestReport TestSilicon(ProgramUnit arg, String tool) {
-    File jarfile=Configuration.getToolHome().resolve("silver/latest/"+tool+".jar").toFile();
+    File jarfile=Configuration.getToolHome().resolve(silver_module.get()+"/"+tool+".jar").toFile();
     System.err.printf("adding jar %s to path%n",jarfile);
     JarContainer container=new JarContainer(jarfile);
     Object obj;
