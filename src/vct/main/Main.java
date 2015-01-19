@@ -58,6 +58,7 @@ import vct.col.rewrite.InheritanceRewriter;
 import vct.col.rewrite.InlinePredicatesRewriter;
 import vct.col.rewrite.IterationContractEncoder;
 import vct.col.rewrite.KernelRewriter;
+import vct.col.rewrite.MergeLoops;
 import vct.col.rewrite.RandomizedIf;
 import vct.col.rewrite.ReorderAssignments;
 import vct.col.rewrite.RewriteArray;
@@ -413,10 +414,15 @@ public class Main
       }
     });
     defined_passes.put("magicwand",new CompilerPass("Encode magic wand proofs with witnesses"){
-        public ProgramUnit apply(ProgramUnit arg){
-          return new WandEncoder(arg).rewriteAll();
-        }
-      });
+      public ProgramUnit apply(ProgramUnit arg){
+        return new WandEncoder(arg).rewriteAll();
+      }
+    });
+    defined_passes.put("merge_loops",new CompilerPass("Merge nested loops into a single loop"){
+      public ProgramUnit apply(ProgramUnit arg){
+        return new MergeLoops(arg).rewriteAll();
+      }
+    });
     defined_passes.put("modifies",new CompilerPass("Derive modifies clauses for all contracts"){
         public ProgramUnit apply(ProgramUnit arg){
           new DeriveModifies().annotate(arg);
@@ -476,6 +482,13 @@ public class Main
     defined_passes.put("simplify_expr",new CompilerPass("Simplify expressions"){
       public ProgramUnit apply(ProgramUnit arg){
         RewriteSystem trs=RewriteSystems.getRewriteSystem("simplify_expr");
+        return trs.normalize(arg);
+        // return new SimplifyExpressions(arg).rewriteAll();
+      }
+    });
+    defined_passes.put("simplify_quant",new CompilerPass("Simplify quantifications"){
+      public ProgramUnit apply(ProgramUnit arg){
+        RewriteSystem trs=RewriteSystems.getRewriteSystem("simplify_quant");
         return trs.normalize(arg);
         // return new SimplifyExpressions(arg).rewriteAll();
       }
@@ -601,6 +614,7 @@ public class Main
       }
       if (features.usesIterationContracts()){
         passes.add("iter");
+        passes.add("simplify_quant");
         passes.add("standardize");
         passes.add("check");
       }
@@ -707,6 +721,7 @@ public class Main
       }
       if (features.usesIterationContracts()){
         passes.add("iter");
+        passes.add("simplify_quant");
         passes.add("standardize");
         passes.add("check");
       }
