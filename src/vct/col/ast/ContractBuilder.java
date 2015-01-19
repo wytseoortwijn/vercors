@@ -21,8 +21,18 @@ public class ContractBuilder {
   private ArrayList<DeclarationStatement> given=new ArrayList<DeclarationStatement>();
   private ArrayList<DeclarationStatement> yields=new ArrayList<DeclarationStatement>();
   private HashSet<ASTNode> modifiable;
-  private ArrayList<DeclarationStatement> signals=new ArrayList<DeclarationStatement>(); 
+  private ArrayList<DeclarationStatement> signals=new ArrayList<DeclarationStatement>();
   
+  public boolean isEmpty() {
+    return  invariant.isConstant(default_true)
+        && pre_condition.isConstant(default_true)
+        && post_condition.isConstant(default_true)
+        && given.size()==0 && yields.size()==0
+        && signals.size()==0
+        && modifiable == null
+        ;
+  }
+
   private static final void scan_to(ArrayList<DeclarationStatement> list,BlockStatement decls){
     int N=decls.getLength();
     for(int i=0;i<N;i++){

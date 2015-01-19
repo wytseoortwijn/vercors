@@ -99,7 +99,8 @@ class MatchLinear implements ASTMapping1<Boolean,ASTNode> {
         DeclarationStatement dref=(DeclarationStatement)ref.get();
         return a.isName(dref.name);
       }
-      throw new HREError("non-linear left-hand side");
+      return ref.get().match(a);
+      //throw new HREError("non-linear left-hand side");
     }
   }
 

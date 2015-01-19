@@ -49,9 +49,9 @@ public class JavaSyntax extends Syntax {
         syntax.addLeftFix(StructSelect,".",-1);
         syntax.addLeftFix(LeftMerge,"||_",30);
         syntax.addOperator(HoarePredicate,-1,"/*{","}*/");
-        syntax.addOperator(RangeSeq,-1,"[",",",")");
+        syntax.addOperator(RangeSeq,-1,"[","..",")");
 
-        syntax.addOperator(Member,-1,"(","\\in",")");
+        syntax.addOperator(Member,-1,"(","\\memberof",")");
         syntax.addFunction(CurrentPerm,"perm");
         syntax.addFunction(Scale,"scale");
         syntax.addFunction(Drop,"drop");

@@ -29,6 +29,16 @@ public class Contract extends ASTNode {
   public final DeclarationStatement signals[];
   public final ASTNode modifies[];
   
+  public boolean isEmpty() {
+    return invariant.isConstant(default_true)
+        && pre_condition.isConstant(default_true)
+        && post_condition.isConstant(default_true)
+        && given.length==0 && yields.length==0
+        && (signals==null || signals.length==0)
+        && modifies == null
+        ;
+  }
+
   private HashSet<String> labels=new HashSet<String>();
     
   public Contract(DeclarationStatement given[],DeclarationStatement yields[],ASTNode inv,ASTNode pre_condition,ASTNode post_condition){
@@ -107,6 +117,7 @@ public class Contract extends ASTNode {
       throw t;
     }
   }
+
  
   
 }

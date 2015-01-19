@@ -52,9 +52,9 @@ public class ColJavaParser implements vct.col.util.Parser {
         pu=new CommentRewriter(pu,new JMLCommentParser()).rewriteAll();
         pu=new FlattenVariableDeclarations(pu).rewriteAll();
         pu=new SpecificationCollector(pu).rewriteAll();
-        //vct.util.Configuration.getDiagSyntax().print(System.out,pu);
+        vct.util.Configuration.getDiagSyntax().print(System.out,pu);
         pu=new JavaPostProcessor(pu).rewriteAll();
-        //vct.util.Configuration.getDiagSyntax().print(System.out,pu);
+        vct.util.Configuration.getDiagSyntax().print(System.out,pu);
         pu=new AnnotationInterpreter(pu).rewriteAll();
         //vct.util.Configuration.getDiagSyntax().print(System.out,pu);
         return pu;

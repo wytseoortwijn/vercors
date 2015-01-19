@@ -249,6 +249,7 @@ public final class PrimitiveType extends Type {
     case Array:
       return new NameExpression(ASTReserved.Null);
     case Boolean:
+    case Resource:
       return new ConstantExpression(false);
     case ZFraction:
       return new ConstantExpression(0);
