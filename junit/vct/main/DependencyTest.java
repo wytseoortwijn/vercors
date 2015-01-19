@@ -41,5 +41,30 @@ public class DependencyTest extends ToolTest {
       VCTResult res=run("chalice","//examples/backends/test-fail.chalice");  
       res.mustSay("Boogie program verifier finished with 2 verified, 1 error");
   }
+  
+  @Test
+  public void testCarbonPass(){
+      VCTResult res=run("carbon","//examples/backends/test-pass.sil");  
+      res.mustSay("No errors found.");
+  }
+
+  @Test
+  public void testCarbonFail(){
+      VCTResult res=run("carbon","//examples/backends/test-fail.sil");  
+      res.mustSay("Assignment might fail. Divisor 0 might be zero.");
+  }
+
+  
+  @Test
+  public void testSiliconPass(){
+      VCTResult res=run("silicon","//examples/backends/test-pass.sil");  
+      res.mustSay("No errors found.");
+  }
+
+  @Test
+  public void testSiliconFail(){
+      VCTResult res=run("silicon","//examples/backends/test-fail.sil");  
+      res.mustSay("Assignment might fail. Divisor 0 might be zero.");
+  }
 
 }

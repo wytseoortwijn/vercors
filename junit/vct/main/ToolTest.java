@@ -81,6 +81,24 @@ public class ToolTest extends TestCase {
           vct.boogie.Main.z3_module.get(),
           vct.boogie.Main.boogie_module.get());
       break;
+    case "carbon":
+      sh=Configuration.getShell(
+          vct.boogie.Main.z3_module.get(),
+          vct.boogie.Main.boogie_module.get(),
+          vct.silver.SilverBackend.silver_module.get());
+     
+      break;
+    case "silicon":
+      String z3;
+      if (vct.boogie.Main.z3_module.used()||vct.silver.SilverBackend.silver_module.used()){
+        z3=vct.boogie.Main.z3_module.get();
+      } else {
+        z3="z3/4.3.2";
+      }
+      sh=Configuration.getShell(
+          z3,
+          vct.silver.SilverBackend.silver_module.get());
+      break;
     case "chalice":
       sh=Configuration.getShell(
           vct.boogie.Main.z3_module.get(),
