@@ -93,7 +93,7 @@ public class ContainerClassLoader extends ClassLoader {
     public InputStream getResourceAsStream(String name){
       if (source.contains(name)){
         try {
-          Warning("resource %s found.",name);
+          Debug("resource %s found.",name);
           return source.read(name);
         } catch (IOException e) {
           e.printStackTrace();
