@@ -151,15 +151,18 @@ public final class PrimitiveType extends Type {
   
   public boolean supertypeof(ProgramUnit context, Type t){
     switch(this.sort){
-    case Sequence:
     case Array:
+      if (t.isPrimitive(this.sort)){
+        return args[0].equals(((PrimitiveType)t).args[0]);
+      }
+    case Sequence:
     case Cell:
       if (t instanceof ClassType) {
         ClassType ct=(ClassType)t;
         String name[]=ct.getNameFull();
         if (name.length==1 && name[0].equals("<<null>>")) return true;
       }
-    }
+     }
     if (t instanceof PrimitiveType){
       PrimitiveType pt=(PrimitiveType)t;
       if (equals(t)) return true;

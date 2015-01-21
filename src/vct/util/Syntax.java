@@ -10,6 +10,7 @@ import vct.col.ast.StandardOperator;
 import hre.HREError;
 import hre.ast.TrackingOutput;
 
+import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -220,6 +221,12 @@ public class Syntax {
     throw new HREError("Pretty printing %s is not implemented",language);
   }
 
+  public ByteArrayOutputStream print(ASTNode n){
+    ByteArrayOutputStream res=new ByteArrayOutputStream();
+    print(new PrintStream(res),n);
+    return res;
+  }
+  
   public void print(PrintStream out,ASTNode n){
     print(new TrackingOutput(out,false),n);
   }

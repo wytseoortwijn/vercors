@@ -1,5 +1,6 @@
 package vct.col.rewrite;
 
+import static hre.System.Debug;
 import static hre.System.Fail;
 import static hre.System.Warning;
 import hre.HREError;
@@ -7,6 +8,8 @@ import hre.ast.MessageOrigin;
 import hre.ast.Origin;
 import hre.lang.Ref;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -207,7 +210,10 @@ class MatchLinear implements ASTMapping1<Boolean,ASTNode> {
       BindingExpression ee=(BindingExpression)a;
       if (ee.getDeclCount()!=1) return false;
       DeclarationStatement ee_decl=ee.getDeclaration(0);
-      Warning("attempting %s -> %s",name,ee_decl.name);
+      Debug("attempting %s -> %s for",name,ee_decl.name);
+      Debug(" %s%n match with%n  %s",
+          Configuration.getDiagSyntax().print(e),
+          Configuration.getDiagSyntax().print(a));
       ref.set(ee_decl);
       if (ee.binder!=e.binder) return false;
       return e.select.apply(this,ee.select) && e.main.apply(this,ee.main);
@@ -404,15 +410,14 @@ public class RewriteSystem {
   
   public boolean step(Ref<ASTNode> term){
     for(RewriteRule rule:rules){
-      //Configuration.getDiagSyntax().print(System.err, rule.lhs);
       MatchLinear matcher=new MatchLinear(rule.vars);
       if (rule.lhs.apply(matcher,term.get())){
         MatchSubstitution sigma=new MatchSubstitution(matcher.match);
-        //System.err.println(" match");
+        Debug("++ match axiom %s",rule.name);
         term.set(sigma.rewrite(rule.rhs));
         return true;
       }
-      //System.err.println(" no match");
+      Debug("-- no match axiom %s",rule.name);
     }
     return false;
   }

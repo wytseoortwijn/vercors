@@ -404,10 +404,19 @@ public BlockStatement block(Origin origin, ASTNode ... args) {
     * @param list Non-empty list of terms.
     * @return folded list.
     */
-    public ASTNode fold(StandardOperator op, ASTNode base, ASTNode ... list) {
-      ASTNode res=base;
+    public ASTNode fold(StandardOperator op, ASTNode ... list) {
+      if (list.length==0){
+        switch(op){
+        case And:
+        case Star:
+          return constant(true);
+        default:
+          Abort("cannot fold empty list, because neutral element of %s is not implemented",op);
+        }
+      }
+      ASTNode res=list[0];
       int N=list.length;
-      for(int i=0;i<N;i++){
+      for(int i=1;i<N;i++){
         res=expression(op,res,list[i]);
       }
       return res;
