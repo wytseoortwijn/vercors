@@ -60,6 +60,7 @@ import vct.col.rewrite.IterationContractEncoder;
 import vct.col.rewrite.KernelRewriter;
 import vct.col.rewrite.MergeLoops;
 import vct.col.rewrite.RandomizedIf;
+import vct.col.rewrite.RecognizeLoops;
 import vct.col.rewrite.ReorderAssignments;
 import vct.col.rewrite.RewriteArray;
 import vct.col.rewrite.RewriteArrayPerms;
@@ -138,7 +139,6 @@ public class Main
     long globalStart = System.currentTimeMillis();
     OptionParser clops=new OptionParser();
     clops.add(clops.getHelpOption(),'h',"help");
-
     
     BooleanSetting boogie=new BooleanSetting(false);
     clops.add(boogie.getEnable("select Boogie backend"),"boogie");
@@ -434,7 +434,12 @@ public class Main
         return new RewriteArrayPerms(arg).rewriteAll();
       }
     });
-    defined_passes.put("ref_array",new CompilerPass("rewrite array as a sequence of Refs"){
+    defined_passes.put("recognize_loops",new CompilerPass("Recognize for-each loops"){
+      public ProgramUnit apply(ProgramUnit arg){
+        return new RecognizeLoops(arg).rewriteAll();
+      }
+    });
+   defined_passes.put("ref_array",new CompilerPass("rewrite array as a sequence of Refs"){
       public ProgramUnit apply(ProgramUnit arg){
         return new RewriteArrayRef(arg).rewriteAll();
       }
@@ -613,6 +618,10 @@ public class Main
         passes.add("check");
       }
       if (features.usesIterationContracts()){
+        passes.add("recognize_loops");
+        passes.add("merge_loops");
+        passes.add("standardize");
+        passes.add("check");
         passes.add("iter");
         passes.add("simplify_quant");
         passes.add("standardize");
@@ -720,6 +729,10 @@ public class Main
         passes.add("check");        
       }
       if (features.usesIterationContracts()){
+        passes.add("recognize_loops");
+        passes.add("merge_loops");
+        passes.add("standardize");
+        passes.add("check");
         passes.add("iter");
         passes.add("simplify_quant");
         passes.add("standardize");

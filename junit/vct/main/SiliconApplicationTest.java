@@ -100,5 +100,27 @@ public class SiliconApplicationTest extends ToolTest {
       sem.release();
     }
   }
+  
+  @Test
+  public void testNestedDoubleIC(){
+    sem_get();
+    try {
+      VCTResult res=run("vct","--silver=silicon_qp","//examples/silicon/ZeroArrayNested.java");
+      res.checkVerdict(Verdict.Pass);
+    } finally {
+      sem.release();
+    }
+  }
+  
+  @Test
+  public void testNestedSingleIC(){
+    sem_get();
+    try {
+      VCTResult res=run("vct","--silver=silicon_qp","//examples/silicon/ZeroArrayNestedSingle.java");
+      res.checkVerdict(Verdict.Pass);
+    } finally {
+      sem.release();
+    }
+  }
 
 }
