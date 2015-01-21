@@ -61,6 +61,7 @@ import vct.col.rewrite.KernelRewriter;
 import vct.col.rewrite.MergeLoops;
 import vct.col.rewrite.RandomizedIf;
 import vct.col.rewrite.RecognizeLoops;
+import vct.col.rewrite.RecognizeMultiDim;
 import vct.col.rewrite.ReorderAssignments;
 import vct.col.rewrite.RewriteArray;
 import vct.col.rewrite.RewriteArrayPerms;
@@ -439,6 +440,11 @@ public class Main
         return new RecognizeLoops(arg).rewriteAll();
       }
     });
+    defined_passes.put("recognize_multidim",new CompilerPass("Recognize multi-dimensional arrays"){
+      public ProgramUnit apply(ProgramUnit arg){
+        return new RecognizeMultiDim(arg).rewriteAll();
+      }
+    });
    defined_passes.put("ref_array",new CompilerPass("rewrite array as a sequence of Refs"){
       public ProgramUnit apply(ProgramUnit arg){
         return new RewriteArrayRef(arg).rewriteAll();
@@ -618,6 +624,7 @@ public class Main
         passes.add("check");
       }
       if (features.usesIterationContracts()){
+        passes.add("recognize_multidim");
         passes.add("recognize_loops");
         passes.add("merge_loops");
         passes.add("standardize");
@@ -729,6 +736,7 @@ public class Main
         passes.add("check");        
       }
       if (features.usesIterationContracts()){
+        passes.add("recognize_multidim");
         passes.add("recognize_loops");
         passes.add("merge_loops");
         passes.add("standardize");
