@@ -8,6 +8,7 @@ import hre.ast.Origin;
 import hre.lang.Ref;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Set;
@@ -33,11 +34,11 @@ class RewriteRule {
 
 class MatchLinear implements ASTMapping1<Boolean,ASTNode> {
   
-  public Hashtable<String,Ref<ASTNode>> match=new Hashtable();
+  public Hashtable<String,Ref<ASTNode>> match=new Hashtable<String, Ref<ASTNode>>();
   
   public MatchLinear(Set<String> vars){
     for(String name:vars){
-      match.put(name,new Ref());
+      match.put(name,new Ref<ASTNode>());
     }
   }
 
@@ -66,8 +67,13 @@ class MatchLinear implements ASTMapping1<Boolean,ASTNode> {
   @Override
   public Boolean map(OperatorExpression e1, ASTNode a) {
     if (e1.isa(StandardOperator.IndependentOf)){
-      String name=((NameExpression)e1.getArg(1)).getName();
-      return !(ASTUtils.find_name(a,name)) && e1.getArg(0).apply(this,a);
+      ASTNode tmp = match.get(((NameExpression)e1.getArg(1)).getName()).get();
+      if (tmp instanceof DeclarationStatement){
+        DeclarationStatement decl=(DeclarationStatement)tmp;
+        return !ASTUtils.find_name(a,decl.name) && e1.getArg(0).apply(this,a);
+      } else {
+        return false;
+      }
     }
     if (a.isa(e1.getOperator())){
       OperatorExpression e2=(OperatorExpression)a;
@@ -294,6 +300,12 @@ class MatchLinear implements ASTMapping1<Boolean,ASTNode> {
     // TODO Auto-generated method stub
     return null;
   }
+
+  @Override
+  public Boolean map(ForEachLoop s, ASTNode a) {
+    // TODO Auto-generated method stub
+    return null;
+  }
   
 }
 
@@ -340,7 +352,18 @@ class MatchSubstitution extends AbstractRewriter {
       }
       decls[i]=create.field_decl(dref.name,rewrite(dref.getType()),rewrite(decls[i].getInit()));
     }
-    result=create.binder(e.binder,rewrite(e.result_type),decls,rewrite(e.select),rewrite(e.main));
+    if (e.binder==BindingExpression.Binder.LET){
+      HashMap<NameExpression, ASTNode> map=new HashMap<NameExpression, ASTNode>();
+      for(int i=0;i<decls.length;i++){
+        map.put(create.local_name(decls[i].name),rewrite(decls[i].getInit()));
+      }
+      Substitution sigma=new Substitution(source(),map);
+      ASTNode tmp=rewrite(e.main);
+      ASTNode res=sigma.rewrite(tmp);
+      result=res;
+    } else {
+      result=create.binder(e.binder,rewrite(e.result_type),decls,rewrite(e.select),rewrite(e.main));
+    }
   }
    
 }
@@ -356,11 +379,13 @@ class Normalizer extends AbstractRewriter {
   
   @Override
   public void post_visit(ASTNode node){
-    Ref<ASTNode> ref=new Ref(result);
+    Ref<ASTNode> ref=new Ref<ASTNode>(result);
     boolean again=(node instanceof ExpressionNode) && trs.step(ref);
     super.post_visit(node);
     if(again){
       result=rewrite(ref.get());
+    } else {
+      result=ref.get();
     }
   }
 
@@ -373,7 +398,7 @@ public class RewriteSystem {
     return n.rewriteAll();
   }
   
-  private ArrayList<RewriteRule> rules=new ArrayList();
+  private ArrayList<RewriteRule> rules=new ArrayList<RewriteRule>();
   
   private AbstractRewriter normalize;
   
@@ -397,7 +422,7 @@ public class RewriteSystem {
     normalize=new AbstractRewriter(pu){
       @Override
       public void post_visit(ASTNode node){
-        Ref<ASTNode> ref=new Ref(result);
+        Ref<ASTNode> ref=new Ref<ASTNode>(result);
         boolean again=step(ref);
         super.post_visit(node);
         if(again){
@@ -405,7 +430,7 @@ public class RewriteSystem {
         }
       }
     };
-    HashSet<String> vars=new HashSet();
+    HashSet<String> vars=new HashSet<String>();
     for(ASTNode d:pu.find(sys)){
       if(d instanceof DeclarationStatement){
         DeclarationStatement decl=(DeclarationStatement)d;

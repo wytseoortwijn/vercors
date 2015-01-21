@@ -39,6 +39,8 @@ public interface ASTVisitor<T> {
   
   public void visit(LoopStatement s);
   
+  public void visit(ForEachLoop s);
+  
   public void visit(Method m);
 
   public void visit(ASTClass c);

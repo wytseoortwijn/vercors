@@ -8,6 +8,7 @@ import vct.col.ast.ASTNode;
 import vct.col.ast.BindingExpression;
 import vct.col.ast.BlockStatement;
 import vct.col.ast.DeclarationStatement;
+import vct.col.ast.ForEachLoop;
 import vct.col.ast.LoopStatement;
 import vct.col.ast.NameExpression;
 import vct.col.ast.RecursiveVisitor;
@@ -94,6 +95,20 @@ public class NameScanner extends RecursiveVisitor<Object> {
       }      
     } else {
       Abort("missing case in free variable detection");
+    }
+  }
+  public void visit(ForEachLoop s){
+    Type old[]=new Type[s.decls.length];
+    for(int i=0;i<s.decls.length;i++){
+      old[i]=vars.get(s.decls[i].name);
+      safe_decls.add(s.decls[i]);
+    }
+    super.visit(s);
+    for(int i=0;i<s.decls.length;i++){
+      vars.remove(s.decls[i].name);
+      if(old[i]!=null){
+        vars.put(s.decls[i].name,old[i]);
+      }      
     }
   }
 }

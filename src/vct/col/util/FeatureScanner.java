@@ -5,6 +5,7 @@ import java.util.EnumSet;
 import vct.col.ast.ASTClass;
 import vct.col.ast.ASTNode;
 import vct.col.ast.Contract;
+import vct.col.ast.ForEachLoop;
 import vct.col.ast.LoopStatement;
 import vct.col.ast.OperatorExpression;
 import vct.col.ast.ParallelBlock;
@@ -98,6 +99,10 @@ public class FeatureScanner extends RecursiveVisitor<Object> {
     super.visit(pb);
   }
 
+  public void visit(ForEachLoop s){
+    has_iteration_contracts=true;
+  }
+  
   public void visit(LoopStatement s){
     super.visit(s);
     if (has_iteration_contracts) return;

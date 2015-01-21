@@ -47,6 +47,14 @@ public abstract class RecursiveVisitor<T> extends ASTFrame<T> implements
   }
 
   @Override
+  public void visit(ForEachLoop s){
+    dispatch(s.decls);
+    dispatch(s.guard);
+    dispatch(s.body);
+    dispatch(s.getContract());
+  }
+  
+  @Override
   public void visit(OperatorExpression e) {
     for(ASTNode arg:e.getArguments()){
       arg.accept(this);
@@ -115,9 +123,11 @@ public abstract class RecursiveVisitor<T> extends ASTFrame<T> implements
       c.accept(this);
     }
   }
-  private void dispatch(ASTNode object) {
-    if(object!=null){
-      object.accept(this);
+  private void dispatch(ASTNode ... objects) {
+    for(ASTNode object:objects){
+      if(object!=null){
+        object.accept(this);
+      }
     }
   }
 

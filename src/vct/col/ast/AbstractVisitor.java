@@ -136,6 +136,8 @@ public abstract class AbstractVisitor<T> extends ASTFrame<T> implements ASTVisit
   
   @Override public void visit(ActionBlock ab) { visit_any(ab); }
 
+  @Override public void visit(ForEachLoop s) { visit_any(s); }
+
 }
 
 

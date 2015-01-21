@@ -299,5 +299,11 @@ public class SilverStatementMap<T,E,S,Decl> implements ASTMapping<S>{
     return null;
   }
 
+  @Override
+  public S map(ForEachLoop s) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
 
 }

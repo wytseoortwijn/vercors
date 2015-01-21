@@ -853,26 +853,53 @@ public class JavaPrinter extends AbstractPrinter {
       }
     }
   }
+  public void visit(ForEachLoop s){
+    visit(s.getContract());
+    out.printf("for(");
+    for(DeclarationStatement decl:s.decls){
+      nextExpr();
+      decl.apply(this);
+      out.printf(";");
+    }
+    nextExpr();
+    s.guard.apply(this);
+    out.printf(")");
+    s.body.apply(this);
+  }
 
   public void visit(LoopStatement s){
     visit(s.getContract());
     ASTNode tmp;
     if (s.getInitBlock()!=null){
       out.printf("for(");
-      nextExpr();
-       if(s.getInitBlock() instanceof BlockStatement)
-      ((BlockStatement)s.getInitBlock()).getStatement(0).accept(this);
-       else s.getInitBlock().accept(this);
-      out.printf(";");
+      
+       if(s.getInitBlock() instanceof BlockStatement){
+         for(ASTNode n:(BlockStatement)s.getInitBlock()){
+           nextExpr();
+           n.accept(this);
+           out.printf(";");
+         }
+       } else {
+         nextExpr();
+         s.getInitBlock().accept(this);
+         out.printf(";");
+       }
       nextExpr();
       s.getEntryGuard().accept(this);
-      out.printf(";");
+      
       if ((s.getUpdateBlock())!=null){
-        nextExpr();
-        if(s.getUpdateBlock() instanceof BlockStatement)
-        ((BlockStatement)s.getUpdateBlock()).getStatement(0).accept(this);
-        else 
+        
+        if(s.getUpdateBlock() instanceof BlockStatement){
+          for(ASTNode n:(BlockStatement)s.getUpdateBlock()){
+            out.printf(";");
+            nextExpr();
+            n.accept(this);
+          }        
+        } else {
+          out.printf(";");
+          nextExpr();
         	s.getUpdateBlock().accept(this);
+        }
       }
       out.printf(")");
     } else if ((tmp=s.getEntryGuard())!=null) {

@@ -438,18 +438,6 @@ public BlockStatement block(Origin origin, ASTNode ... args) {
       return res;    
     }
           
-  public BindingExpression forall(ASTNode guard, ASTNode claim, DeclarationStatement ... decl) {
-    BindingExpression res=new BindingExpression(
-        Binder.FORALL,
-        primitive_type(PrimitiveType.Sort.Boolean),
-        decl,
-        guard,
-        claim
-    );
-    res.setOrigin(origin_stack.get());
-    res.accept_if(post);
-    return res;
-  }
   public BindingExpression exists(ASTNode guard, ASTNode claim, DeclarationStatement ... decl) {
     BindingExpression res=new BindingExpression(
         Binder.EXISTS,
@@ -765,18 +753,56 @@ public ASTSpecial special(Origin origin, vct.col.ast.ASTSpecial.Kind kind, ASTNo
    return special_decl(origin_stack.get(),kind,args);
  }
 
- public BindingExpression starall(ASTNode guard, ASTNode claim, DeclarationStatement ... decl) {
-  BindingExpression res=new BindingExpression(
-      Binder.STAR,
-      primitive_type(PrimitiveType.Sort.Resource),
-      decl,
-      guard,
-      claim
-  );
-  res.setOrigin(origin_stack.get());
-  res.accept_if(post);
-  return res;
-}
+  public BindingExpression starall(ASTNode guard, ASTNode claim, DeclarationStatement ... decl) {
+    int i=decl.length-1;
+    BindingExpression res=new BindingExpression(
+        Binder.STAR,
+        primitive_type(PrimitiveType.Sort.Resource),
+        new DeclarationStatement[]{decl[i]},
+        guard,
+        claim
+    );
+    res.setOrigin(origin_stack.get());
+    res.accept_if(post);
+    while(i>0){
+      i--;
+      res=new BindingExpression(
+          Binder.STAR,
+          primitive_type(PrimitiveType.Sort.Resource),
+          new DeclarationStatement[]{decl[i]},
+          constant(true),
+          res
+      );
+      res.setOrigin(origin_stack.get());
+      res.accept_if(post);
+    }
+    return res;
+  }
+  public BindingExpression forall(ASTNode guard, ASTNode claim, DeclarationStatement ... decl) {
+    int i=decl.length-1;
+    BindingExpression res=new BindingExpression(
+        Binder.FORALL,
+        primitive_type(PrimitiveType.Sort.Boolean),
+        new DeclarationStatement[]{decl[i]},
+        guard,
+        claim
+    );
+    res.setOrigin(origin_stack.get());
+    res.accept_if(post);
+    while(i>0){
+      i--;
+      res=new BindingExpression(
+          Binder.FORALL,
+          primitive_type(PrimitiveType.Sort.Boolean),
+          new DeclarationStatement[]{decl[i]},
+          constant(true),
+          res
+      );
+      res.setOrigin(origin_stack.get());
+      res.accept_if(post);
+    }
+    return res;
+  }
  /**
  * Create a reserved name this that also refers to the given class type.
  */
@@ -925,6 +951,13 @@ public Axiom axiom(String name,ASTNode exp){
   }
   public Type __long(Type type) {
     Type res=new TypeExpression(TypeOperator.Long,type);
+    res.setOrigin(origin_stack.get());
+    res.accept_if(post);
+    return res;
+  }
+
+  public ForEachLoop foreach(DeclarationStatement[] decls,ASTNode guard, ASTNode body) {
+    ForEachLoop res=new ForEachLoop(decls,guard,body);
     res.setOrigin(origin_stack.get());
     res.accept_if(post);
     return res;

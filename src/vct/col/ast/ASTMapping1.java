@@ -36,6 +36,8 @@ public interface ASTMapping1<R,A1> {
   
   public R map(LoopStatement s,A1 a);
   
+  public R map(ForEachLoop s,A1 a);
+  
   public R map(Method m,A1 a);
 
   public R map(ASTClass c,A1 a);

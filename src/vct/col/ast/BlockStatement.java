@@ -56,6 +56,20 @@ public class BlockStatement extends ASTNode implements ASTSequence<BlockStatemen
     }
     return this;
   }
+  
+  public BlockStatement append(ASTNode item) {
+    if (item!=null) {
+      if (item instanceof BlockStatement){
+        for(ASTNode n:(BlockStatement)item){
+          n.clearParent();
+          this.add(n);
+        }
+      } else {
+        this.add(item);
+      }
+    }
+    return this;
+  }
 
   @Override
   public int size() {

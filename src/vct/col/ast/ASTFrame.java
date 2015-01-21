@@ -254,6 +254,13 @@ public abstract class ASTFrame<T> {
         variables.add(label.getName(),new VariableInfo(node,NameExpression.Kind.Label));
       }
     }
+    if (node instanceof ForEachLoop){
+      variables.enter();
+      ForEachLoop loop=(ForEachLoop)node;
+      for(DeclarationStatement decl:loop.decls){
+        variables.add(decl.getName(),new VariableInfo(decl,NameExpression.Kind.Local));
+      }
+    }
     if (node instanceof LoopStatement){
       variables.enter();
       LoopStatement loop=(LoopStatement)node;
@@ -365,6 +372,9 @@ public abstract class ASTFrame<T> {
       variables.leave();
     }
     if (node instanceof LoopStatement){
+      variables.leave();
+    }
+    if (node instanceof ForEachLoop){
       variables.leave();
     }
     if (node instanceof BindingExpression){

@@ -5,6 +5,7 @@ import hre.ast.BranchOrigin;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.Map.Entry;
 import java.util.Stack;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -16,6 +17,7 @@ import vct.col.ast.ConstantExpression;
 import vct.col.ast.Contract;
 import vct.col.ast.ContractBuilder;
 import vct.col.ast.DeclarationStatement;
+import vct.col.ast.ForEachLoop;
 import vct.col.ast.IfStatement;
 import vct.col.ast.IntegerValue;
 import vct.col.ast.LoopStatement;
@@ -29,6 +31,7 @@ import vct.col.ast.StandardOperator;
 import vct.col.ast.Type;
 import vct.col.ast.Value;
 import vct.col.ast.VariableDeclaration;
+import vct.col.util.ASTFactory;
 import vct.col.util.ASTUtils;
 import vct.col.util.NameScanner;
 import vct.col.util.OriginWrapper;
@@ -215,18 +218,120 @@ public class IterationContractEncoder extends AbstractRewriter {
 	  }
 	  
   }
-  public void visit(LoopStatement s){
+  
+  
+  
+  @Override
+  public void visit(ForEachLoop s){
+    Contract c=s.getContract();
+    if (c==null) Fail("for each loop without iteration contract");
+    Hashtable<String,Type> body_vars=free_vars(s.body,c);
+    //Hashtable<String,Type> iters=new Hashtable<String,Type>();
+    Hashtable<String,Type> main_vars=new Hashtable(body_vars);
+    for(DeclarationStatement decl:s.decls){
+      //iters.put(decl.name,decl.getType());
+      main_vars.remove(decl.name);
+    }
+
+    int N=counter.incrementAndGet();
+    String main_name="loop_main_"+N;
+    String body_name="loop_body_"+N;
+    ContractBuilder main_cb=new ContractBuilder();
+    ContractBuilder body_cb=new ContractBuilder();
+
+    DeclarationStatement iter_decls[] = s.decls;
+    outer:for(ASTNode clause:ASTUtils.conjuncts(c.pre_condition, StandardOperator.Star)){
+      if (clause.getType().isBoolean()){
+        //for(DeclarationStatement decl:iter_decls){
+          //if (ASTUtils.find_name(clause,decl.name)){
+            main_cb.requires(create.forall(copy_rw.rewrite(s.guard), rewrite(clause) , iter_decls));
+            //continue outer;
+          //}
+        //}
+        //main_cb.requires(rewrite(clause));
+      } else {
+        main_cb.requires(create.starall(copy_rw.rewrite(s.guard), rewrite(clause) , iter_decls));
+      }
+    }
+    outer:for(ASTNode clause:ASTUtils.conjuncts(c.post_condition, StandardOperator.Star)){
+      if (clause.getType().isBoolean()){
+        //for(DeclarationStatement decl:iter_decls){
+          //if (ASTUtils.find_name(clause,decl.name)){
+            main_cb.ensures(create.forall(copy_rw.rewrite(s.guard), rewrite(clause) , iter_decls));
+            //continue outer;
+          //}
+        //}
+        //main_cb.ensures(rewrite(clause));
+      } else {
+        main_cb.ensures(create.starall(copy_rw.rewrite(s.guard), rewrite(clause) , iter_decls));
+      }
+    }
+
+    DeclarationStatement main_pars[]=gen_pars(create,main_vars);
+    currentClass.add(create.method_decl(
+        create.primitive_type(Sort.Void),
+        main_cb.getContract(),
+        main_name,
+        main_pars,
+        null
+    ));
+    body_cb.requires(rewrite(s.guard));
+    body_cb.ensures(rewrite(s.guard));
+    rewrite(c,body_cb);
+    DeclarationStatement body_pars[]=gen_pars(create,body_vars);
+    currentClass.add(create.method_decl(
+        create.primitive_type(Sort.Void),
+        body_cb.getContract(),
+        body_name,
+        body_pars,
+        rewrite(s.body)
+    ));
+    String var_name=s.decls[s.decls.length-1].name;
+    check_send_recv(body_pars, var_name, s.guard);  
+    result=gen_call(create,main_name,main_vars);
+  }
+  
+  private static DeclarationStatement[] gen_pars(ASTFactory create, Hashtable<String, Type> vars) {
+    DeclarationStatement decls[]=new DeclarationStatement[vars.size()];
+    int i=0;
+    for(String name:vars.keySet()){
+      decls[i]=create.field_decl(name, vars.get(name));
+      i++;
+    }
+    return decls;
+  }
+
+  private static ASTNode gen_call(ASTFactory create, String method, Hashtable<String, Type> vars) {
+    ASTNode args[]=new ASTNode[vars.size()];
+    int i=0;
+    for(String name:vars.keySet()){
+      args[i]=create.unresolved_name(name);
+      i++;
+    }
+    return create.invokation(null,null, method, args);
+  }
+
+  public static Hashtable<String,Type> free_vars(ASTNode ... nodes){
+    Hashtable<String,Type> vars=new Hashtable<String,Type>();
+    NameScanner scanner=new NameScanner(vars);
+    for(ASTNode n:nodes){
+      n.accept(scanner);
+    }
+    return vars;
+  }
+  
+  /* replaced by for each loop.
+  @Override
+  public void visit(LoopStatement loop){
 	  
-    Contract c=s.getContract(); 
+    Contract c=loop.getContract(); 
     
     if (c!=null && (c.pre_condition != c.default_true || c.post_condition != c.default_true)){
       Warning("processing iteration contract");
-      Hashtable<String,Type> vars=new Hashtable<String,Type>();
-      s.getBody().accept(new NameScanner(vars));
-      c.accept(new NameScanner(vars));
-      s.getEntryGuard().accept(new NameScanner(vars));
+      Hashtable<String,Type> vars=free_vars(loop.getBody(),c,loop.getEntryGuard());
       Hashtable<String,Type> iters=new Hashtable<String,Type>();
-      s.getUpdateBlock().accept(new NameScanner(iters));
+      loop.getUpdateBlock().accept(new NameScanner(iters));
+      
       for(String var:iters.keySet()){
     	  System.err.printf("iter %s : %s%n", var,iters.get(var));    	 
       }
@@ -244,7 +349,7 @@ public class IterationContractEncoder extends AbstractRewriter {
 
       ////create loop guard///////////////////////////////////////////////
       // lower bound of loop
-      ASTNode low=s.getInitBlock(); //get loop low bound
+      ASTNode low=loop.getInitBlock(); //get loop low bound
       if (low instanceof BlockStatement){
         low=((BlockStatement)low).getStatement(0);
       }
@@ -252,7 +357,7 @@ public class IterationContractEncoder extends AbstractRewriter {
       low=((DeclarationStatement)low).getInit();
       // low
       // higher bound of the loop
-      ASTNode high=s.getEntryGuard(); //get loop high bound
+      ASTNode high=loop.getEntryGuard(); //get loop high bound
       StandardOperator op=((OperatorExpression)high).getOperator();
       high=((OperatorExpression)high).getArg(1);
       // high
@@ -332,17 +437,17 @@ public class IterationContractEncoder extends AbstractRewriter {
                     else if(((OperatorExpression)clause).getArg(0).isa(StandardOperator.GT)){ // > what about >= (missing case )
                   	  //create new guard because of implication before the resource expression
                   	  ASTNode new_guard=create.expression(StandardOperator.And,
-            	                create.expression(StandardOperator.LT,(((OperatorExpression)((OperatorExpression)clause).getArg(0)).getArg(1))/* new lower bound*/,create.unresolved_name(var_name)),
+            	                create.expression(StandardOperator.LT,(((OperatorExpression)((OperatorExpression)clause).getArg(0)).getArg(1))/ * new lower bound* /,create.unresolved_name(var_name)),
             	                create.expression(op,create.unresolved_name(var_name),high)
             	            );
                         cb.requires(create.starall(
                                 copy_rw.rewrite(new_guard),
-                                copy_rw.rewrite(((OperatorExpression)clause).getArg(1)), /*the resource formula at the right hand of implication */
+                                copy_rw.rewrite(((OperatorExpression)clause).getArg(1)), / *the resource formula at the right hand of implication * /
                                 create.field_decl(var_name,create.primitive_type(Sort.Integer))));                        
                         
                         cb_main_loop.requires(create.starall(
                                 copy_rw.rewrite(new_guard),
-                                copy_rw.rewrite(((OperatorExpression)clause).getArg(1)), /*the resource formula at the right hand of implication */
+                                copy_rw.rewrite(((OperatorExpression)clause).getArg(1)), / *the resource formula at the right hand of implication * /
                                 create.field_decl(var_name,create.primitive_type(Sort.Integer))));
                     }
                     else if(((OperatorExpression)clause).getArg(0).isa(StandardOperator.LT)){
@@ -350,16 +455,16 @@ public class IterationContractEncoder extends AbstractRewriter {
                       ASTNode new_guard=create.expression(StandardOperator.And,
                               create.expression(StandardOperator.LTE,low,create.unresolved_name(var_name)),
                               create.expression(StandardOperator.LT,create.unresolved_name(var_name),
-                                  (((OperatorExpression)((OperatorExpression)clause).getArg(0)).getArg(1))/* new lower bound*/)
+                                  (((OperatorExpression)((OperatorExpression)clause).getArg(0)).getArg(1))/ * new lower bound* /)
                           );
                         cb.requires(create.starall(
                                 copy_rw.rewrite(new_guard),
-                                copy_rw.rewrite(((OperatorExpression)clause).getArg(1)), /*the other side of implication */
+                                copy_rw.rewrite(((OperatorExpression)clause).getArg(1)), / *the other side of implication * /
                                 create.field_decl(var_name,create.primitive_type(Sort.Integer))));                        
                         
                         cb_main_loop.requires(create.starall(
                                 copy_rw.rewrite(new_guard),
-                                copy_rw.rewrite(((OperatorExpression)clause).getArg(1)), /*the other side of implication */
+                                copy_rw.rewrite(((OperatorExpression)clause).getArg(1)), / *the other side of implication * /
                                 create.field_decl(var_name,create.primitive_type(Sort.Integer))));
                     }
           	  	else // < and >= (missing case) 
@@ -428,17 +533,17 @@ public class IterationContractEncoder extends AbstractRewriter {
                   else if(((OperatorExpression)clause).getArg(0).isa(StandardOperator.GT)){ // > what about >= (missing case )
                     //create new guard because of implication before the resource expression
                     ASTNode new_guard=create.expression(StandardOperator.And,
-                            create.expression(StandardOperator.LT,(((OperatorExpression)((OperatorExpression)clause).getArg(0)).getArg(1))/* new lower bound*/,create.unresolved_name(var_name)),
+                            create.expression(StandardOperator.LT,(((OperatorExpression)((OperatorExpression)clause).getArg(0)).getArg(1))/ * new lower bound* /,create.unresolved_name(var_name)),
                             create.expression(op,create.unresolved_name(var_name),high)
                         );
                       cb.ensures(create.starall(
                               copy_rw.rewrite(new_guard),
-                              copy_rw.rewrite(((OperatorExpression)clause).getArg(1)), /*the other side of implication */
+                              copy_rw.rewrite(((OperatorExpression)clause).getArg(1)), /*the other side of implication * /
                               create.field_decl(var_name,create.primitive_type(Sort.Integer))));                        
                       
                       cb_main_loop.ensures(create.starall(
                               copy_rw.rewrite(new_guard),
-                              copy_rw.rewrite(((OperatorExpression)clause).getArg(1)), /*the other side of implication */
+                              copy_rw.rewrite(((OperatorExpression)clause).getArg(1)), /*the other side of implication * /
                               create.field_decl(var_name,create.primitive_type(Sort.Integer))));
                   }
                   else if(((OperatorExpression)clause).getArg(0).isa(StandardOperator.LT)){
@@ -446,16 +551,16 @@ public class IterationContractEncoder extends AbstractRewriter {
                     ASTNode new_guard=create.expression(StandardOperator.And,
                             create.expression(StandardOperator.LTE,low,create.unresolved_name(var_name)),
                             create.expression(StandardOperator.LT,create.unresolved_name(var_name),
-                                (((OperatorExpression)((OperatorExpression)clause).getArg(0)).getArg(1))/* new lower bound*/)
+                                (((OperatorExpression)((OperatorExpression)clause).getArg(0)).getArg(1))/* new lower bound* /)
                         );
                       cb.ensures(create.starall(
                               copy_rw.rewrite(new_guard),
-                              copy_rw.rewrite(((OperatorExpression)clause).getArg(1)), /*the other side of implication */
+                              copy_rw.rewrite(((OperatorExpression)clause).getArg(1)), /*the other side of implication * /
                               create.field_decl(var_name,create.primitive_type(Sort.Integer))));                        
                       
                       cb_main_loop.ensures(create.starall(
                               copy_rw.rewrite(new_guard),
-                              copy_rw.rewrite(((OperatorExpression)clause).getArg(1)), /*the other side of implication */
+                              copy_rw.rewrite(((OperatorExpression)clause).getArg(1)), /*the other side of implication * /
                               create.field_decl(var_name,create.primitive_type(Sort.Integer))));
                   }
              else // < and >= (missing case) 
@@ -517,7 +622,7 @@ public class IterationContractEncoder extends AbstractRewriter {
           cb.getContract(), //method contract 
           body_name,
           body_decl.toArray(new DeclarationStatement[0]),
-          rewrite(s.getBody()) // loop body
+          rewrite(loop.getBody()) // loop body
       );
       //Error management  --> line numbers, origins , ... 
       branch=new BranchOrigin("Iteration Body",null);
@@ -533,88 +638,97 @@ public class IterationContractEncoder extends AbstractRewriter {
       //Error management  --> line numbers, origins , ...
       branch=new BranchOrigin("Parallel Loop",null);
       OriginWrapper.wrap(null,result, branch);
-      //Error management  --> line numbers, origins , ...
-      for(String R:send_recv_map.keySet()){
-        SendRecvInfo recv_entry=send_recv_map.get(R);
-        if (recv_entry.stat.isa(StandardOperator.Recv)){
-          OperatorExpression recv=(OperatorExpression)recv_entry.stat;
-          String S=((NameExpression)recv.getArg(1)).getName();
-          SendRecvInfo send_entry=send_recv_map.get(S);
-          if (send_entry==null || !send_entry.stat.isa(StandardOperator.Send)){
-            Fail("unmatched recv");
-          }
-          OperatorExpression send=(OperatorExpression)send_entry.stat;
-          if (!R.equals(((NameExpression)send.getArg(1)).getName())){
-            Fail("wrong label in send");
-          }
-          int dr=getConstant(recv.getArg(2));
-          int ds=getConstant(send.getArg(2));
-          if (dr!=ds){
-            Fail("distances of send(%d) and recv(%d) are different",ds,dr);
-          }
-          // create shift substitution.
-          HashMap<NameExpression,ASTNode> shift_map=new HashMap();
-          NameExpression name=create.argument_name(var_name);
-          shift_map.put(name,create.expression(StandardOperator.Minus,name,create.constant(dr)));
-          Substitution shift=new Substitution(null,shift_map);
-          // create guard check.
-          cb=new ContractBuilder();
-          cb.requires(guard);
-          for(ASTNode g:recv_entry.guards){
-            cb.requires(g);
-          }
-          cb.ensures(create.expression(StandardOperator.LTE,
-              create.constant(dr),create.argument_name(var_name)
-          ));
-          for(ASTNode g:send_entry.guards){
-            cb.ensures(shift.rewrite(g));
-          }
-          Method guard_method=create.method_decl(
-              create.primitive_type(PrimitiveType.Sort.Void),
-              cb.getContract(),
-              String.format("guard_check_%s_%s",S,R),
-              body_decl.toArray(new DeclarationStatement[0]),
-              create.block()
-          );
-          branch=new BranchOrigin("Guard Check",null);
-          OriginWrapper.wrap(null,guard_method, branch);
-          currentClass.add_dynamic(guard_method);
-          //create resource check
-          cb=new ContractBuilder();
-          cb.requires(guard);
-          // lower bound is already guaranteed by guard check.
-          //cb.requires(create.expression(StandardOperator.LTE,
-          //    create.constant(dr),create.argument_name(var_name)
-          //));
-          for(ASTNode g:send_entry.guards){
-            cb.requires(shift.rewrite(g));
-          }
-          for(ASTNode g:recv_entry.guards){
-            cb.requires(g);
-          }
-          cb.requires(shift.rewrite(send.getArg(0)));
-          for(ASTNode g:send_entry.guards){
-            cb.ensures(shift.rewrite(g));
-          }
-          cb.ensures(copy_rw.rewrite(recv.getArg(0)));
-          Method resource_method=create.method_decl(
-              create.primitive_type(PrimitiveType.Sort.Void),
-              cb.getContract(),
-              String.format("resource_check_%s_%s",S,R),
-              body_decl.toArray(new DeclarationStatement[0]),
-              create.block()
-          );
-          branch=new BranchOrigin("Resource Check",null);
-          OriginWrapper.wrap(null,resource_method, branch);
-          currentClass.add_dynamic(resource_method);
-
-        }
-        // unmatched send statements are wasteful, but not incorrect. 
-      }
-      send_recv_map.clear();
+      //Check matching of send and recv.
+      check_send_recv(body_decl.toArray(new DeclarationStatement[0]), var_name, guard);
     } else {
-      super.visit(s);
+      super.visit(loop);
     }
+  }
+
+*/
+  
+  protected void check_send_recv(DeclarationStatement[] body_decl,
+      String var_name, ASTNode guard) {
+    ContractBuilder cb;
+    BranchOrigin branch;
+    for(String R:send_recv_map.keySet()){
+      SendRecvInfo recv_entry=send_recv_map.get(R);
+      if (recv_entry.stat.isa(StandardOperator.Recv)){
+        OperatorExpression recv=(OperatorExpression)recv_entry.stat;
+        String S=((NameExpression)recv.getArg(1)).getName();
+        SendRecvInfo send_entry=send_recv_map.get(S);
+        if (send_entry==null || !send_entry.stat.isa(StandardOperator.Send)){
+          Fail("unmatched recv");
+        }
+        OperatorExpression send=(OperatorExpression)send_entry.stat;
+        if (!R.equals(((NameExpression)send.getArg(1)).getName())){
+          Fail("wrong label in send");
+        }
+        int dr=getConstant(recv.getArg(2));
+        int ds=getConstant(send.getArg(2));
+        if (dr!=ds){
+          Fail("distances of send(%d) and recv(%d) are different",ds,dr);
+        }
+        // create shift substitution.
+        HashMap<NameExpression,ASTNode> shift_map=new HashMap();
+        NameExpression name=create.argument_name(var_name);
+        shift_map.put(name,create.expression(StandardOperator.Minus,name,create.constant(dr)));
+        Substitution shift=new Substitution(null,shift_map);
+        // create guard check.
+        cb=new ContractBuilder();
+        cb.requires(guard);
+        for(ASTNode g:recv_entry.guards){
+          cb.requires(g);
+        }
+        cb.ensures(create.expression(StandardOperator.LTE,
+            create.constant(dr),create.argument_name(var_name)
+        ));
+        for(ASTNode g:send_entry.guards){
+          cb.ensures(shift.rewrite(g));
+        }
+        Method guard_method=create.method_decl(
+            create.primitive_type(PrimitiveType.Sort.Void),
+            cb.getContract(),
+            String.format("guard_check_%s_%s",S,R),
+            body_decl,
+            create.block()
+        );
+        branch=new BranchOrigin("Guard Check",null);
+        OriginWrapper.wrap(null,guard_method, branch);
+        currentClass.add_dynamic(guard_method);
+        //create resource check
+        cb=new ContractBuilder();
+        cb.requires(guard);
+        // lower bound is already guaranteed by guard check.
+        //cb.requires(create.expression(StandardOperator.LTE,
+        //    create.constant(dr),create.argument_name(var_name)
+        //));
+        for(ASTNode g:send_entry.guards){
+          cb.requires(shift.rewrite(g));
+        }
+        for(ASTNode g:recv_entry.guards){
+          cb.requires(g);
+        }
+        cb.requires(shift.rewrite(send.getArg(0)));
+        for(ASTNode g:send_entry.guards){
+          cb.ensures(shift.rewrite(g));
+        }
+        cb.ensures(copy_rw.rewrite(recv.getArg(0)));
+        Method resource_method=create.method_decl(
+            create.primitive_type(PrimitiveType.Sort.Void),
+            cb.getContract(),
+            String.format("resource_check_%s_%s",S,R),
+            body_decl,
+            create.block()
+        );
+        branch=new BranchOrigin("Resource Check",null);
+        OriginWrapper.wrap(null,resource_method, branch);
+        currentClass.add_dynamic(resource_method);
+
+      }
+      // unmatched send statements are wasteful, but not incorrect. 
+    }
+    send_recv_map.clear();
   }
   
   private int getConstant(ASTNode arg) {

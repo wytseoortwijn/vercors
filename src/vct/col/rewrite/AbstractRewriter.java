@@ -23,6 +23,7 @@ import vct.col.ast.AxiomaticDataType;
 import vct.col.ast.BindingExpression;
 import vct.col.ast.ContractBuilder;
 import vct.col.ast.Dereference;
+import vct.col.ast.ForEachLoop;
 import vct.col.ast.Hole;
 import vct.col.ast.Lemma;
 import vct.col.ast.MethodInvokation;
@@ -408,6 +409,13 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   }
 
   @Override
+  public void visit(ForEachLoop s){
+    ForEachLoop res=create.foreach(rewrite(s.decls),rewrite(s.guard),rewrite(s.body));
+    res.setContract(rewrite(s.getContract()));
+    result=res;
+  }
+  
+  @Override
   public void visit(LoopStatement s) {
     //checkPermission(s);
     LoopStatement res=new LoopStatement();
@@ -630,8 +638,11 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   	return res;
   }
   
+  public ASTNode and(ASTNode e1,ASTNode e2){
+    return create.expression(StandardOperator.And,e1,e2);
+  }
   public ASTNode plus(ASTNode e1,ASTNode e2){
-  	return create.expression(StandardOperator.Plus,e1,e2);
+    return create.expression(StandardOperator.Plus,e1,e2);
   }
   public ASTNode less(ASTNode e1,ASTNode e2){
   	return create.expression(StandardOperator.LT,e1,e2);
