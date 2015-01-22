@@ -326,6 +326,10 @@ class MatchSubstitution extends AbstractRewriter {
   
   @Override
   public void visit(NameExpression e){
+    if (e.getKind()==NameExpression.Kind.Reserved) {
+      super.visit(e);
+      return;
+    }
     String name=e.getName();
     Ref<ASTNode> ref=match.get(name);
     if(ref==null){
@@ -336,7 +340,12 @@ class MatchSubstitution extends AbstractRewriter {
         DeclarationStatement dref=(DeclarationStatement)n;
         result=create.local_name(dref.name);
       } else {
-        result=copy_rw.rewrite(n);
+        if (n==null){
+          // variable used in rewrite system, but not in LHS? 
+          super.visit(e);
+        } else {
+          result=copy_rw.rewrite(n);
+        }
       }
     }
   }
