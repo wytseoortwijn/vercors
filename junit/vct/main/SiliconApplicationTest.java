@@ -127,7 +127,7 @@ public class SiliconApplicationTest extends ToolTest {
   public void testZeroMatrix(){
     sem_get();
     try {
-      VCTResult res=run("vct","--silver=silicon_qp","//examples/silicon/zero-=matrix.c");
+      VCTResult res=run("vct","--silver=silicon_qp","//examples/silicon/zero-matrix.c");
       res.checkVerdict(Verdict.Pass);
     } finally {
       sem.release();
