@@ -29,4 +29,16 @@ public class SilverReorder extends AbstractRewriter {
     }
   }
   
+  @Override
+  public void visit(ASTSpecialDeclaration s){
+    switch(s.kind){
+    case Comment:
+      result=null;
+      return;
+    default:
+      super.visit(s);
+    }
+
+  }
+  
 }
