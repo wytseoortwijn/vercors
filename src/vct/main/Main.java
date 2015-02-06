@@ -504,6 +504,13 @@ public class Main
         // return new SimplifyExpressions(arg).rewriteAll();
       }
     });
+    defined_passes.put("simplify_sums",new CompilerPass("replace summations with provable functions"){
+      public ProgramUnit apply(ProgramUnit arg){
+        RewriteSystem trs=RewriteSystems.getRewriteSystem("summation");
+        return trs.normalize(arg);
+        // return new SimplifyExpressions(arg).rewriteAll();
+      }
+    });
     defined_passes.put("standardize",new CompilerPass("Standardize representation"){
       public ProgramUnit apply(ProgramUnit arg){
         return new Standardize(arg).rewriteAll();
@@ -743,12 +750,14 @@ public class Main
         passes.add("check");
         passes.add("iter");
         passes.add("simplify_quant");
+        passes.add("simplify_sums");
         passes.add("standardize");
         passes.add("check");
       }
       if (features.usesKernels()){
         passes.add("kernel-split");
         //passes.add("simplify_expr");
+        passes.add("simplify_quant");
         passes.add("standardize");
         passes.add("check");       
       }

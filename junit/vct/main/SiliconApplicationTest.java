@@ -133,5 +133,27 @@ public class SiliconApplicationTest extends ToolTest {
       sem.release();
     }
   }
+  
+  @Test
+  public void testSumArray(){
+    sem_get();
+    try {
+      VCTResult res=run("vct","--silver=silicon_qp","//examples/silicon/SumArray.java");
+      res.checkVerdict(Verdict.Pass);
+    } finally {
+      sem.release();
+    }
+  }
+  
+  @Test
+  public void testSumArrayErr1(){
+    sem_get();
+    try {
+      VCTResult res=run("vct","--silver=silicon_qp","//examples/silicon/SumArray-e1.java");
+      res.checkVerdict(Verdict.Fail);
+    } finally {
+      sem.release();
+    }
+  }
 
 }
