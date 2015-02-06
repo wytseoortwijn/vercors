@@ -173,4 +173,28 @@ public abstract class AbstractCtoCOL extends ANTLRtoCOL {
     return null;
   }
 
+
+  public ASTNode getParameterDeclaration(ParserRuleContext ctx) {
+    if (match(ctx,null,null)){
+      Type t=(Type)convert(ctx,0);
+      ParseTree var=ctx.getChild(1);
+      if (var instanceof ParserRuleContext){
+        ASTNode v=convert(ctx,1);
+        if (v instanceof DeclarationStatement){
+          VariableDeclaration decl=create.variable_decl(t);
+          decl.add((DeclarationStatement)v);
+          DeclarationStatement vars[]=decl.flatten();
+          if (vars.length==1) return vars[0];
+        } else if (v instanceof NameExpression){
+          String name=((NameExpression)v).getName();
+          return create.field_decl(name,t);
+        }
+      } else {
+        String name=getIdentifier(ctx,1);
+        return create.field_decl(name,t);
+      }
+    }
+    return null;    
+  }
+
 }

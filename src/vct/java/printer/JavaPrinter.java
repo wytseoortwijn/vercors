@@ -253,6 +253,9 @@ public class JavaPrinter extends AbstractPrinter {
       case LET:
         binder="\\let";
         break;
+      case SUM:
+        binder="\\sum";
+        break;
       default:
         Abort("binder %s unimplemented",e.binder);
     }

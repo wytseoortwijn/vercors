@@ -410,10 +410,16 @@ public class RewriteSystem {
 
   public ProgramUnit normalize(ProgramUnit pu){
     Normalizer n=new Normalizer(pu,this);
-    return n.rewriteAll();
+    ProgramUnit res=n.rewriteAll();
+    for(Method m:methods){
+      res.add(n.copy_rw.rewrite(m));
+    }
+    return res;
   }
-  
+
   private ArrayList<RewriteRule> rules=new ArrayList<RewriteRule>();
+  
+  private ArrayList<Method> methods=new ArrayList<Method>();
   
   private AbstractRewriter normalize;
   
@@ -464,6 +470,9 @@ public class RewriteSystem {
         ASTNode rhs=((OperatorExpression)axiom.getRule()).getArg(1);
         rules.add(new RewriteRule(axiom.name,vars,lhs,rhs));
         continue;
+      }
+      if (d instanceof Method && ((Method)d).kind==Method.Kind.Pure){
+        methods.add((Method)d);
       }
     }
 

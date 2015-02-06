@@ -588,8 +588,19 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
             t1,t3,e.getOrigin());
       }
       break;
-    }     
+    }
+    case Contribution:
+    {
+      t1=e.getArg(0).getType();
+      if (t1==null) Fail("type of left argument unknown at %s",e.getOrigin());
+      check_loc_val(t1,e.getArg(1),"Types of location (%s) and contribution (%s) do not match.");
+      e.setType(new PrimitiveType(Sort.Resource));
+      break;
+    } 
     case AddsTo:
+    case ReducibleSum:
+    case ReducibleMin:
+    case ReducibleMax:
     case Value:
     case Volatile:
     case ArrayPerm:
@@ -1088,6 +1099,9 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     case EXISTS:
     case FORALL:
       e.setType(new PrimitiveType(Sort.Boolean));
+      break;
+    case SUM:
+      e.setType(t);
       break;
     }
   }

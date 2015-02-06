@@ -23,6 +23,7 @@ public class VerCorsSyntax {
     syntax.addInfix(IFF,"<==>",3);
     syntax.addLeftFix(Wand,"-*",3);
     syntax.addFunction(Perm,"Perm");
+    syntax.addFunction(Contribution,"Contribution");
     syntax.addFunction(Head,"head");
     syntax.addFunction(Tail,"tail");
     syntax.addFunction(Value,"Value");

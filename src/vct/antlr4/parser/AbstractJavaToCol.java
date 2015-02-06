@@ -470,4 +470,5 @@ public class AbstractJavaToCol extends ANTLRtoCOL {
     }
     leave(tree,null);
   }
+
 }

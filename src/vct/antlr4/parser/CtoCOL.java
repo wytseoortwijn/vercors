@@ -133,7 +133,7 @@ public class CtoCOL extends AbstractCtoCOL implements CVisitor<ASTNode> {
     // create a new compilation unit.
     ProgramUnit unit=new ProgramUnit();
     // Create a visitor that can do the conversion.
-    CtoCOL visitor=new CtoCOL(CSyntax.getC(),file_name,tokens,parser);
+    AbstractCtoCOL visitor=new CtoCOL(CSyntax.getC(),file_name,tokens,parser);
     // Invoke the generic conversion method in ANTLRtoCOL.
     // This method will scan the parse tree for declarations
     // and put them in the compilation unit.
@@ -706,21 +706,7 @@ public class CtoCOL extends AbstractCtoCOL implements CVisitor<ASTNode> {
 
   @Override
   public ASTNode visitParameterDeclaration(ParameterDeclarationContext ctx) {
-    if (match(ctx,null,null)){
-      Type t=(Type)convert(ctx,0);
-      ParseTree var=ctx.getChild(1);
-      if (var instanceof ParserRuleContext){
-        ASTNode v=convert(ctx,1);
-        VariableDeclaration decl=create.variable_decl(t);
-        decl.add((DeclarationStatement)v);
-        DeclarationStatement vars[]=decl.flatten();
-        if (vars.length==1) return vars[0];
-      } else {
-        String name=getIdentifier(ctx,1);
-        return create.field_decl(name,t);
-      }
-    }
-    return null;
+    return getParameterDeclaration(ctx);
   }
 
   @Override
@@ -743,7 +729,6 @@ public class CtoCOL extends AbstractCtoCOL implements CVisitor<ASTNode> {
 
   @Override
   public ASTNode visitPostfixExpression(PostfixExpressionContext ctx) {
-    // TODO Auto-generated method stub
     return visitPrimaryExpression((ParserRuleContext)ctx);
   }
   

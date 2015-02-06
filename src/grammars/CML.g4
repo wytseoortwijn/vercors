@@ -2,7 +2,7 @@ grammar CML;
 
 import VerCorsML, C;
 
-specificationSequence : ( statement )* contract? ;
+specificationSequence : ( specificationDeclaration | statement )* contract? ;
 
 contract : contractClause+ ;
 
@@ -17,8 +17,16 @@ specificationStatement
     | 'send' resourceExpression 'to' Identifier ',' expression ';'
     | 'recv' resourceExpression 'from' Identifier ',' expression ';'
     | 'assert' resourceExpression ';'
-    ;    
+    ;
+    
+specificationDeclaration
+    : pureFunctionDeclaration
+    ;
 
+pureFunctionDeclaration
+    : declarationSpecifiers declarator '=' expression ';'
+    ;
+    
 // For C there are no specific resource expressions:
 specificResourceExpression : EOF EOF ;
 

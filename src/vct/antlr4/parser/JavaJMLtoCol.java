@@ -579,10 +579,6 @@ public class JavaJMLtoCol extends AbstractJavaToCol implements JavaJMLVisitor<AS
             create.expression(StandardOperator.NEQ,object,create.reserved_name(ASTReserved.Null)),
             call);
     }
-    if (match(ctx,"(","\\forall*",null,null,";",null,";",null,")")){
-      return create.starall(convert(ctx,5),convert(ctx,7),
-          create.field_decl(getIdentifier(ctx,3),checkType(convert(ctx,2))));
-    }
     if (match(ctx,null,".",null,"@",null,"(",")")){
       return create.invokation(convert(ctx,0),forceClassType(convert(ctx,4)), getIdentifier(ctx,2));
     }
@@ -597,7 +593,7 @@ public class JavaJMLtoCol extends AbstractJavaToCol implements JavaJMLVisitor<AS
       ASTNode args[]=convert_list((ParserRuleContext)(ctx.getChild(4)),",");
       return create.invokation(null,forceClassType(convert(ctx,2)), getIdentifier(ctx,0),args);
     }
-    return null;
+    return super.getResourceExpression(ctx);
   }
 
   @Override

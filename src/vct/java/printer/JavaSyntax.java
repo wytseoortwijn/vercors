@@ -57,9 +57,11 @@ public class JavaSyntax extends Syntax {
         syntax.addFunction(Drop,"drop");
         syntax.addFunction(Take,"take");
         syntax.addFunction(History,"Hist");
+        syntax.addFunction(Contribution,"Contribution");
         
         syntax.addOperator(Unfolding,140,"\\unfolding","\\in","");
         syntax.addOperator(IndependentOf, -1 , "(" ,"!",")");
+        syntax.addOperator(ReducibleSum,-1,"Reducible(",",+)");
         JavaVerCorsSyntax=syntax;
         
       }

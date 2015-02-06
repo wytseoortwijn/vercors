@@ -447,18 +447,30 @@ public BlockStatement block(Origin origin, ASTNode ... args) {
       return res;    
     }
           
-  public BindingExpression exists(ASTNode guard, ASTNode claim, DeclarationStatement ... decl) {
-    BindingExpression res=new BindingExpression(
-        Binder.EXISTS,
-        primitive_type(PrimitiveType.Sort.Boolean),
-        decl,
-        guard,
-        claim
-    );
-    res.setOrigin(origin_stack.get());
-    res.accept_if(post);
-    return res;
-  }
+    public BindingExpression exists(ASTNode guard, ASTNode claim, DeclarationStatement ... decl) {
+      BindingExpression res=new BindingExpression(
+          Binder.EXISTS,
+          primitive_type(PrimitiveType.Sort.Boolean),
+          decl,
+          guard,
+          claim
+      );
+      res.setOrigin(origin_stack.get());
+      res.accept_if(post);
+      return res;
+    }
+    public BindingExpression summation(ASTNode guard, ASTNode claim, DeclarationStatement ... decl) {
+      BindingExpression res=new BindingExpression(
+          Binder.SUM,
+          null,
+          decl,
+          guard,
+          claim
+      );
+      res.setOrigin(origin_stack.get());
+      res.accept_if(post);
+      return res;
+    }
   public BindingExpression let_expr(DeclarationStatement decl,ASTNode in) {
     BindingExpression res=new BindingExpression(
         Binder.LET,

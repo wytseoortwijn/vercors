@@ -257,7 +257,17 @@ public enum StandardOperator {
   /**
    * Specifies that a sub-term in a higher order rewrite patterns is independent of a variable.
    */
-  IndependentOf(2)
+  IndependentOf(2),
+  /**
+   * contribution to a reduction variable.
+   */
+  Contribution(2),
+  /**
+   * Declare variable to be sum-reducible.
+   */
+  ReducibleSum(1),
+  ReducibleMax(1),
+  ReducibleMin(1)
   ;
 
   private final int arity;

@@ -1,5 +1,7 @@
 package vct.antlr4.parser;
 
+import java.util.ArrayList;
+
 import hre.ast.MessageOrigin;
 
 import org.antlr.v4.runtime.BufferedTokenStream;
@@ -78,6 +80,7 @@ import vct.parsers.CMLParser.ParameterTypeListContext;
 import vct.parsers.CMLParser.PointerContext;
 import vct.parsers.CMLParser.PostfixExpressionContext;
 import vct.parsers.CMLParser.PrimaryExpressionContext;
+import vct.parsers.CMLParser.PureFunctionDeclarationContext;
 import vct.parsers.CMLParser.RelationalExpressionContext;
 import vct.parsers.CMLParser.ResourceExpressionContext;
 import vct.parsers.CMLParser.SelectionStatementContext;
@@ -105,8 +108,9 @@ import vct.parsers.CMLParser.TypeSpecifierContext;
 import vct.parsers.CMLParser.TypedefNameContext;
 import vct.parsers.CMLParser.UnaryExpressionContext;
 import vct.parsers.CMLParser.UnaryOperatorContext;
-import vct.parsers.CMLParser.SpecificationStatementContext; //DRB  
-import vct.parsers.CMLParser.SpecificationSequenceContext;//DRB
+import vct.parsers.CMLParser.SpecificationStatementContext;
+import vct.parsers.CMLParser.SpecificationSequenceContext;
+import vct.util.Configuration;
 import vct.util.Syntax;   
 
 /**
@@ -296,8 +300,7 @@ public class CMLtoCOL extends AbstractCtoCOL implements CMLVisitor<ASTNode> {
 
   @Override
   public ASTNode visitDirectDeclarator(DirectDeclaratorContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
+    return getDirectDeclarator(ctx);
   }
 
   @Override
@@ -488,8 +491,7 @@ public class CMLtoCOL extends AbstractCtoCOL implements CMLVisitor<ASTNode> {
 
   @Override
   public ASTNode visitParameterDeclaration(ParameterDeclarationContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
+    return getParameterDeclaration(ctx);
   }
 
   @Override
@@ -512,8 +514,7 @@ public class CMLtoCOL extends AbstractCtoCOL implements CMLVisitor<ASTNode> {
 
   @Override
   public ASTNode visitPostfixExpression(PostfixExpressionContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
+    return visitPrimaryExpression((ParserRuleContext)ctx);
   }
 
   @Override
@@ -738,11 +739,7 @@ public class CMLtoCOL extends AbstractCtoCOL implements CMLVisitor<ASTNode> {
 	      ASTNode args[]=convert_list((ParserRuleContext)(ctx.getChild(4)),",");
 	      return create.invokation(null,forceClassType(convert(ctx,2)), getIdentifier(ctx,0),args);
 	    }
-	    if (match(ctx,"(","\\forall*",null,null,";",null,";",null,")")){
-	      return create.starall(convert(ctx,5),convert(ctx,7),
-	          create.field_decl(getIdentifier(ctx,3),checkType(convert(ctx,2))));
-	    }
-	    return null;
+	    return super.getResourceExpression(ctx);
 	  }
 
   @Override
@@ -780,6 +777,32 @@ public class CMLtoCOL extends AbstractCtoCOL implements CMLVisitor<ASTNode> {
       SpecificationDeclarationContext ctx) {
     // TODO Auto-generated method stub
     return null;
+  }
+
+  @Override
+  public ASTNode visitPureFunctionDeclaration(PureFunctionDeclarationContext ctx) {
+    hre.System.Warning("pure function");
+    Type t=checkType(convert(ctx,0));
+    ASTNode expr=convert(ctx,3);
+    int ofs=1;
+    String name=null;
+    ArrayList<DeclarationStatement> args=new ArrayList<DeclarationStatement>();
+    if (match((DeclaratorContext)ctx.getChild(ofs),"DirectDeclaratorContext")){
+      DirectDeclaratorContext decl_ctx=(DirectDeclaratorContext)((DeclaratorContext)ctx.getChild(ofs)).getChild(0);
+      if (match(decl_ctx,null,"(","ParameterTypeListContext",")")){
+        enter(decl_ctx);
+        name=getIdentifier(decl_ctx, 0);
+        ParserRuleContext arg_ctx=(ParserRuleContext)decl_ctx.getChild(2);
+        convert_parameters(args, arg_ctx);
+        leave(decl_ctx,null);
+      } else {
+        return null;
+      }
+    } else {
+      throw hre.System.Failure("unknown declarator%ntree: %s",ctx.getChild(ofs).toStringTree(parser));
+    }
+    hre.System.Warning("? %s (?) = %s",name,Configuration.getDiagSyntax().print(expr));
+    return create.function_decl(t, null, name, args.toArray(new DeclarationStatement[0]), expr);
   }
 
 

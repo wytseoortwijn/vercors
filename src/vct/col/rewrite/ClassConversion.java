@@ -108,7 +108,10 @@ public class ClassConversion extends AbstractRewriter {
   public void visit(MethodInvokation s){
     String method;
     ArrayList<ASTNode> args=new ArrayList();
-    if (s.object instanceof ClassType){
+    Method def=s.getDefinition();
+    if (def.getParent()==null){
+      method=s.method;
+    } else if (s.object instanceof ClassType){
       method=((ClassType)s.object).getName()+SEP+s.method;
     } else if (s.object==null){
       method=s.method;

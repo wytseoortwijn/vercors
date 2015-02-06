@@ -11,6 +11,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import vct.col.ast.ASTClass;
 import vct.col.ast.ASTNode;
+import vct.col.ast.ASTReserved;
 import vct.col.ast.BindingExpression.Binder;
 import vct.col.ast.BlockStatement;
 import vct.col.ast.ConstantExpression;
@@ -225,7 +226,7 @@ public class IterationContractEncoder extends AbstractRewriter {
   public void visit(ForEachLoop s){
     Contract c=s.getContract();
     if (c==null) Fail("for each loop without iteration contract");
-    Hashtable<String,Type> body_vars=free_vars(s.body,c);
+    Hashtable<String,Type> body_vars=free_vars(s.body,c,s.guard);
     //Hashtable<String,Type> iters=new Hashtable<String,Type>();
     Hashtable<String,Type> main_vars=new Hashtable(body_vars);
     for(DeclarationStatement decl:s.decls){
@@ -249,6 +250,12 @@ public class IterationContractEncoder extends AbstractRewriter {
           //}
         //}
         //main_cb.requires(rewrite(clause));
+      } else if (clause.isa(StandardOperator.ReducibleSum)){
+        OperatorExpression expr=(OperatorExpression) clause;
+        main_cb.requires(create.expression(StandardOperator.Perm,
+            copy_rw.rewrite(expr.getArg(0)),
+            create.reserved_name(ASTReserved.FullPerm)
+        ));  
       } else {
         main_cb.requires(create.starall(copy_rw.rewrite(s.guard), rewrite(clause) , iter_decls));
       }
@@ -262,6 +269,17 @@ public class IterationContractEncoder extends AbstractRewriter {
           //}
         //}
         //main_cb.ensures(rewrite(clause));
+      } else if (clause.isa(StandardOperator.Contribution)){
+        OperatorExpression expr=(OperatorExpression) clause;
+        main_cb.ensures(create.expression(StandardOperator.Perm,
+            copy_rw.rewrite(expr.getArg(0)),
+            create.reserved_name(ASTReserved.FullPerm)
+        ));
+        main_cb.ensures(create.expression(StandardOperator.EQ,
+            copy_rw.rewrite(expr.getArg(0)),
+            plus(create.expression(StandardOperator.Old,copy_rw.rewrite(expr.getArg(0))),
+                 create.summation(copy_rw.rewrite(s.guard), rewrite(expr.getArg(1)) , iter_decls))
+        ));
       } else {
         main_cb.ensures(create.starall(copy_rw.rewrite(s.guard), rewrite(clause) , iter_decls));
       }
@@ -277,7 +295,32 @@ public class IterationContractEncoder extends AbstractRewriter {
     ));
     body_cb.requires(rewrite(s.guard));
     body_cb.ensures(rewrite(s.guard));
-    rewrite(c,body_cb);
+
+    for(ASTNode clause:ASTUtils.conjuncts(c.pre_condition, StandardOperator.Star)){
+      if(clause.isa(StandardOperator.ReducibleSum)){
+        OperatorExpression expr=(OperatorExpression) clause;
+        body_cb.requires(create.expression(StandardOperator.PointsTo,
+            copy_rw.rewrite(expr.getArg(0)),
+            create.reserved_name(ASTReserved.FullPerm),
+            create.constant(0)
+        ));
+      } else {
+        body_cb.requires(rewrite(clause));
+      }
+    }
+    for(ASTNode clause:ASTUtils.conjuncts(c.post_condition, StandardOperator.Star)){
+      if(clause.isa(StandardOperator.Contribution)){
+        OperatorExpression expr=(OperatorExpression) clause;
+        body_cb.requires(create.expression(StandardOperator.PointsTo,
+            rewrite(expr.getArg(0)),
+            create.reserved_name(ASTReserved.FullPerm),
+            rewrite(expr.getArg(1))
+        ));       
+      } else {
+        body_cb.ensures(rewrite(clause));
+      }
+    }
+    
     DeclarationStatement body_pars[]=gen_pars(create,body_vars);
     currentClass.add(create.method_decl(
         create.primitive_type(Sort.Void),
