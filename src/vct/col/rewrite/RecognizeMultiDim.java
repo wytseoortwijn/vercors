@@ -94,7 +94,7 @@ public class RecognizeMultiDim extends AbstractRewriter {
   private ASTNode try_multidim(ASTNode node, ArrayList<ASTNode> args) {
     if (node.isa(StandardOperator.Subscript)){
       OperatorExpression e=(OperatorExpression)node;
-      args.add(e.getArg(1));
+      args.add(rewrite(e.getArg(1)));
       return try_multidim(e.getArg(0),args);
     }
     if (node instanceof NameExpression){

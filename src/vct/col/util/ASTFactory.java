@@ -460,15 +460,28 @@ public BlockStatement block(Origin origin, ASTNode ... args) {
       return res;
     }
     public BindingExpression summation(ASTNode guard, ASTNode claim, DeclarationStatement ... decl) {
+      int i=decl.length-1;
       BindingExpression res=new BindingExpression(
           Binder.SUM,
           null,
-          decl,
+          new DeclarationStatement[]{decl[i]},
           guard,
           claim
       );
       res.setOrigin(origin_stack.get());
       res.accept_if(post);
+      while(i>0){
+        i--;
+        res=new BindingExpression(
+            Binder.SUM,
+            null,
+            new DeclarationStatement[]{decl[i]},
+            constant(true),
+            res
+        );
+        res.setOrigin(origin_stack.get());
+        res.accept_if(post);
+      }
       return res;
     }
   public BindingExpression let_expr(DeclarationStatement decl,ASTNode in) {

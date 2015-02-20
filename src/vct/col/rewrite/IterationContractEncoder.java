@@ -241,6 +241,23 @@ public class IterationContractEncoder extends AbstractRewriter {
     ContractBuilder main_cb=new ContractBuilder();
     ContractBuilder body_cb=new ContractBuilder();
 
+    for(ASTNode clause:ASTUtils.conjuncts(c.invariant, StandardOperator.Star)){
+      Hashtable<String,Type> clause_vars=free_vars(clause);
+      for(DeclarationStatement decl:s.decls){
+        if (clause_vars.get(decl.name)!=null){
+          Fail("illegal iteration invariant at %s",clause.getOrigin());
+        }
+      }
+      if (clause.getType().isBoolean() || clause.isa(StandardOperator.Value)){
+        main_cb.requires(rewrite(clause));
+        main_cb.ensures(rewrite(clause));
+        body_cb.requires(rewrite(clause));
+        body_cb.ensures(rewrite(clause));
+      } else {
+        Fail("illegal iteration invariant at %s",clause.getOrigin());
+      }
+    }
+    
     DeclarationStatement iter_decls[] = s.decls;
     outer:for(ASTNode clause:ASTUtils.conjuncts(c.pre_condition, StandardOperator.Star)){
       if (clause.getType().isBoolean()){
