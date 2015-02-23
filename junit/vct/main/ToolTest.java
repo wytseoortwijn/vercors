@@ -53,6 +53,14 @@ public class ToolTest extends TestCase {
   }
 
   public VCTResult run(String ... args) {
+    StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
+    int idx=0;
+    while(!stackTraceElements[idx].getMethodName().equals("run")){
+      idx++;
+    }
+    idx++;
+    String test_name=stackTraceElements[idx].getMethodName();
+    System.err.printf("test name is %s%n", test_name);
     VCTResult res=new VCTResult();
     Path f=Configuration.getHome();
     System.err.printf("home is %s%n", f);
@@ -64,6 +72,7 @@ public class ToolTest extends TestCase {
     }
     MessageProcess p=null;
     ModuleShell sh=null;
+    res.verdict=Verdict.Inconclusive;
     switch(args[0]){
     case "vct":
       if (OS.startsWith("Windows")){
@@ -71,7 +80,23 @@ public class ToolTest extends TestCase {
       } else {
         args[0]=f+"/unix/bin/"+args[0]; //DRB --added
       }
-      p=new MessageProcess(args);
+      sh=Configuration.getShell();
+      res.verdict=null;
+      if (CommandLineTesting.savedir.used()){
+        Path dir=Paths.get(CommandLineTesting.savedir.get()).toAbsolutePath();
+        String ext="";
+        if (args[1].startsWith("--silver")){
+          ext=".sil";
+        } else if (args[1].startsWith("--chalice")) {
+          ext=".chalice";
+        } else if (args[1].startsWith("--boogie")) {
+          ext=".bpl";
+        } else if (args[1].startsWith("--dafny")) {
+          ext=".dfy";
+        }
+        args[0]+=" --encoded="+dir+File.separator+test_name+ext;
+      }
+      //p=new MessageProcess(args);
       break;
     case "z3":
       sh=Configuration.getShell(vct.boogie.Main.z3_module.get());
@@ -129,7 +154,6 @@ public class ToolTest extends TestCase {
       sh.send("%s",cmd);
       sh.send("exit");
       p=sh.getProcess();
-      res.verdict=Verdict.Inconclusive;
     }
     for(;;){
       Message msg=p.recv();

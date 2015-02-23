@@ -9,6 +9,7 @@ import org.junit.runner.notification.Failure;
 import hre.config.Option;
 import hre.config.OptionParser;
 import hre.config.StringListSetting;
+import hre.config.StringSetting;
 
 public class CommandLineTesting {
   
@@ -25,6 +26,7 @@ public class CommandLineTesting {
     testmap.put("main",vct.main.MainTest.class);
     testmap.put("verifast",vct.main.VerifastTest.class);
     testmap.put("refute",vct.main.RefuteTest.class);
+    testmap.put("silicon",vct.main.SiliconApplicationTest.class);
   }
   
   public static void run_testsuites(){
@@ -66,11 +68,13 @@ public class CommandLineTesting {
   
   private static StringListSetting selftest=new StringListSetting();
   private static Option append_option;
- 
+  protected static StringSetting savedir=new StringSetting(null);
+  
   public static void add_options(OptionParser clops) {
     append_option=selftest.getAppendOption("execute test suites from the command line. "+
         "Valid test suites are: "+testmap.keySet());
     clops.add(append_option,"test");
+    clops.add(savedir.getAssign("save intermediate files to given directory"),"save-intermediate");
   }
 
 }
