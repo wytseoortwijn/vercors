@@ -29,6 +29,7 @@ public class SilverBackend {
   public static StringSetting silver_module=new StringSetting("silver/latest");;
   public static <T,E,S,Decl,Program>
   TestReport TestSilicon(ProgramUnit arg, String tool) {
+    long start_time=System.currentTimeMillis();
     File jarfile=Configuration.getToolHome().resolve(silver_module.get()+"/"+tool+".jar").toFile();
     System.err.printf("adding jar %s to path%n",jarfile);
     JarContainer container=new JarContainer(jarfile);
@@ -154,6 +155,8 @@ public class SilverBackend {
         throw new HREError("bad entry: %s",entry.getClass());
       }
     }
+    long end_time=System.currentTimeMillis();
+    System.err.printf("AST conversion took %d ms%n", end_time-start_time);
     String fname=vct.util.Configuration.backend_file.get();
     if (fname!=null){
       PrintWriter pw=null;
@@ -168,6 +171,7 @@ public class SilverBackend {
     }
 
     TestReport report=new TestReport();
+    start_time=System.currentTimeMillis();
     try {
       List<VerificationError> errs=verifier.verify(new ErrorFactory(),Configuration.getToolHome(),program);
       if (errs.size()>0){
@@ -178,6 +182,8 @@ public class SilverBackend {
     } catch (Exception e){
       report.setVerdict(Verdict.Error);
     }
+    end_time=System.currentTimeMillis();
+    System.err.printf("verification took %d ms%n", end_time-start_time);
     return report;
   }
 

@@ -77,6 +77,19 @@ public class Flatten extends AbstractRewriter {
   public void visit(OperatorExpression e){
     if (e.getType()==null) Abort("untyped operator %s in clause at %s",e.getOperator(),e.getOrigin());
     switch(e.getOperator()){
+    case AddAssign:
+    {
+      ASTNode loc=e.getArg(0);
+      ASTNode loc_res=loc.apply(this);
+      
+      ASTNode val=e.getArg(1);
+      ASTNode val_res=val.apply(this);
+      
+      //current_block.add_statement(create.assignment(loc_res,create.expression(StandardOperator.Plus,loc_res,val_res)));
+      //result=null;
+      result=create.expression(StandardOperator.Assign,loc_res,create.expression(StandardOperator.Plus,loc_res,val_res));
+      return;
+    }
     case PreIncr:
     case PreDecr:
     {
