@@ -134,7 +134,7 @@ public class SiliconApplicationTest extends ToolTest {
     }
   }
   
-  @Test
+  // type error!
   public void testSumArray(){
     sem_get();
     try {
@@ -145,12 +145,34 @@ public class SiliconApplicationTest extends ToolTest {
     }
   }
   
-  @Test
+  // type error!
   public void testSumArrayErr1(){
     sem_get();
     try {
       VCTResult res=run("vct","--silver=silicon_qp","//examples/silicon/SumArray-e1.java");
       res.checkVerdict(Verdict.Fail);
+    } finally {
+      sem.release();
+    }
+  }
+  
+  @Test
+  public void summation(){
+    sem_get();
+    try {
+      VCTResult res=run("vct","--silver=silicon_qp","//examples/carp/summation.c");
+      res.checkVerdict(Verdict.Pass);
+    } finally {
+      sem.release();
+    }
+  }
+
+  @Test
+  public void testHistogram(){
+    sem_get();
+    try {
+      VCTResult res=run("vct","--silver=silicon_qp","//examples/carp/histogram.c");
+      res.checkVerdict(Verdict.Pass);
     } finally {
       sem.release();
     }
