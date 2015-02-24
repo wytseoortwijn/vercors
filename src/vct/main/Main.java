@@ -749,11 +749,13 @@ public class Main
         passes.add("standardize");
         passes.add("check");
         passes.add("iter");
-        passes.add("simplify_quant");
-        passes.add("simplify_sums");
-        passes.add("standardize");
-        passes.add("check");
+      } else {
+        passes.add("recognize_multidim");
       }
+      passes.add("simplify_quant");
+      passes.add("simplify_sums");
+      passes.add("standardize");
+      passes.add("check");
       if (features.usesKernels()){
         passes.add("kernel-split");
         //passes.add("simplify_expr");

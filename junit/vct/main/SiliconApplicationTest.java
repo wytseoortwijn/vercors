@@ -171,11 +171,55 @@ public class SiliconApplicationTest extends ToolTest {
   public void testHistogram(){
     sem_get();
     try {
-      VCTResult res=run("vct","--silver=silicon_qp","//examples/carp/histogram.c");
+      VCTResult res=run("vct","--silver=silicon_qp","//examples/carp/histogram-matrix.c");
+      res.checkVerdict(Verdict.Pass);
+    } finally {
+      sem.release();
+    }
+  }
+  
+  @Test
+  public void testHistogramFull(){
+    sem_get();
+    try {
+      VCTResult res=run("vct","--silver=silicon_qp","//examples/carp/histogram-submatrix.c");
       res.checkVerdict(Verdict.Pass);
     } finally {
       sem.release();
     }
   }
 
+  @Test
+  public void testAccessSubmatrix(){
+    sem_get();
+    try {
+      VCTResult res=run("vct","--silver=silicon_qp","//examples/carp/access-sub-matrix.c");
+      res.checkVerdict(Verdict.Pass);
+    } finally {
+      sem.release();
+    }
+  }
+
+  @Test
+  public void testAccessSubmatrixErr1(){
+    sem_get();
+    try {
+      VCTResult res=run("vct","--silver=silicon_qp","//examples/carp/access-sub-matrix-err1.c");
+      res.checkVerdict(Verdict.Fail);
+    } finally {
+      sem.release();
+    }
+  }
+
+  @Test
+  public void testZeroSubmatrix(){
+    sem_get();
+    try {
+      VCTResult res=run("vct","--silver=silicon_qp","//examples/carp/zero-sub-matrix.c");
+      res.checkVerdict(Verdict.Pass);
+    } finally {
+      sem.release();
+    }
+  }
+  
 }
