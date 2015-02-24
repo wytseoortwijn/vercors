@@ -879,6 +879,11 @@ SChar
     :   ~["\\\r\n]
     |   EscapeSequence
     ;
+    
+
+EmbeddedLatex
+    : '$' ~[$\r\n]* '$' -> skip
+    ;
 
 LineDirective
     :   '#' Whitespace? DecimalConstant Whitespace? StringLiteral ~[\r\n]*
