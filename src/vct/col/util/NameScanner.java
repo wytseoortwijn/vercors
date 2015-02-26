@@ -111,4 +111,29 @@ public class NameScanner extends RecursiveVisitor<Object> {
       }      
     }
   }
+  
+  @Override
+  public void visit(BlockStatement b){
+    int N=b.size();
+    Hashtable<String,Type> saved_vars=new Hashtable();
+    HashSet<String> saved_names=new HashSet();
+    for(int i=0;i<N;i++){
+      ASTNode s=b.get(i);
+      if (s instanceof DeclarationStatement){
+        DeclarationStatement decl=(DeclarationStatement)s;
+        Type old=vars.get(decl.name);
+        saved_names.add(decl.name);
+        if (old!=null) saved_vars.put(decl.name, old);
+        safe_decls.add(decl);
+      }
+      s.accept(this);
+    }
+    for(String name : saved_names){
+      vars.remove(name);
+      Type old=saved_vars.get(name);
+      if(old!=null){
+        vars.put(name,old);
+      }
+    }
+  }
 }

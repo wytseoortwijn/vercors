@@ -144,7 +144,7 @@ public class Standardize extends AbstractRewriter {
           ASTNode incr=create.expression(e.getOrigin(),StandardOperator.Plus,rewrite(arg),create.constant(e.getOrigin(),1));
           result=create.assignment(rewrite(arg),incr);
         } else {
-          result=rewrite(e);
+          super.visit(e);
         }
         break;
       }
@@ -156,7 +156,7 @@ public class Standardize extends AbstractRewriter {
           ASTNode incr=create.expression(e.getOrigin(),StandardOperator.Minus,rewrite(arg),create.constant(e.getOrigin(),1));
           result=create.assignment(rewrite(arg),incr);
         } else {
-          result=rewrite(e);
+          super.visit(e);
         }
         break;
       }

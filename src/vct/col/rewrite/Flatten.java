@@ -93,14 +93,23 @@ public class Flatten extends AbstractRewriter {
     case PreIncr:
     case PreDecr:
     {
+      boolean expression=e.getParent()==null;
       StandardOperator op=e.getOperator()==StandardOperator.PreIncr?StandardOperator.Plus:StandardOperator.Minus;
       ASTNode arg=e.getArg(0);
       ASTNode arg_out=arg.apply(this);
+      
       String name="__flatten_"+(++counter);
-      declaration_block.add_statement(create.field_decl(name,e.getType(),null));
-      current_block.add_statement(create.assignment(arg_out,create.expression(op,arg_out,create.constant(1))));
-      current_block.add_statement(create.assignment(create.local_name(name),arg_out));
-      result=create.local_name(name);
+      if (expression){
+        declaration_block.add_statement(create.field_decl(name,e.getType(),null));
+      }
+      ASTNode effect=create.assignment(arg_out,create.expression(op,arg_out,create.constant(1)));
+      if (expression){
+        current_block.add_statement(effect);
+        current_block.add_statement(create.assignment(create.local_name(name),arg_out));
+        result=create.local_name(name);
+      } else {
+        result=effect;
+      }
       return;
     }
     case PostIncr:

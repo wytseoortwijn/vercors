@@ -27,6 +27,7 @@ import vct.col.rewrite.AbstractRewriter;
 import vct.col.rewrite.AnnotationInterpreter;
 import vct.col.rewrite.EncodeAsClass;
 import vct.col.rewrite.FlattenVariableDeclarations;
+import vct.col.rewrite.VerCorsDesugar;
 
 /**
  * Parse specified code and convert the contents to COL. 
@@ -64,6 +65,11 @@ public class ColIParser implements vct.col.util.Parser {
     pu=new SpecificationCollector(pu).rewriteAll();
 
     System.err.println("after collecting specifications");
+    Configuration.getDiagSyntax().print(System.err, pu);
+
+    pu=new VerCorsDesugar(pu).rewriteAll();
+
+    System.err.println("after desugaring specifications");
     Configuration.getDiagSyntax().print(System.err, pu);
 
     // TODO: do not encode here, but at top level!
