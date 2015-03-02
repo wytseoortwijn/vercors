@@ -29,6 +29,8 @@ public interface SilverExpression<O,T,E,Decl> {
   public E explicit_set(O o,List<E> elems);
   public E explicit_bag(O o,List<E> elems);
   public E explicit_seq(O o,List<E> elems);
+  public E empty_set(O o,T t);
+  public E empty_bag(O o,T t);
   public E empty_seq(O o,T t);
   public E range(O o, E e1, E e2);
   public E take(O o, E e1, E e2);

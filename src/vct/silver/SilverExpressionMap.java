@@ -64,6 +64,10 @@ public class SilverExpressionMap<T,E,Decl> implements ASTMapping<E>{
       switch(((PrimitiveType)args[0]).sort){
       case Sequence:
         return elems.size()>0?create.explicit_seq(o, elems):create.empty_seq(o,t);
+      case Bag:
+        return elems.size()>0?create.explicit_bag(o, elems):create.empty_seq(o,t);
+      case Set:
+        return elems.size()>0?create.explicit_set(o, elems):create.empty_seq(o,t);
       default:
         return null;
       }

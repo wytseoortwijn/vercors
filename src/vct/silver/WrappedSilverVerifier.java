@@ -82,6 +82,8 @@ private Method m72;
 private Method m73;
 private Method m74;
 private Method m75;
+private Method m76;
+private Method m77;
 private final Object obj;
 public WrappedSilverVerifier(Object obj){
   this.obj=obj;
@@ -269,350 +271,364 @@ public WrappedSilverVerifier(Object obj){
     throw new Error("SecurityException: "+e.getMessage());
   }
   try {
-    m26=cl.getMethod("empty_seq",java.lang.Object.class,java.lang.Object.class);
+    m26=cl.getMethod("empty_bag",java.lang.Object.class,java.lang.Object.class);
   } catch (NoSuchMethodException e) {
     throw new Error("NoSuchMethodException: "+e.getMessage());
   } catch (SecurityException e) {
     throw new Error("SecurityException: "+e.getMessage());
   }
   try {
-    m27=cl.getMethod("eq",java.lang.Object.class,java.lang.Object.class,java.lang.Object.class);
+    m27=cl.getMethod("empty_seq",java.lang.Object.class,java.lang.Object.class);
   } catch (NoSuchMethodException e) {
     throw new Error("NoSuchMethodException: "+e.getMessage());
   } catch (SecurityException e) {
     throw new Error("SecurityException: "+e.getMessage());
   }
   try {
-    m28=cl.getMethod("exhale",java.lang.Object.class,java.lang.Object.class);
+    m28=cl.getMethod("empty_set",java.lang.Object.class,java.lang.Object.class);
   } catch (NoSuchMethodException e) {
     throw new Error("NoSuchMethodException: "+e.getMessage());
   } catch (SecurityException e) {
     throw new Error("SecurityException: "+e.getMessage());
   }
   try {
-    m29=cl.getMethod("exists",java.lang.Object.class,java.util.List.class,java.lang.Object.class);
+    m29=cl.getMethod("eq",java.lang.Object.class,java.lang.Object.class,java.lang.Object.class);
   } catch (NoSuchMethodException e) {
     throw new Error("NoSuchMethodException: "+e.getMessage());
   } catch (SecurityException e) {
     throw new Error("SecurityException: "+e.getMessage());
   }
   try {
-    m30=cl.getMethod("explicit_bag",java.lang.Object.class,java.util.List.class);
+    m30=cl.getMethod("exhale",java.lang.Object.class,java.lang.Object.class);
   } catch (NoSuchMethodException e) {
     throw new Error("NoSuchMethodException: "+e.getMessage());
   } catch (SecurityException e) {
     throw new Error("SecurityException: "+e.getMessage());
   }
   try {
-    m31=cl.getMethod("explicit_seq",java.lang.Object.class,java.util.List.class);
+    m31=cl.getMethod("exists",java.lang.Object.class,java.util.List.class,java.lang.Object.class);
   } catch (NoSuchMethodException e) {
     throw new Error("NoSuchMethodException: "+e.getMessage());
   } catch (SecurityException e) {
     throw new Error("SecurityException: "+e.getMessage());
   }
   try {
-    m32=cl.getMethod("explicit_set",java.lang.Object.class,java.util.List.class);
+    m32=cl.getMethod("explicit_bag",java.lang.Object.class,java.util.List.class);
   } catch (NoSuchMethodException e) {
     throw new Error("NoSuchMethodException: "+e.getMessage());
   } catch (SecurityException e) {
     throw new Error("SecurityException: "+e.getMessage());
   }
   try {
-    m33=cl.getMethod("field_access",java.lang.Object.class,java.lang.Object.class,java.lang.Object.class);
+    m33=cl.getMethod("explicit_seq",java.lang.Object.class,java.util.List.class);
   } catch (NoSuchMethodException e) {
     throw new Error("NoSuchMethodException: "+e.getMessage());
   } catch (SecurityException e) {
     throw new Error("SecurityException: "+e.getMessage());
   }
   try {
-    m34=cl.getMethod("fold",java.lang.Object.class,java.lang.Object.class);
+    m34=cl.getMethod("explicit_set",java.lang.Object.class,java.util.List.class);
   } catch (NoSuchMethodException e) {
     throw new Error("NoSuchMethodException: "+e.getMessage());
   } catch (SecurityException e) {
     throw new Error("SecurityException: "+e.getMessage());
   }
   try {
-    m35=cl.getMethod("forall",java.lang.Object.class,java.util.List.class,java.lang.Object.class);
+    m35=cl.getMethod("field_access",java.lang.Object.class,java.lang.Object.class,java.lang.Object.class);
   } catch (NoSuchMethodException e) {
     throw new Error("NoSuchMethodException: "+e.getMessage());
   } catch (SecurityException e) {
     throw new Error("SecurityException: "+e.getMessage());
   }
   try {
-    m36=cl.getMethod("frac",java.lang.Object.class,java.lang.Object.class,java.lang.Object.class);
+    m36=cl.getMethod("fold",java.lang.Object.class,java.lang.Object.class);
   } catch (NoSuchMethodException e) {
     throw new Error("NoSuchMethodException: "+e.getMessage());
   } catch (SecurityException e) {
     throw new Error("SecurityException: "+e.getMessage());
   }
   try {
-    m37=cl.getMethod("function_call",java.lang.Object.class,java.lang.String.class,java.util.List.class,java.lang.Object.class,java.util.List.class);
+    m37=cl.getMethod("forall",java.lang.Object.class,java.util.List.class,java.lang.Object.class);
   } catch (NoSuchMethodException e) {
     throw new Error("NoSuchMethodException: "+e.getMessage());
   } catch (SecurityException e) {
     throw new Error("SecurityException: "+e.getMessage());
   }
   try {
-    m38=cl.getMethod("getOrigin",java.lang.Object.class);
+    m38=cl.getMethod("frac",java.lang.Object.class,java.lang.Object.class,java.lang.Object.class);
   } catch (NoSuchMethodException e) {
     throw new Error("NoSuchMethodException: "+e.getMessage());
   } catch (SecurityException e) {
     throw new Error("SecurityException: "+e.getMessage());
   }
   try {
-    m39=cl.getMethod("goto_",java.lang.Object.class,java.lang.String.class);
+    m39=cl.getMethod("function_call",java.lang.Object.class,java.lang.String.class,java.util.List.class,java.lang.Object.class,java.util.List.class);
   } catch (NoSuchMethodException e) {
     throw new Error("NoSuchMethodException: "+e.getMessage());
   } catch (SecurityException e) {
     throw new Error("SecurityException: "+e.getMessage());
   }
   try {
-    m40=cl.getMethod("gt",java.lang.Object.class,java.lang.Object.class,java.lang.Object.class);
+    m40=cl.getMethod("getOrigin",java.lang.Object.class);
   } catch (NoSuchMethodException e) {
     throw new Error("NoSuchMethodException: "+e.getMessage());
   } catch (SecurityException e) {
     throw new Error("SecurityException: "+e.getMessage());
   }
   try {
-    m41=cl.getMethod("gte",java.lang.Object.class,java.lang.Object.class,java.lang.Object.class);
+    m41=cl.getMethod("goto_",java.lang.Object.class,java.lang.String.class);
   } catch (NoSuchMethodException e) {
     throw new Error("NoSuchMethodException: "+e.getMessage());
   } catch (SecurityException e) {
     throw new Error("SecurityException: "+e.getMessage());
   }
   try {
-    m42=cl.getMethod("if_then_else",java.lang.Object.class,java.lang.Object.class,java.lang.Object.class,java.lang.Object.class);
+    m42=cl.getMethod("gt",java.lang.Object.class,java.lang.Object.class,java.lang.Object.class);
   } catch (NoSuchMethodException e) {
     throw new Error("NoSuchMethodException: "+e.getMessage());
   } catch (SecurityException e) {
     throw new Error("SecurityException: "+e.getMessage());
   }
   try {
-    m43=cl.getMethod("implies",java.lang.Object.class,java.lang.Object.class,java.lang.Object.class);
+    m43=cl.getMethod("gte",java.lang.Object.class,java.lang.Object.class,java.lang.Object.class);
   } catch (NoSuchMethodException e) {
     throw new Error("NoSuchMethodException: "+e.getMessage());
   } catch (SecurityException e) {
     throw new Error("SecurityException: "+e.getMessage());
   }
   try {
-    m44=cl.getMethod("index",java.lang.Object.class,java.lang.Object.class,java.lang.Object.class);
+    m44=cl.getMethod("if_then_else",java.lang.Object.class,java.lang.Object.class,java.lang.Object.class,java.lang.Object.class);
   } catch (NoSuchMethodException e) {
     throw new Error("NoSuchMethodException: "+e.getMessage());
   } catch (SecurityException e) {
     throw new Error("SecurityException: "+e.getMessage());
   }
   try {
-    m45=cl.getMethod("inhale",java.lang.Object.class,java.lang.Object.class);
+    m45=cl.getMethod("implies",java.lang.Object.class,java.lang.Object.class,java.lang.Object.class);
   } catch (NoSuchMethodException e) {
     throw new Error("NoSuchMethodException: "+e.getMessage());
   } catch (SecurityException e) {
     throw new Error("SecurityException: "+e.getMessage());
   }
   try {
-    m46=cl.getMethod("label",java.lang.Object.class,java.lang.String.class);
+    m46=cl.getMethod("index",java.lang.Object.class,java.lang.Object.class,java.lang.Object.class);
   } catch (NoSuchMethodException e) {
     throw new Error("NoSuchMethodException: "+e.getMessage());
   } catch (SecurityException e) {
     throw new Error("SecurityException: "+e.getMessage());
   }
   try {
-    m47=cl.getMethod("local_name",java.lang.Object.class,java.lang.String.class,java.lang.Object.class);
+    m47=cl.getMethod("inhale",java.lang.Object.class,java.lang.Object.class);
   } catch (NoSuchMethodException e) {
     throw new Error("NoSuchMethodException: "+e.getMessage());
   } catch (SecurityException e) {
     throw new Error("SecurityException: "+e.getMessage());
   }
   try {
-    m48=cl.getMethod("lt",java.lang.Object.class,java.lang.Object.class,java.lang.Object.class);
+    m48=cl.getMethod("label",java.lang.Object.class,java.lang.String.class);
   } catch (NoSuchMethodException e) {
     throw new Error("NoSuchMethodException: "+e.getMessage());
   } catch (SecurityException e) {
     throw new Error("SecurityException: "+e.getMessage());
   }
   try {
-    m49=cl.getMethod("lte",java.lang.Object.class,java.lang.Object.class,java.lang.Object.class);
+    m49=cl.getMethod("local_name",java.lang.Object.class,java.lang.String.class,java.lang.Object.class);
   } catch (NoSuchMethodException e) {
     throw new Error("NoSuchMethodException: "+e.getMessage());
   } catch (SecurityException e) {
     throw new Error("SecurityException: "+e.getMessage());
   }
   try {
-    m50=cl.getMethod("method_call",java.lang.Object.class,java.lang.String.class,java.util.List.class,java.util.List.class,java.util.List.class,java.util.List.class);
+    m50=cl.getMethod("lt",java.lang.Object.class,java.lang.Object.class,java.lang.Object.class);
   } catch (NoSuchMethodException e) {
     throw new Error("NoSuchMethodException: "+e.getMessage());
   } catch (SecurityException e) {
     throw new Error("SecurityException: "+e.getMessage());
   }
   try {
-    m51=cl.getMethod("mod",java.lang.Object.class,java.lang.Object.class,java.lang.Object.class);
+    m51=cl.getMethod("lte",java.lang.Object.class,java.lang.Object.class,java.lang.Object.class);
   } catch (NoSuchMethodException e) {
     throw new Error("NoSuchMethodException: "+e.getMessage());
   } catch (SecurityException e) {
     throw new Error("SecurityException: "+e.getMessage());
   }
   try {
-    m52=cl.getMethod("mult",java.lang.Object.class,java.lang.Object.class,java.lang.Object.class);
+    m52=cl.getMethod("method_call",java.lang.Object.class,java.lang.String.class,java.util.List.class,java.util.List.class,java.util.List.class,java.util.List.class);
   } catch (NoSuchMethodException e) {
     throw new Error("NoSuchMethodException: "+e.getMessage());
   } catch (SecurityException e) {
     throw new Error("SecurityException: "+e.getMessage());
   }
   try {
-    m53=cl.getMethod("neg",java.lang.Object.class,java.lang.Object.class);
+    m53=cl.getMethod("mod",java.lang.Object.class,java.lang.Object.class,java.lang.Object.class);
   } catch (NoSuchMethodException e) {
     throw new Error("NoSuchMethodException: "+e.getMessage());
   } catch (SecurityException e) {
     throw new Error("SecurityException: "+e.getMessage());
   }
   try {
-    m54=cl.getMethod("neq",java.lang.Object.class,java.lang.Object.class,java.lang.Object.class);
+    m54=cl.getMethod("mult",java.lang.Object.class,java.lang.Object.class,java.lang.Object.class);
   } catch (NoSuchMethodException e) {
     throw new Error("NoSuchMethodException: "+e.getMessage());
   } catch (SecurityException e) {
     throw new Error("SecurityException: "+e.getMessage());
   }
   try {
-    m55=cl.getMethod("new_object",java.lang.Object.class,java.lang.Object.class,java.util.List.class,java.util.List.class);
+    m55=cl.getMethod("neg",java.lang.Object.class,java.lang.Object.class);
   } catch (NoSuchMethodException e) {
     throw new Error("NoSuchMethodException: "+e.getMessage());
   } catch (SecurityException e) {
     throw new Error("SecurityException: "+e.getMessage());
   }
   try {
-    m56=cl.getMethod("no_perm",java.lang.Object.class);
+    m56=cl.getMethod("neq",java.lang.Object.class,java.lang.Object.class,java.lang.Object.class);
   } catch (NoSuchMethodException e) {
     throw new Error("NoSuchMethodException: "+e.getMessage());
   } catch (SecurityException e) {
     throw new Error("SecurityException: "+e.getMessage());
   }
   try {
-    m57=cl.getMethod("not",java.lang.Object.class,java.lang.Object.class);
+    m57=cl.getMethod("new_object",java.lang.Object.class,java.lang.Object.class,java.util.List.class,java.util.List.class);
   } catch (NoSuchMethodException e) {
     throw new Error("NoSuchMethodException: "+e.getMessage());
   } catch (SecurityException e) {
     throw new Error("SecurityException: "+e.getMessage());
   }
   try {
-    m58=cl.getMethod("null_",java.lang.Object.class);
+    m58=cl.getMethod("no_perm",java.lang.Object.class);
   } catch (NoSuchMethodException e) {
     throw new Error("NoSuchMethodException: "+e.getMessage());
   } catch (SecurityException e) {
     throw new Error("SecurityException: "+e.getMessage());
   }
   try {
-    m59=cl.getMethod("old",java.lang.Object.class,java.lang.Object.class);
+    m59=cl.getMethod("not",java.lang.Object.class,java.lang.Object.class);
   } catch (NoSuchMethodException e) {
     throw new Error("NoSuchMethodException: "+e.getMessage());
   } catch (SecurityException e) {
     throw new Error("SecurityException: "+e.getMessage());
   }
   try {
-    m60=cl.getMethod("or",java.lang.Object.class,java.lang.Object.class,java.lang.Object.class);
+    m60=cl.getMethod("null_",java.lang.Object.class);
   } catch (NoSuchMethodException e) {
     throw new Error("NoSuchMethodException: "+e.getMessage());
   } catch (SecurityException e) {
     throw new Error("SecurityException: "+e.getMessage());
   }
   try {
-    m61=cl.getMethod("predicate_call",java.lang.Object.class,java.lang.String.class,java.util.List.class);
+    m61=cl.getMethod("old",java.lang.Object.class,java.lang.Object.class);
   } catch (NoSuchMethodException e) {
     throw new Error("NoSuchMethodException: "+e.getMessage());
   } catch (SecurityException e) {
     throw new Error("SecurityException: "+e.getMessage());
   }
   try {
-    m62=cl.getMethod("program");
+    m62=cl.getMethod("or",java.lang.Object.class,java.lang.Object.class,java.lang.Object.class);
   } catch (NoSuchMethodException e) {
     throw new Error("NoSuchMethodException: "+e.getMessage());
   } catch (SecurityException e) {
     throw new Error("SecurityException: "+e.getMessage());
   }
   try {
-    m63=cl.getMethod("range",java.lang.Object.class,java.lang.Object.class,java.lang.Object.class);
+    m63=cl.getMethod("predicate_call",java.lang.Object.class,java.lang.String.class,java.util.List.class);
   } catch (NoSuchMethodException e) {
     throw new Error("NoSuchMethodException: "+e.getMessage());
   } catch (SecurityException e) {
     throw new Error("SecurityException: "+e.getMessage());
   }
   try {
-    m64=cl.getMethod("read_perm",java.lang.Object.class);
+    m64=cl.getMethod("program");
   } catch (NoSuchMethodException e) {
     throw new Error("NoSuchMethodException: "+e.getMessage());
   } catch (SecurityException e) {
     throw new Error("SecurityException: "+e.getMessage());
   }
   try {
-    m65=cl.getMethod("result",java.lang.Object.class,java.lang.Object.class);
+    m65=cl.getMethod("range",java.lang.Object.class,java.lang.Object.class,java.lang.Object.class);
   } catch (NoSuchMethodException e) {
     throw new Error("NoSuchMethodException: "+e.getMessage());
   } catch (SecurityException e) {
     throw new Error("SecurityException: "+e.getMessage());
   }
   try {
-    m66=cl.getMethod("scale_access",java.lang.Object.class,java.lang.Object.class,java.lang.Object.class);
+    m66=cl.getMethod("read_perm",java.lang.Object.class);
   } catch (NoSuchMethodException e) {
     throw new Error("NoSuchMethodException: "+e.getMessage());
   } catch (SecurityException e) {
     throw new Error("SecurityException: "+e.getMessage());
   }
   try {
-    m67=cl.getMethod("size",java.lang.Object.class,java.lang.Object.class);
+    m67=cl.getMethod("result",java.lang.Object.class,java.lang.Object.class);
   } catch (NoSuchMethodException e) {
     throw new Error("NoSuchMethodException: "+e.getMessage());
   } catch (SecurityException e) {
     throw new Error("SecurityException: "+e.getMessage());
   }
   try {
-    m68=cl.getMethod("sub",java.lang.Object.class,java.lang.Object.class,java.lang.Object.class);
+    m68=cl.getMethod("scale_access",java.lang.Object.class,java.lang.Object.class,java.lang.Object.class);
   } catch (NoSuchMethodException e) {
     throw new Error("NoSuchMethodException: "+e.getMessage());
   } catch (SecurityException e) {
     throw new Error("SecurityException: "+e.getMessage());
   }
   try {
-    m69=cl.getMethod("take",java.lang.Object.class,java.lang.Object.class,java.lang.Object.class);
+    m69=cl.getMethod("size",java.lang.Object.class,java.lang.Object.class);
   } catch (NoSuchMethodException e) {
     throw new Error("NoSuchMethodException: "+e.getMessage());
   } catch (SecurityException e) {
     throw new Error("SecurityException: "+e.getMessage());
   }
   try {
-    m70=cl.getMethod("unfold",java.lang.Object.class,java.lang.Object.class);
+    m70=cl.getMethod("sub",java.lang.Object.class,java.lang.Object.class,java.lang.Object.class);
   } catch (NoSuchMethodException e) {
     throw new Error("NoSuchMethodException: "+e.getMessage());
   } catch (SecurityException e) {
     throw new Error("SecurityException: "+e.getMessage());
   }
   try {
-    m71=cl.getMethod("unfolding_in",java.lang.Object.class,java.lang.Object.class,java.lang.Object.class);
+    m71=cl.getMethod("take",java.lang.Object.class,java.lang.Object.class,java.lang.Object.class);
   } catch (NoSuchMethodException e) {
     throw new Error("NoSuchMethodException: "+e.getMessage());
   } catch (SecurityException e) {
     throw new Error("SecurityException: "+e.getMessage());
   }
   try {
-    m72=cl.getMethod("verify",java.lang.Object.class,java.nio.file.Path.class,java.lang.Object.class);
+    m72=cl.getMethod("unfold",java.lang.Object.class,java.lang.Object.class);
   } catch (NoSuchMethodException e) {
     throw new Error("NoSuchMethodException: "+e.getMessage());
   } catch (SecurityException e) {
     throw new Error("SecurityException: "+e.getMessage());
   }
   try {
-    m73=cl.getMethod("while_loop",java.lang.Object.class,java.lang.Object.class,java.util.List.class,java.util.List.class,java.lang.Object.class);
+    m73=cl.getMethod("unfolding_in",java.lang.Object.class,java.lang.Object.class,java.lang.Object.class);
   } catch (NoSuchMethodException e) {
     throw new Error("NoSuchMethodException: "+e.getMessage());
   } catch (SecurityException e) {
     throw new Error("SecurityException: "+e.getMessage());
   }
   try {
-    m74=cl.getMethod("write_perm",java.lang.Object.class);
+    m74=cl.getMethod("verify",java.lang.Object.class,java.nio.file.Path.class,java.lang.Object.class);
   } catch (NoSuchMethodException e) {
     throw new Error("NoSuchMethodException: "+e.getMessage());
   } catch (SecurityException e) {
     throw new Error("SecurityException: "+e.getMessage());
   }
   try {
-    m75=cl.getMethod("write_program",java.io.PrintWriter.class,java.lang.Object.class);
+    m75=cl.getMethod("while_loop",java.lang.Object.class,java.lang.Object.class,java.util.List.class,java.util.List.class,java.lang.Object.class);
+  } catch (NoSuchMethodException e) {
+    throw new Error("NoSuchMethodException: "+e.getMessage());
+  } catch (SecurityException e) {
+    throw new Error("SecurityException: "+e.getMessage());
+  }
+  try {
+    m76=cl.getMethod("write_perm",java.lang.Object.class);
+  } catch (NoSuchMethodException e) {
+    throw new Error("NoSuchMethodException: "+e.getMessage());
+  } catch (SecurityException e) {
+    throw new Error("SecurityException: "+e.getMessage());
+  }
+  try {
+    m77=cl.getMethod("write_program",java.io.PrintWriter.class,java.lang.Object.class);
   } catch (NoSuchMethodException e) {
     throw new Error("NoSuchMethodException: "+e.getMessage());
   } catch (SecurityException e) {
@@ -879,7 +895,7 @@ public E drop(O arg0,E arg1,E arg2){
     throw new Error("in reflected call: "+e.getCause().getClass()+": "+e.getCause().getMessage());
   }
 }
-public E empty_seq(O arg0,T arg1){
+public E empty_bag(O arg0,T arg1){
   try {
     return (E)m26.invoke(obj,arg0,arg1);
   } catch (IllegalAccessException | IllegalArgumentException e) {
@@ -889,27 +905,27 @@ public E empty_seq(O arg0,T arg1){
     throw new Error("in reflected call: "+e.getCause().getClass()+": "+e.getCause().getMessage());
   }
 }
+public E empty_seq(O arg0,T arg1){
+  try {
+    return (E)m27.invoke(obj,arg0,arg1);
+  } catch (IllegalAccessException | IllegalArgumentException e) {
+    throw new Error(e.getClass()+" "+e.getMessage());
+  } catch (InvocationTargetException e) {
+    e.getCause().printStackTrace();
+    throw new Error("in reflected call: "+e.getCause().getClass()+": "+e.getCause().getMessage());
+  }
+}
+public E empty_set(O arg0,T arg1){
+  try {
+    return (E)m28.invoke(obj,arg0,arg1);
+  } catch (IllegalAccessException | IllegalArgumentException e) {
+    throw new Error(e.getClass()+" "+e.getMessage());
+  } catch (InvocationTargetException e) {
+    e.getCause().printStackTrace();
+    throw new Error("in reflected call: "+e.getCause().getClass()+": "+e.getCause().getMessage());
+  }
+}
 public E eq(O arg0,E arg1,E arg2){
-  try {
-    return (E)m27.invoke(obj,arg0,arg1,arg2);
-  } catch (IllegalAccessException | IllegalArgumentException e) {
-    throw new Error(e.getClass()+" "+e.getMessage());
-  } catch (InvocationTargetException e) {
-    e.getCause().printStackTrace();
-    throw new Error("in reflected call: "+e.getCause().getClass()+": "+e.getCause().getMessage());
-  }
-}
-public S exhale(O arg0,E arg1){
-  try {
-    return (S)m28.invoke(obj,arg0,arg1);
-  } catch (IllegalAccessException | IllegalArgumentException e) {
-    throw new Error(e.getClass()+" "+e.getMessage());
-  } catch (InvocationTargetException e) {
-    e.getCause().printStackTrace();
-    throw new Error("in reflected call: "+e.getCause().getClass()+": "+e.getCause().getMessage());
-  }
-}
-public E exists(O arg0,java.util.List<Decl> arg1,E arg2){
   try {
     return (E)m29.invoke(obj,arg0,arg1,arg2);
   } catch (IllegalAccessException | IllegalArgumentException e) {
@@ -919,27 +935,27 @@ public E exists(O arg0,java.util.List<Decl> arg1,E arg2){
     throw new Error("in reflected call: "+e.getCause().getClass()+": "+e.getCause().getMessage());
   }
 }
+public S exhale(O arg0,E arg1){
+  try {
+    return (S)m30.invoke(obj,arg0,arg1);
+  } catch (IllegalAccessException | IllegalArgumentException e) {
+    throw new Error(e.getClass()+" "+e.getMessage());
+  } catch (InvocationTargetException e) {
+    e.getCause().printStackTrace();
+    throw new Error("in reflected call: "+e.getCause().getClass()+": "+e.getCause().getMessage());
+  }
+}
+public E exists(O arg0,java.util.List<Decl> arg1,E arg2){
+  try {
+    return (E)m31.invoke(obj,arg0,arg1,arg2);
+  } catch (IllegalAccessException | IllegalArgumentException e) {
+    throw new Error(e.getClass()+" "+e.getMessage());
+  } catch (InvocationTargetException e) {
+    e.getCause().printStackTrace();
+    throw new Error("in reflected call: "+e.getCause().getClass()+": "+e.getCause().getMessage());
+  }
+}
 public E explicit_bag(O arg0,java.util.List<E> arg1){
-  try {
-    return (E)m30.invoke(obj,arg0,arg1);
-  } catch (IllegalAccessException | IllegalArgumentException e) {
-    throw new Error(e.getClass()+" "+e.getMessage());
-  } catch (InvocationTargetException e) {
-    e.getCause().printStackTrace();
-    throw new Error("in reflected call: "+e.getCause().getClass()+": "+e.getCause().getMessage());
-  }
-}
-public E explicit_seq(O arg0,java.util.List<E> arg1){
-  try {
-    return (E)m31.invoke(obj,arg0,arg1);
-  } catch (IllegalAccessException | IllegalArgumentException e) {
-    throw new Error(e.getClass()+" "+e.getMessage());
-  } catch (InvocationTargetException e) {
-    e.getCause().printStackTrace();
-    throw new Error("in reflected call: "+e.getCause().getClass()+": "+e.getCause().getMessage());
-  }
-}
-public E explicit_set(O arg0,java.util.List<E> arg1){
   try {
     return (E)m32.invoke(obj,arg0,arg1);
   } catch (IllegalAccessException | IllegalArgumentException e) {
@@ -949,27 +965,27 @@ public E explicit_set(O arg0,java.util.List<E> arg1){
     throw new Error("in reflected call: "+e.getCause().getClass()+": "+e.getCause().getMessage());
   }
 }
+public E explicit_seq(O arg0,java.util.List<E> arg1){
+  try {
+    return (E)m33.invoke(obj,arg0,arg1);
+  } catch (IllegalAccessException | IllegalArgumentException e) {
+    throw new Error(e.getClass()+" "+e.getMessage());
+  } catch (InvocationTargetException e) {
+    e.getCause().printStackTrace();
+    throw new Error("in reflected call: "+e.getCause().getClass()+": "+e.getCause().getMessage());
+  }
+}
+public E explicit_set(O arg0,java.util.List<E> arg1){
+  try {
+    return (E)m34.invoke(obj,arg0,arg1);
+  } catch (IllegalAccessException | IllegalArgumentException e) {
+    throw new Error(e.getClass()+" "+e.getMessage());
+  } catch (InvocationTargetException e) {
+    e.getCause().printStackTrace();
+    throw new Error("in reflected call: "+e.getCause().getClass()+": "+e.getCause().getMessage());
+  }
+}
 public E field_access(O arg0,E arg1,E arg2){
-  try {
-    return (E)m33.invoke(obj,arg0,arg1,arg2);
-  } catch (IllegalAccessException | IllegalArgumentException e) {
-    throw new Error(e.getClass()+" "+e.getMessage());
-  } catch (InvocationTargetException e) {
-    e.getCause().printStackTrace();
-    throw new Error("in reflected call: "+e.getCause().getClass()+": "+e.getCause().getMessage());
-  }
-}
-public S fold(O arg0,E arg1){
-  try {
-    return (S)m34.invoke(obj,arg0,arg1);
-  } catch (IllegalAccessException | IllegalArgumentException e) {
-    throw new Error(e.getClass()+" "+e.getMessage());
-  } catch (InvocationTargetException e) {
-    e.getCause().printStackTrace();
-    throw new Error("in reflected call: "+e.getCause().getClass()+": "+e.getCause().getMessage());
-  }
-}
-public E forall(O arg0,java.util.List<Decl> arg1,E arg2){
   try {
     return (E)m35.invoke(obj,arg0,arg1,arg2);
   } catch (IllegalAccessException | IllegalArgumentException e) {
@@ -979,9 +995,29 @@ public E forall(O arg0,java.util.List<Decl> arg1,E arg2){
     throw new Error("in reflected call: "+e.getCause().getClass()+": "+e.getCause().getMessage());
   }
 }
+public S fold(O arg0,E arg1){
+  try {
+    return (S)m36.invoke(obj,arg0,arg1);
+  } catch (IllegalAccessException | IllegalArgumentException e) {
+    throw new Error(e.getClass()+" "+e.getMessage());
+  } catch (InvocationTargetException e) {
+    e.getCause().printStackTrace();
+    throw new Error("in reflected call: "+e.getCause().getClass()+": "+e.getCause().getMessage());
+  }
+}
+public E forall(O arg0,java.util.List<Decl> arg1,E arg2){
+  try {
+    return (E)m37.invoke(obj,arg0,arg1,arg2);
+  } catch (IllegalAccessException | IllegalArgumentException e) {
+    throw new Error(e.getClass()+" "+e.getMessage());
+  } catch (InvocationTargetException e) {
+    e.getCause().printStackTrace();
+    throw new Error("in reflected call: "+e.getCause().getClass()+": "+e.getCause().getMessage());
+  }
+}
 public E frac(O arg0,E arg1,E arg2){
   try {
-    return (E)m36.invoke(obj,arg0,arg1,arg2);
+    return (E)m38.invoke(obj,arg0,arg1,arg2);
   } catch (IllegalAccessException | IllegalArgumentException e) {
     throw new Error(e.getClass()+" "+e.getMessage());
   } catch (InvocationTargetException e) {
@@ -991,7 +1027,7 @@ public E frac(O arg0,E arg1,E arg2){
 }
 public E function_call(O arg0,java.lang.String arg1,java.util.List<E> arg2,T arg3,java.util.List<Decl> arg4){
   try {
-    return (E)m37.invoke(obj,arg0,arg1,arg2,arg3,arg4);
+    return (E)m39.invoke(obj,arg0,arg1,arg2,arg3,arg4);
   } catch (IllegalAccessException | IllegalArgumentException e) {
     throw new Error(e.getClass()+" "+e.getMessage());
   } catch (InvocationTargetException e) {
@@ -1001,7 +1037,7 @@ public E function_call(O arg0,java.lang.String arg1,java.util.List<E> arg2,T arg
 }
 public O getOrigin(java.lang.Object arg0){
   try {
-    return (O)m38.invoke(obj,arg0);
+    return (O)m40.invoke(obj,arg0);
   } catch (IllegalAccessException | IllegalArgumentException e) {
     throw new Error(e.getClass()+" "+e.getMessage());
   } catch (InvocationTargetException e) {
@@ -1011,7 +1047,7 @@ public O getOrigin(java.lang.Object arg0){
 }
 public S goto_(O arg0,java.lang.String arg1){
   try {
-    return (S)m39.invoke(obj,arg0,arg1);
+    return (S)m41.invoke(obj,arg0,arg1);
   } catch (IllegalAccessException | IllegalArgumentException e) {
     throw new Error(e.getClass()+" "+e.getMessage());
   } catch (InvocationTargetException e) {
@@ -1021,7 +1057,7 @@ public S goto_(O arg0,java.lang.String arg1){
 }
 public E gt(O arg0,E arg1,E arg2){
   try {
-    return (E)m40.invoke(obj,arg0,arg1,arg2);
+    return (E)m42.invoke(obj,arg0,arg1,arg2);
   } catch (IllegalAccessException | IllegalArgumentException e) {
     throw new Error(e.getClass()+" "+e.getMessage());
   } catch (InvocationTargetException e) {
@@ -1031,7 +1067,7 @@ public E gt(O arg0,E arg1,E arg2){
 }
 public E gte(O arg0,E arg1,E arg2){
   try {
-    return (E)m41.invoke(obj,arg0,arg1,arg2);
+    return (E)m43.invoke(obj,arg0,arg1,arg2);
   } catch (IllegalAccessException | IllegalArgumentException e) {
     throw new Error(e.getClass()+" "+e.getMessage());
   } catch (InvocationTargetException e) {
@@ -1041,7 +1077,7 @@ public E gte(O arg0,E arg1,E arg2){
 }
 public S if_then_else(O arg0,E arg1,S arg2,S arg3){
   try {
-    return (S)m42.invoke(obj,arg0,arg1,arg2,arg3);
+    return (S)m44.invoke(obj,arg0,arg1,arg2,arg3);
   } catch (IllegalAccessException | IllegalArgumentException e) {
     throw new Error(e.getClass()+" "+e.getMessage());
   } catch (InvocationTargetException e) {
@@ -1051,7 +1087,7 @@ public S if_then_else(O arg0,E arg1,S arg2,S arg3){
 }
 public E implies(O arg0,E arg1,E arg2){
   try {
-    return (E)m43.invoke(obj,arg0,arg1,arg2);
+    return (E)m45.invoke(obj,arg0,arg1,arg2);
   } catch (IllegalAccessException | IllegalArgumentException e) {
     throw new Error(e.getClass()+" "+e.getMessage());
   } catch (InvocationTargetException e) {
@@ -1061,7 +1097,7 @@ public E implies(O arg0,E arg1,E arg2){
 }
 public E index(O arg0,E arg1,E arg2){
   try {
-    return (E)m44.invoke(obj,arg0,arg1,arg2);
+    return (E)m46.invoke(obj,arg0,arg1,arg2);
   } catch (IllegalAccessException | IllegalArgumentException e) {
     throw new Error(e.getClass()+" "+e.getMessage());
   } catch (InvocationTargetException e) {
@@ -1071,7 +1107,7 @@ public E index(O arg0,E arg1,E arg2){
 }
 public S inhale(O arg0,E arg1){
   try {
-    return (S)m45.invoke(obj,arg0,arg1);
+    return (S)m47.invoke(obj,arg0,arg1);
   } catch (IllegalAccessException | IllegalArgumentException e) {
     throw new Error(e.getClass()+" "+e.getMessage());
   } catch (InvocationTargetException e) {
@@ -1081,7 +1117,7 @@ public S inhale(O arg0,E arg1){
 }
 public S label(O arg0,java.lang.String arg1){
   try {
-    return (S)m46.invoke(obj,arg0,arg1);
+    return (S)m48.invoke(obj,arg0,arg1);
   } catch (IllegalAccessException | IllegalArgumentException e) {
     throw new Error(e.getClass()+" "+e.getMessage());
   } catch (InvocationTargetException e) {
@@ -1091,7 +1127,7 @@ public S label(O arg0,java.lang.String arg1){
 }
 public E local_name(O arg0,java.lang.String arg1,T arg2){
   try {
-    return (E)m47.invoke(obj,arg0,arg1,arg2);
+    return (E)m49.invoke(obj,arg0,arg1,arg2);
   } catch (IllegalAccessException | IllegalArgumentException e) {
     throw new Error(e.getClass()+" "+e.getMessage());
   } catch (InvocationTargetException e) {
@@ -1101,7 +1137,7 @@ public E local_name(O arg0,java.lang.String arg1,T arg2){
 }
 public E lt(O arg0,E arg1,E arg2){
   try {
-    return (E)m48.invoke(obj,arg0,arg1,arg2);
+    return (E)m50.invoke(obj,arg0,arg1,arg2);
   } catch (IllegalAccessException | IllegalArgumentException e) {
     throw new Error(e.getClass()+" "+e.getMessage());
   } catch (InvocationTargetException e) {
@@ -1111,7 +1147,7 @@ public E lt(O arg0,E arg1,E arg2){
 }
 public E lte(O arg0,E arg1,E arg2){
   try {
-    return (E)m49.invoke(obj,arg0,arg1,arg2);
+    return (E)m51.invoke(obj,arg0,arg1,arg2);
   } catch (IllegalAccessException | IllegalArgumentException e) {
     throw new Error(e.getClass()+" "+e.getMessage());
   } catch (InvocationTargetException e) {
@@ -1121,7 +1157,7 @@ public E lte(O arg0,E arg1,E arg2){
 }
 public S method_call(O arg0,java.lang.String arg1,java.util.List<E> arg2,java.util.List<E> arg3,java.util.List<Decl> arg4,java.util.List<Decl> arg5){
   try {
-    return (S)m50.invoke(obj,arg0,arg1,arg2,arg3,arg4,arg5);
+    return (S)m52.invoke(obj,arg0,arg1,arg2,arg3,arg4,arg5);
   } catch (IllegalAccessException | IllegalArgumentException e) {
     throw new Error(e.getClass()+" "+e.getMessage());
   } catch (InvocationTargetException e) {
@@ -1131,7 +1167,7 @@ public S method_call(O arg0,java.lang.String arg1,java.util.List<E> arg2,java.ut
 }
 public E mod(O arg0,E arg1,E arg2){
   try {
-    return (E)m51.invoke(obj,arg0,arg1,arg2);
+    return (E)m53.invoke(obj,arg0,arg1,arg2);
   } catch (IllegalAccessException | IllegalArgumentException e) {
     throw new Error(e.getClass()+" "+e.getMessage());
   } catch (InvocationTargetException e) {
@@ -1141,7 +1177,7 @@ public E mod(O arg0,E arg1,E arg2){
 }
 public E mult(O arg0,E arg1,E arg2){
   try {
-    return (E)m52.invoke(obj,arg0,arg1,arg2);
+    return (E)m54.invoke(obj,arg0,arg1,arg2);
   } catch (IllegalAccessException | IllegalArgumentException e) {
     throw new Error(e.getClass()+" "+e.getMessage());
   } catch (InvocationTargetException e) {
@@ -1151,7 +1187,7 @@ public E mult(O arg0,E arg1,E arg2){
 }
 public E neg(O arg0,E arg1){
   try {
-    return (E)m53.invoke(obj,arg0,arg1);
+    return (E)m55.invoke(obj,arg0,arg1);
   } catch (IllegalAccessException | IllegalArgumentException e) {
     throw new Error(e.getClass()+" "+e.getMessage());
   } catch (InvocationTargetException e) {
@@ -1161,7 +1197,7 @@ public E neg(O arg0,E arg1){
 }
 public E neq(O arg0,E arg1,E arg2){
   try {
-    return (E)m54.invoke(obj,arg0,arg1,arg2);
+    return (E)m56.invoke(obj,arg0,arg1,arg2);
   } catch (IllegalAccessException | IllegalArgumentException e) {
     throw new Error(e.getClass()+" "+e.getMessage());
   } catch (InvocationTargetException e) {
@@ -1171,7 +1207,7 @@ public E neq(O arg0,E arg1,E arg2){
 }
 public S new_object(O arg0,E arg1,java.util.List<java.lang.String> arg2,java.util.List<T> arg3){
   try {
-    return (S)m55.invoke(obj,arg0,arg1,arg2,arg3);
+    return (S)m57.invoke(obj,arg0,arg1,arg2,arg3);
   } catch (IllegalAccessException | IllegalArgumentException e) {
     throw new Error(e.getClass()+" "+e.getMessage());
   } catch (InvocationTargetException e) {
@@ -1181,7 +1217,7 @@ public S new_object(O arg0,E arg1,java.util.List<java.lang.String> arg2,java.uti
 }
 public E no_perm(O arg0){
   try {
-    return (E)m56.invoke(obj,arg0);
+    return (E)m58.invoke(obj,arg0);
   } catch (IllegalAccessException | IllegalArgumentException e) {
     throw new Error(e.getClass()+" "+e.getMessage());
   } catch (InvocationTargetException e) {
@@ -1191,7 +1227,7 @@ public E no_perm(O arg0){
 }
 public E not(O arg0,E arg1){
   try {
-    return (E)m57.invoke(obj,arg0,arg1);
+    return (E)m59.invoke(obj,arg0,arg1);
   } catch (IllegalAccessException | IllegalArgumentException e) {
     throw new Error(e.getClass()+" "+e.getMessage());
   } catch (InvocationTargetException e) {
@@ -1201,7 +1237,7 @@ public E not(O arg0,E arg1){
 }
 public E null_(O arg0){
   try {
-    return (E)m58.invoke(obj,arg0);
+    return (E)m60.invoke(obj,arg0);
   } catch (IllegalAccessException | IllegalArgumentException e) {
     throw new Error(e.getClass()+" "+e.getMessage());
   } catch (InvocationTargetException e) {
@@ -1211,7 +1247,7 @@ public E null_(O arg0){
 }
 public E old(O arg0,E arg1){
   try {
-    return (E)m59.invoke(obj,arg0,arg1);
+    return (E)m61.invoke(obj,arg0,arg1);
   } catch (IllegalAccessException | IllegalArgumentException e) {
     throw new Error(e.getClass()+" "+e.getMessage());
   } catch (InvocationTargetException e) {
@@ -1221,7 +1257,7 @@ public E old(O arg0,E arg1){
 }
 public E or(O arg0,E arg1,E arg2){
   try {
-    return (E)m60.invoke(obj,arg0,arg1,arg2);
+    return (E)m62.invoke(obj,arg0,arg1,arg2);
   } catch (IllegalAccessException | IllegalArgumentException e) {
     throw new Error(e.getClass()+" "+e.getMessage());
   } catch (InvocationTargetException e) {
@@ -1231,7 +1267,7 @@ public E or(O arg0,E arg1,E arg2){
 }
 public E predicate_call(O arg0,java.lang.String arg1,java.util.List<E> arg2){
   try {
-    return (E)m61.invoke(obj,arg0,arg1,arg2);
+    return (E)m63.invoke(obj,arg0,arg1,arg2);
   } catch (IllegalAccessException | IllegalArgumentException e) {
     throw new Error(e.getClass()+" "+e.getMessage());
   } catch (InvocationTargetException e) {
@@ -1241,7 +1277,7 @@ public E predicate_call(O arg0,java.lang.String arg1,java.util.List<E> arg2){
 }
 public P program(){
   try {
-    return (P)m62.invoke(obj);
+    return (P)m64.invoke(obj);
   } catch (IllegalAccessException | IllegalArgumentException e) {
     throw new Error(e.getClass()+" "+e.getMessage());
   } catch (InvocationTargetException e) {
@@ -1251,7 +1287,7 @@ public P program(){
 }
 public E range(O arg0,E arg1,E arg2){
   try {
-    return (E)m63.invoke(obj,arg0,arg1,arg2);
+    return (E)m65.invoke(obj,arg0,arg1,arg2);
   } catch (IllegalAccessException | IllegalArgumentException e) {
     throw new Error(e.getClass()+" "+e.getMessage());
   } catch (InvocationTargetException e) {
@@ -1261,7 +1297,7 @@ public E range(O arg0,E arg1,E arg2){
 }
 public E read_perm(O arg0){
   try {
-    return (E)m64.invoke(obj,arg0);
+    return (E)m66.invoke(obj,arg0);
   } catch (IllegalAccessException | IllegalArgumentException e) {
     throw new Error(e.getClass()+" "+e.getMessage());
   } catch (InvocationTargetException e) {
@@ -1271,7 +1307,7 @@ public E read_perm(O arg0){
 }
 public E result(O arg0,T arg1){
   try {
-    return (E)m65.invoke(obj,arg0,arg1);
+    return (E)m67.invoke(obj,arg0,arg1);
   } catch (IllegalAccessException | IllegalArgumentException e) {
     throw new Error(e.getClass()+" "+e.getMessage());
   } catch (InvocationTargetException e) {
@@ -1281,7 +1317,7 @@ public E result(O arg0,T arg1){
 }
 public E scale_access(O arg0,E arg1,E arg2){
   try {
-    return (E)m66.invoke(obj,arg0,arg1,arg2);
+    return (E)m68.invoke(obj,arg0,arg1,arg2);
   } catch (IllegalAccessException | IllegalArgumentException e) {
     throw new Error(e.getClass()+" "+e.getMessage());
   } catch (InvocationTargetException e) {
@@ -1291,7 +1327,7 @@ public E scale_access(O arg0,E arg1,E arg2){
 }
 public E size(O arg0,E arg1){
   try {
-    return (E)m67.invoke(obj,arg0,arg1);
+    return (E)m69.invoke(obj,arg0,arg1);
   } catch (IllegalAccessException | IllegalArgumentException e) {
     throw new Error(e.getClass()+" "+e.getMessage());
   } catch (InvocationTargetException e) {
@@ -1301,7 +1337,7 @@ public E size(O arg0,E arg1){
 }
 public E sub(O arg0,E arg1,E arg2){
   try {
-    return (E)m68.invoke(obj,arg0,arg1,arg2);
+    return (E)m70.invoke(obj,arg0,arg1,arg2);
   } catch (IllegalAccessException | IllegalArgumentException e) {
     throw new Error(e.getClass()+" "+e.getMessage());
   } catch (InvocationTargetException e) {
@@ -1311,7 +1347,7 @@ public E sub(O arg0,E arg1,E arg2){
 }
 public E take(O arg0,E arg1,E arg2){
   try {
-    return (E)m69.invoke(obj,arg0,arg1,arg2);
+    return (E)m71.invoke(obj,arg0,arg1,arg2);
   } catch (IllegalAccessException | IllegalArgumentException e) {
     throw new Error(e.getClass()+" "+e.getMessage());
   } catch (InvocationTargetException e) {
@@ -1321,7 +1357,7 @@ public E take(O arg0,E arg1,E arg2){
 }
 public S unfold(O arg0,E arg1){
   try {
-    return (S)m70.invoke(obj,arg0,arg1);
+    return (S)m72.invoke(obj,arg0,arg1);
   } catch (IllegalAccessException | IllegalArgumentException e) {
     throw new Error(e.getClass()+" "+e.getMessage());
   } catch (InvocationTargetException e) {
@@ -1331,7 +1367,7 @@ public S unfold(O arg0,E arg1){
 }
 public E unfolding_in(O arg0,E arg1,E arg2){
   try {
-    return (E)m71.invoke(obj,arg0,arg1,arg2);
+    return (E)m73.invoke(obj,arg0,arg1,arg2);
   } catch (IllegalAccessException | IllegalArgumentException e) {
     throw new Error(e.getClass()+" "+e.getMessage());
   } catch (InvocationTargetException e) {
@@ -1341,7 +1377,7 @@ public E unfolding_in(O arg0,E arg1,E arg2){
 }
 public java.util.List<Err> verify(java.lang.Object arg0,java.nio.file.Path arg1,P arg2){
   try {
-    return (java.util.List<Err>)m72.invoke(obj,arg0,arg1,arg2);
+    return (java.util.List<Err>)m74.invoke(obj,arg0,arg1,arg2);
   } catch (IllegalAccessException | IllegalArgumentException e) {
     throw new Error(e.getClass()+" "+e.getMessage());
   } catch (InvocationTargetException e) {
@@ -1351,7 +1387,7 @@ public java.util.List<Err> verify(java.lang.Object arg0,java.nio.file.Path arg1,
 }
 public S while_loop(O arg0,E arg1,java.util.List<E> arg2,java.util.List<Decl> arg3,S arg4){
   try {
-    return (S)m73.invoke(obj,arg0,arg1,arg2,arg3,arg4);
+    return (S)m75.invoke(obj,arg0,arg1,arg2,arg3,arg4);
   } catch (IllegalAccessException | IllegalArgumentException e) {
     throw new Error(e.getClass()+" "+e.getMessage());
   } catch (InvocationTargetException e) {
@@ -1361,7 +1397,7 @@ public S while_loop(O arg0,E arg1,java.util.List<E> arg2,java.util.List<Decl> ar
 }
 public E write_perm(O arg0){
   try {
-    return (E)m74.invoke(obj,arg0);
+    return (E)m76.invoke(obj,arg0);
   } catch (IllegalAccessException | IllegalArgumentException e) {
     throw new Error(e.getClass()+" "+e.getMessage());
   } catch (InvocationTargetException e) {
@@ -1371,7 +1407,7 @@ public E write_perm(O arg0){
 }
 public void write_program(java.io.PrintWriter arg0,P arg1){
   try {
-    m75.invoke(obj,arg0,arg1);
+    m77.invoke(obj,arg0,arg1);
   } catch (IllegalAccessException | IllegalArgumentException e) {
     throw new Error(e.getClass()+" "+e.getMessage());
   } catch (InvocationTargetException e) {
