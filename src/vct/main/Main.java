@@ -753,7 +753,7 @@ public class Main
         passes.add("recognize_multidim");
       }
       passes.add("simplify_quant");
-      passes.add("simplify_sums");
+      if (features.usesSummation()) passes.add("simplify_sums");
       passes.add("standardize");
       passes.add("check");
       if (features.usesKernels()){
