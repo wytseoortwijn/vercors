@@ -222,4 +222,26 @@ public class SiliconApplicationTest extends ToolTest {
     }
   }
   
+  @Test
+  public void testHistoryProcesses(){
+    sem_get();
+    try {
+      VCTResult res=run("vct","--silver=silicon","--check-defined","//examples/processes/check-defined.pvl");
+      res.checkVerdict(Verdict.Pass);
+    } finally {
+      sem.release();
+    }
+  }
+  
+  @Test
+  public void testHistoryApplication(){
+    sem_get();
+    try {
+      VCTResult res=run("vct","--silver=silicon","--check-history","//examples/processes/check-hist.pvl");
+      res.checkVerdict(Verdict.Pass);
+    } finally {
+      sem.release();
+    }
+  }
+  
 }
