@@ -6,9 +6,9 @@ import vct.col.ast.*;
 
 public class SilverTypeMap<T> implements TypeMapping<T> {
 
-  private SilverVerifier<Origin,?,T,?,?,?,?> create;
+  private SilverVerifier<Origin,?,T,?,?,?,?,?,?> create;
   
-  public SilverTypeMap(SilverVerifier<Origin,?,T,?,?,?,?> backend){
+  public SilverTypeMap(SilverVerifier<Origin,?,T,?,?,?,?,?,?> backend){
     this.create=backend;
   }
   
@@ -26,6 +26,10 @@ public class SilverTypeMap<T> implements TypeMapping<T> {
     if (t.getName().equals("Ref")){
       return create.Ref();
     } else {
+      ASTNode args[]=t.getArgs();
+      if (args.length==0){
+        return create.domain_type(t.getName());
+      }
       throw new HREError("cannot convert class type %s",t.getFullName()); 
     }
   }

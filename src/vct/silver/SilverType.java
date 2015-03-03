@@ -29,5 +29,8 @@ public interface SilverType<T> {
   
   /** Create a set type. */
   public T Set(T t);
+  
+  /** Create a domain type. */
+  public T domain_type(String name); 
 
 }

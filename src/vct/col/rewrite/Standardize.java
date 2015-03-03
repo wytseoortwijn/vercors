@@ -3,10 +3,12 @@ package vct.col.rewrite;
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTReserved;
 import vct.col.ast.AssignmentStatement;
+import vct.col.ast.AxiomaticDataType;
 import vct.col.ast.BlockStatement;
 import vct.col.ast.Method;
 import vct.col.ast.MethodInvokation;
 import vct.col.ast.NameExpression;
+import vct.col.ast.NameExpression.Kind;
 import vct.col.ast.OperatorExpression;
 import vct.col.ast.ProgramUnit;
 import vct.col.ast.StandardOperator;
@@ -87,6 +89,14 @@ public class Standardize extends AbstractRewriter {
   
   public void visit(MethodInvokation e){
     ASTNode object=rewrite(e.object);
+    if(object==null){
+      Method m=source().find_adt(e.method);
+      if (m!=null){
+        String adt=((AxiomaticDataType)m.getParent()).name;
+        //System.err.printf("%s is an ADT method from %s%n", e.method,);
+        object=create.name(Kind.ADT, null,adt);
+      }
+    }
     if (object==null && current_class()!=null) object=create.this_expression(create.class_type(current_class().getFullName()));
     MethodInvokation res=create.invokation(object, rewrite(e.dispatch), e.method, rewrite(e.getArgs()));
     res.set_before(rewrite(e.get_before()));

@@ -13,10 +13,10 @@ import static hre.System.Abort;
 
 public class SilverExpressionMap<T,E,Decl> implements ASTMapping<E>{
 
-  private SilverVerifier<Origin,?,T,E,?,Decl,?> create;
+  private SilverVerifier<Origin,?,T,E,?,Decl,?,?,?> create;
   private SilverTypeMap<T> type;
 
-  public SilverExpressionMap(SilverVerifier<Origin,?,T,E,?,Decl,?> backend,SilverTypeMap<T> type){
+  public SilverExpressionMap(SilverVerifier<Origin,?,T,E,?,Decl,?,?,?> backend,SilverTypeMap<T> type){
     this.create=backend;
     this.type=type;
   }
@@ -263,7 +263,13 @@ public class SilverExpressionMap<T,E,Decl> implements ASTMapping<E>{
     switch(e.binder){
     case STAR:
     case FORALL:
-      return create.forall(o, convert(e.getDeclarations()),create.implies(o, e.select.apply(this), e.main.apply(this)));
+      E expr;
+      if (e.select.isConstant(true)){
+        expr=e.main.apply(this);
+      } else {
+        expr=create.implies(o, e.select.apply(this), e.main.apply(this));
+      }
+      return create.forall(o, convert(e.getDeclarations()),expr);
     case EXISTS:
       return create.exists(o, convert(e.getDeclarations()),create.and(o, e.select.apply(this), e.main.apply(this)));
     default:

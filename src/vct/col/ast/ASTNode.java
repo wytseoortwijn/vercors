@@ -7,7 +7,9 @@ import java.util.Map;
 import java.util.Set;
 
 import vct.col.ast.ASTSpecial.Kind;
+import vct.util.Configuration;
 
+import hre.ast.MessageOrigin;
 import hre.ast.Origin;
 import static hre.System.Abort;
 import static hre.System.Debug;
@@ -116,8 +118,12 @@ public abstract class ASTNode implements ASTFlags {
   }
   
   public void setOrigin(Origin origin){
-    if (origin==null) throw new Error("illegal null origin");
     if (this.origin!=null) throw new Error("origin already set");
+    if (origin==null) {
+      this.origin=new MessageOrigin("NULL ORIGIN");
+      System.err.printf("Illegal null origin for %s%n",Configuration.getDiagSyntax().print(this));
+      throw new Error("illegal null origin");
+    }
     this.origin=origin;
   }
   

@@ -45,7 +45,11 @@ public class SilverClassReduction extends AbstractRewriter {
   
   @Override
   public void visit(ClassType t){
-    result=create.class_type("Ref");
+    if (source().find(t.getNameFull())==null){
+      result=create.class_type(t.getNameFull());
+    } else {
+      result=create.class_type("Ref");
+    }
   }
   @Override
   public void visit(Dereference e){

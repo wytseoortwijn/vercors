@@ -376,6 +376,9 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
         }
         break;
       }
+      case ADT:
+        e.setType(new ClassType("<<adt>>"));
+        break;
       case Label:
         e.setType(new ClassType("<<label>>"));
         break;

@@ -32,7 +32,9 @@ public class NameExpression extends ASTNode {
     /** for labels, such as statement labels and predicate labels. */
     Label,
     /** for the ?x binder of VeriFast. */
-    Output;
+    Output,
+    /** name of an ADT */
+    ADT;
   }
   
   /** The name that this AST node is referencing. */

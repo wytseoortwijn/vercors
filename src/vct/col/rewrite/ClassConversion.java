@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Stack;
 
 import vct.col.ast.*;
+import vct.col.ast.Method.Kind;
 
 /**
  * This rewriter converts a program with classes into
@@ -109,6 +110,7 @@ public class ClassConversion extends AbstractRewriter {
     String method;
     ArrayList<ASTNode> args=new ArrayList();
     Method def=s.getDefinition();
+    ASTNode extra=null;
     if (def.getParent()==null){
       method=s.method;
     } else if (s.object instanceof ClassType){
@@ -116,8 +118,16 @@ public class ClassConversion extends AbstractRewriter {
     } else if (s.object==null){
       method=s.method;
     } else {
-      method=((ClassType)s.object.getType()).getName()+SEP+s.method;
-      args.add(rewrite(s.object));
+      method=((ClassType)s.object.getType()).getName();
+      if (method.equals("<<adt>>")){
+        method=s.method;
+      } else {
+        method+=SEP+s.method;
+        args.add(rewrite(s.object));
+        if (def.kind==Kind.Predicate && !s.object.isReserved(ASTReserved.This)){
+          extra=create.expression(StandardOperator.NEQ,rewrite(s.object),create.reserved_name(ASTReserved.Null));
+        }
+      }      
     }
     for(ASTNode arg :s.getArgs()){
       args.add(rewrite(arg));
@@ -125,6 +135,10 @@ public class ClassConversion extends AbstractRewriter {
     MethodInvokation res=create.invokation(null, s.dispatch, method, args.toArray(new ASTNode[0]));
     res.set_before(rewrite(s.get_before()));
     res.set_after(rewrite(s.get_after()));
-    result=res;
+    if (extra!=null){
+      result=create.expression(StandardOperator.Star,extra,res);
+    } else {
+      result=res;
+    }
   }
 }

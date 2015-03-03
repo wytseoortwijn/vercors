@@ -155,10 +155,12 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
         commit_cb.ensures(create.expression(StandardOperator.EQ,var,create.expression(StandardOperator.Old,var)));
         commit_cb.requires(create.expression(Perm,name_old,half));
       }
+      // TODO rewrite based on the set of modified variables, rather than trusting simp!
+      Simplify simp=new Simplify(this);
       Substitution sigma=new Substitution(source(),old_map);
       ApplyOld rw_old=new ApplyOld(sigma);
       Substitution rw_new=new Substitution(source(),new_map);
-      commit_cb.requires(rw_new.rewrite(rw_old.rewrite(c.post_condition)));
+      commit_cb.requires(rw_new.rewrite(rw_old.rewrite(simp.rewrite(c.post_condition))));
       res.add(create.method_decl(
           create.primitive_type(Sort.Void),
           begin_cb.getContract(),

@@ -50,7 +50,7 @@ public class Flatten extends AbstractRewriter {
     if (e.getType()==null){
       Abort("result type of call unknown at %s",e.getOrigin());
     }
-    if (e.getType().isVoid()){
+    if (e.getType().isVoid()||e.getType().isNull()||declaration_block==null){
       result=create.invokation(object,rewrite(e.dispatch),e.method,args);
       ((MethodInvokation)result).set_before(copy_rw.rewrite(e.get_before()));
       ((MethodInvokation)result).set_after(copy_rw.rewrite(e.get_after()));

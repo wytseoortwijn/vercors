@@ -7,7 +7,11 @@ public class ErrorFactory implements  VerCorsErrorFactory<Origin,VerificationErr
 
   @Override
   public VerificationError generic_error(Origin o, String message) {
-    o.report("error", message);
+    if (o!=null){
+      o.report("error", message);
+    } else {
+      System.err.printf("error: %s%n",message);
+    }
     return new VerificationError(){};
   }
 

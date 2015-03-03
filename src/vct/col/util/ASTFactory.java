@@ -354,6 +354,9 @@ public BlockStatement block(Origin origin, ASTNode ... args) {
    * @return An AST node containing the variable declaration.
    */
   public DeclarationStatement field_decl(String name, Type type,ASTNode ... init) {
+    if (type.isNull()){
+      Abort("cannot declare variable %s of <<null>> type.",name);
+    }
     if (init !=null && init.length>1) Abort("cannot have more than one initial value.");
     DeclarationStatement res=new DeclarationStatement(name,type,init==null?null:init.length==0?null:init[0]);
     res.setOrigin(origin_stack.get());

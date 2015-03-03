@@ -5,7 +5,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 
-public interface SilverVerifier<O,Err,T,E,S,Decl,P>
+public interface SilverVerifier<O,Err,T,E,S,Decl,DFunc,DAxiom,P>
   extends SilverType<T>, SilverExpression<O,T,E, Decl >, SilverStatement<O,T,E, Decl, S> {
 
   /**
@@ -61,6 +61,11 @@ public interface SilverVerifier<O,Err,T,E,S,Decl,P>
   
   public void add_function(P p,O o,String name,List<Decl> args,T t,List<E> pres,List<E> posts,E body);
   
+  public DAxiom daxiom(O o,String name,E expr);
+  
+  public DFunc dfunc(O o,String name,List<Decl> args,T t);
+  
+  public void add_adt(P p,O o,String name,List<DFunc> funs,List<DAxiom> axioms,List<String> pars);
   /**
    * Verify a program.
    * @param tool_home The root directory of the third party tools.

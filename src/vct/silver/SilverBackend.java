@@ -27,7 +27,7 @@ import vct.util.Configuration;
 public class SilverBackend {
   
   public static StringSetting silver_module=new StringSetting("silver/latest");;
-  public static <T,E,S,Decl,Program>
+  public static <T,E,S,Decl,DFunc,DAxiom,Program>
   TestReport TestSilicon(ProgramUnit arg, String tool) {
     long start_time=System.currentTimeMillis();
     File jarfile=Configuration.getToolHome().resolve(silver_module.get()+"/"+tool+".jar").toFile();
@@ -61,7 +61,7 @@ public class SilverBackend {
       res.setException(e);
       return res;
     }
-    SilverVerifier<Origin,VerificationError,T,E,S,Decl,Program> verifier=new WrappedSilverVerifier(obj);
+    SilverVerifier<Origin,VerificationError,T,E,S,Decl,DFunc,DAxiom,Program> verifier=new WrappedSilverVerifier(obj);
     SilverTypeMap<T> type=new SilverTypeMap(verifier);
     SilverExpressionMap<T, E, Decl> expr=new SilverExpressionMap(verifier,type);
     SilverStatementMap<T, E, S, Decl> stat=new SilverStatementMap(verifier,type,expr);
@@ -151,6 +151,34 @@ public class SilverBackend {
         } else {
           throw new HREError("bad class entry: %s",cl.name);
         }
+      } else if (entry instanceof AxiomaticDataType) {
+        AxiomaticDataType adt=(AxiomaticDataType)entry;
+        ArrayList<DFunc> funcs=new ArrayList();
+        for(Method m:adt.constructors()){
+          ArrayList<Decl> args=new ArrayList();
+          for(DeclarationStatement decl:m.getArgs()){
+            Decl d=verifier.decl(decl.getOrigin(),decl.getName(),decl.getType().apply(type));
+            args.add(d);
+          }
+          funcs.add(verifier.dfunc(m.getOrigin(),m.name, args,m.getReturnType().apply(type)));
+        }
+        for(Method m:adt.mappings()){
+          ArrayList<Decl> args=new ArrayList();
+          for(DeclarationStatement decl:m.getArgs()){
+            Decl d=verifier.decl(decl.getOrigin(),decl.getName(),decl.getType().apply(type));
+            args.add(d);
+          }
+          funcs.add(verifier.dfunc(m.getOrigin(),m.name, args,m.getReturnType().apply(type)));
+        }
+        ArrayList<DAxiom> axioms=new ArrayList();
+        for(Axiom axiom:adt.axioms()){
+          axioms.add(verifier.daxiom(axiom.getOrigin(),axiom.name,axiom.getRule().apply(expr)));
+        }
+        ArrayList<String> pars=new ArrayList();
+        for(DeclarationStatement decl:adt.getParameters()){
+          pars.add(decl.getName());
+        }
+        verifier.add_adt(program,adt.getOrigin(),adt.name,funcs,axioms,pars);
       } else {
         throw new HREError("bad entry: %s",entry.getClass());
       }
@@ -188,7 +216,7 @@ public class SilverBackend {
   }
 
   protected static <T, E, S, Decl, Program> void split_block(
-      SilverVerifier<Origin, ?, T, E, S, Decl, Program> verifier,
+      SilverVerifier<Origin, ?, T, E, S, Decl, ?, ? , Program> verifier,
       SilverTypeMap<T> type, SilverStatementMap<T, E, S, Decl> stat,
       ArrayList<Decl> locals, BlockStatement block, ArrayList<S> stats)
       throws HREError {

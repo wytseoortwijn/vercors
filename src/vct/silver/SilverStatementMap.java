@@ -11,12 +11,12 @@ import static hre.System.Abort;
 
 public class SilverStatementMap<T,E,S,Decl> implements ASTMapping<S>{
 
-  private SilverVerifier<Origin,?,T,E,S,Decl,?> create;
+  private SilverVerifier<Origin,?,T,E,S,Decl,?,?,?> create;
   private SilverTypeMap<T> type;
 
   private SilverExpressionMap<T,E,Decl> expr;
 
-  public SilverStatementMap(SilverVerifier<Origin,?,T,E,S,Decl,?> backend,SilverTypeMap<T> type,SilverExpressionMap<T,E,Decl> expr){
+  public SilverStatementMap(SilverVerifier<Origin,?,T,E,S,Decl,?,?,?> backend,SilverTypeMap<T> type,SilverExpressionMap<T,E,Decl> expr){
     this.create = backend;
     this.type = type;
     this.expr = expr;
