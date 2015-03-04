@@ -147,6 +147,9 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
     create.enter();
     create.setOrigin(n.getOrigin());
     result=null;
+    if (n.isa(StandardOperator.Fold)||n.isa(StandardOperator.Unfold)){
+      fold_unfold=true;
+    }
   }
   public void copy_labels(ASTNode dest,ASTNode source){
     for(NameExpression lbl:source.getLabels()){
@@ -157,6 +160,9 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
     }    
   }
   public void post_visit(ASTNode n){
+    if (n.isa(StandardOperator.Fold)||n.isa(StandardOperator.Unfold)){
+      fold_unfold=false;
+    }
     if (result==n) Debug("rewriter linked instead of making a copy"); 
     if (result!=null && result!=n) {
       if (auto_labels){
@@ -181,6 +187,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
     super.post_visit(n);
   }
 
+  protected boolean fold_unfold=false;
   protected boolean in_invariant=false;
   protected boolean in_requires=false;
   protected boolean in_ensures=false;

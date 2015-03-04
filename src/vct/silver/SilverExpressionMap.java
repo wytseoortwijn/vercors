@@ -28,7 +28,8 @@ public class SilverExpressionMap<T,E,Decl> implements ASTMapping<E>{
   @Override
   public E post_map(ASTNode n, E res) {
     if (res==null){
-      throw new HREError("cannot map %s to expression",n.getClass());
+      Origin o=n.getOrigin();
+      throw new HREError("cannot map %s to expression (%s)",n.getClass(),o!=null?o:"without origin");
     }
     return res;
   }
@@ -65,9 +66,9 @@ public class SilverExpressionMap<T,E,Decl> implements ASTMapping<E>{
       case Sequence:
         return elems.size()>0?create.explicit_seq(o, elems):create.empty_seq(o,t);
       case Bag:
-        return elems.size()>0?create.explicit_bag(o, elems):create.empty_seq(o,t);
+        return elems.size()>0?create.explicit_bag(o, elems):create.empty_bag(o,t);
       case Set:
-        return elems.size()>0?create.explicit_set(o, elems):create.empty_seq(o,t);
+        return elems.size()>0?create.explicit_set(o, elems):create.empty_set(o,t);
       default:
         return null;
       }

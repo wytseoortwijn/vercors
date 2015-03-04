@@ -45,8 +45,21 @@ public class JavaPostProcessor extends AbstractRewriter {
   @Override
   public void visit(ClassType t){
     String name[]=t.getNameFull();
-    if (name.length==1 && name[0].equals("seq")){
-      result=create.primitive_type(PrimitiveType.Sort.Sequence,t.getArgs());
+    if (name.length==1){
+      switch(name[0]){
+      case "seq":
+        result=create.primitive_type(PrimitiveType.Sort.Sequence,t.getArgs());
+        return;
+      case "set":
+        result=create.primitive_type(PrimitiveType.Sort.Set,t.getArgs());
+        return;
+      case "bag":
+        result=create.primitive_type(PrimitiveType.Sort.Bag,t.getArgs());
+        return;
+        default:
+          super.visit(t);
+          return;
+      }
     } else {
       super.visit(t);
     }
