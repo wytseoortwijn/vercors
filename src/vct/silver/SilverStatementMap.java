@@ -129,7 +129,7 @@ public class SilverStatementMap<T,E,S,Decl> implements ASTMapping<S>{
       res=s.getStatement(i).apply(this);
       i=i-1;
     } else {
-      res=create.block(s.getOrigin(),new ArrayList());
+      res=create.block(s.getOrigin(),new ArrayList<S>());
     }
     while(i>=0){
       res=create.if_then_else(s.getOrigin(), s.getGuard(i).apply(expr),s.getStatement(i).apply(this),res);

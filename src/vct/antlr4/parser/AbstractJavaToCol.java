@@ -301,6 +301,9 @@ public class AbstractJavaToCol extends ANTLRtoCOL {
     if (match(ctx,"Expression",";")){
       return create.special(ASTSpecial.Kind.Expression,convert(ctx,0)); 
     }
+    if (match(ctx,"StatementExpression",";")){
+      return create.special(ASTSpecial.Kind.Expression,convert((ParserRuleContext)ctx.getChild(0),0)); 
+    }
     if (match(ctx,"while",null,null)){
       LoopStatement res=create.while_loop(convert(ctx,1),convert(ctx,2));
       scan_comments_after(res.get_after(), ctx.getChild(1));

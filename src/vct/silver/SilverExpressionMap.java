@@ -1,11 +1,11 @@
 package vct.silver;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import hre.HREError;
 import hre.ast.Origin;
-import sun.print.resources.serviceui;
 import vct.col.ast.*;
 import vct.col.ast.PrimitiveType.Sort;
 import vct.util.Configuration;
@@ -182,18 +182,24 @@ public class SilverExpressionMap<T,E,Decl> implements ASTMapping<E>{
     Method m=e.getDefinition();
     Origin o=e.getOrigin();
     String name=e.method;
-    ArrayList<E> args=new ArrayList();
+    ArrayList<E> args=new ArrayList<E>();
     for(ASTNode n:e.getArgs()){
       args.add(n.apply(this));
     }
     switch(m.kind){
     case Pure:{
       T rt=m.getReturnType().apply(type);
-      ArrayList<Decl> pars=new ArrayList();
+      ArrayList<Decl> pars=new ArrayList<Decl>();
       for(DeclarationStatement decl:m.getArgs()){
         pars.add(create.decl(decl.getOrigin(),decl.getName(),decl.getType().apply(type)));
       }
-      return create.function_call(o, name, args, rt, pars);
+      if(m.getParent() instanceof AxiomaticDataType){
+        //TODO: use correct dpars map!
+        HashMap<String, T> dpars=new HashMap<String, T>();
+        return create.domain_call(o, name, args, dpars, rt, pars);
+      } else {
+        return create.function_call(o, name, args, rt, pars);
+      }
     }
     case Predicate:{
       return create.predicate_call(o, name, args);

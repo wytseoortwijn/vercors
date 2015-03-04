@@ -136,12 +136,6 @@ public class JavaJMLtoCol extends AbstractJavaToCol implements JavaJMLVisitor<AS
   }
 
   @Override
-  public ASTNode visitCatches(CatchesContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
   public ASTNode visitCatchType(CatchTypeContext ctx) {
     // TODO Auto-generated method stub
     return null;
@@ -501,12 +495,6 @@ public class JavaJMLtoCol extends AbstractJavaToCol implements JavaJMLVisitor<AS
   }
 
   @Override
-  public ASTNode visitPackageOrTypeName(PackageOrTypeNameContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
   public ASTNode visitParExpression(ParExpressionContext ctx) {
     // TODO Auto-generated method stub
     return null;
@@ -688,12 +676,6 @@ public class JavaJMLtoCol extends AbstractJavaToCol implements JavaJMLVisitor<AS
 
   @Override
   public ASTNode visitTypeList(TypeListContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitTypeName(TypeNameContext ctx) {
     // TODO Auto-generated method stub
     return null;
   }

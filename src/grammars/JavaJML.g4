@@ -13,7 +13,7 @@ specificResourceExpression
 type
   : type '[' ']'
   | type ',' type
-  | type '->' <assoc=right> type
+  | <assoc=right> type '->' type
   | classOrInterfaceType
   | primitiveType
   | '(' type ')'

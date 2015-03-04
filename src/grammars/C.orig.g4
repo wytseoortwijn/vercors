@@ -29,15 +29,6 @@
 /** C 2011 grammar built from the C11 Spec */
 grammar C;
 
-@header {
-package vct.parsers;
-}
-
-@lexer::members{
-  public final static int COMMENT=BlockComment;
-  public final static int LINEDIRECTION=LineDirective;
-}
-
 primaryExpression
     :   Identifier
     |   Constant
@@ -47,10 +38,7 @@ primaryExpression
     |   '__extension__'? '(' compoundStatement ')' // Blocks (GCC extension)
     |   '__builtin_va_arg' '(' unaryExpression ',' typeName ')'
     |   '__builtin_offsetof' '(' typeName ',' unaryExpression ')'
-    |   specificationPrimary
     ;
-
-specificationPrimary : Placeholder ;
 
 genericSelection
     :   '_Generic' '(' assignmentExpression ',' genericAssocList ')'
@@ -465,11 +453,8 @@ statement
     |   selectionStatement
     |   iterationStatement
     |   jumpStatement
-    |   specificationStatement
     |   ('__asm' | '__asm__') ('volatile' | '__volatile__') '(' (logicalOrExpression (',' logicalOrExpression)*)? (':' (logicalOrExpression (',' logicalOrExpression)*)?)* ')' ';'
     ;
-
-specificationStatement : Placeholder ;
 
 labeledStatement
     :   Identifier ':' statement
@@ -526,12 +511,9 @@ translationUnit
 
 externalDeclaration
     :   functionDefinition
-    |   specificationDeclaration
     |   declaration
     |   ';' // stray ;
     ;
-
-specificationDeclaration : Placeholder ;
 
 functionDefinition
     :   declarationSpecifiers? declarator declarationList? compoundStatement
@@ -541,9 +523,6 @@ declarationList
     :   declaration
     |   declarationList declaration
     ;
-
-
-Placeholder : EOF EOF ;
 
 Auto : 'auto';
 Break : 'break';
@@ -881,19 +860,15 @@ SChar
     :   ~["\\\r\n]
     |   EscapeSequence
     ;
-    
-EmbeddedLatex
-    : '$' ~[$\r\n]* '$' -> skip
-    ;
 
 LineDirective
     :   '#' Whitespace? DecimalConstant Whitespace? StringLiteral ~[\r\n]*
-        -> channel(LineDirective)
+        -> skip
     ;
 
 PragmaDirective
     :   '#' Whitespace? 'pragma' Whitespace ~[\r\n]*
-        -> channel(BlockComment)
+        -> skip
     ;
 
 Whitespace
@@ -910,10 +885,10 @@ Newline
 
 BlockComment
     :   '/*' .*? '*/'
-        -> channel(BlockComment)
+        -> skip
     ;
 
 LineComment
     :   '//' ~[\r\n]*
-        -> channel(BlockComment)
+        -> skip
     ;

@@ -34,8 +34,9 @@ package vct.parsers;
 }
 
 @lexer::members{
-  public final static int COMMENT=BlockComment;
-  public final static int LINEDIRECTION=LineDirective;
+  public final static int COMMENT=1;
+  public final static int CONTROL=2;
+  public final static int LINEDIRECTION=3;
 }
 
 primaryExpression
@@ -50,7 +51,7 @@ primaryExpression
     |   specificationPrimary
     ;
 
-specificationPrimary : Placeholder ;
+specificationPrimary : EOF EOF ;
 
 genericSelection
     :   '_Generic' '(' assignmentExpression ',' genericAssocList ')'
@@ -309,8 +310,8 @@ atomicTypeSpecifier
     ;
 
 typeQualifier
-    :   'const'
-    |   'restrict'
+    :   'const' | '__const' | '__const__' 
+    |   'restrict' | '__restrict' | '__restrict__'
     |   'volatile'
     |   '_Atomic'
     ;
@@ -345,7 +346,7 @@ directDeclarator
     ;
 
 gccDeclaratorExtension
-    :   '__asm' '(' StringLiteral+ ')'
+    :   ('__asm' | '__asm__' ) '(' StringLiteral+ ')'
     |   gccAttributeSpecifier
     ;
 
@@ -468,8 +469,8 @@ statement
     |   specificationStatement
     |   ('__asm' | '__asm__') ('volatile' | '__volatile__') '(' (logicalOrExpression (',' logicalOrExpression)*)? (':' (logicalOrExpression (',' logicalOrExpression)*)?)* ')' ';'
     ;
-
-specificationStatement : Placeholder ;
+    
+specificationStatement : EOF EOF ;
 
 labeledStatement
     :   Identifier ':' statement
@@ -487,8 +488,8 @@ blockItemList
     ;
 
 blockItem
-    :   declaration
-    |   statement
+    :   statement
+    |   declaration
     ;
 
 expressionStatement
@@ -531,7 +532,7 @@ externalDeclaration
     |   ';' // stray ;
     ;
 
-specificationDeclaration : Placeholder ;
+specificationDeclaration : EOF EOF ;
 
 functionDefinition
     :   declarationSpecifiers? declarator declarationList? compoundStatement
@@ -541,9 +542,6 @@ declarationList
     :   declaration
     |   declarationList declaration
     ;
-
-
-Placeholder : EOF EOF ;
 
 Auto : 'auto';
 Break : 'break';
@@ -882,18 +880,19 @@ SChar
     |   EscapeSequence
     ;
     
+
 EmbeddedLatex
     : '$' ~[$\r\n]* '$' -> skip
     ;
 
 LineDirective
     :   '#' Whitespace? DecimalConstant Whitespace? StringLiteral ~[\r\n]*
-        -> channel(LineDirective)
+        -> channel(LINEDIRECTION)
     ;
 
 PragmaDirective
     :   '#' Whitespace? 'pragma' Whitespace ~[\r\n]*
-        -> channel(BlockComment)
+        -> channel(COMMENT)
     ;
 
 Whitespace
@@ -910,10 +909,10 @@ Newline
 
 BlockComment
     :   '/*' .*? '*/'
-        -> channel(BlockComment)
+        -> channel(COMMENT)
     ;
 
 LineComment
     :   '//' ~[\r\n]*
-        -> channel(BlockComment)
+        -> channel(COMMENT)
     ;

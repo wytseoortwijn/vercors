@@ -40,10 +40,6 @@
  */
 grammar Java;
 
-@header {
-package vct.parsers;
-}
-
 // starting point for parsing a java file
 compilationUnit
     :   packageDeclaration? importDeclaration* typeDeclaration* EOF
@@ -67,15 +63,12 @@ typeDeclaration
 
 modifier
     :   classOrInterfaceModifier
-    |   specificationModifier
     |   (   'native'
         |   'synchronized'
         |   'transient'
         |   'volatile'
         )
     ;
-
-specificationModifier : PLACEHOLDER ;
 
 classOrInterfaceModifier
     :   annotation       // class or interface
@@ -271,11 +264,6 @@ primitiveType
     |   'long'
     |   'float'
     |   'double'
-    |   specificationPrimitiveType
-    ;
-
-specificationPrimitiveType
-    : PLACEHOLDER
     ;
 
 typeArguments
@@ -415,7 +403,6 @@ localVariableDeclaration
 
 statement
     :   block
-    |   specificationStatement
     |   ASSERT expression (':' expression)? ';'
     |   'if' parExpression statement ('else' statement)?
     |   'for' '(' forControl ')' statement
@@ -432,10 +419,6 @@ statement
     |   ';'
     |   statementExpression ';'
     |   Identifier ':' statement
-    ;
-
-specificationStatement
-    : PLACEHOLDER
     ;
 
 catchClause
@@ -563,11 +546,6 @@ primary
     |   type '.' 'class'
     |   'void' '.' 'class'
     |   nonWildcardTypeArguments (explicitGenericInvocationSuffix | 'this' arguments)
-	|   specificationPrimary
-    ;
-
-specificationPrimary
-    :  PLACEHOLDER
     ;
 
 creator
@@ -1025,7 +1003,6 @@ JavaLetterOrDigit
 
 AT : '@';
 ELLIPSIS : '...';
-PLACEHOLDER : EOF EOF; // to be defined in an extension.
 
 //
 // Whitespace and comments
@@ -1034,21 +1011,10 @@ PLACEHOLDER : EOF EOF; // to be defined in an extension.
 WS  :  [ \t\r\n\u000C]+ -> skip
     ;
 
-EmbeddedLatex
-    : '#' ~[\r\n]* '#' -> skip
-    ;
-
 COMMENT
-    :   '/*' .*? '*/' -> channel(COMMENT)
+    :   '/*' .*? '*/' -> skip
     ;
 
 LINE_COMMENT
-    :   '//' ~[\r\n]* -> channel(COMMENT)
+    :   '//' ~[\r\n]* -> skip
     ;
-
-FileName : '"' ~[\r\n"]* '"' ;
-
-LINEDIRECTION
-    :   '#' WS? IntegerLiteral WS? FileName ~[\r\n]* -> channel(LINEDIRECTION)
-    ;
-    

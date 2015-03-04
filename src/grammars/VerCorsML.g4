@@ -33,7 +33,7 @@ specificationPrimary
     | '\\length' '(' expression ')'
     | '\\unfolding' resourceExpression '\\in' expression
     | '(' expression '!' Identifier ')'
-    | '(' expression '\memberof' expression ')'
+    | '(' expression '\\memberof' expression ')'
     | '['  expression '..' expression ')'
     | '*'
     ;

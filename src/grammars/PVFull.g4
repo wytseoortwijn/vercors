@@ -5,10 +5,8 @@ package pv.parser;
 }
 
 @lexer::members{
-  public final static int WHITESPACE=1;
-  public final static int COMMENT=2;
-  public final static int CONTROL=3;
-  public final static int LINEDIRECTION=4;
+  public final static int COMMENT=ML_COMMENT;
+  public final static int LINEDIRECTION=Integer.MAX_VALUE;
 }
 
 program  : (claz|kernel)* (block)? ;
@@ -123,14 +121,14 @@ typeArgs : '<' expr (',' expr)* '>';
 ID  : ('a'..'z'|'A'..'Z') ('a'..'z'|'A'..'Z'|'0'..'9'|'_')*;
 NUMBER : ('0'..'9')+;
 
-ML_COMMENT : '/*' .*? '*/' -> channel(COMMENT) ;
-SL_COMMENT : '//' .*? '\n' -> channel(COMMENT) ;
+ML_COMMENT : '/*' .*? '*/' -> channel(ML_COMMENT) ;
+SL_COMMENT : '//' .*? '\n' -> channel(ML_COMMENT) ;
 
 WS  :   (   ' '
         |   '\t'
         |   '\r'
         |   '\n'
-        )+ -> channel(WHITESPACE) ;
+        )+ -> skip ;
 
 EmbeddedLatex
     : '#' ~[\r\n]* '#' -> skip

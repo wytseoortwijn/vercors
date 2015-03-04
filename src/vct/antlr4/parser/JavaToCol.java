@@ -132,12 +132,6 @@ public class JavaToCol extends AbstractJavaToCol implements JavaVisitor<ASTNode>
   }
 
   @Override
-  public ASTNode visitCatches(CatchesContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
   public ASTNode visitCatchType(CatchTypeContext ctx) {
     // TODO Auto-generated method stub
     return null;
@@ -191,8 +185,7 @@ public class JavaToCol extends AbstractJavaToCol implements JavaVisitor<ASTNode>
 
   @Override
   public ASTNode visitConstantExpression(ConstantExpressionContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
+    return getExpression(ctx);
   }
 
   @Override
@@ -491,12 +484,6 @@ public class JavaToCol extends AbstractJavaToCol implements JavaVisitor<ASTNode>
   }
 
   @Override
-  public ASTNode visitPackageOrTypeName(PackageOrTypeNameContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
   public ASTNode visitParExpression(ParExpressionContext ctx) {
     return convert(ctx,1);
   }
@@ -555,8 +542,7 @@ public class JavaToCol extends AbstractJavaToCol implements JavaVisitor<ASTNode>
 
   @Override
   public ASTNode visitStatementExpression(StatementExpressionContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
+    return getExpression(ctx);
   }
 
   @Override
@@ -614,12 +600,6 @@ public class JavaToCol extends AbstractJavaToCol implements JavaVisitor<ASTNode>
 
   @Override
   public ASTNode visitTypeList(TypeListContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitTypeName(TypeNameContext ctx) {
     // TODO Auto-generated method stub
     return null;
   }
