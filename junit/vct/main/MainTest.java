@@ -698,5 +698,16 @@ public class MainTest extends ToolTest {
       sem.release();
     }
   }
+  @Test
+  public void testLockSetDemo() {
+    sem_get();
+    try {
+      VCTResult res = run("vct", "--silver=silicon","//examples/locks/lockset-demo.java");
+      res.checkVerdict(Verdict.Fail);
+      res.mustSay("unfold.failed:insufficient.permission");
+    } finally {
+      sem.release();
+    }
+  }
 
 }
