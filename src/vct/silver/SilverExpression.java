@@ -39,9 +39,10 @@ public interface SilverExpression<O,T,E,Decl> {
   public E index(O o, E e1, E e2);
   
   public E append(O o, E e1, E e2);
+  public E union(O o, E e1, E e2);
   
   public E predicate_call(O o,String name,List<E> args); 
-  public E function_call(O o,String name,List<E> args,T rt,List<Decl> pars); 
+  public E function_call(O o,String name,List<E> args,T rt,List<Decl> pars);
   public E result(O o,T t);
   
   public E domain_call(O o,String name,List<E> args,Map<String,T> dpars,T rt,List<Decl> pars); 
@@ -82,7 +83,8 @@ public interface SilverExpression<O,T,E,Decl> {
   
   public E lte(O o, E e1, E e2);
 
-  public E contains(O o, E e1, E e2);
+  public E seq_contains(O o, E e1, E e2);
+  public E any_set_contains(O o, E e1, E e2);
   
   public E mult(O o, E e1, E e2);
   public E div(O o, E e1, E e2);

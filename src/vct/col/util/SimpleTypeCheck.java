@@ -493,7 +493,7 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     }
     case Member:
     {
-      if (t2.isPrimitive(Sort.Sequence)){
+      if (t2.isPrimitive(Sort.Sequence)||t2.isPrimitive(Sort.Set)||t2.isPrimitive(Sort.Bag)){
         if (!t1.equals(t2.getArg(0))){
           Fail("%s cannot be a member of %s",t1,t2);
         }
@@ -708,7 +708,7 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     }
     case Plus:
     { // handle concatenation meaning of +
-      if (t1.isPrimitive(Sort.Sequence)){
+      if (t1.isPrimitive(Sort.Sequence)||t1.isPrimitive(Sort.Set)||t1.isPrimitive(Sort.Bag)){
         if (!t1.comparableWith(source(),t2)) {
           Fail("Types of left and right-hand side argument are uncomparable: %s/%s",t1,t2);
         }

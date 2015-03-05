@@ -97,7 +97,13 @@ public class SilverExpressionMap<T,E,Decl> implements ASTMapping<E>{
     
     case Size: return create.size(o,e.getArg(0).apply(this));
     case Tail: return create.drop(o,e.getArg(0).apply(this),create.Constant(o,1));
-    case Member: return create.contains(o,e.getArg(0).apply(this),e.getArg(1).apply(this));
+    case Member: {
+      if (e.getArg(1).getType().isPrimitive(Sort.Sequence)){
+        return create.seq_contains(o,e.getArg(0).apply(this),e.getArg(1).apply(this));
+      } else {
+        return create.any_set_contains(o,e.getArg(0).apply(this),e.getArg(1).apply(this));
+      }
+    }
     case RangeSeq: return create.range(o,e.getArg(0).apply(this),e.getArg(1).apply(this));
       
     case Subscript: return create.index(o,e.getArg(0).apply(this),e.getArg(1).apply(this));
@@ -121,6 +127,8 @@ public class SilverExpressionMap<T,E,Decl> implements ASTMapping<E>{
     case Plus:{
       if (e.getType().isPrimitive(Sort.Sequence)){
         return create.append(o,e.getArg(0).apply(this),e.getArg(1).apply(this));
+      } else if (e.getType().isPrimitive(Sort.Set) || e.getType().isPrimitive(Sort.Bag)){
+        return create.union(o,e.getArg(0).apply(this),e.getArg(1).apply(this));
       } else {
         return create.add(o,e.getArg(0).apply(this),e.getArg(1).apply(this));
       }
