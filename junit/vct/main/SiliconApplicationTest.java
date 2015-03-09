@@ -4,6 +4,7 @@ import hre.util.TestReport.Verdict;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import com.google.code.tempusfugit.concurrency.ConcurrentTestRunner;
+import static vct.main.Feature.*;
 
 @RunWith(ConcurrentTestRunner.class) 
 public class SiliconApplicationTest extends ToolTest {
@@ -223,8 +224,8 @@ public class SiliconApplicationTest extends ToolTest {
   }
   
   @Test
-  public void testHistoryProcesses(){
-    sem_get();
+  public void testHistoryProcessesPVL(){
+    sem_get(Histories);
     try {
       VCTResult res=run("vct","--silver=silicon","--check-defined","//examples/processes/check-defined.pvl");
       res.checkVerdict(Verdict.Pass);
@@ -234,10 +235,43 @@ public class SiliconApplicationTest extends ToolTest {
   }
   
   @Test
-  public void testHistoryApplication(){
-    sem_get();
+  public void testHistoryApplicationPVL(){
+    sem_get(Histories);
     try {
       VCTResult res=run("vct","--silver=silicon","--check-history","//examples/processes/check-hist.pvl");
+      res.checkVerdict(Verdict.Pass);
+    } finally {
+      sem.release();
+    }
+  }
+  
+  @Test
+  public void testHistoryProcesses(){
+    sem_get(Histories);
+    try {
+      VCTResult res=run("vct","--silver=silicon","--check-defined","//examples/processes/check-defined.java");
+      res.checkVerdict(Verdict.Pass);
+    } finally {
+      sem.release();
+    }
+  }
+  
+  @Test
+  public void testHistoryAxioms(){
+    sem_get(Histories);
+    try {
+      VCTResult res=run("vct","--silver=silicon","--check-history","//examples/processes/check-axioms.java");
+      res.checkVerdict(Verdict.Pass);
+    } finally {
+      sem.release();
+    }
+  }
+  
+  @Test
+  public void testHistoryApplication(){
+    sem_get(Histories);
+    try {
+      VCTResult res=run("vct","--silver=silicon","--check-history","//examples/processes/check-hist.java");
       res.checkVerdict(Verdict.Pass);
     } finally {
       sem.release();
