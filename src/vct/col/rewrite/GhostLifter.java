@@ -1,6 +1,7 @@
 package vct.col.rewrite;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import vct.col.ast.*;
 
@@ -49,23 +50,66 @@ public class GhostLifter extends AbstractRewriter {
     for(ASTNode n:m.getArgs()){
       args.add(rewrite(n));
     }
+    HashMap<String,ASTNode> arg_map=new HashMap<String, ASTNode>();
     if (m.get_before()!=null) for(ASTNode n:m.get_before()){
       if (n instanceof AssignmentStatement){
-        //TODO: use passing by name rather than position.
         AssignmentStatement s=(AssignmentStatement)n;
-        args.add(rewrite(s.getExpression()));
-      } else {
-        before.add(rewrite(n));
+        if (s.getLocation() instanceof NameExpression){
+          NameExpression name=(NameExpression)s.getLocation();
+          //TODO: make kind checking work
+          //if (name.getKind()==NameExpression.Kind.Label){
+            if (arg_map.containsKey(name.getName())){
+              Fail("%s is assigned twice",name.getName());
+            }
+            arg_map.put(name.getName(), rewrite(s.getExpression()));
+            continue;
+          //}
+        }
       }
+      before.add(rewrite(n));
     }
     if (m.get_after()!=null) for(ASTNode n:m.get_after()){
       if (n instanceof AssignmentStatement){
-        //TODO: use passing by name rather than position.
         AssignmentStatement s=(AssignmentStatement)n;
-        args.add(rewrite(s.getLocation()));
-      } else {
-        after.add(rewrite(n));
+        if (s.getLocation() instanceof NameExpression){
+          NameExpression name=(NameExpression)s.getLocation();
+          //TODO: make kind checking work
+          //if (name.getKind()==NameExpression.Kind.Label){
+            if (arg_map.containsKey(name.getName())){
+              Fail("%s is assigned twice",name.getName());
+            }
+            arg_map.put(name.getName(), rewrite(s.getExpression()));
+            continue;
+          //}
+        }
       }
+      after.add(rewrite(n));
+    }
+    Method def=m.getDefinition();
+    Contract c=def.getContract();
+    if (c!=null){
+      if(c.given!=null) for(DeclarationStatement decl:c.given){
+        ASTNode arg=arg_map.get(decl.name);
+        if (arg==null){
+          arg=rewrite(decl.getInit());
+        }
+        if (arg==null){
+          System.err.printf("key set %s%n",arg_map.keySet());
+          Fail("argument %s is missing",decl.name);
+        }
+        args.add(arg);
+      }
+      if (c.yields!=null) for(DeclarationStatement decl:c.yields){
+        ASTNode arg=arg_map.get(decl.name);
+        if (arg==null){
+          arg=rewrite(decl.getInit());
+        }
+        if (arg==null){
+          Fail("argument %s is missing",decl.name);
+        }
+        args.add(arg);      
+      }
+      //TODO: check for unused arguments.
     }
     MethodInvokation res=create.invokation(rewrite(m.object), m.dispatch, m.method, args.toArray(new ASTNode[0]));
     if (m.get_before()!=null) res.set_before(before);

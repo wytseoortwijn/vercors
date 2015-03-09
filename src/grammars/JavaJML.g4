@@ -56,6 +56,9 @@ specificationStatement
     | 'send' resourceExpression 'to' Identifier ',' expression ';'
     | 'recv' resourceExpression 'from' Identifier ',' expression ';'
     | 'transfer' resourceExpression ';'
+    | 'action' resourceExpression ',' resourceExpression ';'
+    | 'create' resourceExpression ',' resourceExpression ';'
+    | 'destroy' resourceExpression ',' resourceExpression ',' resourceExpression ';'
     ;
 
 proofScript :

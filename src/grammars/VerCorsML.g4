@@ -8,6 +8,7 @@ resourceExpression
  | expression '==>' resourceExpression
  | 'ArrayPerm' '(' expression ',' expression ',' expression ',' expression ',' expression ')'
  | 'AddsTo' '(' expression ',' expression ')'
+ | 'Hist' '(' expression ',' expression ')'
  | 'Perm' '(' expression ',' expression ')'
  | 'PointsTo' '(' expression ',' expression ',' expression ')'
  | 'Reducible' '(' expression ',' ('+' | Identifier ) ')'
@@ -51,6 +52,7 @@ labeledExpression
     | 'zfrac'
     | 'resource'
     | 'classtype'
+    | 'process'
     ;
  
  

@@ -199,7 +199,19 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
           args[i]=rewrite(in_args[i]);
         }
       }
-      result=create.invokation(rewrite(e.object), e.dispatch, e.method, args);
+      MethodInvokation res=create.invokation(rewrite(e.object), e.dispatch, e.method, args);
+      res.set_before(rewrite(e.get_before()));
+      res.set_after(rewrite(e.get_after()));
+      result=res;
+    }
+  }
+  
+  @Override
+  public void visit(NameExpression e){
+    if (e.getKind()==NameExpression.Kind.Label){
+      result=create.unresolved_name(e.getName());
+    } else {
+      super.visit(e);
     }
   }
   
@@ -244,14 +256,16 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
       Type returns=rewrite(m.getReturnType());
       ContractBuilder cb=new ContractBuilder();
       Contract c=m.getContract();
+      cb.given(rewrite(c.given));
+      cb.yields(rewrite(c.yields));
       for(DeclarationStatement decl:m.getArgs()){
         args.add(rewrite(decl));
       }
       for(ASTNode e:ASTUtils.conjuncts(c.pre_condition,StandardOperator.Star)){
         if (e.isa(StandardOperator.History)){
           NameExpression lbl=e.getLabel(0);
-          //cb.given(create.field_decl(lbl.getName(),create.class_type("Ref")));
-          args.add(create.field_decl(lbl.getName(),create.class_type("Ref")));
+          cb.given(create.field_decl(lbl.getName(),create.class_type("Ref")));
+          //args.add(create.field_decl(lbl.getName(),create.class_type("Ref")));
         }
         ASTNode tmp=rewrite(e);
         cb.requires(tmp);

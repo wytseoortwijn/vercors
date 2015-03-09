@@ -25,6 +25,7 @@ public class ASTSpecial extends ASTNode {
     //Contract, Requires, Ensures, Given, Yields, Modifies,
     Exhale,
     Inhale,
+    DeclareAction,
     CreateHistory,
     DestroyHistory,
     Transfer,

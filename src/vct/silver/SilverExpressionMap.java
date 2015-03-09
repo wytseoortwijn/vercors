@@ -144,6 +144,8 @@ public class SilverExpressionMap<T,E,Decl> implements ASTMapping<E>{
   public E map(NameExpression e) {
     Origin o = e.getOrigin();
     switch(e.getKind()){
+    //case Label:
+    //  hre.System.Warning("assuming label means local at %s",e.getOrigin());
     case Local:
     case Argument:
       return create.local_name(o,e.getName(),e.getType().apply(type));

@@ -188,6 +188,13 @@ public abstract class ASTFrame<T> {
         }
       }
     }
+    if (node instanceof ASTSpecial){
+      ASTSpecial s=(ASTSpecial)node;
+      switch(s.kind){
+        case CreateHistory:
+          scan_labels(s.args[0]);
+      }
+    }
     if (node instanceof Method){
       Method m=(Method)node;
       method_stack.push(m);
@@ -296,6 +303,7 @@ public abstract class ASTFrame<T> {
     result_stack.push(result);
     result=null;
   }
+
   private void recursively_add_class_info(ASTClass cl) {
     switch(cl.super_classes.length){
       case 0:

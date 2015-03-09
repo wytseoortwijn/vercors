@@ -4,6 +4,7 @@ package vct.antlr4.parser;
 import vct.col.ast.ASTClass;
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTSpecial;
+import vct.col.ast.ASTSpecial.Kind;
 import vct.col.ast.BeforeAfterAnnotations;
 import vct.col.ast.BlockStatement;
 import vct.col.ast.ClassType;
@@ -203,5 +204,22 @@ public class JavaPostProcessor extends AbstractRewriter {
     res.set_before(null);
     res.set_after(null);
     result=process_with_then(res,s);
+  }
+  
+  @Override
+  public void visit(BlockStatement b){
+    if (b.size()>0 && b.get(0).isSpecial(Kind.DeclareAction)){
+      ASTSpecial decl=(ASTSpecial)b.get(0);
+      ASTNode process=rewrite(decl.args[0]);
+      ASTNode action=rewrite(decl.args[1]);
+      BlockStatement block=create.block();
+      int N=b.size();
+      for(int i=1;i<N;i++){
+        block.add(rewrite(b.get(i)));
+      }
+      result=create.action_block(process, action, block);
+    } else {
+      super.visit(b);
+    }
   }
 }
