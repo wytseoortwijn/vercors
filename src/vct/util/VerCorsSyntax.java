@@ -33,6 +33,8 @@ public class VerCorsSyntax {
     syntax.addFunction(Volatile, "Volatile");
     syntax.addFunction(Old,"\\old");
     syntax.addFunction(Length,"\\length");
+    syntax.addFunction(Get,"get?");
+    syntax.addFunction(Set,"set!");
     syntax.addOperator(Size,999,"|","|");
     syntax.addOperator(RangeSeq,-1,"[","..",")");
     syntax.addOperator(Nil,999,"nil<",">");

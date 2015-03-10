@@ -2,6 +2,10 @@
 package vct.col.ast;
 
 public enum StandardOperator {
+  /** get a location */
+  Get(1),
+  /** set a location */
+  Set(2),
   /** Unary plus. */
   UPlus(1),
   /** Unary minus. */
@@ -42,7 +46,7 @@ public enum StandardOperator {
   NEQ(2),
   /** Greater Than test. */
   GT(2),
-  /** Greater Than or Equal test. */
+  /** Greater Than or Equal te09794e43d04f6fc4c662f45eff301fa02599c1f6st. */
   GTE(2),
   /** Lesss Than test. */
   LT(2),

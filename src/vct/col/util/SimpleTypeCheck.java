@@ -615,6 +615,7 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       // TODO: check arguments
       e.setType(new PrimitiveType(Sort.Void));
       break;
+    case Set:
     case Assign:
     case AddAssign:
     case SubAssign:
@@ -956,6 +957,12 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
         e.setType(new TupleType(types));
         break;
       }
+      break;
+    }
+    case Get:{
+      Type t=e.getArg(0).getType();
+      if (t==null) Fail("type of argument is unknown at %s",e.getOrigin());
+      e.setType(t);
       break;
     }
     default:
