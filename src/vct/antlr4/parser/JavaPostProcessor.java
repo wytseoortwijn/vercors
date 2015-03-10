@@ -48,6 +48,9 @@ public class JavaPostProcessor extends AbstractRewriter {
     String name[]=t.getNameFull();
     if (name.length==1){
       switch(name[0]){
+      case "String":
+        result=create.primitive_type(PrimitiveType.Sort.String);
+        return;
       case "seq":
         result=create.primitive_type(PrimitiveType.Sort.Sequence,t.getArgs());
         return;
