@@ -68,6 +68,7 @@ import vct.col.rewrite.RewriteArrayPerms;
 import vct.col.rewrite.RewriteArrayRef;
 import vct.col.rewrite.RewriteSystem;
 import vct.col.rewrite.SatCheckRewriter;
+import vct.col.rewrite.SetGetIntroduce;
 import vct.col.rewrite.SilverClassReduction;
 import vct.col.rewrite.SilverConstructors;
 import vct.col.rewrite.SilverReorder;
@@ -468,6 +469,11 @@ public class Main
     defined_passes.put("sat_check",new CompilerPass("insert satisfyability checks for all methods"){
       public ProgramUnit apply(ProgramUnit arg){
         return new SatCheckRewriter(arg).rewriteAll();
+      }
+    });
+    defined_passes.put("setget",new CompilerPass("insert set and get operators"){
+      public ProgramUnit apply(ProgramUnit arg){
+        return new SetGetIntroduce(arg).rewriteAll();
       }
     });
     defined_passes.put("silver_constructors",new CompilerPass("convert constructors to silver style"){
