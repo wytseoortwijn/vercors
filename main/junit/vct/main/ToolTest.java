@@ -18,6 +18,7 @@ import org.junit.Test;
 import vct.silver.SilverBackend;
 import vct.util.Configuration;
 import junit.framework.TestCase;
+import static hre.System.Debug;
 
 public class ToolTest extends TestCase {
 
@@ -162,12 +163,21 @@ public class ToolTest extends TestCase {
     }
     for(;;){
       Message msg=p.recv();
-      res.log.add(msg);
       if (msg==null){
         fail("unexpected null message");
       }
-      System.err.printf(msg.getFormat(), msg.getArgs());
-      System.err.println();
+      if (msg.getFormat().equals("stderr: %s")||msg.getFormat().equals("stdout: %s")){
+        String line=msg.getArgs()[0].toString();
+        if (line.matches(".*took.*ms")){
+          String split[]=line.split("took|ms");
+          res.times.put(split[0].trim(),Integer.parseInt(split[1].trim()));
+        }
+      }
+      res.log.add(msg);
+      synchronized(sem){
+        System.err.printf(msg.getFormat(), msg.getArgs());
+        System.err.println();
+      }
       if (msg.getFormat().equals("exit %d")){
         int n=(Integer)msg.getArg(0);
         if (n>0){
@@ -185,6 +195,12 @@ public class ToolTest extends TestCase {
       }
     }
     if (res.verdict==null) fail("missing verdict");
+    synchronized(sem){
+      System.err.printf("%s:%n",test_name);
+      for (String key:res.times.keySet()){
+        System.err.printf("  %s took %d %n",key,res.times.get(key));
+      }
+    }
     return res;
   }
 
