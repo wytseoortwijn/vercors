@@ -41,6 +41,12 @@ public class ControlFlowAnalyzer extends RecursiveVisitor<Set<ASTNode>> {
   }
   
   @Override
+  public void visit(MethodInvokation s){
+    result=new HashSet<ASTNode>();
+    result.add(s);
+  }
+  
+  @Override
   public void visit(OperatorExpression e){
     result=new HashSet<ASTNode>();
     result.add(e);
