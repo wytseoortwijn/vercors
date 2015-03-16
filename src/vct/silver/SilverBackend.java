@@ -90,8 +90,13 @@ public class SilverBackend {
             ArrayList<S> stats=new ArrayList();
             split_block(verifier, type, stat, locals, block, stats);
             body=verifier.block(block.getOrigin(),stats);
+          } else if (m.getBody()==null){
+            Origin o=m.getOrigin();
+            ArrayList<S> l=new ArrayList();
+            l.add(verifier.inhale(o,verifier.Constant(o, false)));
+            body=verifier.block(o,l);
           } else {
-            body=m.getBody().apply(stat);
+            throw new HREError("unexpected body %s",Configuration.getDiagSyntax().print(m.getBody()));
           }
           ArrayList<E> pres=new ArrayList();
           ArrayList<E> posts=new ArrayList();
@@ -125,12 +130,14 @@ public class SilverBackend {
               posts.add(n.apply(expr));
             }
           }
-          E body=m.getBody().apply(expr);
+          ASTNode b=m.getBody();
+          E body=(b==null?null:b.apply(expr));
           verifier.add_function(program,m.getOrigin(),m.name,args,t,pres,posts,body);
           break;
         }
         case Predicate:{
-          E body=m.getBody().apply(expr);
+          ASTNode b=m.getBody();
+          E body=(b==null?null:b.apply(expr));
           ArrayList<Decl> args=new ArrayList();
           for(DeclarationStatement decl:m.getArgs()){
             Decl d=verifier.decl(decl.getOrigin(),decl.getName(),decl.getType().apply(type));

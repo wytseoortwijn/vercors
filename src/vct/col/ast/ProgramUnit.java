@@ -22,6 +22,10 @@ import static hre.System.*;
  */
 public class ProgramUnit implements ASTSequence<ProgramUnit> {
 
+  public String toString(){
+    return vct.util.Configuration.getDiagSyntax().print(this).toString();
+  }
+  
   private SpecificationFormat format=SpecificationFormat.Concurrent;
   
   public void setSpecificationFormat(SpecificationFormat format){

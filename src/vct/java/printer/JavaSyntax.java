@@ -52,7 +52,7 @@ public class JavaSyntax extends Syntax {
 
         syntax.addOperator(Member,-1,"(","\\memberof",")");
         syntax.addFunction(CurrentPerm,"perm");
-        syntax.addFunction(Scale,"scale");
+        syntax.addOperator(Scale,130,"[","]","");
         syntax.addFunction(Drop,"drop");
         syntax.addFunction(Take,"take");
         syntax.addFunction(History,"Hist");

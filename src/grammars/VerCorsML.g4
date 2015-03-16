@@ -18,6 +18,7 @@ resourceExpression
  | '(' '\\forall*' type Identifier ';' expression ';' resourceExpression ')'
  | '(' resourceExpression ')'
  | specificResourceExpression
+ | '[' expression ']' resourceExpression
  | expression
  ;
 
@@ -53,6 +54,7 @@ labeledExpression
     | 'resource'
     | 'classtype'
     | 'process'
+    | 'void'
     ;
  
  

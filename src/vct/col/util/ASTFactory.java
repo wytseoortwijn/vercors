@@ -103,14 +103,22 @@ public class ASTFactory<E> implements FrameControl {
     BlockStatement body=block();
     for(DeclarationStatement field : cl.dynamicFields()){
       ASTNode zero=field.getType().zero();
-      zero.setOrigin(cl.getOrigin());
-      cb.ensures(expression(
-           StandardOperator.PointsTo,
-           field_name(field.getName()),
-           fullPermission(),
-           zero
-      ));
-      body.add_statement(assignment(field_name(field.getName()),zero));
+      if (zero!=null){
+        zero.setOrigin(cl.getOrigin());
+        cb.ensures(expression(
+             StandardOperator.PointsTo,
+             field_name(field.getName()),
+             fullPermission(),
+             zero
+        ));
+        body.add_statement(assignment(field_name(field.getName()),zero));
+      } else {
+        cb.ensures(expression(
+            StandardOperator.Perm,
+            field_name(field.getName()),
+            fullPermission()
+       ));       
+      }
     }
     Method cons=method_kind(
         Method.Kind.Constructor,

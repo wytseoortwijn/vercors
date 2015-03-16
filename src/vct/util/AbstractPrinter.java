@@ -1,6 +1,8 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 package vct.util;
 
+import hre.ast.MessageOrigin;
+import hre.ast.Origin;
 import hre.ast.TrackingOutput;
 import java.util.*;
 import vct.col.ast.*;
@@ -39,14 +41,18 @@ public class AbstractPrinter extends AbstractVisitor {
       expr_level=0;
     }
   }
-   
+  
+  private static final Origin missing=new MessageOrigin("unknown location");
+  
   public void pre_visit(ASTNode node){
     super.pre_visit(node);
     if (in_expr) {
       expr_level++;
     }
-    if (node.getOrigin()==null){
-      throw new Error("found "+node.getClass()+" without origin");
+    Origin o=node.getOrigin();
+    if (o==null){
+      //throw new Error("found "+node.getClass()+" without origin");
+      o=missing;
     }
     out.enter(node.getOrigin());
   }

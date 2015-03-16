@@ -2,6 +2,7 @@ package vct.col.util;
 
 import java.util.Arrays;
 
+import sun.font.CreatedFontTracker;
 import vct.col.ast.*;
 import vct.col.ast.NameExpression.Kind;
 import vct.col.ast.PrimitiveType.Sort;
@@ -545,9 +546,9 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     }
     case Scale:
     {
-      if (!t1.isResource()) Fail("Cannot scale type %s",t1);
-      if (!t2.isBoolean() && !t2.isNumeric()) Fail("type of right argument is %s rather than a numeric type at %s",t2,e.getOrigin());
-      force_frac(e.getArg(1));
+      if (!t1.isNumeric()) Fail("scalar is %s rather than a numeric type at %s",t1,e.getOrigin());
+      if (!t2.isResource()) Fail("Cannot scale type %s",t1);
+      force_frac(e.getArg(0));
       e.setType(new PrimitiveType(Sort.Resource));
       break;      
     }
@@ -1025,8 +1026,20 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       if (cl==null) Fail("could not find class %s",((ClassType)object_type).getFullName());
       Debug("looking in class "+cl.getName());
       DeclarationStatement decl=cl.find_field(e.field,true);
-      if (decl==null) Fail("Field %s not found in class %s",e.field,((ClassType)object_type).getFullName());
-      e.setType(decl.getType());
+      if (decl!=null){
+        e.setType(decl.getType());
+      } else {
+        Method m=cl.find_predicate(e.field);
+        if (m!= null && !m.isStatic()){
+          Type [] args=m.getArgType();
+          if (args.length==0){
+            args=new Type[]{new PrimitiveType(Sort.Void)};
+          }  
+          e.setType(new FunctionType(args,m.getReturnType()));
+        } else {
+          Fail("Field nor predicate %s not found in class %s",e.field,((ClassType)object_type).getFullName());
+        }
+      }
     }
   }
 

@@ -227,6 +227,12 @@ public class Syntax {
     return res;
   }
   
+  public ByteArrayOutputStream print(ProgramUnit program){
+    ByteArrayOutputStream res=new ByteArrayOutputStream();
+    print(new PrintStream(res),program);
+    return res;
+  }
+  
   public void print(PrintStream out,ASTNode n){
     print(new TrackingOutput(out,false),n);
   }

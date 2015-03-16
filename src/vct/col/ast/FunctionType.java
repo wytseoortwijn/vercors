@@ -27,6 +27,10 @@ public class FunctionType extends Type {
   
   public Type getArgument(int i){ return args[i]; }
   
+  @Override
+  public ASTNode zero(){
+    return null;
+  }
   
   @Override
   public <T> void accept_simple(ASTVisitor<T> visitor){
@@ -73,4 +77,16 @@ public class FunctionType extends Type {
     return false;
   }
 
+  public boolean equals(Object o){
+    if (o instanceof FunctionType){
+      FunctionType t=(FunctionType)o;
+      if (t.args.length!=args.length) return false;
+      for(int i=0;i<args.length;i++){
+        if(!args[i].equals(t.args[i])) return false;
+      }
+      return result.equals(t.result);
+    } else {
+      return false;
+    }
+  }
 }

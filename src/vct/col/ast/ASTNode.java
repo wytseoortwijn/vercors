@@ -19,6 +19,11 @@ import static hre.System.Warning;
 /** common features of all AST nodes. */
 public abstract class ASTNode implements ASTFlags {
 
+  @Override
+  public String toString(){
+    return vct.util.Configuration.getDiagSyntax().print(this).toString();
+  }
+  
   public ASTNode labeled(String name){
     NameExpression label=new NameExpression(NameExpression.Kind.Label,null,name);
     label.setOrigin(this.origin);

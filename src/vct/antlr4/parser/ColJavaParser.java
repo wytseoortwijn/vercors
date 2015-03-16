@@ -46,6 +46,7 @@ public class ColJavaParser implements vct.col.util.Parser {
 
         ProgramUnit pu=JavaToCol.convert(tree,file_name,tokens,parser);
         
+        Debug("program after Java parsing:%n%s",pu);
         //System.out.printf("parsing got %d entries%n",pu.size());
         //vct.util.Configuration.getDiagSyntax().print(System.out,pu);
         

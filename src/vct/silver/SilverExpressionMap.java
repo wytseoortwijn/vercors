@@ -135,7 +135,10 @@ public class SilverExpressionMap<T,E,Decl> implements ASTMapping<E>{
     }
     case Minus: return create.sub(o,e.getArg(0).apply(this),e.getArg(1).apply(this));
     case UMinus: return create.neg(o,e.getArg(0).apply(this));
-      default:
+    case Scale:{
+      return create.scale_access(o,e.getArg(1).apply(this), e.getArg(0).apply(this));
+    }
+    default:
         throw new HREError("cannot map operator %s",e.getOperator());
     }
   }
