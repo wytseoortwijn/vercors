@@ -68,6 +68,7 @@ import vct.col.rewrite.RewriteArrayPerms;
 import vct.col.rewrite.RewriteArrayRef;
 import vct.col.rewrite.RewriteSystem;
 import vct.col.rewrite.SatCheckRewriter;
+import vct.col.rewrite.ScaleAlways;
 import vct.col.rewrite.SetGetIntroduce;
 import vct.col.rewrite.SilverClassReduction;
 import vct.col.rewrite.SilverConstructors;
@@ -491,6 +492,11 @@ public class Main
         return new SilverReorder(arg).rewriteAll();
       }
     });
+    defined_passes.put("scale-always",new CompilerPass("scale every predicate invokation"){
+      public ProgramUnit apply(ProgramUnit arg){
+        return new ScaleAlways(arg).rewriteAll();
+      }
+    });
     defined_passes.put("simplify_calls",new CompilerPass("???"){
       public ProgramUnit apply(ProgramUnit arg){
         return new SimplifyCalls(arg).rewriteAll();
@@ -814,10 +820,10 @@ public class Main
       passes.add("flatten");
       passes.add("reorder");
       passes.add("flatten_before_after");
+      passes.add("silver-reorder");
       passes.add("standardize");
       passes.add("check");        
-      passes.add("silver-reorder");
-      passes.add("abstract-resolve");
+      passes.add("scale-always");
       passes.add("standardize");
       passes.add("check");
       passes.add("silver");     
