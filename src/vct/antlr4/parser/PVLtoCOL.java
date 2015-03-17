@@ -23,11 +23,15 @@ import pv.parser.PVFullParser.ClassTypeContext;
 import pv.parser.PVFullParser.ClazContext;
 import pv.parser.PVFullParser.ConstructorContext;
 import pv.parser.PVFullParser.ContractContext;
+import pv.parser.PVFullParser.DeclContext;
+import pv.parser.PVFullParser.DeclsContext;
 import pv.parser.PVFullParser.ExprContext;
 import pv.parser.PVFullParser.Fence_listContext;
 import pv.parser.PVFullParser.FieldContext;
 import pv.parser.PVFullParser.FunctionContext;
 import pv.parser.PVFullParser.InvariantContext;
+import pv.parser.PVFullParser.IterContext;
+import pv.parser.PVFullParser.ItersContext;
 import pv.parser.PVFullParser.KernelContext;
 import pv.parser.PVFullParser.Kernel_fieldContext;
 import pv.parser.PVFullParser.LexprContext;
@@ -49,6 +53,7 @@ import vct.col.ast.Contract;
 import vct.col.ast.ContractBuilder;
 import vct.col.ast.DeclarationStatement;
 import vct.col.ast.Dereference;
+import vct.col.ast.ForEachLoop;
 import vct.col.ast.Method;
 import vct.col.ast.NameExpression;
 import vct.col.ast.ParallelBarrier;
@@ -405,6 +410,27 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
     if (match(ctx,null,"=",null,";")){
       return create.assignment(convert(ctx,0),convert(ctx,2));
     }
+    if (match(ctx,"par","(",null,";",null,";", null,")",null,null)){
+      DeclarationStatement iters[]=checkDecls(convert_list((ParserRuleContext)ctx.getChild(2), ","));
+      DeclarationStatement decls[]=checkDecls(convert_list((ParserRuleContext)ctx.getChild(4), ","));
+      Contract c=(Contract)convert(ctx, 8);
+      BlockStatement block=(BlockStatement)convert(ctx, 9);
+      ASTNode inv=convert(ctx,6);
+      return create.parallel_block(c, iters, decls, inv, block);
+    }
+    if (match(ctx,"for","(",null,")",null,null)){
+      ASTNode iters[]=convert_list((ParserRuleContext)ctx.getChild(2), ",");
+      ASTNode contract=convert(ctx, 4);
+      ASTNode block=convert(ctx, 5);
+      DeclarationStatement decls[]=new DeclarationStatement[iters.length];
+      ASTNode guard=convert_iters(decls,iters);
+      ForEachLoop res=create.foreach(decls,guard,block);
+      res.setContract((Contract)contract);
+      return res;
+    }
+    if (match(ctx,"atomic",null)){
+      return create.parallel_atomic((BlockStatement)convert(ctx,1));
+    }
     if (match(ctx,"return",null,";")){
       return create.return_statement(convert(ctx,1));
     }
@@ -475,8 +501,7 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
     if (match(ctx,"ExprContext",";")){
       return convert(ctx,0);
     }
-    if (match(ctx,"barrier","(",null,")","{",null,"}")){
-      ContractBuilder cb=new ContractBuilder();
+    if (match(0,true,ctx,"barrier","(",null,")")){
       EnumSet<ParallelBarrier.Fence> fences=EnumSet.noneOf(ParallelBarrier.Fence.class);
       if (((ParserRuleContext)ctx.children.get(2)).children!=null){
         for (ParseTree item:((ParserRuleContext)ctx.children.get(2)).children){
@@ -493,12 +518,44 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
           }
         }
       }
-      Contract c=(Contract)convert(ctx,5);
-      return create.barrier(c,fences);
+      Contract c=null;
+      BlockStatement body=null;
+      if (match(ctx,"barrier","(",null,")",null,null)){
+        c=(Contract)convert(ctx,4);
+        body=(BlockStatement)convert(ctx,5);
+        return create.barrier(c,fences,body);
+      }
+      if (match(ctx,"barrier","(",null,")","{",null,"}")){
+        c=(Contract)convert(ctx,5);
+        return create.barrier(c,fences,body);
+      }
     }
     return visit(ctx);
   }
 
+  private DeclarationStatement[] checkDecls(ASTNode[] list) {
+    DeclarationStatement res[]=new DeclarationStatement[list.length];
+    for(int i=0;i<list.length;i++){
+      if(!(list[i] instanceof DeclarationStatement)){
+        Fail("not a declaration...");
+      }
+      res[i]=(DeclarationStatement)list[i];
+    }
+    return res;
+  }
+  private ASTNode convert_iters(DeclarationStatement[] decls, ASTNode[] iters) {
+    ArrayList<ASTNode> list=new ArrayList();
+    for(int i=0;i<decls.length;i++){
+      create.enter();
+      create.setOrigin(iters[i].getOrigin());
+      DeclarationStatement d=(DeclarationStatement)iters[i];
+      decls[i]=create.field_decl(d.name,d.getType());
+      list.add(create.expression(StandardOperator.Member,
+          create.local_name(d.name),d.getInit()));
+      create.leave();
+    }
+    return create.fold(StandardOperator.And, list);
+  }
   @Override
   public ASTNode visitKernel_field(Kernel_fieldContext ctx) {
     ASTNode res;
@@ -701,6 +758,29 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
     ASTNode res=create.method_decl(returns,c, name, args , null);
     res.setStatic(false);
     return res;
+  }
+  @Override
+  public ASTNode visitIters(ItersContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+  @Override
+  public ASTNode visitIter(IterContext ctx) {
+    return create.field_decl(getIdentifier(ctx,1),checkType(convert(ctx,0)),
+        create.expression(StandardOperator.RangeSeq,convert(ctx,3),convert(ctx,5)));
+  }
+  @Override
+  public ASTNode visitDecls(DeclsContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+  @Override
+  public ASTNode visitDecl(DeclContext ctx) {
+    if (match(ctx,null,null,"=",null)){
+      return create.field_decl(getIdentifier(ctx,1),checkType(convert(ctx,0)),convert(ctx,3));
+    } else {
+      return create.field_decl(getIdentifier(ctx,1),checkType(convert(ctx,0)));
+    }
   }
 
 }

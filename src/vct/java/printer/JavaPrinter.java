@@ -1064,16 +1064,29 @@ public class JavaPrinter extends AbstractPrinter {
   }
   
   @Override
+  public void visit(ParallelAtomic pa){
+    out.printf("atomic ");
+    visit(pa.block);
+  }
+
+  @Override
   public void visit(ParallelBlock pb){
-    if(pb.contract==null){
-      Warning("parallel block with null contract!");
-    } else {
+    out.printf("parallel(");
+    for(int i=0;i<pb.iters.length;i++){
+      pb.iters[i].accept(this);
+      if(i>0) out.printf(",");
+    }
+    out.printf(";");
+    for(int i=0;i<pb.decls.length;i++){
+      pb.decls[i].accept(this);
+      if(i>0) out.printf(",");
+    }
+    out.printf(";");
+    pb.inv.accept(this);
+    out.println(")");
+    if(pb.contract!=null){
       visit(pb.contract);
     }
-    out.printf("kernel(%s,",pb.decl.getName());
-    nextExpr();
-    pb.count.accept(this);
-    out.printf(")");
     pb.block.accept(this);
   }
 
@@ -1082,11 +1095,17 @@ public class JavaPrinter extends AbstractPrinter {
     if(pb.contract==null){
       Fail("parallel barrier with null contract!");
     } else {
-      out.println("barrier{");
+      out.printf("barrier%s{",pb.fences);
+      out.println("");
       out.incrIndent();
       visit(pb.contract);
       out.decrIndent();
-      out.println("}");
+      if (pb.body==null){
+        out.println("{ }");
+      } else {
+        pb.body.accept(this);
+      }
+      
     }
   }
   

@@ -112,6 +112,8 @@ public abstract class AbstractVisitor<T> extends ASTFrame<T> implements ASTVisit
 
   @Override public void visit(Lemma l){ visit_any(l); }
   
+  @Override public void visit(ParallelAtomic pa){ visit_any(pa); }
+
   @Override public void visit(ParallelBarrier pb){ visit_any(pb); }
 
   @Override public void visit(ParallelBlock pb){ visit_any(pb); }

@@ -164,19 +164,19 @@ public class ASTFactory<E> implements FrameControl {
     return res;    
   }
   
-  public ParallelBarrier barrier(Contract c,EnumSet<ParallelBarrier.Fence> fences){
-     return barrier(origin_stack.get(),c,fences);
+  public ParallelBarrier barrier(Contract c,EnumSet<ParallelBarrier.Fence> fences, BlockStatement body){
+     return barrier(origin_stack.get(),c,fences,body);
    }
   
-  public ParallelBarrier barrier(E origin,Contract c,EnumSet<ParallelBarrier.Fence> fences){
-     return barrier(origin_source.create(origin),c,fences);
+  public ParallelBarrier barrier(E origin,Contract c,EnumSet<ParallelBarrier.Fence> fences, BlockStatement body){
+     return barrier(origin_source.create(origin),c,fences,body);
    }
 
   /**
     * Create a new barrier node.
     */
-   public ParallelBarrier barrier(Origin origin,Contract c,EnumSet<ParallelBarrier.Fence> fences){
-     ParallelBarrier res=new ParallelBarrier(c,fences);
+   public ParallelBarrier barrier(Origin origin,Contract c,EnumSet<ParallelBarrier.Fence> fences, BlockStatement body){
+     ParallelBarrier res=new ParallelBarrier(c,fences,body);
      res.setOrigin(origin);
      res.accept_if(post);
      return res;
@@ -679,19 +679,41 @@ public BlockStatement block(Origin origin, ASTNode ... args) {
     return non_null(unresolved_name(string));
   }
 
-  public ParallelBlock parallel_block(Contract c,DeclarationStatement name,ASTNode count,BlockStatement block){
-     return parallel_block(origin_stack.get(),c, name, count, block);
+ public ParallelAtomic parallel_atomic(BlockStatement block){
+    return parallel_atomic(origin_stack.get(),block);
+  }
+
+ public ParallelAtomic parallel_atomic(E origin,BlockStatement block){
+    return parallel_atomic(origin_source.create(origin),block);
+  }
+
+ /**
+   * Create a new parallel atomic block.
+   */
+  public ParallelAtomic parallel_atomic(Origin origin,BlockStatement block){
+    ParallelAtomic res=new ParallelAtomic(block);
+    res.setOrigin(origin);
+    res.accept_if(post);
+    return res;
+  }
+  
+  
+  public ParallelBlock parallel_block(Contract c,
+      DeclarationStatement iters[],DeclarationStatement decls[],ASTNode inv,BlockStatement block){
+     return parallel_block(origin_stack.get(),c, iters,decls,inv, block);
    }
 
-  public ParallelBlock parallel_block(E origin,Contract c,DeclarationStatement name,ASTNode count,BlockStatement block){
-     return parallel_block(origin_source.create(origin),c, name, count, block);
+  public ParallelBlock parallel_block(E origin,Contract c,
+      DeclarationStatement iters[],DeclarationStatement decls[],ASTNode inv,BlockStatement block){
+     return parallel_block(origin_source.create(origin),c, iters,decls,inv,block);
    }
 
   /**
     * Create a new parallel block.
     */
-   public ParallelBlock parallel_block(Origin origin,Contract contract,DeclarationStatement name,ASTNode count,BlockStatement block){
-     ParallelBlock res=new ParallelBlock(contract, name, count, block);
+   public ParallelBlock parallel_block(Origin origin,Contract contract,
+       DeclarationStatement iters[],DeclarationStatement decls[],ASTNode inv,BlockStatement block){
+     ParallelBlock res=new ParallelBlock(contract, iters,decls, inv, block);
      res.setOrigin(origin);
      res.accept_if(post);
      return res;

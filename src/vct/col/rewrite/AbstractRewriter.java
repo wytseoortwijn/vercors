@@ -3,6 +3,7 @@ package vct.col.rewrite;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Hashtable;
 
 import hre.ast.MessageOrigin;
 import hre.ast.Origin;
@@ -39,6 +40,7 @@ import vct.col.ast.LoopStatement;
 import vct.col.ast.Method;
 import vct.col.ast.NameExpression;
 import vct.col.ast.OperatorExpression;
+import vct.col.ast.ParallelAtomic;
 import vct.col.ast.ParallelBarrier;
 import vct.col.ast.ParallelBlock;
 import vct.col.ast.PrimitiveType;
@@ -52,6 +54,7 @@ import vct.col.ast.VariableDeclaration;
 import vct.col.util.ASTFactory;
 import vct.col.util.ASTPermission;
 import vct.col.util.ASTUtils;
+import vct.col.util.NameScanner;
 import static hre.System.*;
 
 /**
@@ -62,6 +65,15 @@ import static hre.System.*;
 public class AbstractRewriter extends AbstractVisitor<ASTNode> {
 
   private static ThreadLocal<AbstractRewriter> tl=new ThreadLocal<AbstractRewriter>();
+
+  public static Hashtable<String,Type> free_vars(ASTNode ... nodes) {
+    Hashtable<String,Type> vars=new Hashtable<String,Type>();
+    NameScanner scanner=new NameScanner(vars);
+    for(ASTNode n:nodes){
+      n.accept(scanner);
+    }
+    return vars;
+  }
 
   public final AbstractRewriter copy_rw;
   
@@ -580,13 +592,18 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   }
   
   @Override
+  public void visit(ParallelAtomic pa){
+    result=create.parallel_atomic(rewrite(pa.block));
+  }
+  
+  @Override
   public void visit(ParallelBlock pb){
-    result=create.parallel_block(rewrite(pb.contract),rewrite(pb.decl),rewrite(pb.count),rewrite(pb.block));
+    result=create.parallel_block(rewrite(pb.contract),rewrite(pb.iters),rewrite(pb.decls),rewrite(pb.inv),rewrite(pb.block));
   }
   
   @Override
   public void visit(ParallelBarrier pb){
-    result=create.barrier(rewrite(pb.contract),pb.fences);
+    result=create.barrier(rewrite(pb.contract),pb.fences,rewrite(pb.body));
   }
 
   @Override
@@ -675,6 +692,26 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   @Override
   public void visit(Hole hole){
     result=hole;
+  }
+
+  protected DeclarationStatement[] gen_pars(Hashtable<String, Type> vars) {
+    DeclarationStatement decls[]=new DeclarationStatement[vars.size()];
+    int i=0;
+    for(String name:vars.keySet()){
+      decls[i]=create.field_decl(name, vars.get(name));
+      i++;
+    }
+    return decls;
+  }
+
+  protected ASTNode gen_call(String method, Hashtable<String, Type> vars) {
+    ASTNode args[]=new ASTNode[vars.size()];
+    int i=0;
+    for(String name:vars.keySet()){
+      args[i]=create.unresolved_name(name);
+      i++;
+    }
+    return create.invokation(null,null, method, args);
   }
 
 }

@@ -1,6 +1,7 @@
 package vct.col.util;
 
 import hre.HREError;
+import hre.ast.MessageOrigin;
 import hre.ast.Origin;
 import hre.ast.WrappingOrigin;
 import vct.col.ast.ASTNode;
@@ -24,7 +25,7 @@ public class OriginWrapper extends RecursiveVisitor<Object> {
       n.clearOrigin();
       n.setOrigin(base.wrap(o));
     } else {
-      throw new HREError("null origin");
+      n.setOrigin(base.wrap(new MessageOrigin("unknown origin")));
     }
   }
 

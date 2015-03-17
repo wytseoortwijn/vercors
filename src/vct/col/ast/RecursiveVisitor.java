@@ -181,11 +181,11 @@ public abstract class RecursiveVisitor<T> extends ASTFrame<T> implements
 
   @Override
   public void visit(Method m) {
-    Contract c=m.getContract();
-    if (c!=null){
-      dispatch(c.pre_condition);
-      dispatch(c.post_condition);
-    }
+    dispatch(m.getContract());
+//    if (c!=null){
+//      dispatch(c.pre_condition);
+//      dispatch(c.post_condition);
+//    }
     dispatch(m.getBody());
   }
 
@@ -235,18 +235,26 @@ public abstract class RecursiveVisitor<T> extends ASTFrame<T> implements
     l.block.accept(this);
   }
   
+  public void visit(ParallelAtomic pa){
+    dispatch(pa.block);
+  }
+
   public void visit(ParallelBarrier pb){
     dispatch(pb.contract);
   }
 
   public void visit(ParallelBlock pb){
     dispatch(pb.contract);
-    pb.block.accept(this);
+    dispatch(pb.iters);
+    dispatch(pb.decls);
+    dispatch(pb.block);
+    dispatch(pb.inv);
   }
 
   public void visit(Contract c){
     dispatch(c.invariant);
     dispatch(c.pre_condition);
+    dispatch(c.yields);
     dispatch(c.post_condition);
   }
 

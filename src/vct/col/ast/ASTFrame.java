@@ -298,7 +298,12 @@ public abstract class ASTFrame<T> {
     if (node instanceof ParallelBlock){
       ParallelBlock pb=(ParallelBlock)node;
       variables.enter();
-      variables.add(pb.decl.getName(),new VariableInfo(pb.decl,NameExpression.Kind.Local));
+      for(DeclarationStatement decl:pb.iters){
+        variables.add(decl.getName(),new VariableInfo(decl,NameExpression.Kind.Local));
+      }
+      for(DeclarationStatement decl:pb.decls){
+        variables.add(decl.getName(),new VariableInfo(decl,NameExpression.Kind.Local));
+      }
     }
     result_stack.push(result);
     result=null;

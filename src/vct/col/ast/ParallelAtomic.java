@@ -1,8 +1,6 @@
 package vct.col.ast;
 
-import java.util.Arrays;
-
-public class ParallelBlock extends ASTNode {
+public class ParallelAtomic extends ASTNode {
 
   @Override
   public <R,A> R accept_simple(ASTMapping1<R,A> map,A arg){
@@ -37,18 +35,10 @@ public class ParallelBlock extends ASTNode {
   }
  
  
-  public final Contract contract;
-  public final DeclarationStatement iters[];
-  public final DeclarationStatement decls[];
   public final BlockStatement block; 
-  public final ASTNode inv;
   
-  public ParallelBlock(Contract contract,DeclarationStatement iters[],DeclarationStatement decls[],ASTNode inv,BlockStatement block){
-    this.contract=contract;
-    this.decls=Arrays.copyOf(decls,decls.length);
-    this.iters=Arrays.copyOf(iters,iters.length);
+  public ParallelAtomic(BlockStatement block){
     this.block=block;
-    this.inv=inv;
   }
 
 }

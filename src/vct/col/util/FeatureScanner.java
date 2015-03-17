@@ -21,6 +21,7 @@ public class FeatureScanner extends RecursiveVisitor<Object> {
     super(null,null);
   }
   
+  private boolean has_parallel_blocks=false;
   private boolean has_statics=false;
   private boolean has_dynamics=false;
   private boolean has_doubles=false;
@@ -33,6 +34,10 @@ public class FeatureScanner extends RecursiveVisitor<Object> {
   
   public boolean usesOperator(StandardOperator op){
     return ops_used.contains(op);
+  }
+ 
+  public boolean usesParallelBlocks(){
+    return has_parallel_blocks;
   }
   
   public boolean usesDoubles(){
@@ -107,7 +112,7 @@ public class FeatureScanner extends RecursiveVisitor<Object> {
   }
   
   public void visit(ParallelBlock pb){
-    has_kernels=true;
+    has_parallel_blocks=true;
     super.visit(pb);
   }
 

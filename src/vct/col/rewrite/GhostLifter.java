@@ -2,6 +2,7 @@ package vct.col.rewrite;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Hashtable;
 
 import vct.col.ast.*;
 
@@ -19,17 +20,29 @@ public class GhostLifter extends AbstractRewriter {
     for(DeclarationStatement arg:m.getArgs()){
       args.add(rewrite(arg));
     }
+    Hashtable<String,ASTNode> yielded=new Hashtable();
     if (c!=null){
       for(DeclarationStatement arg:c.given){
         args.add(rewrite(arg));
       }
       cb.requires(rewrite(c.pre_condition));
       for(DeclarationStatement arg:c.yields){
-        arg=rewrite(arg);
+        ASTNode init=rewrite(arg.getInit());
+        if (init!=null){
+          yielded.put(arg.name,init);
+        }
+        arg=create.field_decl(arg.name, rewrite(arg.getType()));
         arg.setFlag(ASTFlags.OUT_ARG, true);
         args.add(arg);
       }
       cb.ensures(rewrite(c.post_condition));
+    }
+    ASTNode body=rewrite(m.getBody());
+    if (body instanceof BlockStatement){
+      BlockStatement block=(BlockStatement)body;
+      for(String name:yielded.keySet()){
+        block.prepend(create.assignment(create.local_name(name),yielded.get(name)));
+      }
     }
     result=create.method_kind(
         m.kind,
@@ -38,9 +51,11 @@ public class GhostLifter extends AbstractRewriter {
         m.name, 
         args.toArray(new DeclarationStatement[0]), 
         m.usesVarArgs(), 
-        rewrite(m.getBody())
+        body
     );
   }
+  
+  private int count=0;
   
   @Override
   public void visit(MethodInvokation m){
@@ -102,10 +117,10 @@ public class GhostLifter extends AbstractRewriter {
       if (c.yields!=null) for(DeclarationStatement decl:c.yields){
         ASTNode arg=arg_map.get(decl.name);
         if (arg==null){
-          arg=rewrite(decl.getInit());
-        }
-        if (arg==null){
-          Fail("argument %s is missing",decl.name);
+          count++;
+          String name="dummy_yields_"+count;
+          currentBlock.prepend(create.field_decl(name,decl.getType()));
+          arg=create.local_name(name);
         }
         args.add(arg);      
       }

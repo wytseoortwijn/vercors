@@ -1129,4 +1129,23 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     }
   }
 
+  @Override
+  public void visit(ParallelBlock pb){
+    for(DeclarationStatement decl:pb.iters){
+      if (!decl.getType().isPrimitive(Sort.Integer)){
+        Fail("type of iteration variable must be integer");
+      }
+      ASTNode init=decl.getInit();
+      if (!init.isa(StandardOperator.RangeSeq)){
+        Fail("value for iteration variable must be a range");
+      }
+      init.apply(this);
+    }
+    for(DeclarationStatement decl:pb.decls){
+      decl.apply(this);
+    }
+    pb.contract.apply(this);
+    pb.block.apply(this);
+    pb.inv.apply(this);
+  }
 }

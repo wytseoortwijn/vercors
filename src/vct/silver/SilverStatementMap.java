@@ -309,5 +309,11 @@ public class SilverStatementMap<T,E,S,Decl> implements ASTMapping<S>{
     return null;
   }
 
+  @Override
+  public S map(ParallelAtomic parallelAtomic) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
 
 }

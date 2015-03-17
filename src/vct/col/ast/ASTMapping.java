@@ -74,4 +74,6 @@ public interface ASTMapping<R> {
 
   public R map(TypeExpression t);
 
+  public R map(ParallelAtomic parallelAtomic);
+
 }

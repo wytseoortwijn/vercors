@@ -77,6 +77,8 @@ public interface ASTVisitor<T> {
 
   public void visit(TypeExpression t);
 
+  public void visit(ParallelAtomic parallelAtomic);
+
 }
 
 

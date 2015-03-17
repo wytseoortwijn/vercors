@@ -89,7 +89,10 @@ statement
  | 'assume' expr ';' 
  | 'witness' expr ';' 
  | 'if' '(' expr ')' block ( 'else' block )?
- | 'barrier' '(' fence_list ')' '{' contract '}' 
+ | 'barrier' '(' fence_list ')' ( '{' contract '}' | contract block )
+ | 'for' '(' iters ')' contract block
+ | 'par' '(' iters ';' decls ';' expr ')' contract block
+ | 'atomic' block 
  | invariant 'while' '(' expr ')' block
  | type ID ('=' expr | (',' ID)* ) ';'
  | expr ';'
@@ -102,6 +105,14 @@ statement
  | 'goto' ID ';'
  | 'label' ID ';'
  ;
+
+iters : ( iter ( ',' iter )* )? ;
+
+iter : type ID '=' expr '..' expr ;
+
+decls  : ( decl ( ',' decl )* )? ;
+
+decl : type ID ( '=' expr )? ;
 
 fence_list : ( 'local' | 'global' )* ;
 

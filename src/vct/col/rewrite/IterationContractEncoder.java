@@ -334,7 +334,7 @@ public class IterationContractEncoder extends AbstractRewriter {
       }
     }
 
-    DeclarationStatement main_pars[]=gen_pars(create,main_vars);
+    DeclarationStatement main_pars[]=gen_pars(main_vars);
     currentClass.add(create.method_decl(
         create.primitive_type(Sort.Void),
         main_cb.getContract(),
@@ -408,7 +408,7 @@ public class IterationContractEncoder extends AbstractRewriter {
       }
     }
     
-    DeclarationStatement body_pars[]=gen_pars(create,body_vars);
+    DeclarationStatement body_pars[]=gen_pars(body_vars);
     currentClass.add(create.method_decl(
         create.primitive_type(Sort.Void),
         body_cb.getContract(),
@@ -418,7 +418,7 @@ public class IterationContractEncoder extends AbstractRewriter {
     ));
     String var_name=s.decls[s.decls.length-1].name;
     check_send_recv(body_pars, var_name, s.guard);  
-    result=gen_call(create,main_name,main_vars);
+    result=gen_call(main_name,main_vars);
   }
   
   private boolean is_a_quantified(ASTNode expr, Binder bd, StandardOperator op) {
@@ -431,34 +431,9 @@ public class IterationContractEncoder extends AbstractRewriter {
     return false;
   }
 
-  private static DeclarationStatement[] gen_pars(ASTFactory create, Hashtable<String, Type> vars) {
-    DeclarationStatement decls[]=new DeclarationStatement[vars.size()];
-    int i=0;
-    for(String name:vars.keySet()){
-      decls[i]=create.field_decl(name, vars.get(name));
-      i++;
-    }
-    return decls;
-  }
+  
 
-  private static ASTNode gen_call(ASTFactory create, String method, Hashtable<String, Type> vars) {
-    ASTNode args[]=new ASTNode[vars.size()];
-    int i=0;
-    for(String name:vars.keySet()){
-      args[i]=create.unresolved_name(name);
-      i++;
-    }
-    return create.invokation(null,null, method, args);
-  }
-
-  public static Hashtable<String,Type> free_vars(ASTNode ... nodes){
-    Hashtable<String,Type> vars=new Hashtable<String,Type>();
-    NameScanner scanner=new NameScanner(vars);
-    for(ASTNode n:nodes){
-      n.accept(scanner);
-    }
-    return vars;
-  }
+  
   
   /* replaced by for each loop.
   @Override

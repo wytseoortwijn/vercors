@@ -11,6 +11,7 @@ import vct.col.ast.DeclarationStatement;
 import vct.col.ast.ForEachLoop;
 import vct.col.ast.LoopStatement;
 import vct.col.ast.NameExpression;
+import vct.col.ast.ParallelBlock;
 import vct.col.ast.RecursiveVisitor;
 import vct.col.ast.Type;
 
@@ -108,6 +109,32 @@ public class NameScanner extends RecursiveVisitor<Object> {
       vars.remove(s.decls[i].name);
       if(old[i]!=null){
         vars.put(s.decls[i].name,old[i]);
+      }      
+    }
+  }
+  
+  public void visit(ParallelBlock pb){
+    Type oldi[]=new Type[pb.iters.length];
+    Type oldd[]=new Type[pb.decls.length];
+    for(int i=0;i<pb.iters.length;i++){
+      oldi[i]=vars.get(pb.iters[i].name);
+      safe_decls.add(pb.iters[i]);
+    }
+    for(int i=0;i<pb.decls.length;i++){
+      oldd[i]=vars.get(pb.decls[i].name);
+      safe_decls.add(pb.decls[i]);
+    }
+    super.visit(pb);
+    for(int i=0;i<pb.iters.length;i++){
+      vars.remove(pb.iters[i].name);
+      if(oldi[i]!=null){
+        vars.put(pb.iters[i].name,oldi[i]);
+      }      
+    }
+    for(int i=0;i<pb.decls.length;i++){
+      vars.remove(pb.decls[i].name);
+      if(oldd[i]!=null){
+        vars.put(pb.decls[i].name,oldd[i]);
       }      
     }
   }

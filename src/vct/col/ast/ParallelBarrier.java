@@ -48,9 +48,12 @@ public class ParallelBarrier extends ASTNode {
   
   public final EnumSet<Fence> fences;
   
-  public ParallelBarrier(Contract contract, EnumSet<Fence> fences){
+  public final BlockStatement body;
+  
+  public ParallelBarrier(Contract contract, EnumSet<Fence> fences, BlockStatement body){
     this.contract=contract;
     this.fences=EnumSet.copyOf(fences);
+    this.body=body;
   }
 
 }
