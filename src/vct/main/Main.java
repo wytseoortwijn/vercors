@@ -59,6 +59,7 @@ import vct.col.rewrite.InlinePredicatesRewriter;
 import vct.col.rewrite.IterationContractEncoder;
 import vct.col.rewrite.KernelRewriter;
 import vct.col.rewrite.MergeLoops;
+import vct.col.rewrite.ParallelBlockEncoder;
 import vct.col.rewrite.RandomizedIf;
 import vct.col.rewrite.RecognizeLoops;
 import vct.col.rewrite.RecognizeMultiDim;
@@ -427,11 +428,16 @@ public class Main
       }
     });
     defined_passes.put("modifies",new CompilerPass("Derive modifies clauses for all contracts"){
-        public ProgramUnit apply(ProgramUnit arg){
-          new DeriveModifies().annotate(arg);
-          return arg;
-        }
-      });
+      public ProgramUnit apply(ProgramUnit arg){
+        new DeriveModifies().annotate(arg);
+        return arg;
+      }
+    });
+    defined_passes.put("parallel_blocks",new CompilerPass("Encoded the proof obligations for parallel blocks"){
+      public ProgramUnit apply(ProgramUnit arg){
+        return new ParallelBlockEncoder(arg).rewriteAll();
+      }
+    });
     defined_passes.put("recognize_arrays",new CompilerPass("standardize array permissions"){
       public ProgramUnit apply(ProgramUnit arg){
         return new RewriteArrayPerms(arg).rewriteAll();
@@ -751,6 +757,11 @@ public class Main
       passes.add("check");
       if (inline_predicates.get()){
         passes.add("inline");
+        passes.add("standardize");
+        passes.add("check");        
+      }
+      if (features.usesParallelBlocks()){
+        passes.add("parallel_blocks");
         passes.add("standardize");
         passes.add("check");        
       }

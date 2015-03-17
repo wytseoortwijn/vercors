@@ -181,4 +181,28 @@ public class ManualTest extends ToolTest {
     }
   }
 
+  @Test
+  public void test_zero_array_pvl() {
+    sem_get();
+    try {
+      VCTResult res = run("vct", "--silver=silicon_qp", "--no-context", "//doc/examples/zero_array_ic.pvl");
+      if (res.verdict != Verdict.Pass)
+        fail("bad result : " + res.verdict);
+    } finally {
+      sem.release();
+    }
+  }
+
+  @Test
+  public void test_zero_matrix_pvl() {
+    sem_get();
+    try {
+      VCTResult res = run("vct", "--silver=silicon_qp", "--no-context", "//doc/examples/zero_matrix_ic.pvl");
+      if (res.verdict != Verdict.Pass)
+        fail("bad result : " + res.verdict);
+    } finally {
+      sem.release();
+    }
+  }
+
 }
