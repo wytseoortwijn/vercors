@@ -4,6 +4,7 @@ package vct.java.printer;
 
 import hre.ast.TrackingOutput;
 import vct.col.ast.ASTNode;
+import vct.col.ast.ASTReserved;
 import vct.col.rewrite.Parenthesize;
 import hre.HREError;
 import vct.util.Syntax;
@@ -70,7 +71,8 @@ public class JavaSyntax extends Syntax {
         JavaSyntax syntax=new JavaSyntax("Java + VeriFast",dialect);
         setCommon(syntax);
         syntax.addLeftFix(Star,"&*&",40);
-        syntax.addPrefix(BindOutput,"?",666);     
+        syntax.addPrefix(BindOutput,"?",666);
+        syntax.addReserved(ASTReserved.FullPerm, "1");
         JavaVeriFastSyntax=syntax;  
       }
       return JavaVeriFastSyntax;
