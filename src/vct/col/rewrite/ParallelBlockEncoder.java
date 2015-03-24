@@ -2,12 +2,16 @@ package vct.col.rewrite;
 
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.Stack;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import vct.col.ast.*;
 import vct.col.ast.ASTSpecial.Kind;
 import vct.col.ast.PrimitiveType.Sort;
 import vct.col.util.ASTUtils;
+import vct.col.ast.ParallelBlock.Mode;
+import static vct.col.ast.ParallelBlock.Mode.*;
+
 
 public class ParallelBlockEncoder extends AbstractRewriter {
 
@@ -16,7 +20,7 @@ public class ParallelBlockEncoder extends AbstractRewriter {
   }
 
   private int count=0;
-  private ParallelBlock currentPB=null;
+  private Stack<ParallelBlock> blocks=new Stack();
   private DeclarationStatement iter_decls[];
   private ASTNode iters_guard;
   private DeclarationStatement iter_decls_prime[];
@@ -25,14 +29,14 @@ public class ParallelBlockEncoder extends AbstractRewriter {
   
   @Override
   public void visit(ParallelBlock pb){
-    if (currentPB!=null){
+    if (blocks.size()>0 && blocks.peek().mode==Sync){
       Fail("nested parallel blocks");
     }
     Contract c=pb.contract;
     if (c==null){
       Fail("parallel block without a contract");
     }
-    currentPB=pb;
+    blocks.push(pb);
     count++;
     String main_name="parallel_block_main_"+count;
     String check_name="parallel_block_check_"+count;
@@ -139,13 +143,13 @@ public class ParallelBlockEncoder extends AbstractRewriter {
     if (pb.get_after()!=null) for(ASTNode S:pb.get_after()){
       res.add(rewrite(S));
     }
-    currentPB=null;
+    blocks.pop();
     result=res;
   }
   
   @Override
   public void visit(ParallelBarrier pb){
-    if (currentPB==null){
+    if (blocks.empty() || blocks.peek().mode!=Sync){
       Fail("barrier outside of parallel block");
     }
     BlockStatement res=rewrite(pb.body);
@@ -166,18 +170,22 @@ public class ParallelBlockEncoder extends AbstractRewriter {
       res.append(create.special(ASTSpecial.Kind.Exhale,clause));
     }
 
-    res.prepend(create.special(ASTSpecial.Kind.Inhale,currentPB.inv));
-    res.append(create.special(ASTSpecial.Kind.Exhale,currentPB.inv));
+    res.prepend(create.special(ASTSpecial.Kind.Inhale,blocks.peek().inv));
+    res.append(create.special(ASTSpecial.Kind.Exhale,blocks.peek().inv));
     result=res;
   }
   @Override
   public void visit(ParallelAtomic pb){
-    if (currentPB==null){
+    if (blocks.empty()){
       Fail("atomic region outside of parallel block");
     }
     BlockStatement res=rewrite(pb.block);
-    res.prepend(create.special(ASTSpecial.Kind.Inhale,currentPB.inv));
-    res.append(create.special(ASTSpecial.Kind.Exhale,currentPB.inv));
+    for(ParallelBlock b:blocks){
+      if (pb.sync_list.contains(b.getLabel(0).getName())){
+        res.prepend(create.special(ASTSpecial.Kind.Inhale,b.inv));
+        res.append(create.special(ASTSpecial.Kind.Exhale,b.inv));
+      }
+    }
     result=res;
   }
 }

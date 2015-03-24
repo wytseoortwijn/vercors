@@ -595,12 +595,13 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   
   @Override
   public void visit(ParallelAtomic pa){
-    result=create.parallel_atomic(rewrite(pa.block));
+    result=create.parallel_atomic(rewrite(pa.block),pa.sync_list.toArray(new String[0]));
   }
   
   @Override
   public void visit(ParallelBlock pb){
     ParallelBlock res=create.parallel_block(
+        pb.mode,
         rewrite(pb.contract),
         rewrite(pb.iters),
         rewrite(pb.decls),

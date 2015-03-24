@@ -91,8 +91,8 @@ statement
  | 'if' '(' expr ')' block ( 'else' block )?
  | 'barrier' '(' fence_list ')' ( '{' contract '}' | contract block )
  | 'for' '(' iters ')' with_then contract block
- | 'par' '(' iters ';' decls ';' expr ')' with_then contract block
- | 'atomic' block 
+ | ( 'batch' | 'par' ) ID '(' iters ';' decls ';' expr ')' with_then contract block
+ | 'atomic' '(' id_list ')' block 
  | invariant 'while' '(' expr ')' block
  | type ID ('=' expr | (',' ID)* ) ';'
  | expr ';'
@@ -105,6 +105,8 @@ statement
  | 'goto' ID ';'
  | 'label' ID ';'
  ;
+
+id_list : ( ID ( ',' ID )* )? ;
 
 with_then : ( 'with' block )? ('then' block)? ;
 

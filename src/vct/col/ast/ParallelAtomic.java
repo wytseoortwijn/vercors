@@ -1,5 +1,7 @@
 package vct.col.ast;
 
+import java.util.ArrayList;
+
 public class ParallelAtomic extends ASTNode {
 
   @Override
@@ -37,7 +39,14 @@ public class ParallelAtomic extends ASTNode {
  
   public final BlockStatement block; 
   
-  public ParallelAtomic(BlockStatement block){
+  public final ArrayList<String> sync_list;
+  
+  
+  public ParallelAtomic(BlockStatement block,String ... sync){
+    sync_list=new ArrayList();
+    for(String s:sync){
+      sync_list.add(s);
+    }
     this.block=block;
   }
 

@@ -29,6 +29,7 @@ import pv.parser.PVFullParser.ExprContext;
 import pv.parser.PVFullParser.Fence_listContext;
 import pv.parser.PVFullParser.FieldContext;
 import pv.parser.PVFullParser.FunctionContext;
+import pv.parser.PVFullParser.Id_listContext;
 import pv.parser.PVFullParser.InvariantContext;
 import pv.parser.PVFullParser.IterContext;
 import pv.parser.PVFullParser.ItersContext;
@@ -415,15 +416,27 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
     if (match(ctx,null,"=",null,";")){
       return create.assignment(convert(ctx,0),convert(ctx,2));
     }
-    if (match(ctx,"par","(",null,";",null,";", null,")",null,null,null)){
-      DeclarationStatement iters[]=checkDecls(convert_list((ParserRuleContext)ctx.getChild(2), ","));
-      DeclarationStatement decls[]=checkDecls(convert_list((ParserRuleContext)ctx.getChild(4), ","));
-      Contract c=(Contract)convert(ctx, 9);
-      BlockStatement block=(BlockStatement)convert(ctx, 10);
-      ASTNode inv=convert(ctx,6);
-      ParallelBlock res=create.parallel_block(c, iters, decls, inv, block);
-      add_with_then(res,(ParserRuleContext)ctx.getChild(8));
-      return res;
+    if (match(ctx,null,null,"(",null,";",null,";", null,")",null,null,null)){
+      ParallelBlock.Mode mode;
+      if (match(0,true,ctx,"batch")){
+        mode=ParallelBlock.Mode.Batch;
+      } else if (match(0,true,ctx,"par")){
+        mode=ParallelBlock.Mode.Sync;
+      } else {
+        mode=null;
+      }
+      if (mode !=null){
+        String label=getIdentifier(ctx, 1);
+        DeclarationStatement iters[]=checkDecls(convert_list((ParserRuleContext)ctx.getChild(3), ","));
+        DeclarationStatement decls[]=checkDecls(convert_list((ParserRuleContext)ctx.getChild(5), ","));
+        Contract c=(Contract)convert(ctx, 10);
+        BlockStatement block=(BlockStatement)convert(ctx, 11);
+        ASTNode inv=convert(ctx,7);
+        ParallelBlock res=create.parallel_block(mode, c, iters, decls, inv, block);
+        add_with_then(res,(ParserRuleContext)ctx.getChild(9));
+        res.addLabel(create.label(label));
+        return res;
+      }
     }
     if (match(ctx,"for","(",null,")",null,null,null)){
       ASTNode iters[]=convert_list((ParserRuleContext)ctx.getChild(2), ",");
@@ -436,8 +449,10 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
       add_with_then(res,(ParserRuleContext)ctx.getChild(4));
       return res;
     }
-    if (match(ctx,"atomic",null)){
-      return create.parallel_atomic((BlockStatement)convert(ctx,1));
+    if (match(ctx,"atomic","(",null,")",null)){
+      return create.parallel_atomic(
+          (BlockStatement)convert(ctx,4),
+          getIdentifierList((ParserRuleContext)ctx.getChild(2), ","));
     }
     if (match(ctx,"return",null,";")){
       return create.return_statement(convert(ctx,1));
@@ -549,6 +564,8 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
       res.set_after((BlockStatement)convert(child,3));
     } else if (match(child,"then",null)){
       res.set_after((BlockStatement)convert(child,1));
+    } else if (match(child)){
+      // no annotation is OK!
     } else {
       Fail("bad with then annotation");
     }
@@ -804,6 +821,11 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
   }
   @Override
   public ASTNode visitWith_then(With_thenContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+  @Override
+  public ASTNode visitId_list(Id_listContext ctx) {
     // TODO Auto-generated method stub
     return null;
   }

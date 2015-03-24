@@ -679,41 +679,41 @@ public BlockStatement block(Origin origin, ASTNode ... args) {
     return non_null(unresolved_name(string));
   }
 
- public ParallelAtomic parallel_atomic(BlockStatement block){
-    return parallel_atomic(origin_stack.get(),block);
+ public ParallelAtomic parallel_atomic(BlockStatement block,String ... strings){
+    return parallel_atomic(origin_stack.get(),block,strings);
   }
 
- public ParallelAtomic parallel_atomic(E origin,BlockStatement block){
-    return parallel_atomic(origin_source.create(origin),block);
+ public ParallelAtomic parallel_atomic(E origin,BlockStatement blockStatement,String ... strings){
+    return parallel_atomic(origin_source.create(origin),blockStatement,strings);
   }
 
  /**
    * Create a new parallel atomic block.
    */
-  public ParallelAtomic parallel_atomic(Origin origin,BlockStatement block){
-    ParallelAtomic res=new ParallelAtomic(block);
+  public ParallelAtomic parallel_atomic(Origin origin,BlockStatement block,String ... strings){
+    ParallelAtomic res=new ParallelAtomic(block,strings);
     res.setOrigin(origin);
     res.accept_if(post);
     return res;
   }
   
   
-  public ParallelBlock parallel_block(Contract c,
+  public ParallelBlock parallel_block(ParallelBlock.Mode mode,Contract c,
       DeclarationStatement iters[],DeclarationStatement decls[],ASTNode inv,BlockStatement block){
-     return parallel_block(origin_stack.get(),c, iters,decls,inv, block);
+     return parallel_block(origin_stack.get(),mode,c, iters,decls,inv, block);
    }
 
-  public ParallelBlock parallel_block(E origin,Contract c,
+  public ParallelBlock parallel_block(E origin,ParallelBlock.Mode mode,Contract c,
       DeclarationStatement iters[],DeclarationStatement decls[],ASTNode inv,BlockStatement block){
-     return parallel_block(origin_source.create(origin),c, iters,decls,inv,block);
+     return parallel_block(origin_source.create(origin),mode,c, iters,decls,inv,block);
    }
 
   /**
     * Create a new parallel block.
     */
-   public ParallelBlock parallel_block(Origin origin,Contract contract,
+   public ParallelBlock parallel_block(Origin origin,ParallelBlock.Mode mode,Contract contract,
        DeclarationStatement iters[],DeclarationStatement decls[],ASTNode inv,BlockStatement block){
-     ParallelBlock res=new ParallelBlock(contract, iters,decls, inv, block);
+     ParallelBlock res=new ParallelBlock(mode,contract, iters,decls, inv, block);
      res.setOrigin(origin);
      res.accept_if(post);
      return res;

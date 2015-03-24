@@ -4,6 +4,15 @@ import java.util.Arrays;
 
 public class ParallelBlock extends ExpressionNode {
 
+  public enum Mode {
+    /** batch mode execution means that the scheduler is not obliged to run all threads at once. */
+    Batch,
+    /** asynchronous mode execution means that all tasks run at once with no restrictions. */
+    Async,
+    /** synchronous mode execution means that all tasks run at once in lockstep. */
+    Sync
+  }
+
   @Override
   public <R,A> R accept_simple(ASTMapping1<R,A> map,A arg){
     return map.map(this,arg);
@@ -36,14 +45,22 @@ public class ParallelBlock extends ExpressionNode {
     }
   }
  
- 
+  public final Mode mode;
   public final Contract contract;
   public final DeclarationStatement iters[];
   public final DeclarationStatement decls[];
   public final BlockStatement block; 
   public final ASTNode inv;
   
-  public ParallelBlock(Contract contract,DeclarationStatement iters[],DeclarationStatement decls[],ASTNode inv,BlockStatement block){
+  public ParallelBlock(
+      Mode mode,
+      Contract contract,
+      DeclarationStatement iters[],
+      DeclarationStatement decls[],
+      ASTNode inv,
+      BlockStatement block)
+  {
+    this.mode=mode;
     this.contract=contract;
     this.decls=Arrays.copyOf(decls,decls.length);
     this.iters=Arrays.copyOf(iters,iters.length);

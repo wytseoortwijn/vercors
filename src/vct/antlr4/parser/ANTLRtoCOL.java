@@ -605,6 +605,21 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
     return true;
   }
   
+  protected String[] getIdentifierList(ParserRuleContext ctx,String sep){
+    int N=(ctx.getChildCount()+1)/2;
+    String res[]=new String[N];
+    if (N>0){
+      res[0]=getIdentifier(ctx,0);
+    }
+    for(int i=1;i<N;i++){
+      if (!match(2*i-1,true,ctx,sep)){
+        Abort("bad separator");
+      }
+      res[i]=getIdentifier(ctx,2*i);
+    }
+    return res;
+  }
+  
   protected String getIdentifier(ParserRuleContext ctx, int i) {
     ParseTree node=ctx.children.get(i);
     if (node==null) Abort("child %d does not exist",i);
