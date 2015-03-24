@@ -78,7 +78,14 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
       ASTNode body=m.getBody();
       process_map.put(m.name, m);
       for(ASTNode n:m.getContract().modifies){
-        hist_set.add((NameExpression)n);
+        if (n instanceof NameExpression){
+          hist_set.add((NameExpression)n);
+        } else if (n instanceof Dereference) {
+          Dereference d=(Dereference)n;
+          hist_set.add(create.field_name(d.field));
+        } else {
+          Fail("unexpected entry in modifies clause");
+        }
       }
       if (body==null) continue;
       if(body.isa(StandardOperator.Or)){
@@ -137,7 +144,16 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
       HashMap<NameExpression,ASTNode> old_map=new HashMap();
       HashMap<NameExpression,ASTNode> new_map=new HashMap();
       for(ASTNode n:c.modifies){
-        NameExpression name=(NameExpression)n;
+        NameExpression name;
+        if (n instanceof NameExpression){
+          name=((NameExpression)n);
+        } else if (n instanceof Dereference) {
+          Dereference d=(Dereference)n;
+          name=(create.field_name(d.field));
+        } else {
+          Fail("unexpected entry in modifies clause");
+          name=null;
+        }
         ASTNode var=create.dereference(create.local_name("ref"),name.getName());
         NameExpression name_old=create.field_name(name.getName()+"_old");
         mod_set.add(name);

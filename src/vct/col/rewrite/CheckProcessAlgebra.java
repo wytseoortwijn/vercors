@@ -35,7 +35,14 @@ public class CheckProcessAlgebra extends AbstractRewriter {
       ASTNode body=m.getBody();
       process_map.put(m.name, m);
       for(ASTNode n:m.getContract().modifies){
-        hist_set.add((NameExpression)n);
+        if (n instanceof NameExpression){
+          hist_set.add((NameExpression)n);
+        } else if (n instanceof Dereference) {
+          Dereference d=(Dereference)n;
+          hist_set.add(create.field_name(d.field));
+        } else {
+          Fail("unexpected entry in modifies clause");
+        }
       }
       if (body==null) continue;
       if(body.isa(StandardOperator.Or)){
