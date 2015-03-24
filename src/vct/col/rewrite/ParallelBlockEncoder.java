@@ -5,6 +5,7 @@ import java.util.Hashtable;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import vct.col.ast.*;
+import vct.col.ast.ASTSpecial.Kind;
 import vct.col.ast.PrimitiveType.Sort;
 import vct.col.util.ASTUtils;
 
@@ -35,7 +36,11 @@ public class ParallelBlockEncoder extends AbstractRewriter {
     count++;
     String main_name="parallel_block_main_"+count;
     String check_name="parallel_block_check_"+count;
+    String local_suffix="_local_"+count;
+    BlockStatement res=create.block();
+    BlockStatement call_with=create.block();
     Hashtable<String,Type> main_vars=free_vars(pb);
+    Warning("free main vars: %s",main_vars);
     Hashtable<String,Type> check_vars=new Hashtable(main_vars);
     ContractBuilder main_cb=new ContractBuilder();
     ContractBuilder check_cb=new ContractBuilder();
@@ -61,11 +66,32 @@ public class ParallelBlockEncoder extends AbstractRewriter {
       prime.put(create.local_name(pb.iters[i].name),create.local_name(pb.iters[i].name+"__prime"));
     }
     for(int i=0;i<pb.decls.length;i++){
-      check_cb.yields(rewrite(pb.decls[i]));
-      main_cb.yields(create.field_decl(pb.decls[i].name, pb.decls[i].getType()));
-      ASTNode init=rewrite(pb.decls[i].getInit());
-      if(init!=null){
-        map.put(create.local_name(pb.decls[i].name), init);
+      String name=pb.decls[i].name;
+      Type t=pb.decls[i].getType();
+      ASTNode init=pb.decls[i].getInit();
+      if (t.isPrimitive(Sort.Array)){
+        // Arrays become given parameters.
+        String fname=name;
+        res.add(create.field_decl(fname,t));
+        String iname="i"+local_suffix;
+        DeclarationStatement d=create.field_decl(iname,create.primitive_type(Sort.Integer));
+        ASTNode guard=and(lte(constant(0),create.local_name(iname)),less(create.local_name(iname),t.getArg(1)));
+        ASTNode field=create.expression(StandardOperator.Subscript,create.local_name(fname),create.local_name(iname));
+        res.add(create.special(Kind.Inhale,create.starall(guard,
+            create.expression(StandardOperator.Perm,field,create.reserved_name(ASTReserved.FullPerm)),d)));
+        res.add(create.special(Kind.Inhale,create.forall(guard,
+            create.expression(StandardOperator.EQ,field,init),d)));
+        call_with.add(create.assignment(create.unresolved_name(name),create.local_name(fname)));
+        check_cb.given(create.field_decl(name,t));
+        main_cb.given(create.field_decl(name,t));
+      } else {
+        // Scalars become yielded parameters.
+        check_cb.yields(rewrite(pb.decls[i]));
+        main_cb.yields(create.field_decl(pb.decls[i].name, pb.decls[i].getType()));
+        init=rewrite(init);
+        if(init!=null){
+          map.put(create.local_name(pb.decls[i].name), init);
+        }
       }
     }
     iters_guard=create.fold(StandardOperator.And,guard_list);
@@ -104,7 +130,15 @@ public class ParallelBlockEncoder extends AbstractRewriter {
         gen_pars(main_vars),
         null
     ));
-    ASTNode res=gen_call(main_name,main_vars);
+    if (pb.get_before()!=null) for(ASTNode S:pb.get_before()){
+      res.add(sigma.rewrite(S));
+    }
+    MethodInvokation call=gen_call(main_name,main_vars);
+    call.set_before(call_with);
+    res.add(call);
+    if (pb.get_after()!=null) for(ASTNode S:pb.get_after()){
+      res.add(rewrite(S));
+    }
     currentPB=null;
     result=res;
   }

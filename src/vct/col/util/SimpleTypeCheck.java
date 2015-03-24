@@ -1142,7 +1142,15 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       init.apply(this);
     }
     for(DeclarationStatement decl:pb.decls){
-      decl.apply(this);
+      String name=decl.name;
+      Type t=decl.getType();
+      ASTNode init=decl.getInit();
+      if (t.isPrimitive(Sort.Array)){
+        init.apply(this);
+        check_loc_val((Type)t.getArg(0), init,"array element type %s does not match initial expression type %s");
+      } else {
+        decl.apply(this);
+      }
     }
     pb.contract.apply(this);
     pb.block.apply(this);

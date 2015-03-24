@@ -56,7 +56,7 @@ expr
  | '?' ID
  | lexpr '->' ID tuple
  | (lexpr | 'Value' | 'Perm' | 'PointsTo' | 'Hist' | '\\old' | '?' ) tuple
- | '(' ('\\exists'|'\\forall'|'\\forall*') type ID ';' expr (';' expr )? ')'
+ | '(' ('\\sum' | '\\exists' | '\\forall' | '\\forall*') type ID ';' expr (';' expr )? ')'
  | '(' expr ')'
  | 'new' ID tuple
  | 'new' type '[' expr ']'
@@ -90,8 +90,8 @@ statement
  | 'witness' expr ';' 
  | 'if' '(' expr ')' block ( 'else' block )?
  | 'barrier' '(' fence_list ')' ( '{' contract '}' | contract block )
- | 'for' '(' iters ')' contract block
- | 'par' '(' iters ';' decls ';' expr ')' contract block
+ | 'for' '(' iters ')' with_then contract block
+ | 'par' '(' iters ';' decls ';' expr ')' with_then contract block
  | 'atomic' block 
  | invariant 'while' '(' expr ')' block
  | type ID ('=' expr | (',' ID)* ) ';'
@@ -105,6 +105,8 @@ statement
  | 'goto' ID ';'
  | 'label' ID ';'
  ;
+
+with_then : ( 'with' block )? ('then' block)? ;
 
 iters : ( iter ( ',' iter )* )? ;
 

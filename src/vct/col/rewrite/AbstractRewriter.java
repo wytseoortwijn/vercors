@@ -431,6 +431,8 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   public void visit(ForEachLoop s){
     ForEachLoop res=create.foreach(rewrite(s.decls),rewrite(s.guard),rewrite(s.body));
     res.setContract(rewrite(s.getContract()));
+    res.set_before(rewrite(s.get_before()));
+    res.set_after(rewrite(s.get_after()));
     result=res;
   }
   
@@ -598,7 +600,16 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   
   @Override
   public void visit(ParallelBlock pb){
-    result=create.parallel_block(rewrite(pb.contract),rewrite(pb.iters),rewrite(pb.decls),rewrite(pb.inv),rewrite(pb.block));
+    ParallelBlock res=create.parallel_block(
+        rewrite(pb.contract),
+        rewrite(pb.iters),
+        rewrite(pb.decls),
+        rewrite(pb.inv),
+        rewrite(pb.block)
+    );
+    res.set_before(rewrite(pb.get_before()));
+    res.set_after(rewrite(pb.get_after()));
+    result=res;
   }
   
   @Override
@@ -704,7 +715,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
     return decls;
   }
 
-  protected ASTNode gen_call(String method, Hashtable<String, Type> vars) {
+  protected MethodInvokation gen_call(String method, Hashtable<String, Type> vars) {
     ASTNode args[]=new ASTNode[vars.size()];
     int i=0;
     for(String name:vars.keySet()){

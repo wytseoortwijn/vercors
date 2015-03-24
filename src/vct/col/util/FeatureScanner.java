@@ -112,11 +112,12 @@ public class FeatureScanner extends RecursiveVisitor<Object> {
   }
   
   public void visit(ParallelBlock pb){
-    has_parallel_blocks=true;
     super.visit(pb);
+    has_parallel_blocks=true;
   }
 
   public void visit(ForEachLoop s){
+    super.visit(s);
     has_iteration_contracts=true;
   }
   
@@ -130,6 +131,7 @@ public class FeatureScanner extends RecursiveVisitor<Object> {
   }
   
   public void visit(OperatorExpression e){
+    super.visit(e);
     ops_used.add(e.getOperator());
   }
 }

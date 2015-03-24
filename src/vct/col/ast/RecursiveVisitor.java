@@ -3,6 +3,8 @@ package vct.col.ast;
 public abstract class RecursiveVisitor<T> extends ASTFrame<T> implements
     ASTVisitor<T> {
 
+  protected boolean auto_before_after=true;
+  
   public RecursiveVisitor(ASTFrame<T> share) {
     super(share);
     // TODO Auto-generated constructor stub
@@ -24,7 +26,7 @@ public abstract class RecursiveVisitor<T> extends ASTFrame<T> implements
 
   @Override
   public void post_visit(ASTNode n) {
-    if(n instanceof BeforeAfterAnnotations){
+    if(n instanceof BeforeAfterAnnotations && auto_before_after){
       BeforeAfterAnnotations baa=(BeforeAfterAnnotations)n;
       enter_before(n);
       dispatch(baa.get_before());
@@ -33,6 +35,7 @@ public abstract class RecursiveVisitor<T> extends ASTFrame<T> implements
       dispatch(baa.get_after());
       leave_after(n);
     }
+    auto_before_after=true;
     leave(n);
   }
 

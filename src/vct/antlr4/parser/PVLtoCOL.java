@@ -42,6 +42,7 @@ import pv.parser.PVFullParser.TupleContext;
 import pv.parser.PVFullParser.TypeArgsContext;
 import pv.parser.PVFullParser.TypeContext;
 import pv.parser.PVFullParser.ValuesContext;
+import pv.parser.PVFullParser.With_thenContext;
 import pv.parser.PVFullVisitor;
 import vct.col.ast.ASTClass;
 import vct.col.ast.ASTNode;
@@ -57,6 +58,7 @@ import vct.col.ast.ForEachLoop;
 import vct.col.ast.Method;
 import vct.col.ast.NameExpression;
 import vct.col.ast.ParallelBarrier;
+import vct.col.ast.ParallelBlock;
 import vct.col.ast.ProgramUnit;
 import vct.col.ast.StandardOperator;
 import vct.col.ast.Type;
@@ -274,6 +276,9 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
     if (match(ctx,"(","\\forall*",null,null,";",null,";",null,")")){
       return create.starall(convert(ctx,5),convert(ctx,7),create.field_decl(getIdentifier(ctx,3),(Type)convert(ctx,2)));
     }
+    if (match(ctx,"(","\\sum",null,null,";",null,";",null,")")){
+      return create.summation(convert(ctx,5),convert(ctx,7),create.field_decl(getIdentifier(ctx,3),(Type)convert(ctx,2)));
+    }
     if (match(ctx,"(","\\forall",null,null,";",null,";",null,")")){
       return create.forall(convert(ctx,5),convert(ctx,7),create.field_decl(getIdentifier(ctx,3),(Type)convert(ctx,2)));
     }
@@ -410,22 +415,25 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
     if (match(ctx,null,"=",null,";")){
       return create.assignment(convert(ctx,0),convert(ctx,2));
     }
-    if (match(ctx,"par","(",null,";",null,";", null,")",null,null)){
+    if (match(ctx,"par","(",null,";",null,";", null,")",null,null,null)){
       DeclarationStatement iters[]=checkDecls(convert_list((ParserRuleContext)ctx.getChild(2), ","));
       DeclarationStatement decls[]=checkDecls(convert_list((ParserRuleContext)ctx.getChild(4), ","));
-      Contract c=(Contract)convert(ctx, 8);
-      BlockStatement block=(BlockStatement)convert(ctx, 9);
+      Contract c=(Contract)convert(ctx, 9);
+      BlockStatement block=(BlockStatement)convert(ctx, 10);
       ASTNode inv=convert(ctx,6);
-      return create.parallel_block(c, iters, decls, inv, block);
+      ParallelBlock res=create.parallel_block(c, iters, decls, inv, block);
+      add_with_then(res,(ParserRuleContext)ctx.getChild(8));
+      return res;
     }
-    if (match(ctx,"for","(",null,")",null,null)){
+    if (match(ctx,"for","(",null,")",null,null,null)){
       ASTNode iters[]=convert_list((ParserRuleContext)ctx.getChild(2), ",");
-      ASTNode contract=convert(ctx, 4);
-      ASTNode block=convert(ctx, 5);
+      ASTNode contract=convert(ctx, 5);
+      ASTNode block=convert(ctx, 6);
       DeclarationStatement decls[]=new DeclarationStatement[iters.length];
       ASTNode guard=convert_iters(decls,iters);
       ForEachLoop res=create.foreach(decls,guard,block);
       res.setContract((Contract)contract);
+      add_with_then(res,(ParserRuleContext)ctx.getChild(4));
       return res;
     }
     if (match(ctx,"atomic",null)){
@@ -533,6 +541,18 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
     return visit(ctx);
   }
 
+  private void add_with_then(BeforeAfterAnnotations res, ParserRuleContext child) {
+    if (match(child,"with",null)){
+      res.set_before((BlockStatement)convert(child,1));
+    } else if (match(child,"with",null,"then",null)){
+      res.set_before((BlockStatement)convert(child,1));
+      res.set_after((BlockStatement)convert(child,3));
+    } else if (match(child,"then",null)){
+      res.set_after((BlockStatement)convert(child,1));
+    } else {
+      Fail("bad with then annotation");
+    }
+  }
   private DeclarationStatement[] checkDecls(ASTNode[] list) {
     DeclarationStatement res[]=new DeclarationStatement[list.length];
     for(int i=0;i<list.length;i++){
@@ -781,6 +801,11 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
     } else {
       return create.field_decl(getIdentifier(ctx,1),checkType(convert(ctx,0)));
     }
+  }
+  @Override
+  public ASTNode visitWith_then(With_thenContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
   }
 
 }

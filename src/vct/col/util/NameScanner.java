@@ -36,11 +36,14 @@ public class NameScanner extends RecursiveVisitor<Object> {
       case Argument:
         String name=e.getName();
         Type t=e.getType();
-        if (vars.contains(name)){
-          if (!t.equals(vars.get(name))) {
+        if (vars.containsKey(name)){
+          if (t!=null && !t.equals(vars.get(name))) {
             Fail("type mismatch %s != %s",t,vars.get(name));
           }
         } else {
+          if (t==null){
+            Abort("type of %s is null",name);
+          }
           vars.put(name,t);
         }
         return;
@@ -105,6 +108,9 @@ public class NameScanner extends RecursiveVisitor<Object> {
       safe_decls.add(s.decls[i]);
     }
     super.visit(s);
+    if (s.get_before()!=null) s.get_before().accept(this);
+    if (s.get_after()!=null) s.get_after().accept(this);
+    auto_before_after=false;
     for(int i=0;i<s.decls.length;i++){
       vars.remove(s.decls[i].name);
       if(old[i]!=null){
@@ -125,6 +131,9 @@ public class NameScanner extends RecursiveVisitor<Object> {
       safe_decls.add(pb.decls[i]);
     }
     super.visit(pb);
+    if (pb.get_before()!=null) pb.get_before().accept(this);
+    if (pb.get_after()!=null) pb.get_after().accept(this);
+    auto_before_after=false;
     for(int i=0;i<pb.iters.length;i++){
       vars.remove(pb.iters[i].name);
       if(oldi[i]!=null){

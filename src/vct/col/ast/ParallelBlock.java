@@ -2,7 +2,7 @@ package vct.col.ast;
 
 import java.util.Arrays;
 
-public class ParallelBlock extends ASTNode {
+public class ParallelBlock extends ExpressionNode {
 
   @Override
   public <R,A> R accept_simple(ASTMapping1<R,A> map,A arg){

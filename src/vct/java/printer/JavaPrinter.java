@@ -1084,6 +1084,14 @@ public class JavaPrinter extends AbstractPrinter {
     out.printf(";");
     pb.inv.accept(this);
     out.println(")");
+    if(pb.get_before()!=null) {
+      out.print(" with ");
+      pb.get_before().accept(this);
+    }
+    if(pb.get_after()!=null) {
+      out.print(" then ");
+      pb.get_after().accept(this);
+    }
     if(pb.contract!=null){
       visit(pb.contract);
     }
