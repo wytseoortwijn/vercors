@@ -153,6 +153,8 @@ public class ParallelBlockEncoder extends AbstractRewriter {
       Fail("barrier outside of parallel block");
     }
     BlockStatement res=rewrite(pb.body);
+    if (res==null) res=create.block();
+    
     for(ASTNode clause:ASTUtils.conjuncts(pb.contract.pre_condition, StandardOperator.Star)){
       if (clause.getType().isBoolean()){
         clause=create.forall(copy_rw.rewrite(iters_guard_prime), sigma_prime.rewrite(clause) , iter_decls_prime);
