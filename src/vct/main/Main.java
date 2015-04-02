@@ -96,23 +96,6 @@ public class Main
 {
   private static ProgramUnit program=new ProgramUnit();
   
-  private static void parseFile(String name){
-    int dot=name.lastIndexOf('.');
-    if (dot<0) {
-      Fail("cannot deduce language of %s",name);
-    }
-    String lang=name.substring(dot+1);
-    if (lang.equals("pvl")){
-      //TODO: fix this kludge.
-      vct.col.ast.ASTNode.pvl_mode=true;
-    }
-    Progress("Parsing %s file %s",lang,name);
-    ProgramUnit unit=Parsers.getParser(lang).parse(new File(name));
-    Progress("Read %s succesfully",name);
-    program.add(unit);
-    Progress("Merged %s succesfully",name);
-  }
-
   private static List<ClassName> classes;
   
   static class ChaliceTask implements Callable<TestReport> {
@@ -580,7 +563,7 @@ public class Main
       if (!no_context.get()){
         FileOrigin.add(name);
       }
-      parseFile(f.getPath());
+      program.add(Parsers.parseFile(f.getPath()));
       cnt++;
     }
     Progress("Parsed %d files in: %dms",cnt,System.currentTimeMillis() - startTime);

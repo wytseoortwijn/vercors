@@ -1,13 +1,16 @@
 package vct.main;
 
+import java.io.File;
 import java.util.HashMap;
 
 import vct.antlr4.parser.ColCParser;
 import vct.antlr4.parser.ColIParser;
 import vct.antlr4.parser.ColJavaParser;
 import vct.antlr4.parser.ColPVLParser;
+import vct.col.ast.ProgramUnit;
 import vct.col.util.Parser;
 import static hre.System.Fail;
+import static hre.System.Progress;
 
 public class Parsers {
   
@@ -25,4 +28,20 @@ public class Parsers {
     
   }
   
+  public static ProgramUnit parseFile(String name){
+    int dot=name.lastIndexOf('.');
+    if (dot<0) {
+      Fail("cannot deduce language of %s",name);
+    }
+    String lang=name.substring(dot+1);
+    if (lang.equals("pvl")){
+      //TODO: fix this kludge.
+      vct.col.ast.ASTNode.pvl_mode=true;
+    }
+    Progress("Parsing %s file %s",lang,name);
+    ProgramUnit unit=Parsers.getParser(lang).parse(new File(name));
+    Progress("Read %s succesfully",name);
+    return unit;
+  }
+
 }
