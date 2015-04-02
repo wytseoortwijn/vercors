@@ -811,11 +811,11 @@ public class Main
       //passes.add("silver_constructors");
       //passes.add("standardize");
       //passes.add("check");
-      if (!check_csl.get()){
+      //if (!check_csl.get()){
         passes.add("ref_array");
         passes.add("standardize");
         passes.add("check");
-      }
+      //}
       passes.add("class-conversion");
       passes.add("standardize");
       passes.add("check");
