@@ -1,8 +1,11 @@
 package vct.col.rewrite;
 
+import hre.ast.MessageOrigin;
+
 import java.util.ArrayList;
 
 import vct.col.ast.ASTClass;
+import vct.col.ast.ASTClass.ClassKind;
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTReserved;
 import vct.col.ast.BindingExpression;
@@ -28,14 +31,6 @@ public class RewriteArrayRef extends AbstractRewriter {
 	public RewriteArrayRef(ProgramUnit source) {
 	  super(source);
   }
-
-	@Override
-	public void visit(ASTClass cl){
-		super.visit(cl);
-		ASTClass res=(ASTClass)result;
-		res.add_dynamic(create.field_decl("Integer_value",create.primitive_type(Sort.Integer)));
-		result=res;
-	}
 	
 	@Override
 	public void visit(OperatorExpression e){
@@ -251,5 +246,27 @@ public class RewriteArrayRef extends AbstractRewriter {
     return temp;
   }
   
+  @Override
+  public ProgramUnit rewriteAll(){
+    ProgramUnit res=super.rewriteAll();
+    ASTClass ref=res.find("Ref");
+    create.setOrigin(new MessageOrigin("Rewrite arrays to sequences"));
+    if (ref==null){
+      ref=create.ast_class("Ref",ASTClass.ClassKind.Plain,null,null);
+      ref.add_dynamic(create.field_decl("Integer_value",create.primitive_type(Sort.Integer)));
+      res.add(ref);
+    }
+    
+    return res;
+  }
+
+  @Override
+  public void visit(ASTClass cl){
+    super.visit(cl);
+    ASTClass res=(ASTClass)result;
+    res.add_dynamic(create.field_decl("Integer_value",create.primitive_type(Sort.Integer)));
+    result=res;
+  }
+
 }
 
