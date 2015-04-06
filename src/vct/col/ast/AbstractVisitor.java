@@ -13,7 +13,7 @@ import vct.util.ClassName;
  * @author sccblom
  *
  */
-public abstract class AbstractVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
+public class AbstractVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
 /*
   Note: need a good way of creating and abstract class that will
   allow defining both valid input cases and cases which are ignored
@@ -139,6 +139,8 @@ public abstract class AbstractVisitor<T> extends ASTFrame<T> implements ASTVisit
   @Override public void visit(ActionBlock ab) { visit_any(ab); }
 
   @Override public void visit(ForEachLoop s) { visit_any(s); }
+
+  @Override public void visit(NameSpace ns) { visit_any(ns); }
 
 }
 

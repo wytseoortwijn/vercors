@@ -1,7 +1,6 @@
 package vct.col.ast;
 
-public abstract class RecursiveVisitor<T> extends ASTFrame<T> implements
-    ASTVisitor<T> {
+public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
 
   protected boolean auto_before_after=true;
   
@@ -296,6 +295,13 @@ public abstract class RecursiveVisitor<T> extends ASTFrame<T> implements
   @Override
   public void visit(Hole hole){
     dispatch(hole.get());
+  }
+  
+  @Override
+  public void visit(NameSpace ns){
+    for (ASTNode n:ns){
+      dispatch(n);
+    }
   }
 
 }

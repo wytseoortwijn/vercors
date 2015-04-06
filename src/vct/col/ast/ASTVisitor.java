@@ -79,6 +79,8 @@ public interface ASTVisitor<T> {
 
   public void visit(ParallelAtomic parallelAtomic);
 
+  public void visit(NameSpace nameSpace);
+
 }
 
 

@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 
+import hre.HREError;
 import hre.ast.MessageOrigin;
 import hre.ast.Origin;
 import hre.util.FrameControl;
@@ -39,6 +40,7 @@ import vct.col.ast.IfStatement;
 import vct.col.ast.LoopStatement;
 import vct.col.ast.Method;
 import vct.col.ast.NameExpression;
+import vct.col.ast.NameSpace;
 import vct.col.ast.OperatorExpression;
 import vct.col.ast.ParallelAtomic;
 import vct.col.ast.ParallelBarrier;
@@ -724,6 +726,11 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
       i++;
     }
     return create.invokation(null,null, method, args);
+  }
+
+  @Override
+  public void visit(NameSpace nameSpace) {
+    throw new HREError("TODO: rewrite namespace");
   }
 
 }
