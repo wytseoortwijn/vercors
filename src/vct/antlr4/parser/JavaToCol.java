@@ -1,5 +1,7 @@
 package vct.antlr4.parser;
 
+import java.util.ArrayList;
+
 import org.antlr.v4.runtime.BufferedTokenStream;
 import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.ParserRuleContext;
@@ -18,6 +20,7 @@ import vct.parsers.JavaParser.SpecificationModifierContext;
 import vct.parsers.JavaParser.SpecificationPrimaryContext;
 import vct.parsers.JavaParser.SpecificationPrimitiveTypeContext;
 import vct.parsers.JavaParser.SpecificationStatementContext;
+import vct.util.Configuration;
 import vct.util.Syntax;
 
 /**
@@ -173,8 +176,46 @@ public class JavaToCol extends AbstractJavaToCol implements JavaVisitor<ASTNode>
 
   @Override
   public ASTNode visitCompilationUnit(CompilationUnitContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
+    NameSpace ns;
+    int ptr=0;
+    if (match(0,true,ctx,"PackageDeclaration")) {
+      hre.System.Warning("has package");
+      ASTNode pkg=convert((ParserRuleContext)ctx.getChild(0),1);
+      System.err.printf("pkg %s (%s)%n",Configuration.getDiagSyntax().print(pkg),pkg.getClass());
+      ptr++;
+      ns=create.namespace(to_name(pkg));
+    } else {
+      hre.System.Warning("does not have package");
+      ns=create.namespace(NameSpace.NONAME);
+    }
+    while(match(ptr,true,ctx,"ImportDeclaration")){
+      ParserRuleContext imp=(ParserRuleContext)ctx.getChild(ptr);
+      if (match(imp,"import",null,";")){
+        ASTNode name=convert(imp,1);
+        ns.add_import(false,to_name(name));
+      } else if (match(imp,"import",null,".","*",";")){
+        ASTNode name=convert(imp,1);
+        ns.add_import(true,to_name(name));
+      } else {
+        hre.System.Abort("unimplemented import type");
+      }
+      ptr++;
+    }
+    // temporary measure: if no package or imports used then do not use a name space 
+    if (ptr==0) return null;
+    scan_to(ns, ctx, ptr, ctx.getChildCount());
+    return ns;
+  }
+
+  private String[] to_name(ASTNode pkg) {
+    ArrayList<String> list=new ArrayList();
+    while(pkg instanceof Dereference){
+      Dereference d=(Dereference)pkg;
+      list.add(0,d.field);
+      pkg=d.object;
+    }
+    list.add(0,pkg.toString());
+    return list.toArray(new String[0]);
   }
 
   @Override

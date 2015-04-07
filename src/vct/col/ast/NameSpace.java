@@ -3,6 +3,7 @@ package vct.col.ast;
 import static hre.System.Abort;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 
 import hre.HREError;
@@ -10,11 +11,26 @@ import vct.util.ClassName;
 
 public class NameSpace extends ASTDeclaration implements ASTSequence<NameSpace> {
 
+  public static class Import {
+    
+    public final boolean all;
+    
+    public final String[] name;
+    
+    public Import(boolean all,String ... name){
+      this.all=all;
+      this.name=Arrays.copyOf(name,name.length);
+    }
+  }
+  
+  public static final String NONAME = "";
+
   private static String check_length(String name[]){
     if (name.length==0) throw new HREError("empty name space");
     return name[name.length-1];
   }
   
+  public final ArrayList<Import> imports=new ArrayList();
   
   private ClassName full_name;
   
@@ -90,15 +106,20 @@ public class NameSpace extends ASTDeclaration implements ASTSequence<NameSpace> 
   @Override
   public NameSpace add(ASTNode item) {
     if (item instanceof ASTDeclaration){
-      add((ASTDeclaration)item);
+      space.add((ASTDeclaration)item);
     } else if(item instanceof VariableDeclaration) {
       for(DeclarationStatement d:((VariableDeclaration)item).flatten()){
-        add(d);
+        space.add(d);
       }
+    } else if (item==null) {
     } else {
       Abort("cannot insert %s into name space.",item.getClass());
     }
     return this;
+  }
+
+  public void add_import(boolean all,String ... name) {
+    imports.add(new Import(all,name));    
   }
 
 

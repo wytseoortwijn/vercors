@@ -68,4 +68,16 @@ public class ClassName {
       return false;
     }
   }
+
+  public ClassName prepend(String[] prefix) {
+    if (prefix.length==0) return this;
+    String tmp[]=new String[prefix.length+name.length];
+    for(int i=0;i<prefix.length;i++){
+      tmp[i]=prefix[i];
+    }
+    for(int i=0;i<name.length;i++){
+      tmp[i+prefix.length]=name[i];
+    }
+    return new ClassName(tmp);
+  }
 }

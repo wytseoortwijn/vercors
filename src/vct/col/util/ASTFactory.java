@@ -1029,4 +1029,18 @@ public Axiom axiom(String name,ASTNode exp){
     res.accept_if(post);
     return res;
   }
+  
+  public NameSpace namespace(E origin,String ... name){
+    return namespace(origin_source.create(origin),name);
+  }
+  public NameSpace namespace(String ... name){
+    return namespace(origin_stack.get(),name);
+  }
+  public NameSpace namespace(Origin o,String ... name){
+    NameSpace res=new NameSpace(name);
+    res.setOrigin(o);
+    res.accept_if(post);
+    return res;
+  }
+
 }

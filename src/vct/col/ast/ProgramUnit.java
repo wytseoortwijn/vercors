@@ -12,6 +12,7 @@ import vct.col.rewrite.AbstractRewriter;
 import vct.col.util.ASTFactory;
 import vct.col.util.FeatureScanner;
 import vct.util.ClassName;
+import vct.util.Configuration;
 import static hre.System.*;
 
 /**
@@ -102,30 +103,55 @@ public class ProgramUnit implements ASTSequence<ProgramUnit> {
   public ProgramUnit(){
     
   }
-
+  
   public void add(ASTDeclaration n){
     program.add(n);
-    if (n instanceof ASTDeclaration){
-      ASTDeclaration d=(ASTDeclaration)n;
-      decl_map.put(d.getDeclName(), d);
+    if (n instanceof NameSpace){
+      NameSpace ns=(NameSpace)n;
+      String prefix[];
+      if (ns.name.equals(NameSpace.NONAME)){
+        prefix=new String[0];
+      } else {
+        prefix=ns.getDeclName().name;
+      }
+      for(ASTNode nn:ns){
+        add(prefix,(ASTDeclaration)nn);
+      }
+    } else {
+      add(new String[0],n);
+    }
+    
+  }
+
+  public void add(String prefix[],ASTDeclaration n){
+    ClassName n1=n.getDeclName();
+    if (n1==null){
+      if (n instanceof ASTSpecialDeclaration){
+        
+      } else {
+        System.err.printf("null named declaration %n%s%n",Configuration.getDiagSyntax().print(n));
+      }
+    } else {
+      ClassName n2=n1.prepend(prefix);
+      decl_map.put(n2,n);
     }
     if (n instanceof Method){
       Method m=(Method)n;
-      proc_map.put(m.getDeclName(),m);
+      proc_map.put(m.getDeclName().prepend(prefix),m);
     }
     if (n instanceof ASTClass){
       ASTClass cl=(ASTClass)n;
       Debug("indexing %s as %s",cl.name,cl.getDeclName());
-      cl.attach(this,cl.getDeclName());
-      classes.put(cl.getDeclName(),cl);
+      cl.attach(this,cl.getDeclName().prepend(prefix));
+      classes.put(cl.getDeclName().prepend(prefix),cl);
       for(Method m : cl.staticMethods()){
         if (m.kind==Method.Kind.Predicate){
-          decl_map.put(m.getDeclName(),m);
+          decl_map.put(m.getDeclName().prepend(prefix),m);
         }          
       }
       for(Method m : cl.dynamicMethods()){
         if (m.kind==Method.Kind.Predicate){
-          decl_map.put(m.getDeclName(),m);
+          decl_map.put(m.getDeclName().prepend(prefix),m);
         }
       }
     }
@@ -133,10 +159,10 @@ public class ProgramUnit implements ASTSequence<ProgramUnit> {
       AxiomaticDataType adt=(AxiomaticDataType)n;
       for(Method m:adt.constructors()){
         Debug("putting adt entry %s",m.getDeclName().toString("."));
-        adt_map.put(m.getDeclName(),m);
+        adt_map.put(m.getDeclName().prepend(prefix),m);
       }
       for(Method m:adt.mappings()){
-        adt_map.put(m.getDeclName(),m);
+        adt_map.put(m.getDeclName().prepend(prefix),m);
       }
     }    
   }

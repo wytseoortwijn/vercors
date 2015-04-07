@@ -729,8 +729,15 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   }
 
   @Override
-  public void visit(NameSpace nameSpace) {
-    throw new HREError("TODO: rewrite namespace");
+  public void visit(NameSpace ns) {
+    NameSpace res=create.namespace(ns.getDeclName().name);
+    for(ASTNode n:ns){
+      res.add(rewrite(n));
+    }
+    for(NameSpace.Import i:ns.imports){
+      res.add_import(i.all,i.name);
+    }
+    result=res;
   }
 
 }

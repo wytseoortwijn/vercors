@@ -46,6 +46,28 @@ public class JavaPrinter extends AbstractPrinter {
   }
   
   @Override
+  public void visit(NameSpace ns){
+    if(!ns.name.equals(NameSpace.NONAME)){
+      out.printf("package %s;",ns.getDeclName().toString("."));
+      out.println("");
+    } else {
+      out.println("// begin of package");
+    }
+    for(NameSpace.Import i:ns.imports){
+      out.printf("import %s",new ClassName(i.name).toString("."));
+      if(i.all){
+        out.println(".*;");
+      } else {
+        out.println(";");
+      }
+    }
+    for(ASTNode n:ns){
+      n.accept(this);
+    }
+    out.println("// end of package");
+  }
+  
+  @Override
   public void visit(ActionBlock ab){
     out.printf("action(");
     nextExpr(); ab.process.accept(this);
