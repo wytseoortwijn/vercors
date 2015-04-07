@@ -58,7 +58,6 @@ public class AbstractVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
   
   @Override
   public void post_visit(ASTNode n){
-    this.leave(n);
     if (n instanceof ASTClass){
       // pop current class and reset.
       current_class_stack.pop();
@@ -68,6 +67,7 @@ public class AbstractVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
         current_class=current_class_stack.peek();
       }
     }
+    this.leave(n);
   }
   
   @Override public void visit(StandardProcedure p){ visit_any(p); }

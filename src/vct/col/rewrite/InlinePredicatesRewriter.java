@@ -7,7 +7,9 @@ import vct.col.ast.ASTReserved;
 import vct.col.ast.Method;
 import vct.col.ast.MethodInvokation;
 import vct.col.ast.NameExpression;
+import vct.col.ast.OperatorExpression;
 import vct.col.ast.ProgramUnit;
+import vct.col.ast.StandardOperator;
 
 public class InlinePredicatesRewriter extends AbstractRewriter {
 
@@ -42,6 +44,37 @@ public class InlinePredicatesRewriter extends AbstractRewriter {
       result=null;
     } else {
       super.visit(m);
+    }
+  }
+  
+  @Override
+  public void visit(OperatorExpression e){
+    switch(e.getOperator()){
+      case Unfolding:
+      {
+        ASTNode arg1=rewrite(e.getArg(0));
+        ASTNode arg2=rewrite(e.getArg(1));
+        if (arg1 instanceof MethodInvokation || arg1.isa(StandardOperator.Scale)){
+          result=create.expression(StandardOperator.Unfolding,arg1,arg2);
+        } else {
+          result=arg2;
+        }
+        break;
+      }
+      case Unfold:
+      case Fold:
+      { 
+        ASTNode arg=rewrite(e.getArg(0));
+        if (arg instanceof MethodInvokation || arg.isa(StandardOperator.Scale)){
+          result=create.expression(e.getOperator(),arg);
+        } else {
+          result=null; // returning null for a statement means already inserted or omit.
+        }
+        break;
+      }
+      default:
+        super.visit(e);
+        break;
     }
   }
 }

@@ -127,7 +127,7 @@ public class Standardize extends AbstractRewriter {
         }
         VariableInfo info=variables.lookup(name);
         if (info!=null) {
-          Debug("unresolved %s name %s found during type check",info.kind,name);
+          Debug("unresolved %s name %s found during standardize",info.kind,name);
           e.setKind(info.kind);
         }
         super.visit(e);

@@ -183,12 +183,24 @@ public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
 
   @Override
   public void visit(Method m) {
-    dispatch(m.getContract());
+//    dispatch(m.getContract());
 //    if (c!=null){
 //      dispatch(c.pre_condition);
 //      dispatch(c.post_condition);
 //    }
+    Contract c=m.getContract();
+    if (c!=null){
+      dispatch(c.given);
+      dispatch(c.pre_condition);
+      dispatch(c.invariant);
+      // Yielded variables are not known before method starts.
+      dispatch(c.yields); 
+    }
     dispatch(m.getBody());
+    if (c!=null) {
+      // TODO: this is where \result should be declared.
+      dispatch(c.post_condition);      
+    }
   }
 
   @Override

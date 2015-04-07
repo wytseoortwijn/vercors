@@ -81,7 +81,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   
   private AbstractRewriter(Thread t){
     copy_rw=null;
-    create=new ASTFactory();    
+    create=new ASTFactory(null);    
   }
   
   public AbstractRewriter(ASTFrame<ASTNode> shared){
@@ -92,7 +92,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
       tl.set(tmp);
     }
     copy_rw=tmp;
-    create=new ASTFactory();
+    create=new ASTFactory(copy_rw);
   }
 
   public AbstractRewriter(ProgramUnit source,ProgramUnit target){
@@ -103,7 +103,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
       tl.set(tmp);
     }
     copy_rw=tmp;
-    create=new ASTFactory();    
+    create=new ASTFactory(copy_rw);    
   }
 
   /**

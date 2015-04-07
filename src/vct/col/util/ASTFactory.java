@@ -9,6 +9,7 @@ import vct.col.ast.ASTClass.ClassKind;
 import vct.col.ast.ASTSpecialDeclaration.Kind;
 import vct.col.ast.BindingExpression.Binder;
 import vct.col.ast.PrimitiveType.Sort;
+import vct.col.rewrite.AbstractRewriter;
 import vct.util.Configuration;
 import hre.ast.Origin;
 import hre.util.FrameControl;
@@ -50,10 +51,23 @@ public class ASTFactory<E> implements FrameControl {
    */
   private ASTVisitor post=null;
   
+
+  private final AbstractRewriter copy_rw;
+  
+  /**
+   * Create a new AST factory.
+   * @param copy_rw 
+   */
+  public ASTFactory(AbstractRewriter copy_rw){
+    this.copy_rw=copy_rw;
+  }
+  
   /**
    * Create a new AST factory.
    */
-  public ASTFactory(){}
+  public ASTFactory(){
+    this.copy_rw=new AbstractRewriter(null,null);
+  }
 
   /**
    * Create a new abstract class.
@@ -403,7 +417,7 @@ public BlockStatement block(Origin origin, ASTNode ... args) {
      ASTNode res=list.get(0);
      int N=list.size();
      for(int i=1;i<N;i++){
-       res=expression(op,res,list.get(i));
+       res=expression(op,res,copy_rw.rewrite(list.get(i)));
      }
      return res;
    }
@@ -428,7 +442,7 @@ public BlockStatement block(Origin origin, ASTNode ... args) {
       ASTNode res=list[0];
       int N=list.length;
       for(int i=1;i<N;i++){
-        res=expression(op,res,list[i]);
+        res=expression(op,res,copy_rw.rewrite(list[i]));
       }
       return res;
     }
