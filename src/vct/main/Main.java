@@ -486,6 +486,13 @@ public class Main
         return new ScaleAlways(arg).rewriteAll();
       }
     });
+    defined_passes.put("silver-optimize",new CompilerPass("Optimize expressions for Silver"){
+      public ProgramUnit apply(ProgramUnit arg){
+        RewriteSystem trs=RewriteSystems.getRewriteSystem("silver_optimize");
+        return trs.normalize(arg);
+        // return new SimplifyExpressions(arg).rewriteAll();
+      }
+    });
     defined_passes.put("simplify_calls",new CompilerPass("???"){
       public ProgramUnit apply(ProgramUnit arg){
         return new SimplifyCalls(arg).rewriteAll();
@@ -816,7 +823,10 @@ public class Main
       passes.add("flatten_before_after");
       passes.add("silver-reorder");
       passes.add("standardize");
-      passes.add("check");        
+      passes.add("check"); 
+      passes.add("silver-optimize");
+      passes.add("standardize");
+      passes.add("check");      
       passes.add("scale-always");
       passes.add("standardize");
       passes.add("check");
