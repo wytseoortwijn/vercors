@@ -1057,4 +1057,16 @@ public Axiom axiom(String name,ASTNode exp){
     return res;
   }
 
+  public TryCatchBlock try_catch(BlockStatement main, BlockStatement after) {
+     return try_catch(origin_stack.get(),main,after);
+  }
+
+  public TryCatchBlock try_catch(Origin o, BlockStatement main,
+      BlockStatement after) {
+    TryCatchBlock res=new TryCatchBlock(main,after);
+    res.setOrigin(o);
+    res.accept_if(post);
+    return res;
+  }
+
 }

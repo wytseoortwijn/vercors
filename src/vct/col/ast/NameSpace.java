@@ -13,11 +13,14 @@ public class NameSpace extends ASTDeclaration implements ASTSequence<NameSpace> 
 
   public static class Import {
     
+    public final boolean static_import;
+    
     public final boolean all;
     
     public final String[] name;
     
-    public Import(boolean all,String ... name){
+    public Import(boolean si,boolean all,String ... name){
+      static_import=si;
       this.all=all;
       this.name=Arrays.copyOf(name,name.length);
     }
@@ -118,8 +121,8 @@ public class NameSpace extends ASTDeclaration implements ASTSequence<NameSpace> 
     return this;
   }
 
-  public void add_import(boolean all,String ... name) {
-    imports.add(new Import(all,name));    
+  public void add_import(boolean si,boolean all,String ... name) {
+    imports.add(new Import(si,all,name));    
   }
 
 

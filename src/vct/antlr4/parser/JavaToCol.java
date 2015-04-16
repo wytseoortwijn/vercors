@@ -192,10 +192,16 @@ public class JavaToCol extends AbstractJavaToCol implements JavaVisitor<ASTNode>
       ParserRuleContext imp=(ParserRuleContext)ctx.getChild(ptr);
       if (match(imp,"import",null,";")){
         ASTNode name=convert(imp,1);
-        ns.add_import(false,to_name(name));
+        ns.add_import(false,false,to_name(name));
       } else if (match(imp,"import",null,".","*",";")){
         ASTNode name=convert(imp,1);
-        ns.add_import(true,to_name(name));
+        ns.add_import(false,true,to_name(name));
+      } else if (match(imp,"import","static",null,";")){
+        ASTNode name=convert(imp,2);
+        ns.add_import(true,false,to_name(name));
+      } else if (match(imp,"import","static",null,".","*",";")){
+        ASTNode name=convert(imp,2);
+        ns.add_import(true,true,to_name(name));
       } else {
         hre.System.Abort("unimplemented import type");
       }

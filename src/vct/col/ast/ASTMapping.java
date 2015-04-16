@@ -76,6 +76,8 @@ public interface ASTMapping<R> {
 
   public R map(ParallelAtomic parallelAtomic);
 
-  public R map(NameSpace nameSpace);
+  public R map(NameSpace ns);
+
+  public R map(TryCatchBlock tcb);
 
 }

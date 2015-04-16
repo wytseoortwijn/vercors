@@ -142,6 +142,8 @@ public class AbstractVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
 
   @Override public void visit(NameSpace ns) { visit_any(ns); }
 
+  @Override public void visit(TryCatchBlock tcb) { visit_any(tcb); }
+
 }
 
 

@@ -78,4 +78,6 @@ public interface ASTMapping1<R,A1> {
   
   public R map(NameSpace ns, A1 a);
 
+  public R map(TryCatchBlock tcb, A1 a);
+
 }

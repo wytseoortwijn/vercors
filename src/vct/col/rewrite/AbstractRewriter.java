@@ -23,6 +23,7 @@ import vct.col.ast.ActionBlock;
 import vct.col.ast.Axiom;
 import vct.col.ast.AxiomaticDataType;
 import vct.col.ast.BindingExpression;
+import vct.col.ast.CatchClause;
 import vct.col.ast.ContractBuilder;
 import vct.col.ast.Dereference;
 import vct.col.ast.ForEachLoop;
@@ -51,6 +52,7 @@ import vct.col.ast.RecordType;
 import vct.col.ast.ReturnStatement;
 import vct.col.ast.StandardOperator;
 import vct.col.ast.StandardProcedure;
+import vct.col.ast.TryCatchBlock;
 import vct.col.ast.Type;
 import vct.col.ast.VariableDeclaration;
 import vct.col.util.ASTFactory;
@@ -735,9 +737,16 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
       res.add(rewrite(n));
     }
     for(NameSpace.Import i:ns.imports){
-      res.add_import(i.all,i.name);
+      res.add_import(i.static_import,i.all,i.name);
     }
     result=res;
   }
-
+  @Override
+  public void visit(TryCatchBlock tcb){
+    TryCatchBlock res=create.try_catch(rewrite(tcb.main),rewrite(tcb.after));
+    for(CatchClause cc:tcb.catches){
+      res.catch_clause(rewrite(cc.decl), rewrite(cc.block));
+    }
+    result=res;
+  }
 }

@@ -321,5 +321,11 @@ public class SilverStatementMap<T,E,S,Decl> implements ASTMapping<S>{
     return null;
   }
 
+  @Override
+  public S map(TryCatchBlock tcb) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
 
 }

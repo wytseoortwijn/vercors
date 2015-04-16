@@ -328,9 +328,30 @@ public class AbstractJavaToCol extends ANTLRtoCOL {
     if (match(ctx,"throw",null,";")){
       return create.special(ASTSpecial.Kind.Throw,convert(ctx,1));
     }
-    if (match(0,true,ctx,"try",null)){
-      Warning("ignoring catch and/or finally");
-      return convert(ctx,1);
+    if (match(0,true,ctx,"try","Block")){
+      BlockStatement main=(BlockStatement)convert(ctx,1);
+      int N=ctx.getChildCount();
+      BlockStatement after;
+      if (match(N-1,true,ctx,"FinallyBlock")){
+        after=(BlockStatement)convert((ParserRuleContext)ctx.getChild(N-1),1);
+        N--;
+      } else {
+        after=null;
+      }
+      TryCatchBlock res=create.try_catch(main,after);
+      for(int i=2;i<N;i++){
+        ParserRuleContext clause=(ParserRuleContext)ctx.getChild(i);
+        if (match(clause,"catch","(",null,null,")","Block")){
+          Type type=checkType(convert(clause,2));
+          String name=getIdentifier(clause, 3);
+          BlockStatement block=(BlockStatement)convert(clause,5);
+          DeclarationStatement decl=create.field_decl(name, type);
+          res.catch_clause(decl,block);
+        } else {
+          return null;
+        }
+      }
+      return res;
     }
     if (match(ctx,null,":",null)){
       ASTNode res=convert(ctx,2);

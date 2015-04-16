@@ -81,6 +81,8 @@ public interface ASTVisitor<T> {
 
   public void visit(NameSpace nameSpace);
 
+  public void visit(TryCatchBlock tcb);
+
 }
 
 

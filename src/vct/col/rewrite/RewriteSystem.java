@@ -324,6 +324,12 @@ class MatchLinear implements ASTMapping1<Boolean,ASTNode> {
     // TODO Auto-generated method stub
     return null;
   }
+
+  @Override
+  public Boolean map(TryCatchBlock tcb, ASTNode a) {
+    // TODO Auto-generated method stub
+    return null;
+  }
   
 }
 

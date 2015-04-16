@@ -46,6 +46,23 @@ public class JavaPrinter extends AbstractPrinter {
   }
   
   @Override
+  public void visit(TryCatchBlock tcb){
+    out.print("try");
+    tcb.main.accept(this);
+    for(CatchClause cb:tcb.catches){
+      out.print("catch (");
+      cb.decl.accept(this);
+      out.print(")");
+      cb.block.accept(this);
+    }
+    if (tcb.after!=null){
+      out.print(" finally ");
+      tcb.after.accept(this);
+    }
+    out.println("");
+  }
+  
+  @Override
   public void visit(NameSpace ns){
     if(!ns.name.equals(NameSpace.NONAME)){
       out.printf("package %s;",ns.getDeclName().toString("."));
@@ -54,7 +71,7 @@ public class JavaPrinter extends AbstractPrinter {
       out.println("// begin of package");
     }
     for(NameSpace.Import i:ns.imports){
-      out.printf("import %s",new ClassName(i.name).toString("."));
+      out.printf("import %s%s",i.static_import?"static ":"",new ClassName(i.name).toString("."));
       if(i.all){
         out.println(".*;");
       } else {
