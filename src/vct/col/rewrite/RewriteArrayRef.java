@@ -265,6 +265,7 @@ public class RewriteArrayRef extends AbstractRewriter {
     super.visit(cl);
     ASTClass res=(ASTClass)result;
     res.add_dynamic(create.field_decl("Integer_value",create.primitive_type(Sort.Integer)));
+    res.add_dynamic(create.field_decl("Boolean_value",create.primitive_type(Sort.Boolean)));
     result=res;
   }
 
