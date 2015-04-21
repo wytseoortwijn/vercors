@@ -31,7 +31,7 @@ public class SilverBackend {
   TestReport TestSilicon(ProgramUnit arg, String tool) {
     long start_time=System.currentTimeMillis();
     File jarfile=Configuration.getToolHome().resolve(silver_module.get()+"/"+tool+".jar").toFile();
-    System.err.printf("adding jar %s to path%n",jarfile);
+    //System.err.printf("adding jar %s to path%n",jarfile);
     JarContainer container=new JarContainer(jarfile);
     Object obj;
     Properties silver_props=new Properties();
@@ -41,11 +41,11 @@ public class SilverBackend {
       InputStream is=loader.getResourceAsStream("silver.hglog");
       silver_props.load(is);
       is.close();
-      System.err.printf("silver properties: %s%n", silver_props);
+      //System.err.printf("silver properties: %s%n", silver_props);
       is=loader.getResourceAsStream("verifier.hglog");
       verifier_props.load(is);
       is.close();
-      System.err.printf("verifier properties: %s%n", verifier_props);
+      //System.err.printf("verifier properties: %s%n", verifier_props);
       Class v_class;
       if (tool.contains("silicon")){
         v_class=loader.loadClass("vct.silver.SiliconVerifier");
@@ -71,7 +71,7 @@ public class SilverBackend {
         Method m = (Method)entry;
         switch(m.kind){
         case Plain:{
-          hre.System.Warning("plain method %s",m.name);
+          //hre.System.Warning("plain method %s",m.name);
           
           ArrayList<Decl> in=new ArrayList();
           ArrayList<Decl> out=new ArrayList();
@@ -191,7 +191,7 @@ public class SilverBackend {
       }
     }
     long end_time=System.currentTimeMillis();
-    System.err.printf("AST conversion took %d ms%n", end_time-start_time);
+    System.err.printf("Backend AST conversion took %d ms%n", end_time-start_time);
     String fname=vct.util.Configuration.backend_file.get();
     if (fname!=null){
       PrintWriter pw=null;

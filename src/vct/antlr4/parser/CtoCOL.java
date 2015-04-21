@@ -280,20 +280,20 @@ public class CtoCOL extends AbstractCtoCOL implements CVisitor<ASTNode> {
 
   @Override
   public ASTNode visitDeclarationSpecifiers(DeclarationSpecifiersContext ctx) {
-    hre.System.Warning("\"decl specs\" %s",ctx.toStringTree(parser));
+    hre.System.Debug("\"decl specs\" %s",ctx.toStringTree(parser));
     int i=ctx.getChildCount()-1;
     ParserRuleContext tmp=(ParserRuleContext)((ParserRuleContext)ctx.getChild(i)).getChild(0);
-    hre.System.Warning("\"last:\" %s",tmp.toStringTree(parser));
+    hre.System.Debug("\"last:\" %s",tmp.toStringTree(parser));
     String name;
     if (match(tmp,"TypedefName")){
       name=getIdentifier(tmp, 0);
       i=i-1;
       tmp=(ParserRuleContext)((ParserRuleContext)ctx.getChild(i)).getChild(0);
-      hre.System.Warning("\"name:\" %s",name);
+      hre.System.Debug("\"name:\" %s",name);
     } else {
       name=null;
     }
-    hre.System.Warning("\"type:\" %s",tmp.toStringTree(parser));
+    hre.System.Debug("\"type:\" %s",tmp.toStringTree(parser));
     ASTNode t=convert(ctx,i);
     Type type=null;
     if (t instanceof Type){
@@ -305,9 +305,9 @@ public class CtoCOL extends AbstractCtoCOL implements CVisitor<ASTNode> {
     while(i>=0){
       if (i==0){
         if (match((ParserRuleContext)ctx.getChild(0),"StorageClassSpecifier")){
-          hre.System.Warning("\"class:\" %s",ctx.getChild(0).toStringTree(parser));
+          hre.System.Debug("\"class:\" %s",ctx.getChild(0).toStringTree(parser));
           String sclass=((ParserRuleContext)((ParserRuleContext)ctx.getChild(0))).getText();
-          hre.System.Warning("\"class:\" %s",sclass);
+          hre.System.Debug("\"class:\" %s",sclass);
           switch(sclass){
           case "typedef":
             return create.field_decl(name,create.primitive_type(Sort.Class) ,type);
@@ -315,7 +315,7 @@ public class CtoCOL extends AbstractCtoCOL implements CVisitor<ASTNode> {
           hre.System.Abort("missing case");
         }
       } if (match((ParserRuleContext)ctx.getChild(i),"TypeQualifier")){
-        hre.System.Warning("\"tspec:\" %s",ctx.getChild(i).toStringTree(parser));
+        hre.System.Debug("\"tspec:\" %s",ctx.getChild(i).toStringTree(parser));
         String modifier=((ParserRuleContext)((ParserRuleContext)ctx.getChild(i))).getText();
         switch(modifier){
         case "const":
@@ -337,7 +337,7 @@ public class CtoCOL extends AbstractCtoCOL implements CVisitor<ASTNode> {
           hre.System.Abort("unknown type modifier: %s",modifier);
         }
       } else  if (match((ParserRuleContext)ctx.getChild(i),"TypeSpecifier")){
-        hre.System.Warning("\"tspec:\" %s",ctx.getChild(i).toStringTree(parser));
+        hre.System.Debug("\"tspec:\" %s",ctx.getChild(i).toStringTree(parser));
         String modifier=((ParserRuleContext)((ParserRuleContext)ctx.getChild(i))).getText();
         switch(modifier){
         case "const":
@@ -505,7 +505,7 @@ public class CtoCOL extends AbstractCtoCOL implements CVisitor<ASTNode> {
 
   @Override
   public ASTNode visitExternalDeclaration(ExternalDeclarationContext ctx) {
-    Warning("external decl %s",ctx.toStringTree(parser));
+    Debug("external decl %s",ctx.toStringTree(parser));
     return null;
   }
 

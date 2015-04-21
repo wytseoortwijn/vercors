@@ -10,6 +10,7 @@ import vct.col.ast.ASTSpecial.Kind;
 import vct.col.ast.PrimitiveType.Sort;
 import vct.col.util.ASTUtils;
 import vct.col.ast.ParallelBlock.Mode;
+import vct.util.Configuration;
 import static vct.col.ast.ParallelBlock.Mode.*;
 
 
@@ -44,7 +45,7 @@ public class ParallelBlockEncoder extends AbstractRewriter {
     BlockStatement res=create.block();
     BlockStatement call_with=create.block();
     Hashtable<String,Type> main_vars=free_vars(pb);
-    Warning("free main vars: %s",main_vars);
+    Debug("free main vars: %s",main_vars);
     Hashtable<String,Type> check_vars=new Hashtable(main_vars);
     ContractBuilder main_cb=new ContractBuilder();
     ContractBuilder check_cb=new ContractBuilder();
@@ -155,7 +156,8 @@ public class ParallelBlockEncoder extends AbstractRewriter {
     BlockStatement res=rewrite(pb.body);
     if (res==null) res=create.block();
     
-    for(ASTNode clause:ASTUtils.conjuncts(pb.contract.pre_condition, StandardOperator.Star)){
+    res.prepend(create.special(ASTSpecial.Kind.Inhale,blocks.peek().inv));
+    for(ASTNode clause:ASTUtils.reverse(ASTUtils.conjuncts(pb.contract.pre_condition, StandardOperator.Star))){
       if (clause.getType().isBoolean()){
         clause=create.forall(copy_rw.rewrite(iters_guard_prime), sigma_prime.rewrite(clause) , iter_decls_prime);
       } else {
@@ -163,7 +165,9 @@ public class ParallelBlockEncoder extends AbstractRewriter {
       }
       res.prepend(create.special(ASTSpecial.Kind.Inhale,clause));
     }
-    for(ASTNode clause:ASTUtils.conjuncts(pb.contract.post_condition, StandardOperator.Star)){
+    
+    res.append(create.special(ASTSpecial.Kind.Exhale,blocks.peek().inv));
+    for(ASTNode clause:ASTUtils.reverse(ASTUtils.conjuncts(pb.contract.post_condition, StandardOperator.Star))){
       if (clause.getType().isBoolean()){
         clause=create.forall(copy_rw.rewrite(iters_guard_prime), sigma_prime.rewrite(clause) , iter_decls_prime);
       } else {
@@ -171,9 +175,7 @@ public class ParallelBlockEncoder extends AbstractRewriter {
       }
       res.append(create.special(ASTSpecial.Kind.Exhale,clause));
     }
-
-    res.prepend(create.special(ASTSpecial.Kind.Inhale,blocks.peek().inv));
-    res.append(create.special(ASTSpecial.Kind.Exhale,blocks.peek().inv));
+    
     result=res;
   }
   @Override

@@ -81,7 +81,7 @@ public class IterationContractEncoder extends AbstractRewriter {
     super.enter(node);
     if (node.labels()>0){
       current_label=node.getLabel(0).getName();
-      Warning("current label is %s",current_label);
+      Debug("current label is %s",current_label);
     }
   }
   
@@ -859,11 +859,11 @@ public class IterationContractEncoder extends AbstractRewriter {
     for(int i=0;i<N;i++){
       ASTNode guard=s.getGuard(i);
       if (guard!=IfStatement.else_guard) guard=guard.apply(this);
-      Warning("pushing guard");
+      Debug("pushing guard");
       guard_stack.push(guard);
       ASTNode body=s.getStatement(i);
       body=body.apply(this);
-      Warning("popping guard");
+      Debug("popping guard");
       guard_stack.pop();
       res.addClause(guard,body);
     }

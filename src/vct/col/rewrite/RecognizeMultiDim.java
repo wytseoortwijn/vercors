@@ -54,7 +54,7 @@ public class RecognizeMultiDim extends AbstractRewriter {
       Type t=m.getArgType(i);
       ASTNode dims[]=get_dimensions(t);
       if (dims!=null){
-        Warning("Looks like %s is a multi-dimensional array",arg);
+        Debug("Looks like %s is a multi-dimensional array",arg);
         args[i]=create.field_decl(arg,create.primitive_type(
             Sort.Array,
             rewrite(get_basetype(t)),

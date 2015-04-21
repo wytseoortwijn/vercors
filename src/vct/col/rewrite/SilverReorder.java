@@ -12,7 +12,7 @@ public class SilverReorder extends AbstractRewriter {
   
   @Override
   public void visit(IfStatement s){
-    Warning("rewriting if");
+    Debug("rewriting if");
     BlockStatement tmp=main_block;
     main_block=currentBlock;
     super.visit(s);
@@ -23,7 +23,7 @@ public class SilverReorder extends AbstractRewriter {
   public void visit(DeclarationStatement d){
     super.visit(d);
     if (main_block!=null){
-      Warning("rewriting if: moving decl");
+      Debug("rewriting if: moving decl");
       main_block.prepend(result);
       result=null;
     }

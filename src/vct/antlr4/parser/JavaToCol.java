@@ -179,13 +179,13 @@ public class JavaToCol extends AbstractJavaToCol implements JavaVisitor<ASTNode>
     NameSpace ns;
     int ptr=0;
     if (match(0,true,ctx,"PackageDeclaration")) {
-      hre.System.Warning("has package");
+      hre.System.Debug("has package");
       ASTNode pkg=convert((ParserRuleContext)ctx.getChild(0),1);
       System.err.printf("pkg %s (%s)%n",Configuration.getDiagSyntax().print(pkg),pkg.getClass());
       ptr++;
       ns=create.namespace(to_name(pkg));
     } else {
-      hre.System.Warning("does not have package");
+      hre.System.Debug("does not have package");
       ns=create.namespace(NameSpace.NONAME);
     }
     while(match(ptr,true,ctx,"ImportDeclaration")){

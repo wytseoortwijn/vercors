@@ -18,7 +18,7 @@ public class RecognizeLoops extends AbstractRewriter {
       }
     }
     if (tmp instanceof DeclarationStatement) {
-      Warning("declaration found");
+      Debug("declaration found");
       DeclarationStatement decl=(DeclarationStatement)tmp;
       tmp=loop.getUpdateBlock();
       if (tmp instanceof BlockStatement){
@@ -28,10 +28,10 @@ public class RecognizeLoops extends AbstractRewriter {
         }
       }
       if (tmp.isa(StandardOperator.PostIncr)||tmp.isa(StandardOperator.PreIncr)){
-        Warning("increment found");
+        Debug("increment found");
         tmp=((OperatorExpression)tmp).getArg(0);
         if (tmp.isName(decl.name)){
-          Warning("match");
+          Debug("match");
           result=create.foreach(
               new DeclarationStatement[]{create.field_decl(decl.name,rewrite(decl.getType()))},
               create.expression(StandardOperator.And,

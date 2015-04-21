@@ -55,7 +55,7 @@ public class ClassConversion extends AbstractRewriter {
       Method.Kind kind;
       Type returns;
       if (m.kind==Method.Kind.Constructor){
-        Warning("constructor %s",m.name);
+        Debug("constructor %s",m.name);
         returns=create.class_type(cl.name);
         kind=Method.Kind.Plain;
       } else {

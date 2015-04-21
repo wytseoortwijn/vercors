@@ -2,6 +2,7 @@ package vct.col.util;
 
 import java.util.EnumSet;
 import java.util.ArrayList;
+import java.util.Stack;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import vct.col.ast.ASTNode;
@@ -64,5 +65,13 @@ public class ASTUtils {
     };
     clause.accept(scanner);
     return res.get();
+  }
+
+  public static Iterable<ASTNode> reverse(Iterable<ASTNode> conjuncts) {
+    ArrayList<ASTNode> res=new ArrayList();
+    for(ASTNode n:conjuncts){
+      res.add(0,n);
+    }
+    return res;
   }
 }

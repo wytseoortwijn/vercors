@@ -49,34 +49,34 @@ public class ColIParser implements vct.col.util.Parser {
 
     ProgramUnit pu=CtoCOL.convert(tree,file_name,tokens,parser);
     
-    System.err.println("after conversion");
-    Configuration.getDiagSyntax().print(System.err, pu);
+    //System.err.println("after conversion");
+    //Configuration.getDiagSyntax().print(System.err, pu);
     
     pu=new CommentRewriter(pu,new CMLCommentParser()).rewriteAll();
 
-    System.err.println("after comment processing");
-    Configuration.getDiagSyntax().print(System.err, pu);
+    //System.err.println("after comment processing");
+    //Configuration.getDiagSyntax().print(System.err, pu);
 
     pu=new FlattenVariableDeclarations(pu).rewriteAll();
 
-    System.err.println("after flatteing variable decls");
-    Configuration.getDiagSyntax().print(System.err, pu);
+    //System.err.println("after flatteing variable decls");
+    //Configuration.getDiagSyntax().print(System.err, pu);
 
     pu=new SpecificationCollector(pu).rewriteAll();
 
-    System.err.println("after collecting specifications");
-    Configuration.getDiagSyntax().print(System.err, pu);
+    //System.err.println("after collecting specifications");
+    //Configuration.getDiagSyntax().print(System.err, pu);
 
     pu=new VerCorsDesugar(pu).rewriteAll();
 
-    System.err.println("after desugaring specifications");
-    Configuration.getDiagSyntax().print(System.err, pu);
+    //System.err.println("after desugaring specifications");
+    //Configuration.getDiagSyntax().print(System.err, pu);
 
     // TODO: do not encode here, but at top level!
     pu=new EncodeAsClass(pu).rewriteAll();
 
-    System.err.println("after rewriting to Ref class");
-    Configuration.getDiagSyntax().print(System.err, pu);
+    //System.err.println("after rewriting to Ref class");
+    //Configuration.getDiagSyntax().print(System.err, pu);
 
     return pu;
   }
