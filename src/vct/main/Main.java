@@ -573,7 +573,7 @@ public class Main
       program.add(Parsers.parseFile(f.getPath()));
       cnt++;
     }
-    Progress("Parsed %d files in: %dms",cnt,System.currentTimeMillis() - startTime);
+    System.err.printf("Parsed %d file(s) in: %dms%n",cnt,System.currentTimeMillis() - startTime);
     if (boogie.get() || sequential_spec.get()) {
       program.setSpecificationFormat(SpecificationFormat.Sequential);
     }
