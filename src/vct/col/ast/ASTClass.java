@@ -9,6 +9,7 @@ import java.util.*;
 
 import javax.xml.transform.Source;
 
+import vct.col.ast.Method.Kind;
 import vct.col.rewrite.MultiSubstitution;
 import vct.col.util.DeclarationFilter;
 import vct.col.util.MethodFilter;
@@ -45,6 +46,8 @@ public class ASTClass extends ASTDeclaration implements ASTSequence<ASTClass> {
   
   /** contains the kind of class. */
   public final ClassKind kind;
+  /** contains the class parameter declarations. */
+  public final DeclarationStatement parameters[];
   /** contains the classes extended by this class */
   public final ClassType super_classes[];
   /** contains the interfaces(classes) implemented by this class */
@@ -82,6 +85,7 @@ public class ASTClass extends ASTDeclaration implements ASTSequence<ASTClass> {
     }
     super_classes=new ClassType[0];
     implemented_classes=new ClassType[0];
+    parameters=new DeclarationStatement[0];
   }
 
   /** Create a nested class. */
@@ -96,6 +100,7 @@ public class ASTClass extends ASTDeclaration implements ASTSequence<ASTClass> {
     }
     super_classes=new ClassType[0];
     implemented_classes=new ClassType[0];
+    parameters=new DeclarationStatement[0];
   }
   /** Return a static child, which is created if necessary. */
   public ASTClass getStaticClass(String name,ClassKind kind){
@@ -131,6 +136,7 @@ public class ASTClass extends ASTDeclaration implements ASTSequence<ASTClass> {
     }    
     super_classes=new ClassType[0];
     implemented_classes=new ClassType[0];
+    parameters=new DeclarationStatement[0];
   }
 
   public String getName(){
@@ -203,17 +209,18 @@ public class ASTClass extends ASTDeclaration implements ASTSequence<ASTClass> {
   }
   
   public ASTClass(String name,ClassKind kind){
-    this(name,kind,new ClassType[0],new ClassType[0]);
+    this(name,kind,new DeclarationStatement[0],new ClassType[0],new ClassType[0]);
   }
 
   /** Create a new class without putting it in a hierarchy. */
-  public ASTClass(String name,ClassKind kind,ClassType bases[],ClassType supports[]){
+  public ASTClass(String name,ClassKind kind,DeclarationStatement parameters[],ClassType bases[],ClassType supports[]){
     super(name);
     if (bases==null) Abort("super class array may not be null");
     if (supports==null) Abort("implemented array may not be null");
     this.kind=kind;
     super_classes=Arrays.copyOf(bases,bases.length);
     implemented_classes=Arrays.copyOf(supports,supports.length);
+    this.parameters=Arrays.copyOf(parameters,parameters.length);
   }
   
   
@@ -314,6 +321,9 @@ public class ASTClass extends ASTDeclaration implements ASTSequence<ASTClass> {
     if (recursive){
       for(ClassType parent:this.super_classes){
         ASTClass rp=root.find(parent);
+        if (rp==null){
+          hre.System.Fail("could not find %s",parent);
+        }
         m = rp.find(name,object_type,type);
         if (m != null) return m;
       }
@@ -464,6 +474,19 @@ public class ASTClass extends ASTDeclaration implements ASTSequence<ASTClass> {
   @Override
   public ASTNode get(int i) {
     return entries.get(i);
+  }
+  public boolean has_constructor(ProgramUnit context,Type[] c_args) {
+    outer:for(Method m:dynamicMethods()){
+      if (m.kind==Kind.Constructor && c_args.length==m.getArity()){
+        for(int i=0;i<c_args.length;i++){
+          if(!m.getArgType(i).supertypeof(context,c_args[i])){
+            continue outer;
+          }
+        }
+        return true;
+      }
+    }
+    return false;
   }
 }
 

@@ -364,6 +364,19 @@ public class JavaPrinter extends AbstractPrinter {
     default:
       Abort("unexpected class kind %s",cl.kind);
     }
+    if (cl.parameters.length>0){
+      String sep="<";
+      for(DeclarationStatement d:cl.parameters){
+        out.print(sep);
+        if(d.getType().isPrimitive(Sort.Class)){
+          out.print(d.name);
+        } else {
+          d.accept(this);
+        }
+        sep=",";
+      }
+      out.print(">");
+    }
     if (cl.super_classes.length>0) {
       out.printf("  extends %s",cl.super_classes[0]);
       for(int i=1;i<cl.super_classes.length;i++){
@@ -880,14 +893,22 @@ public class JavaPrinter extends AbstractPrinter {
         setExpr();
         out.printf("new ");
         args[0].accept(this);
-        out.printf("{");
+        if (args[0] instanceof ClassType){
+          out.printf("(");
+        } else {
+          out.printf("{");
+        }
         String sep="";
         for(int i=1;i<args.length;i++){
           out.printf("%s",sep);
           sep=",";
           args[i].accept(this);
         }
-        out.printf("}");
+        if (args[0] instanceof ClassType){
+          out.printf(")");
+        } else {
+          out.printf("}");
+        }
         break;
       }
       default:{

@@ -222,7 +222,7 @@ public class DynamicStaticInheritance extends AbstractRewriter {
       }
     } 
     String class_name=cl.getName();
-    ASTClass res=create.ast_class(class_name,cl.kind,new ClassType[0],new ClassType[0]);
+    ASTClass res=create.ast_class(class_name,cl.kind,rewrite(cl.parameters),new ClassType[0],new ClassType[0]);
     //should be function, but chalice messes up during printing.
     //res.add_dynamic(create.method_kind(Method.Kind.Pure,create.primitive_type(Sort.Boolean),null,"is_a_"+class_name,new DeclarationStatement[0],null));
     res.add_dynamic(create.predicate("is_a_"+class_name, null));

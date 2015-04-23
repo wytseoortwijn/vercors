@@ -148,9 +148,11 @@ public class JavaResolver extends AbstractRewriter {
       throw new HREError("nested name spaces are future work");
     }
     current_space=ns;
+    ns.imports.add(0,new NameSpace.Import(false,true,"java","lang"));
     ASTSequence seq=target();
     for(String part:ns.getDeclName().name){
-      ASTClass cl=create.ast_class(part,ClassKind.Plain,null,null);
+      if (part==NameSpace.NONAME) continue;
+      ASTClass cl=create.ast_class(part,ClassKind.Plain,null,null,null);
       cl.setFlag(ASTFlags.STATIC,true);
       seq.add(cl);
       seq=cl;

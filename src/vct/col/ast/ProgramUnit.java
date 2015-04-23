@@ -42,7 +42,7 @@ public class ProgramUnit implements ASTSequence<ProgramUnit> {
   static {
     ASTFactory create=new ASTFactory();
     create.setOrigin(new MessageOrigin("<<ProgramUnit>>"));
-    ASTClass seq=create.ast_class("seq", ClassKind.Plain, null, null);
+    ASTClass seq=create.ast_class("seq", ClassKind.Plain, null,null, null);
     Method len=create.function_decl(create.primitive_type(PrimitiveType.Sort.Integer), null, "length", new DeclarationStatement[0], null);
     seq.add_dynamic(len);
     library.put(new ClassName("seq"),seq);

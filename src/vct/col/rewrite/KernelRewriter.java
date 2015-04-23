@@ -246,7 +246,7 @@ public class KernelRewriter extends AbstractRewriter {
         base_inv.add(create.expression(StandardOperator.GT,create.local_name("tcount"),
             create.expression(StandardOperator.Mult,create.local_name("gid"),create.local_name("gsize"))));
       }
-      ASTClass res=create.ast_class(cl.getName(), ASTClass.ClassKind.Plain, null, null);
+      ASTClass res=create.ast_class(cl.getName(), ASTClass.ClassKind.Plain,null, null, null);
       for (DeclarationStatement global:cl.staticFields()){
         globals.add(global.getName());
         kernel_main_invariant.add(create.expression(StandardOperator.Value,create.field_name(global.getName())));

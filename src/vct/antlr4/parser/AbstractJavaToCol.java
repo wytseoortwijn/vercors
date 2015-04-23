@@ -168,12 +168,23 @@ public class AbstractJavaToCol extends ANTLRtoCOL {
         } else {
           args=new ASTNode[0];
         }
-        MethodInvokation res=create.new_object(type/*create.class_type(name)*/, args);
+        OperatorExpression res=create.new_object(type/*create.class_type(name)*/, args);
         scan_comments_after(res.get_before(),ctx.getChild(0));
         scan_comments_after(res.get_after(),ctx);
         return res;
       }
       Debug("no arguments");
+    }
+    if (match(ctx,null,"ArrayCreatorRest")){
+      Type basetype=checkType(convert(ctx,0));
+      ParserRuleContext rest_ctx=(ParserRuleContext)ctx.getChild(1);
+      if (match(rest_ctx,"[",null,"]")){
+        return create.expression(StandardOperator.NewArray,basetype,convert(rest_ctx,1));
+      }
+      if (match(rest_ctx,"[","]","ArrayInitializer")){
+        ASTNode vals[]=convert_list((ParserRuleContext)rest_ctx.getChild(2), "{", ",", "}");
+        return create.expression(StandardOperator.Build,create.primitive_type(Sort.Array,basetype),vals);
+      }
     }
     Debug("no class creator");
     return null;
@@ -455,6 +466,7 @@ public class AbstractJavaToCol extends ANTLRtoCOL {
     ClassType[]bases=null;
     ClassType[]supports=null;
     ContractBuilder cb=new ContractBuilder();
+    DeclarationStatement parameters[]=null;
     //Warning("class decl %s",ctx.toStringTree(parser));
     for(int i=2;i<N;i++){
       //Warning("i==%d",i);
@@ -464,26 +476,29 @@ public class AbstractJavaToCol extends ANTLRtoCOL {
       } else if (match(i,true,ctx,"TypeParametersContext")){
         ParserRuleContext pars=(ParserRuleContext)ctx.getChild(i);
         int K=pars.getChildCount();
+        parameters=new DeclarationStatement[K/2];
         for(int k=1;k<K;k+=2){
-          doParameter(cb,pars.getChild(k));
+          parameters[k/2]=doParameter(cb,pars.getChild(k));
         }
       } else {
         return null;
       }
     }
-    ASTClass cl=create.ast_class(getIdentifier(ctx,1), ASTClass.ClassKind.Plain, bases , supports );
+    ASTClass cl=create.ast_class(getIdentifier(ctx,1), ASTClass.ClassKind.Plain,parameters, bases , supports );
     scan_body(cl,(ClassBodyContext)ctx.getChild(N));
     cl.setContract(cb.getContract());
     return cl;
   }
 
-  private void doParameter(ContractBuilder cb, ParseTree tree) {
+  private DeclarationStatement doParameter(ContractBuilder cb, ParseTree tree) {
+    DeclarationStatement decl=null;
     enter(tree);
     Debug("converting type parameter %s",tree.toStringTree(parser));
     if (tree instanceof ParserRuleContext) {
       ParserRuleContext ctx=(ParserRuleContext)tree;
       if (instance(ctx,"TypeParameter")){
-        cb.given(create.field_decl(getIdentifier(ctx,0),create.primitive_type(Sort.Class)));
+        decl=create.field_decl(getIdentifier(ctx,0),create.primitive_type(Sort.Class));
+        decl.setGhost(false);
       //} else if (match(ctx,"")){
         
       } else {
@@ -493,6 +508,7 @@ public class AbstractJavaToCol extends ANTLRtoCOL {
       Abort("missing case");
     }
     leave(tree,null);
+    return decl;
   }
 
 }

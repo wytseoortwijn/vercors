@@ -42,7 +42,7 @@ public class ClassConversion extends AbstractRewriter {
   }
   @Override
   public void visit(ASTClass cl){
-    ASTClass res=create.ast_class(cl.name, ASTClass.ClassKind.Record, null, null);
+    ASTClass res=create.ast_class(cl.name, ASTClass.ClassKind.Record,null, null, null);
     if (cl.getStaticCount()>0){
       Fail("class conversion cannot be used for static entries yet.");
     }

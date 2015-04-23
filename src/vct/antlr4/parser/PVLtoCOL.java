@@ -96,7 +96,7 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
       c=(Contract)convert(ctx,0);
     }
     String name=getIdentifier(ctx,2);
-    ASTClass cl=create.ast_class(name,ClassKind.Plain,null,null);
+    ASTClass cl=create.ast_class(name,ClassKind.Plain,null,null,null);
     for(int i=4;i<ctx.children.size()-1;i++){
       ASTNode node=convert(ctx.children.get(i));
       if (node.isValidFlag(ASTNode.STATIC) && node.isStatic()){
@@ -372,7 +372,7 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
   @Override
   public ASTNode visitKernel(KernelContext ctx) {
     String name=getIdentifier(ctx,1);
-    ASTClass cl=create.ast_class(name,ClassKind.Kernel,null,null);
+    ASTClass cl=create.ast_class(name,ClassKind.Kernel,null,null,null);
     for(int i=3;i<ctx.children.size()-1;i++){
       ASTNode tmp=convert(ctx.children.get(i));
       if (tmp.isStatic()){

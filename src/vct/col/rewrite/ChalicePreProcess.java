@@ -35,7 +35,7 @@ public class ChalicePreProcess extends AbstractRewriter {
     ProgramUnit res=super.rewriteAll();
     for(Entry<Type,String> entry : cell_types.entrySet()){
       create.setOrigin(new MessageOrigin("added by ChalicePreProcess"));
-      ASTClass cl=create.ast_class(entry.getValue(), ASTClass.ClassKind.Plain , null,null);
+      ASTClass cl=create.ast_class(entry.getValue(), ASTClass.ClassKind.Plain ,null, null,null);
       cl.add_dynamic(create.field_decl("item",entry.getKey()));
       res.add(cl);
     }

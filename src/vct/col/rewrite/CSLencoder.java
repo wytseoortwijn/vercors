@@ -16,7 +16,7 @@ public class CSLencoder extends AbstractRewriter {
   public void visit(ASTClass cl){
     String name=cl.getName();
     if (name.startsWith("Atomic")){
-      ASTClass res=create.ast_class(name, ASTClass.ClassKind.Plain, null,null);
+      ASTClass res=create.ast_class(name, ASTClass.ClassKind.Plain,null, null,null);
       for(DeclarationStatement decl:cl.dynamicFields()){
         res.add_dynamic(rewrite(decl));
       }

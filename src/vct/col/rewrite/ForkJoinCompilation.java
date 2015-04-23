@@ -15,7 +15,7 @@ public class ForkJoinCompilation extends AbstractRewriter {
 	public ForkJoinCompilation(ProgramUnit arg) {
 	  super(arg);
 	  create.enter();
-    ASTClass global_class=create(new MessageOrigin("fork join class")).ast_class("ForkJoinBase",ClassKind.Plain,null,null);
+    ASTClass global_class=create(new MessageOrigin("fork join class")).ast_class("ForkJoinBase",ClassKind.Plain,null,null,null);
     target().add(global_class);
     global_class.add_dynamic(create.method_decl(
     		create.primitive_type(Sort.Void),
@@ -37,6 +37,7 @@ public class ForkJoinCompilation extends AbstractRewriter {
 	@Override
 	public void visit(ASTClass cl){
 		currentClass=create.ast_class(cl.name, cl.kind,
+		    rewrite(cl.parameters),
 				new ClassType[]{create.class_type("ForkJoinBase")} , null);
 		for (ASTNode item:cl){
 			currentClass.add(rewrite(item));

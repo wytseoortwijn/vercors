@@ -932,15 +932,32 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       }
       Type t=(Type)args[0];
       e.setType(t);
-      t=(Type)t.getArg(0);
-      for(int i=1;i<args.length;i++){
-        t2=args[i].getType();
-        if (t2==null){
-          Abort("untyped build argument %d",i);
+      if (t instanceof ClassType){
+        ASTClass cl=source().find(((ClassType) t).getNameFull());
+        if (cl==null){
+          Fail("class %s not found",t);
         }
-        if (t.equals(t2)) continue;
-        if (t.supertypeof(source(), t2)) continue;
-        Abort("cannot use %s to initialize %s",t2,t);
+        Type c_args[]=new Type[args.length-1];
+        for(int i=1;i<args.length;i++){
+          c_args[i-1]=args[i].getType();
+          if(c_args[i-1]==null){
+            Fail("argument %d is not typed",i-1);
+          }
+        }
+        if (!cl.has_constructor(source(),c_args)){
+          Fail("Could not find constructor");
+        }
+      } else {
+        t=(Type)t.getArg(0);
+        for(int i=1;i<args.length;i++){
+          t2=args[i].getType();
+          if (t2==null){
+            Abort("untyped build argument %d",i);
+          }
+          if (t.equals(t2)) continue;
+          if (t.supertypeof(source(), t2)) continue;
+          Abort("cannot use %s to initialize %s",t2,t);
+        }
       }
       break;
     }

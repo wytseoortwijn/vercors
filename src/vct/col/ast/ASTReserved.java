@@ -55,5 +55,9 @@ public enum ASTReserved {
   /**
    * Full Write Permission
    */
-  NoPerm
+  NoPerm,
+  /**
+   * The new keyword is used to distinguish constructor calls from method calls.
+   */
+  New
 }

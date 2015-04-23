@@ -27,7 +27,7 @@ public class InheritanceRewriter extends AbstractRewriter {
   
   @Override
   public void visit(ASTClass cl){
-    ASTClass res=create.ast_class(cl.name, cl.kind, new ClassType[0], new ClassType[0]);
+    ASTClass res=create.ast_class(cl.name, cl.kind,rewrite(cl.parameters), new ClassType[0], new ClassType[0]);
     switch(cl.super_classes.length){
       case 0:
         super_class=null;

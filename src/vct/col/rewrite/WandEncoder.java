@@ -164,7 +164,7 @@ public class WandEncoder extends AbstractRewriter {
 	  defined_wand_classes.put(name,def);
 	  create.enter();
 	  create.setOrigin(new MessageOrigin("generated class "+name));
-	  ASTClass cl=create.ast_class(name,ASTClass.ClassKind.Plain,null,null);
+	  ASTClass cl=create.ast_class(name,ASTClass.ClassKind.Plain,null,null,null);
 	  def.cl=cl;
 	      
 	  cl.add_dynamic(create.field_decl("lemma",create.primitive_type(Sort.Integer)));

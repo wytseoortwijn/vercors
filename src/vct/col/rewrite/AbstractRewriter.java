@@ -316,7 +316,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
       Abort("illegal class without name");
     } else {
       Debug("rewriting class "+name);
-      ASTClass res=new ASTClass(name,c.kind,c.super_classes,c.implemented_classes);
+      ASTClass res=new ASTClass(name,c.kind,rewrite(c.parameters),rewrite(c.super_classes),rewrite(c.implemented_classes));
       res.setOrigin(c.getOrigin());
       currentClass=res;
       Contract contract=c.getContract();

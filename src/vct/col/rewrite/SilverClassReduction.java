@@ -24,7 +24,7 @@ public class SilverClassReduction extends AbstractRewriter {
   public SilverClassReduction(ProgramUnit source) {
     super(source);
     create.setOrigin(new MessageOrigin("collected class Ref"));
-    ref_class=create.ast_class("Ref", ASTClass.ClassKind.Record, null, null);
+    ref_class=create.ast_class("Ref", ASTClass.ClassKind.Record,null, null, null);
     target().add(ref_class);
   }
 

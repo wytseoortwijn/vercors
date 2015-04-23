@@ -72,10 +72,10 @@ public class ASTFactory<E> implements FrameControl {
   /**
    * Create a new abstract class.
    */
-  public ASTClass abstract_class(String name,ClassType super_class,ClassType ... supports) {
+  public ASTClass abstract_class(String name,DeclarationStatement parameters[],ClassType super_class,ClassType ... supports) {
     ClassType bases[]={super_class};
     if (super_class==null) bases=null;
-    return ast_class(name,ClassKind.Abstract,bases,supports);
+    return ast_class(name,ClassKind.Abstract,parameters,bases,supports);
   }
   
   public void addRandomConstructor(ASTClass cl){
@@ -169,10 +169,11 @@ public class ASTFactory<E> implements FrameControl {
   /**
    * Create a new class.
    */
-  public ASTClass ast_class(String name,ClassKind kind,ClassType bases[],ClassType supports[]) {
+  public ASTClass ast_class(String name,ClassKind kind,DeclarationStatement parameters[],ClassType bases[],ClassType supports[]) {
     if (bases==null) bases=new ClassType[0];
     if (supports==null) supports=new ClassType[0];
-    ASTClass res=new ASTClass(name,kind,bases,supports);
+    if (parameters==null) parameters=new DeclarationStatement[0];
+    ASTClass res=new ASTClass(name,kind,parameters,bases,supports);
     res.setOrigin(origin_stack.get());
     res.accept_if(post);
     return res;    
@@ -656,24 +657,18 @@ public BlockStatement block(Origin origin, ASTNode ... args) {
   /**
    * Create a new plain class.
    */
-  public ASTClass new_class(String name,ClassType super_class,ClassType ... supports) {
+  public ASTClass new_class(String name,DeclarationStatement parameters[],ClassType super_class,ClassType ... supports) {
     ClassType bases[]={super_class};
     if (super_class==null) bases=null;
-    return ast_class(name,ClassKind.Plain,bases,supports);
+    return ast_class(name,ClassKind.Plain,parameters,bases,supports);
   }
    
   
   /**
    * Create an instantiation of a new object.
    */
-  public MethodInvokation new_object(Type type,ASTNode ... args){
-    String name=null;
-    if (type instanceof ClassType){
-      name=((ClassType)type).getName();
-    } else {
-      Fail("cannot instantiate type %s",type);
-    }
-    return invokation(type, null, name , args);
+  public OperatorExpression new_object(Type type,ASTNode ... args){
+    return expression(StandardOperator.Build,type,args);
   }
   
   /**
@@ -990,7 +985,7 @@ public Axiom axiom(String name,ASTNode exp){
   return res;
 }
 
-  public ASTNode expression(StandardOperator op, ASTNode arg0, ASTNode [] args){
+  public OperatorExpression expression(StandardOperator op, ASTNode arg0, ASTNode [] args){
     ASTNode all_args[]=new ASTNode[args.length+1];
     all_args[0]=arg0;
     for(int i=0;i<args.length;i++){

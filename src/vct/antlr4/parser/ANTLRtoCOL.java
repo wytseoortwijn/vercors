@@ -653,6 +653,7 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
           cb.ensures(convert(clause,1));
         } else if (match(clause,"given",null,";")){
           ASTNode decl=convert(clause,1);
+          decl.setGhost(true);
           if (decl instanceof DeclarationStatement){
             cb.given((DeclarationStatement)convert(clause,1));
           } else if (decl instanceof VariableDeclaration){

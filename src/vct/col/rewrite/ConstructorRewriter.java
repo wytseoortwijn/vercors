@@ -1,17 +1,6 @@
 package vct.col.rewrite;
 
-import vct.col.ast.ASTClass;
-import vct.col.ast.ASTNode;
-import vct.col.ast.AssignmentStatement;
-import vct.col.ast.Contract;
-import vct.col.ast.ContractBuilder;
-import vct.col.ast.DeclarationStatement;
-import vct.col.ast.Method;
-import vct.col.ast.MethodInvokation;
-import vct.col.ast.NameExpression;
-import vct.col.ast.PrimitiveType;
-import vct.col.ast.ProgramUnit;
-import vct.col.ast.StandardOperator;
+import vct.col.ast.*;
 import static hre.System.*;
 
 public class ConstructorRewriter extends AbstractRewriter {
@@ -30,6 +19,25 @@ public class ConstructorRewriter extends AbstractRewriter {
   }
   
   public void visit(AssignmentStatement e){
+    if (e.getExpression().isa(StandardOperator.Build) && (((OperatorExpression)e.getExpression()).getArg(0) instanceof ClassType)){
+      OperatorExpression i=(OperatorExpression)e.getExpression();
+      ASTNode s1=create.assignment(rewrite(e.getLocation()),create.expression(StandardOperator.New,rewrite(i.getType())));
+      ASTNode args[]=i.getArguments();
+      ASTNode rw_args[]=new ASTNode[args.length-1];
+      for(int j=0;j<rw_args.length;j++){
+        rw_args[j]=rewrite(args[j+1]);
+      }
+      MethodInvokation s2=create.invokation(rewrite(e.getLocation()),null,args[0].toString()+"_init",rw_args);
+      if (i.get_before().size()>0) {
+        s2.set_before(rewrite(i.get_before()));
+      }
+      if (i.get_after().size()>0) {
+        s2.set_after(rewrite(i.get_after()));
+      }
+      copy_labels(s2,e.getExpression());
+      result=create.block(s1,s2);
+      return;
+    }
     if (e.getExpression() instanceof MethodInvokation){
       MethodInvokation i=(MethodInvokation)e.getExpression();
       if (i.getDefinition().kind==Method.Kind.Constructor) {

@@ -41,7 +41,7 @@ public abstract class GlobalizeStatics extends AbstractRewriter {
   
   public GlobalizeStatics(ProgramUnit source) {
     super(source);
-    global_class=create(new MessageOrigin("filtered globals")).ast_class("Global",ClassKind.Plain,null,null);
+    global_class=create(new MessageOrigin("filtered globals")).ast_class("Global",ClassKind.Plain,null,null,null);
     target().add(global_class);
   }
 
@@ -53,7 +53,7 @@ public abstract class GlobalizeStatics extends AbstractRewriter {
     switch(cl.kind){
     case Plain:{
       int N;
-      ASTClass res=create.ast_class(cl.name,ClassKind.Plain,null,null);
+      ASTClass res=create.ast_class(cl.name,ClassKind.Plain,null,null,null);
       N=cl.getStaticCount();
       prefix=new ClassName(cl.getFullName()).toString("_");
       processing_static=true;

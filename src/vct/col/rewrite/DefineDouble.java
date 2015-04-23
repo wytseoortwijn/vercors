@@ -28,7 +28,7 @@ public class DefineDouble {
     final ASTFactory create=new ASTFactory();
     Origin origin=new MessageOrigin("Generated during fake double pass");
     create.setOrigin(origin);
-    ASTClass Double=create.abstract_class("Double",null);
+    ASTClass Double=create.abstract_class("Double",null,null);
     ClassType type=create.class_type(double_name);
     DeclarationStatement binary[]=new DeclarationStatement[2];
     binary[0]=create.field_decl("x",type);

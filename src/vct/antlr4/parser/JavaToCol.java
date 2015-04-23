@@ -207,8 +207,6 @@ public class JavaToCol extends AbstractJavaToCol implements JavaVisitor<ASTNode>
       }
       ptr++;
     }
-    // temporary measure: if no package or imports used then do not use a name space 
-    if (ptr==0) return null;
     scan_to(ns, ctx, ptr, ctx.getChildCount());
     return ns;
   }

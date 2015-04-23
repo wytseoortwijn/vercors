@@ -252,7 +252,7 @@ public class RewriteArrayRef extends AbstractRewriter {
     ASTClass ref=res.find("Ref");
     create.setOrigin(new MessageOrigin("Rewrite arrays to sequences"));
     if (ref==null){
-      ref=create.ast_class("Ref",ASTClass.ClassKind.Plain,null,null);
+      ref=create.ast_class("Ref",ASTClass.ClassKind.Plain,null,null,null);
       ref.add_dynamic(create.field_decl("Integer_value",create.primitive_type(Sort.Integer)));
       res.add(ref);
     }

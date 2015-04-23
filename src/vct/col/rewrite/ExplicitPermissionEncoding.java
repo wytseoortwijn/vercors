@@ -384,7 +384,7 @@ class PredicateClassGenerator extends AbstractRewriter {
     class_name=((ASTClass)m.getParent()).getName();
     pred_name=m.getName();
     String pred_class_name=class_name+"_"+pred_name;
-    pred_class=create.ast_class(pred_class_name,ClassKind.Plain,null,null);
+    pred_class=create.ast_class(pred_class_name,ClassKind.Plain,null,null,null);
     String tmp[]=((ASTClass)m.getParent()).getFullName();
     Type class_type=create.class_type(tmp);
     tmp[tmp.length-1]=pred_class_name;
