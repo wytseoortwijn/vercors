@@ -126,7 +126,7 @@ public class BoogieFOL {
     
     AbstractRewriter copy_rw=new AbstractRewriter((ProgramUnit)null);
     
-    ASTClass program=create.ast_class("dummy",ClassKind.Plain,null,null);
+    ASTClass program=create.ast_class("dummy",ClassKind.Plain,null,null,null);
     for (ASTNode n:args){
       program.add_static(n.apply(copy_rw));
     }
