@@ -34,6 +34,9 @@ public class ClassName {
     return true;
   }
 
+  public String toString() {
+    return toString(".");
+  }
   public String toString(String separator) {
     StringBuilder builder=new StringBuilder();
     builder.append(name[0]);

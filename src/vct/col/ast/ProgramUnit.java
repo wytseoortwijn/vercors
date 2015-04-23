@@ -50,6 +50,10 @@ public class ProgramUnit implements ASTSequence<ProgramUnit> {
     
   }
 
+  public void library_add(ClassName name,ASTClass cl){
+    library.put(name,cl);
+  }
+
   /**
    * A program is made up of declarations.
    */
@@ -187,6 +191,12 @@ public class ProgramUnit implements ASTSequence<ProgramUnit> {
 
   public ASTClass find(ClassName name) {
     ASTClass cl=classes.get(name);
+    if (cl==null && name.name.length>1){
+      ASTClass base=find(name.name[0]);
+      if (base!=null){
+        cl=base.find(name.name,1);
+      }
+    }
     if (cl==null){
       cl=library.get(name);
     }
@@ -213,7 +223,11 @@ public class ProgramUnit implements ASTSequence<ProgramUnit> {
 
   public ASTDeclaration find_decl(String[] nameFull) {
     ClassName class_name=new ClassName(nameFull);
-    return decl_map.get(class_name);
+    ASTDeclaration res=decl_map.get(class_name);
+    if (res==null){
+      res=library.get(class_name);
+    }
+    return res;
   }
   
   public Method find_adt(String ... nameFull) {
@@ -249,5 +263,20 @@ public class ProgramUnit implements ASTSequence<ProgramUnit> {
     for(ASTDeclaration decl:unit.get()){
       add(decl);
     }
+  }
+
+  public void index_classes(ASTSequence seq){
+    for(Object n:seq){
+      if(n instanceof ASTClass){
+        ASTClass cl=(ASTClass)n;
+        Debug("indexing class %s",cl.getDeclName());
+        classes.put(cl.getDeclName(),cl);
+        index_classes(cl);
+      }
+    }
+  }
+  
+  public void index_classes(){
+    index_classes(this);
   }
 }

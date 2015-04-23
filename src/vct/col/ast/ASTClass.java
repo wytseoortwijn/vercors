@@ -253,7 +253,7 @@ public class ASTClass extends ASTDeclaration implements ASTSequence<ASTClass> {
   /** 
    * Auxiliary function for class lookup.
    */
-  private ASTClass find(String[] name,int pos) {
+  ASTClass find(String[] name,int pos) {
     for(ASTNode n:entries){
       if (n instanceof ASTClass){
         ASTClass c=(ASTClass)n;

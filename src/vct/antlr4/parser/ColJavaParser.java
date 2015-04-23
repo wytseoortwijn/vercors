@@ -57,6 +57,8 @@ public class ColJavaParser implements vct.col.util.Parser {
         pu=new JavaPostProcessor(pu).rewriteAll();
         //vct.util.Configuration.getDiagSyntax().print(System.out,pu);
         pu=new AnnotationInterpreter(pu).rewriteAll();
+        vct.util.Configuration.getDiagSyntax().print(System.out,pu);
+        pu=new JavaResolver(pu).rewriteAll();
         //vct.util.Configuration.getDiagSyntax().print(System.out,pu);
         return pu;
       } catch (FileNotFoundException e) {

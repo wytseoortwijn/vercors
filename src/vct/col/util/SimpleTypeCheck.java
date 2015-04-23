@@ -58,6 +58,9 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     }
     ASTDeclaration decl=source().find_decl(t.getNameFull());
     if (decl==null){
+      decl=source().find(t.getNameFull());
+    }
+    if (decl==null){
       Fail("type error: defined type "+t.getFullName()+" not found");
     }
     if (decl instanceof AxiomaticDataType){

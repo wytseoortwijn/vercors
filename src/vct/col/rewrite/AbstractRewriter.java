@@ -547,6 +547,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
           target().add(tmp);
         }
     }
+    target().index_classes();
     return target();
   }
 
