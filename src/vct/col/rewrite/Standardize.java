@@ -30,7 +30,7 @@ import static hre.System.Debug;
 public class Standardize extends AbstractRewriter {
 
   public Standardize(ProgramUnit source) {
-    super(source);
+    super(source,true);
   }
 
   /*

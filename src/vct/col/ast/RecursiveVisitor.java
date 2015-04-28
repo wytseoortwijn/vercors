@@ -10,11 +10,19 @@ public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
   }
 
   public RecursiveVisitor(ProgramUnit source) {
-    super(source);
+    super(source,false);
     // TODO Auto-generated constructor stub
   }
   public RecursiveVisitor(ProgramUnit source, ProgramUnit target) {
-    super(source, target);
+    super(source, target,false);
+    // TODO Auto-generated constructor stub
+  }
+  public RecursiveVisitor(ProgramUnit source,boolean do_scope) {
+    super(source,do_scope);
+    // TODO Auto-generated constructor stub
+  }
+  public RecursiveVisitor(ProgramUnit source, ProgramUnit target,boolean do_scope) {
+    super(source, target,do_scope);
     // TODO Auto-generated constructor stub
   }
 

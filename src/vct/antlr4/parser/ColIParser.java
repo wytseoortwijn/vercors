@@ -35,46 +35,44 @@ import vct.col.rewrite.VerCorsDesugar;
 public class ColIParser implements vct.col.util.Parser {
 
   protected ProgramUnit parse(String file_name,InputStream stream) throws IOException{
+    TimeKeeper tk=new TimeKeeper();
+
     ANTLRInputStream input = new ANTLRInputStream(stream);
-    
     CLexer lexer = new CLexer(input);
-    
     CommonTokenStream tokens = new CommonTokenStream(lexer);
-    
     CParser parser = new CParser(tokens);
-    
     ParseTree tree = parser.compilationUnit();
-    
+    Progress("first parsing pass took %dms",tk.show());
     Debug("parser got: %s",tree.toStringTree(parser));
 
     ProgramUnit pu=CtoCOL.convert(tree,file_name,tokens,parser);
-    
+    Progress("AST conversion took %dms",tk.show());
     //System.err.println("after conversion");
     //Configuration.getDiagSyntax().print(System.err, pu);
     
     pu=new CommentRewriter(pu,new CMLCommentParser()).rewriteAll();
-
+    Progress("Specification parsing took %dms",tk.show());
     //System.err.println("after comment processing");
     //Configuration.getDiagSyntax().print(System.err, pu);
 
     pu=new FlattenVariableDeclarations(pu).rewriteAll();
-
+    Progress("Flattening variables took %dms",tk.show());
     //System.err.println("after flatteing variable decls");
     //Configuration.getDiagSyntax().print(System.err, pu);
 
     pu=new SpecificationCollector(pu).rewriteAll();
-
+    Progress("Shuffling specifications took %dms",tk.show());    
     //System.err.println("after collecting specifications");
     //Configuration.getDiagSyntax().print(System.err, pu);
 
     pu=new VerCorsDesugar(pu).rewriteAll();
-
+    Progress("Desugaring took %dms",tk.show());    
     //System.err.println("after desugaring specifications");
     //Configuration.getDiagSyntax().print(System.err, pu);
 
     // TODO: do not encode here, but at top level!
     pu=new EncodeAsClass(pu).rewriteAll();
-
+    Progress("Encoding as class took %dms",tk.show());    
     //System.err.println("after rewriting to Ref class");
     //Configuration.getDiagSyntax().print(System.err, pu);
 

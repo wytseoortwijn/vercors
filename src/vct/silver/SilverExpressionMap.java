@@ -43,7 +43,16 @@ public class SilverExpressionMap<T,E,Decl> implements ASTMapping<E>{
   @Override
   public E map(ConstantExpression e) {
     if (e.value instanceof IntegerValue){
-      return create.Constant(e.getOrigin(),((IntegerValue)e.value).value);
+      int v=((IntegerValue)e.value).value;
+      if (e.getType().isPrimitive(Sort.Fraction)){
+        switch(v){
+          case 0 : return create.no_perm(e.getOrigin());
+          case 1 : return create.write_perm(e.getOrigin());
+          default: throw new HREError("%d is not a valid fraction is Silver",v);
+        }
+      } else {
+        return create.Constant(e.getOrigin(),v);
+      }
     } else if (e.value instanceof BooleanValue) {
       return create.Constant(e.getOrigin(),((BooleanValue)e.value).value);
     } else {

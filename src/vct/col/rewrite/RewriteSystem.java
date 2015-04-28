@@ -224,9 +224,10 @@ class MatchLinear implements ASTMapping1<Boolean,ASTNode> {
   }
 
   @Override
-  public Boolean map(Dereference e, ASTNode a) {
-    // TODO Auto-generated method stub
-    return null;
+  public Boolean map(Dereference e1, ASTNode a) {
+    if (!(a instanceof Dereference)) return false;
+    Dereference e2=(Dereference)a;
+    return e1.field.equals(e2.field) && e1.object.apply(this,e2.object);
   }
 
   @Override

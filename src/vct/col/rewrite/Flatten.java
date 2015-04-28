@@ -167,27 +167,15 @@ public class Flatten extends AbstractRewriter {
   
   @Override
   public void visit(AssignmentStatement s) {
-    if (//s.getLocation().getType().equals(ClassType.label_type)||
-        s.getExpression().getType().equals(ClassType.label_type)){
+    //if (//s.getLocation().getType().equals(ClassType.label_type)||
+    //    s.getExpression().getType().equals(ClassType.label_type)){
       ASTNode loc=s.getLocation().apply(this);
       ASTNode val=s.getExpression().apply(this);
       result=create.assignment(loc,val);
-      return;
+    /*  return;
     }
     ASTNode loc=s.getLocation().apply(this);
-    ASTNode val=s.getExpression();
-    if (val instanceof NameExpression){
-      NameExpression e=(NameExpression)val;
-      if (e.getSite() instanceof ASTClass){
-        val=add_as_var(val);
-      } else {
-        val=rewrite(val);
-      }
-    } else if (val instanceof ConstantExpression) {
-      val=rewrite(val);
-    } else {
-      val=add_as_var(val);
-    }
+    ASTNode val=rewrite(s.getExpression());
     if (loc instanceof Dereference){
       Dereference d=(Dereference)loc;
       if (d.field.equals("item")){
@@ -213,6 +201,7 @@ public class Flatten extends AbstractRewriter {
       }
     }
     result=create.assignment(loc,val);
+    */
   }
 
   private ASTNode add_as_var(ASTNode e){
@@ -345,18 +334,17 @@ public class Flatten extends AbstractRewriter {
     result=res; return ;
   }
 
+  private boolean simple_expression(ASTNode n){
+    return (n instanceof NameExpression)||(n instanceof ClassType);
+  }
+  
   @Override
   public void visit(Dereference e){
-    if (e.object instanceof OperatorExpression
-        && ((OperatorExpression)e.object).getOperator()==StandardOperator.Subscript
-    ){
-      ASTNode obj=e.object.apply(this);
-      String name="__flatten_"+(++counter);
-      declaration_block.add_statement(create.field_decl(name,e.object.getType(),null));
-      current_block.add_statement(create.assignment(create.local_name(name),obj));
-      result=create.dereference(create.local_name(name),e.field);
-    } else {
+    if (simple_expression(e.object)){
       super.visit(e);
+    } else {
+      ASTNode obj=add_as_var(e.object);
+      result=create.dereference(obj,e.field);
     }
   }
 }

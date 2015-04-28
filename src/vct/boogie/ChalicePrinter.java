@@ -8,6 +8,7 @@ import hre.ast.TrackingOutput;
 import vct.col.ast.*;
 import vct.col.ast.PrimitiveType.Sort;
 import vct.col.util.ASTUtils;
+import vct.util.Configuration;
 import static hre.System.Abort;
 import static hre.System.Debug;
 import static hre.System.Fail;
@@ -367,6 +368,13 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
   
   public void visit(OperatorExpression e){
     switch(e.getOperator()){
+    case Subscript:{
+      e.getArg(0).apply(this);
+      out.print("[");
+      e.getArg(1).apply(this);
+      out.print("]");
+      break;
+    }
     case Refute:{
       uses_refute=true;
       refutes.add(e.getOrigin());
@@ -475,8 +483,10 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
           out.print("))");
        } else {
           out.print("acc(");
+          current_precedence=0;
           a0.accept(this);
           out.print(",");
+          current_precedence=0;
           a1.accept(this);
           out.print(")");
         }

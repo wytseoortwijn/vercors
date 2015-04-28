@@ -4,6 +4,7 @@ import hre.ast.MessageOrigin;
 import vct.col.ast.ASTClass;
 import vct.col.ast.ASTClass.ClassKind;
 import vct.col.ast.ASTNode;
+import vct.col.ast.ASTReserved;
 import vct.col.ast.ClassType;
 import vct.col.ast.Contract;
 import vct.col.ast.ContractBuilder;
@@ -103,6 +104,26 @@ public abstract class GlobalizeStatics extends AbstractRewriter {
     }
   }
 
+  public void visit(OperatorExpression e){
+    switch(e.getOperator()){
+    case Build:{
+      if (e.getArg(0) instanceof ClassType){
+        // Constructor call encoded as Build.
+        ASTNode args[]=rewrite(null,e.getArguments());
+        args[0]=args[1];
+        if (processing_static){
+          args[1]=create.reserved_name(ASTReserved.This);
+        } else {
+          args[1]=create.local_name("global");
+        }
+        result=create.expression(StandardOperator.Build, args);
+        return;
+      }
+    }
+    }
+    super.visit(e);
+  }
+  
   public void visit(MethodInvokation e){
     Method m=e.getDefinition();
     if (m==null) Abort("cannot globalize method invokaiton without method definition");

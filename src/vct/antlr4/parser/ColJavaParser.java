@@ -34,32 +34,44 @@ public class ColJavaParser implements vct.col.util.Parser {
   public ProgramUnit parse(File file) {
     String file_name=file.toString();
       try {
+        TimeKeeper tk=new TimeKeeper();
+        
         ANTLRInputStream input = new ANTLRInputStream(new FileInputStream(file));
-        
         JavaLexer lexer = new JavaLexer(input);
-        
         CommonTokenStream tokens = new CommonTokenStream(lexer);
-        
         JavaParser parser = new JavaParser(tokens);
+        ParseTree tree = parser.compilationUnit();        
+        Progress("first parsing pass took %dms",tk.show());
         
-        ParseTree tree = parser.compilationUnit();
-
         ProgramUnit pu=JavaToCol.convert(tree,file_name,tokens,parser);
+        Progress("AST conversion took %dms",tk.show());
         
         Debug("program after Java parsing:%n%s",pu);
         //System.out.printf("parsing got %d entries%n",pu.size());
         //vct.util.Configuration.getDiagSyntax().print(System.out,pu);
         
         pu=new CommentRewriter(pu,new JMLCommentParser()).rewriteAll();
+        Progress("Specification parsing took %dms",tk.show());
+        
         pu=new FlattenVariableDeclarations(pu).rewriteAll();
+        Progress("Flattening variables took %dms",tk.show());
+        
         pu=new SpecificationCollector(pu).rewriteAll();
+        Progress("Shuffling specifications took %dms",tk.show());        
         //vct.util.Configuration.getDiagSyntax().print(System.out,pu);
+        
         pu=new JavaPostProcessor(pu).rewriteAll();
+        Progress("post processing took %dms",tk.show());        
         //vct.util.Configuration.getDiagSyntax().print(System.out,pu);
+        
         pu=new AnnotationInterpreter(pu).rewriteAll();
-        vct.util.Configuration.getDiagSyntax().print(System.out,pu);
-        pu=new JavaResolver(pu).rewriteAll();
+        Progress("interpreting annotations took %dms",tk.show());        
         //vct.util.Configuration.getDiagSyntax().print(System.out,pu);
+        
+        pu=new JavaResolver(pu).rewriteAll();
+        Progress("resolving library calls took %dms",tk.show());        
+        //vct.util.Configuration.getDiagSyntax().print(System.out,pu);
+
         return pu;
       } catch (FileNotFoundException e) {
         Fail("File %s has not been found",file_name);

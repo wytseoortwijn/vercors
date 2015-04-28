@@ -34,21 +34,21 @@ public class ColPVLParser implements vct.col.util.Parser {
   public ProgramUnit parse(File file) {
     String file_name=file.toString();
       try {
+        TimeKeeper tk=new TimeKeeper();
         ANTLRInputStream input = new ANTLRInputStream(new FileInputStream(file));
-        
         PVFullLexer lexer = new PVFullLexer(input);
-        
         CommonTokenStream tokens = new CommonTokenStream(lexer);
-        
         PVFullParser parser = new PVFullParser(tokens);
-        
         ParseTree tree = parser.program();
-
+        Progress("parsing pass took %dms",tk.show());
         Debug("parser got: %s",tree.toStringTree(parser));
 
-        ProgramUnit pu=PVLtoCOL.convert(tree,file_name,tokens,parser);        
+        ProgramUnit pu=PVLtoCOL.convert(tree,file_name,tokens,parser);      
+        Progress("AST conversion pass took %dms",tk.show());
         pu=new FlattenVariableDeclarations(pu).rewriteAll();
+        Progress("Variable pass took %dms",tk.show());
         pu=new PVLPostProcessor(pu).rewriteAll();
+        Progress("Post processing pass took %dms",tk.show());
         return pu;
       } catch (FileNotFoundException e) {
         Fail("File %s has not been found",file_name);

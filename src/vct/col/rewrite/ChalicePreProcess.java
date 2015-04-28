@@ -3,9 +3,11 @@ package vct.col.rewrite;
 import vct.col.ast.ASTClass;
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTReserved;
+import vct.col.ast.ConstantExpression;
 import vct.col.ast.DeclarationStatement;
 import vct.col.ast.Dereference;
 import vct.col.ast.IfStatement;
+import vct.col.ast.IntegerValue;
 import vct.col.ast.Method;
 import vct.col.ast.MethodInvokation;
 import vct.col.ast.NameExpression;
@@ -28,6 +30,19 @@ public class ChalicePreProcess extends AbstractRewriter {
   
   public ChalicePreProcess(ProgramUnit source) {
     super(source);
+  }
+  
+  
+  @Override
+  public void visit(ConstantExpression e){
+    if (e.getType().isPrimitive(Sort.Fraction)){
+      int v=((IntegerValue)(e.value)).value;
+      if (v==1){
+        result=create.reserved_name(ASTReserved.FullPerm);
+        return;
+      }
+    }
+    super.visit(e);
   }
   
   @Override

@@ -30,7 +30,7 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
   }
   
   public SimpleTypeCheck(ProgramUnit arg){
-    super(arg);
+    super(arg,true);
   }
 
   public void visit(ConstantExpression e){
@@ -1013,8 +1013,15 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     arg.setType(new PrimitiveType(Sort.Fraction));
     if (arg instanceof OperatorExpression){
       OperatorExpression e=(OperatorExpression)arg;
-      for(ASTNode n:e.getArguments()){
-        force_frac(n);
+      switch(e.getOperator()){
+      case Div:
+        //force_frac(e.getArg(0));
+        break;
+      default:
+        for(ASTNode n:e.getArguments()){
+          force_frac(n);
+        }
+        break;
       }
     }
   }

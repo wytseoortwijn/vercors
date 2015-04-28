@@ -25,15 +25,15 @@ public class AbstractVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
   protected ClassName current_class=null;
   
   public AbstractVisitor(){
-    this(null,null);
+    this(null,null,false);
   }
   
-  public AbstractVisitor(ProgramUnit source) {
-    super(source);
+  public AbstractVisitor(ProgramUnit source,boolean do_scope) {
+    super(source,do_scope);
   }
   
-  public AbstractVisitor(ProgramUnit source,ProgramUnit target) {
-    super(source,target);
+  public AbstractVisitor(ProgramUnit source,ProgramUnit target,boolean do_scope) {
+    super(source,target,do_scope);
   }
   
   public AbstractVisitor(ASTFrame<T> shared) {
