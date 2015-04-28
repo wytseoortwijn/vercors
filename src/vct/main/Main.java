@@ -64,8 +64,6 @@ import vct.col.rewrite.RandomizedIf;
 import vct.col.rewrite.RecognizeLoops;
 import vct.col.rewrite.RecognizeMultiDim;
 import vct.col.rewrite.ReorderAssignments;
-import vct.col.rewrite.RewriteArray;
-import vct.col.rewrite.RewriteArrayPerms;
 import vct.col.rewrite.RewriteArrayRef;
 import vct.col.rewrite.RewriteSystem;
 import vct.col.rewrite.SatCheckRewriter;
@@ -421,11 +419,6 @@ public class Main
         return new ParallelBlockEncoder(arg).rewriteAll();
       }
     });
-    defined_passes.put("recognize_arrays",new CompilerPass("standardize array permissions"){
-      public ProgramUnit apply(ProgramUnit arg){
-        return new RewriteArrayPerms(arg).rewriteAll();
-      }
-    });
     defined_passes.put("recognize_loops",new CompilerPass("Recognize for-each loops"){
       public ProgramUnit apply(ProgramUnit arg){
         return new RecognizeLoops(arg).rewriteAll();
@@ -438,7 +431,7 @@ public class Main
     });
    defined_passes.put("ref_array",new CompilerPass("rewrite array as a sequence of Refs"){
       public ProgramUnit apply(ProgramUnit arg){
-        return new RewriteArrayRef(arg).rewriteAll();
+        return new RewriteArrayRef(arg,RewriteArrayRef.Target.Ref).rewriteAll();
       }
     });
     defined_passes.put("reorder",new CompilerPass("reorder statements (e.g. all declarations at the start of a bock"){
@@ -448,7 +441,7 @@ public class Main
     });
     defined_passes.put("rewrite_arrays",new CompilerPass("rewrite arrays to sequences of cells"){
       public ProgramUnit apply(ProgramUnit arg){
-        return new RewriteArray(arg).rewriteAll();
+        return new RewriteArrayRef(arg,RewriteArrayRef.Target.Cell).rewriteAll();
       }
     });
     defined_passes.put("rm_cons",new CompilerPass("???"){
@@ -490,7 +483,12 @@ public class Main
       public ProgramUnit apply(ProgramUnit arg){
         RewriteSystem trs=RewriteSystems.getRewriteSystem("silver_optimize");
         return trs.normalize(arg);
-        // return new SimplifyExpressions(arg).rewriteAll();
+      }
+    });
+    defined_passes.put("chalice-optimize",new CompilerPass("Optimize expressions for Chalice"){
+      public ProgramUnit apply(ProgramUnit arg){
+        RewriteSystem trs=RewriteSystems.getRewriteSystem("chalice_optimize");
+        return trs.normalize(arg);
       }
     });
     defined_passes.put("simplify_calls",new CompilerPass("???"){
@@ -683,9 +681,6 @@ public class Main
         passes.add("standardize");
         passes.add("check");        
       }
-      passes.add("recognize_arrays");
-      passes.add("standardize");
-      passes.add("check");
       passes.add("rewrite_arrays");
       passes.add("standardize");
       passes.add("check");
@@ -713,6 +708,9 @@ public class Main
       passes.add("flatten");
       passes.add("reorder");
       passes.add("check");
+      passes.add("chalice-optimize");
+      passes.add("standardize");
+      passes.add("check");      
       passes.add("chalice-preprocess");
       passes.add("check");
       if (chalice.get()){
@@ -741,10 +739,12 @@ public class Main
 //      passes.add("standardize");
 //      passes.add("check");
       passes.add("standardize");
-      passes.add("check");        
-      passes.add("magicwand");
-      passes.add("standardize");
       passes.add("check");
+      if (features.usesOperator(StandardOperator.Wand)){
+        passes.add("magicwand");
+        passes.add("standardize");
+        passes.add("check");
+      }
       if (inline_predicates.get()){
         passes.add("inline");
         passes.add("standardize");
