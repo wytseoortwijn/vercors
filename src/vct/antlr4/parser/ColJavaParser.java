@@ -68,8 +68,9 @@ public class ColJavaParser implements vct.col.util.Parser {
         Progress("interpreting annotations took %dms",tk.show());        
         //vct.util.Configuration.getDiagSyntax().print(System.out,pu);
         
-        pu=new JavaResolver(pu).rewriteAll();
-        Progress("resolving library calls took %dms",tk.show());        
+        //cannnot resolve here: other .java files may be needed!
+        //pu=new JavaResolver(pu).rewriteAll();
+        //Progress("resolving library calls took %dms",tk.show());        
         //vct.util.Configuration.getDiagSyntax().print(System.out,pu);
 
         return pu;

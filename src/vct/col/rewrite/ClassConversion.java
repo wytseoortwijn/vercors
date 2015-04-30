@@ -1,6 +1,7 @@
 package vct.col.rewrite;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Stack;
 
 import vct.col.ast.*;
@@ -103,6 +104,25 @@ public class ClassConversion extends AbstractRewriter {
       target().add(p);
     }
     result=res;
+  }
+  
+  @Override
+  public void visit(OperatorExpression e){
+    if (e.isa(StandardOperator.Build) && (e.getArg(0) instanceof ClassType)){
+      // If this is actually a constructor call.
+      String method=e.getArg(0)+SEP+e.getArg(0);
+      ASTNode args[]=e.getArguments();
+      ASTNode rw_args[]=new ASTNode[args.length-1];
+      for(int i=1;i<args.length;i++){
+        rw_args[i-1]=rewrite(args[i]);
+      }
+      MethodInvokation res=create.invokation(null, null, method, rw_args);
+      res.set_before(rewrite(e.get_before()));
+      res.set_after(rewrite(e.get_after()));
+      result=res;
+    } else {
+      super.visit(e);
+    }
   }
   
   @Override

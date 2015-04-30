@@ -167,11 +167,21 @@ public class Flatten extends AbstractRewriter {
   
   @Override
   public void visit(AssignmentStatement s) {
+    ASTNode loc=s.getLocation();
+    ASTNode val=s.getExpression();
+    if (loc instanceof Dereference){
+      loc=rewrite(loc);
+      val=add_as_var(val);      
+    } else {
+      loc=rewrite(loc);
+      val=rewrite(val);
+    }
+    result=create.assignment(loc,val);
     //if (//s.getLocation().getType().equals(ClassType.label_type)||
     //    s.getExpression().getType().equals(ClassType.label_type)){
-      ASTNode loc=s.getLocation().apply(this);
-      ASTNode val=s.getExpression().apply(this);
-      result=create.assignment(loc,val);
+    //  ASTNode loc=s.getLocation().apply(this);
+    //  ASTNode val=s.getExpression().apply(this);
+    //  result=create.assignment(loc,val);
     /*  return;
     }
     ASTNode loc=s.getLocation().apply(this);
