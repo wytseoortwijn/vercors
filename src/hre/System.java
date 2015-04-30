@@ -30,7 +30,7 @@ class MessageStream {
  */
 public class System {
   
-  private static Map<String,MessageStream> debug_map=new HashMap<String,MessageStream>();
+  private static Map<String,MessageStream> debug_map;
   
   /**
    * Emit an error message, print stack trace and abort.
@@ -74,11 +74,20 @@ public class System {
   }
   
   public static void EnableDebug(String className,PrintStream out,String tag){
+    if (debug_map==null){
+      debug_map=new HashMap<String,MessageStream>();
+    }
     debug_map.put(className,new MessageStream(out,tag));
   }
   
   public static void DisableDebug(String className){
+    if (debug_map==null){
+      return;
+    }
     debug_map.remove(className);
+    if (debug_map.size()==0){
+      debug_map=null;
+    }
   }
   
   /**
@@ -86,6 +95,7 @@ public class System {
    * 
    */
   public static boolean Debug(String format,Object...args){
+    if (debug_map==null) return false;
     StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
     int N=stackTraceElements.length;
     int idx=2;
