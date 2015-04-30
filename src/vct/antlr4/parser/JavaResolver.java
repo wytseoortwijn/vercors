@@ -6,6 +6,7 @@ import hre.HREError;
 import hre.ast.MessageOrigin;
 import vct.col.ast.*;
 import vct.col.ast.ASTClass.ClassKind;
+import vct.col.ast.Method.Kind;
 import vct.col.ast.NameSpace.Import;
 import vct.col.rewrite.AbstractRewriter;
 import vct.util.ClassName;
@@ -45,6 +46,15 @@ public class JavaResolver extends AbstractRewriter {
         Method ast=create.method_decl(returns, null, m.getName(),args, null);
         ast.setFlag(ASTFlags.STATIC,Modifier.isStatic(m.getModifiers()));
         res.add(ast);
+      }
+      for (java.lang.reflect.Constructor<?> m : cl.getConstructors()) {
+    	  Class pars[]=m.getParameterTypes();
+    	  DeclarationStatement args[]=new DeclarationStatement[pars.length];
+    	  for(int i=0;i<pars.length;i++){
+    		  args[i]=create.field_decl("x"+i, convert_type(pars[i]));
+    	  }
+    	  Method ast = create.method_kind(Kind.Constructor, null, null, m.getName(), args, null);
+    	  res.add(ast);
       }
       create.leave();
       return true;
