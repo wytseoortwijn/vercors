@@ -29,6 +29,7 @@ import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
 import org.junit.runner.notification.Failure;
 
+import vct.antlr4.parser.JavaResolver;
 import vct.clang.printer.CPrinter;
 import vct.col.annotate.DeriveModifies;
 import vct.col.ast.*;
@@ -434,12 +435,17 @@ public class Main
         return new RewriteArrayRef(arg,RewriteArrayRef.Target.Ref).rewriteAll();
       }
     });
-    defined_passes.put("reorder",new CompilerPass("reorder statements (e.g. all declarations at the start of a bock"){
-      public ProgramUnit apply(ProgramUnit arg){
-        return new ReorderAssignments(arg).rewriteAll();
-      }
-    });
-    defined_passes.put("rewrite_arrays",new CompilerPass("rewrite arrays to sequences of cells"){
+   defined_passes.put("reorder",new CompilerPass("reorder statements (e.g. all declarations at the start of a bock"){
+     public ProgramUnit apply(ProgramUnit arg){
+       return new ReorderAssignments(arg).rewriteAll();
+     }
+   });
+   defined_passes.put("java_resolve",new CompilerPass("Resolve the library dependencies of a java program"){
+     public ProgramUnit apply(ProgramUnit arg){
+       return new JavaResolver(arg).rewriteAll();
+     }
+   });
+   defined_passes.put("rewrite_arrays",new CompilerPass("rewrite arrays to sequences of cells"){
       public ProgramUnit apply(ProgramUnit arg){
         return new RewriteArrayRef(arg,RewriteArrayRef.Target.Cell).rewriteAll();
       }
@@ -572,6 +578,7 @@ public class Main
       cnt++;
     }
     System.err.printf("Parsed %d file(s) in: %dms%n",cnt,System.currentTimeMillis() - startTime);
+
     if (boogie.get() || sequential_spec.get()) {
       program.setSpecificationFormat(SpecificationFormat.Sequential);
     }
