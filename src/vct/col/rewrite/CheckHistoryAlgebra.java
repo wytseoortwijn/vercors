@@ -71,6 +71,22 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
             ),create.field_decl("p", adt_type)
         )
     ));
+    adt.add_axiom(create.axiom("seq_assoc",
+        create.forall(create.constant(true),
+            create.expression(StandardOperator.EQ,
+                create.invokation(null, null, "p_seq",
+                    create.invokation(null, null,"p_seq",create.local_name("p1"),create.local_name("p2")),
+                    create.local_name("p3")
+                ),
+                create.invokation(null, null, "p_seq",create.local_name("p1"),
+                    create.invokation(null, null, "p_seq",create.local_name("p2"),create.local_name("p3"))
+                )
+            )
+            ,create.field_decl("p1", adt_type)
+            ,create.field_decl("p2", adt_type)
+            ,create.field_decl("p3", adt_type)
+        )
+    ));
     target().add(adt);
     HashSet<NameExpression> hist_set=new HashSet<NameExpression>();
     for(Method m:cl.dynamicMethods()){
