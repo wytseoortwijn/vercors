@@ -40,6 +40,7 @@ public class ColJavaParser implements vct.col.util.Parser {
         JavaLexer lexer = new JavaLexer(input);
         CommonTokenStream tokens = new CommonTokenStream(lexer);
         JavaParser parser = new JavaParser(tokens);
+        parser.setErrorHandler(new org.antlr.v4.runtime.BailErrorStrategy());
         ParseTree tree = parser.compilationUnit();        
         Progress("first parsing pass took %dms",tk.show());
         

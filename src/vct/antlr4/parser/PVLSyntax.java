@@ -143,6 +143,8 @@ public class PVLSyntax {
       syntax.addReserved(FullPerm,"write");
       syntax.addReserved(ReadPerm,"read");
       syntax.addReserved(NoPerm,"none");
+      
+      syntax.addOperator(Unfolding,140,"unfolding","in","");
     }
     return syntax;
   }

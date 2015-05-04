@@ -475,7 +475,11 @@ public class ASTClass extends ASTDeclaration implements ASTSequence<ASTClass> {
   public ASTNode get(int i) {
     return entries.get(i);
   }
+  
   public boolean has_constructor(ProgramUnit context,Type[] c_args) {
+    return get_constructor(context,c_args)!=null;
+  }
+  public Method get_constructor(ProgramUnit context,Type[] c_args) {
     outer:for(Method m:dynamicMethods()){
       if (m.kind==Kind.Constructor && c_args.length==m.getArity()){
         for(int i=0;i<c_args.length;i++){
@@ -483,10 +487,10 @@ public class ASTClass extends ASTDeclaration implements ASTSequence<ASTClass> {
             continue outer;
           }
         }
-        return true;
+        return m;
       }
     }
-    return false;
+    return null;
   }
 }
 

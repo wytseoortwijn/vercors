@@ -14,6 +14,7 @@ public class ClassType extends Type {
   }
 
   public static final ClassType label_type=new ClassType("<<label>>");
+  public static final ClassType null_type=new ClassType("<<null>>");
       
   private final String name[];
   

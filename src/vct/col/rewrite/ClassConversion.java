@@ -81,7 +81,7 @@ public class ClassConversion extends AbstractRewriter {
             create.field_decl(THIS,create.class_type(cl.name)),
             create.assignment(
                 create.local_name(THIS),
-                create.expression(StandardOperator.New,create.class_type(cl.name))
+                create.new_record(create.class_type(cl.name))
             ),
             body,
             create.return_statement(create.local_name(THIS))
@@ -131,12 +131,23 @@ public class ClassConversion extends AbstractRewriter {
     ArrayList<ASTNode> args=new ArrayList();
     Method def=s.getDefinition();
     ASTNode extra=null;
+    ClassType dispatch=s.dispatch;
     if (def.getParent()==null){
       method=s.method;
     } else if (s.object instanceof ClassType){
-      method=((ClassType)s.object).getName()+SEP+s.method;
+      if (s.method.equals(Method.JavaConstructor)){
+        method=s.dispatch.getName()+SEP+s.dispatch.getName();
+        dispatch=null;
+      } else {
+        method=((ClassType)s.object).getName()+SEP+s.method;
+      }
     } else if (s.object==null){
-      method=s.method;
+      if (s.method.equals(Method.JavaConstructor)){
+        method=s.dispatch.getName()+SEP+s.dispatch.getName();
+        dispatch=null;
+      } else {
+        method=s.method;
+      }
     } else {
       method=((ClassType)s.object.getType()).getName();
       if (method.equals("<<adt>>")){
@@ -152,7 +163,7 @@ public class ClassConversion extends AbstractRewriter {
     for(ASTNode arg :s.getArgs()){
       args.add(rewrite(arg));
     }
-    MethodInvokation res=create.invokation(null, s.dispatch, method, args.toArray(new ASTNode[0]));
+    MethodInvokation res=create.invokation(null, dispatch, method, args.toArray(new ASTNode[0]));
     res.set_before(rewrite(s.get_before()));
     res.set_after(rewrite(s.get_after()));
     if (extra!=null){

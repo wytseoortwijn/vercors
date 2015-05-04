@@ -21,6 +21,8 @@ import static hre.System.Warning;
  */
 public class Method extends ASTDeclaration {
 
+  public static final String JavaConstructor = "<<constructor>>";
+
   @Override
   public <R,A> R accept_simple(ASTMapping1<R,A> map,A arg){
     return map.map(this,arg);

@@ -128,7 +128,42 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       }
       return;
     }    
-    if (e.object==null) Abort("unresolved method invokation (%s) at "+e.getOrigin(),e.method);
+    if (e.object==null){
+      if (e.dispatch!=null){
+        // This is a constructor invokation.
+        ClassType t=e.dispatch;
+        ASTClass cl=source().find(t.getNameFull());
+        if (cl==null){
+          Fail("class %s not found",t);
+        }
+        ASTNode args[]=e.getArgs();
+        Type c_args[]=new Type[args.length];
+        for(int i=0;i<args.length;i++){
+          c_args[i]=args[i].getType();
+          if(c_args[i]==null){
+            Fail("argument %d is not typed",i);
+          }
+        }
+        m=cl.get_constructor(source(),c_args);
+        if(m==null){
+          Fail("Could not find constructor");
+        }
+        e.setType(t);
+        e.setDefinition(m);
+        if (e.get_before()!=null) {
+          enter_before(e);
+          e.get_before().accept(this);
+          leave_before(e);
+        }
+        if (e.get_after()!=null) {
+          enter_after(e);
+          e.get_after().accept(this);
+          leave_after(e);
+        }
+        return;
+      }
+      Abort("unresolved method invokation (%s) at "+e.getOrigin(),e.method);
+    }
     if (e.object.getType()==null) Abort("object has no type at %s",e.object.getOrigin());
     if (!(e.object.getType() instanceof ClassType)) Abort("invokation on non-class");
     ClassType object_type=(ClassType)e.object.getType();

@@ -189,7 +189,7 @@ public enum StandardOperator {
   Old(1),
   /** Continue with next value in loop */
   Continue(1),
-  /** Create a new uninitialized object */
+  /** Create a new uninitialized object, note that Java Constructors are encoded as a MethodInvokation. */
   New(1),
   /** Create a new uninitialized object, Silver style. */
   NewSilver(-1),

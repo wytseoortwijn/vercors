@@ -46,5 +46,21 @@ public class Dereference extends ASTNode {
   public final ASTNode getObject(){
     return object;
   }
+  
+  public boolean match(ASTNode ast){
+    if (ast instanceof Hole){
+      return ast.match(this);
+    } else if (ast instanceof Dereference){
+      Dereference d=(Dereference)ast;
+      if (field.equals(d.field)){
+        return object.match(d.object);
+      } else {
+        return false;
+      }
+    } else {
+      return false;
+    }
+  }
+  
 }
 

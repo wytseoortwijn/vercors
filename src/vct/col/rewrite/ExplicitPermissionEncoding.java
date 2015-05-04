@@ -261,7 +261,7 @@ public class ExplicitPermissionEncoding extends AbstractRewriter {
         args.add(pred.object.apply(copy_rw));
         cons_args.add(pred.object.apply(copy_rw));
         BlockStatement block=create.block(
-            create.assignment(create.local_name(lbl.getName()),create.new_object(t)),
+            create.assignment(create.local_name(lbl.getName()),create.new_object((ClassType)t)),
             create.assignment(
                 create.dereference(create.local_name(lbl.getName()),"ref"),
                 rewrite(pred.object)
@@ -293,7 +293,7 @@ public class ExplicitPermissionEncoding extends AbstractRewriter {
                 create.invokation(create.local_name(lbl.getName()), null, "check",args.toArray(new ASTNode[0])))
         );
         if (Configuration.witness_constructors.get()){
-          result=create.assignment(create.local_name(lbl.getName()),create.new_object(t,cons_args.toArray(new ASTNode[0])));
+          result=create.assignment(create.local_name(lbl.getName()),create.new_object((ClassType)t,cons_args.toArray(new ASTNode[0])));
         } else {
           result=block;
           result.setGhost(true);

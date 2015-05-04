@@ -54,6 +54,7 @@ expr
  | expr 'in' expr
  | expr '?' expr ':' expr
  | '?' ID
+ | 'unfolding' expr 'in' expr 
  | lexpr '->' ID tuple
  | (lexpr | 'Value' | 'Perm' | 'PointsTo' | 'Hist' | '\\old' | '?' ) tuple
  | '(' ('\\sum' | '\\exists' | '\\forall' | '\\forall*') type ID ';' expr (';' expr )? ')'

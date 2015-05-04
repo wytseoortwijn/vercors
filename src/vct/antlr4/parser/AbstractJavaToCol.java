@@ -168,10 +168,10 @@ public class AbstractJavaToCol extends ANTLRtoCOL {
         } else {
           args=new ASTNode[0];
         }
-        OperatorExpression res=create.new_object(type/*create.class_type(name)*/, args);
+        BeforeAfterAnnotations res=create.new_object((ClassType)type/*create.class_type(name)*/, args);
         scan_comments_after(res.get_before(),ctx.getChild(0));
         scan_comments_after(res.get_after(),ctx);
-        return res;
+        return (ASTNode)res;
       }
       Debug("no arguments");
     }

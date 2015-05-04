@@ -42,7 +42,15 @@ public class ConstructorRewriter extends AbstractRewriter {
       MethodInvokation i=(MethodInvokation)e.getExpression();
       if (i.getDefinition().kind==Method.Kind.Constructor) {
         ASTNode s1=create.assignment(rewrite(e.getLocation()),create.expression(StandardOperator.New,rewrite(i.getType())));
-        MethodInvokation s2=create.invokation(rewrite(e.getLocation()),null ,i.method+"_init",rewrite(i.getArgs()));
+        
+        String method_name;
+        if (i.method.equals(Method.JavaConstructor)){
+          method_name=i.dispatch.toString();
+        } else {
+          method_name=i.method;
+        }
+        method_name+="_init";
+        MethodInvokation s2=create.invokation(rewrite(e.getLocation()),null,method_name,rewrite(i.getArgs()));
         if (i.get_before().size()>0) {
           s2.set_before(rewrite(i.get_before()));
         }

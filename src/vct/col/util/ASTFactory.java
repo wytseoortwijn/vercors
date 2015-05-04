@@ -662,13 +662,21 @@ public BlockStatement block(Origin origin, ASTNode ... args) {
     if (super_class==null) bases=null;
     return ast_class(name,ClassKind.Plain,parameters,bases,supports);
   }
-   
+
   
   /**
-   * Create an instantiation of a new object.
+   * Allocate a new record. 
    */
-  public OperatorExpression new_object(Type type,ASTNode ... args){
-    return expression(StandardOperator.Build,type,args);
+  public OperatorExpression new_record(Type type,ASTNode ... args){
+    return expression(StandardOperator.New,type,args);
+  }
+  
+  /**
+   * Create an instantiation of a new object and invoke a constructor on it.
+   */
+  public MethodInvokation new_object(ClassType type,ASTNode ... args){
+    //return expression(StandardOperator.Build,type,args);
+    return invokation(null,type,Method.JavaConstructor, args);
   }
   
   /**

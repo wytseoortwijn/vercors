@@ -3,6 +3,7 @@ package vct.col.rewrite;
 import hre.ast.MessageOrigin;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 
 import vct.col.ast.ASTClass;
 import vct.col.ast.ASTClass.ClassKind;
@@ -37,6 +38,8 @@ public class RewriteArrayRef extends AbstractRewriter {
 	  this.target=target;
   }
 	
+	private HashSet<Type> new_array;
+	
 	@Override
 	public void visit(OperatorExpression e){
 		switch (e.getOperator()){
@@ -59,6 +62,20 @@ public class RewriteArrayRef extends AbstractRewriter {
 			  break;
 		  case Length:
 		    result=create.expression(StandardOperator.Size,rewrite(e.getArguments()));
+		    break;
+		  case NewArray:
+        Type t=(Type)e.getArg(0);
+        new_array.add(t);
+		    switch(target){
+        case Ref:{
+  		    result=create.invokation(null,null,"new_array_"+t,rewrite(e.getArg(1)));
+	  	    break;
+        }
+        case Cell:{
+          result=create.invokation(null,null,"new_array_"+t,rewrite(e.getArg(1)));
+          break;
+          
+        }}
 		    break;
 			default:
 				super.visit(e);
@@ -110,13 +127,45 @@ public class RewriteArrayRef extends AbstractRewriter {
 
   @Override
   public void visit(ASTClass cl){
+    new_array=new HashSet();
     super.visit(cl);
+    ASTClass res=(ASTClass)result;
+    for(Type t:new_array){
+      Type result_type;
+      if (target==Target.Ref){
+        result_type=create.primitive_type(Sort.Sequence,create.class_type("Ref"));
+      } else {
+        result_type=create.primitive_type(Sort.Sequence,create.primitive_type(Sort.Cell,rewrite(t)));
+      }
+      ContractBuilder cb=new ContractBuilder();
+      
+      cb.ensures(create.expression(StandardOperator.EQ,
+          create.expression(StandardOperator.Size,create.reserved_name(ASTReserved.Result)),
+          create.local_name("len")));
+      DeclarationStatement decl=create.field_decl("i",create.primitive_type(Sort.Integer));
+      ASTNode guard=and(lte(constant(0),create.local_name("i")),
+          less(create.local_name("i"),create.expression(StandardOperator.Size,create.reserved_name(ASTReserved.Result))));
+      ASTNode base=create.expression(StandardOperator.Subscript,create.reserved_name(ASTReserved.Result),create.local_name("i"));
+      ASTNode claim;
+      if (target==Target.Ref){
+        claim=create.expression(StandardOperator.Perm,
+            create.dereference(base,t+"_value")
+            ,create.reserved_name(ASTReserved.FullPerm));
+      } else {
+        claim=create.expression(StandardOperator.Perm,
+            create.dereference(base,"item")
+            ,create.reserved_name(ASTReserved.FullPerm));
+      }
+      cb.ensures(create.starall(guard, claim, decl));
+      DeclarationStatement args[]=new DeclarationStatement[]{create.field_decl("len",create.primitive_type(Sort.Integer))};
+      res.add_dynamic(create.method_decl(result_type,cb.getContract(), "new_array_"+t, args,null));
+    }
+    new_array=null;
     if (target==Target.Ref){
-      ASTClass res=(ASTClass)result;
       res.add_dynamic(create.field_decl("Integer_value",create.primitive_type(Sort.Integer)));
       res.add_dynamic(create.field_decl("Boolean_value",create.primitive_type(Sort.Boolean)));
-      result=res;
     }
+    result=res;
   }
 
 }

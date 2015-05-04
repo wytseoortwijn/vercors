@@ -97,7 +97,13 @@ public class Standardize extends AbstractRewriter {
         object=create.name(Kind.ADT, null,adt);
       }
     }
-    if (object==null && current_class()!=null) object=create.this_expression(create.class_type(current_class().getFullName()));
+    if (object==null){
+      if (e.method.equals(Method.JavaConstructor)){
+        object=null;
+      } else if (current_class()!=null) {
+        object=create.this_expression(create.class_type(current_class().getFullName()));
+      }
+    }
     MethodInvokation res=create.invokation(object, rewrite(e.dispatch), e.method, rewrite(e.getArgs()));
     res.set_before(rewrite(e.get_before()));
     res.set_after(rewrite(e.get_after()));

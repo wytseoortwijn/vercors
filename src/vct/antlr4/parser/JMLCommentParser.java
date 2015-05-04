@@ -16,6 +16,7 @@ public class JMLCommentParser extends CommentParser<JavaJMLParser,JavaJMLLexer> 
 
   public JMLCommentParser() {
     super(new JavaJMLParser(null), new JavaJMLLexer(null));
+    parser.setErrorHandler(new org.antlr.v4.runtime.BailErrorStrategy());
   }
 
   @Override
