@@ -142,7 +142,7 @@ public class ManualTest extends ToolTest {
     }
   }
 
-  @Test
+  //Dissbled due to Chalice array limitation and bug in Silicon @Test
   public void test_set_solution() {
     sem_get();
     try {

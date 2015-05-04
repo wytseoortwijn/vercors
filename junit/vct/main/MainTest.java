@@ -429,10 +429,23 @@ public class MainTest extends ToolTest {
   }
 
   @Test
-  public void testZeroArray() {
+  public void testZeroArrayChalice() {
     sem_get();
     try {
       VCTResult res = run("vct", "--chalice",
+          "//examples/arrays/ZeroArray.java");
+      if (res.verdict != Verdict.Pass)
+        fail("bad result : " + res.verdict);
+    } finally {
+      sem.release();
+    }
+  }
+
+  @Test
+  public void testZeroArraySilicon() {
+    sem_get();
+    try {
+      VCTResult res = run("vct", "--silver=silicon_qp",
           "//examples/arrays/ZeroArray.java");
       if (res.verdict != Verdict.Pass)
         fail("bad result : " + res.verdict);
@@ -645,7 +658,7 @@ public class MainTest extends ToolTest {
   public void testAdditionPVL() {
     sem_get();
     try {
-      VCTResult res = run("vct", "--chalice", "--single-group",
+      VCTResult res = run("vct", "--silver=silicon_qp", "--single-group",
           "//pvl_examples/addition.pvl");
       res.checkVerdict(Verdict.Pass);
     } finally {
@@ -657,7 +670,7 @@ public class MainTest extends ToolTest {
   public void testAdditionPVLerr1() {
     sem_get();
     try {
-      VCTResult res = run("vct", "--chalice", "--single-group",
+      VCTResult res = run("vct", "--silver=silicon_qp", "--single-group",
           "//pvl_examples/addition-e1.pvl");
       res.checkVerdict(Verdict.Fail);
     } finally {
