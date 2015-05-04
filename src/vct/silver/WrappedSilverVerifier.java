@@ -655,7 +655,7 @@ public WrappedSilverVerifier(Object obj){
     throw new Error("SecurityException: "+e.getMessage());
   }
   try {
-    m80=cl.getMethod("verify",java.lang.Object.class,java.nio.file.Path.class,java.lang.Object.class);
+    m80=cl.getMethod("verify",java.lang.Object.class,java.nio.file.Path.class,java.util.Properties.class,java.lang.Object.class);
   } catch (NoSuchMethodException e) {
     throw new Error("NoSuchMethodException: "+e.getMessage());
   } catch (SecurityException e) {
@@ -1483,9 +1483,9 @@ public E union(O arg0,E arg1,E arg2){
     throw new Error("in reflected call: "+e.getCause().getClass()+": "+e.getCause().getMessage());
   }
 }
-public java.util.List<Err> verify(java.lang.Object arg0,java.nio.file.Path arg1,P arg2){
+public java.util.List<Err> verify(java.lang.Object arg0,java.nio.file.Path arg1,java.util.Properties arg2,P arg3){
   try {
-    return (java.util.List<Err>)m80.invoke(obj,arg0,arg1,arg2);
+    return (java.util.List<Err>)m80.invoke(obj,arg0,arg1,arg2,arg3);
   } catch (IllegalAccessException | IllegalArgumentException e) {
     throw new Error(e.getClass()+" "+e.getMessage());
   } catch (InvocationTargetException e) {

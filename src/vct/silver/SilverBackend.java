@@ -11,6 +11,7 @@ import java.util.Properties;
 
 import hre.HREError;
 import hre.ast.Origin;
+import hre.config.IntegerSetting;
 import hre.config.StringSetting;
 import hre.io.Container;
 import hre.io.DirContainer;
@@ -26,7 +27,9 @@ import vct.util.Configuration;
 
 public class SilverBackend {
   
-  public static StringSetting silver_module=new StringSetting("silver/latest");;
+  public static StringSetting silver_module=new StringSetting("silver/latest");
+  public static IntegerSetting silicon_z3_timeout=new IntegerSetting(15000);
+  
   public static <T,E,S,Decl,DFunc,DAxiom,Program>
   TestReport TestSilicon(ProgramUnit arg, String tool) {
     long start_time=System.currentTimeMillis();
@@ -205,10 +208,14 @@ public class SilverBackend {
       }
     }
 
+    Properties settings=new Properties();
+    if (tool.startsWith("silicon")){
+      settings.setProperty("smt.soft_timeout",silicon_z3_timeout.get()+"");
+    }
     TestReport report=new TestReport();
     start_time=System.currentTimeMillis();
     try {
-      List<VerificationError> errs=verifier.verify(new ErrorFactory(),Configuration.getToolHome(),program);
+      List<VerificationError> errs=verifier.verify(new ErrorFactory(),Configuration.getToolHome(),settings,program);
       if (errs.size()>0){
         report.setVerdict(Verdict.Fail);
       } else {

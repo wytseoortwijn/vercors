@@ -4,6 +4,7 @@ import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 public interface SilverVerifier<O,Err,T,E,S,Decl,DFunc,DAxiom,P>
   extends SilverType<T>, SilverExpression<O,T,E, Decl >, SilverStatement<O,T,E, Decl, S> {
@@ -72,7 +73,7 @@ public interface SilverVerifier<O,Err,T,E,S,Decl,DFunc,DAxiom,P>
    * @param program The program to be verified.
    * @return test report
    */
-  public List<Err> verify(Object obj,Path tool_home,P program);
+  public List<Err> verify(Object obj,Path tool_home,Properties settings,P program);
   
   public void write_program(PrintWriter pw,P program);
 }

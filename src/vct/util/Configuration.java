@@ -107,6 +107,7 @@ public class Configuration {
     clops.add(vct.boogie.Main.boogie_timeout.getAssign("boogie time limit"),"boogie-limit");
     clops.add(vct.boogie.Main.chalice_module.getAssign("name of the chalice environment module"),"chalice-module");
     clops.add(vct.silver.SilverBackend.silver_module.getAssign("name of the silver environment module"),"silver-module");
+    clops.add(vct.silver.SilverBackend.silicon_z3_timeout.getAssign("Set the Z3 timeout for Silicon"),"silicon-z3-timeout");
 //    clops.add(pvl_type_check.getDisable("disable type check in PVL parser"),"no-pvl-check");
     clops.add(assume_single_group.getEnable("enable single group assumptions"),"single-group");
     clops.add(auto_barrier.getDisable("Disable automatic permission revokation for barriers"),"disable-auto-barrier");
