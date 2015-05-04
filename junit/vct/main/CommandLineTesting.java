@@ -1,6 +1,8 @@
 package vct.main;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
@@ -17,16 +19,15 @@ public class CommandLineTesting {
     return append_option.used();
   }
   
-  private static HashMap<String,Class<?>> testmap=new HashMap<String, Class<?>>();
+  private static Map<String,Class<?>> testmap=new LinkedHashMap<String, Class<?>>();
   static {
     testmap.put("backend",vct.main.DependencyTest.class);
-    testmap.put("dafny",vct.main.DafnyTest.class);
     testmap.put("manual",vct.main.ManualTest.class);
-    testmap.put("carp",vct.main.CARPTestChalice.class);
     testmap.put("main",vct.main.MainTest.class);
+    testmap.put("silicon",vct.main.SiliconApplicationTest.class);
+    testmap.put("dafny",vct.main.DafnyTest.class);
     testmap.put("verifast",vct.main.VerifastTest.class);
     testmap.put("refute",vct.main.RefuteTest.class);
-    testmap.put("silicon",vct.main.SiliconApplicationTest.class);
   }
   
   public static void run_testsuites(){

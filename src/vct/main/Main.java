@@ -582,12 +582,6 @@ public class Main
     if (boogie.get() || sequential_spec.get()) {
       program.setSpecificationFormat(SpecificationFormat.Sequential);
     }
-    /*
-    startTime = System.currentTimeMillis();
-    program=new Standardize(program).rewriteAll();
-    new SimpleTypeCheck(program).check();
-    Progress("Initial type check took %dms",System.currentTimeMillis() - startTime);
-    */
     FeatureScanner features=new FeatureScanner();
     program.accept(features);
     classes=new ArrayList();
@@ -597,6 +591,7 @@ public class Main
     List<String> passes=null;
     if (boogie.get()) {
     	passes=new ArrayList<String>();
+    	passes.add("java_resolve");
       passes.add("standardize");
       passes.add("check");
       passes.add("flatten");
@@ -624,6 +619,7 @@ public class Main
     	passes.add("boogie");
     } else if (chalice.get()||chalice2sil.get()) {
       passes=new ArrayList<String>();
+      passes.add("java_resolve");
       if (sat_check.get()) passes.add("sat_check");
       passes.add("standardize");
       passes.add("check");        
@@ -727,6 +723,7 @@ public class Main
       }
     } else if (dafny.get()) {
       passes=new ArrayList<String>();
+      passes.add("java_resolve");
       passes.add("standardize");
       passes.add("check");
       passes.add("voidcalls");
@@ -738,6 +735,7 @@ public class Main
       passes.add("dafny");
     } else if (verifast.get()) {
       passes=new ArrayList<String>();
+      passes.add("java_resolve");
       passes.add("standardize");
       passes.add("check");
       passes.add("verifast");
@@ -745,6 +743,7 @@ public class Main
       passes=new ArrayList<String>();
 //      passes.add("standardize");
 //      passes.add("check");
+      passes.add("java_resolve");
       passes.add("standardize");
       passes.add("check");
       if (features.usesOperator(StandardOperator.Wand)){
