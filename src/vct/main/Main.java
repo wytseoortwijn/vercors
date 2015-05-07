@@ -40,6 +40,7 @@ import vct.col.rewrite.BoxingRewriter;
 import vct.col.rewrite.CSLencoder;
 import vct.col.rewrite.ChalicePreProcess;
 import vct.col.rewrite.CheckHistoryAlgebra;
+import vct.col.rewrite.CheckHistoryAlgebra.Mode;
 import vct.col.rewrite.CheckProcessAlgebra;
 import vct.col.rewrite.ClassConversion;
 import vct.col.rewrite.ConstructorRewriter;
@@ -142,8 +143,12 @@ public class Main
 
     final BooleanSetting check_defined=new BooleanSetting(false);
     clops.add(check_defined.getEnable("check if defined processes satisfy their contracts."),"check-defined");
+    final BooleanSetting check_axioms=new BooleanSetting(false);
+    clops.add(check_axioms.getEnable("check if defined processes satisfy their contracts."),"check-axioms");
     final BooleanSetting check_history=new BooleanSetting(false);
     clops.add(check_history.getEnable("check if defined processes satisfy their contracts."),"check-history");
+
+    
     final BooleanSetting check_csl=new BooleanSetting(false);
     clops.add(check_csl.getEnable("convert CSL syntax into plain SL"),"check-csl");
     
@@ -303,9 +308,15 @@ public class Main
         return new RandomizedIf(tmp).rewriteAll();
       }
     });
+    defined_passes.put("check-axioms",new CompilerPass("rewrite process algebra class to check if history axioms are correct"){
+      public ProgramUnit apply(ProgramUnit arg){
+        ProgramUnit tmp=new CheckHistoryAlgebra(arg,Mode.AxiomVerification).rewriteAll();
+        return new RandomizedIf(tmp).rewriteAll();
+      }
+    });
     defined_passes.put("check-history",new CompilerPass("rewrite process algebra class to check if history accounting is correct"){
       public ProgramUnit apply(ProgramUnit arg){
-        ProgramUnit tmp=new CheckHistoryAlgebra(arg).rewriteAll();
+        ProgramUnit tmp=new CheckHistoryAlgebra(arg,Mode.ProgramVerification).rewriteAll();
         return new RandomizedIf(tmp).rewriteAll();
       }
     });
@@ -789,6 +800,11 @@ public class Main
       }
       if (check_csl.get()){
         passes.add("csl-encode");
+        passes.add("standardize");
+        passes.add("check");
+      }
+      if (check_axioms.get()){
+        passes.add("check-axioms");
         passes.add("standardize");
         passes.add("check");
       }

@@ -227,7 +227,7 @@ public class SiliconApplicationTest extends ToolTest {
   public void testHistoryProcessesPVL(){
     sem_get(Histories);
     try {
-      VCTResult res=run("vct","--silver=silicon","--check-defined","//examples/processes/check-defined.pvl");
+      VCTResult res=run("vct","--silver=silicon","--check-defined","//examples/histories/History.pvl");
       res.checkVerdict(Verdict.Pass);
     } finally {
       sem.release();
@@ -235,32 +235,10 @@ public class SiliconApplicationTest extends ToolTest {
   }
   
   @Test
-  public void testHistoryApplicationPVL(){
+  public void testHistoryLemmasPVL(){
     sem_get(Histories);
     try {
-      VCTResult res=run("vct","--silver=silicon","--check-history","//examples/processes/check-hist.pvl");
-      res.checkVerdict(Verdict.Pass);
-    } finally {
-      sem.release();
-    }
-  }
-  
-  @Test
-  public void testHistoryProcesses(){
-    sem_get(Histories);
-    try {
-      VCTResult res=run("vct","--silver=silicon","--check-defined","//examples/processes/check-defined.java");
-      res.checkVerdict(Verdict.Pass);
-    } finally {
-      sem.release();
-    }
-  }
-  
-  @Test
-  public void testHistoryAxioms(){
-    sem_get(Histories);
-    try {
-      VCTResult res=run("vct","--silver=silicon","--check-history","//examples/processes/check-axioms.java");
+      VCTResult res=run("vct","--silver=silicon","--check-axioms","//examples/histories/History.pvl");
       res.checkVerdict(Verdict.Pass);
     } finally {
       sem.release();
@@ -271,7 +249,20 @@ public class SiliconApplicationTest extends ToolTest {
   public void testHistoryApplication(){
     sem_get(Histories);
     try {
-      VCTResult res=run("vct","--silver=silicon","--check-history","//examples/processes/check-hist.java");
+      VCTResult res=run("vct","--silver=silicon","--check-history",
+          "//examples/histories/History.pvl","//examples/histories/HistoryApplication.java");
+      res.checkVerdict(Verdict.Pass);
+    } finally {
+      sem.release();
+    }
+  }
+  
+  @Test
+  public void testHistoryLoop(){
+    sem_get(Histories);
+    try {
+      VCTResult res=run("vct","--silver=silicon","--check-history",
+          "//examples/histories/History.pvl","//examples/histories/HistoryLoop.java");
       res.checkVerdict(Verdict.Pass);
     } finally {
       sem.release();
