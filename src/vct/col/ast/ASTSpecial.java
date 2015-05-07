@@ -28,6 +28,8 @@ public class ASTSpecial extends ASTNode {
     DeclareAction,
     CreateHistory,
     DestroyHistory,
+    SplitHistory,
+    MergeHistory,
     Transfer,
     Goto
   };

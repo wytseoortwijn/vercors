@@ -213,14 +213,16 @@ public class JavaPostProcessor extends AbstractRewriter {
   public void visit(BlockStatement b){
     if (b.size()>0 && b.get(0).isSpecial(Kind.DeclareAction)){
       ASTSpecial decl=(ASTSpecial)b.get(0);
-      ASTNode process=rewrite(decl.args[0]);
-      ASTNode action=rewrite(decl.args[1]);
+      ASTNode history=rewrite(decl.args[0]);
+      ASTNode fraction=rewrite(decl.args[1]);
+      ASTNode process=rewrite(decl.args[2]);
+      ASTNode action=rewrite(decl.args[3]);
       BlockStatement block=create.block();
       int N=b.size();
       for(int i=1;i<N;i++){
         block.add(rewrite(b.get(i)));
       }
-      result=create.action_block(process, action, block);
+      result=create.action_block(history,fraction,process, action, block);
     } else {
       super.visit(b);
     }

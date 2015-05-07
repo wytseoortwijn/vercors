@@ -87,6 +87,10 @@ public class JavaPrinter extends AbstractPrinter {
   @Override
   public void visit(ActionBlock ab){
     out.printf("action(");
+    nextExpr(); ab.history.accept(this);
+    out.printf(",");
+    nextExpr(); ab.fraction.accept(this);
+    out.printf(",");
     nextExpr(); ab.process.accept(this);
     out.printf(",");
     nextExpr(); ab.action.accept(this);
@@ -224,8 +228,6 @@ public class JavaPrinter extends AbstractPrinter {
       out.print("create ");
       setExpr();
       s.args[0].accept(this);
-      out.printf(",");
-      s.args[1].accept(this);
       out.println(";");
       break;    
     case DestroyHistory:
@@ -234,8 +236,34 @@ public class JavaPrinter extends AbstractPrinter {
       s.args[0].accept(this);
       out.printf(",");
       s.args[1].accept(this);
+      out.println(";");
+      break;    
+    case SplitHistory:
+      out.print("split ");
+      setExpr();
+      s.args[0].accept(this);
+      out.printf(",");
+      s.args[1].accept(this);
       out.printf(",");
       s.args[2].accept(this);
+      out.printf(",");
+      s.args[3].accept(this);
+      out.printf(",");
+      s.args[4].accept(this);
+      out.println(";");
+      break;    
+    case MergeHistory:
+      out.print("merge ");
+      setExpr();
+      s.args[0].accept(this);
+      out.printf(",");
+      s.args[1].accept(this);
+      out.printf(",");
+      s.args[2].accept(this);
+      out.printf(",");
+      s.args[3].accept(this);
+      out.printf(",");
+      s.args[4].accept(this);
       out.println(";");
       break;    
     case Transfer:

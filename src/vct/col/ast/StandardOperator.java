@@ -255,9 +255,9 @@ public enum StandardOperator {
    */
   LeftMerge(2),
   /**
-   * The history predicate
+   * The history predicate takes a history, a fraction and a process as arguments.
    */
-  History(2),
+  History(3),
   /**
    * Specifies that a sub-term in a higher order rewrite patterns is independent of a variable.
    */

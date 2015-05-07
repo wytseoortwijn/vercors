@@ -59,5 +59,10 @@ public enum ASTReserved {
   /**
    * The new keyword is used to distinguish constructor calls from method calls.
    */
-  New
+  New,
+  /**
+   * The empty process for history algebras.
+   */
+  EmptyProcess
 }
+

@@ -8,6 +8,7 @@ import static vct.col.ast.StandardOperator.*;
 import static vct.col.ast.ASTReserved.FullPerm;
 import static vct.col.ast.ASTReserved.NoPerm;
 import static vct.col.ast.ASTReserved.ReadPerm;
+import static vct.col.ast.ASTReserved.EmptyProcess;
 import static vct.col.ast.PrimitiveType.Sort.*;
 
 /**
@@ -143,6 +144,7 @@ public class PVLSyntax {
       syntax.addReserved(FullPerm,"write");
       syntax.addReserved(ReadPerm,"read");
       syntax.addReserved(NoPerm,"none");
+      syntax.addReserved(EmptyProcess,"empty");
       
       syntax.addOperator(Unfolding,140,"unfolding","in","");
     }

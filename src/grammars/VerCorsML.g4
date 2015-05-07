@@ -8,7 +8,7 @@ resourceExpression
  | expression '==>' resourceExpression
  | 'ArrayPerm' '(' expression ',' expression ',' expression ',' expression ',' expression ')'
  | 'AddsTo' '(' expression ',' expression ')'
- | 'Hist' '(' expression ',' expression ')'
+ | 'Hist' '(' expression ',' expression ',' expression ')'
  | 'Perm' '(' expression ',' expression ')'
  | 'PointsTo' '(' expression ',' expression ',' expression ')'
  | 'Reducible' '(' expression ',' ('+' | Identifier ) ')'

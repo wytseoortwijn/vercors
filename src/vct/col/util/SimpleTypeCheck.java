@@ -8,6 +8,7 @@ import vct.col.ast.NameExpression.Kind;
 import vct.col.ast.PrimitiveType.Sort;
 import vct.col.rewrite.MultiSubstitution;
 import vct.util.ClassName;
+import vct.util.Configuration;
 import static hre.System.Abort;
 import static hre.System.Debug;
 import static hre.System.Fail;
@@ -64,7 +65,6 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       Fail("type error: defined type "+t.getFullName()+" not found");
     }
     if (decl instanceof AxiomaticDataType){
-      Warning("%s : %d",decl.name,((AxiomaticDataType) decl).getParameters().length);
       t.setType(t);
       t.setDefinition(decl);
       return;
@@ -347,6 +347,10 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
         break;
       case Reserved:
         switch(e.reserved()){
+        case EmptyProcess:{
+          e.setType(new PrimitiveType(PrimitiveType.Sort.Process));
+          break;
+        }
         case This:{
           ASTClass cl=current_class();
           if (cl==null){
@@ -1218,4 +1222,18 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     pb.block.apply(this);
     pb.inv.apply(this);
   }
+  
+  @Override
+  public void visit(ASTSpecial s){
+    super.visit(s);
+    System.out.printf("special %s%n",s.kind);
+    for(ASTNode n:s.args){
+      Type t=n.getType();
+      if (t==null){
+        Abort("untyped argument to %s: %s",s.kind,Configuration.getDiagSyntax().print(n));
+      }
+    }
+    s.setType(new PrimitiveType(Sort.Void));
+  }
+
 }

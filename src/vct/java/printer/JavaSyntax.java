@@ -62,6 +62,7 @@ public class JavaSyntax extends Syntax {
         syntax.addOperator(Unfolding,140,"\\unfolding","\\in","");
         syntax.addOperator(IndependentOf, -1 , "(" ,"!",")");
         syntax.addOperator(ReducibleSum,-1,"Reducible(",",+)");
+        syntax.addReserved(EmptyProcess, "empty");
         JavaVerCorsSyntax=syntax;
         
       }

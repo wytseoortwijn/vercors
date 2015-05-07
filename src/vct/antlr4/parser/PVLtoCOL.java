@@ -4,6 +4,8 @@ import static hre.System.Debug;
 import static hre.System.Fail;
 import static hre.System.Warning;
 
+import hre.HREError;
+
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
@@ -473,7 +475,8 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
       ASTNode process=convert(ctx,1);
       ASTNode action=convert(ctx,3);
       ASTNode block=convert(ctx,4);
-      return create.action_block(process,action,block);
+      throw new HREError("action block is broken");
+      //return create.action_block(process,action,block);
     }
     if (match(ctx,"create",null,",",null,";")){
       return create.special(ASTSpecial.Kind.CreateHistory,convert(ctx,1),convert(ctx,3));

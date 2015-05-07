@@ -6,12 +6,16 @@ public class ActionBlock extends ASTNode {
   public <R,A> R accept_simple(ASTMapping1<R,A> map,A arg){
     return map.map(this,arg);
   }
-    
+  
+  public final ASTNode history;
+  public final ASTNode fraction;
   public final ASTNode process;
   public final ASTNode action;
   public final ASTNode block;
   
-  public ActionBlock(ASTNode process,ASTNode action,ASTNode block){
+  public ActionBlock(ASTNode history,ASTNode fraction,ASTNode process,ASTNode action,ASTNode block){
+    this.history=history;
+    this.fraction=fraction;
     this.process=process;
     this.action=action;
     this.block=block;

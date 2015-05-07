@@ -738,26 +738,38 @@ public class JavaJMLtoCol extends AbstractJavaToCol implements JavaJMLVisitor<AS
     } else if (match(ctx,"unfold",null,";")){
       res=create.expression(StandardOperator.Unfold,convert(ctx,1));
     } else if (match(ctx,"refute",null,";")){
-      res=create.expression(StandardOperator.Refute,convert(ctx,1));
+      res=create.expression(StandardOperator.Refute,convert(ctx,1));    
     } else if (match(ctx,"assert",null,";")){
       res=create.expression(StandardOperator.Assert,convert(ctx,1));
+    } else if (match(ctx,"inhale",null,";")){
+      res=create.special(ASTSpecial.Kind.Inhale,convert(ctx,1));
+    } else if (match(ctx,"exhale",null,";")){
+      res=create.special(ASTSpecial.Kind.Exhale,convert(ctx,1));
     } else if (match(ctx,"send",null,"to",null,",",null,";")){//DRB       
-      res= create.expression(StandardOperator.Send,convert(ctx,1),convert(ctx,3),convert(ctx,5));   
+      res=create.expression(StandardOperator.Send,convert(ctx,1),convert(ctx,3),convert(ctx,5));   
       res.setGhost(true);
     } else if (match(ctx,"recv",null,"from",null,",",null,";")){//DRB
-      res= create.expression(StandardOperator.Recv,convert(ctx,1),convert(ctx,3),convert(ctx,5));   
+      res=create.expression(StandardOperator.Recv,convert(ctx,1),convert(ctx,3),convert(ctx,5));   
       res.setGhost(true);
     } else if (match(ctx,"assume",null,";")){
       res=create.expression(StandardOperator.Assume,convert(ctx,1));
     }
-    if (match(ctx,"action",null,",",null,";")){
-      return create.special(ASTSpecial.Kind.DeclareAction,convert(ctx,1),convert(ctx,3));
+    if (match(ctx,"action",null,",",null,",",null,",",null,";")){
+      return create.special(ASTSpecial.Kind.DeclareAction,convert(ctx,1),convert(ctx,3),convert(ctx,5),convert(ctx,7));
     }
-    if (match(ctx,"create",null,",",null,";")){
-      return create.special(ASTSpecial.Kind.CreateHistory,convert(ctx,1),convert(ctx,3));
+    if (match(ctx,"create",null,";")){
+      return create.special(ASTSpecial.Kind.CreateHistory,convert(ctx,1));
     }
-    if (match(ctx,"destroy",null,",",null,",",null,";")){
-      return create.special(ASTSpecial.Kind.DestroyHistory,convert(ctx,1),convert(ctx,3),convert(ctx,5));
+    if (match(ctx,"destroy",null,",",null,";")){
+      return create.special(ASTSpecial.Kind.DestroyHistory,convert(ctx,1),convert(ctx,3));
+    }
+    if (match(ctx,"split",null,",",null,",",null,",",null,",",null,";")){
+      return create.special(ASTSpecial.Kind.SplitHistory,
+          convert(ctx,1),convert(ctx,3),convert(ctx,5),convert(ctx,7),convert(ctx,9));
+    }
+    if (match(ctx,"merge",null,",",null,",",null,",",null,",",null,";")){
+      return create.special(ASTSpecial.Kind.MergeHistory,
+          convert(ctx,1),convert(ctx,3),convert(ctx,5),convert(ctx,7),convert(ctx,9));
     }
     if (match(ctx,"open",null,";")){
       return create.expression(StandardOperator.Open,convert(ctx,1));

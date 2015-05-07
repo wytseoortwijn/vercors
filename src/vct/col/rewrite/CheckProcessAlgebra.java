@@ -62,6 +62,7 @@ public class CheckProcessAlgebra extends AbstractRewriter {
       }
     }
     super.visit(cl);
+    /* this block creates _old vars and begin/end methods which are nto needed for checking histories.
     ASTClass res=(ASTClass)result;
     for(NameExpression n:hist_set){
       String name=n.getName();
@@ -96,6 +97,7 @@ public class CheckProcessAlgebra extends AbstractRewriter {
       create.leave();
     }
     result=res;
+    */
   }
   
   @Override
@@ -149,7 +151,8 @@ public class CheckProcessAlgebra extends AbstractRewriter {
       }
       result=create.method_decl(create.primitive_type(Sort.Void), cb.getContract(), m.name, args, body);
     } else {
-      super.visit(m);
+      //super.visit(m);
+      result=null;
     }
   }
 
@@ -190,6 +193,8 @@ public class CheckProcessAlgebra extends AbstractRewriter {
         ASTNode tmp=sigma.rewrite(def.getBody());
         return expand_unguarded(tmp);
       }
+    } else if (m_body.isReserved(ASTReserved.EmptyProcess)) {
+      return m_body;
     } else if (m_body instanceof OperatorExpression){
       OperatorExpression p=(OperatorExpression)m_body;
       switch(p.getOperator()){
@@ -232,7 +237,9 @@ public class CheckProcessAlgebra extends AbstractRewriter {
 
   private ASTNode left_merge(ASTNode m_body, ASTNode other) {
     if (m_body instanceof MethodInvokation){
-      return create.expression(StandardOperator.Mult,m_body,other); 
+      return create.expression(StandardOperator.Mult,m_body,other);
+    } else if(m_body.isReserved(ASTReserved.EmptyProcess)){
+      return other;
     } else if (m_body instanceof OperatorExpression){
       OperatorExpression p=(OperatorExpression)m_body;
       switch(p.getOperator()){
@@ -311,6 +318,8 @@ public class CheckProcessAlgebra extends AbstractRewriter {
       }
     } else if (m_body instanceof MethodInvokation) {
       body.add(copy_rw.rewrite(m_body));
+    } else if (m_body.isReserved(ASTReserved.EmptyProcess)){
+      body.add(create.comment("// empty process"));
     } else {
       Abort("unknown process %s",m_body.getClass());
     }

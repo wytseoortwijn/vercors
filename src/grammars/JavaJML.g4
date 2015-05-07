@@ -8,8 +8,7 @@ specificResourceExpression
  : expression '->' Identifier '(' expressionList? ')'
  | ( expression . )? Identifier '@' Identifier '(' expressionList? ')'
  ;
-
-    
+ 
 type
   : type '[' ']'
   | type ',' type
@@ -43,6 +42,8 @@ specificationStatement
     | 'then' block
     | 'refute' resourceExpression ';'
     | 'assert' resourceExpression ';'
+    | 'exhale' resourceExpression ';'
+    | 'inhale' resourceExpression ';'
     | 'assume' resourceExpression ';'
     | 'create' resourceExpression block
     | 'create' block resourceExpression ';'
@@ -56,9 +57,11 @@ specificationStatement
     | 'send' resourceExpression 'to' Identifier ',' expression ';'
     | 'recv' resourceExpression 'from' Identifier ',' expression ';'
     | 'transfer' resourceExpression ';'
-    | 'action' resourceExpression ',' resourceExpression ';'
-    | 'create' resourceExpression ',' resourceExpression ';'
-    | 'destroy' resourceExpression ',' resourceExpression ',' resourceExpression ';'
+    | 'action' expression ',' expression ',' expression ',' expression ';'
+    | 'create' resourceExpression ';'
+    | 'destroy' resourceExpression ',' resourceExpression ';'
+    | 'split' resourceExpression ',' resourceExpression ',' resourceExpression ',' resourceExpression ',' resourceExpression ';'
+    | 'merge' resourceExpression ',' resourceExpression ',' resourceExpression ',' resourceExpression ',' resourceExpression ';'
     ;
 
 proofScript :
