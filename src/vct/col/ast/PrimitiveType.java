@@ -236,6 +236,10 @@ public final class PrimitiveType extends Type {
           return true;
         }    
         break;
+      case Char:
+        break;
+      case Double:
+        break;
       default:
         Fail("missing case in PrimitiveType.supertypeof (%s/%s)",this.sort,pt.sort);
       }

@@ -28,7 +28,7 @@ import vct.util.Configuration;
 public class SilverBackend {
   
   public static StringSetting silver_module=new StringSetting("silver/latest");
-  public static IntegerSetting silicon_z3_timeout=new IntegerSetting(15000);
+  public static IntegerSetting silicon_z3_timeout=new IntegerSetting(30000);
   
   public static <T,E,S,Decl,DFunc,DAxiom,Program>
   TestReport TestSilicon(ProgramUnit arg, String tool) {

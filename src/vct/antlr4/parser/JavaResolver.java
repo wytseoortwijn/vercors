@@ -10,6 +10,7 @@ import vct.col.ast.Method.Kind;
 import vct.col.ast.NameSpace.Import;
 import vct.col.rewrite.AbstractRewriter;
 import vct.util.ClassName;
+import vct.util.Configuration;
 
 public class JavaResolver extends AbstractRewriter {
 
@@ -19,7 +20,7 @@ public class JavaResolver extends AbstractRewriter {
     super(source);
   }
   
-  private boolean ensures_loaded(String name[]){
+  private boolean ensures_loaded(String ... name){
     if (source().find(name)!=null){
       return true;
     }
@@ -43,7 +44,11 @@ public class JavaResolver extends AbstractRewriter {
         for(int i=0;i<pars.length;i++){
           args[i]=create.field_decl("x"+i, convert_type(pars[i]));
         }
-        Method ast=create.method_decl(returns, null, m.getName(),args, null);
+        if (m.isVarArgs()){
+          DeclarationStatement old=args[pars.length-1];
+          args[pars.length-1]=create.field_decl(old.name,(Type)old.getType().getArg(0));
+        }
+        Method ast=create.method_kind(Method.Kind.Plain , returns, null, m.getName(),args, m.isVarArgs() , null);
         ast.setFlag(ASTFlags.STATIC,Modifier.isStatic(m.getModifiers()));
         res.add(ast);
       }
@@ -55,6 +60,12 @@ public class JavaResolver extends AbstractRewriter {
     	  }
     	  Method ast = create.method_kind(Kind.Constructor, null, null, m.getName(), args, null);
     	  res.add(ast);
+      }
+      for(java.lang.reflect.Field field:cl.getFields()){
+        Class type=field.getType();
+        DeclarationStatement decl=create.field_decl(field.getName(),convert_type(type));
+        decl.setFlag(ASTFlags.STATIC,Modifier.isStatic(field.getModifiers()));
+        res.add(decl);
       }
       create.leave();
       return true;
@@ -98,6 +109,8 @@ public class JavaResolver extends AbstractRewriter {
     } else if (c.isArray()) {
       returns=convert_type(c.getComponentType());
       returns=create.primitive_type(PrimitiveType.Sort.Array, returns);
+    } else if (c.getName().equals("java.lang.String")){
+      returns=create.primitive_type(PrimitiveType.Sort.String);
     } else {
       String name[]=c.getName().split("\\.");
       if (ensures_loaded(name)){
@@ -111,6 +124,40 @@ public class JavaResolver extends AbstractRewriter {
     }
     return returns;
   }
+  
+  private String[] full_name(String ... name){
+    if (ensures_loaded(name)){
+      return name;
+    }
+    ClassName tmp;
+    if (current_space!=null){
+      tmp=new ClassName(name);
+      tmp=tmp.prepend(current_space.getDeclName().name);
+      if (ensures_loaded(tmp.name)){
+        return tmp.name;
+      }
+      for(int i=current_space.imports.size()-1;i>=0;i--){
+        Import imp=current_space.imports.get(i);
+        if (imp.static_import) continue;
+        if (imp.all){
+          tmp=new ClassName(name);
+          tmp=tmp.prepend(imp.name);
+          if (ensures_loaded(tmp.name)){
+            return tmp.name;
+          }
+        } else {
+          String imp_name=imp.name[imp.name.length-1];
+          if (name.length==1 && name[0].equals(imp_name)) {
+            if (ensures_loaded(imp.name)){
+              return imp.name;
+            }            
+          }
+        }
+      }
+    }
+    return null;
+  }
+  
   @Override
   public void visit(ClassType t){
     String name[]=t.getNameFull();
@@ -176,4 +223,23 @@ public class JavaResolver extends AbstractRewriter {
     result=null;
   }
 
+  @Override
+  public void visit(NameExpression e){
+    if (e.getKind()==NameExpression.Kind.Unresolved){
+      String name=e.getName();
+      VariableInfo info=variables.lookup(name);
+      if (info!=null) {
+        Debug("unresolved %s name %s found during standardize",info.kind,name);
+        e.setKind(info.kind);
+      } else {
+        String cname[]=full_name(name);
+        if (cname!=null){
+          result=create.class_type(cname);
+          return;
+        }
+      }
+    }
+    super.visit(e);
+  }
+  
 }

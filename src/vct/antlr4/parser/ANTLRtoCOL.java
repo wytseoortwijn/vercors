@@ -397,7 +397,6 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
            * to enumerate all reserved names in the grammar.
            */
           if(syntax.is_reserved(tok.getText())){
-            Warning("reserved name %s",tok.getText());
             return create.reserved_name(syntax.reserved(tok.getText()));
           }
           if (tok.getType()==id_token) {            

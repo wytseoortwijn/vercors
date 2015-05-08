@@ -77,7 +77,8 @@ public class ClassConversion extends AbstractRewriter {
       }
       ASTNode body=rewrite(m.getBody());
       if (m.kind==Method.Kind.Constructor){
-        body=create.block(
+        if (body!=null){
+          body=create.block(
             create.field_decl(THIS,create.class_type(cl.name)),
             create.assignment(
                 create.local_name(THIS),
@@ -85,7 +86,8 @@ public class ClassConversion extends AbstractRewriter {
             ),
             body,
             create.return_statement(create.local_name(THIS))
-        );
+          );
+        }
         cb.ensures(create.expression(StandardOperator.NEQ,
             create.reserved_name(ASTReserved.Result),
             create.reserved_name(ASTReserved.Null)));
