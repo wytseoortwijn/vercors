@@ -793,6 +793,13 @@ public class Main
         passes.add("standardize");
         passes.add("check");       
       }
+      if (features.usesInheritance()){
+        passes.add("standardize");
+        passes.add("check");       
+        passes.add("ds_inherit");
+        passes.add("standardize");
+        passes.add("check");       
+      }
       if (check_defined.get()){
         passes.add("check-defined");
         passes.add("standardize");
