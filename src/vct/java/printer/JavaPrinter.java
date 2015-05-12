@@ -540,11 +540,8 @@ public class JavaPrinter extends AbstractPrinter {
     if (m.getKind()==Method.Kind.Pure){
       out.printf("/*@pure@*/ ");
     }
-    if ( m.getParent()!=null
-      && m.getParent() instanceof ASTClass
-      && ((ASTClass)m.getParent()).getName().equals(name)
-    ){
-      //out.printf("/*constructor*/");
+    if (m.getKind()==Method.Kind.Constructor){
+      out.printf("/*constructor*/ ");
     } else {
       result_type.accept(this);
       out.printf(" ");
@@ -1038,8 +1035,27 @@ public class JavaPrinter extends AbstractPrinter {
     }
   }
   
+  private void print_tuple(ASTNode ... args){
+    out.print("(");
+    String sep="";
+    for(ASTNode n:args){
+      out.print(sep);
+      nextExpr();
+      n.accept(this);
+      sep=",";
+    }
+    out.print(")");
+  }
+  
   public void visit(MethodInvokation s){
-    super.visit(s);
+    if (s.method.equals(Method.JavaConstructor)){
+      setExpr();
+      out.print("new ");
+      s.dispatch.accept(this);
+      print_tuple(s.getArgs());
+    } else {
+      super.visit(s);
+    }
     //if (s.get_before()!=null){
     //  out.printf("/*@ ");
     //  out.printf("with ");
