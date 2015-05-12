@@ -48,6 +48,7 @@ import vct.col.rewrite.DefineDouble;
 import vct.col.rewrite.DynamicStaticInheritance;
 import vct.col.rewrite.ExplicitPermissionEncoding;
 import vct.col.rewrite.FilterClass;
+import vct.col.rewrite.FilterSpecIgnore;
 import vct.col.rewrite.FinalizeArguments;
 import vct.col.rewrite.Flatten;
 import vct.col.rewrite.FlattenBeforeAfter;
@@ -56,7 +57,6 @@ import vct.col.rewrite.GenericPass1;
 import vct.col.rewrite.GhostLifter;
 import vct.col.rewrite.GlobalizeStaticsField;
 import vct.col.rewrite.GlobalizeStaticsParameter;
-import vct.col.rewrite.InheritanceRewriter;
 import vct.col.rewrite.InlinePredicatesRewriter;
 import vct.col.rewrite.IterationContractEncoder;
 import vct.col.rewrite.KernelRewriter;
@@ -375,14 +375,14 @@ public class Main
         }
       });
     }
-    defined_passes.put("inheritance",new CompilerPass("rewrite contracts to reflect inheritance - old"){
-      public ProgramUnit apply(ProgramUnit arg){
-        return new InheritanceRewriter(arg).rewriteOrdered();
-      }
-    });
     defined_passes.put("ds_inherit",new CompilerPass("rewrite contracts to reflect inheritance, predicate chaining"){
       public ProgramUnit apply(ProgramUnit arg){
         return new DynamicStaticInheritance(arg).rewriteOrdered();
+      }
+    });
+    defined_passes.put("filter_spec_ignore",new CompilerPass("remove spec_ignore sections from code"){
+      public ProgramUnit apply(ProgramUnit arg){
+        return new FilterSpecIgnore(arg).rewriteAll();
       }
     });
     defined_passes.put("flatten_before_after",new CompilerPass("move before/after instructions"){
@@ -754,6 +754,7 @@ public class Main
       passes=new ArrayList<String>();
 //      passes.add("standardize");
 //      passes.add("check");
+      passes.add("filter_spec_ignore");
       passes.add("java_resolve");
       passes.add("standardize");
       passes.add("check");
