@@ -164,7 +164,7 @@ public class ClassConversion extends AbstractRewriter {
           args.add(rewrite(s.object));
         }
         if (def.kind==Kind.Predicate && !s.object.isReserved(ASTReserved.This) && (!fold_unfold) ){
-          extra=create.expression(StandardOperator.NEQ,rewrite(s.object),create.reserved_name(ASTReserved.Null));
+          //extra=create.expression(StandardOperator.NEQ,rewrite(s.object),create.reserved_name(ASTReserved.Null));
         }
       }      
     }
