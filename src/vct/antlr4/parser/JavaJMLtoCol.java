@@ -1,5 +1,7 @@
 package vct.antlr4.parser;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.antlr.v4.runtime.BufferedTokenStream;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
@@ -429,8 +431,7 @@ public class JavaJMLtoCol extends AbstractJavaToCol implements JavaJMLVisitor<AS
 
   @Override
   public ASTNode visitLastFormalParameter(LastFormalParameterContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
+    return getLastFormalParameter(ctx);
   }
 
   @Override
@@ -741,6 +742,10 @@ public class JavaJMLtoCol extends AbstractJavaToCol implements JavaJMLVisitor<AS
       res=create.expression(StandardOperator.Refute,convert(ctx,1));    
     } else if (match(ctx,"assert",null,";")){
       res=create.expression(StandardOperator.Assert,convert(ctx,1));
+    } else if (match(ctx,"spec_ignore","{")){
+      res=create.special(ASTSpecial.Kind.SpecIgnoreStart);
+    } else if (match(ctx,"}","spec_ignore")){
+      res=create.special(ASTSpecial.Kind.SpecIgnoreEnd);
     } else if (match(ctx,"inhale",null,";")){
       res=create.special(ASTSpecial.Kind.Inhale,convert(ctx,1));
     } else if (match(ctx,"exhale",null,";")){
@@ -867,7 +872,11 @@ public class JavaJMLtoCol extends AbstractJavaToCol implements JavaJMLVisitor<AS
     Type returns=checkType(convert(ctx,i));
     String name=getIdentifier(ctx,i+1);
     hre.System.Debug("function %s, contract %s",name,contract);
-    DeclarationStatement args[]=getFormalParameters(ctx.getChild(i+2));
+    AtomicBoolean varargs=new AtomicBoolean();
+    DeclarationStatement args[]=getFormalParameters(ctx.getChild(i+2),varargs);
+    if (varargs.get()){
+      hre.System.Fail("functions with varargs not supported yet.");
+    }
     ASTNode body=null;
     if (match(i+3,false,ctx,"=",null,";")){
       body=convert(ctx,i+4);

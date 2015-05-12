@@ -399,6 +399,11 @@ public class ASTClass extends ASTDeclaration implements ASTSequence<ASTClass> {
     });
   }
 
+  /** Get an iterator for the fields of the class. */
+  public Iterable<DeclarationStatement> fields() {
+    return new FilteredIterable<ASTNode,DeclarationStatement>(this,new DeclarationFilter());
+  }
+  
   /** Get an iterator for the static fields of the class. */
   public Iterable<DeclarationStatement> staticFields() {
     return new FilteredIterable<ASTNode,DeclarationStatement>(staticMembers(),new DeclarationFilter());
@@ -409,6 +414,11 @@ public class ASTClass extends ASTDeclaration implements ASTSequence<ASTClass> {
     return new FilteredIterable<ASTNode,DeclarationStatement>(dynamicMembers(),new DeclarationFilter());
   }
   
+  /** Get an iterator for the methods of the class. */
+  public Iterable<Method> methods() {
+    return new FilteredIterable<ASTNode,Method>(this,new MethodFilter());
+  }
+
   /** Get an iterator for the static methods of the class. */
   public Iterable<Method> staticMethods() {
     return new FilteredIterable<ASTNode,Method>(staticMembers(),new MethodFilter());

@@ -44,13 +44,17 @@ public class ClassConversion extends AbstractRewriter {
   @Override
   public void visit(ASTClass cl){
     ASTClass res=create.ast_class(cl.name, ASTClass.ClassKind.Record,null, null, null);
-    if (cl.getStaticCount()>0){
-      Fail("class conversion cannot be used for static entries yet.");
+    for(DeclarationStatement decl:cl.staticFields()){
+      String name=cl.name+SEP+decl.name;
+      create.enter();
+      create(decl);
+      target().add(create.field_decl(name, rewrite(decl.getType()), rewrite(decl.getInit())));
+      create.leave();
     }
     for(DeclarationStatement decl:cl.dynamicFields()){
       res.add(rewrite(decl));
     }
-    for(Method m:cl.dynamicMethods()){
+    for(Method m:cl.methods()){
       create.enter();
       create.setOrigin(m.getOrigin());
       Method.Kind kind;
@@ -66,7 +70,7 @@ public class ClassConversion extends AbstractRewriter {
       ContractBuilder cb=new ContractBuilder();
       String name=cl.name+SEP+m.name;
       ArrayList<DeclarationStatement> args=new ArrayList();
-      if (m.kind!=Method.Kind.Constructor){
+      if (m.kind!=Method.Kind.Constructor && !m.isStatic()){
         args.add(create.field_decl(THIS,create.class_type(cl.name)));
         cb.requires(create.expression(StandardOperator.NEQ,
             create.local_name(THIS),
@@ -156,7 +160,9 @@ public class ClassConversion extends AbstractRewriter {
         method=s.method;
       } else {
         method+=SEP+s.method;
-        args.add(rewrite(s.object));
+        if (!def.isStatic()){
+          args.add(rewrite(s.object));
+        }
         if (def.kind==Kind.Predicate && !s.object.isReserved(ASTReserved.This) && (!fold_unfold) ){
           extra=create.expression(StandardOperator.NEQ,rewrite(s.object),create.reserved_name(ASTReserved.Null));
         }

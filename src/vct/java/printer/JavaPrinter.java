@@ -272,6 +272,12 @@ public class JavaPrinter extends AbstractPrinter {
       s.args[0].accept(this);
       out.println(";");
       break;    
+    case SpecIgnoreStart:
+      out.println("spec_ignore {");
+      break;
+    case SpecIgnoreEnd:
+      out.println("} spec_ignore");
+      break;
     default:
       super.visit(s);
       break;

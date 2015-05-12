@@ -62,6 +62,8 @@ specificationStatement
     | 'destroy' resourceExpression ',' resourceExpression ';'
     | 'split' resourceExpression ',' resourceExpression ',' resourceExpression ',' resourceExpression ',' resourceExpression ';'
     | 'merge' resourceExpression ',' resourceExpression ',' resourceExpression ',' resourceExpression ',' resourceExpression ';'
+    | '}' 'spec_ignore'
+    | 'spec_ignore' '{'
     ;
 
 proofScript :

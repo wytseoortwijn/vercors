@@ -31,7 +31,9 @@ public class ASTSpecial extends ASTNode {
     SplitHistory,
     MergeHistory,
     Transfer,
-    Goto
+    Goto,
+    SpecIgnoreStart,
+    SpecIgnoreEnd
   };
 
   public final Kind kind;

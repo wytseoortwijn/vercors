@@ -3,6 +3,7 @@ package vct.antlr4.parser;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.antlr.v4.runtime.BufferedTokenStream;
 import org.antlr.v4.runtime.Parser;
@@ -189,13 +190,16 @@ public class AbstractJavaToCol extends ANTLRtoCOL {
     Debug("no class creator");
     return null;
   }
-  protected DeclarationStatement[] getFormalParameters(ParseTree tree){
+  protected DeclarationStatement[] getFormalParameters(ParseTree tree,AtomicBoolean varargs){
     DeclarationStatement args[];
     ParserRuleContext arg_ctx=(ParserRuleContext)tree;
     if (match(arg_ctx,"(",")")) {
+      varargs.set(false);
       args=new DeclarationStatement[0];
     } else {
-      ASTNode tmp[]=convert_list((ParserRuleContext)arg_ctx.getChild(1),",");
+      ParserRuleContext args_ctx=(ParserRuleContext)arg_ctx.getChild(1);
+      ASTNode tmp[]=convert_list(args_ctx,",");
+      varargs.set(match(tmp.length*2-2,true,args_ctx,"LastFormalParameter"));
       args=new DeclarationStatement[tmp.length];
       for(int i=0;i<tmp.length;i++){
         args[i]=(DeclarationStatement)tmp[i];
@@ -217,11 +221,12 @@ public class AbstractJavaToCol extends ANTLRtoCOL {
   }
   public Method getConstructorDeclaration(ParserRuleContext ctx) {
     String name=getIdentifier(ctx,0);
-    DeclarationStatement args[]=getFormalParameters(ctx.getChild(1));
+    AtomicBoolean varargs=new AtomicBoolean();
+    DeclarationStatement args[]=getFormalParameters(ctx.getChild(1),varargs);
     Type returns=create.primitive_type(Sort.Void);
     if (ctx.getChildCount()==3){
       ASTNode body=convert(ctx,2);
-      return create.method_kind(Method.Kind.Constructor, returns, null, name, args, body);
+      return create.method_kind(Method.Kind.Constructor, returns, null, name, args,varargs.get(),body);
     } else {
       return null;
     }
@@ -235,14 +240,15 @@ public class AbstractJavaToCol extends ANTLRtoCOL {
       t=checkType(convert(ctx,0));
     }
     String name=getIdentifier(ctx,1);
-    DeclarationStatement args[]=getFormalParameters(ctx.getChild(2));
+    AtomicBoolean varargs=new AtomicBoolean();
+    DeclarationStatement args[]=getFormalParameters(ctx.getChild(2),varargs);
     ASTNode body;
     if (match(N-1,true,ctx,";")){
       body=null;
     } else {
       body=convert(ctx,N-1);
     }
-    Method res=create.method_decl(t,null, name, args, body);
+    Method res=create.method_kind(Method.Kind.Plain,t,null, name, args, varargs.get(), body);
     res.setStatic(false);
     return res;
   }
@@ -450,10 +456,21 @@ public class AbstractJavaToCol extends ANTLRtoCOL {
     }
     return null;
   }
+  
   public DeclarationStatement getFormalParameter(ParserRuleContext ctx) {
     if (match(ctx,null,null)){
       VariableDeclaration decl=create.variable_decl(checkType(convert(ctx,0)));
       DeclarationStatement var=getVariableDeclaratorId((ParserRuleContext)ctx.getChild(1));
+      decl.add(var);
+      DeclarationStatement vars[]=decl.flatten();
+      if (vars.length==1) return vars[0];
+    }
+    return null;
+  }
+  public DeclarationStatement getLastFormalParameter(ParserRuleContext ctx) {
+    if (match(ctx,null,"...",null)){
+      VariableDeclaration decl=create.variable_decl(checkType(convert(ctx,0)));
+      DeclarationStatement var=getVariableDeclaratorId((ParserRuleContext)ctx.getChild(2));
       decl.add(var);
       DeclarationStatement vars[]=decl.flatten();
       if (vars.length==1) return vars[0];

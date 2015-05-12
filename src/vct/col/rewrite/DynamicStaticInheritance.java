@@ -43,7 +43,7 @@ public class DynamicStaticInheritance extends AbstractRewriter {
   private AbstractRewriter copy_abstract=new AbstractRewriter(this){
     @Override
     public void visit(Method m){
-      result=create.method_kind(m.kind,rewrite(m.getReturnType()), rewrite(m.getContract()), m.getName(), rewrite(m.getArgs()) , null);
+      result=create.method_kind(m.kind,rewrite(m.getReturnType()), rewrite(m.getContract()), m.getName(), rewrite(m.getArgs()) , m.usesVarArgs() , null);
     }
   };
 
@@ -227,27 +227,27 @@ public class DynamicStaticInheritance extends AbstractRewriter {
     //res.add_dynamic(create.method_kind(Method.Kind.Pure,create.primitive_type(Sort.Boolean),null,"is_a_"+class_name,new DeclarationStatement[0],null));
     res.add_dynamic(create.predicate("is_a_"+class_name, null));
     res.add_dynamic(create.predicate("instance_of_"+class_name, null));
-    for(DeclarationStatement decl:cl.dynamicFields()){
-      res.add_dynamic(decl.apply(copy_rw));
+    for(DeclarationStatement decl:cl.fields()){
+      res.add(decl.apply(copy_rw));
     }
     if (parent!=null){
-      for(DeclarationStatement decl:parent.dynamicFields()){
-        res.add_dynamic(decl.apply(copy_rw));
+      for(DeclarationStatement decl:parent.fields()){
+        res.add(decl.apply(copy_rw));
       }
     }
     if (parent==null){
-      for(Method m:cl.dynamicMethods()){
+      for(Method m:cl.methods()){
         // no abstract constructors!
         if (m.kind==Method.Kind.Constructor) continue;
         // all other kinds have abstract counterparts.
-        res.add_dynamic(copy_abstract.rewrite(m));
+        res.add(copy_abstract.rewrite(m));
       }
     } else {
-      for(Method m:parent.dynamicMethods()){
+      for(Method m:parent.methods()){
         if (m.kind==Method.Kind.Predicate){
-          res.add_dynamic(copy_rw.rewrite(m));
+          res.add(copy_rw.rewrite(m));
         } else {
-          res.add_dynamic(copy_abstract.rewrite(m));
+          res.add(copy_abstract.rewrite(m));
         }
         if (m.kind==Method.Kind.Constructor) continue;
         String name=m.getName();
@@ -269,7 +269,7 @@ public class DynamicStaticInheritance extends AbstractRewriter {
         }
       }
     }
-    for(Method m:cl.dynamicMethods()){
+    for(Method m:cl.methods()){
       boolean is_final=m.isValidFlag(ASTFlags.FINAL)&&m.getFlag(ASTFlags.FINAL);
       switch(m.kind){
       case Predicate:{
@@ -289,7 +289,8 @@ public class DynamicStaticInheritance extends AbstractRewriter {
             rewrite(m.getArgs()),
             null
         );
-        res.add_dynamic(open);
+        open.setStatic(m.isStatic());
+        res.add(open);
         ASTNode body=tag_this.rewrite(m.getBody());
         if (parent!=null){
           for(int i=0;i<N;i++){
@@ -309,8 +310,10 @@ public class DynamicStaticInheritance extends AbstractRewriter {
             null,
             m.getName()+AT_STRING+class_name,
             copy_rw.rewrite(m.getArgs()),
+            m.usesVarArgs(),
             body);
-        res.add_dynamic(local);
+        local.setStatic(m.isStatic());
+        res.add(local);
         break;
       }
       case Pure:
@@ -331,8 +334,10 @@ public class DynamicStaticInheritance extends AbstractRewriter {
             (is_final?copy_rw:tag_this).rewrite(c),
             m.getName()+AT_STRING+class_name,
             copy_rw.rewrite(m.getArgs()),
+            m.usesVarArgs(),
             (is_final?fix_super:fix_super_plus).rewrite(m.getBody()));
-        res.add_dynamic(local);
+        local.setStatic(m.isStatic());
+        res.add(local);
         break;
       }
       case Constructor:{
@@ -346,6 +351,7 @@ public class DynamicStaticInheritance extends AbstractRewriter {
             cb.getContract(),
             m.getName(),
             copy_rw.rewrite(m.getArgs()),
+            m.usesVarArgs(),
             null);
         res.add_dynamic(global);
         Method local=create.method_kind(
@@ -354,6 +360,7 @@ public class DynamicStaticInheritance extends AbstractRewriter {
             tag_this.rewrite(m.getContract()),
             m.getName()+AT_STRING+class_name,
             copy_rw.rewrite(m.getArgs()),
+            m.usesVarArgs(),
             fix_super.rewrite(m.getBody()));
         res.add_dynamic(local);
         break;
@@ -407,6 +414,7 @@ public class DynamicStaticInheritance extends AbstractRewriter {
         tag_this.rewrite(c),
         m.getName()+AT_STRING+class_name,
         copy_rw.rewrite(m.getArgs()),
+        m.usesVarArgs(),
         body);
     res.add_dynamic(local);             
 

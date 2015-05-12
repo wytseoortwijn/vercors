@@ -465,8 +465,7 @@ public class JavaToCol extends AbstractJavaToCol implements JavaVisitor<ASTNode>
 
   @Override
   public ASTNode visitLastFormalParameter(LastFormalParameterContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
+    return getLastFormalParameter(ctx);
   }
 
   @Override
