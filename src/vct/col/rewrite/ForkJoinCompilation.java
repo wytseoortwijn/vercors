@@ -36,13 +36,13 @@ public class ForkJoinCompilation extends AbstractRewriter {
 	
 	@Override
 	public void visit(ASTClass cl){
-		currentClass=create.ast_class(cl.name, cl.kind,
+		currentTargetClass=create.ast_class(cl.name, cl.kind,
 		    rewrite(cl.parameters),
 				new ClassType[]{create.class_type("ForkJoinBase")} , null);
 		for (ASTNode item:cl){
-			currentClass.add(rewrite(item));
+			currentTargetClass.add(rewrite(item));
 		}
-		result=currentClass;
+		result=currentTargetClass;
 	}
 	
 	@Override

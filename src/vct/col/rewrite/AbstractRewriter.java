@@ -114,7 +114,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   /**
    * Refers to the resulting class of the current class being rewritten.
    */
-  protected ASTClass currentClass=null;
+  protected ASTClass currentTargetClass=null;
   
   /**
    * Refers to the block that is the result of rewriting the current block.
@@ -124,7 +124,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   
   protected ASTSequence<?> current_sequence(){
     if (currentBlock!=null) return currentBlock;
-    if (currentClass!=null) return currentClass;
+    if (currentTargetClass!=null) return currentTargetClass;
     return target();
   }
   
@@ -325,7 +325,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
       Debug("rewriting class "+name);
       ASTClass res=new ASTClass(name,c.kind,rewrite(c.parameters),rewrite(c.super_classes),rewrite(c.implemented_classes));
       res.setOrigin(c.getOrigin());
-      currentClass=res;
+      currentTargetClass=res;
       Contract contract=c.getContract();
       if (currentContractBuilder==null){
         currentContractBuilder=new ContractBuilder();
@@ -339,7 +339,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
         res.add(rewrite(item));
       }
       result=res;
-      currentClass=null;
+      currentTargetClass=null;
     }
   }
 

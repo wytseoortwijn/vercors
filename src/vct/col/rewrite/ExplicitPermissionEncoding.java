@@ -82,7 +82,7 @@ public class ExplicitPermissionEncoding extends AbstractRewriter {
       // Witnesses must be generated for every predicate because
       // a predicate without argument could invoke one that uses them,
       // which requires using a witness.
-      ASTClass pred_class=(ASTClass)(new PredicateClassGenerator(source(),currentClass)).rewrite((ASTNode)m);
+      ASTClass pred_class=(ASTClass)(new PredicateClassGenerator(source(),currentTargetClass)).rewrite((ASTNode)m);
       Contract c=((ASTClass)m.getParent()).getContract();
       if (c!=null){
         pred_class.setContract(copy_rw.rewrite(c));

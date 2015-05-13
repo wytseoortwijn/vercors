@@ -1226,7 +1226,7 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
   @Override
   public void visit(ASTSpecial s){
     super.visit(s);
-    System.out.printf("special %s%n",s.kind);
+    Debug("special %s",s.kind);
     for(ASTNode n:s.args){
       Type t=n.getType();
       if (t==null){

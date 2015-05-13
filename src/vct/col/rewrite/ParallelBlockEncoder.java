@@ -121,14 +121,14 @@ public class ParallelBlockEncoder extends AbstractRewriter {
         main_cb.ensures(create.starall(copy_rw.rewrite(iters_guard), rewrite(clause) , iter_decls));
       }
     }
-    currentClass.add(create.method_decl(
+    currentTargetClass.add(create.method_decl(
         create.primitive_type(Sort.Void),
         check_cb.getContract(),
         check_name,
         gen_pars(check_vars),
         rewrite(pb.block)
     ));
-    currentClass.add(create.method_decl(
+    currentTargetClass.add(create.method_decl(
         create.primitive_type(Sort.Void),
         main_cb.getContract(),
         main_name,

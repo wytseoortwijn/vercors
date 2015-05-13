@@ -463,7 +463,7 @@ public class WandEncoder extends AbstractRewriter {
 	      lemma_name,
 	      lemma_args.toArray(new DeclarationStatement[0]),
 	      lemma_body);
-	  currentClass.add_dynamic(lemma_method);
+	  currentTargetClass.add_dynamic(lemma_method);
 	  def.valid_body=create.expression(StandardOperator.Star,
 				def.valid_body,
 				create.expression(StandardOperator.Implies,

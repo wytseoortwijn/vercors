@@ -155,7 +155,7 @@ public class IterationContractEncoder extends AbstractRewriter {
 		  }
 		  ///Check for side conditions	      		  
 		  
-	      currentClass.add_dynamic(send_body);
+	      currentTargetClass.add_dynamic(send_body);
 	      
 	      result=create.invokation(null,null,send_name,send_args.toArray(new ASTNode[0]));	      
 		  break;
@@ -210,7 +210,7 @@ public class IterationContractEncoder extends AbstractRewriter {
 		      Fail("\nThe distance of dependence in the \"recv\" statement should be positive.");		      
 		  }
 		  ///Check for side conditions			  
-	      currentClass.add_dynamic(recv_body);	      
+	      currentTargetClass.add_dynamic(recv_body);	      
 	      result=create.invokation(null,null,recv_name,recv_args.toArray(new ASTNode[0]));
 	      		  
 		  break;
@@ -335,7 +335,7 @@ public class IterationContractEncoder extends AbstractRewriter {
     }
 
     DeclarationStatement main_pars[]=gen_pars(main_vars);
-    currentClass.add(create.method_decl(
+    currentTargetClass.add(create.method_decl(
         create.primitive_type(Sort.Void),
         main_cb.getContract(),
         main_name,
@@ -409,7 +409,7 @@ public class IterationContractEncoder extends AbstractRewriter {
     }
     
     DeclarationStatement body_pars[]=gen_pars(body_vars);
-    currentClass.add(create.method_decl(
+    currentTargetClass.add(create.method_decl(
         create.primitive_type(Sort.Void),
         body_cb.getContract(),
         body_name,
@@ -810,7 +810,7 @@ public class IterationContractEncoder extends AbstractRewriter {
         );
         branch=new BranchOrigin("Guard Check",null);
         OriginWrapper.wrap(null,guard_method, branch);
-        currentClass.add_dynamic(guard_method);
+        currentTargetClass.add_dynamic(guard_method);
         //create resource check
         cb=new ContractBuilder();
         cb.requires(guard);
@@ -838,7 +838,7 @@ public class IterationContractEncoder extends AbstractRewriter {
         );
         branch=new BranchOrigin("Resource Check",null);
         OriginWrapper.wrap(null,resource_method, branch);
-        currentClass.add_dynamic(resource_method);
+        currentTargetClass.add_dynamic(resource_method);
 
       }
       // unmatched send statements are wasteful, but not incorrect. 
