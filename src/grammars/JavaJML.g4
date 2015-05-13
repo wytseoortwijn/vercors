@@ -33,7 +33,6 @@ specificationStatement
     | 'given' localVariableDeclaration ';'
     | 'yields' localVariableDeclaration ';'
     | 'loop_invariant' resourceExpression ';'
-    | 'set' expression '=' expression ';'
     | 'fold' resourceExpression ';'
     | 'unfold' resourceExpression ';'
     | 'label' Identifier
