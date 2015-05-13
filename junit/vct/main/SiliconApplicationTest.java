@@ -1,9 +1,12 @@
 package vct.main;
 
 import hre.util.TestReport.Verdict;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import com.google.code.tempusfugit.concurrency.ConcurrentTestRunner;
+
 import static vct.main.Feature.*;
 
 @RunWith(ConcurrentTestRunner.class) 
@@ -32,8 +35,8 @@ public class SiliconApplicationTest extends ToolTest {
       sem.release();
     }
   }
-
-  @Test
+  
+ @Test
   public void testDepParLoop(){
     sem_get();
     try {
@@ -224,40 +227,6 @@ public class SiliconApplicationTest extends ToolTest {
   }
   
   @Test
-  public void testHistoryProcessesPVL(){
-    sem_get(Histories);
-    try {
-      VCTResult res=run("vct","--silver=silicon","--check-defined","//examples/histories/History.pvl");
-      res.checkVerdict(Verdict.Pass);
-    } finally {
-      sem.release();
-    }
-  }
-  
-  @Test
-  public void testHistoryLemmasPVL(){
-    sem_get(Histories);
-    try {
-      VCTResult res=run("vct","--silver=silicon","--check-axioms","//examples/histories/History.pvl");
-      res.checkVerdict(Verdict.Pass);
-    } finally {
-      sem.release();
-    }
-  }
-  
-  @Test
-  public void testHistoryApplication(){
-    sem_get(Histories);
-    try {
-      VCTResult res=run("vct","--silver=silicon","--check-history",
-          "//examples/histories/History.pvl","//examples/histories/HistoryApplication.java");
-      res.checkVerdict(Verdict.Pass);
-    } finally {
-      sem.release();
-    }
-  }
-  
-  @Test
   public void testHistoryLoop(){
     sem_get(Histories);
     try {
@@ -268,37 +237,5 @@ public class SiliconApplicationTest extends ToolTest {
       sem.release();
     }
   }
-  
-  @Test
-  public void testThreadInheritance(){
-    sem_get();
-    try {
-      VCTResult res=run("vct","--silver=silicon",
-          "//examples/threads/SpecifiedThread.java",
-          "//examples/threads/Worker.java",
-          "//examples/threads/VerifiedMain.java"
-          );
-      res.checkVerdict(Verdict.Pass);
-    } finally {
-      sem.release();
-    }
-  }
-  
-  
-  
-  @Test
-  public void testThreadInheritanceReal(){
-    sem_get();
-    try {
-      VCTResult res=run("vct","--silver=silicon",
-          "//examples/threads/SpecifiedThread.java",
-          "//examples/threads/Worker.java",
-          "//examples/threads/Main.java"
-          );
-      res.checkVerdict(Verdict.Pass);
-    } finally {
-      sem.release();
-    }
-  }
-  
+
 }

@@ -53,6 +53,7 @@ import vct.col.rewrite.FinalizeArguments;
 import vct.col.rewrite.Flatten;
 import vct.col.rewrite.FlattenBeforeAfter;
 import vct.col.rewrite.ForkJoinCompilation;
+import vct.col.rewrite.ForkJoinEncode;
 import vct.col.rewrite.GenericPass1;
 import vct.col.rewrite.GhostLifter;
 import vct.col.rewrite.GlobalizeStaticsField;
@@ -349,6 +350,11 @@ public class Main
     defined_passes.put("finalize_args",new CompilerPass("???"){
       public ProgramUnit apply(ProgramUnit arg){
         return new FinalizeArguments(arg).rewriteAll();
+      }
+    });
+    defined_passes.put("fork-join-encode",new CompilerPass("Encode fork/join operations using method calls."){
+      public ProgramUnit apply(ProgramUnit arg){
+        return new ForkJoinEncode(arg).rewriteAll();
       }
     });
     defined_passes.put("flatten",new CompilerPass("remove nesting of expression"){
@@ -760,6 +766,11 @@ public class Main
       passes.add("check");
       if (features.usesOperator(StandardOperator.Wand)){
         passes.add("magicwand");
+        passes.add("standardize");
+        passes.add("check");
+      }
+      if (features.usesOperator(StandardOperator.Fork)){
+        passes.add("fork-join-encode");
         passes.add("standardize");
         passes.add("check");
       }

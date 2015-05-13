@@ -27,9 +27,9 @@ public class ManualTest extends ToolTest {
   public void test_example1() {
     sem_get();
     try {
-      VCTResult res = run("vct", "--chalice", "--no-context",
+      VCTResult res = run("vct", "--silver=silicon", "--no-context",
           "//examples/manual/main.pvl", "//examples/manual/permissions.pvl");
-      res.mustSay("Assertion might not hold.");
+      res.mustSay("assert.failed:assertion.false");
 
       if (res.verdict != Verdict.Fail)
         fail("bad result : " + res.verdict);
@@ -42,7 +42,7 @@ public class ManualTest extends ToolTest {
   public void test_example2() {
     sem_get();
     try {
-      VCTResult res = run("vct", "--chalice", "--no-context",
+      VCTResult res = run("vct", "--silver=silicon", "--no-context",
           "//examples/manual/loop.pvl", "//examples/manual/permissions.pvl");
       if (res.verdict != Verdict.Pass)
         fail("bad result : " + res.verdict);
@@ -55,10 +55,10 @@ public class ManualTest extends ToolTest {
   public void test_example3() {
     sem_get();
     try {
-      VCTResult res = run("vct", "--chalice",
+      VCTResult res = run("vct", "--silver=silicon",
           "//examples/manual/parameters1.pvl",
           "//examples/manual/permissions.pvl");
-      res.mustSay("Location might not be writable");
+      res.mustSay("assignment.failed:insufficient.permission");
       if (res.verdict != Verdict.Fail)
         fail("bad result : " + res.verdict);
     } finally {
@@ -70,7 +70,7 @@ public class ManualTest extends ToolTest {
   public void test_example4() {
     sem_get();
     try {
-      VCTResult res = run("vct", "--chalice",
+      VCTResult res = run("vct", "--silver=silicon",
           "//examples/manual/parameters2.pvl",
           "//examples/manual/permissions.pvl");
       if (res.verdict != Verdict.Pass)
@@ -84,7 +84,7 @@ public class ManualTest extends ToolTest {
   public void test_functions() {
     sem_get();
     try {
-      VCTResult res = run("vct", "--chalice", "//examples/manual/functions.pvl");
+      VCTResult res = run("vct", "--silver=silicon", "//examples/manual/functions.pvl");
       if (res.verdict != Verdict.Pass)
         fail("bad result : " + res.verdict);
     } finally {
@@ -109,7 +109,7 @@ public class ManualTest extends ToolTest {
   public void test_list() {
     sem_get();
     try {
-      VCTResult res = run("vct", "--chalice", "//examples/manual/list.pvl");
+      VCTResult res = run("vct", "--silver=silicon", "//examples/manual/list.pvl");
       if (res.verdict != Verdict.Pass)
         fail("bad result : " + res.verdict);
     } finally {
@@ -121,7 +121,7 @@ public class ManualTest extends ToolTest {
   public void test_fibonacci() {
     sem_get();
     try {
-      VCTResult res = run("vct", "--chalice", "//examples/manual/fibonacci.pvl");
+      VCTResult res = run("vct", "--silver=silicon", "//examples/manual/fibonacci.pvl");
       if (res.verdict != Verdict.Pass)
         fail("bad result : " + res.verdict);
     } finally {
@@ -133,7 +133,7 @@ public class ManualTest extends ToolTest {
   public void test_array() {
     sem_get();
     try {
-      VCTResult res = run("vct", "--chalice",
+      VCTResult res = run("vct", "--silver=silicon_qp",
           "//examples/manual/zero_array.pvl");
       if (res.verdict != Verdict.Pass)
         fail("bad result : " + res.verdict);
@@ -142,11 +142,11 @@ public class ManualTest extends ToolTest {
     }
   }
 
-  //Dissbled due to Chalice array limitation and bug in Silicon @Test
+  @Test
   public void test_set_solution() {
     sem_get();
     try {
-      VCTResult res = run("vct", "--chalice", "--inline",
+      VCTResult res = run("vct", "--silver=silicon_qp", "--inline",
           "//examples/manual/SetSolution.pvl");
       if (res.verdict != Verdict.Pass)
         fail("bad result : " + res.verdict);
@@ -159,7 +159,7 @@ public class ManualTest extends ToolTest {
   public void test_tree_solution() {
     sem_get();
     try {
-      VCTResult res = run("vct", "--chalice",
+      VCTResult res = run("vct", "--silver=silicon",
           "//examples/manual/TreeSolution.pvl");
       if (res.verdict != Verdict.Pass)
         fail("bad result : " + res.verdict);
@@ -172,7 +172,7 @@ public class ManualTest extends ToolTest {
   public void test_list_solution() {
     sem_get();
     try {
-      VCTResult res = run("vct", "--chalice", "--no-context",
+      VCTResult res = run("vct", "--silver=silicon", "--no-context",
           "//examples/manual/ListSolution.pvl");
       if (res.verdict != Verdict.Pass)
         fail("bad result : " + res.verdict);

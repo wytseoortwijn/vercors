@@ -114,6 +114,7 @@ public class ToolTest extends TestCase {
      
       break;
     case "silicon":
+    case "silicon_qp":
       String z3;
       if (vct.boogie.Main.z3_module.used()||vct.silver.SilverBackend.silver_module.used()){
         z3=vct.boogie.Main.z3_module.get();

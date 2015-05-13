@@ -24,7 +24,8 @@ public class CommandLineTesting {
     testmap.put("backend",vct.main.DependencyTest.class);
     testmap.put("manual",vct.main.ManualTest.class);
     testmap.put("main",vct.main.MainTest.class);
-    testmap.put("silicon",vct.main.SiliconApplicationTest.class);
+    testmap.put("silicon",vct.main.SiliconInstallationTest.class);
+    testmap.put("silicon-apps",vct.main.SiliconApplicationTest.class);
     testmap.put("dafny",vct.main.DafnyTest.class);
     testmap.put("verifast",vct.main.VerifastTest.class);
     testmap.put("refute",vct.main.RefuteTest.class);
