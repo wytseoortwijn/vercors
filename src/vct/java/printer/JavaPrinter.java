@@ -51,6 +51,7 @@ public class JavaPrinter extends AbstractPrinter {
     tcb.main.accept(this);
     for(CatchClause cb:tcb.catches){
       out.print("catch (");
+      nextExpr();
       cb.decl.accept(this);
       out.print(")");
       cb.block.accept(this);
