@@ -201,6 +201,7 @@ public class JavaPrinter extends AbstractPrinter {
       out.print("assert ");
       setExpr();
       s.args[0].accept(this);
+      out.println(";");
       break;
     case Import:
       out.print("import ");
