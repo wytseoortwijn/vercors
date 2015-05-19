@@ -214,6 +214,7 @@ public class JavaPrinter extends AbstractPrinter {
       setExpr();
       s.args[0].accept(this);
       out.println(";");
+      break;
     case Exhale:
       out.print("exhale ");
       setExpr();

@@ -470,6 +470,10 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     
     
     switch(op){
+    case TypeOf:{
+      e.setType(new ClassType("<<null>>"));
+      break;
+    }
     case History:{
       e.setType(new PrimitiveType(Sort.Resource));
       break;

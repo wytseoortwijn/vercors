@@ -258,6 +258,8 @@ public class SilverStatementMap<T,E,S,Decl> implements ASTMapping<S>{
       return create.inhale(special.getOrigin(),special.args[0].apply(expr));
     case Exhale:
       return create.exhale(special.getOrigin(),special.args[0].apply(expr));
+    case Assert:
+      return create.assert_(special.getOrigin(),special.args[0].apply(expr));
     default:
       throw new HREError("cannot map special %s",special.kind);
     }

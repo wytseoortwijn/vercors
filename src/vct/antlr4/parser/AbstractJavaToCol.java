@@ -109,9 +109,12 @@ public class AbstractJavaToCol extends ANTLRtoCOL {
     if (match(ctx,null,"?",null,":",null)){
       return create.expression(StandardOperator.ITE,convert(ctx,0),convert(ctx,2),convert(ctx,4));
     }
+    if (match(ctx,null,"instanceof",null)){
+      return create.expression(StandardOperator.Instance,convert(ctx,0),convert(ctx,2));
+    }
     return null;    
   }
-  
+
   public ASTNode getType(ParserRuleContext ctx) {
     if (match(ctx,null,"[","]")){
       return create.primitive_type(Sort.Array, checkType(convert(ctx,0)));

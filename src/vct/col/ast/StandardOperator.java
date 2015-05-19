@@ -54,6 +54,8 @@ public enum StandardOperator {
   LTE(2),
   /** If then else operator or conditional. */
   ITE(3),
+  /** return the type of a value */
+  TypeOf(1),
   /** Instance of test. */
   Instance(2),
   /** Type Cast Expression. */

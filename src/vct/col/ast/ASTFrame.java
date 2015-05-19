@@ -275,7 +275,7 @@ public abstract class ASTFrame<T> {
       switch(action){
       case ENTER:
         DeclarationStatement decl=(DeclarationStatement)node;
-        if (decl.getParent() instanceof BlockStatement){
+        if (decl.getParent() instanceof BlockStatement || decl.getParent()==null){
           variables.add(decl.getName(),new VariableInfo(decl,NameExpression.Kind.Local));
         }
         break;

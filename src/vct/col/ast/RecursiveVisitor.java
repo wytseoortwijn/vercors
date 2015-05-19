@@ -328,6 +328,14 @@ public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
   @Override
   public void visit(TryCatchBlock tcb) {
     dispatch(tcb.main);
+    for(CatchClause c:tcb.catches){
+      enter(c.block);
+      dispatch(c.decl);
+      for(ASTNode S:c.block){
+        dispatch(S);
+      }
+      leave(c.block);
+    }
     dispatch(tcb.after);
   }
 

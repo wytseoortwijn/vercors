@@ -52,6 +52,7 @@ public class JavaSyntax extends Syntax {
         syntax.addOperator(HoarePredicate,-1,"/*{","}*/");
 
         syntax.addOperator(Member,-1,"(","\\memberof",")");
+        syntax.addFunction(TypeOf,"\\typeof");
         syntax.addFunction(CurrentPerm,"perm");
         syntax.addOperator(Scale,130,"[","]","");
         syntax.addFunction(Drop,"drop");
