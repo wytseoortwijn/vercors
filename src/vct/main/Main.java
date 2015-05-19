@@ -35,6 +35,7 @@ import vct.col.annotate.DeriveModifies;
 import vct.col.ast.*;
 import vct.col.rewrite.AbstractMethodResolver;
 import vct.col.rewrite.AbstractRewriter;
+import vct.col.rewrite.AddTypeADT;
 import vct.col.rewrite.AssignmentRewriter;
 import vct.col.rewrite.BoxingRewriter;
 import vct.col.rewrite.CSLencoder;
@@ -79,6 +80,7 @@ import vct.col.rewrite.SimplifyCalls;
 import vct.col.rewrite.Standardize;
 import vct.col.rewrite.StripConstructors;
 import vct.col.rewrite.VoidCalls;
+import vct.col.rewrite.VoidCallsThrown;
 import vct.col.rewrite.WandEncoder;
 import vct.col.util.FeatureScanner;
 import vct.col.util.SimpleTypeCheck;
@@ -226,6 +228,11 @@ public class Main
         return arg;
       }
     });
+    defined_passes.put("add-type-adt",new CompilerPass("Add an ADT that describes the types and use it to implement instanceof"){
+      public ProgramUnit apply(ProgramUnit arg){
+        return new AddTypeADT(arg).rewriteAll();
+      }
+    });   
     defined_passes.put("abstract-resolve",new CompilerPass("convert abstract methods to assume false bodies"){
       public ProgramUnit apply(ProgramUnit arg){
         return new AbstractMethodResolver(arg).rewriteAll();
@@ -556,9 +563,14 @@ public class Main
         return vct.verifast.Main.TestVerifast(arg);
       }
     });
-    defined_passes.put("voidcalls",new CompilerPass("???"){
+    defined_passes.put("voidcalls",new CompilerPass("Replace return value by out parameter."){
       public ProgramUnit apply(ProgramUnit arg){
         return new VoidCalls(arg).rewriteAll();
+      }
+    });
+    defined_passes.put("voidcallsthrown",new CompilerPass("Replace return value and thrown exceptions by out parameters."){
+      public ProgramUnit apply(ProgramUnit arg){
+        return new VoidCallsThrown(arg).rewriteAll();
       }
     });
     defined_passes.put("chalice-preprocess",new CompilerPass("Pre processing for chalice"){
@@ -807,6 +819,13 @@ public class Main
         passes.add("standardize");
         passes.add("check");       
       }
+      boolean has_type_adt=false;
+      if (features.usesOperator(StandardOperator.Instance)||features.usesInheritance()){
+        passes.add("add-type-adt");
+        passes.add("standardize");
+        passes.add("check");
+        has_type_adt=true;   
+      }
       if (features.usesInheritance()){
         passes.add("standardize");
         passes.add("check");       
@@ -855,7 +874,11 @@ public class Main
       passes.add("silver-class-reduction");
       passes.add("standardize");
       passes.add("check");
-      passes.add("voidcalls");
+      if (has_type_adt){
+        passes.add("voidcallsthrown");
+      } else {
+        passes.add("voidcalls");
+      }
       passes.add("standardize");
       passes.add("check");
       passes.add("ghost-lift");
