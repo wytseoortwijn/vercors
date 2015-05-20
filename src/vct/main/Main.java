@@ -517,21 +517,21 @@ public class Main
       public ProgramUnit apply(ProgramUnit arg){
         RewriteSystem trs=RewriteSystems.getRewriteSystem("simplify_expr");
         return trs.normalize(arg);
-        // return new SimplifyExpressions(arg).rewriteAll();
       }
     });
     defined_passes.put("simplify_quant",new CompilerPass("Simplify quantifications"){
       public ProgramUnit apply(ProgramUnit arg){
-        RewriteSystem trs=RewriteSystems.getRewriteSystem("simplify_quant");
-        return trs.normalize(arg);
-        // return new SimplifyExpressions(arg).rewriteAll();
+        RewriteSystem trs=RewriteSystems.getRewriteSystem("simplify_quant_pass1");
+        ProgramUnit res=trs.normalize(arg);
+        // Configuration.getDiagSyntax().print(System.err,res);
+        res=RewriteSystems.getRewriteSystem("simplify_quant_pass2").normalize(res);
+        return res;
       }
     });
     defined_passes.put("simplify_sums",new CompilerPass("replace summations with provable functions"){
       public ProgramUnit apply(ProgramUnit arg){
         RewriteSystem trs=RewriteSystems.getRewriteSystem("summation");
         return trs.normalize(arg);
-        // return new SimplifyExpressions(arg).rewriteAll();
       }
     });
     defined_passes.put("standardize",new CompilerPass("Standardize representation"){
