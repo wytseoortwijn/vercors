@@ -45,6 +45,7 @@ public class NameScanner extends RecursiveVisitor<Object> {
             Abort("type of %s is null",name);
           }
           vars.put(name,t);
+          t.accept(this);
         }
         return;
       default:
