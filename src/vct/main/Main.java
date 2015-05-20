@@ -774,15 +774,17 @@ public class Main
         passes.add("check");        
       }
       if (features.usesIterationContracts()){
-        passes.add("recognize_multidim");
+        //passes.add("recognize_multidim");
         passes.add("recognize_loops");
         passes.add("merge_loops");
         passes.add("standardize");
         passes.add("check");
         passes.add("iter");
-      } else {
+      }// else {
+        passes.add("standardize");
+        passes.add("check");    
         passes.add("recognize_multidim");
-      }
+      //}
       passes.add("simplify_quant");
       if (features.usesSummation()||features.usesIterationContracts()) passes.add("simplify_sums");
       passes.add("standardize");
