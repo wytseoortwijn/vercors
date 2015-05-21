@@ -139,8 +139,18 @@ class MatchLinear implements ASTMapping1<Boolean,ASTNode> {
 
   @Override
   public Boolean map(MethodInvokation e, ASTNode a) {
-    // TODO Auto-generated method stub
-    return null;
+    if (a instanceof MethodInvokation){
+      MethodInvokation ee=(MethodInvokation)a;
+      if (!e.method.equals(ee.method)) return false;
+      if (!e.object.apply(this,ee.object)) return false;
+      int N=e.getArity();
+      for(int i=0;i<N;i++){
+        if (!e.getArg(i).apply(this,ee.getArg(i))) return false;
+      }
+      return true;
+    } else {
+      return false;
+    }
   }
 
   @Override

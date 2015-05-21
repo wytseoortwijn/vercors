@@ -41,6 +41,13 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
   }
   
   public void visit(PrimitiveType t){
+    super.visit(t);
+    int N=t.getArgCount();
+    for(int i=0;i<N;i++){
+      if (t.getArg(i)==null){
+        Abort("argument %d not typed",i);
+      }
+    }
     t.setType(new PrimitiveType(PrimitiveType.Sort.Class));
   }
   public void visit(ClassType t){

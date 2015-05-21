@@ -228,6 +228,7 @@ public class IterationContractEncoder extends AbstractRewriter {
     Contract c=s.getContract();
     if (c==null) Fail("for each loop without iteration contract");
     Hashtable<String,Type> body_vars=free_vars(s.body,c,s.guard);
+    //System.out.printf("free in %s are %s%n",s.body,body_vars);
     //Hashtable<String,Type> iters=new Hashtable<String,Type>();
     Hashtable<String,Type> main_vars=new Hashtable(body_vars);
     for(DeclarationStatement decl:s.decls){

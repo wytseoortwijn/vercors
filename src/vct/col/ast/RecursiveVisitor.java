@@ -204,6 +204,7 @@ public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
       // Yielded variables are not known before method starts.
       dispatch(c.yields); 
     }
+    dispatch(m.getArgs());
     dispatch(m.getBody());
     if (c!=null) {
       // TODO: this is where \result should be declared.
