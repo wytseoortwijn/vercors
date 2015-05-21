@@ -138,28 +138,6 @@ public class SiliconApplicationTest extends ToolTest {
     }
   }
   
-  // type error!
-  public void testSumArray(){
-    sem_get();
-    try {
-      VCTResult res=run("vct","--silver=silicon_qp","//examples/silicon/SumArray.java");
-      res.checkVerdict(Verdict.Pass);
-    } finally {
-      sem.release();
-    }
-  }
-  
-  // type error!
-  public void testSumArrayErr1(){
-    sem_get();
-    try {
-      VCTResult res=run("vct","--silver=silicon_qp","//examples/silicon/SumArray-e1.java");
-      res.checkVerdict(Verdict.Fail);
-    } finally {
-      sem.release();
-    }
-  }
-  
   @Test
   public void summation(){
     sem_get();
@@ -232,6 +210,17 @@ public class SiliconApplicationTest extends ToolTest {
     try {
       VCTResult res=run("vct","--silver=silicon","--check-history",
           "//examples/histories/History.pvl","//examples/histories/HistoryLoop.java");
+      res.checkVerdict(Verdict.Pass);
+    } finally {
+      sem.release();
+    }
+  }
+  
+  @Test
+  public void testTranspose(){
+    sem_get();
+    try {
+      VCTResult res=run("vct","--silver=silicon_qp","//examples/arrays/Transpose.pvl");
       res.checkVerdict(Verdict.Pass);
     } finally {
       sem.release();
