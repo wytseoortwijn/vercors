@@ -2,17 +2,11 @@ package vct.col.util;
 
 import java.util.Arrays;
 
-import sun.font.CreatedFontTracker;
 import vct.col.ast.*;
 import vct.col.ast.NameExpression.Kind;
 import vct.col.ast.PrimitiveType.Sort;
 import vct.col.rewrite.MultiSubstitution;
-import vct.util.ClassName;
 import vct.util.Configuration;
-import static hre.System.Abort;
-import static hre.System.Debug;
-import static hre.System.Fail;
-import static hre.System.Warning;
 
 public class SimpleTypeCheck extends RecursiveVisitor<Type> {
 
