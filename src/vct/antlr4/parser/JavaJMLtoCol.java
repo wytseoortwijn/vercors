@@ -865,8 +865,9 @@ public class JavaJMLtoCol extends AbstractJavaToCol implements JavaJMLVisitor<AS
       contract=(Contract)convert(ctx,0);
       i=1;
     }
+    int i0=i;
     while(match(i,true,ctx,"ModifierContext")){
-      // TODO keep context!
+      // skip over the modifiers for now.
       i++;
     }
     Type returns=checkType(convert(ctx,i));
@@ -883,6 +884,11 @@ public class JavaJMLtoCol extends AbstractJavaToCol implements JavaJMLVisitor<AS
     }
     Method res=create.function_decl(returns, contract, name, args, body);
     hre.System.Debug("function %s, contract %s",res.name,res.getContract());
+    while(i0<i){
+      //add modifiers as annotations.
+      res.attach(convert(ctx,i0));
+      i0++;
+    }
     return res;
   }
 
