@@ -227,4 +227,56 @@ public class SiliconApplicationTest extends ToolTest {
     }
   }
 
+  @Test
+  public void testWandDemo(){
+    sem_get();
+    try {
+      VCTResult res=run("vct","--silver=silicon","//examples/encoding/WandDemoSilver.java");
+      res.checkVerdict(Verdict.Pass);
+    } finally {
+      sem.release();
+    }
+  }
+  
+  @Test
+  public void testTreeWand(){
+    sem_get();
+    try {
+      VCTResult res=run("vct","--silver=silicon","--inline","//examples/encoding/TreeWandSilver.java");
+      res.checkVerdict(Verdict.Pass);
+    } finally {
+      sem.release();
+    }
+  }
+  @Test
+  public void testTreeWandE1(){
+    sem_get();
+    try {
+      VCTResult res=run("vct","--silver=silicon","--inline","//examples/encoding/TreeWandSilver-e1.java");
+      res.checkVerdict(Verdict.Fail);
+    } finally {
+      sem.release();
+    }
+  }
+  @Test
+  public void testTreeWandE2(){
+    sem_get();
+    try {
+      VCTResult res=run("vct","--silver=silicon","--inline","//examples/encoding/TreeWandSilver-e2.java");
+      res.checkVerdict(Verdict.Fail);
+    } finally {
+      sem.release();
+    }
+  }
+  @Test
+  public void testTreeRecursive(){
+    sem_get();
+    try {
+      VCTResult res=run("vct","--silver=silicon","//examples/encoding/TreeRecursiveSilver.java");
+      res.checkVerdict(Verdict.Pass);
+    } finally {
+      sem.release();
+    }
+  }
+
 }
