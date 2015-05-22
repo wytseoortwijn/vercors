@@ -170,6 +170,7 @@ public class RecognizeMultiDim extends AbstractRewriter {
       ASTNode dims[]=dimension.get(name);
       if(dims==null) return null;
       if(dims.length!=args.size()) return null;
+      if(dims.length==1) return null;
       ASTNode idx;
       if (rw_binders==0){
         int N=dims.length;
