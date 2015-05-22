@@ -144,6 +144,9 @@ public class ManualTest extends ToolTest {
 
   @Test
   public void test_set_solution() {
+    if (!Configuration.getHome().resolve("src/tex/homework/README").toFile().exists()){
+      return;
+    }
     sem_get();
     try {
       VCTResult res = run("vct", "--silver=silicon_qp", "--inline",
@@ -157,6 +160,9 @@ public class ManualTest extends ToolTest {
 
   @Test
   public void test_tree_solution() {
+    if (!Configuration.getHome().resolve("src/tex/homework/README").toFile().exists()){
+      return;
+    }
     sem_get();
     try {
       VCTResult res = run("vct", "--silver=silicon",
@@ -170,6 +176,9 @@ public class ManualTest extends ToolTest {
 
   @Test
   public void test_list_solution() {
+    if (!Configuration.getHome().resolve("src/tex/homework/README").toFile().exists()){
+      return;
+    }
     sem_get();
     try {
       VCTResult res = run("vct", "--silver=silicon", "--no-context",
