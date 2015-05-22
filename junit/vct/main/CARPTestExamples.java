@@ -88,7 +88,30 @@ public class CARPTestExamples extends ToolTest {
       VCTResult res = run("vct", "--silver=silicon_qp", "--single-group",
           "//examples/kernels/scp-example-e1.pvl");
       res.checkVerdict(Verdict.Fail);
-      res.checkVerdict(Verdict.Fail);
+    } finally {
+      sem.release();
+    }
+  }
+  
+  @Test
+  public void test_binomial_auto() {
+    sem_get();
+    try {
+      VCTResult res = run("vct", "--silver=silicon_qp", "--single-group",
+          "//examples/kernels/binomial-auto.pvl");
+      res.checkVerdict(Verdict.Pass);
+    } finally {
+      sem.release();
+    }
+  }
+  
+  @Test
+  public void test_binomial_noauto() {
+    sem_get();
+    try {
+      VCTResult res = run("vct", "--silver=silicon_qp", "--single-group","--disable-auto-barrier",
+          "//examples/kernels/binomial-noauto.pvl");
+      res.checkVerdict(Verdict.Pass);
     } finally {
       sem.release();
     }
