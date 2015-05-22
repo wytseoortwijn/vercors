@@ -670,6 +670,9 @@ public class KernelRewriter extends AbstractRewriter {
           }
         }
       }
+      for(ASTNode n:cl.staticMethods()){
+        res.add_static(rewrite(n));
+      }
       result=res;
     } else {
       result=copy_rw.rewrite(cl);
