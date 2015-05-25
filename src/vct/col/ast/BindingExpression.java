@@ -25,7 +25,11 @@ public class BindingExpression extends ExpressionNode {
     this.result_type=result_type;
     this.select=select;
     this.main=main;
-    for (DeclarationStatement decl:decls){
+    for(int i=0;i<decls.length;i++){
+      DeclarationStatement decl=decls[i];
+      if (decl ==null){
+        Abort("declaration %d is null",i);
+      }
       this.decls.add(decl);
     }
   }
