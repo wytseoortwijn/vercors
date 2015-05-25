@@ -125,6 +125,10 @@ public class RecognizeMultiDim extends AbstractRewriter {
             create.expression(StandardOperator.Mod,create.reserved_name(ASTReserved.Result),create.local_name("N1")),
             create.local_name("i1")
         ));
+        cb.ensures(create.expression(StandardOperator.LT,
+            create.expression(StandardOperator.Mod,create.reserved_name(ASTReserved.Result),create.local_name("N1")),
+            create.local_name("N0")
+        ));
       }
       Method idx=create.function_decl(
           create.primitive_type(Sort.Integer),
@@ -170,6 +174,7 @@ public class RecognizeMultiDim extends AbstractRewriter {
       ASTNode dims[]=dimension.get(name);
       if(dims==null) return null;
       if(dims.length!=args.size()) return null;
+      if(dims.length==1) return null;
       ASTNode idx;
       if (rw_binders==0){
         int N=dims.length;

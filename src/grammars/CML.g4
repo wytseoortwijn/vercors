@@ -9,6 +9,7 @@ contract : contractClause+ ;
 contractClause
  : 'requires' resourceExpression ';'
  | 'ensures' resourceExpression ';'
+ | 'given' type Identifier ';'
  ;
 
 

@@ -26,10 +26,19 @@ public class SilverStatementMap<T,E,S,Decl> implements ASTMapping<S>{
   public void pre_map(ASTNode n) {
   }
 
+  private boolean valid_null=false;
+  
   @Override
   public S post_map(ASTNode n, S res) {
     if (res==null){
-      throw new HREError("cannot map %s to statement",n.getClass());
+      if (valid_null){
+        valid_null=false;
+      } else {
+        throw new HREError("cannot map %s to statement",n.getClass());
+      }
+    }
+    if (valid_null){
+      throw new HREError("valid null set while anser is non-null",n.getClass());
     }
     return res;
   }
@@ -116,7 +125,8 @@ public class SilverStatementMap<T,E,S,Decl> implements ASTMapping<S>{
   public S map(BlockStatement s) {
     ArrayList<S> stats=new ArrayList();
     for(ASTNode n:s){
-      stats.add(n.apply(this));
+      S res=n.apply(this);
+      if (res!=null) stats.add(res);
     }
     return create.block(s.getOrigin(), stats);
   }
@@ -292,6 +302,9 @@ public class SilverStatementMap<T,E,S,Decl> implements ASTMapping<S>{
   @Override
   public S map(ASTSpecialDeclaration s) {
     switch(s.kind){
+    case Comment:
+      valid_null=true;
+      return null;
     default:
       throw new HREError("cannot map special declaration %s",s.kind);
     }

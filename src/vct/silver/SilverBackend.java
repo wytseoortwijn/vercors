@@ -189,6 +189,16 @@ public class SilverBackend {
           pars.add(decl.getName());
         }
         verifier.add_adt(program,adt.getOrigin(),adt.name,funcs,axioms,pars);
+      } else if(entry instanceof ASTSpecialDeclaration){
+        ASTSpecialDeclaration s=(ASTSpecialDeclaration)entry;
+        switch(s.kind){
+          case Comment:
+            // comments are not supported in silver.
+            continue;
+          default:
+            throw new HREError("bad special declaration entry: %s",s.kind);
+
+        }
       } else {
         throw new HREError("bad entry: %s",entry.getClass());
       }
@@ -245,7 +255,10 @@ public class SilverBackend {
       if (block.get(i) instanceof DeclarationStatement) {
         throw new HREError("illegal declaration");
       }
-      stats.add(block.get(i).apply(stat));
+      S s=block.get(i).apply(stat);
+      if (s!=null){
+        stats.add(s);
+      }
     }
   }
 
