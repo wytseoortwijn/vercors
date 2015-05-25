@@ -655,10 +655,14 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
           ASTNode decl=convert(clause,1);
           decl.setGhost(true);
           if (decl instanceof DeclarationStatement){
-            cb.given((DeclarationStatement)convert(clause,1));
+            cb.given((DeclarationStatement)decl);
           } else if (decl instanceof VariableDeclaration){
             cb.given((VariableDeclaration)convert(clause,1));
           }
+        } else if (match(clause,"given",null,null,";")){
+          DeclarationStatement decl=create.field_decl(getIdentifier(clause,2),checkType(convert(clause,1)));
+          decl.setGhost(true);
+          cb.given(decl);
         } else if (match(clause,"yields",null,";")){
           ASTNode decl=convert(clause,1);
           if (decl instanceof DeclarationStatement){
