@@ -150,7 +150,7 @@ public class ManualTest extends ToolTest {
     sem_get();
     try {
       VCTResult res = run("vct", "--silver=silicon_qp", "--inline",
-          "//examples/manual/SetSolution.pvl");
+          "//src/tex/homework/SetSolution.pvl");
       if (res.verdict != Verdict.Pass)
         fail("bad result : " + res.verdict);
     } finally {
@@ -166,7 +166,7 @@ public class ManualTest extends ToolTest {
     sem_get();
     try {
       VCTResult res = run("vct", "--silver=silicon",
-          "//examples/manual/TreeSolution.pvl");
+          "//src/tex/homework/TreeSolution.pvl");
       if (res.verdict != Verdict.Pass)
         fail("bad result : " + res.verdict);
     } finally {
@@ -182,7 +182,7 @@ public class ManualTest extends ToolTest {
     sem_get();
     try {
       VCTResult res = run("vct", "--silver=silicon", "--no-context",
-          "//examples/manual/ListSolution.pvl");
+          "//src/tex/homework/ListSolution.pvl");
       if (res.verdict != Verdict.Pass)
         fail("bad result : " + res.verdict);
     } finally {
