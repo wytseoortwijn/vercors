@@ -292,6 +292,23 @@ public class SilverExpressionMap<T,E,Decl> implements ASTMapping<E>{
     Origin o = e.getOrigin();
     switch(e.binder){
     case STAR:
+      if (e.getDeclarations().length>1){
+        Abort("nested \\forall* quantifiers are not supported yet in Silver.");
+      }
+      boolean good=false;
+      if (e.main.isa(StandardOperator.Perm)){
+        ASTNode loc=((OperatorExpression)e.main).getArg(0);
+        if (loc instanceof Dereference){
+          loc=((Dereference)loc).object;
+          if (loc.isa(StandardOperator.Subscript)){
+            loc=((OperatorExpression)loc).getArg(1);
+            good=loc instanceof NameExpression;
+          }
+        }
+      }
+      if(!good){
+        Abort("Simplification failure: \\forall* argument %s is not of the form Perm(S[i].v,e)",e.main);
+      }
     case FORALL:
       E expr;
       if (e.select.isConstant(true)){
