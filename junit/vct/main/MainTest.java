@@ -655,29 +655,6 @@ public class MainTest extends ToolTest {
   }
 
   @Test
-  public void testAdditionPVL() {
-    sem_get();
-    try {
-      VCTResult res = run("vct", "--silver=silicon_qp", "--single-group",
-          "//pvl_examples/addition.pvl");
-      res.checkVerdict(Verdict.Pass);
-    } finally {
-      sem.release();
-    }
-  }
-
-  @Test
-  public void testAdditionPVLerr1() {
-    sem_get();
-    try {
-      VCTResult res = run("vct", "--silver=silicon_qp", "--single-group",
-          "//pvl_examples/addition-e1.pvl");
-      res.checkVerdict(Verdict.Fail);
-    } finally {
-      sem.release();
-    }
-  }
-  @Test
   public void testUpdatePoint() {
     sem_get();
     try {

@@ -74,6 +74,26 @@ public class SiliconInstallationTest extends ToolTest {
   }
 
   @Test
+  public void testThreadInheritanceE1(){
+      VCTResult res=run("vct","--silver=silicon",
+          "//examples/threads/SpecifiedThread.java",
+          "//examples/threads/Worker.java",
+          "//examples/threads/VerifiedMain-E1.java"
+          );
+      res.checkVerdict(Verdict.Fail);
+  }
+
+  @Test
+  public void testThreadInheritanceE2(){
+      VCTResult res=run("vct","--silver=silicon",
+          "//examples/threads/SpecifiedThread.java",
+          "//examples/threads/Worker.java",
+          "//examples/threads/VerifiedMain-E2.java"
+          );
+      res.checkVerdict(Verdict.Fail);
+  }
+
+  @Test
   public void testThreadInheritanceReal(){
       VCTResult res=run("vct","--silver=silicon",
           "//examples/threads/SpecifiedThread.java",
