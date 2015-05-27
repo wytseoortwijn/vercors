@@ -113,6 +113,8 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
             continue;
           } else if (m.getReturnType().isPrimitive(Sort.Process)){
             add_process_to_adt(m);
+          } else if (m.getReturnType().isPrimitive(Sort.Resource)) {
+            // drop predicate.
           } else {
             res.add_dynamic(rewrite(m));
           }
@@ -130,6 +132,8 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
             if (m.getBody()==null) {
               add_begin_and_commit_to_class(m);
             }
+          } else if (m.getReturnType().isPrimitive(Sort.Resource)) {
+            hist_class.add(rewrite(m));
           } else {
             add_lemma_to_adt(m);
           }
