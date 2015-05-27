@@ -191,6 +191,54 @@ public class ManualTest extends ToolTest {
   }
 
   @Test
+  public void test_set_solution2015() {
+    if (!Configuration.getHome().resolve("src/tex/homework/README").toFile().exists()){
+      return;
+    }
+    sem_get();
+    try {
+      VCTResult res = run("vct", "--silver=silicon_qp", "--inline",
+          "//src/tex/homework/SetSolution2015.pvl");
+      if (res.verdict != Verdict.Pass)
+        fail("bad result : " + res.verdict);
+    } finally {
+      sem.release();
+    }
+  }
+
+  @Test
+  public void test_tree_solution2015() {
+    if (!Configuration.getHome().resolve("src/tex/homework/README").toFile().exists()){
+      return;
+    }
+    sem_get();
+    try {
+      VCTResult res = run("vct", "--silver=silicon",
+          "//src/tex/homework/TreeSolution2015.pvl");
+      if (res.verdict != Verdict.Pass)
+        fail("bad result : " + res.verdict);
+    } finally {
+      sem.release();
+    }
+  }
+
+  @Test
+  public void test_list_solution2015() {
+    if (!Configuration.getHome().resolve("src/tex/homework/README").toFile().exists()){
+      return;
+    }
+    sem_get();
+    try {
+      VCTResult res = run("vct", "--silver=silicon", "--no-context",
+          "//src/tex/homework/ListSolution2015.pvl");
+      if (res.verdict != Verdict.Pass)
+        fail("bad result : " + res.verdict);
+    } finally {
+      sem.release();
+    }
+  }
+
+  @Test
   public void test_zero_array_pvl() {
     sem_get();
     try {
