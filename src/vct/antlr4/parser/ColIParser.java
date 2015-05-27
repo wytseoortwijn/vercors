@@ -40,9 +40,13 @@ public class ColIParser implements vct.col.util.Parser {
     ANTLRInputStream input = new ANTLRInputStream(stream);
     CLexer lexer = new CLexer(input);
     CommonTokenStream tokens = new CommonTokenStream(lexer);
+    ErrorCounter ec=new ErrorCounter(file_name);
     CParser parser = new CParser(tokens);
+    parser.removeErrorListeners();
+    parser.addErrorListener(ec);
     ParseTree tree = parser.compilationUnit();
     Progress("first parsing pass took %dms",tk.show());
+    ec.report();
     Debug("parser got: %s",tree.toStringTree(parser));
 
     ProgramUnit pu=CtoCOL.convert(tree,file_name,tokens,parser);
@@ -50,8 +54,10 @@ public class ColIParser implements vct.col.util.Parser {
     //System.err.println("after conversion");
     //Configuration.getDiagSyntax().print(System.err, pu);
     
-    pu=new CommentRewriter(pu,new CMLCommentParser()).rewriteAll();
+    pu=new CommentRewriter(pu,new CMLCommentParser(ec)).rewriteAll();
     Progress("Specification parsing took %dms",tk.show());
+    ec.report();
+    
     //System.err.println("after comment processing");
     //Configuration.getDiagSyntax().print(System.err, pu);
 

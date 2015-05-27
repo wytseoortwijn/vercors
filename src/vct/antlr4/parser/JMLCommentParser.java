@@ -14,20 +14,22 @@ import vct.parsers.JavaJMLParser;
  */
 public class JMLCommentParser extends CommentParser<JavaJMLParser,JavaJMLLexer> {
 
-  public JMLCommentParser() {
-    super(new JavaJMLParser(null), new JavaJMLLexer(null));
-    parser.setErrorHandler(new org.antlr.v4.runtime.BailErrorStrategy());
+  
+  public JMLCommentParser(ErrorCounter ec) {
+    super(ec,new JavaJMLParser(null), new JavaJMLLexer(null));
   }
 
   @Override
   public TempSequence parse_contract(ASTSequence<?> seq) {
     ParseTree tree=parser.specificationSequence();
+    ec.report();
     return JavaJMLtoCol.convert(tree, "embedded_comments", tokens, parser);
   }
 
   @Override
   public TempSequence parse_annotations() {
 	ParseTree tree=parser.specificationModifier();
+	ec.report();
 	return JavaJMLtoCol.convert(tree, "embedded_comments", tokens, parser);
   }
 

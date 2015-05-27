@@ -27,10 +27,14 @@ public abstract class CommentParser<Parser extends org.antlr.v4.runtime.Parser,L
   protected Parser parser;
   protected Lexer lexer;
   protected CommonTokenStream tokens;
+  protected ErrorCounter ec;
   
-  public CommentParser(Parser parser, Lexer lexer) {
+  public CommentParser(ErrorCounter ec, Parser parser, Lexer lexer) {
     this.parser=parser;
     this.lexer=lexer;
+    this.ec=ec;
+    parser.removeErrorListeners();
+    parser.addErrorListener(ec);
   }
 
   public Contract contract(ASTSequence<?> seq,InputStream fifo){
@@ -46,7 +50,7 @@ public abstract class CommentParser<Parser extends org.antlr.v4.runtime.Parser,L
     tokens = new CommonTokenStream(lexer);
     parser.reset();
     parser.setTokenStream(tokens);
-    TempSequence cu=parse_contract(seq);;
+    TempSequence cu=parse_contract(seq);
     Contract contract=null;
     for(ASTNode n:cu){
       if (n instanceof Contract){

@@ -19,19 +19,20 @@ import vct.parsers.CMLParser;
  */
 public class CMLCommentParser extends CommentParser<CMLParser,CMLLexer> {
 
-  public CMLCommentParser() {
-    super(new CMLParser(null), new CMLLexer(null));
+  public CMLCommentParser(ErrorCounter ec) {
+    super(ec,new CMLParser(null), new CMLLexer(null));
   }
 
   @Override
   public TempSequence parse_contract(ASTSequence<?> seq) {
     ParseTree tree=parser.specificationSequence(); //DRB --Changed
+    ec.report();
     return CMLtoCOL.convert(tree, "embedded_comments", tokens, parser);
   }
 
   @Override
   public TempSequence parse_annotations() {
-	throw new HREError("annotations for C not defined yet.");
+	  throw new HREError("annotations for C not defined yet.");
   }
 
 }

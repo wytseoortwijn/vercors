@@ -316,6 +316,15 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
         Fail("%s: then block not allowed here",create.getOrigin());
       }
     }
+    if(match(ctx,null,"->",null,tuple)){
+      ASTNode args[]=getTuple((ParserRuleContext)ctx.getChild(3));
+      String method=getIdentifier(ctx,2);
+      ASTNode object=convert(ctx,0);
+      return create.expression(StandardOperator.Implies,
+        create.expression(StandardOperator.NEQ,object,create.reserved_name(ASTReserved.Null)),
+        create.invokation(object,null, method, args)
+      );
+    }
     return visit(ctx);
   }
 

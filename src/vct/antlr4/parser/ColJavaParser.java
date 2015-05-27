@@ -40,8 +40,11 @@ public class ColJavaParser implements vct.col.util.Parser {
         JavaLexer lexer = new JavaLexer(input);
         CommonTokenStream tokens = new CommonTokenStream(lexer);
         JavaParser parser = new JavaParser(tokens);
-        parser.setErrorHandler(new org.antlr.v4.runtime.BailErrorStrategy());
-        ParseTree tree = parser.compilationUnit();        
+        ErrorCounter ec=new ErrorCounter(file_name);
+        parser.removeErrorListeners();
+        parser.addErrorListener(ec);
+        ParseTree tree = parser.compilationUnit();
+        ec.report();
         Progress("first parsing pass took %dms",tk.show());
         
         ProgramUnit pu=JavaToCol.convert(tree,file_name,tokens,parser);
@@ -51,8 +54,9 @@ public class ColJavaParser implements vct.col.util.Parser {
         //System.out.printf("parsing got %d entries%n",pu.size());
         //vct.util.Configuration.getDiagSyntax().print(System.out,pu);
         
-        pu=new CommentRewriter(pu,new JMLCommentParser()).rewriteAll();
+        pu=new CommentRewriter(pu,new JMLCommentParser(ec)).rewriteAll();
         Progress("Specification parsing took %dms",tk.show());
+        ec.report();
         
         pu=new FlattenVariableDeclarations(pu).rewriteAll();
         Progress("Flattening variables took %dms",tk.show());

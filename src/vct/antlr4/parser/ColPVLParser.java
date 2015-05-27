@@ -39,8 +39,12 @@ public class ColPVLParser implements vct.col.util.Parser {
         PVFullLexer lexer = new PVFullLexer(input);
         CommonTokenStream tokens = new CommonTokenStream(lexer);
         PVFullParser parser = new PVFullParser(tokens);
+        ErrorCounter ec=new ErrorCounter(file_name);
+        parser.removeErrorListeners();
+        parser.addErrorListener(ec);
         ParseTree tree = parser.program();
         Progress("parsing pass took %dms",tk.show());
+        ec.report();
         Debug("parser got: %s",tree.toStringTree(parser));
 
         ProgramUnit pu=PVLtoCOL.convert(tree,file_name,tokens,parser);      
