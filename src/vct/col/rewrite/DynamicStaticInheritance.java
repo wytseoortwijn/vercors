@@ -1,8 +1,11 @@
 package vct.col.rewrite;
 
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 import vct.col.ast.ASTClass;
+import vct.col.ast.ASTDeclaration;
 import vct.col.ast.ASTFlags;
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTReserved;
@@ -19,6 +22,7 @@ import vct.col.ast.PrimitiveType.Sort;
 import vct.col.ast.ProgramUnit;
 import vct.col.ast.StandardOperator;
 import vct.col.ast.Type;
+import vct.util.ClassName;
 import static vct.col.ast.ASTReserved.*;
 
 /**
@@ -207,12 +211,32 @@ public class DynamicStaticInheritance extends AbstractRewriter {
     }
   };
   
+  private Set<ClassType> super_classes=new HashSet();
+  
   public DynamicStaticInheritance(ProgramUnit source) {
     super(source);
+    for(ASTDeclaration d:source.get()){
+      if (d instanceof ASTClass){
+        ASTClass cl=(ASTClass)d;
+        for(ClassType t:cl.super_classes){
+          super_classes.add(t);
+        }
+      }
+    }
   }
   
   public void visit(ASTClass cl){
     if (cl.implemented_classes.length>0) Fail("no support for interfaces");
+    if (cl.super_classes.length == 0){
+      ClassType t=new ClassType(cl.getFullName());
+      if (super_classes.contains(t)){
+        Warning("%s is a super class",t);
+      } else {
+        Warning("%s is a stand alone class",t);
+        result=fix_super.rewrite(cl);
+        return;
+      }
+    }
     if (cl.super_classes.length>1) Fail("no support for multiple inheritance");
     ASTClass parent=null;
     if (cl.super_classes.length==1){
