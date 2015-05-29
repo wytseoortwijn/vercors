@@ -25,7 +25,8 @@ public class ParallelBlockEncoder extends AbstractRewriter {
   private DeclarationStatement iter_decls[];
   private ASTNode iters_guard;
   private DeclarationStatement iter_decls_prime[];
-  private ASTNode iters_guard_prime;
+  private ASTNode iters_guard_prime_before;
+  private ASTNode iters_guard_prime_after;
   private Substitution sigma_prime;
   
   @Override
@@ -54,7 +55,8 @@ public class ParallelBlockEncoder extends AbstractRewriter {
     iter_decls = new DeclarationStatement[pb.iters.length];
     iter_decls_prime = new DeclarationStatement[pb.iters.length];
     ArrayList<ASTNode> guard_list=new ArrayList();
-    ArrayList<ASTNode> guard_prime_list=new ArrayList();
+    ArrayList<ASTNode> guard_prime_list_before=new ArrayList();
+    ArrayList<ASTNode> guard_prime_list_after=new ArrayList();
     Hashtable<NameExpression,ASTNode> prime=new Hashtable();
     for(int i=0;i<iter_decls.length;i++){
       iter_decls[i]=create.field_decl(pb.iters[i].name, pb.iters[i].getType());
@@ -63,10 +65,14 @@ public class ParallelBlockEncoder extends AbstractRewriter {
       guard_list.add(tmp);
       check_cb.requires(tmp);
       check_cb.ensures(tmp);
-      tmp=create.expression(StandardOperator.Member,create.unresolved_name(pb.iters[i].name+"__prime"),pb.iters[i].getInit());
-      guard_prime_list.add(tmp);
-      tmp=create.expression(StandardOperator.NEQ,create.unresolved_name(pb.iters[i].name+"__prime"),create.unresolved_name(pb.iters[i].name));
-      guard_prime_list.add(tmp);      
+      OperatorExpression range=(OperatorExpression)pb.iters[i].getInit();
+      tmp=create.expression(StandardOperator.RangeSeq,range.getArg(0),create.unresolved_name(pb.iters[i].name));
+      tmp=create.expression(StandardOperator.Member,create.unresolved_name(pb.iters[i].name+"__prime"),tmp);
+      guard_prime_list_before.add(tmp);
+      tmp=create.expression(StandardOperator.Plus,create.unresolved_name(pb.iters[i].name),create.constant(1));
+      tmp=create.expression(StandardOperator.RangeSeq,tmp,range.getArg(1));
+      tmp=create.expression(StandardOperator.Member,create.unresolved_name(pb.iters[i].name+"__prime"),tmp);
+      guard_prime_list_after.add(tmp);
       check_vars.put(pb.iters[i].name,pb.iters[i].getType());
       prime.put(create.local_name(pb.iters[i].name),create.local_name(pb.iters[i].name+"__prime"));
     }
@@ -101,7 +107,8 @@ public class ParallelBlockEncoder extends AbstractRewriter {
     }
     iters_guard=create.fold(StandardOperator.And,guard_list);
     sigma_prime=new Substitution(source(),prime);
-    iters_guard_prime=create.fold(StandardOperator.And,guard_prime_list);
+    iters_guard_prime_before=create.fold(StandardOperator.And,guard_prime_list_before);
+    iters_guard_prime_after=create.fold(StandardOperator.And,guard_prime_list_after);
     
     main_cb.requires(sigma.rewrite(pb.inv));
     for(ASTNode clause:ASTUtils.conjuncts(c.pre_condition, StandardOperator.Star)){
@@ -158,22 +165,36 @@ public class ParallelBlockEncoder extends AbstractRewriter {
     
     res.prepend(create.special(ASTSpecial.Kind.Inhale,blocks.peek().inv));
     for(ASTNode clause:ASTUtils.reverse(ASTUtils.conjuncts(pb.contract.pre_condition, StandardOperator.Star))){
+      ASTNode cl;
       if (clause.getType().isBoolean()){
-        clause=create.forall(copy_rw.rewrite(iters_guard_prime), sigma_prime.rewrite(clause) , iter_decls_prime);
+        cl=create.forall(copy_rw.rewrite(iters_guard_prime_before), sigma_prime.rewrite(clause) , iter_decls_prime);
       } else {
-        clause=create.starall(copy_rw.rewrite(iters_guard_prime), sigma_prime.rewrite(clause) , iter_decls_prime);
+        cl=create.starall(copy_rw.rewrite(iters_guard_prime_before), sigma_prime.rewrite(clause) , iter_decls_prime);
       }
-      res.prepend(create.special(ASTSpecial.Kind.Inhale,clause));
+      res.prepend(create.special(ASTSpecial.Kind.Inhale,cl));
+      if (clause.getType().isBoolean()){
+        cl=create.forall(copy_rw.rewrite(iters_guard_prime_after), sigma_prime.rewrite(clause) , iter_decls_prime);
+      } else {
+        cl=create.starall(copy_rw.rewrite(iters_guard_prime_after), sigma_prime.rewrite(clause) , iter_decls_prime);
+      }
+      res.prepend(create.special(ASTSpecial.Kind.Inhale,cl));
     }
     
     res.append(create.special(ASTSpecial.Kind.Exhale,blocks.peek().inv));
     for(ASTNode clause:ASTUtils.reverse(ASTUtils.conjuncts(pb.contract.post_condition, StandardOperator.Star))){
+      ASTNode cl;
       if (clause.getType().isBoolean()){
-        clause=create.forall(copy_rw.rewrite(iters_guard_prime), sigma_prime.rewrite(clause) , iter_decls_prime);
+        cl=create.forall(copy_rw.rewrite(iters_guard_prime_before), sigma_prime.rewrite(clause) , iter_decls_prime);
       } else {
-        clause=create.starall(copy_rw.rewrite(iters_guard_prime), sigma_prime.rewrite(clause) , iter_decls_prime);
+        cl=create.starall(copy_rw.rewrite(iters_guard_prime_before), sigma_prime.rewrite(clause) , iter_decls_prime);
       }
-      res.append(create.special(ASTSpecial.Kind.Exhale,clause));
+      res.append(create.special(ASTSpecial.Kind.Exhale,cl));
+      if (clause.getType().isBoolean()){
+        cl=create.forall(copy_rw.rewrite(iters_guard_prime_after), sigma_prime.rewrite(clause) , iter_decls_prime);
+      } else {
+        cl=create.starall(copy_rw.rewrite(iters_guard_prime_after), sigma_prime.rewrite(clause) , iter_decls_prime);
+      }
+      res.append(create.special(ASTSpecial.Kind.Exhale,cl));
     }
     
     result=res;
