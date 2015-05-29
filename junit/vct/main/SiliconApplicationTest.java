@@ -242,7 +242,7 @@ public class SiliconApplicationTest extends ToolTest {
   public void testTreeWand(){
     sem_get();
     try {
-      VCTResult res=run("vct","--silver=silicon","--inline","//examples/encoding/TreeWandSilver.java");
+      VCTResult res=run("vct","--silver=silicon","--inline","--silicon-z3-timeout=120000","//examples/encoding/TreeWandSilver.java");
       res.checkVerdict(Verdict.Pass);
     } finally {
       sem.release();
