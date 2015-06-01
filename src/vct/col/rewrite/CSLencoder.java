@@ -38,7 +38,17 @@ public class CSLencoder extends AbstractRewriter {
     Method m=e.getDefinition();
     ASTClass cl=(ASTClass)m.getParent();
     String name=cl.getName();
-    if (!(e.object instanceof ClassType) && name.startsWith("Atomic")){
+    if (name.startsWith("Atomic")){
+      switch(m.getKind()){
+      case Constructor:
+        super.visit(e);
+        return;
+      case Plain:
+        break;
+      default:
+        Fail("Atomic classes can only use constructors and plain methods!");
+        return;
+      }
       int no=count.incrementAndGet();
       String result_name="csl_result_"+no;
       String return_label="csl_return_"+no;
