@@ -63,6 +63,7 @@ import vct.col.rewrite.IterationContractEncoder;
 import vct.col.rewrite.KernelRewriter;
 import vct.col.rewrite.MergeLoops;
 import vct.col.rewrite.ParallelBlockEncoder;
+import vct.col.rewrite.PureMethodsAsFunctions;
 import vct.col.rewrite.RandomizedIf;
 import vct.col.rewrite.RecognizeLoops;
 import vct.col.rewrite.RecognizeMultiDim;
@@ -455,6 +456,11 @@ public class Main
    defined_passes.put("reorder",new CompilerPass("reorder statements (e.g. all declarations at the start of a bock"){
      public ProgramUnit apply(ProgramUnit arg){
        return new ReorderAssignments(arg).rewriteAll();
+     }
+   });
+   defined_passes.put("standardize-functions",new CompilerPass("translate pure methods to function syntax."){
+     public ProgramUnit apply(ProgramUnit arg){
+       return new PureMethodsAsFunctions(arg).rewriteAll();
      }
    });
    defined_passes.put("java_resolve",new CompilerPass("Resolve the library dependencies of a java program"){
@@ -868,6 +874,7 @@ public class Main
       passes.add("standardize");
       passes.add("check"); 
       passes.add("silver-optimize");
+      passes.add("standardize-functions");
       passes.add("standardize");
       passes.add("check");      
       passes.add("scale-always");

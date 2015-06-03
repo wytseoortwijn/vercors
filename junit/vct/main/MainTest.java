@@ -536,9 +536,7 @@ public class MainTest extends ToolTest {
   public void testListAppend() {
     sem_get(MagicWand);
     try {
-      // TODO: investigate why on this example a time limit of 1800 leads to inconclusive while 75 works....
-      VCTResult res = run("vct", "--chalice", "--witness-inline", "--inline", "--boogie-limit=75",
-          "//examples/encoding/ListAppend.java");
+      VCTResult res = run("vct", "--silver=silicon", "--inline", "//examples/encoding/ListAppend.java");
       if (res.verdict != Verdict.Pass)
         fail("bad result : " + res.verdict);
     } finally {
