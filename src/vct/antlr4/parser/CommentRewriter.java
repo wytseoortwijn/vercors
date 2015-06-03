@@ -47,18 +47,20 @@ public class CommentRewriter extends AbstractRewriter {
       @Override
       public void run(){
         PrintStream out=new PrintStream(fifo.getOutputStream());
+        int lines=0;
         for (ASTSpecialDeclaration s:my_queue){
           String comment=s.args[0].toString();
           if (comment.startsWith("//@")){
             FileOrigin o=(FileOrigin)s.getOrigin();
             //System.out.printf("# %d \"%s\"%n",o.getFirstLine(),o.getName());
             //System.out.println(comment.substring(3));
-            parser.ec.set_ofs(o.getFirstLine()-2);
+            parser.ec.mark_ofs(lines,o.getName(),o.getFirstLine()-2);
             out.printf("# %d \"%s\"%n",o.getFirstLine(),o.getName());
             for(int S=3+o.getFirstColumn();S>0;S--){
               out.print(" ");
             }
             out.println(comment.substring(3));
+            lines+=3;
           } else if (comment.startsWith("/*@")){
             int N;
             if (comment.endsWith("@*/")){
@@ -69,12 +71,16 @@ public class CommentRewriter extends AbstractRewriter {
             FileOrigin o=(FileOrigin)s.getOrigin();
             //System.out.printf("# %d \"%s\"%n",o.getFirstLine(),o.getName());
             //System.out.println(comment.substring(3,comment.length()-N));
-            parser.ec.set_ofs(o.getFirstLine()-2);
+            parser.ec.mark_ofs(lines,o.getName(),o.getFirstLine()-2);
             out.printf("# %d \"%s\"%n",o.getFirstLine(),o.getName());
             for(int S=N+o.getFirstColumn();S>0;S--){
               out.print(" ");
             }
             out.println(comment.substring(3,comment.length()-N));
+            lines+=3;
+            for(int i=0;i<comment.length();i++){
+              if (comment.charAt(i)=='\n') lines++;
+            }
           }
         }
         out.close();

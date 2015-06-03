@@ -58,27 +58,9 @@ public class VoidCalls extends AbstractRewriter {
       for(int i=0;i<N;i++){
         args[i+1]=rewrite(m_args[i]);
       }
-
-      //ContractBuilder cb=new ContractBuilder();
-      Contract c=rewrite(m.getContract());
-      /*
-      if(c!=null){
-        HashMap<NameExpression,ASTNode>map=new HashMap<NameExpression,ASTNode>();
-        map.put(create.reserved_name(ASTReserved.Result),create.local_name("sys__result"));
-        Substitution subst=new Substitution(source(),map);
-        cb.requires(c.pre_condition.apply(subst));
-        cb.ensures(c.post_condition.apply(subst));
-        if (c.given!=null){
-          cb.given(rewrite(c.given));
-        }
-        if (c.yields!=null){
-          cb.yields(rewrite(c.yields));
-        }
-      }
-      */
       result=create.method_decl(
           create.primitive_type(PrimitiveType.Sort.Void),
-          c,
+          rewrite(m.getContract()),
           m.getName(),
           args,
           rewrite(m.getBody()));
@@ -140,7 +122,10 @@ public class VoidCalls extends AbstractRewriter {
           res.addLabel(rewrite(lbl));
         }
         res.set_before(rewrite(e.get_before()));
-        res.set_after(rewrite(e.get_after()));
+        HashMap<NameExpression,ASTNode>map=new HashMap<NameExpression,ASTNode>();
+        map.put(create.reserved_name(ASTReserved.Result),rewrite(s.getLocation()));
+        Substitution subst=new Substitution(source(),map);
+        res.set_after(subst.rewrite(e.get_after()));
         result=res;
         return;
       }

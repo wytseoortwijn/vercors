@@ -121,6 +121,7 @@ public class NameExpression extends ASTNode {
   }
 
   public int hashCode(){
+    if (name==null) hre.System.Abort("name is null!");
     return name.hashCode();
   }
   

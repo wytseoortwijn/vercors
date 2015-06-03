@@ -23,11 +23,15 @@ public class InlineMethod extends Substitution {
   private static AtomicInteger count=new AtomicInteger();
   
   public void inline(BlockStatement block, String return_name, String return_label, Method m,ASTNode object, ASTNode[] args,Origin source) {
+    create.enter();
     BranchOrigin branch=new BranchOrigin("inlined code at "+source,source);
     ASTNode tmp;
     create.setOrigin(m.getOrigin());
     map.clear();
-    map.put(create.reserved_name(ASTReserved.This),object);
+    NameExpression n=create.reserved_name(ASTReserved.This);
+    if (n==null) System.err.println("1");
+    if (object==null) System.err.println("2");
+    map.put(n,object);
     prefix="inline_"+count.incrementAndGet()+"_";
     DeclarationStatement decls[]=m.getArgs();
     for(int i=0;i<decls.length;i++){
@@ -47,6 +51,7 @@ public class InlineMethod extends Substitution {
       OriginWrapper.wrap(null, tmp,branch);
       block.add(tmp);            
     }
+    create.leave();
   }
   
   @Override
