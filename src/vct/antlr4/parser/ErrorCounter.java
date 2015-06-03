@@ -2,6 +2,7 @@ package vct.antlr4.parser;
 
 import static hre.System.Fail;
 
+import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -15,22 +16,36 @@ import org.antlr.v4.runtime.dfa.DFA;
 public final class ErrorCounter implements ANTLRErrorListener {
   public  final AtomicInteger count =new AtomicInteger();
 
-  public final String file_name;
   
-  public ErrorCounter(String file_name){
-    this.file_name=file_name;
+  private final ArrayList<Integer> ofs=new ArrayList();
+  private final ArrayList<String> file=new ArrayList();
+  private final ArrayList<Integer> src=new ArrayList();
+  
+  public final String main_file;
+  public ErrorCounter(String main){
+    main_file=main;
+    ofs.add(0);
+    file.add(main);
+    src.add(0);
   }
-  private int ofs=0;
     
-  public void set_ofs(int ofs){
-    this.ofs=ofs;
+  public void mark_ofs(int ofs,String name,int src){
+    this.ofs.add(ofs);
+    file.add(name);
+    this.src.add(src);
   }
 
   @Override
   public void syntaxError(Recognizer<?, ?> arg0, Object arg1, int arg2,
       int arg3, String arg4, RecognitionException arg5) {
     // TODO Auto-generated method stub
-    hre.System.Warning("line %d:%d %s%n",ofs+arg2,arg3,arg4);
+    int i=ofs.size()-1;
+    while(arg2<ofs.get(i)){
+      i--;
+    }
+    String fname=file.get(i);
+    int fofs=arg2-ofs.get(i)+src.get(i);
+    hre.System.Warning("%s, %d:%d %s%n",fname,fofs,arg3,arg4);
     count.incrementAndGet();
   }
 
@@ -57,7 +72,7 @@ public final class ErrorCounter implements ANTLRErrorListener {
 
   public void report() {
     if (count.get()>0){
-      Fail("encountered %d syntax error(s) in %s",count.get(),file_name);
+      Fail("encountered %d syntax error(s) in %s",count.get(),main_file);
     }
   }
 }
