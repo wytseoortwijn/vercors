@@ -199,6 +199,7 @@ public class Configuration {
         if (msg.getFormat().equals("stderr: %s")){
           line=(String)msg.getArg(0);
           if (line.equals("Currently Loaded Modulefiles:")) break;
+          if (line.equals("No Modulefiles Currently Loaded.")) break;
           continue;
         }
         Warning("unexpected shell response");
