@@ -2,6 +2,7 @@ package vct.col.rewrite;
 
 import java.util.HashMap;
 
+import vct.col.ast.ASTFlags;
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTReserved;
 import vct.col.ast.Method;
@@ -13,8 +14,11 @@ import vct.col.ast.StandardOperator;
 
 public class InlinePredicatesRewriter extends AbstractRewriter {
 
-  public InlinePredicatesRewriter(ProgramUnit source) {
+  public final boolean auto;
+  
+  public InlinePredicatesRewriter(ProgramUnit source,boolean auto) {
     super(source);
+    this.auto=auto;
   }
 
   
@@ -24,10 +28,10 @@ public class InlinePredicatesRewriter extends AbstractRewriter {
     if (def==null){
       Abort("invokation of undefined method.");
     }
-    int N=def.getArity();
-    if (def.kind!=Method.Kind.Predicate || def.isRecursive()){
-      super.visit(e);
-    } else {
+    boolean inline;
+    inline = inline(def);
+    if (inline){
+      int N=def.getArity();
       HashMap<NameExpression,ASTNode> map=new HashMap<NameExpression, ASTNode>();
       Substitution sigma=new Substitution(source(),map);
       map.put(create.reserved_name(ASTReserved.This), rewrite(e.object));
@@ -35,12 +39,25 @@ public class InlinePredicatesRewriter extends AbstractRewriter {
         map.put(create.unresolved_name(def.getArgument(i)),rewrite(e.getArg(i)));
       }
       result=sigma.rewrite(def.getBody());
+    } else {
+      super.visit(e);
     }
+  }
+
+
+  protected boolean inline(Method def) {
+    boolean inline;
+    if (def.isValidFlag(ASTFlags.INLINE)){
+      inline=(def.kind==Method.Kind.Predicate || def.kind==Method.Kind.Pure) && def.getFlag(ASTFlags.INLINE);
+    } else {
+      inline=auto && def.kind==Method.Kind.Predicate && !def.isRecursive();
+    }
+    return inline;
   }
 
   @Override
   public void visit(Method m){
-    if (m.kind==Method.Kind.Predicate && !m.isRecursive()){
+    if (inline(m)){
       result=null;
     } else {
       super.visit(m);

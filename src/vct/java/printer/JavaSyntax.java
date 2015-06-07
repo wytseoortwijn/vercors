@@ -63,6 +63,11 @@ public class JavaSyntax extends Syntax {
         syntax.addOperator(IndependentOf, -1 , "(" ,"!",")");
         syntax.addOperator(ReducibleSum,-1,"Reducible(",",+)");
         syntax.addReserved(EmptyProcess, "empty");
+        
+        syntax.addReserved(Inline,"inline");
+        syntax.addReserved(Pure,"pure");
+
+        
         JavaVerCorsSyntax=syntax;
         
       }

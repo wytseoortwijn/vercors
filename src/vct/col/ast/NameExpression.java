@@ -126,6 +126,7 @@ public class NameExpression extends ASTNode {
   }
   
   public boolean isReserved(ASTReserved word) {
+    if (word==null) return kind==Kind.Reserved;
     return reserved==word;
   }
 
