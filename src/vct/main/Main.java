@@ -402,9 +402,14 @@ public class Main
         return new ForkJoinCompilation(arg).rewriteAll();
       }
     });
-    defined_passes.put("inline",new CompilerPass("Inline predicates with arguments"){
+    defined_passes.put("auto-inline",new CompilerPass("Inline all non-recursive predicates and inline methods"){
       public ProgramUnit apply(ProgramUnit arg){
-        return new InlinePredicatesRewriter(arg).rewriteAll();
+        return new InlinePredicatesRewriter(arg,true).rewriteAll();
+      }
+    });
+    defined_passes.put("user-inline",new CompilerPass("Inline all methods marked as inline"){
+      public ProgramUnit apply(ProgramUnit arg){
+        return new InlinePredicatesRewriter(arg,false).rewriteAll();
       }
     });
     defined_passes.put("iter",new CompilerPass("Encode iteration contracts as method calls"){
@@ -650,7 +655,7 @@ public class Main
       passes.add("standardize");
       passes.add("check");
       if (inline_predicates.get()){
-        passes.add("inline");
+        passes.add("auto-inline");
         passes.add("standardize");
         passes.add("check");        
       }
@@ -781,10 +786,12 @@ public class Main
         passes.add("check");
       }
       if (inline_predicates.get()){
-        passes.add("inline");
-        passes.add("standardize");
-        passes.add("check");        
+        passes.add("auto-inline");
+      } else {
+        passes.add("user-inline");
       }
+      passes.add("standardize");
+      passes.add("check");        
       if (features.usesParallelBlocks()){
         passes.add("parallel_blocks");
         passes.add("standardize");
