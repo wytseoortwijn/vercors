@@ -42,6 +42,7 @@ public class Syntax {
   private Map<Sort,String> type_map = new EnumMap<Sort, String>(Sort.class);
   
   private Map<String,StandardOperator> operator_map = new HashMap<String, StandardOperator>();
+  private Map<String,StandardOperator> function_map = new HashMap<String, StandardOperator>();
   
   private Map<ASTReserved,String> reserved2syntax = new HashMap<ASTReserved, String>();
   private Map<String,ASTReserved> syntax2reserved = new HashMap<String, ASTReserved>();
@@ -63,6 +64,10 @@ public class Syntax {
    */
   public StandardOperator parseOperator(String op){
     return operator_map.get(op);
+  }
+  
+  public StandardOperator parseFunction(String op){
+    return function_map.get(op);
   }
   
   /** Is the standard function op an operator in this language? */
@@ -158,6 +163,7 @@ public class Syntax {
     pattern[2*N+1]=")";
     syntax_map.put(op,full_syntax);
     pattern_map.put(op, pattern);
+    function_map.put(syntax,op);
   }
   
   /** Add a name for a primitive type */

@@ -451,8 +451,7 @@ public class JavaJMLtoCol extends AbstractJavaToCol implements JavaJMLVisitor<AS
   @Override
   public ASTNode visitLocalVariableDeclarationStatement(
       LocalVariableDeclarationStatementContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
+    return convert(ctx,0);
   }
 
   @Override

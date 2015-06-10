@@ -106,6 +106,8 @@ public class SilverExpressionMap<T,E,Decl> implements ASTMapping<E>{
     
     case Size: return create.size(o,e.getArg(0).apply(this));
     case Tail: return create.drop(o,e.getArg(0).apply(this),create.Constant(o,1));
+    case Drop: return create.drop(o,e.getArg(0).apply(this),e.getArg(1).apply(this));
+    case Take: return create.take(o,e.getArg(0).apply(this),e.getArg(1).apply(this));
     case Member: {
       if (e.getArg(1).getType().isPrimitive(Sort.Sequence)){
         return create.seq_contains(o,e.getArg(0).apply(this),e.getArg(1).apply(this));
