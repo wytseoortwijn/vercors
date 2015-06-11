@@ -33,7 +33,9 @@ public class ASTSpecial extends ASTNode {
     Transfer,
     Goto,
     SpecIgnoreStart,
-    SpecIgnoreEnd
+    SpecIgnoreEnd,
+    Lock,
+    Unlock
   };
 
   public final Kind kind;

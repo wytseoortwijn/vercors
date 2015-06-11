@@ -229,6 +229,9 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
       ASTNode args[]=getTuple((ParserRuleContext)ctx.getChild(1));
       return create.expression(StandardOperator.Tail,args);
     }
+    if (match(0,true,ctx,"[",null,"]",null)){
+      return create.expression(StandardOperator.Scale,convert(ctx,1),convert(ctx,3)); 
+    }
     if (match(0,true,ctx,"[",null)){
       ASTNode args[]=convert_list(ctx,"[",",","]");
       args[0]=create.primitive_type(Sort.Sequence, args[0]);
@@ -501,6 +504,12 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
         invs[i]=convert(inv_ctx,3*i+1);
       }
       return create.while_loop(convert(ctx,3),convert(ctx,5),invs);
+    }
+    if (match(ctx,"lock",null,";")){
+      return create.special(ASTSpecial.Kind.Lock,convert(ctx,1));
+    }
+    if (match(ctx,"unlock",null,";")){
+      return create.special(ASTSpecial.Kind.Unlock,convert(ctx,1));
     }
     if (match(ctx,"assert",null,";")){
       return create.expression(StandardOperator.Assert,convert(ctx,1));
@@ -804,7 +813,13 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
     Type returns=(Type)convert(ctx.children.get(1));
     String name=getIdentifier(ctx,2);
     DeclarationStatement args[]=convertArgs((ArgsContext) ctx.children.get(4));
-    ASTNode res=create.method_decl(returns,c, name, args , null);
+    ASTNode res;
+    if (returns.isPrimitive(Sort.Resource)){
+      res=create.predicate(name, null, args);
+    } else {
+      res=create.method_decl(returns,c, name, args , null);
+    }
+    
     res.setStatic(false);
     return res;
   }

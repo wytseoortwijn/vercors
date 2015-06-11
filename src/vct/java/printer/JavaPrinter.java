@@ -204,6 +204,18 @@ public class JavaPrinter extends AbstractPrinter {
       s.args[0].accept(this);
       out.println(";");
       break;
+    case Lock:
+      out.print("lock ");
+      setExpr();
+      s.args[0].accept(this);
+      out.println(";");
+      break;
+    case Unlock:
+      out.print("unlock ");
+      setExpr();
+      s.args[0].accept(this);
+      out.println(";");
+      break;
     case Import:
       out.print("import ");
       setExpr();

@@ -67,7 +67,7 @@ expr
  | '\\result'
  | ID
  | NUMBER
- | '[' type ( ',' expr )* ']'
+ | '[' expr ']' expr
  | '|' expr '|'
  | values
  ;
