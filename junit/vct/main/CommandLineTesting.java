@@ -29,6 +29,7 @@ public class CommandLineTesting {
     testmap.put("dafny",vct.main.DafnyTest.class);
     testmap.put("verifast",vct.main.VerifastTest.class);
     testmap.put("refute",vct.main.RefuteTest.class);
+    testmap.put("carp",vct.main.CARPTestExamples.class);
   }
   
   public static void run_testsuites(){

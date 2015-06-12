@@ -41,4 +41,28 @@ public class BrokenTests extends ToolTest {
     }
   }
 
+  @Test
+  public void test_scp_example() {
+    sem_get();
+    try {
+      VCTResult res = run("vct", "--silver=silicon_qp", "--single-group",
+          "//examples/kernels/scp-example.pvl");
+      res.checkVerdict(Verdict.Pass);
+    } finally {
+      sem.release();
+    }
+  }
+
+  @Test
+  public void test_scp_example_err() {
+    sem_get();
+    try {
+      VCTResult res = run("vct", "--silver=silicon_qp", "--single-group",
+          "//examples/kernels/scp-example-e1.pvl");
+      res.checkVerdict(Verdict.Fail);
+    } finally {
+      sem.release();
+    }
+  }
+
 }
