@@ -56,7 +56,6 @@ import vct.col.rewrite.FilterSpecIgnore;
 import vct.col.rewrite.FinalizeArguments;
 import vct.col.rewrite.Flatten;
 import vct.col.rewrite.FlattenBeforeAfter;
-import vct.col.rewrite.ForkJoinCompilation;
 import vct.col.rewrite.ForkJoinEncode;
 import vct.col.rewrite.GenericPass1;
 import vct.col.rewrite.GhostLifter;
@@ -65,7 +64,9 @@ import vct.col.rewrite.GlobalizeStaticsParameter;
 import vct.col.rewrite.InlinePredicatesRewriter;
 import vct.col.rewrite.IterationContractEncoder;
 import vct.col.rewrite.KernelRewriter;
+import vct.col.rewrite.LockEncoder;
 import vct.col.rewrite.MergeLoops;
+import vct.col.rewrite.PVLCompiler;
 import vct.col.rewrite.ParallelBlockEncoder;
 import vct.col.rewrite.PureMethodsAsFunctions;
 import vct.col.rewrite.RandomizedIf;
@@ -367,7 +368,23 @@ public class Main
               report.setException(e);
               return arg;
             }
+            out.println("import col.lang.*;");
             syntax.print(out, node);
+            out.close();
+          } else if(node instanceof ASTSpecial){
+            ASTSpecial S = (ASTSpecial)node;
+            fail("cannot deal with special %s yet",S.kind);
+            return arg;           
+          } else if(node instanceof ASTSpecialDeclaration){
+            ASTSpecialDeclaration S = (ASTSpecialDeclaration)node;
+            switch(S.kind){
+            case Comment:
+              // TODO keep comments.
+              break;
+            default:
+              fail("cannot deal with special declaration %s yet",S.kind);
+              return arg; 
+            }  
           } else {
             fail("cannot deal with %s yet",node.getClass());
             return arg;
@@ -441,11 +458,6 @@ public class Main
         return new FlattenBeforeAfter(arg).rewriteAll();
       }
     });
-    defined_passes.put("forkjoin",new CompilerPass("compile fork/join statements"){
-      public ProgramUnit apply(ProgramUnit arg,String ... args){
-        return new ForkJoinCompilation(arg).rewriteAll();
-      }
-    });
     defined_passes.put("auto-inline",new CompilerPass("Inline all non-recursive predicates and inline methods"){
       public ProgramUnit apply(ProgramUnit arg,String ... args){
         return new InlinePredicatesRewriter(arg,true).rewriteAll();
@@ -464,6 +476,11 @@ public class Main
     defined_passes.put("kernel-split",new CompilerPass("Split kernels into main, thread and barrier."){
       public ProgramUnit apply(ProgramUnit arg,String ... args){
         return new KernelRewriter(arg).rewriteAll();
+      }
+    });
+    defined_passes.put("lock-encode",new CompilerPass("Encode lock/unlock statements."){
+      public ProgramUnit apply(ProgramUnit arg,String ... args){
+        return new LockEncoder(arg).rewriteAll();
       }
     });
     defined_passes.put("magicwand",new CompilerPass("Encode magic wand proofs with witnesses"){
@@ -485,6 +502,11 @@ public class Main
     defined_passes.put("parallel_blocks",new CompilerPass("Encoded the proof obligations for parallel blocks"){
       public ProgramUnit apply(ProgramUnit arg,String ... args){
         return new ParallelBlockEncoder(arg).rewriteAll();
+      }
+    });
+    defined_passes.put("pvl-compile",new CompilerPass("Compile PVL classes to Java classes"){
+      public ProgramUnit apply(ProgramUnit arg,String ... args){
+        return new PVLCompiler(arg).rewriteAll();
       }
     });
     defined_passes.put("recognize_loops",new CompilerPass("Recognize for-each loops"){
@@ -822,6 +844,7 @@ public class Main
 //      passes.add("check");
       passes.add("filter_spec_ignore");
       passes.add("java_resolve");
+      passes.add("lock-encode");
       passes.add("standardize");
       passes.add("check");
       if (features.usesOperator(StandardOperator.Wand)){
@@ -829,7 +852,7 @@ public class Main
         passes.add("standardize");
         passes.add("check");
       }
-      if (features.usesOperator(StandardOperator.Fork)){
+      if (features.usesSpecial(ASTSpecial.Kind.Fork)){
         passes.add("fork-join-encode");
         passes.add("standardize");
         passes.add("check");
