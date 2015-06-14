@@ -53,6 +53,7 @@ public class SilverTypeMap<T> implements TypeMapping<T> {
         return create.Int();
       case Boolean:
         return create.Bool();
+      case ZFraction:
       case Fraction:
         return create.Perm();
       case Sequence:

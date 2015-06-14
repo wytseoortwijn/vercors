@@ -1,6 +1,7 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 package vct.java.printer;
 
+import hre.HREError;
 import hre.ast.TrackingOutput;
 import hre.ast.TrackingTree;
 
@@ -533,6 +534,22 @@ public class JavaPrinter extends AbstractPrinter {
     }
     if (contract!=null && dialect!=JavaDialect.JavaVeriFast && !predicate){
       visit(contract);
+    }
+    for(int i=1;i<0xF000;i<<=1){
+      if (m.isValidFlag(i)){
+        if (m.getFlag(i)){
+          switch(i){
+          case ASTFlags.STATIC:
+          case ASTFlags.FINAL:
+            break;
+          case ASTFlags.INLINE:
+            out.printf("inline ");
+            break;
+          default:
+            throw new HREError("unknown flag %04x",i);
+          }
+        }
+      }
     }
     if (!m.isValidFlag(ASTFlags.STATIC)) {
       out.printf("static?? ");

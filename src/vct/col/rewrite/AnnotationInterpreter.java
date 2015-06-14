@@ -1,5 +1,7 @@
 package vct.col.rewrite;
 
+import hre.HREError;
+
 import java.util.ArrayList;
 
 import vct.col.ast.ASTFlags;
@@ -9,6 +11,7 @@ import vct.col.ast.ASTSpecial;
 import vct.col.ast.ContractBuilder;
 import vct.col.ast.DeclarationStatement;
 import vct.col.ast.Method;
+import vct.col.ast.NameExpression;
 import vct.col.ast.ProgramUnit;
 import vct.col.ast.Type;
 
@@ -45,8 +48,21 @@ public class AnnotationInterpreter extends AbstractRewriter {
     if (m.annotated()) {
       res.attach();
       for (ASTNode a : ann){
-        if (a.isReserved(ASTReserved.Final)){
-          res.setFlag(ASTFlags.FINAL, true);
+        if (a.isReserved(null)){
+          switch(((NameExpression)a).reserved()){
+          case Final:
+            res.setFlag(ASTFlags.FINAL, true);
+            break;
+          case Inline:
+            res.setFlag(ASTFlags.INLINE, true);
+            break;
+          case Public:
+          case Private:
+            // ignore visibility
+            break;
+          default:
+            throw new HREError("cannot set flag for reserved annotation %s",a);
+          }
         } else {
           res.attach(a);
         }

@@ -121,10 +121,12 @@ public class NameExpression extends ASTNode {
   }
 
   public int hashCode(){
+    if (name==null) hre.System.Abort("name is null!");
     return name.hashCode();
   }
   
   public boolean isReserved(ASTReserved word) {
+    if (word==null) return kind==Kind.Reserved;
     return reserved==word;
   }
 

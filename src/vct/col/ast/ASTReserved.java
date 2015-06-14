@@ -33,6 +33,10 @@ public enum ASTReserved {
    */
   Null,
   /**
+   * Mark function/method/procedure/etc. as inline
+   */
+  Inline,
+  /**
    * Limit argument to being a pure method.
    */
   Pure,

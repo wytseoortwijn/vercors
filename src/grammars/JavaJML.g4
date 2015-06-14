@@ -24,6 +24,7 @@ arguments
     
 specificationModifier
     : 'pure'
+    | 'inline'
     ;
 
 specificationStatement

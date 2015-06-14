@@ -1,5 +1,8 @@
 package vct.antlr4.parser;
 
+import hre.HREError;
+
+import java.util.HashSet;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.antlr.v4.runtime.BufferedTokenStream;
@@ -446,8 +449,7 @@ public class JavaJMLtoCol extends AbstractJavaToCol implements JavaJMLVisitor<AS
   @Override
   public ASTNode visitLocalVariableDeclarationStatement(
       LocalVariableDeclarationStatementContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
+    return convert(ctx,0);
   }
 
   @Override
@@ -865,7 +867,7 @@ public class JavaJMLtoCol extends AbstractJavaToCol implements JavaJMLVisitor<AS
     }
     int i0=i;
     while(match(i,true,ctx,"ModifierContext")){
-      // skip over the modifiers for now.
+      // skip now convert later.
       i++;
     }
     Type returns=checkType(convert(ctx,i));
@@ -884,7 +886,9 @@ public class JavaJMLtoCol extends AbstractJavaToCol implements JavaJMLVisitor<AS
     hre.System.Debug("function %s, contract %s",res.name,res.getContract());
     while(i0<i){
       //add modifiers as annotations.
-      res.attach(convert(ctx,i0));
+      ASTNode mod=convert(ctx,i0);
+      //System.err.printf("<modifier! %s = %s%n",ctx.getChild(i0).toStringTree(parser),mod);
+      res.attach(mod);
       i0++;
     }
     return res;
