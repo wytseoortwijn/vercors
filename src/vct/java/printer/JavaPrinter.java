@@ -175,6 +175,22 @@ public class JavaPrinter extends AbstractPrinter {
   @Override
   public void visit(ASTSpecial s){
     switch(s.kind){
+    case Fork:{
+      out.printf("fork ");
+      current_precedence=0;
+      setExpr();
+      ASTNode prop=s.args[0];
+      prop.accept(this);
+      break;
+    }
+    case Join:{
+      out.printf("join ");
+      current_precedence=0;
+      setExpr();
+      ASTNode prop=s.args[0];
+      prop.accept(this);
+      break;
+    }
     case Goto:
       out.print("goto ");
       s.args[0].accept(this);
@@ -397,7 +413,7 @@ public class JavaPrinter extends AbstractPrinter {
     visit(cl.getContract());
     switch(cl.kind){
     case Plain:
-      out.printf("class %s",cl.getName());
+      out.printf("public class %s",cl.getName());
       break;
     case Abstract:
       out.printf("abstract class %s",cl.getName());
@@ -556,6 +572,8 @@ public class JavaPrinter extends AbstractPrinter {
             break;
           case ASTFlags.INLINE:
             out.printf("inline ");
+          case ASTFlags.PUBLIC:
+            out.printf("public ");
             break;
           default:
             throw new HREError("unknown flag %04x",i);
@@ -782,22 +800,6 @@ public class JavaPrinter extends AbstractPrinter {
           arg.accept(this);
         }
         out.print(")");
-        break;
-      }
-      case Fork:{
-        out.printf("fork ");
-        current_precedence=0;
-        setExpr();
-        ASTNode prop=e.getArg(0);
-        prop.accept(this);
-        break;
-      }
-      case Join:{
-        out.printf("join ");
-        current_precedence=0;
-        setExpr();
-        ASTNode prop=e.getArg(0);
-        prop.accept(this);
         break;
       }
       case Assert:{

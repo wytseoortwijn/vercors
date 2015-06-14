@@ -35,7 +35,9 @@ public class ASTSpecial extends ASTNode {
     SpecIgnoreStart,
     SpecIgnoreEnd,
     Lock,
-    Unlock
+    Unlock,
+    Fork,
+    Join
   };
 
   public final Kind kind;

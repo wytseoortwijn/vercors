@@ -658,11 +658,6 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       // TODO: check arguments
       e.setType(new PrimitiveType(Sort.Resource));
       break;
-    case Fork:
-    case Join:
-      // TODO: check arguments
-      e.setType(new PrimitiveType(Sort.Void));
-      break;
     case Set:
     case Assign:
     case AddAssign:

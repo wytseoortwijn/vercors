@@ -3,6 +3,7 @@ package vct.boogie;
 
 import java.util.HashSet;
 
+import hre.HREError;
 import hre.ast.Origin;
 import hre.ast.TrackingOutput;
 import vct.col.ast.*;
@@ -418,38 +419,6 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
       in_clause=false;
       break;
     }
-    case Fork:{
-      assert !in_expr;
-      ASTNode thread=e.getArg(0);
-      String name;
-      if (thread instanceof NameExpression){
-        name=((NameExpression)thread).toString();
-      } else {
-        throw new Error("fork/join are limited to name expressions");
-      }
-      //TODO: fix assumed global argument!
-      //possibly fork label:expression ... join label.
-      //out.lnprintf("fork tok_%s := %s.run(global);",name,name);
-      //Warning("first arg of method: %s",current_method().getArgType(0).toString());
-      if (current_method().getArity()>0 && current_method().getArgType(0).toString().equals("Global")){
-        out.lnprintf("fork tok_%s := %s.run(global);",name,name);
-      } else {
-        out.lnprintf("fork tok_%s := %s.run();",name,name);
-      }
-      break;
-    }
-      case Join:{
-        assert !in_expr;
-        ASTNode thread=e.getArg(0);
-        String name;
-        if (thread instanceof NameExpression){
-          name=((NameExpression)thread).toString();
-        } else {
-          throw new Error("fork/join are limited to name expressions");
-        }
-        out.lnprintf("join tok_%s;",name);
-        break;
-      }
       case Assume:{
         if (e.getArg(0) instanceof MethodInvokation) {
           MethodInvokation i=(MethodInvokation)e.getArg(0);
@@ -633,7 +602,40 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
       setExpr();
       s.args[0].accept(this);
       out.println(";");
-      break;      
+      break;
+    case Fork:{
+      assert !in_expr;
+      ASTNode thread=s.args[0];
+      String name;
+      if (thread instanceof NameExpression){
+        name=((NameExpression)thread).toString();
+      } else {
+        throw new Error("fork/join are limited to name expressions");
+      }
+      //TODO: fix assumed global argument!
+      //possibly fork label:expression ... join label.
+      //out.lnprintf("fork tok_%s := %s.run(global);",name,name);
+      //Warning("first arg of method: %s",current_method().getArgType(0).toString());
+      if (current_method().getArity()>0 && current_method().getArgType(0).toString().equals("Global")){
+        out.lnprintf("fork tok_%s := %s.run(global);",name,name);
+      } else {
+        out.lnprintf("fork tok_%s := %s.run();",name,name);
+      }
+      break;
+    }
+      case Join:{
+        assert !in_expr;
+        ASTNode thread=s.args[0];
+        String name;
+        if (thread instanceof NameExpression){
+          name=((NameExpression)thread).toString();
+        } else {
+          throw new Error("fork/join are limited to name expressions");
+        }
+        out.lnprintf("join tok_%s;",name);
+        break;
+      }
+
     default:
       super.visit(s);
       break;

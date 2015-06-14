@@ -5,6 +5,7 @@ import hre.ast.BranchOrigin;
 import hre.ast.WrappingOrigin;
 import vct.col.ast.ASTClass;
 import vct.col.ast.ASTClass.ClassKind;
+import vct.col.ast.ASTFlags;
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTSpecial;
 import vct.col.ast.BeforeAfterAnnotations;
@@ -26,30 +27,11 @@ import vct.col.rewrite.AbstractRewriter;
  * Rewrite a PVL AST, produced by parsing, to conform to the COL AST standard.  
  */
 public class PVLPostProcessor extends AbstractRewriter {
-
-  private static String INV="lock_invariant";
   
   public PVLPostProcessor(ProgramUnit source) {
     super(source);
   }
-  
-  public void visit(ASTSpecial s){
-    switch(s.kind){
-    case Lock:
-      currentBlock.add(create.special(ASTSpecial.Kind.Inhale,create.invokation(rewrite(s.args[0]),null,INV)));
-      currentBlock.add(create.expression(StandardOperator.Unfold,create.invokation(rewrite(s.args[0]),null,INV)));
-      result=null;
-      break;
-    case Unlock:
-      currentBlock.add(create.expression(StandardOperator.Fold,create.invokation(rewrite(s.args[0]),null,INV)));
-      currentBlock.add(create.special(ASTSpecial.Kind.Exhale,create.invokation(rewrite(s.args[0]),null,INV)));
-      result=null;
-      break;
-    default:
-      super.visit(s);
-    }
-  }
-  
+    
   @Override
   public void visit(ASTClass c){
     super.visit(c);
@@ -78,6 +60,7 @@ public class PVLPostProcessor extends AbstractRewriter {
           create.enter();
           create.setOrigin(branch);
           ASTNode S=create.special(ASTSpecial.Kind.Exhale,create.invokation(null,null,"lock_invariant"));
+          S.setFlag(ASTFlags.GHOST,true);
           create.leave();
           ((BlockStatement)m.getBody()).append(S);
         }

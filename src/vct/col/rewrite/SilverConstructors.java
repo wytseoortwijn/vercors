@@ -63,22 +63,21 @@ public class SilverConstructors extends AbstractRewriter {
   }
   
   @Override
-  public void visit(OperatorExpression e){
-    StandardOperator op=e.getOperator();
-    switch(op){
+  public void visit(ASTSpecial e){
+    switch(e.kind){
       case Fork:
       case Join:
       {
-        ASTClass cl=source().find(((ClassType)e.getArg(0).getType()).getNameFull());
-        Method run=cl.find("run",(ClassType) e.getArg(0).getType(), new Type[0] , false);
+        ASTClass cl=source().find(((ClassType)e.args[0].getType()).getNameFull());
+        Method run=cl.find("run",(ClassType) e.args[0].getType(), new Type[0] , false);
         Contract c=run.getContract();
         Hashtable<NameExpression, ASTNode> map=new Hashtable<NameExpression, ASTNode>();
         Substitution sigma=new Substitution(source(),map);
-        map.put(create.reserved_name(ASTReserved.This),rewrite(e.getArg(0)));
-        if (op==StandardOperator.Fork){
+        map.put(create.reserved_name(ASTReserved.This),rewrite(e.args[0]));
+        if (e.kind==ASTSpecial.Kind.Fork){
           result=create.special(ASTSpecial.Kind.Exhale,sigma.rewrite(c.pre_condition));
         } else {
-          result=create.special(ASTSpecial.Kind.Inhale,sigma.rewrite(c.pre_condition));
+          result=create.special(ASTSpecial.Kind.Inhale,sigma.rewrite(c.post_condition));
         }
         break;
       }

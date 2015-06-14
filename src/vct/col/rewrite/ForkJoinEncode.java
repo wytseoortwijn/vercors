@@ -49,13 +49,13 @@ public class ForkJoinEncode extends AbstractRewriter {
   }
   
   @Override
-  public void visit(OperatorExpression e){
-    switch(e.getOperator()){
+  public void visit(ASTSpecial e){
+    switch(e.kind){
     case Fork:
-      result=create.invokation(rewrite(e.getArg(0)),null,"forkOperator");
+      result=create.invokation(rewrite(e.args[0]),null,"forkOperator");
       break;
     case Join:
-      result=create.invokation(rewrite(e.getArg(0)),null,"joinOperator");
+      result=create.invokation(rewrite(e.args[0]),null,"joinOperator");
       break;      
     default:
       super.visit(e);

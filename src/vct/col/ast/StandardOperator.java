@@ -147,10 +147,6 @@ public enum StandardOperator {
   AddsTo(2),
   /** Array subscript. */
   Subscript(2),
-  /** Fork statement. */
-  Fork(1),
-  /** Join statement. */
-  Join(1),
   /** Lock statement. */
   Lock(1),
   /** Unfold statement. */
