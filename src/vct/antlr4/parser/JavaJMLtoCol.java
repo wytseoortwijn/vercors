@@ -426,10 +426,8 @@ public class JavaJMLtoCol extends AbstractJavaToCol implements JavaJMLVisitor<AS
   }
 
   @Override
-  public ASTNode visitInterfaceMethodDeclaration(
-      InterfaceMethodDeclarationContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
+  public ASTNode visitInterfaceMethodDeclaration(InterfaceMethodDeclarationContext ctx) {
+    return getMethodDeclaration(ctx);
   }
 
   @Override

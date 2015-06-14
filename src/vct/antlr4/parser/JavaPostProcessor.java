@@ -79,7 +79,7 @@ public class JavaPostProcessor extends AbstractRewriter {
     for(Method m:decl.dynamicMethods()){
       if (m.kind==Method.Kind.Constructor) N++;
     }
-    if (N==0) create.addZeroConstructor(decl);
+    if (N==0 && c.kind!=ASTClass.ClassKind.Interface) create.addZeroConstructor(decl);
   }
 
   @Override

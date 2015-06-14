@@ -439,14 +439,12 @@ public class JavaToCol extends AbstractJavaToCol implements JavaVisitor<ASTNode>
   @Override
   public ASTNode visitInterfaceBodyDeclaration(
       InterfaceBodyDeclarationContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
+    return getClassBodyDeclaration(ctx);
   }
 
   @Override
   public ASTNode visitInterfaceDeclaration(InterfaceDeclarationContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
+    return getClassDeclaration(ctx);
   }
 
   @Override
@@ -457,10 +455,8 @@ public class JavaToCol extends AbstractJavaToCol implements JavaVisitor<ASTNode>
   }
 
   @Override
-  public ASTNode visitInterfaceMethodDeclaration(
-      InterfaceMethodDeclarationContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
+  public ASTNode visitInterfaceMethodDeclaration(InterfaceMethodDeclarationContext ctx) {
+    return getMethodDeclaration(ctx);
   }
 
   @Override

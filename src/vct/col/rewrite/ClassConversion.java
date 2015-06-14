@@ -144,6 +144,8 @@ public class ClassConversion extends AbstractRewriter {
       if (s.method.equals(Method.JavaConstructor)){
         method=s.dispatch.getName()+SEP+s.dispatch.getName();
         dispatch=null;
+      } else if (def.getParent() instanceof AxiomaticDataType){
+        method=s.method;
       } else {
         method=((ClassType)s.object).getName()+SEP+s.method;
       }
@@ -156,7 +158,7 @@ public class ClassConversion extends AbstractRewriter {
       }
     } else {
       method=((ClassType)s.object.getType()).getName();
-      if (method.equals("<<adt>>")){
+      if (method.equals("<<adt>>") || def.getParent() instanceof AxiomaticDataType){
         method=s.method;
       } else {
         method+=SEP+s.method;

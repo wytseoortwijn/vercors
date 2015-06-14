@@ -1,5 +1,6 @@
 package vct.col.rewrite;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -759,7 +760,18 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   public void visit(TryCatchBlock tcb){
     TryCatchBlock res=create.try_catch(rewrite(tcb.main),rewrite(tcb.after));
     for(CatchClause cc:tcb.catches){
-      res.catch_clause(rewrite(cc.decl), rewrite(cc.block));
+      pre_visit(cc.block);
+      BlockStatement tmp=currentBlock;
+      currentBlock=new BlockStatement();
+      currentBlock.setOrigin(cc.block.getOrigin());
+      DeclarationStatement d=rewrite(cc.decl);
+      for(ASTNode S:cc.block){
+        currentBlock.add(rewrite(S));
+      }
+      BlockStatement block=currentBlock;
+      currentBlock=tmp;
+      post_visit(cc.block);
+      res.catch_clause(d,block);
     }
     result=res;
   }

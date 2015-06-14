@@ -275,7 +275,7 @@ public abstract class ASTFrame<T> {
       switch(action){
       case ENTER:
         DeclarationStatement decl=(DeclarationStatement)node;
-        if (decl.getParent() instanceof BlockStatement){
+        if (decl.getParent() instanceof BlockStatement || decl.getParent()==null){
           variables.add(decl.getName(),new VariableInfo(decl,NameExpression.Kind.Local));
         }
         break;
@@ -444,21 +444,21 @@ public abstract class ASTFrame<T> {
   };
   
   private void recursively_add_class_info(ASTClass cl) {
-    switch(cl.super_classes.length){
-      case 0:
-        break;
-      case 1:{
-        if (source != null) {
-          ASTClass super_class=source.find(cl.super_classes[0]);
-          if (super_class!=null){
-            recursively_add_class_info(super_class);
-          }
+    for (int i=0;i<cl.super_classes.length;i++){
+      if (source != null) {
+        ASTClass super_class=source.find(cl.super_classes[i]);
+        if (super_class!=null){
+          recursively_add_class_info(super_class);
         }
-        break;
       }
-      default:
-        Fail("Multiple inheritance is not supported.");
-        break;
+    }
+    for (int i=0;i<cl.implemented_classes.length;i++){
+      if (source != null) {
+        ASTClass super_class=source.find(cl.implemented_classes[i]);
+        if (super_class!=null){
+          recursively_add_class_info(super_class);
+        }
+      }
     }
     for(DeclarationStatement decl:cl.dynamicFields()){
       variables.add(decl.getName(),new VariableInfo(decl,NameExpression.Kind.Field));

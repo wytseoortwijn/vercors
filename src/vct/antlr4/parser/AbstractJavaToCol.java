@@ -109,9 +109,12 @@ public class AbstractJavaToCol extends ANTLRtoCOL {
     if (match(ctx,null,"?",null,":",null)){
       return create.expression(StandardOperator.ITE,convert(ctx,0),convert(ctx,2),convert(ctx,4));
     }
+    if (match(ctx,null,"instanceof",null)){
+      return create.expression(StandardOperator.Instance,convert(ctx,0),convert(ctx,2));
+    }
     return null;    
   }
-  
+
   public ASTNode getType(ParserRuleContext ctx) {
     if (match(ctx,null,"[","]")){
       return create.primitive_type(Sort.Array, checkType(convert(ctx,0)));
@@ -206,6 +209,13 @@ public class AbstractJavaToCol extends ANTLRtoCOL {
       }
     }
     return args;
+  }
+  public ClassType[] forceClassType(ASTNode convert[]) {
+    ClassType[] res=new ClassType[convert.length];
+    for(int i=0;i<convert.length;i++){
+      res[i]=forceClassType(convert[i]);
+    }
+    return res;
   }
   public ClassType forceClassType(ASTNode convert) {
     if (convert instanceof ClassType) return (ClassType)convert;
@@ -488,7 +498,14 @@ public class AbstractJavaToCol extends ANTLRtoCOL {
     for(int i=2;i<N;i++){
       //Warning("i==%d",i);
       if (match(i,true,ctx,"extends",null)){
-        bases=new ClassType[]{forceClassType(convert(ctx,i+1))};
+        if (match(i+1,true,ctx,"TypeList")){
+          bases=forceClassType(convert_list(((ParserRuleContext)ctx.getChild(i+1)), ","));
+        } else {
+          bases=new ClassType[]{forceClassType(convert(ctx,i+1))};
+        }
+        i+=1;
+      } else if (match(i,true,ctx,"implements",null)){
+        supports=forceClassType(convert_list(((ParserRuleContext)ctx.getChild(i+1)), ","));
         i+=1;
       } else if (match(i,true,ctx,"TypeParametersContext")){
         ParserRuleContext pars=(ParserRuleContext)ctx.getChild(i);
@@ -501,8 +518,16 @@ public class AbstractJavaToCol extends ANTLRtoCOL {
         return null;
       }
     }
-    ASTClass cl=create.ast_class(getIdentifier(ctx,1), ASTClass.ClassKind.Plain,parameters, bases , supports );
-    scan_body(cl,(ClassBodyContext)ctx.getChild(N));
+    ASTClass.ClassKind kind;
+    if (match(0,true,ctx,"class")){
+      kind=ASTClass.ClassKind.Plain;
+    } else if(match(0,true,ctx,"interface")){
+      kind=ASTClass.ClassKind.Interface;
+    } else {
+      return null;
+    }
+    ASTClass cl=create.ast_class(getIdentifier(ctx,1), kind ,parameters, bases , supports );
+    scan_body(cl,(ParserRuleContext)ctx.getChild(N));
     cl.setContract(cb.getContract());
     return cl;
   }

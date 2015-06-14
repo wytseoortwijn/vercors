@@ -98,7 +98,7 @@ public class VoidCalls extends AbstractRewriter {
       break;
     }
     if (!m.getReturnType().isVoid()){
-      Fail("unexpected non-void method invokation at %s",e.getOrigin());
+      Fail("unexpected invokation of non-void method %s at %s",e.method,e.getOrigin());
     }
     super.visit(e);
   }
