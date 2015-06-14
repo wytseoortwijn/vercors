@@ -13,8 +13,11 @@ import hre.io.PrefixPrintStream;
 import hre.lang.Ref;
 import hre.util.CompositeReport;
 import hre.util.TestReport;
+import hre.util.TestReport.Verdict;
 
 import java.io.*;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
@@ -35,6 +38,7 @@ import vct.col.annotate.DeriveModifies;
 import vct.col.ast.*;
 import vct.col.rewrite.AbstractMethodResolver;
 import vct.col.rewrite.AbstractRewriter;
+import vct.col.rewrite.AddTypeADT;
 import vct.col.rewrite.AssignmentRewriter;
 import vct.col.rewrite.BoxingRewriter;
 import vct.col.rewrite.CSLencoder;
@@ -80,6 +84,7 @@ import vct.col.rewrite.SimplifyCalls;
 import vct.col.rewrite.Standardize;
 import vct.col.rewrite.StripConstructors;
 import vct.col.rewrite.VoidCalls;
+import vct.col.rewrite.VoidCallsThrown;
 import vct.col.rewrite.WandEncoder;
 import vct.col.util.FeatureScanner;
 import vct.col.util.SimpleTypeCheck;
@@ -87,6 +92,7 @@ import vct.java.printer.JavaDialect;
 import vct.java.printer.JavaSyntax;
 import vct.util.ClassName;
 import vct.util.Configuration;
+import vct.util.Syntax;
 import static hre.System.*;
 
 /**
@@ -209,61 +215,66 @@ public class Main
     Hashtable<String,CompilerPass> defined_passes=new Hashtable<String,CompilerPass>();
     Hashtable<String,ValidationPass> defined_checks=new Hashtable<String,ValidationPass>();
     defined_passes.put("java",new CompilerPass("print AST in java syntax"){
-        public ProgramUnit apply(ProgramUnit arg){
+        public ProgramUnit apply(ProgramUnit arg,String ... args){
           JavaSyntax.getJava(JavaDialect.JavaVerCors).print(System.out,arg);
           return arg;
         }
       });
     defined_passes.put("c",new CompilerPass("print AST in C syntax"){
-        public ProgramUnit apply(ProgramUnit arg){
+        public ProgramUnit apply(ProgramUnit arg,String ... args){
           vct.clang.printer.CPrinter.dump(System.out,arg);
           return arg;
         }
       });
     defined_passes.put("dump",new CompilerPass("dump AST"){
-      public ProgramUnit apply(ProgramUnit arg){
+      public ProgramUnit apply(ProgramUnit arg,String ... args){
         PrefixPrintStream out=new PrefixPrintStream(System.out);
         HeapDump.tree_dump(out,arg,ASTNode.class);
         return arg;
       }
     });
+    defined_passes.put("add-type-adt",new CompilerPass("Add an ADT that describes the types and use it to implement instanceof"){
+      public ProgramUnit apply(ProgramUnit arg,String ... args){
+        return new AddTypeADT(arg).rewriteAll();
+      }
+    });   
     defined_passes.put("abstract-resolve",new CompilerPass("convert abstract methods to assume false bodies"){
-      public ProgramUnit apply(ProgramUnit arg){
+      public ProgramUnit apply(ProgramUnit arg,String ... args){
         return new AbstractMethodResolver(arg).rewriteAll();
       }
     });
     defined_passes.put("assign",new CompilerPass("change inline assignments to statements"){
-      public ProgramUnit apply(ProgramUnit arg){
+      public ProgramUnit apply(ProgramUnit arg,String ... args){
         return new AssignmentRewriter(arg).rewriteAll();
       }
     });
     defined_checks.put("boogie",new ValidationPass("verify with Boogie"){
-      public TestReport apply(ProgramUnit arg){
+      public TestReport apply(ProgramUnit arg,String ... args){
         return vct.boogie.Main.TestBoogie(arg);
       }
     });
     defined_checks.put("dafny",new ValidationPass("verify with Dafny"){
-      public TestReport apply(ProgramUnit arg){
+      public TestReport apply(ProgramUnit arg,String ... args){
         return vct.boogie.Main.TestDafny(arg);
       }
     });
     defined_checks.put("silicon-chalice",new ValidationPass("verify Chalice code with Silicon"){
-      public TestReport apply(ProgramUnit arg){
+      public TestReport apply(ProgramUnit arg,String ... args){
         return vct.boogie.Main.TestSilicon(arg);
       }
     });
     defined_checks.put("silver",new ValidationPass("verify input with Silver"){
-      public TestReport apply(ProgramUnit arg){
+      public TestReport apply(ProgramUnit arg,String ... args){
         return vct.silver.SilverBackend.TestSilicon(arg,silver.get());
       }
     });
     defined_passes.put("box",new CompilerPass("box class types with parameters"){
-        public ProgramUnit apply(ProgramUnit arg){
+        public ProgramUnit apply(ProgramUnit arg,String ... args){
           return new BoxingRewriter(arg).rewriteAll();
         }
       });
     defined_checks.put("chalice",new ValidationPass("verify with Chalice"){
-      public TestReport apply(ProgramUnit arg){
+      public TestReport apply(ProgramUnit arg,String ... args){
         if (separate_checks.get()) {
           long start=System.currentTimeMillis();
           CompositeReport res=new CompositeReport();
@@ -299,245 +310,278 @@ public class Main
       }
     });
     defined_passes.put("check",new CompilerPass("run a type check"){
-      public ProgramUnit apply(ProgramUnit arg){
+      public ProgramUnit apply(ProgramUnit arg,String ... args){
         new SimpleTypeCheck(arg).check();
         return arg;
       }
     });
     defined_passes.put("check-defined",new CompilerPass("rewrite process algebra class to check if defined process match their contracts"){
-      public ProgramUnit apply(ProgramUnit arg){
+      public ProgramUnit apply(ProgramUnit arg,String ... args){
         ProgramUnit tmp=new CheckProcessAlgebra(arg).rewriteAll();
         return new RandomizedIf(tmp).rewriteAll();
       }
     });
     defined_passes.put("check-axioms",new CompilerPass("rewrite process algebra class to check if history axioms are correct"){
-      public ProgramUnit apply(ProgramUnit arg){
+      public ProgramUnit apply(ProgramUnit arg,String ... args){
         ProgramUnit tmp=new CheckHistoryAlgebra(arg,Mode.AxiomVerification).rewriteAll();
         return new RandomizedIf(tmp).rewriteAll();
       }
     });
     defined_passes.put("check-history",new CompilerPass("rewrite process algebra class to check if history accounting is correct"){
-      public ProgramUnit apply(ProgramUnit arg){
+      public ProgramUnit apply(ProgramUnit arg,String ... args){
         ProgramUnit tmp=new CheckHistoryAlgebra(arg,Mode.ProgramVerification).rewriteAll();
         return new RandomizedIf(tmp).rewriteAll();
       }
     });
     defined_passes.put("csl-encode",new CompilerPass("Encode CSL atomic regions with methods"){
-      public ProgramUnit apply(ProgramUnit arg){
+      public ProgramUnit apply(ProgramUnit arg,String ... args){
         return new CSLencoder(arg).rewriteAll();
       }
     });
     defined_passes.put("class-conversion",new CompilerPass("Convert classes into records and procedures"){
-      public ProgramUnit apply(ProgramUnit arg){
+      public ProgramUnit apply(ProgramUnit arg,String ... args){
         return new ClassConversion(arg).rewriteAll();
       }
     });
+    defined_passes.put("codegen",new CompilerPass("Generate code"){
+      public ProgramUnit apply(ProgramUnit arg,String ... args){
+        File dir=new File(args[0]);
+        if (dir.exists()){
+          if (!dir.isDirectory()){
+            fail("%s is not a directory");
+            return arg; 
+          }
+        } else {
+          if (!dir.mkdirs()){
+            fail("could not create %s",dir);
+            return arg;
+          }
+        }
+        Syntax syntax=JavaSyntax.getJava(JavaDialect.JavaVerCors);
+        for(ASTNode node:arg){
+          if (node instanceof ASTClass){
+            PrintStream out;
+            try {
+              out = new PrintStream(new FileOutputStream(new File(dir,((ASTClass)node).name+".java")));
+            } catch (FileNotFoundException e) {
+              report.setException(e);
+              return arg;
+            }
+            syntax.print(out, node);
+          } else {
+            fail("cannot deal with %s yet",node.getClass());
+            return arg;
+          }
+        }
+        return arg;
+      }
+    });    
     defined_passes.put("define_double",new CompilerPass("Rewrite double as a non-native data type."){
-      public ProgramUnit apply(ProgramUnit arg){
+      public ProgramUnit apply(ProgramUnit arg,String ... args){
         return DefineDouble.rewrite(arg);
       }
     });
     defined_passes.put("erase",new CompilerPass("Erase generic types"){
-      public ProgramUnit apply(ProgramUnit arg){
+      public ProgramUnit apply(ProgramUnit arg,String ... args){
         arg=new GenericPass1(arg).rewriteAll();
         return arg;
       }
     });   
     defined_passes.put("explicit_encoding",new CompilerPass("encode required and ensured permission as ghost arguments"){
-      public ProgramUnit apply(ProgramUnit arg){
+      public ProgramUnit apply(ProgramUnit arg,String ... args){
         return new ExplicitPermissionEncoding(arg).rewriteAll();
       }
     });
     defined_passes.put("finalize_args",new CompilerPass("???"){
-      public ProgramUnit apply(ProgramUnit arg){
+      public ProgramUnit apply(ProgramUnit arg,String ... args){
         return new FinalizeArguments(arg).rewriteAll();
       }
     });
     defined_passes.put("fork-join-encode",new CompilerPass("Encode fork/join operations using method calls."){
-      public ProgramUnit apply(ProgramUnit arg){
+      public ProgramUnit apply(ProgramUnit arg,String ... args){
         return new ForkJoinEncode(arg).rewriteAll();
       }
     });
     defined_passes.put("flatten",new CompilerPass("remove nesting of expression"){
-      public ProgramUnit apply(ProgramUnit arg){
+      public ProgramUnit apply(ProgramUnit arg,String ... args){
         return new Flatten(arg).rewriteAll();
       }
     });
     defined_passes.put("ghost-lift",new CompilerPass("Lift ghost code to real code"){
-      public ProgramUnit apply(ProgramUnit arg){
+      public ProgramUnit apply(ProgramUnit arg,String ... args){
         return new GhostLifter(arg).rewriteAll();
       }
     });
     if (global_with_field.get()){
       Warning("Using the incomplete and experimental field access for globals.");
       defined_passes.put("globalize",new CompilerPass("split classes into static and dynamic parts"){
-        public ProgramUnit apply(ProgramUnit arg){
+        public ProgramUnit apply(ProgramUnit arg,String ... args){
           return new GlobalizeStaticsField(arg).rewriteAll();
         }
       });      
     } else {
       defined_passes.put("globalize",new CompilerPass("split classes into static and dynamic parts"){
-        public ProgramUnit apply(ProgramUnit arg){
+        public ProgramUnit apply(ProgramUnit arg,String ... args){
           return new GlobalizeStaticsParameter(arg).rewriteAll();
         }
       });
     }
     defined_passes.put("ds_inherit",new CompilerPass("rewrite contracts to reflect inheritance, predicate chaining"){
-      public ProgramUnit apply(ProgramUnit arg){
+      public ProgramUnit apply(ProgramUnit arg,String ... args){
         return new DynamicStaticInheritance(arg).rewriteOrdered();
       }
     });
     defined_passes.put("filter_spec_ignore",new CompilerPass("remove spec_ignore sections from code"){
-      public ProgramUnit apply(ProgramUnit arg){
+      public ProgramUnit apply(ProgramUnit arg,String ... args){
         return new FilterSpecIgnore(arg).rewriteAll();
       }
     });
     defined_passes.put("flatten_before_after",new CompilerPass("move before/after instructions"){
-      public ProgramUnit apply(ProgramUnit arg){
+      public ProgramUnit apply(ProgramUnit arg,String ... args){
         return new FlattenBeforeAfter(arg).rewriteAll();
       }
     });
     defined_passes.put("forkjoin",new CompilerPass("compile fork/join statements"){
-      public ProgramUnit apply(ProgramUnit arg){
+      public ProgramUnit apply(ProgramUnit arg,String ... args){
         return new ForkJoinCompilation(arg).rewriteAll();
       }
     });
     defined_passes.put("auto-inline",new CompilerPass("Inline all non-recursive predicates and inline methods"){
-      public ProgramUnit apply(ProgramUnit arg){
+      public ProgramUnit apply(ProgramUnit arg,String ... args){
         return new InlinePredicatesRewriter(arg,true).rewriteAll();
       }
     });
     defined_passes.put("user-inline",new CompilerPass("Inline all methods marked as inline"){
-      public ProgramUnit apply(ProgramUnit arg){
+      public ProgramUnit apply(ProgramUnit arg,String ... args){
         return new InlinePredicatesRewriter(arg,false).rewriteAll();
       }
     });
     defined_passes.put("iter",new CompilerPass("Encode iteration contracts as method calls"){
-      public ProgramUnit apply(ProgramUnit arg){
+      public ProgramUnit apply(ProgramUnit arg,String ... args){
         return new IterationContractEncoder(arg).rewriteAll();
       }
     });
     defined_passes.put("kernel-split",new CompilerPass("Split kernels into main, thread and barrier."){
-      public ProgramUnit apply(ProgramUnit arg){
+      public ProgramUnit apply(ProgramUnit arg,String ... args){
         return new KernelRewriter(arg).rewriteAll();
       }
     });
     defined_passes.put("magicwand",new CompilerPass("Encode magic wand proofs with witnesses"){
-      public ProgramUnit apply(ProgramUnit arg){
+      public ProgramUnit apply(ProgramUnit arg,String ... args){
         return new WandEncoder(arg).rewriteAll();
       }
     });
     defined_passes.put("merge_loops",new CompilerPass("Merge nested loops into a single loop"){
-      public ProgramUnit apply(ProgramUnit arg){
+      public ProgramUnit apply(ProgramUnit arg,String ... args){
         return new MergeLoops(arg).rewriteAll();
       }
     });
     defined_passes.put("modifies",new CompilerPass("Derive modifies clauses for all contracts"){
-      public ProgramUnit apply(ProgramUnit arg){
+      public ProgramUnit apply(ProgramUnit arg,String ... args){
         new DeriveModifies().annotate(arg);
         return arg;
       }
     });
     defined_passes.put("parallel_blocks",new CompilerPass("Encoded the proof obligations for parallel blocks"){
-      public ProgramUnit apply(ProgramUnit arg){
+      public ProgramUnit apply(ProgramUnit arg,String ... args){
         return new ParallelBlockEncoder(arg).rewriteAll();
       }
     });
     defined_passes.put("recognize_loops",new CompilerPass("Recognize for-each loops"){
-      public ProgramUnit apply(ProgramUnit arg){
+      public ProgramUnit apply(ProgramUnit arg,String ... args){
         return new RecognizeLoops(arg).rewriteAll();
       }
     });
     defined_passes.put("recognize_multidim",new CompilerPass("Recognize multi-dimensional arrays"){
-      public ProgramUnit apply(ProgramUnit arg){
+      public ProgramUnit apply(ProgramUnit arg,String ... args){
         return new RecognizeMultiDim(arg).rewriteAll();
       }
     });
    defined_passes.put("ref_array",new CompilerPass("rewrite array as a sequence of Refs"){
-      public ProgramUnit apply(ProgramUnit arg){
+      public ProgramUnit apply(ProgramUnit arg,String ... args){
         return new RewriteArrayRef(arg,RewriteArrayRef.Target.Ref).rewriteAll();
       }
     });
    defined_passes.put("reorder",new CompilerPass("reorder statements (e.g. all declarations at the start of a bock"){
-     public ProgramUnit apply(ProgramUnit arg){
+     public ProgramUnit apply(ProgramUnit arg,String ... args){
        return new ReorderAssignments(arg).rewriteAll();
      }
    });
    defined_passes.put("standardize-functions",new CompilerPass("translate pure methods to function syntax."){
-     public ProgramUnit apply(ProgramUnit arg){
+     public ProgramUnit apply(ProgramUnit arg,String ... args){
        return new PureMethodsAsFunctions(arg).rewriteAll();
      }
    });
    defined_passes.put("java_resolve",new CompilerPass("Resolve the library dependencies of a java program"){
-     public ProgramUnit apply(ProgramUnit arg){
+     public ProgramUnit apply(ProgramUnit arg,String ... args){
        return new JavaResolver(arg).rewriteAll();
      }
    });
    defined_passes.put("rewrite_arrays",new CompilerPass("rewrite arrays to sequences of cells"){
-      public ProgramUnit apply(ProgramUnit arg){
+      public ProgramUnit apply(ProgramUnit arg,String ... args){
         return new RewriteArrayRef(arg,RewriteArrayRef.Target.Cell).rewriteAll();
       }
     });
     defined_passes.put("rm_cons",new CompilerPass("???"){
-      public ProgramUnit apply(ProgramUnit arg){
+      public ProgramUnit apply(ProgramUnit arg,String ... args){
         return new ConstructorRewriter(arg).rewriteAll();
       }
     });
     defined_passes.put("sat_check",new CompilerPass("insert satisfyability checks for all methods"){
-      public ProgramUnit apply(ProgramUnit arg){
+      public ProgramUnit apply(ProgramUnit arg,String ... args){
         return new SatCheckRewriter(arg).rewriteAll();
       }
     });
     defined_passes.put("setget",new CompilerPass("insert set and get operators"){
-      public ProgramUnit apply(ProgramUnit arg){
+      public ProgramUnit apply(ProgramUnit arg,String ... args){
         return new SetGetIntroduce(arg).rewriteAll();
       }
     });
     defined_passes.put("silver_constructors",new CompilerPass("convert constructors to silver style"){
-      public ProgramUnit apply(ProgramUnit arg){
+      public ProgramUnit apply(ProgramUnit arg,String ... args){
         return new SilverConstructors(arg).rewriteAll();
       }
     });
     defined_passes.put("silver-class-reduction",new CompilerPass("reduce classes to single Ref class"){
-      public ProgramUnit apply(ProgramUnit arg){
+      public ProgramUnit apply(ProgramUnit arg,String ... args){
         return new SilverClassReduction(arg).rewriteAll();
       }
     });
     defined_passes.put("silver-reorder",new CompilerPass("move declarations from inside if-then-else blocks to top"){
-      public ProgramUnit apply(ProgramUnit arg){
+      public ProgramUnit apply(ProgramUnit arg,String ... args){
         return new SilverReorder(arg).rewriteAll();
       }
     });
     defined_passes.put("scale-always",new CompilerPass("scale every predicate invokation"){
-      public ProgramUnit apply(ProgramUnit arg){
+      public ProgramUnit apply(ProgramUnit arg,String ... args){
         return new ScaleAlways(arg).rewriteAll();
       }
     });
     defined_passes.put("silver-optimize",new CompilerPass("Optimize expressions for Silver"){
-      public ProgramUnit apply(ProgramUnit arg){
+      public ProgramUnit apply(ProgramUnit arg,String ... args){
         RewriteSystem trs=RewriteSystems.getRewriteSystem("silver_optimize");
         return trs.normalize(arg);
       }
     });
     defined_passes.put("chalice-optimize",new CompilerPass("Optimize expressions for Chalice"){
-      public ProgramUnit apply(ProgramUnit arg){
+      public ProgramUnit apply(ProgramUnit arg,String ... args){
         RewriteSystem trs=RewriteSystems.getRewriteSystem("chalice_optimize");
         return trs.normalize(arg);
       }
     });
     defined_passes.put("simplify_calls",new CompilerPass("???"){
-      public ProgramUnit apply(ProgramUnit arg){
+      public ProgramUnit apply(ProgramUnit arg,String ... args){
         return new SimplifyCalls(arg).rewriteAll();
       }
     });
     defined_passes.put("simplify_expr",new CompilerPass("Simplify expressions"){
-      public ProgramUnit apply(ProgramUnit arg){
+      public ProgramUnit apply(ProgramUnit arg,String ... args){
         RewriteSystem trs=RewriteSystems.getRewriteSystem("simplify_expr");
         return trs.normalize(arg);
       }
     });
     defined_passes.put("simplify_quant",new CompilerPass("Simplify quantifications"){
-      public ProgramUnit apply(ProgramUnit arg){
+      public ProgramUnit apply(ProgramUnit arg,String ... args){
         RewriteSystem trs=RewriteSystems.getRewriteSystem("simplify_quant_pass1");
         ProgramUnit res=trs.normalize(arg);
         // Configuration.getDiagSyntax().print(System.err,res);
@@ -546,34 +590,39 @@ public class Main
       }
     });
     defined_passes.put("simplify_sums",new CompilerPass("replace summations with provable functions"){
-      public ProgramUnit apply(ProgramUnit arg){
+      public ProgramUnit apply(ProgramUnit arg,String ... args){
         RewriteSystem trs=RewriteSystems.getRewriteSystem("summation");
         return trs.normalize(arg);
       }
     });
     defined_passes.put("standardize",new CompilerPass("Standardize representation"){
-      public ProgramUnit apply(ProgramUnit arg){
+      public ProgramUnit apply(ProgramUnit arg,String ... args){
         return new Standardize(arg).rewriteAll();
       }
     });
     defined_passes.put("strip_constructors",new CompilerPass("Strip constructors from classes"){
-      public ProgramUnit apply(ProgramUnit arg){
+      public ProgramUnit apply(ProgramUnit arg,String ... args){
         return new StripConstructors(arg).rewriteAll();
       }
     });
     defined_checks.put("verifast",new ValidationPass("verify with VeriFast"){
-      public TestReport apply(ProgramUnit arg){
+      public TestReport apply(ProgramUnit arg,String ... args){
         vct.java.printer.JavaPrinter.dump(System.out,JavaDialect.JavaVeriFast,arg);
         return vct.verifast.Main.TestVerifast(arg);
       }
     });
-    defined_passes.put("voidcalls",new CompilerPass("???"){
-      public ProgramUnit apply(ProgramUnit arg){
+    defined_passes.put("voidcalls",new CompilerPass("Replace return value by out parameter."){
+      public ProgramUnit apply(ProgramUnit arg,String ... args){
         return new VoidCalls(arg).rewriteAll();
       }
     });
+    defined_passes.put("voidcallsthrown",new CompilerPass("Replace return value and thrown exceptions by out parameters."){
+      public ProgramUnit apply(ProgramUnit arg,String ... args){
+        return new VoidCallsThrown(arg).rewriteAll();
+      }
+    });
     defined_passes.put("chalice-preprocess",new CompilerPass("Pre processing for chalice"){
-      public ProgramUnit apply(ProgramUnit arg){
+      public ProgramUnit apply(ProgramUnit arg,String ... args){
         return new ChalicePreProcess(arg).rewriteAll();
       }
     });
@@ -820,6 +869,13 @@ public class Main
         passes.add("standardize");
         passes.add("check");       
       }
+      boolean has_type_adt=false;
+      if (features.usesOperator(StandardOperator.Instance)||features.usesInheritance()){
+        passes.add("add-type-adt");
+        passes.add("standardize");
+        passes.add("check");
+        has_type_adt=true;   
+      }
       if (features.usesInheritance()){
         passes.add("standardize");
         passes.add("check");       
@@ -868,7 +924,11 @@ public class Main
       passes.add("silver-class-reduction");
       passes.add("standardize");
       passes.add("check");
-      passes.add("voidcalls");
+      if (has_type_adt){
+        passes.add("voidcallsthrown");
+      } else {
+        passes.add("voidcalls");
+      }
       passes.add("standardize");
       passes.add("check");
       passes.add("ghost-lift");
@@ -892,12 +952,16 @@ public class Main
     	if (!pass_list.iterator().hasNext()) Abort("no back-end or passes specified");
     }
     {
-      TestReport res=null;
+      CompositeReport res=new CompositeReport();
       for(String pass:passes!=null?passes:pass_list){
-        if (res!=null){
-          Progress("Ignoring intermediate verdict %s",res.getVerdict());
-          res=null;
+        String[] pass_args=pass.split("=");
+        pass=pass_args[0];
+        if (pass_args.length==1){
+          pass_args=new String[0];
+        } else {
+          pass_args=pass_args[1].split("\\+");
         }
+        Progress("Pass %s %s ...",pass,new ArrayShow(" ",pass_args));
         CompilerPass task=defined_passes.get(pass);
         if (show_before.contains(pass)){
           String name=show_file.get();
@@ -913,14 +977,17 @@ public class Main
         if (task!=null){
           Progress("Applying %s ...",pass);
           startTime = System.currentTimeMillis();
-          program=task.apply(program);
+          program=task.apply(program,pass_args);
           Progress(" ... pass took %d ms",System.currentTimeMillis()-startTime);
+          if (task.report!=null){
+            res.addReport(task.report);
+          }
         } else {
           ValidationPass check=defined_checks.get(pass);
           if (check!=null){
             Progress("Applying %s ...", pass);
             startTime = System.currentTimeMillis();
-            res=check.apply(program);
+            res.addReport(check.apply(program,pass_args));
             Progress(" ... pass took %d ms",System.currentTimeMillis()-startTime);
           } else {
             Fail("unknown pass %s",pass);
@@ -940,12 +1007,11 @@ public class Main
         if (stop_after.contains(pass)){
           Fail("exit after pass %s",pass);
         }
+        if (res.getVerdict()!=Verdict.Pass){
+          break;
+        }
       }
-      if (res!=null) {
-        Output("The final verdict is %s",res.getVerdict());
-      } else {
-        Fail("No overall verdict has been set. Check the output carefully!");
-      }
+      Output("The final verdict is %s",res.getVerdict());
     }
     Output("entire run took %d ms",System.currentTimeMillis()-globalStart);
   }

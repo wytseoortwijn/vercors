@@ -15,6 +15,6 @@ public abstract class ValidationPass {
     this.description=description;
   }
   
-  public abstract TestReport apply(ProgramUnit arg);
+  public abstract TestReport apply(ProgramUnit arg,String ... args);
 
 }
