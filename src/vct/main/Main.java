@@ -64,6 +64,7 @@ import vct.col.rewrite.IterationContractEncoder;
 import vct.col.rewrite.KernelRewriter;
 import vct.col.rewrite.MergeLoops;
 import vct.col.rewrite.ParallelBlockEncoder;
+import vct.col.rewrite.PureMethodsAsFunctions;
 import vct.col.rewrite.RandomizedIf;
 import vct.col.rewrite.RecognizeLoops;
 import vct.col.rewrite.RecognizeMultiDim;
@@ -408,9 +409,14 @@ public class Main
         return new ForkJoinCompilation(arg).rewriteAll();
       }
     });
-    defined_passes.put("inline",new CompilerPass("Inline predicates with arguments"){
+    defined_passes.put("auto-inline",new CompilerPass("Inline all non-recursive predicates and inline methods"){
       public ProgramUnit apply(ProgramUnit arg){
-        return new InlinePredicatesRewriter(arg).rewriteAll();
+        return new InlinePredicatesRewriter(arg,true).rewriteAll();
+      }
+    });
+    defined_passes.put("user-inline",new CompilerPass("Inline all methods marked as inline"){
+      public ProgramUnit apply(ProgramUnit arg){
+        return new InlinePredicatesRewriter(arg,false).rewriteAll();
       }
     });
     defined_passes.put("iter",new CompilerPass("Encode iteration contracts as method calls"){
@@ -462,6 +468,11 @@ public class Main
    defined_passes.put("reorder",new CompilerPass("reorder statements (e.g. all declarations at the start of a bock"){
      public ProgramUnit apply(ProgramUnit arg){
        return new ReorderAssignments(arg).rewriteAll();
+     }
+   });
+   defined_passes.put("standardize-functions",new CompilerPass("translate pure methods to function syntax."){
+     public ProgramUnit apply(ProgramUnit arg){
+       return new PureMethodsAsFunctions(arg).rewriteAll();
      }
    });
    defined_passes.put("java_resolve",new CompilerPass("Resolve the library dependencies of a java program"){
@@ -656,7 +667,7 @@ public class Main
       passes.add("standardize");
       passes.add("check");
       if (inline_predicates.get()){
-        passes.add("inline");
+        passes.add("auto-inline");
         passes.add("standardize");
         passes.add("check");        
       }
@@ -787,10 +798,12 @@ public class Main
         passes.add("check");
       }
       if (inline_predicates.get()){
-        passes.add("inline");
-        passes.add("standardize");
-        passes.add("check");        
+        passes.add("auto-inline");
+      } else {
+        passes.add("user-inline");
       }
+      passes.add("standardize");
+      passes.add("check");        
       if (features.usesParallelBlocks()){
         passes.add("parallel_blocks");
         passes.add("standardize");
@@ -891,6 +904,7 @@ public class Main
       passes.add("standardize");
       passes.add("check"); 
       passes.add("silver-optimize");
+      passes.add("standardize-functions");
       passes.add("standardize");
       passes.add("check");      
       passes.add("scale-always");

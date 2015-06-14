@@ -242,7 +242,7 @@ public class SiliconApplicationTest extends ToolTest {
   public void testTreeWand(){
     sem_get();
     try {
-      VCTResult res=run("vct","--silver=silicon","--inline","--silicon-z3-timeout=120000","//examples/encoding/TreeWandSilver.java");
+      VCTResult res=run("vct","--silver=silicon","--silicon-z3-timeout=120000","//examples/encoding/TreeWandSilver.java");
       res.checkVerdict(Verdict.Pass);
     } finally {
       sem.release();
@@ -252,7 +252,7 @@ public class SiliconApplicationTest extends ToolTest {
   public void testTreeWandE1(){
     sem_get();
     try {
-      VCTResult res=run("vct","--silver=silicon","--inline","//examples/encoding/TreeWandSilver-e1.java");
+      VCTResult res=run("vct","--silver=silicon","//examples/encoding/TreeWandSilver-e1.java");
       res.checkVerdict(Verdict.Fail);
     } finally {
       sem.release();
@@ -262,7 +262,7 @@ public class SiliconApplicationTest extends ToolTest {
   public void testTreeWandE2(){
     sem_get();
     try {
-      VCTResult res=run("vct","--silver=silicon","--inline","//examples/encoding/TreeWandSilver-e2.java");
+      VCTResult res=run("vct","--silver=silicon","//examples/encoding/TreeWandSilver-e2.java");
       res.checkVerdict(Verdict.Fail);
     } finally {
       sem.release();
