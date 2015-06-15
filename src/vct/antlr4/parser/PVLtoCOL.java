@@ -221,6 +221,10 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
         return create.expression(StandardOperator.PointsTo,getTuple((ParserRuleContext)ctx.children.get(1)));
       }
     }
+    if (match(ctx,"held",tuple)){
+      ASTNode args[]=getTuple((ParserRuleContext)ctx.getChild(1));
+      return create.expression(StandardOperator.Held,args);
+    }
     if (match(ctx,"head",tuple)){
       ASTNode args[]=getTuple((ParserRuleContext)ctx.getChild(1));
       return create.expression(StandardOperator.Head,args);
@@ -510,6 +514,12 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
     }
     if (match(ctx,"unlock",null,";")){
       return create.special(ASTSpecial.Kind.Unlock,convert(ctx,1));
+    }
+    if (match(ctx,"wait",null,";")){
+      return create.special(ASTSpecial.Kind.Wait,convert(ctx,1));
+    }
+    if (match(ctx,"notify",null,";")){
+      return create.special(ASTSpecial.Kind.Notify,convert(ctx,1));
     }
     if (match(ctx,"assert",null,";")){
       return create.expression(StandardOperator.Assert,convert(ctx,1));

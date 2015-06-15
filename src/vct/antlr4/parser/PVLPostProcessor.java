@@ -59,11 +59,14 @@ public class PVLPostProcessor extends AbstractRewriter {
           BranchOrigin branch=new BranchOrigin("Commit lock invariant during construction",m.getOrigin());
           create.enter();
           create.setOrigin(branch);
-          ASTNode S=create.special(ASTSpecial.Kind.Exhale,create.invokation(null,null,"lock_invariant"));
+          ASTNode S=create.expression(StandardOperator.Fold,create.invokation(null,null,"lock_invariant"));
           S.setFlag(ASTFlags.GHOST,true);
-          create.leave();
           ((BlockStatement)m.getBody()).append(S);
-        }
+          S=create.special(ASTSpecial.Kind.Exhale,create.invokation(null,null,"lock_invariant"));
+          S.setFlag(ASTFlags.GHOST,true);
+          ((BlockStatement)m.getBody()).append(S);
+          create.leave();
+         }
         N++;
       }
     }

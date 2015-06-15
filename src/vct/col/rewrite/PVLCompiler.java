@@ -18,6 +18,12 @@ public class PVLCompiler extends AbstractRewriter {
     case Unlock:
       result=create.invokation(rewrite(s.args[0]), null, "unlock");
       break;
+    case Wait:
+      result=create.invokation(rewrite(s.args[0]), null, "lock_wait");
+      break;
+    case Notify:
+      result=create.invokation(rewrite(s.args[0]), null, "lock_notify");
+      break;
     case Fork:
       result=create.invokation(rewrite(s.args[0]), null, "fork");
       break;

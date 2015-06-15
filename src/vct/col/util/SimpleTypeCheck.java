@@ -604,6 +604,11 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       e.setType(t2);
       break;  
     }
+    case Held:
+    {
+      e.setType(new PrimitiveType(Sort.Resource));
+      break;      
+    }
     case Perm:
     {
       if (!(e.getArg(0) instanceof Dereference)

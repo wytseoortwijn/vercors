@@ -36,6 +36,8 @@ public class ASTSpecial extends ASTNode {
     SpecIgnoreEnd,
     Lock,
     Unlock,
+    Wait,
+    Notify,
     Fork,
     Join
   };

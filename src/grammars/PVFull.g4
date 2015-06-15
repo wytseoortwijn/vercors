@@ -82,6 +82,8 @@ statement
  : 'return' expr ';'
  | 'lock' expr ';'
  | 'unlock' expr ';'
+ | 'wait' expr ';'
+ | 'notify' expr ';'
  | 'fork' expr ';'
  | 'join' expr ';'
  | 'fold' expr ';'

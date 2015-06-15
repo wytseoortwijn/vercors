@@ -1,27 +1,49 @@
 package col.lang;
 
+import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.Lock;
 
 public class Object implements Runnable {
 
-  private Lock lock=new ReentrantLock();
-  private boolean locked=false;
-  
+  private Lock lock;
+  private Condition cond;
+  private ThreadLocal<Boolean> locked;
+  public Object (){
+    lock=new ReentrantLock();
+    cond=lock.newCondition();
+    locked=new ThreadLocal();
+  }
+    
   public void lock(){
     lock.lock();
-    if (locked) {
+    if (locked.get()==null){
+      locked.set(false);
+    }
+    if (locked.get()) {
       throw new Error("illegal attempt to relock non-reentrant lock");
     }
-    locked=true;
+    locked.set(true);
+  }
+
+  public void lock_wait(){
+    try {
+      cond.await();
+    } catch (InterruptedException e) {
+      throw new Error("unexpected interrupt");
+    }
+  }
+  
+  public void lock_notify(){
+    cond.signalAll();
   }
 
   public void unlock(){
     lock.lock();
-    if (!locked) {
+    if (!locked.get()) {
       throw new Error("illegal attempt to unlock while not holding the lock");
     }
-    locked=false;
+    locked.set(false);
     lock.unlock();
     lock.unlock();
   }

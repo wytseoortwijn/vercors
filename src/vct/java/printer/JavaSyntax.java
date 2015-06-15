@@ -59,6 +59,7 @@ public class JavaSyntax extends Syntax {
         syntax.addFunction(Take,"take");
         syntax.addFunction(History,"Hist");
         syntax.addFunction(Contribution,"Contribution");
+        syntax.addFunction(Held,"held");
         
         syntax.addOperator(Unfolding,140,"\\unfolding","\\in","");
         syntax.addOperator(IndependentOf, -1 , "(" ,"!",")");

@@ -269,7 +269,11 @@ public enum StandardOperator {
    */
   ReducibleSum(1),
   ReducibleMax(1),
-  ReducibleMin(1)
+  ReducibleMin(1),
+  /**
+   * Standard predicate that indicates that a non-reentrant lock is held on an object. 
+   */
+  Held(1)
   ;
 
   private final int arity;
