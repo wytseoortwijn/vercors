@@ -279,4 +279,18 @@ public class SiliconApplicationTest extends ToolTest {
     }
   }
 
+  @Test
+  public void testPVLLocks(){
+    sem_get();
+    try {
+      VCTResult res=run("vct","--silver=silicon",
+          "//examples/waitnotify/Main.pvl",
+          "//examples/waitnotify/Worker.pvl",
+          "//examples/waitnotify/Queue.pvl");
+      res.checkVerdict(Verdict.Pass);
+    } finally {
+      sem.release();
+    }
+    
+  }
 }
