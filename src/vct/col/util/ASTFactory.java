@@ -200,8 +200,8 @@ public class ASTFactory<E> implements FrameControl {
   /**
    * Create a new binding expression.
    */
-  public ASTNode binder(Binder b,Type result_type,DeclarationStatement decls[],ASTNode selection,ASTNode main) {
-    ASTNode res=new BindingExpression(b,result_type,decls,selection,main);
+  public ASTNode binder(Binder b,Type result_type,DeclarationStatement decls[],ASTNode triggers[][],ASTNode selection,ASTNode main) {
+    ASTNode res=new BindingExpression(b,result_type,decls,triggers,selection,main);
     res.setOrigin(origin_stack.get());
     res.accept_if(post);
     return res;
@@ -478,6 +478,7 @@ public BlockStatement block(Origin origin, ASTNode ... args) {
           Binder.EXISTS,
           primitive_type(PrimitiveType.Sort.Boolean),
           decl,
+          null,
           guard,
           claim
       );
@@ -491,6 +492,7 @@ public BlockStatement block(Origin origin, ASTNode ... args) {
           Binder.SUM,
           null,
           new DeclarationStatement[]{decl[i]},
+          null,
           guard,
           claim
       );
@@ -502,6 +504,7 @@ public BlockStatement block(Origin origin, ASTNode ... args) {
             Binder.SUM,
             null,
             new DeclarationStatement[]{decl[i]},
+            null,
             constant(true),
             res
         );
@@ -515,6 +518,7 @@ public BlockStatement block(Origin origin, ASTNode ... args) {
         Binder.LET,
         null,
         new DeclarationStatement[]{decl},
+        null,
         null,
         in
     );
@@ -843,6 +847,7 @@ public ASTSpecial special(Origin origin, vct.col.ast.ASTSpecial.Kind kind, ASTNo
         Binder.STAR,
         primitive_type(PrimitiveType.Sort.Resource),
         new DeclarationStatement[]{decl[i]},
+        null,
         guard,
         claim
     );
@@ -854,6 +859,7 @@ public ASTSpecial special(Origin origin, vct.col.ast.ASTSpecial.Kind kind, ASTNo
           Binder.STAR,
           primitive_type(PrimitiveType.Sort.Resource),
           new DeclarationStatement[]{decl[i]},
+          null,
           constant(true),
           res
       );
@@ -862,12 +868,18 @@ public ASTSpecial special(Origin origin, vct.col.ast.ASTSpecial.Kind kind, ASTNo
     }
     return res;
   }
+  
   public BindingExpression forall(ASTNode guard, ASTNode claim, DeclarationStatement ... decl) {
+    return forall(new ASTNode[0][],guard,claim,decl);
+  }
+  
+  public BindingExpression forall(ASTNode triggers[][],ASTNode guard, ASTNode claim, DeclarationStatement ... decl) {
     int i=decl.length-1;
     BindingExpression res=new BindingExpression(
         Binder.FORALL,
         primitive_type(PrimitiveType.Sort.Boolean),
         new DeclarationStatement[]{decl[i]},
+        triggers,
         guard,
         claim
     );
@@ -879,6 +891,7 @@ public ASTSpecial special(Origin origin, vct.col.ast.ASTSpecial.Kind kind, ASTNo
           Binder.FORALL,
           primitive_type(PrimitiveType.Sort.Boolean),
           new DeclarationStatement[]{decl[i]},
+          triggers,
           constant(true),
           res
       );

@@ -109,14 +109,14 @@ public WrappedSilverVerifier(Object obj){
     throw new Error("SecurityException: "+e.getMessage());
   }
   try {
-    m2=cl.getMethod("Constant",java.lang.Object.class,int.class);
+    m2=cl.getMethod("Constant",java.lang.Object.class,boolean.class);
   } catch (NoSuchMethodException e) {
     throw new Error("NoSuchMethodException: "+e.getMessage());
   } catch (SecurityException e) {
     throw new Error("SecurityException: "+e.getMessage());
   }
   try {
-    m3=cl.getMethod("Constant",java.lang.Object.class,boolean.class);
+    m3=cl.getMethod("Constant",java.lang.Object.class,int.class);
   } catch (NoSuchMethodException e) {
     throw new Error("NoSuchMethodException: "+e.getMessage());
   } catch (SecurityException e) {
@@ -382,7 +382,7 @@ public WrappedSilverVerifier(Object obj){
     throw new Error("SecurityException: "+e.getMessage());
   }
   try {
-    m41=cl.getMethod("forall",java.lang.Object.class,java.util.List.class,java.lang.Object.class);
+    m41=cl.getMethod("forall",java.lang.Object.class,java.util.List.class,java.util.List.class,java.lang.Object.class);
   } catch (NoSuchMethodException e) {
     throw new Error("NoSuchMethodException: "+e.getMessage());
   } catch (SecurityException e) {
@@ -703,7 +703,7 @@ public T Bool(){
     throw new Error("in reflected call: "+e.getCause().getClass()+": "+e.getCause().getMessage());
   }
 }
-public E Constant(O arg0,int arg1){
+public E Constant(O arg0,boolean arg1){
   try {
     return (E)m2.invoke(obj,arg0,arg1);
   } catch (IllegalAccessException | IllegalArgumentException e) {
@@ -713,7 +713,7 @@ public E Constant(O arg0,int arg1){
     throw new Error("in reflected call: "+e.getCause().getClass()+": "+e.getCause().getMessage());
   }
 }
-public E Constant(O arg0,boolean arg1){
+public E Constant(O arg0,int arg1){
   try {
     return (E)m3.invoke(obj,arg0,arg1);
   } catch (IllegalAccessException | IllegalArgumentException e) {
@@ -1093,9 +1093,9 @@ public S fold(O arg0,E arg1){
     throw new Error("in reflected call: "+e.getCause().getClass()+": "+e.getCause().getMessage());
   }
 }
-public E forall(O arg0,java.util.List<Decl> arg1,E arg2){
+public E forall(O arg0,java.util.List<Decl> arg1,java.util.List<java.util.List<E>> arg2,E arg3){
   try {
-    return (E)m41.invoke(obj,arg0,arg1,arg2);
+    return (E)m41.invoke(obj,arg0,arg1,arg2,arg3);
   } catch (IllegalAccessException | IllegalArgumentException e) {
     throw new Error(e.getClass()+" "+e.getMessage());
   } catch (InvocationTargetException e) {

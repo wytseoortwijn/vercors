@@ -389,6 +389,17 @@ public class JavaPrinter extends AbstractPrinter {
         decl.getInit().accept(this);
       }
     }
+    if (e.triggers!=null){
+      for(ASTNode trigger[]:e.triggers){
+        out.printf("{");
+        trigger[0].accept(this);
+        for(int i=1;i<trigger.length;i++){
+          out.printf(",");
+          trigger[i].accept(this);
+        }
+        out.printf("}");
+      }
+    }
     out.printf(";");
     if (e.select!=null){
       e.select.accept(this);

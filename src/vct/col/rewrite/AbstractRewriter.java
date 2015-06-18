@@ -278,6 +278,15 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
     return res;
   }
   
+  public <E extends ASTNode> E[][] rewrite(E node[][]){
+    if (node==null) return null;
+    E res[][]=Arrays.copyOf(node, node.length);
+    for(int i=0;i<res.length;i++){
+      res[i]=rewrite(res[i]);
+    }
+    return res;
+  }
+
   /**
    * Rewrite an array.
    * If the given array is null then this function will return null.
@@ -598,7 +607,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   
   @Override
   public void visit(BindingExpression e){
-    result=create.binder(e.binder,rewrite(e.result_type),rewrite(e.getDeclarations()), rewrite(e.select), rewrite(e.main));
+    result=create.binder(e.binder,rewrite(e.result_type),rewrite(e.getDeclarations()),rewrite(e.triggers), rewrite(e.select), rewrite(e.main));
   }
   
   @Override

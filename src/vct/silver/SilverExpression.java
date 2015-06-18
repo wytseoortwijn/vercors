@@ -62,7 +62,7 @@ public interface SilverExpression<O,T,E,Decl> {
   public E local_name(O o,String name, T t);
 
   /** Create an universal quantification. */
-  public E forall(O o,List<Decl> vars,E e);
+  public E forall(O o,List<Decl> vars,List<List<E>> triggers,E e);
   
   /** Create an existential quantification. */
   public E exists(O o,List<Decl> vars,E e);

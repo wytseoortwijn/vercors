@@ -245,6 +245,11 @@ public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
     }
     dispatch(e.result_type);
     dispatch(e.select);
+    if (e.triggers!=null){
+      for(ASTNode tmp[]:e.triggers){
+        dispatch(tmp);
+      }
+    }
     e.main.accept(this);
   }
 

@@ -406,7 +406,7 @@ class MatchSubstitution extends AbstractRewriter {
       ASTNode res=sigma.rewrite(tmp);
       result=res;
     } else {
-      result=create.binder(e.binder,rewrite(e.result_type),decls,rewrite(e.select),rewrite(e.main));
+      result=create.binder(e.binder,rewrite(e.result_type),decls,rewrite(e.triggers),rewrite(e.select),rewrite(e.main));
     }
   }
    

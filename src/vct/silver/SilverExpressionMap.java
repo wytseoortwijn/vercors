@@ -318,7 +318,17 @@ public class SilverExpressionMap<T,E,Decl> implements ASTMapping<E>{
       } else {
         expr=create.implies(o, e.select.apply(this), e.main.apply(this));
       }
-      return create.forall(o, convert(e.getDeclarations()),expr);
+      List<List<E>> triggers=new ArrayList();
+      if (e.triggers!=null){
+        for (ASTNode trigger[]:e.triggers){
+          List<E> tmp=new ArrayList();
+          for (ASTNode node:trigger){
+            tmp.add(node.apply(this));
+          }
+          triggers.add(tmp);
+        }
+      }
+      return create.forall(o, convert(e.getDeclarations()),triggers ,expr);
     case EXISTS:
       return create.exists(o, convert(e.getDeclarations()),create.and(o, e.select.apply(this), e.main.apply(this)));
     default:

@@ -418,6 +418,7 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
         Binder.FORALL,
         create.primitive_type(Sort.Boolean),
         copy_rw.rewrite(m.getArgs()),
+        new ASTNode[0][],
         create.constant(true),
         rewrite(c.post_condition)
     );
@@ -437,6 +438,7 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
           Binder.FORALL,
           create.primitive_type(Sort.Boolean),
           copy_rw.rewrite(m.getArgs()),
+          new ASTNode[][]{new ASTNode[]{create.invokation(null, null,"p_"+m.name , arg_names)}},
           create.constant(true),
           create.expression(StandardOperator.EQ,
               rewrite(m.getBody()),

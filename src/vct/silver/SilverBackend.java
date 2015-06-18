@@ -32,6 +32,7 @@ public class SilverBackend {
   
   public static <T,E,S,Decl,DFunc,DAxiom,Program>
   TestReport TestSilicon(ProgramUnit arg, String tool) {
+    hre.System.Output("verifying with %s backend",silver_module.get());
     long start_time=System.currentTimeMillis();
     File jarfile=Configuration.getToolHome().resolve(silver_module.get()+"/"+tool+".jar").toFile();
     //System.err.printf("adding jar %s to path%n",jarfile);
