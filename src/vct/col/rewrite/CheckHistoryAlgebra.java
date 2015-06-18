@@ -364,16 +364,24 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
   private void add_begin_and_commit_to_class(Method m) {
     // TODO Auto-generated method stub
     Type returns=create.primitive_type(Sort.Void);
-    DeclarationStatement args[]=new DeclarationStatement[2];
-    args[0]=create.field_decl("frac",create.primitive_type(Sort.Fraction));
-    args[1]=create.field_decl("proc",adt_type);
+    int N=m.getArity();
+    DeclarationStatement args_short[]=new DeclarationStatement[2];
+    DeclarationStatement args_long[]=new DeclarationStatement[2+N];
+    ASTNode args[]=new ASTNode[N];
+    args_short[0]=args_long[0]=create.field_decl("frac",create.primitive_type(Sort.Fraction));
+    args_short[1]=args_long[1]=create.field_decl("proc",adt_type);
+    for(int i=0;i<N;i++){
+      args_long[i+2]=create.field_decl(m.getArgument(i),m.getArgType(i));
+      args[i]=create.local_name(m.getArgument(i));
+    }
     ContractBuilder begin_cb=new ContractBuilder();
     ContractBuilder commit_cb=new ContractBuilder();
     begin_cb.requires(create.invokation(null, null,"hist_idle",create.local_name("frac"),create.local_name("proc")));
     begin_cb.ensures(create.invokation(null, null,"hist_do_"+m.name,create.local_name("frac"),create.local_name("proc")));
     commit_cb.requires(create.invokation(null, null,"hist_do_"+m.name,create.local_name("frac"),create.local_name("proc")));
     commit_cb.ensures(create.invokation(null, null,"hist_idle",create.local_name("frac"),
-        create.invokation(null, null, "p_seq", create.local_name("proc"),create.invokation(null, null,"p_"+m.name))));
+        create.invokation(null, null, "p_seq", create.local_name("proc"),
+             create.invokation(null, null,"p_"+m.name,args))));
     Contract c=m.getContract();
     HashMap<NameExpression,ASTNode> old_map=new HashMap();
     HashMap<NameExpression,ASTNode> new_map=new HashMap();
@@ -399,11 +407,11 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
     Substitution rw_new=new Substitution(source(),new_map);
     commit_cb.requires(rw_new.rewrite(rw_old.rewrite(simp.rewrite(c.post_condition))));
 
-    Method begin=create.method_decl(returns,begin_cb.getContract(), m.name+"_begin", args,null);
-    Method commit=create.method_decl(returns,commit_cb.getContract(), m.name+"_commit", args,null);
+    Method begin=create.method_decl(returns,begin_cb.getContract(), m.name+"_begin", args_long,null);
+    Method commit=create.method_decl(returns,commit_cb.getContract(), m.name+"_commit", args_long,null);
     hist_class.add_dynamic(begin);
     hist_class.add_dynamic(commit);
-    hist_class.add_dynamic(create.predicate("hist_do_"+m.name,null,args));
+    hist_class.add_dynamic(create.predicate("hist_do_"+m.name,null,args_short));
   }
 
   protected void add_lemma_to_adt(Method m) {
@@ -579,10 +587,16 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
     ASTNode frac=rewrite(ab.fraction);
     ASTNode p_expr=rewrite(ab.process);
     p_expr.clearLabels();
+    ArrayList<ASTNode> args=new ArrayList<ASTNode>();
+    args.add(frac);
+    args.add(p_expr);
+    for(ASTNode n:act.getArgs()){
+      args.add(rewrite(n));
+    }
     BlockStatement res=create.block();
-    res.add(create.invokation(hist, null, act.method+"_begin", frac , p_expr));
+    res.add(create.invokation(hist, null, act.method+"_begin", args.toArray(new ASTNode[0])));
     res.add(rewrite(ab.block));
-    res.add(create.invokation(hist, null, act.method+"_commit", frac , p_expr));
+    res.add(create.invokation(hist, null, act.method+"_commit", args.toArray(new ASTNode[0])));
     result=res;
   }
   
