@@ -376,6 +376,10 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
     }
     ContractBuilder begin_cb=new ContractBuilder();
     ContractBuilder commit_cb=new ContractBuilder();
+    begin_cb.requires(create.expression(StandardOperator.NEQ,create.local_name("frac"),create.reserved_name(ASTReserved.NoPerm)));
+    begin_cb.ensures(create.expression(StandardOperator.NEQ,create.local_name("frac"),create.reserved_name(ASTReserved.NoPerm)));
+    commit_cb.requires(create.expression(StandardOperator.NEQ,create.local_name("frac"),create.reserved_name(ASTReserved.NoPerm)));
+    commit_cb.ensures(create.expression(StandardOperator.NEQ,create.local_name("frac"),create.reserved_name(ASTReserved.NoPerm)));
     begin_cb.requires(create.invokation(null, null,"hist_idle",create.local_name("frac"),create.local_name("proc")));
     begin_cb.ensures(create.invokation(null, null,"hist_do_"+m.name,create.local_name("frac"),create.local_name("proc")));
     commit_cb.requires(create.invokation(null, null,"hist_do_"+m.name,create.local_name("frac"),create.local_name("proc")));
