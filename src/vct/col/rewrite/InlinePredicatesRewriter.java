@@ -38,7 +38,7 @@ public class InlinePredicatesRewriter extends AbstractRewriter {
       for(int i=0;i<N;i++){
         map.put(create.unresolved_name(def.getArgument(i)),rewrite(e.getArg(i)));
       }
-      result=sigma.rewrite(def.getBody());
+      result=sigma.rewrite(rewrite(def.getBody()));
     } else {
       super.visit(e);
     }
