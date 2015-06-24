@@ -291,6 +291,17 @@ public class SiliconApplicationTest extends ToolTest {
     } finally {
       sem.release();
     }
+  }
     
+  @Test
+  public void testPVLSyntax(){
+    sem_get();
+    try {
+      VCTResult res=run("vct","--silver=silicon",
+          "//pvl_examples/syntax.pvl");
+      res.checkVerdict(Verdict.Pass);
+    } finally {
+      sem.release();
+    }  
   }
 }
