@@ -42,7 +42,7 @@ expr
  | ID ':' expr
  | expr 'with' block 
  | expr 'then' block 
- | ID '<' type '>' values  
+ | CONTAINER '<' type '>' values  
  | ('!'|'-') expr
  | expr '^^' expr
  | expr ('*'|'/'|'%') expr
@@ -128,13 +128,16 @@ invariant : ( 'loop_invariant' expr ';' )* ;
 lexpr : ('this' | '\\result' | ID ) ('.' ID | '[' expr ']' )* ; 
 
 type
- : ID '<' type '>'
+ : CONTAINER '<' type '>'
  | ( 'process' | 'int' | 'boolean' | 'zfrac' | 'frac' | 'resource' | 'void' | ID | classType ) ('[' expr? ']')*
  ;
 
 classType : ID typeArgs?;
 
 typeArgs : '<' expr (',' expr)* '>';
+
+
+CONTAINER : 'seq' | 'set' | 'bag' ;
 
 ID  : ('a'..'z'|'A'..'Z') ('a'..'z'|'A'..'Z'|'0'..'9'|'_')*;
 NUMBER : ('0'..'9')+;
