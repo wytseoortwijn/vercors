@@ -15,6 +15,7 @@ import java.util.concurrent.Semaphore;
 import org.junit.Assume;
 import org.junit.Test;
 
+import vct.silver.SilverBackend;
 import vct.util.Configuration;
 import junit.framework.TestCase;
 
@@ -95,6 +96,9 @@ public class ToolTest extends TestCase {
           ext=".dfy";
         }
         args[0]+=" --encoded="+dir+File.separator+test_name+ext;
+      }
+      if (args[1].startsWith("--silver")){
+        args[0]+=" --silver-module="+SilverBackend.silver_module.get();
       }
       //p=new MessageProcess(args);
       break;
