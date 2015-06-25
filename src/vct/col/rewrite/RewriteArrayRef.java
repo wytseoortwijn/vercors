@@ -38,7 +38,8 @@ public class RewriteArrayRef extends AbstractRewriter {
 	  this.target=target;
   }
 	
-	private HashSet<Type> new_array;
+  private HashSet<Type> new_array;
+  private HashSet<Type> ref_array=new HashSet<Type>();
 	
 	@Override
 	public void visit(OperatorExpression e){
@@ -49,7 +50,9 @@ public class RewriteArrayRef extends AbstractRewriter {
 			    switch(target){
 			    case Ref:{
   			  	ASTNode res=result;
-  			  	String field=e.getArg(0).getType().getArg(0).toString()+"_value";
+  			  	Type t=(Type)e.getArg(0).getType().getArg(0);
+  			  	String field=t.toString()+"_value";
+  			  	ref_array.add(t);
   			  	result=create.dereference(res,field);
   			  	break;
 			    }
@@ -97,6 +100,8 @@ public class RewriteArrayRef extends AbstractRewriter {
 		case Array:
 		  switch(target){
 		  case Ref:
+		    Type tt=(Type)t.getArg(0);
+		    ref_array.add(tt);
 		    result=create.primitive_type(Sort.Sequence,create.class_type("Ref"));
 		    break;
 		  case Cell:
@@ -117,9 +122,11 @@ public class RewriteArrayRef extends AbstractRewriter {
       create.setOrigin(new MessageOrigin("Rewrite arrays to sequences"));
       if (ref==null){
         ref=create.ast_class("Ref",ASTClass.ClassKind.Plain,null,null,null);
-        ref.add_dynamic(create.field_decl("Integer_value",create.primitive_type(Sort.Integer)));
-        ref.add_dynamic(create.field_decl("Boolean_value",create.primitive_type(Sort.Boolean)));
         res.add(ref);
+      }
+      for(Type t:ref_array){
+        String s=t.toString();
+        ref.add_dynamic(create.field_decl(s+"_value",t));
       }
     }
     return res;
@@ -160,11 +167,10 @@ public class RewriteArrayRef extends AbstractRewriter {
       DeclarationStatement args[]=new DeclarationStatement[]{create.field_decl("len",create.primitive_type(Sort.Integer))};
       res.add_dynamic(create.method_decl(result_type,cb.getContract(), "new_array_"+t, args,null));
     }
-    new_array=null;
     if (target==Target.Ref){
-      res.add_dynamic(create.field_decl("Integer_value",create.primitive_type(Sort.Integer)));
-      res.add_dynamic(create.field_decl("Boolean_value",create.primitive_type(Sort.Boolean)));
+      ref_array.addAll(new_array);
     }
+    new_array=null;
     result=res;
   }
 
