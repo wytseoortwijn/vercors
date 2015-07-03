@@ -6,6 +6,9 @@ public enum TypeOperator {
   Short,
   Signed,
   Long,
-  Unsigned
+  Unsigned,
+  Kernel,
+  Global,
+  Local
   
 }

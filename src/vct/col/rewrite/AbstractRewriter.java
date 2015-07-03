@@ -55,6 +55,7 @@ import vct.col.ast.StandardOperator;
 import vct.col.ast.StandardProcedure;
 import vct.col.ast.TryCatchBlock;
 import vct.col.ast.Type;
+import vct.col.ast.TypeExpression;
 import vct.col.ast.VariableDeclaration;
 import vct.col.util.ASTFactory;
 import vct.col.util.ASTPermission;
@@ -783,5 +784,10 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
       res.catch_clause(d,block);
     }
     result=res;
+  }
+  
+  @Override
+  public void visit(TypeExpression t){
+    result=create.type_expression(t.op,rewrite(t.types));
   }
 }

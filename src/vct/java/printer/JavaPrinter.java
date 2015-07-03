@@ -1319,5 +1319,33 @@ public class JavaPrinter extends AbstractPrinter {
     }
     out.println(";");
   }
+  
+  @Override
+  public void visit(TypeExpression t){
+    switch(t.op){
+    case Const:
+      out.printf("const ");
+      t.types[0].apply(this);
+      break;
+    case Kernel:
+      out.printf("__kernel ");
+      t.types[0].apply(this);
+      break;
+    case Global:
+      out.printf("__global ");
+      t.types[0].apply(this);
+      break;
+    case Local:
+      out.printf("__local ");
+      t.types[0].apply(this);
+      break;
+    case Unsigned:
+      out.printf("unsigned ");
+      t.types[0].apply(this);
+      break;
+    default:
+      throw new HREError("Missing case: %s",t.op);
+    }
+  }
 }
 

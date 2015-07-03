@@ -1,6 +1,7 @@
 package vct.antlr4.parser;
 
 import hre.Failure;
+import hre.HREError;
 
 import java.util.ArrayList;
 
@@ -120,6 +121,8 @@ import static hre.System.*;
  * @author <a href="mailto:s.c.c.blom@utwente.nl">Stefan Blom</a>
 */
 public class CtoCOL extends AbstractCtoCOL implements CVisitor<ASTNode> {
+
+  protected java.lang.Class expect;
 
   /**
    * Convert an ANTLR4 parse tree of a C program to a COL tree.
@@ -245,7 +248,11 @@ public class CtoCOL extends AbstractCtoCOL implements CVisitor<ASTNode> {
   @Override
   public ASTNode visitDeclaration(DeclarationContext ctx) {
     if (match(ctx,null,";")){
-      return convert(ctx,0);
+      ASTNode res;
+      expect=DeclarationStatement.class;
+      res=convert(ctx,0);
+      expect=null;
+      return res;
     } else if (match(ctx,null,null,";")){
       VariableDeclaration res=create.variable_decl(checkType(convert(ctx,0)));
       ParserRuleContext list=(ParserRuleContext)ctx.getChild(1);
@@ -284,22 +291,28 @@ public class CtoCOL extends AbstractCtoCOL implements CVisitor<ASTNode> {
     int i=ctx.getChildCount()-1;
     ParserRuleContext tmp=(ParserRuleContext)((ParserRuleContext)ctx.getChild(i)).getChild(0);
     hre.System.Debug("\"last:\" %s",tmp.toStringTree(parser));
-    String name;
-    if (match(tmp,"TypedefName")){
+    String name=null;
+    if (expect!=null && expect==DeclarationStatement.class){
+      if (!match(tmp,"TypedefName")){
+        throw new HREError("missing name when declaration is expected.");
+      }
       name=getIdentifier(tmp, 0);
-      i=i-1;
-      tmp=(ParserRuleContext)((ParserRuleContext)ctx.getChild(i)).getChild(0);
       hre.System.Debug("\"name:\" %s",name);
-    } else {
-      name=null;
+      i=i-1;
+      tmp=(ParserRuleContext)((ParserRuleContext)ctx.getChild(i)).getChild(0);     
     }
+    if (match(tmp,"TypedefName")){
+      tmp=(ParserRuleContext)((ParserRuleContext)tmp).getChild(0);
+    } 
     hre.System.Debug("\"type:\" %s",tmp.toStringTree(parser));
-    ASTNode t=convert(ctx,i);
+    ASTNode t=convert(tmp);
     Type type=null;
     if (t instanceof Type){
       type=(Type)t;
+    } else if (t instanceof NameExpression){
+      type=create.class_type(((NameExpression)t).getName());
     } else {
-      hre.System.Abort("cannot convert %s to type",tmp.toStringTree(parser));
+      hre.System.Abort("cannot convert %s/%s to type",tmp.toStringTree(parser),t.getClass());
     }
     i=i-1;
     while(i>=0){
@@ -354,6 +367,15 @@ public class CtoCOL extends AbstractCtoCOL implements CVisitor<ASTNode> {
           break;
         case "long":
           type=create.__long(type);
+          break;
+        case "__kernel":
+          type=create.__kernel(type);
+          break;
+        case "__global":
+          type=create.__global(type);
+          break;
+        case "__local":
+          type=create.__local(type);
           break;
         default:
           hre.System.Abort("unknown type modifier: %s",modifier);

@@ -1021,36 +1021,37 @@ public Axiom axiom(String name,ASTNode exp){
     res.accept_if(post);
     return res;
   }
-
+  
   public Type __const(Type type) {
-    Type res=new TypeExpression(TypeOperator.Const,type);
+    return type_expression(TypeOperator.Const,type);
+  }
+
+  public Type type_expression(TypeOperator op,Type ... args) {
+    Type res=new TypeExpression(op,args);
     res.setOrigin(origin_stack.get());
     res.accept_if(post);
     return res;
+  }
+  public Type __kernel(Type type) {
+    return type_expression(TypeOperator.Kernel,type);
+  }
+  public Type __global(Type type) {
+    return type_expression(TypeOperator.Global,type);
+  }
+  public Type __local(Type type) {
+    return type_expression(TypeOperator.Local,type);
   }
   public Type __short(Type type) {
-    Type res=new TypeExpression(TypeOperator.Short,type);
-    res.setOrigin(origin_stack.get());
-    res.accept_if(post);
-    return res;
+    return type_expression(TypeOperator.Short,type);
   }
   public Type __signed(Type type) {
-    Type res=new TypeExpression(TypeOperator.Signed,type);
-    res.setOrigin(origin_stack.get());
-    res.accept_if(post);
-    return res;
+    return type_expression(TypeOperator.Signed,type);
   }
   public Type __unsigned(Type type) {
-    Type res=new TypeExpression(TypeOperator.Unsigned,type);
-    res.setOrigin(origin_stack.get());
-    res.accept_if(post);
-    return res;
+    return type_expression(TypeOperator.Unsigned,type);
   }
   public Type __long(Type type) {
-    Type res=new TypeExpression(TypeOperator.Long,type);
-    res.setOrigin(origin_stack.get());
-    res.accept_if(post);
-    return res;
+    return type_expression(TypeOperator.Long,type);
   }
 
   public ForEachLoop foreach(DeclarationStatement[] decls,ASTNode guard, ASTNode body) {
