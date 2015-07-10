@@ -204,6 +204,31 @@ public class SiliconApplicationTest extends ToolTest {
       sem.release();
     }
   }
+
+  @Test
+  public void testHistoryThreadsProcessesPVL(){
+      VCTResult res=run("vct","--silver=silicon","--check-defined","//examples/threads/HistorySubject.java");
+      res.checkVerdict(Verdict.Pass);
+  }
+  
+  @Test
+  public void testHistoryThreadsLemmasPVL(){
+      VCTResult res=run("vct","--silver=silicon","--check-axioms","//examples/threads/HistorySubject.java");
+      res.checkVerdict(Verdict.Pass);
+  }
+  
+  @Test
+  public void testHistoryThreadsApplication(){
+      VCTResult res=run("vct","--silver=silicon","--check-history",
+          "//examples/threads/HistorySubject.java",
+          "//examples/threads/HistoryLock.java",
+          "//examples/threads/SpecifiedThread.java",
+          "//examples/threads/HistoryWorker.java",
+          "//examples/threads/HistoryMain.java");
+      res.checkVerdict(Verdict.Pass);
+  }
+  
+
   
   @Test
   public void testTranspose(){

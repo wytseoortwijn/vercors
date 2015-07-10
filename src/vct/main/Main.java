@@ -2,6 +2,7 @@
 
 package vct.main;
 
+import hre.HREError;
 import hre.ast.FileOrigin;
 import hre.ast.MessageOrigin;
 import hre.config.BooleanSetting;
@@ -16,6 +17,8 @@ import hre.util.TestReport;
 import hre.util.TestReport.Verdict;
 
 import java.io.*;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -38,6 +41,7 @@ import vct.col.annotate.DeriveModifies;
 import vct.col.ast.*;
 import vct.col.rewrite.AbstractMethodResolver;
 import vct.col.rewrite.AbstractRewriter;
+import vct.col.rewrite.AccessIntroduce;
 import vct.col.rewrite.AddTypeADT;
 import vct.col.rewrite.AssignmentRewriter;
 import vct.col.rewrite.BoxingRewriter;
@@ -244,6 +248,7 @@ public class Main
         return new AbstractMethodResolver(arg).rewriteAll();
       }
     });
+    compiler_pass(defined_passes,"access","convert access expressions",AccessIntroduce.class);
     defined_passes.put("assign",new CompilerPass("change inline assignments to statements"){
       public ProgramUnit apply(ProgramUnit arg,String ... args){
         return new AssignmentRewriter(arg).rewriteAll();
@@ -922,6 +927,9 @@ public class Main
         passes.add("check");
       }
       if (check_history.get()){
+        passes.add("access");
+        passes.add("standardize");
+        passes.add("check");
         passes.add("check-history");
         passes.add("standardize");
         passes.add("check");
@@ -1037,6 +1045,30 @@ public class Main
       Output("The final verdict is %s",res.getVerdict());
     }
     Output("entire run took %d ms",System.currentTimeMillis()-globalStart);
+  }
+
+  private static void compiler_pass(Hashtable<String, CompilerPass> defined_passes,
+      String key, String description, final Class<? extends AbstractRewriter> class1) {
+    try {
+      defined_passes.put(key,new CompilerPass(description){
+        
+        Constructor cons=class1.getConstructor(ProgramUnit.class);
+        
+        @Override
+        public ProgramUnit apply(ProgramUnit arg, String... args) {
+          AbstractRewriter rw;
+          try {
+            rw = (AbstractRewriter) cons.newInstance(arg);
+          } catch (Exception e) {
+            throw new HREError("unexpected exception %s",e);
+          }
+          return rw.rewriteAll();
+        }
+        
+      });
+    } catch (NoSuchMethodException e) {
+      Abort("bad rewriter pass %s",key);
+    }
   }
 }
 
