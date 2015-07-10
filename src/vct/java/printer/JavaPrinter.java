@@ -1347,5 +1347,24 @@ public class JavaPrinter extends AbstractPrinter {
       throw new HREError("Missing case: %s",t.op);
     }
   }
+  
+  @Override
+  public void visit(FieldAccess a){
+    setExpr();
+    if (a.value==null){
+      out.printf("((");
+    }
+    if(a.object != null){
+      a.object.apply(this);
+      out.printf(".");
+    }
+    out.printf("%s",a.name);
+    if(a.value!=null){
+      out.printf(" := ");
+      a.value.apply(this);
+    } else {
+      out.printf("))");
+    }
+  }
 }
 

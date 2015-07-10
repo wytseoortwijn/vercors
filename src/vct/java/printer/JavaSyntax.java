@@ -54,6 +54,7 @@ public class JavaSyntax extends Syntax {
         syntax.addOperator(Member,-1,"(","\\memberof",")");
         syntax.addFunction(TypeOf,"\\typeof");
         syntax.addFunction(CurrentPerm,"perm");
+        syntax.addFunction(HistoryPerm,"HPerm");
         syntax.addOperator(Scale,130,"[","]","");
         syntax.addFunction(Drop,"drop");
         syntax.addFunction(Take,"take");

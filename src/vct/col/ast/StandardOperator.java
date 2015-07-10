@@ -115,6 +115,10 @@ public enum StandardOperator {
   /** Immutable permission predicate.  */
   Value(1),
   /**
+   * Permission to a field that is part of an active history.
+   */
+  HistoryPerm(2),
+  /**
    * Declare a location to be volatile. That is, accessible by multiple threads.
    */
   Volatile(1),

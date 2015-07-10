@@ -10,6 +10,7 @@ import vct.col.ast.ASTSpecialDeclaration.Kind;
 import vct.col.ast.BindingExpression.Binder;
 import vct.col.ast.PrimitiveType.Sort;
 import vct.col.rewrite.AbstractRewriter;
+import vct.util.ClassName;
 import vct.util.Configuration;
 import hre.ast.Origin;
 import hre.util.FrameControl;
@@ -1084,6 +1085,21 @@ public Axiom axiom(String name,ASTNode exp){
     res.setOrigin(o);
     res.accept_if(post);
     return res;
+  }
+
+  public FieldAccess set_field(Origin o,ClassName claz,ASTNode obj,String name,ASTNode val){
+    FieldAccess res=new FieldAccess(claz, obj, name, val);
+    res.setOrigin(o);
+    res.accept_if(post);    
+    return res;
+  }
+  
+  public FieldAccess set_field(ClassName claz,ASTNode obj,String name,ASTNode val){
+    return set_field(origin_stack.get(),claz,obj,name,val);
+  }
+
+  public FieldAccess get_field(ClassName claz,ASTNode obj,String name){
+    return set_field(origin_stack.get(),claz,obj,name,null);
   }
 
 }

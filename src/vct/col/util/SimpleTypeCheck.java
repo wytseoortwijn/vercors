@@ -457,7 +457,7 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       if (argss[i] instanceof Type) continue;
       tt[i]=argss[i].getType();
       if (tt[i]==null){
-        Fail("type of argument %d is unknown at %s",i+1,e.getOrigin());
+        Fail("type of argument %d is unknown at %s in expression %s",i+1,e.getOrigin(),Configuration.getDiagSyntax().print(e));
       }
     }
     Type t1=null,t2=null;
@@ -609,9 +609,11 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       e.setType(new PrimitiveType(Sort.Resource));
       break;      
     }
+    case HistoryPerm:
     case Perm:
     {
       if (!(e.getArg(0) instanceof Dereference)
+      && !(e.getArg(0) instanceof FieldAccess)
       && !e.getArg(0).isa(StandardOperator.Subscript)
       && !((e.getArg(0) instanceof NameExpression) && (((NameExpression)e.getArg(0)).getKind()==Kind.Field))
       ){
@@ -625,6 +627,7 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     case PointsTo:
     {
       if (!(e.getArg(0) instanceof Dereference)
+      && !(e.getArg(0) instanceof FieldAccess)
       && !e.getArg(0).isa(StandardOperator.Subscript)
       && !((e.getArg(0) instanceof NameExpression) && (((NameExpression)e.getArg(0)).getKind()==Kind.Field))
       ){
@@ -1241,4 +1244,15 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     s.setType(new PrimitiveType(Sort.Void));
   }
 
+  @Override
+  public void visit(FieldAccess a){
+    super.visit(a);
+    if(a.value==null){
+      Dereference d=new Dereference(a.object,a.name);
+      visit(d);
+      a.setType(d.getType());
+    } else {
+      a.setType(new PrimitiveType(Sort.Void));
+    }
+  }
 }

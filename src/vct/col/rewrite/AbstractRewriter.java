@@ -27,6 +27,7 @@ import vct.col.ast.BindingExpression;
 import vct.col.ast.CatchClause;
 import vct.col.ast.ContractBuilder;
 import vct.col.ast.Dereference;
+import vct.col.ast.FieldAccess;
 import vct.col.ast.ForEachLoop;
 import vct.col.ast.Hole;
 import vct.col.ast.Lemma;
@@ -789,5 +790,10 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   @Override
   public void visit(TypeExpression t){
     result=create.type_expression(t.op,rewrite(t.types));
+  }
+  
+  @Override
+  public void visit(FieldAccess a){
+    result=create.set_field(a.claz, rewrite(a.object), a.name, rewrite(a.value));
   }
 }

@@ -10,6 +10,7 @@ resourceExpression
  | 'AddsTo' '(' expression ',' expression ')'
  | 'Hist' '(' expression ',' expression ',' expression ')'
  | 'Perm' '(' expression ',' expression ')'
+ | 'HPerm' '(' expression ',' expression ')'
  | 'PointsTo' '(' expression ',' expression ',' expression ')'
  | 'Reducible' '(' expression ',' ('+' | Identifier ) ')'
  | 'Contribution' '(' expression ',' expression ')'
