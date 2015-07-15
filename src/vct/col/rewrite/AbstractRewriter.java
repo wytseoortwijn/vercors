@@ -1,5 +1,6 @@
 package vct.col.rewrite;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -26,6 +27,7 @@ import vct.col.ast.BindingExpression;
 import vct.col.ast.CatchClause;
 import vct.col.ast.ContractBuilder;
 import vct.col.ast.Dereference;
+import vct.col.ast.FieldAccess;
 import vct.col.ast.ForEachLoop;
 import vct.col.ast.Hole;
 import vct.col.ast.Lemma;
@@ -54,6 +56,7 @@ import vct.col.ast.StandardOperator;
 import vct.col.ast.StandardProcedure;
 import vct.col.ast.TryCatchBlock;
 import vct.col.ast.Type;
+import vct.col.ast.TypeExpression;
 import vct.col.ast.VariableDeclaration;
 import vct.col.util.ASTFactory;
 import vct.col.util.ASTPermission;
@@ -277,6 +280,15 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
     return res;
   }
   
+  public <E extends ASTNode> E[][] rewrite(E node[][]){
+    if (node==null) return null;
+    E res[][]=Arrays.copyOf(node, node.length);
+    for(int i=0;i<res.length;i++){
+      res[i]=rewrite(res[i]);
+    }
+    return res;
+  }
+
   /**
    * Rewrite an array.
    * If the given array is null then this function will return null.
@@ -597,7 +609,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   
   @Override
   public void visit(BindingExpression e){
-    result=create.binder(e.binder,rewrite(e.result_type),rewrite(e.getDeclarations()), rewrite(e.select), rewrite(e.main));
+    result=create.binder(e.binder,rewrite(e.result_type),rewrite(e.getDeclarations()),rewrite(e.triggers), rewrite(e.select), rewrite(e.main));
   }
   
   @Override
@@ -759,8 +771,29 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   public void visit(TryCatchBlock tcb){
     TryCatchBlock res=create.try_catch(rewrite(tcb.main),rewrite(tcb.after));
     for(CatchClause cc:tcb.catches){
-      res.catch_clause(rewrite(cc.decl), rewrite(cc.block));
+      pre_visit(cc.block);
+      BlockStatement tmp=currentBlock;
+      currentBlock=new BlockStatement();
+      currentBlock.setOrigin(cc.block.getOrigin());
+      DeclarationStatement d=rewrite(cc.decl);
+      for(ASTNode S:cc.block){
+        currentBlock.add(rewrite(S));
+      }
+      BlockStatement block=currentBlock;
+      currentBlock=tmp;
+      post_visit(cc.block);
+      res.catch_clause(d,block);
     }
     result=res;
+  }
+  
+  @Override
+  public void visit(TypeExpression t){
+    result=create.type_expression(t.op,rewrite(t.types));
+  }
+  
+  @Override
+  public void visit(FieldAccess a){
+    result=create.set_field(a.claz, rewrite(a.object), a.name, rewrite(a.value));
   }
 }

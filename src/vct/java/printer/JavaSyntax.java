@@ -52,17 +52,25 @@ public class JavaSyntax extends Syntax {
         syntax.addOperator(HoarePredicate,-1,"/*{","}*/");
 
         syntax.addOperator(Member,-1,"(","\\memberof",")");
+        syntax.addFunction(TypeOf,"\\typeof");
         syntax.addFunction(CurrentPerm,"perm");
+        syntax.addFunction(HistoryPerm,"HPerm");
         syntax.addOperator(Scale,130,"[","]","");
         syntax.addFunction(Drop,"drop");
         syntax.addFunction(Take,"take");
         syntax.addFunction(History,"Hist");
         syntax.addFunction(Contribution,"Contribution");
+        syntax.addFunction(Held,"held");
         
         syntax.addOperator(Unfolding,140,"\\unfolding","\\in","");
         syntax.addOperator(IndependentOf, -1 , "(" ,"!",")");
         syntax.addOperator(ReducibleSum,-1,"Reducible(",",+)");
         syntax.addReserved(EmptyProcess, "empty");
+        
+        syntax.addReserved(Inline,"inline");
+        syntax.addReserved(Pure,"pure");
+
+        
         JavaVerCorsSyntax=syntax;
         
       }

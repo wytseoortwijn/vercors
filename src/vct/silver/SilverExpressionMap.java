@@ -8,7 +8,6 @@ import hre.HREError;
 import hre.ast.Origin;
 import vct.col.ast.*;
 import vct.col.ast.PrimitiveType.Sort;
-import vct.util.Configuration;
 import static hre.System.Abort;
 
 public class SilverExpressionMap<T,E,Decl> implements ASTMapping<E>{
@@ -36,7 +35,6 @@ public class SilverExpressionMap<T,E,Decl> implements ASTMapping<E>{
 
   @Override
   public E map(StandardProcedure p) {
-    // TODO Auto-generated method stub
     return null;
   }
 
@@ -106,6 +104,8 @@ public class SilverExpressionMap<T,E,Decl> implements ASTMapping<E>{
     
     case Size: return create.size(o,e.getArg(0).apply(this));
     case Tail: return create.drop(o,e.getArg(0).apply(this),create.Constant(o,1));
+    case Drop: return create.drop(o,e.getArg(0).apply(this),e.getArg(1).apply(this));
+    case Take: return create.take(o,e.getArg(0).apply(this),e.getArg(1).apply(this));
     case Member: {
       if (e.getArg(1).getType().isPrimitive(Sort.Sequence)){
         return create.seq_contains(o,e.getArg(0).apply(this),e.getArg(1).apply(this));
@@ -170,6 +170,7 @@ public class SilverExpressionMap<T,E,Decl> implements ASTMapping<E>{
       case ReadPerm: return create.read_perm(o);
       case NoPerm: return create.no_perm(o);
       case Result: return create.result(o,e.getType().apply(type));
+      default:
       }
       // fall through on purpose
       default:
@@ -179,25 +180,21 @@ public class SilverExpressionMap<T,E,Decl> implements ASTMapping<E>{
 
   @Override
   public E map(ClassType t) {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public E map(FunctionType t) {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public E map(PrimitiveType t) {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public E map(RecordType t) {
-    // TODO Auto-generated method stub
     return null;
   }
 
@@ -235,55 +232,46 @@ public class SilverExpressionMap<T,E,Decl> implements ASTMapping<E>{
 
   @Override
   public E map(BlockStatement s) {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public E map(IfStatement s) {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public E map(ReturnStatement s) {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public E map(AssignmentStatement s) {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public E map(DeclarationStatement s) {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public E map(LoopStatement s) {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public E map(Method m) {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public E map(ASTClass c) {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public E map(ASTWith astWith) {
-    // TODO Auto-generated method stub
     return null;
   }
 
@@ -316,7 +304,17 @@ public class SilverExpressionMap<T,E,Decl> implements ASTMapping<E>{
       } else {
         expr=create.implies(o, e.select.apply(this), e.main.apply(this));
       }
-      return create.forall(o, convert(e.getDeclarations()),expr);
+      List<List<E>> triggers=new ArrayList<List<E>>();
+      if (e.triggers!=null){
+        for (ASTNode trigger[]:e.triggers){
+          List<E> tmp=new ArrayList<E>();
+          for (ASTNode node:trigger){
+            tmp.add(node.apply(this));
+          }
+          triggers.add(tmp);
+        }
+      }
+      return create.forall(o, convert(e.getDeclarations()),triggers ,expr);
     case EXISTS:
       return create.exists(o, convert(e.getDeclarations()),create.and(o, e.select.apply(this), e.main.apply(this)));
     default:
@@ -326,7 +324,7 @@ public class SilverExpressionMap<T,E,Decl> implements ASTMapping<E>{
   }
 
   private List<Decl> convert(DeclarationStatement[] declarations) {
-    ArrayList<Decl> res=new ArrayList();
+    ArrayList<Decl> res=new ArrayList<Decl>();
     for(DeclarationStatement d:declarations){
       res.add(create.decl(d.getOrigin(),d.getName(),d.getType().apply(type)));
     }
@@ -340,103 +338,91 @@ public class SilverExpressionMap<T,E,Decl> implements ASTMapping<E>{
 
   @Override
   public E map(Lemma lemma) {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public E map(ParallelBarrier parallelBarrier) {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public E map(ParallelBlock parallelBlock) {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public E map(Contract contract) {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public E map(ASTSpecial special) {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public E map(VariableDeclaration variableDeclaration) {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public E map(TupleType tupleType) {
-    // TODO Auto-generated method stub
     return null;
   }
   
   @Override
   public E map(TypeExpression t) {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public E map(AxiomaticDataType adt) {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public E map(Axiom axiom) {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public E map(Hole hole) {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public E map(ActionBlock actionBlock) {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public E map(ASTSpecialDeclaration s) {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public E map(ForEachLoop s) {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public E map(ParallelAtomic parallelAtomic) {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public E map(NameSpace nameSpace) {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public E map(TryCatchBlock tcb) {
-    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public E map(FieldAccess a) { 
     return null;
   }
   

@@ -4,6 +4,7 @@ import java.util.EnumSet;
 
 import vct.col.ast.ASTClass;
 import vct.col.ast.ASTNode;
+import vct.col.ast.ASTSpecial;
 import vct.col.ast.BindingExpression;
 import vct.col.ast.Contract;
 import vct.col.ast.ForEachLoop;
@@ -30,10 +31,15 @@ public class FeatureScanner extends RecursiveVisitor<Object> {
   private boolean has_kernels=false;
   private boolean has_iteration_contracts=false;
   private EnumSet<StandardOperator> ops_used=EnumSet.noneOf(StandardOperator.class);
+  private EnumSet<ASTSpecial.Kind> specials_used=EnumSet.noneOf(ASTSpecial.Kind.class);
   private EnumSet<BindingExpression.Binder> binders_used=EnumSet.noneOf(BindingExpression.Binder.class);
   
   public boolean usesOperator(StandardOperator op){
     return ops_used.contains(op);
+  }
+  
+  public boolean usesSpecial(ASTSpecial.Kind op){
+    return specials_used.contains(op);
   }
  
   public boolean usesParallelBlocks(){
@@ -81,6 +87,12 @@ public class FeatureScanner extends RecursiveVisitor<Object> {
     }
   }
 
+  @Override
+  public void visit(ASTSpecial s){
+    specials_used.add(s.kind);
+    super.visit(s);
+  }
+  
   @Override
   public void visit(BindingExpression e){
     binders_used.add(e.binder);

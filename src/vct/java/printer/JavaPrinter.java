@@ -1,6 +1,7 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 package vct.java.printer;
 
+import hre.HREError;
 import hre.ast.TrackingOutput;
 import hre.ast.TrackingTree;
 
@@ -174,6 +175,22 @@ public class JavaPrinter extends AbstractPrinter {
   @Override
   public void visit(ASTSpecial s){
     switch(s.kind){
+    case Fork:{
+      out.printf("fork ");
+      current_precedence=0;
+      setExpr();
+      ASTNode prop=s.args[0];
+      prop.accept(this);
+      break;
+    }
+    case Join:{
+      out.printf("join ");
+      current_precedence=0;
+      setExpr();
+      ASTNode prop=s.args[0];
+      prop.accept(this);
+      break;
+    }
     case Goto:
       out.print("goto ");
       s.args[0].accept(this);
@@ -203,6 +220,30 @@ public class JavaPrinter extends AbstractPrinter {
       s.args[0].accept(this);
       out.println(";");
       break;
+    case Lock:
+      out.print("lock ");
+      setExpr();
+      s.args[0].accept(this);
+      out.println(";");
+      break;
+    case Unlock:
+      out.print("unlock ");
+      setExpr();
+      s.args[0].accept(this);
+      out.println(";");
+      break;
+    case Wait:
+      out.print("wait ");
+      setExpr();
+      s.args[0].accept(this);
+      out.println(";");
+      break;
+    case Notify:
+      out.print("notify ");
+      setExpr();
+      s.args[0].accept(this);
+      out.println(";");
+      break;
     case Import:
       out.print("import ");
       setExpr();
@@ -214,6 +255,7 @@ public class JavaPrinter extends AbstractPrinter {
       setExpr();
       s.args[0].accept(this);
       out.println(";");
+      break;
     case Exhale:
       out.print("exhale ");
       setExpr();
@@ -347,6 +389,17 @@ public class JavaPrinter extends AbstractPrinter {
         decl.getInit().accept(this);
       }
     }
+    if (e.triggers!=null){
+      for(ASTNode trigger[]:e.triggers){
+        out.printf("{");
+        trigger[0].accept(this);
+        for(int i=1;i<trigger.length;i++){
+          out.printf(",");
+          trigger[i].accept(this);
+        }
+        out.printf("}");
+      }
+    }
     out.printf(";");
     if (e.select!=null){
       e.select.accept(this);
@@ -383,7 +436,7 @@ public class JavaPrinter extends AbstractPrinter {
     visit(cl.getContract());
     switch(cl.kind){
     case Plain:
-      out.printf("class %s",cl.getName());
+      out.printf("public class %s",cl.getName());
       break;
     case Abstract:
       out.printf("abstract class %s",cl.getName());
@@ -532,6 +585,24 @@ public class JavaPrinter extends AbstractPrinter {
     }
     if (contract!=null && dialect!=JavaDialect.JavaVeriFast && !predicate){
       visit(contract);
+    }
+    for(int i=1;i<0xF000;i<<=1){
+      if (m.isValidFlag(i)){
+        if (m.getFlag(i)){
+          switch(i){
+          case ASTFlags.STATIC:
+          case ASTFlags.FINAL:
+            break;
+          case ASTFlags.INLINE:
+            out.printf("inline ");
+          case ASTFlags.PUBLIC:
+            out.printf("public ");
+            break;
+          default:
+            throw new HREError("unknown flag %04x",i);
+          }
+        }
+      }
     }
     if (!m.isValidFlag(ASTFlags.STATIC)) {
       out.printf("static?? ");
@@ -752,22 +823,6 @@ public class JavaPrinter extends AbstractPrinter {
           arg.accept(this);
         }
         out.print(")");
-        break;
-      }
-      case Fork:{
-        out.printf("fork ");
-        current_precedence=0;
-        setExpr();
-        ASTNode prop=e.getArg(0);
-        prop.accept(this);
-        break;
-      }
-      case Join:{
-        out.printf("join ");
-        current_precedence=0;
-        setExpr();
-        ASTNode prop=e.getArg(0);
-        prop.accept(this);
         break;
       }
       case Assert:{
@@ -1263,6 +1318,53 @@ public class JavaPrinter extends AbstractPrinter {
       }
     }
     out.println(";");
+  }
+  
+  @Override
+  public void visit(TypeExpression t){
+    switch(t.op){
+    case Const:
+      out.printf("const ");
+      t.types[0].apply(this);
+      break;
+    case Kernel:
+      out.printf("__kernel ");
+      t.types[0].apply(this);
+      break;
+    case Global:
+      out.printf("__global ");
+      t.types[0].apply(this);
+      break;
+    case Local:
+      out.printf("__local ");
+      t.types[0].apply(this);
+      break;
+    case Unsigned:
+      out.printf("unsigned ");
+      t.types[0].apply(this);
+      break;
+    default:
+      throw new HREError("Missing case: %s",t.op);
+    }
+  }
+  
+  @Override
+  public void visit(FieldAccess a){
+    setExpr();
+    if (a.value==null){
+      out.printf("((");
+    }
+    if(a.object != null){
+      a.object.apply(this);
+      out.printf(".");
+    }
+    out.printf("%s",a.name);
+    if(a.value!=null){
+      out.printf(" := ");
+      a.value.apply(this);
+    } else {
+      out.printf("))");
+    }
   }
 }
 

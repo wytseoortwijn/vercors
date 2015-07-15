@@ -141,24 +141,67 @@ public abstract class ASTNode implements ASTFlags {
     origin=null;
   }
 
+  /**
+   * Invoke the appropriate subclass method.
+   * @param visitor
+   */
   protected abstract <T> void accept_simple(ASTVisitor<T> visitor);
   
+  /**
+   * Invoke the appropriate subclass method.
+   * @param visitor
+   */
   protected abstract <T> T accept_simple(ASTMapping<T> map);
   
+  /**
+   * Invoke the appropriate subclass method.
+   * @param visitor
+   */
   protected abstract <R,A> R accept_simple(ASTMapping1<R,A> map,A arg);
 
-  public final <T> void accept(ASTVisitor<T> visitor){
-    visitor.pre_visit(this);
-    this.accept_simple(visitor);
-    visitor.post_visit(this);
+  /**
+   * Invoke the full visitor protocol: enter, specific, leave.
+   * 
+   * @param visitor
+   */
+  public final <T> void accept(ASTVisitor<T> visitor){    
+    try {
+      visitor.pre_visit(this);
+      this.accept_simple(visitor);
+      visitor.post_visit(this);
+    } catch (Throwable t){
+      if (thrown.get()!=t){
+        System.err.printf("Triggered by %s:%n",getOrigin());
+        thrown.set(t);
+      }
+      throw t;
+    }
   }
   
+  /**
+   * Invoke the full visitor protocol: enter, specific, leave.
+   * 
+   * @param visitor
+   */
   public final <T> T apply(ASTMapping<T> map){
-    map.pre_map(this);
-    T res=this.accept_simple(map);
-    return map.post_map(this, res);  
+    try {
+      map.pre_map(this);
+      T res=this.accept_simple(map);
+      return map.post_map(this, res);  
+    } catch (Throwable t){
+      if (thrown.get()!=t){
+        System.err.printf("Triggered by %s:%n",getOrigin());
+        thrown.set(t);
+      }
+      throw t;
+    }
   }
   
+  /**
+   * Invoke the full visitor protocol: enter, specific, leave.
+   * 
+   * @param visitor
+   */
   public final <R,A> R apply(ASTMapping1<R,A> map,A arg){
     try {
       map.pre_map(this,arg);
@@ -173,6 +216,11 @@ public abstract class ASTNode implements ASTFlags {
     }
   }
   
+  /**
+   * Map implemented using the result field of a visitor. 
+   * @param visitor
+   * @return
+   */
   public final <T> T apply(ASTVisitor<T> visitor){
     this.accept(visitor);
     return visitor.getResult();

@@ -10,6 +10,7 @@ import vct.col.ast.ASTSpecialDeclaration.Kind;
 import vct.col.ast.BindingExpression.Binder;
 import vct.col.ast.PrimitiveType.Sort;
 import vct.col.rewrite.AbstractRewriter;
+import vct.util.ClassName;
 import vct.util.Configuration;
 import hre.ast.Origin;
 import hre.util.FrameControl;
@@ -200,8 +201,8 @@ public class ASTFactory<E> implements FrameControl {
   /**
    * Create a new binding expression.
    */
-  public ASTNode binder(Binder b,Type result_type,DeclarationStatement decls[],ASTNode selection,ASTNode main) {
-    ASTNode res=new BindingExpression(b,result_type,decls,selection,main);
+  public ASTNode binder(Binder b,Type result_type,DeclarationStatement decls[],ASTNode triggers[][],ASTNode selection,ASTNode main) {
+    ASTNode res=new BindingExpression(b,result_type,decls,triggers,selection,main);
     res.setOrigin(origin_stack.get());
     res.accept_if(post);
     return res;
@@ -478,6 +479,7 @@ public BlockStatement block(Origin origin, ASTNode ... args) {
           Binder.EXISTS,
           primitive_type(PrimitiveType.Sort.Boolean),
           decl,
+          null,
           guard,
           claim
       );
@@ -491,6 +493,7 @@ public BlockStatement block(Origin origin, ASTNode ... args) {
           Binder.SUM,
           null,
           new DeclarationStatement[]{decl[i]},
+          null,
           guard,
           claim
       );
@@ -502,6 +505,7 @@ public BlockStatement block(Origin origin, ASTNode ... args) {
             Binder.SUM,
             null,
             new DeclarationStatement[]{decl[i]},
+            null,
             constant(true),
             res
         );
@@ -515,6 +519,7 @@ public BlockStatement block(Origin origin, ASTNode ... args) {
         Binder.LET,
         null,
         new DeclarationStatement[]{decl},
+        null,
         null,
         in
     );
@@ -843,6 +848,7 @@ public ASTSpecial special(Origin origin, vct.col.ast.ASTSpecial.Kind kind, ASTNo
         Binder.STAR,
         primitive_type(PrimitiveType.Sort.Resource),
         new DeclarationStatement[]{decl[i]},
+        null,
         guard,
         claim
     );
@@ -854,6 +860,7 @@ public ASTSpecial special(Origin origin, vct.col.ast.ASTSpecial.Kind kind, ASTNo
           Binder.STAR,
           primitive_type(PrimitiveType.Sort.Resource),
           new DeclarationStatement[]{decl[i]},
+          null,
           constant(true),
           res
       );
@@ -862,12 +869,18 @@ public ASTSpecial special(Origin origin, vct.col.ast.ASTSpecial.Kind kind, ASTNo
     }
     return res;
   }
+  
   public BindingExpression forall(ASTNode guard, ASTNode claim, DeclarationStatement ... decl) {
+    return forall(new ASTNode[0][],guard,claim,decl);
+  }
+  
+  public BindingExpression forall(ASTNode triggers[][],ASTNode guard, ASTNode claim, DeclarationStatement ... decl) {
     int i=decl.length-1;
     BindingExpression res=new BindingExpression(
         Binder.FORALL,
         primitive_type(PrimitiveType.Sort.Boolean),
         new DeclarationStatement[]{decl[i]},
+        triggers,
         guard,
         claim
     );
@@ -879,6 +892,7 @@ public ASTSpecial special(Origin origin, vct.col.ast.ASTSpecial.Kind kind, ASTNo
           Binder.FORALL,
           primitive_type(PrimitiveType.Sort.Boolean),
           new DeclarationStatement[]{decl[i]},
+          triggers,
           constant(true),
           res
       );
@@ -1008,36 +1022,37 @@ public Axiom axiom(String name,ASTNode exp){
     res.accept_if(post);
     return res;
   }
-
+  
   public Type __const(Type type) {
-    Type res=new TypeExpression(TypeOperator.Const,type);
+    return type_expression(TypeOperator.Const,type);
+  }
+
+  public Type type_expression(TypeOperator op,Type ... args) {
+    Type res=new TypeExpression(op,args);
     res.setOrigin(origin_stack.get());
     res.accept_if(post);
     return res;
+  }
+  public Type __kernel(Type type) {
+    return type_expression(TypeOperator.Kernel,type);
+  }
+  public Type __global(Type type) {
+    return type_expression(TypeOperator.Global,type);
+  }
+  public Type __local(Type type) {
+    return type_expression(TypeOperator.Local,type);
   }
   public Type __short(Type type) {
-    Type res=new TypeExpression(TypeOperator.Short,type);
-    res.setOrigin(origin_stack.get());
-    res.accept_if(post);
-    return res;
+    return type_expression(TypeOperator.Short,type);
   }
   public Type __signed(Type type) {
-    Type res=new TypeExpression(TypeOperator.Signed,type);
-    res.setOrigin(origin_stack.get());
-    res.accept_if(post);
-    return res;
+    return type_expression(TypeOperator.Signed,type);
   }
   public Type __unsigned(Type type) {
-    Type res=new TypeExpression(TypeOperator.Unsigned,type);
-    res.setOrigin(origin_stack.get());
-    res.accept_if(post);
-    return res;
+    return type_expression(TypeOperator.Unsigned,type);
   }
   public Type __long(Type type) {
-    Type res=new TypeExpression(TypeOperator.Long,type);
-    res.setOrigin(origin_stack.get());
-    res.accept_if(post);
-    return res;
+    return type_expression(TypeOperator.Long,type);
   }
 
   public ForEachLoop foreach(DeclarationStatement[] decls,ASTNode guard, ASTNode body) {
@@ -1070,6 +1085,21 @@ public Axiom axiom(String name,ASTNode exp){
     res.setOrigin(o);
     res.accept_if(post);
     return res;
+  }
+
+  public FieldAccess set_field(Origin o,ClassName claz,ASTNode obj,String name,ASTNode val){
+    FieldAccess res=new FieldAccess(claz, obj, name, val);
+    res.setOrigin(o);
+    res.accept_if(post);    
+    return res;
+  }
+  
+  public FieldAccess set_field(ClassName claz,ASTNode obj,String name,ASTNode val){
+    return set_field(origin_stack.get(),claz,obj,name,val);
+  }
+
+  public FieldAccess get_field(ClassName claz,ASTNode obj,String name){
+    return set_field(origin_stack.get(),claz,obj,name,null);
   }
 
 }

@@ -341,6 +341,12 @@ class MatchLinear implements ASTMapping1<Boolean,ASTNode> {
     // TODO Auto-generated method stub
     return null;
   }
+
+  @Override
+  public Boolean map(FieldAccess s, ASTNode a) {
+    // TODO Auto-generated method stub
+    return null;
+  }
   
 }
 
@@ -406,7 +412,7 @@ class MatchSubstitution extends AbstractRewriter {
       ASTNode res=sigma.rewrite(tmp);
       result=res;
     } else {
-      result=create.binder(e.binder,rewrite(e.result_type),decls,rewrite(e.select),rewrite(e.main));
+      result=create.binder(e.binder,rewrite(e.result_type),decls,rewrite(e.triggers),rewrite(e.select),rewrite(e.main));
     }
   }
    

@@ -11,5 +11,9 @@ public interface ASTFlags {
   public final int OUT_ARG = 0x0008;
   
   public final int   FINAL = 0x0010;
+  
+  public final int  INLINE = 0x0020;
+
+  public final int  PUBLIC = 0x0040;
 
 }

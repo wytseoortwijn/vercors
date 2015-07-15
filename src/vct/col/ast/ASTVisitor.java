@@ -83,6 +83,8 @@ public interface ASTVisitor<T> {
 
   public void visit(TryCatchBlock tcb);
 
+  public void visit(FieldAccess a);
+
 }
 
 

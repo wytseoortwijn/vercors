@@ -689,7 +689,7 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
     if (n instanceof NameExpression){
       return create.class_type(n.getOrigin(),((NameExpression)n).getName());
     }
-    throw hre.System.Failure("%d node at %s is not a type",n.getClass(),n.getOrigin());
+    throw hre.System.Failure("%s node at %s is not a type",n.getClass(),n.getOrigin());
   }
 
   protected HREError MissingCase(ParserRuleContext ctx){

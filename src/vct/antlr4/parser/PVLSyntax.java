@@ -60,8 +60,10 @@ public class PVLSyntax {
       syntax.addPrefix(PreIncr, "++", 130);
       syntax.addPrefix(PreIncr, "--", 130);
 */
-      
-      syntax.addLeftFix(Exp,"^^",130);
+      syntax.addPrefix(Not, "!", 130);
+      syntax.addPrefix(UMinus, "-", 130);
+ 
+      syntax.addLeftFix(Exp,"^^",125);
       // 12 multiplicative  * / %
       syntax.addLeftFix(Mult,"*",120);
       syntax.addLeftFix(Div,"/",120);

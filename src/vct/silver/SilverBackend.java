@@ -27,11 +27,12 @@ import vct.util.Configuration;
 
 public class SilverBackend {
   
-  public static StringSetting silver_module=new StringSetting("silver/latest");
+  public static StringSetting silver_module=new StringSetting("silver/stable");
   public static IntegerSetting silicon_z3_timeout=new IntegerSetting(30000);
   
   public static <T,E,S,Decl,DFunc,DAxiom,Program>
   TestReport TestSilicon(ProgramUnit arg, String tool) {
+    hre.System.Output("verifying with %s backend",silver_module.get());
     long start_time=System.currentTimeMillis();
     File jarfile=Configuration.getToolHome().resolve(silver_module.get()+"/"+tool+".jar").toFile();
     //System.err.printf("adding jar %s to path%n",jarfile);

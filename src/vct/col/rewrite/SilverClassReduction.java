@@ -29,6 +29,21 @@ public class SilverClassReduction extends AbstractRewriter {
   }
 
   @Override
+  public void visit(AxiomaticDataType adt){
+    super.visit(adt);
+    if (adt.name.equals("TYPE")){
+      AxiomaticDataType res=(AxiomaticDataType)result;
+      res.add_cons(create.function_decl(
+          create.class_type("TYPE"),
+          null,
+          "type_of",
+          new DeclarationStatement[]{create.field_decl("val",create.class_type("Ref"))},
+          null
+      ));
+    }
+  }
+  
+  @Override
   public void visit(ASTClass cl){
     if (cl.getStaticCount()>0){
       Fail("class conversion cannot be used for static entries yet.");
@@ -63,7 +78,8 @@ public class SilverClassReduction extends AbstractRewriter {
   
   @Override
   public void visit(OperatorExpression e){
-    if (e.getOperator()==StandardOperator.New){
+    switch(e.getOperator()){
+    case New:{
       ClassType t=(ClassType)e.getArg(0);
       ASTClass cl=source().find(t);
       ArrayList<ASTNode>args=new ArrayList();
@@ -73,7 +89,13 @@ public class SilverClassReduction extends AbstractRewriter {
         args.add(create.dereference(create.class_type("Ref"),cl.name+SEP+field.name));
       }
       result=create.expression(StandardOperator.NewSilver,args.toArray(new ASTNode[0]));
-    } else {
+      break;
+    }
+    case TypeOf:{
+      result=create.invokation(null,null,"type_of",rewrite(e.getArg(0)));
+      break;
+    }
+    default:
       super.visit(e);
     }
   }

@@ -1,6 +1,7 @@
 package vct.col.ast;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import static hre.System.Abort;
 
@@ -19,12 +20,21 @@ public class BindingExpression extends ExpressionNode {
   public final Type result_type;
   
   private ArrayList<DeclarationStatement> decls=new ArrayList<DeclarationStatement>();
+  public final ASTNode triggers[][];
   
-  public BindingExpression(Binder binder,Type result_type,DeclarationStatement decls[],ASTNode select,ASTNode main){
+  public BindingExpression(Binder binder,Type result_type,DeclarationStatement decls[],ASTNode triggers[][],ASTNode select,ASTNode main){
     this.binder=binder;
     this.result_type=result_type;
     this.select=select;
     this.main=main;
+    if (triggers==null){
+      this.triggers=null;
+    } else {
+      this.triggers=new ASTNode[triggers.length][];
+      for(int i=0;i<triggers.length;i++){
+        this.triggers[i]=Arrays.copyOf(triggers[i],triggers[i].length);
+      }
+    }
     for(int i=0;i<decls.length;i++){
       DeclarationStatement decl=decls[i];
       if (decl ==null){

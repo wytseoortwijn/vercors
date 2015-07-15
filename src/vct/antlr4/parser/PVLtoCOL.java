@@ -221,6 +221,10 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
         return create.expression(StandardOperator.PointsTo,getTuple((ParserRuleContext)ctx.children.get(1)));
       }
     }
+    if (match(ctx,"held",tuple)){
+      ASTNode args[]=getTuple((ParserRuleContext)ctx.getChild(1));
+      return create.expression(StandardOperator.Held,args);
+    }
     if (match(ctx,"head",tuple)){
       ASTNode args[]=getTuple((ParserRuleContext)ctx.getChild(1));
       return create.expression(StandardOperator.Head,args);
@@ -228,6 +232,9 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
     if (match(ctx,"tail",tuple)){
       ASTNode args[]=getTuple((ParserRuleContext)ctx.getChild(1));
       return create.expression(StandardOperator.Tail,args);
+    }
+    if (match(0,true,ctx,"[",null,"]",null)){
+      return create.expression(StandardOperator.Scale,convert(ctx,1),convert(ctx,3)); 
     }
     if (match(0,true,ctx,"[",null)){
       ASTNode args[]=convert_list(ctx,"[",",","]");
@@ -269,7 +276,7 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
     if (match(ctx,"new",null,tuple)){
       ASTNode args[]=getTuple((ParserRuleContext)ctx.getChild(2));
       String name=getIdentifier(ctx,1);
-      return create.invokation(create.class_type(name), null,  name, args);
+      return create.new_object(create.class_type(name), args);
     }
     if (match(ctx,"new",null,"[",null,"]")){
       Type t=checkType(convert(ctx,1));
@@ -502,6 +509,18 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
       }
       return create.while_loop(convert(ctx,3),convert(ctx,5),invs);
     }
+    if (match(ctx,"lock",null,";")){
+      return create.special(ASTSpecial.Kind.Lock,convert(ctx,1));
+    }
+    if (match(ctx,"unlock",null,";")){
+      return create.special(ASTSpecial.Kind.Unlock,convert(ctx,1));
+    }
+    if (match(ctx,"wait",null,";")){
+      return create.special(ASTSpecial.Kind.Wait,convert(ctx,1));
+    }
+    if (match(ctx,"notify",null,";")){
+      return create.special(ASTSpecial.Kind.Notify,convert(ctx,1));
+    }
     if (match(ctx,"assert",null,";")){
       return create.expression(StandardOperator.Assert,convert(ctx,1));
     }
@@ -509,10 +528,10 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
       return create.expression(StandardOperator.Assume,convert(ctx,1));
     }
     if (match(ctx,"fork",null,";")){
-      return create.expression(StandardOperator.Fork,convert(ctx,1));
+      return create.special(ASTSpecial.Kind.Fork,convert(ctx,1));
     }
     if (match(ctx,"join",null,";")){
-      return create.expression(StandardOperator.Join,convert(ctx,1));
+      return create.special(ASTSpecial.Kind.Join,convert(ctx,1));
     }
     if (match(ctx,"fold",null,";")){
       return create.expression(StandardOperator.Fold,convert(ctx,1));
@@ -804,7 +823,13 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
     Type returns=(Type)convert(ctx.children.get(1));
     String name=getIdentifier(ctx,2);
     DeclarationStatement args[]=convertArgs((ArgsContext) ctx.children.get(4));
-    ASTNode res=create.method_decl(returns,c, name, args , null);
+    ASTNode res;
+    if (returns.isPrimitive(Sort.Resource)){
+      res=create.predicate(name, null, args);
+    } else {
+      res=create.method_decl(returns,c, name, args , null);
+    }
+    
     res.setStatic(false);
     return res;
   }

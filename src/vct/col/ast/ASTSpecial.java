@@ -33,7 +33,13 @@ public class ASTSpecial extends ASTNode {
     Transfer,
     Goto,
     SpecIgnoreStart,
-    SpecIgnoreEnd
+    SpecIgnoreEnd,
+    Lock,
+    Unlock,
+    Wait,
+    Notify,
+    Fork,
+    Join
   };
 
   public final Kind kind;

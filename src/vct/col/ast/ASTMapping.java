@@ -80,4 +80,6 @@ public interface ASTMapping<R> {
 
   public R map(TryCatchBlock tcb);
 
+  public R map(FieldAccess a);
+
 }

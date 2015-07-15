@@ -156,19 +156,26 @@ public class SilverStatementMap<T,E,S,Decl> implements ASTMapping<S>{
 
   @Override
   public S map(AssignmentStatement s) {
-    if (s.getExpression().isa(StandardOperator.NewSilver)){
+    Origin origin = s.getOrigin();
+    ASTNode location = s.getLocation();
+    ASTNode expression = s.getExpression();
+    return assignment(origin, location, expression);
+  }
+
+  public S assignment(Origin origin, ASTNode location, ASTNode expression) {
+    if (expression.isa(StandardOperator.NewSilver)){
       //Configuration.getDiagSyntax().print(System.err, s);
       ArrayList<String> names=new ArrayList();
       ArrayList<T> types=new ArrayList();
-      ASTNode args[]=((OperatorExpression)s.getExpression()).getArguments();
+      ASTNode args[]=((OperatorExpression)expression).getArguments();
       for(int i=0;i<args.length;i++){
         Dereference d=(Dereference)args[i];
         names.add(d.field);
         types.add(d.getType().apply(type));
       }
-      return create.new_object(s.getOrigin(),s.getLocation().apply(expr),names,types);
+      return create.new_object(origin,location.apply(expr),names,types);
     } else {
-      return create.assignment(s.getOrigin(),s.getLocation().apply(expr),s.getExpression().apply(expr));
+      return create.assignment(origin,location.apply(expr),expression.apply(expr));
     }
   }
 
@@ -258,6 +265,8 @@ public class SilverStatementMap<T,E,S,Decl> implements ASTMapping<S>{
       return create.inhale(special.getOrigin(),special.args[0].apply(expr));
     case Exhale:
       return create.exhale(special.getOrigin(),special.args[0].apply(expr));
+    case Assert:
+      return create.assert_(special.getOrigin(),special.args[0].apply(expr));
     default:
       throw new HREError("cannot map special %s",special.kind);
     }
@@ -338,6 +347,17 @@ public class SilverStatementMap<T,E,S,Decl> implements ASTMapping<S>{
   public S map(TryCatchBlock tcb) {
     // TODO Auto-generated method stub
     return null;
+  }
+
+  @Override
+  public S map(FieldAccess a) {
+    if (a.value==null){
+      throw new HREError("Field read expression in statement map.");
+    } else {
+      ASTNode var=new Dereference(a.object,a.name);
+      var.setOrigin(a);
+      return assignment(a.getOrigin(),var,a.value);
+    }
   }
 
 

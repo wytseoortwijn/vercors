@@ -114,6 +114,11 @@ public class DynamicStaticInheritance extends AbstractRewriter {
       }
     }
     public void visit(ClassType t){
+      //TODO: test for ADT or make ADT into NON-class!
+      if (t.toString().equals("TYPE")){
+        super.visit(t);
+        return;
+      }
       ASTClass cl=source().find(t.getNameFull());
       if (cl==null) {
         Method m=source().find_predicate(t.getNameFull());

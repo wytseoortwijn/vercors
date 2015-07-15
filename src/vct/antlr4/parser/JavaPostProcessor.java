@@ -19,6 +19,8 @@ import vct.col.ast.ProgramUnit;
 import vct.col.ast.StandardOperator;
 import vct.col.ast.Type;
 import vct.col.rewrite.AbstractRewriter;
+import vct.java.printer.JavaDialect;
+import vct.java.printer.JavaSyntax;
 
 /**
  * Rewrite a Java AST, produced by parsing, to conform to the COL AST standard.  
@@ -77,7 +79,7 @@ public class JavaPostProcessor extends AbstractRewriter {
     for(Method m:decl.dynamicMethods()){
       if (m.kind==Method.Kind.Constructor) N++;
     }
-    if (N==0) create.addZeroConstructor(decl);
+    if (N==0 && c.kind!=ASTClass.ClassKind.Interface) create.addZeroConstructor(decl);
   }
 
   @Override
@@ -92,15 +94,8 @@ public class JavaPostProcessor extends AbstractRewriter {
   @Override
   public void visit(MethodInvokation e){
     if (e.object==null){
-      StandardOperator op=null;
-      switch(e.method){
-      case "head":
-        op=StandardOperator.Head;
-        break;
-      case "tail":
-        op=StandardOperator.Tail;
-        break;
-      }
+      JavaSyntax syntax=JavaSyntax.getJava(JavaDialect.JavaVerCors);
+      StandardOperator op=syntax.parseFunction(e.method);
       if (op!=null){
         result=create.expression(op,rewrite(e.getArgs()));
         return;

@@ -62,6 +62,8 @@ public class SilverTypeMap<T> implements TypeMapping<T> {
         return create.Set(map(t.getArg(0)));
       case Bag:
         return create.Bag(map(t.getArg(0)));
+      case String:
+        return create.List(create.Int());
       default:
         throw new HREError("primitive type %s unsupported",t.sort);
     }

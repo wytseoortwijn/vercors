@@ -142,6 +142,7 @@ public class CheckProcessAlgebra extends AbstractRewriter {
             Binder.FORALL,
             create.primitive_type(Sort.Boolean),
             copy_rw.rewrite(m.getArgs()),
+            new ASTNode[0][],
             create.constant(true),
             create.expression(StandardOperator.EQ,
                 rewrite(m.getBody()),

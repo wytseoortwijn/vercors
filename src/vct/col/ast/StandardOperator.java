@@ -54,6 +54,8 @@ public enum StandardOperator {
   LTE(2),
   /** If then else operator or conditional. */
   ITE(3),
+  /** return the type of a value */
+  TypeOf(1),
   /** Instance of test. */
   Instance(2),
   /** Type Cast Expression. */
@@ -113,6 +115,10 @@ public enum StandardOperator {
   /** Immutable permission predicate.  */
   Value(1),
   /**
+   * Permission to a field that is part of an active history.
+   */
+  HistoryPerm(2),
+  /**
    * Declare a location to be volatile. That is, accessible by multiple threads.
    */
   Volatile(1),
@@ -145,10 +151,6 @@ public enum StandardOperator {
   AddsTo(2),
   /** Array subscript. */
   Subscript(2),
-  /** Fork statement. */
-  Fork(1),
-  /** Join statement. */
-  Join(1),
   /** Lock statement. */
   Lock(1),
   /** Unfold statement. */
@@ -271,7 +273,11 @@ public enum StandardOperator {
    */
   ReducibleSum(1),
   ReducibleMax(1),
-  ReducibleMin(1)
+  ReducibleMin(1),
+  /**
+   * Standard predicate that indicates that a non-reentrant lock is held on an object. 
+   */
+  Held(1)
   ;
 
   private final int arity;

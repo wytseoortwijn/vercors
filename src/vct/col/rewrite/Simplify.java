@@ -4,6 +4,7 @@ import vct.col.ast.ASTFrame;
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTReserved;
 import vct.col.ast.Dereference;
+import vct.col.ast.FieldAccess;
 import vct.col.ast.MethodInvokation;
 
 public class Simplify extends AbstractRewriter {
@@ -15,6 +16,14 @@ public class Simplify extends AbstractRewriter {
   public void visit(Dereference d){
     if (d.object.isReserved(ASTReserved.This)){
       result=create.local_name(d.field);
+    } else {
+      super.visit(d);
+    }
+  }
+  
+  public void visit(FieldAccess d){
+    if (d.object.isReserved(ASTReserved.This)){
+      result=create.local_name(d.name);
     } else {
       super.visit(d);
     }
