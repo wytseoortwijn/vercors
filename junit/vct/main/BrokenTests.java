@@ -65,15 +65,4 @@ public class BrokenTests extends ToolTest {
     }
   }
 
-  @Test
-  public void testHistogramFull(){
-    sem_get();
-    try {
-      VCTResult res=run("vct","--silver=silicon_qp","//examples/carp/histogram-submatrix.c");
-      res.checkVerdict(Verdict.Pass);
-    } finally {
-      sem.release();
-    }
-  }
-
 }

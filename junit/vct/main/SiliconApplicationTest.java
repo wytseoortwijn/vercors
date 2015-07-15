@@ -159,7 +159,18 @@ public class SiliconApplicationTest extends ToolTest {
       sem.release();
     }
   }
-  
+
+  @Test
+  public void testHistogramFull(){
+    sem_get();
+    try {
+      VCTResult res=run("vct","--silver=silicon_qp","//examples/carp/histogram-submatrix.c");
+      res.checkVerdict(Verdict.Pass);
+    } finally {
+      sem.release();
+    }
+  }
+
   @Test
   public void testAccessSubmatrix(){
     sem_get();
