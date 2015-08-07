@@ -40,6 +40,16 @@ public class ApiGen {
     }
   }
   
+  private static String[] listArgument(Type t){
+    String tmp=t.toString();
+    if (tmp.startsWith("java.util.List")){
+      tmp=tmp.replaceFirst(".*<","");
+      tmp=tmp.replaceFirst(">.*","");
+      return tmp.split("[.]");
+    } else {
+      return null;
+    }
+  }
   private static String show(Type t){
     String res=t.toString();
     if (res.startsWith("class ")){
@@ -79,7 +89,7 @@ public class ApiGen {
       }
     });
     if (pars.length>0){
-      out.printf("class Wrapped%s", cl.getSimpleName());
+      out.printf("public class Wrapped%s", cl.getSimpleName());
       for(int i=0;i<pars.length;i++){
         out.printf("%s%s",i==0?"<":",",pars[i].getName());
         Type bounds[]=pars[i].getBounds();
@@ -126,14 +136,30 @@ public class ApiGen {
       Method m=methods[count];
       boolean is_void=m.getGenericReturnType().toString().equals("void");
       Type t[]=m.getGenericParameterTypes();
-      out.printf("public %s %s(",show(m.getGenericReturnType()),m.getName());
+      String list[]=listArgument(m.getGenericReturnType());
+      out.printf("/* %s / %s */%n", m.getGenericReturnType(),list);
+      String et=null;
+      if (list!=null){
+        et="";
+        for(int i=0;i<list.length-1;i++){
+          et+=list[i]+".";
+        }
+        et+="Wrapped"+list[list.length-1];
+        et=et.replaceFirst("[?] extends ","");
+      }
+      String rt=show(m.getGenericReturnType());
+      out.printf("public %s %s(",rt,m.getName());
       for(int i=0;i<t.length;i++){
         out.printf("%s%s arg%d",i==0?"":",",show(t[i]),i);        
       }
       out.println("){");
       out.println("  try {");
       if (!is_void){
-        out.printf("    return (%s)m%d.invoke(obj",show(m.getGenericReturnType()),count);
+        if (list==null){
+          out.printf("    return (%s)m%d.invoke(obj",show(m.getGenericReturnType()),count);
+        } else {
+          out.printf("    java.util.List tmp=(java.util.List)m%d.invoke(obj",count);
+        }
       } else {
         out.printf("    m%d.invoke(obj",count);
       }
@@ -141,6 +167,13 @@ public class ApiGen {
         out.printf(",arg%d", i);
       }
       out.println(");");
+      if (list!=null){
+        out.printf("    java.util.List<%s> res=new java.util.ArrayList();%n",et);
+        out.printf("    for(Object o : tmp){%n");
+        out.printf("      res.add(new %s(o));%n",et);
+        out.printf("    }%n");
+        out.printf("    return res;%n");
+      }
       out.println("  } catch (IllegalAccessException | IllegalArgumentException e) {");
       out.println("    throw new Error(e.getClass()+\" \"+e.getMessage());");
       out.println("  } catch (InvocationTargetException e) {");
