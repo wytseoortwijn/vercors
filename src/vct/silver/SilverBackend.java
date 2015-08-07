@@ -1,5 +1,6 @@
 package vct.silver;
 
+import viper.api.*;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
@@ -27,7 +28,7 @@ import vct.util.Configuration;
 
 public class SilverBackend {
   
-  public static StringSetting silver_module=new StringSetting("silver/stable");
+  public static StringSetting silver_module=new StringSetting("viper/git");
   public static IntegerSetting silicon_z3_timeout=new IntegerSetting(30000);
   
   public static <T,E,S,Decl,DFunc,DAxiom,Program>
@@ -38,23 +39,23 @@ public class SilverBackend {
     //System.err.printf("adding jar %s to path%n",jarfile);
     JarContainer container=new JarContainer(jarfile);
     Object obj;
-    Properties silver_props=new Properties();
-    Properties verifier_props=new Properties();
+    //TODO: Properties silver_props=new Properties();
+    //TODO: Properties verifier_props=new Properties();
     try {
       ClassLoader loader=new ContainerClassLoader(container);
-      InputStream is=loader.getResourceAsStream("silver.hglog");
-      silver_props.load(is);
-      is.close();
-      //System.err.printf("silver properties: %s%n", silver_props);
-      is=loader.getResourceAsStream("verifier.hglog");
-      verifier_props.load(is);
-      is.close();
-      //System.err.printf("verifier properties: %s%n", verifier_props);
+      //TODO: InputStream is=loader.getResourceAsStream("silver.hglog");
+      //TODO: silver_props.load(is);
+      //TODO: is.close();
+      //TODO: System.err.printf("silver properties: %s%n", silver_props);
+      //TODO: is=loader.getResourceAsStream("verifier.hglog");
+      //TODO: verifier_props.load(is);
+      //TODO: is.close();
+      //TODO: System.err.printf("verifier properties: %s%n", verifier_props);
       Class v_class;
       if (tool.contains("silicon")){
-        v_class=loader.loadClass("vct.silver.SiliconVerifier");
+        v_class=loader.loadClass("viper.api.SiliconVerifier");
       } else if (tool.contains("carbon")) {
-        v_class=loader.loadClass("vct.silver.CarbonVerifier");
+        v_class=loader.loadClass("viper.api.CarbonVerifier");
       } else {
         throw new HREError("cannot guess the main class of %s",tool);
       }
@@ -226,8 +227,16 @@ public class SilverBackend {
     TestReport report=new TestReport();
     start_time=System.currentTimeMillis();
     try {
-      List<VerificationError> errs=verifier.verify(new ErrorFactory(),Configuration.getToolHome(),settings,program);
+      List<? extends ViperError> errs=verifier.verify(Configuration.getToolHome(),settings,program);
       if (errs.size()>0){
+        for(ViperError e:errs){
+          int N=e.getExtraCount();
+          for(int i=0;i<N;i++){
+            Origin o=(Origin)e.getOrigin(i);
+            String msg=e.getError(i);
+            o.report("error",msg);
+          }
+        }
         report.setVerdict(Verdict.Fail);
       } else {
         report.setVerdict(Verdict.Pass);

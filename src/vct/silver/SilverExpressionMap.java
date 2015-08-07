@@ -9,6 +9,7 @@ import hre.ast.Origin;
 import vct.col.ast.*;
 import vct.col.ast.PrimitiveType.Sort;
 import static hre.System.Abort;
+import viper.api.*;
 
 public class SilverExpressionMap<T,E,Decl> implements ASTMapping<E>{
 

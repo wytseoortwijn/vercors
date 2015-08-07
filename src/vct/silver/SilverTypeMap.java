@@ -3,6 +3,7 @@ package vct.silver;
 import hre.HREError;
 import hre.ast.Origin;
 import vct.col.ast.*;
+import viper.api.*;
 
 public class SilverTypeMap<T> implements TypeMapping<T> {
 

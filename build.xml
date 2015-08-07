@@ -24,6 +24,26 @@
   </target>
   
 	<target name="generate" depends="C,CML,Java,JavaJML,PVFull">
+    <mkdir dir="${gen}/viper/api"/>
+    <echo>Generating Viper API wrapper.</echo>
+    <java classname="hre.api.ApiGen">
+      <arg value="viper.api.SilverVerifier"/>
+      <arg value="${gen}/viper/api/WrappedSilverVerifier.java"/>        
+      <classpath>
+        <pathelement location="../../../viper/git/viper-api/bin"/>
+        <pathelement location="../hre/bin"/>
+        <pathelement location="../silver/bin"/>
+       </classpath>
+    </java>
+    <java classname="hre.api.ApiGen">
+      <arg value="viper.api.ViperError"/>
+      <arg value="${gen}/viper/api/WrappedViperError.java"/>        
+      <classpath>
+        <pathelement location="../../../viper/git/viper-api/bin"/>
+        <pathelement location="../hre/bin"/>
+        <pathelement location="../silver/bin"/>
+       </classpath>
+    </java>
     <echo>Finished parser generation.</echo>
 	</target>
 

@@ -8,6 +8,7 @@ import vct.col.ast.*;
 import vct.col.util.ASTUtils;
 import vct.util.Configuration;
 import static hre.System.Abort;
+import viper.api.*;
 
 public class SilverStatementMap<T,E,S,Decl> implements ASTMapping<S>{
 

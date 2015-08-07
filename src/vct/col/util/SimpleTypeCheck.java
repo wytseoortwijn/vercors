@@ -548,7 +548,11 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       } else {
         Fail("cannot determine members of %s",t2);
       }
-      e.setType(new PrimitiveType(Sort.Boolean));
+      if (t2.isPrimitive(Sort.Bag)){
+        e.setType(new PrimitiveType(Sort.Integer));
+      } else {
+        e.setType(new PrimitiveType(Sort.Boolean));
+      }
       break;
     }
     case NewArray:
@@ -944,7 +948,9 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     {
       Type t=e.getArg(0).getType();
       if (t==null) Fail("type of argument is unknown at %s",e.getOrigin());
-      if (!t.isPrimitive(Sort.Sequence)) Fail("argument of size is not a sequence");
+      if (!(t.isPrimitive(Sort.Sequence)||t.isPrimitive(Sort.Bag)||t.isPrimitive(Sort.Set))) {
+        Fail("argument of size is not a set, sequence, or bag");
+      }
       e.setType(new PrimitiveType(Sort.Integer));      
       break;
     }
