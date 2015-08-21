@@ -789,6 +789,9 @@ public class JavaJMLtoCol extends AbstractJavaToCol implements JavaJMLVisitor<AS
     if (match(ctx,"transfer",null,";")){
       return create.special(ASTSpecial.Kind.Transfer,convert(ctx,1));
     }
+    if (match(ctx,"csl_subject",null,";")){
+      return create.special(ASTSpecial.Kind.CSLSubject,convert(ctx,1));
+    }
     if (match(ctx,"with",null)){
         return create.special(ASTSpecial.Kind.With,convert(ctx,1));
       }

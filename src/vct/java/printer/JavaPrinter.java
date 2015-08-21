@@ -316,6 +316,12 @@ public class JavaPrinter extends AbstractPrinter {
       s.args[0].accept(this);
       out.println(";");
       break;    
+    case CSLSubject:
+      out.print("csl_subject ");
+      setExpr();
+      s.args[0].accept(this);
+      out.println(";");
+      break;    
     case SpecIgnoreStart:
       out.println("spec_ignore {");
       break;

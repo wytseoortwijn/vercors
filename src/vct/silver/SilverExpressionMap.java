@@ -296,7 +296,7 @@ public class SilverExpressionMap<T,E,Decl> implements ASTMapping<E>{
         }
       }
       if(!good){
-        Abort("Simplification failure: \\forall* argument is not of the form Perm(S[i].v,e) or Value(S[i].v) in%n%s",e);
+        hre.System.Warning("Possible simplification failure: \\forall* argument is not of the form Perm(S[i].v,e) or Value(S[i].v) in%n%s",e);
       }
     case FORALL:
       E expr;
