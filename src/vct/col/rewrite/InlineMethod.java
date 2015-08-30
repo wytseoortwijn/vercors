@@ -55,6 +55,16 @@ public class InlineMethod extends Substitution {
   }
   
   @Override
+  public void visit(DeclarationStatement decl){
+    //TODO: handle scoping properly!
+    String name=decl.getName();
+    String new_name=prefix+name;
+    NameExpression n=create.local_name(decl.getName());
+    map.put(n, create.local_name(new_name));
+    result=create.field_decl(new_name, rewrite(decl.getType()), rewrite(decl.getInit()));
+  }
+
+  @Override
   public void visit(ReturnStatement r){
     if (r.getExpression()!=null){
       result=create.block(

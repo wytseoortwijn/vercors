@@ -37,7 +37,14 @@ public class SilverBackend {
     long start_time=System.currentTimeMillis();
     File jarfile=Configuration.getToolHome().resolve(silver_module.get()+"/"+tool+".jar").toFile();
     //System.err.printf("adding jar %s to path%n",jarfile);
-    JarContainer container=new JarContainer(jarfile);
+    Container container;
+    if (jarfile.exists()){
+      container=new JarContainer(jarfile);
+    } else {
+      jarfile=Configuration.getToolHome().resolve(silver_module.get()+"/"+tool+"/target/scala-2.10/"+tool+".jar").toFile();
+      File classdir=Configuration.getToolHome().resolve(silver_module.get()+"/"+tool+"/target/scala-2.10/classes").toFile();
+      container=new UnionContainer(new DirContainer(classdir),new JarContainer(jarfile));
+    }
     Object obj;
     //TODO: Properties silver_props=new Properties();
     //TODO: Properties verifier_props=new Properties();
@@ -67,6 +74,7 @@ public class SilverBackend {
       return res;
     }
     SilverVerifier<Origin,VerificationError,T,E,S,Decl,DFunc,DAxiom,Program> verifier=new WrappedSilverVerifier(obj);
+    verifier.set_detail(Configuration.detailed_errors.get());
     SilverTypeMap<T> type=new SilverTypeMap(verifier);
     SilverExpressionMap<T, E, Decl> expr=new SilverExpressionMap(verifier,type);
     SilverStatementMap<T, E, S, Decl> stat=new SilverStatementMap(verifier,type,expr);
