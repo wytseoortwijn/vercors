@@ -3,7 +3,6 @@ package vct.antlr4.parser;
 import static hre.System.Debug;
 import static hre.System.Fail;
 import static hre.System.Warning;
-
 import hre.HREError;
 
 import java.util.ArrayList;
@@ -31,6 +30,7 @@ import pv.parser.PVFullParser.ExprContext;
 import pv.parser.PVFullParser.Fence_listContext;
 import pv.parser.PVFullParser.FieldContext;
 import pv.parser.PVFullParser.FunctionContext;
+import pv.parser.PVFullParser.Gen_idContext;
 import pv.parser.PVFullParser.Id_listContext;
 import pv.parser.PVFullParser.InvariantContext;
 import pv.parser.PVFullParser.IterContext;
@@ -683,7 +683,7 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
     int N=ctx.children.size();
     for(int i=1;i<N;){
       if (match(i,true,ctx,".",null)){
-        res=create.dereference(res,getIdentifier(ctx,i+1));
+        res=create.dereference(res,getGeneralizedIdentifier(ctx,i+1));
         i+=2;
       } else if(match(i,true,ctx,"[",null,"]")){
         res=create.expression(StandardOperator.Subscript,res,convert(ctx,i+1));
@@ -714,7 +714,7 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
   public ASTNode visitMethod(MethodContext ctx) {
     Contract c=(Contract) convert(ctx.children.get(0));
     Type returns=(Type)convert(ctx.children.get(1));
-    String name=getIdentifier(ctx,2);
+    String name=getGeneralizedIdentifier(ctx,2);
     DeclarationStatement args[]=convertArgs((ArgsContext) ctx.children.get(4));
     ASTNode body=convert(ctx.children.get(6));
     ASTNode res=create.method_decl(returns,c, name, args ,body);
@@ -863,6 +863,11 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
   }
   @Override
   public ASTNode visitId_list(Id_listContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+  @Override
+  public ASTNode visitGen_id(Gen_idContext ctx) {
     // TODO Auto-generated method stub
     return null;
   }

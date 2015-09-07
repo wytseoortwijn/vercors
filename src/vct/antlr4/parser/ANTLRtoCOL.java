@@ -621,6 +621,14 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
   }
   
   protected String getIdentifier(ParserRuleContext ctx, int i) {
+    return getIdentifier(ctx,i,true);
+  }
+
+  protected String getGeneralizedIdentifier(ParserRuleContext ctx, int i) {
+    return getIdentifier(ctx,i,false);
+  }
+  
+  protected String getIdentifier(ParserRuleContext ctx, int i, boolean strict) {
     ParseTree node=ctx.children.get(i);
     if (node==null) Abort("child %d does not exist",i);
     while(node instanceof ParserRuleContext){
@@ -633,11 +641,11 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
     }
     if (node instanceof TerminalNode){
       Token tok=((TerminalNode)node).getSymbol();
-      if (tok.getType()==id_token) {
+      if ((!strict) || tok.getType()==id_token) {
         return tok.getText();
       }
     }
-    Abort("child %d is not an identifier",i);
+    Abort("child %d (%s) is not an identifier",i,node.toStringTree(parser));
     return null;
   }
   

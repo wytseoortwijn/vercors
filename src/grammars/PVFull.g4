@@ -21,7 +21,7 @@ field : type ID ( ',' ID )* ';' ;
 
 function : contract 'static'? type ID '(' args ')' '=' expr ';' ;
 
-method : contract type ID '(' args ')' block ;
+method : contract type gen_id '(' args ')' block ;
 
 constructor : contract ID '(' args ')' block ;
 
@@ -125,12 +125,14 @@ fence_list : ( 'local' | 'global' )* ;
 
 invariant : ( 'loop_invariant' expr ';' )* ;
 
-lexpr : ('this' | '\\result' | ID ) ('.' ID | '[' expr ']' )* ; 
+lexpr : ('this' | '\\result' | ID ) ('.' gen_id | '[' expr ']' )* ; 
 
 type
  : CONTAINER '<' type '>'
  | ( 'process' | 'int' | 'boolean' | 'zfrac' | 'frac' | 'resource' | 'void' | ID | classType ) ('[' expr? ']')*
  ;
+
+gen_id : ID | 'set' ; 
 
 classType : ID typeArgs?;
 
