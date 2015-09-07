@@ -14,7 +14,9 @@ public class SilverReorder extends AbstractRewriter {
   public void visit(IfStatement s){
     Debug("rewriting if");
     BlockStatement tmp=main_block;
-    main_block=currentBlock;
+    if(tmp==null){
+      main_block=currentBlock;
+    }
     super.visit(s);
     main_block=tmp;
   }

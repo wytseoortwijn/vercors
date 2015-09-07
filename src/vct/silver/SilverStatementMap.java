@@ -71,8 +71,9 @@ public class SilverStatementMap<T,E,S,Decl> implements ASTMapping<S>{
 
   @Override
   public S map(NameExpression e) {
-    // TODO Auto-generated method stub
-    return null;
+    E eq=e.apply(expr);
+    eq=create.eq(e.getOrigin(), eq, eq);
+    return create.assert_(e.getOrigin(),eq);
   }
 
   @Override

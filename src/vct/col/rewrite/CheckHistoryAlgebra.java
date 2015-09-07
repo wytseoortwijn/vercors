@@ -315,11 +315,11 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
     hist_set_cb.ensures(create.expression(PointsTo,var,full,val));
     hist_set_cb.ensures(create.expression(PointsTo,mode,half,hist));
     free_get_cb.requires(create.expression(Value,var));
-    free_get_cb.requires(create.expression(Value,mode));
-    free_get_cb.requires(create.expression(EQ,mode,free));
+    //free_get_cb.requires(create.expression(Value,mode));
+    //free_get_cb.requires(create.expression(EQ,mode,free));
     hist_get_cb.requires(create.expression(Value,var));
-    hist_get_cb.requires(create.expression(Value,mode));
-    hist_get_cb.requires(create.expression(EQ,mode,hist));    
+    //hist_get_cb.requires(create.expression(Value,mode));
+    //hist_get_cb.requires(create.expression(EQ,mode,hist));    
     cl.add_dynamic(create.method_decl(
         create.primitive_type(Sort.Void),
         free_set_cb.getContract(),
@@ -363,6 +363,10 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
       cb.ensures(create.expression(PointsTo,create.field_name(d.name+"_hist_mode"),
           create.reserved_name(FullPerm),create.constant(1)));
       cb.ensures(create.expression(Perm,create.field_name(d.name+"_hist_init"),create.reserved_name(FullPerm)));
+      cb.ensures(create.expression(EQ
+          , create.field_name(d.name+"_hist_value")
+          , create.expression(Old,create.field_name(d.name+"_hist_value"))
+      ));
       cb.ensures(create.expression(EQ
           , create.field_name(d.name+"_hist_init")
           , create.expression(Old,create.field_name(d.name+"_hist_value"))
@@ -826,6 +830,14 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
             create.reserved_name(FullPerm),create.constant(0)));
         cb.ensures(create.expression(Perm,create.field_name(d.name+"_hist_init"),create.reserved_name(FullPerm)));
         cb.ensures(create.expression(Perm,create.field_name(d.name+"_hist_act"),create.reserved_name(FullPerm)));
+        cb.ensures(create.expression(EQ
+            , create.field_name(d.name+"_hist_value")
+            , create.expression(Old,create.field_name(d.name+"_hist_value"))
+        ));
+        cb.ensures(create.expression(EQ
+            , create.field_name(d.name+"_hist_init")
+            , create.expression(Old,create.field_name(d.name+"_hist_value"))
+        ));
       }
       Simplify simp=new Simplify(this);
       cb.ensures(new_sigma.rewrite(rename_old.rewrite(def.getContract().post_condition)));
