@@ -52,6 +52,7 @@ import vct.col.rewrite.CheckHistoryAlgebra.Mode;
 import vct.col.rewrite.CheckProcessAlgebra;
 import vct.col.rewrite.ClassConversion;
 import vct.col.rewrite.ConstructorRewriter;
+import vct.col.rewrite.CurrentThreadRewriter;
 import vct.col.rewrite.DefineDouble;
 import vct.col.rewrite.DynamicStaticInheritance;
 import vct.col.rewrite.ExplicitPermissionEncoding;
@@ -159,12 +160,7 @@ public class Main
     final BooleanSetting check_axioms=new BooleanSetting(false);
     clops.add(check_axioms.getEnable("check if defined processes satisfy their contracts."),"check-axioms");
     final BooleanSetting check_history=new BooleanSetting(false);
-    clops.add(check_history.getEnable("check if defined processes satisfy their contracts."),"check-history");
-
-    
-    final BooleanSetting check_csl=new BooleanSetting(false);
-    clops.add(check_csl.getEnable("convert CSL syntax into plain SL"),"check-csl");
-    
+    clops.add(check_history.getEnable("check if defined processes satisfy their contracts."),"check-history");   
     
     final BooleanSetting separate_checks=new BooleanSetting(false);
     clops.add(separate_checks.getEnable("validate classes separately"),"separate");
@@ -398,6 +394,11 @@ public class Main
         return arg;
       }
     });    
+    defined_passes.put("current_thread",new CompilerPass("Encode references to current thread."){
+      public ProgramUnit apply(ProgramUnit arg,String ... args){
+        return new CurrentThreadRewriter(arg).rewriteAll();
+      }
+    });
     defined_passes.put("define_double",new CompilerPass("Rewrite double as a non-native data type."){
       public ProgramUnit apply(ProgramUnit arg,String ... args){
         return DefineDouble.rewrite(arg);
@@ -772,7 +773,7 @@ public class Main
         passes.add("standardize");
         passes.add("check");
       }
-      if (check_csl.get()){
+      if (features.usesCSL()){
         passes.add("csl-encode");
         passes.add("standardize");
         passes.add("check");
@@ -916,11 +917,6 @@ public class Main
         passes.add("standardize");
         passes.add("check");
       }
-      if (check_csl.get()){
-        passes.add("csl-encode");
-        passes.add("standardize");
-        passes.add("check");
-      }
       if (check_axioms.get()){
         passes.add("check-axioms");
         passes.add("standardize");
@@ -931,6 +927,14 @@ public class Main
         passes.add("standardize");
         passes.add("check");
         passes.add("check-history");
+        passes.add("standardize");
+        passes.add("check");
+      }
+      passes.add("current_thread");
+      passes.add("standardize");
+      passes.add("check");    
+      if (features.usesCSL()){
+        passes.add("csl-encode");
         passes.add("standardize");
         passes.add("check");
       }
