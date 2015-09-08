@@ -19,7 +19,9 @@ kernel_field : ('global' | 'local') type ID ( ',' ID )* ';' ;
 
 field : type ID ( ',' ID )* ';' ;
 
-function : contract 'static'? type ID '(' args ')' '=' expr ';' ;
+function : contract modifiers type ID '(' args ')' '=' expr ';' ;
+
+modifiers : ( 'static' | 'thread_local' )*;
 
 method : contract type gen_id '(' args ')' block ;
 
@@ -65,6 +67,7 @@ expr
  | 'true'
  | 'false'
  | '\\result'
+ | 'current_thread'
  | ID
  | NUMBER
  | '[' expr ']' expr
@@ -132,7 +135,7 @@ type
  | ( 'process' | 'int' | 'boolean' | 'zfrac' | 'frac' | 'resource' | 'void' | ID | classType ) ('[' expr? ']')*
  ;
 
-gen_id : ID | 'set' ; 
+gen_id : ID | CONTAINER ; 
 
 classType : ID typeArgs?;
 
