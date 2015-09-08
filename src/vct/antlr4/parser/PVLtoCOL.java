@@ -39,6 +39,7 @@ import pv.parser.PVFullParser.KernelContext;
 import pv.parser.PVFullParser.Kernel_fieldContext;
 import pv.parser.PVFullParser.LexprContext;
 import pv.parser.PVFullParser.MethodContext;
+import pv.parser.PVFullParser.ModifiersContext;
 import pv.parser.PVFullParser.ProgramContext;
 import pv.parser.PVFullParser.StatementContext;
 import pv.parser.PVFullParser.TupleContext;
@@ -48,6 +49,7 @@ import pv.parser.PVFullParser.ValuesContext;
 import pv.parser.PVFullParser.With_thenContext;
 import pv.parser.PVFullVisitor;
 import vct.col.ast.ASTClass;
+import vct.col.ast.ASTFlags;
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTReserved;
 import vct.col.ast.ASTSpecial;
@@ -405,12 +407,7 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
   @Override
   public ASTNode visitFunction(FunctionContext ctx) {
     Contract c=(Contract) convert(ctx.children.get(0));
-    int offset;
-    if (match(1,true,ctx,"static")){
-      offset=1;
-    } else {
-      offset=0;
-    }
+    int offset=1;
     Type returns=(Type)convert(ctx.children.get(offset+1));
     String name=getIdentifier(ctx,offset+2);
     DeclarationStatement args[]=convertArgs((ArgsContext) ctx.children.get(offset+4));
@@ -422,7 +419,16 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
       kind=Kind.Pure;
     }
     ASTNode res=create.method_kind(kind,returns,c, name, args ,body);
-    res.setStatic(offset==1);
+    ParserRuleContext flags=(ParserRuleContext)ctx.getChild(1);
+    for(int i=0;i<flags.getChildCount();i++){
+      if (match(i,true,flags,"static")){
+        res.setStatic(true);
+      } else if (match(i,true,flags,"thread_local")){
+        res.setFlag(ASTFlags.THREAD_LOCAL,true);
+      } else {
+        Fail("Unknown modifier %s%n",ctx.getChild(i).toStringTree());
+      }
+    }
     return res;
   }
   
@@ -868,6 +874,11 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
   }
   @Override
   public ASTNode visitGen_id(Gen_idContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+  @Override
+  public ASTNode visitModifiers(ModifiersContext ctx) {
     // TODO Auto-generated method stub
     return null;
   }

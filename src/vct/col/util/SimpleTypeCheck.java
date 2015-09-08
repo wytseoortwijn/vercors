@@ -326,7 +326,8 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
           for(String v:variables.keySet()){
             Debug("var %s : %s",v,variables.lookup(v).reference.getType());
           }
-          Abort("%s name %s is undefined",kind,name);
+          e.getOrigin().report("undefined.name",String.format("%s name %s is undefined",kind,name));
+          Fail("fatal error");
         }
         e.setSite(info.reference);
         if (info.kind!=kind){
@@ -374,6 +375,10 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
         }
         case NoPerm:{
           e.setType(new PrimitiveType(PrimitiveType.Sort.ZFraction));
+          break;
+        }
+        case CurrentThread:{
+          e.setType(new PrimitiveType(PrimitiveType.Sort.Integer));
           break;
         }
       case Result:{

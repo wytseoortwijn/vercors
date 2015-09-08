@@ -604,6 +604,9 @@ public class JavaPrinter extends AbstractPrinter {
           case ASTFlags.PUBLIC:
             out.printf("public ");
             break;
+          case ASTFlags.THREAD_LOCAL:
+            out.printf("/*@ thread_local @*/ ");
+            break;
           default:
             throw new HREError("unknown flag %04x",i);
           }

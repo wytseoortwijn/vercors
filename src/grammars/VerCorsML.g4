@@ -39,6 +39,7 @@ specificationPrimary
     | '(' expression '\\memberof' expression ')'
     | '['  expression '..' expression ')'
     | '*'
+    | '\\current_thread'
     ;
 
 expressionList

@@ -68,7 +68,9 @@ public class JavaSyntax extends Syntax {
         syntax.addReserved(EmptyProcess, "empty");
         
         syntax.addReserved(Inline,"inline");
+        syntax.addReserved(ThreadLocal,"thread_local");
         syntax.addReserved(Pure,"pure");
+        syntax.addReserved(CurrentThread,"\\current_thread");
 
         
         JavaVerCorsSyntax=syntax;

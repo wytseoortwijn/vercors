@@ -16,4 +16,6 @@ public interface ASTFlags {
 
   public final int  PUBLIC = 0x0040;
 
+  public final int THREAD_LOCAL = 0x0080;
+
 }

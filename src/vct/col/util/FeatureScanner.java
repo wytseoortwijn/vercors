@@ -9,6 +9,7 @@ import vct.col.ast.BindingExpression;
 import vct.col.ast.Contract;
 import vct.col.ast.ForEachLoop;
 import vct.col.ast.LoopStatement;
+import vct.col.ast.Method;
 import vct.col.ast.OperatorExpression;
 import vct.col.ast.ParallelBlock;
 import vct.col.ast.PrimitiveType.Sort;
@@ -30,10 +31,14 @@ public class FeatureScanner extends RecursiveVisitor<Object> {
   private boolean has_inheritance=false;
   private boolean has_kernels=false;
   private boolean has_iteration_contracts=false;
+  private boolean uses_csl=false;
   private EnumSet<StandardOperator> ops_used=EnumSet.noneOf(StandardOperator.class);
   private EnumSet<ASTSpecial.Kind> specials_used=EnumSet.noneOf(ASTSpecial.Kind.class);
   private EnumSet<BindingExpression.Binder> binders_used=EnumSet.noneOf(BindingExpression.Binder.class);
   
+  public boolean usesCSL(){
+    return uses_csl;
+  }
   public boolean usesOperator(StandardOperator op){
     return ops_used.contains(op);
   }
@@ -93,6 +98,11 @@ public class FeatureScanner extends RecursiveVisitor<Object> {
     super.visit(s);
   }
   
+  @Override
+  public void visit(Method m){
+    uses_csl = uses_csl || m.name.equals("csl_invariant");
+    super.visit(m);
+  }
   @Override
   public void visit(BindingExpression e){
     binders_used.add(e.binder);

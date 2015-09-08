@@ -25,6 +25,7 @@ arguments
 specificationModifier
     : 'pure'
     | 'inline'
+    | 'thread_local'
     ;
 
 specificationStatement

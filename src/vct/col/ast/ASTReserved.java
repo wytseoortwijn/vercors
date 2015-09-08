@@ -41,6 +41,10 @@ public enum ASTReserved {
    */
   Pure,
   /**
+   * Declare function to be thread-local.
+   */
+  ThreadLocal,
+  /**
    * any value specification value
    */
   Any,
@@ -67,6 +71,10 @@ public enum ASTReserved {
   /**
    * The empty process for history algebras.
    */
-  EmptyProcess
+  EmptyProcess,
+  /**
+   * The current thread.
+   */
+  CurrentThread
 }
 

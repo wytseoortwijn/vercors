@@ -56,6 +56,9 @@ public class AnnotationInterpreter extends AbstractRewriter {
           case Inline:
             res.setFlag(ASTFlags.INLINE, true);
             break;
+          case ThreadLocal:
+            res.setFlag(ASTFlags.THREAD_LOCAL, true);
+            break;
           case Public:
           case Private:
             // ignore visibility
