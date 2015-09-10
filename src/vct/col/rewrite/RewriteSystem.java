@@ -352,11 +352,27 @@ class MatchLinear implements ASTMapping1<Boolean,ASTNode> {
 
 class MatchSubstitution extends AbstractRewriter {
 
+  private Origin origin;
+
+  
+  
+  @Override
+  public void enter(ASTNode n){
+    super.enter(n);
+    create.setOrigin(origin);
+  }
+
+  @Override
+  public void leave(ASTNode n){
+    super.leave(n);
+  }
+  
   public Hashtable<String,Ref<ASTNode>> match;
   
-  public MatchSubstitution(Hashtable<String, Ref<ASTNode>> match) {
+  public MatchSubstitution(Hashtable<String, Ref<ASTNode>> match,Origin o) {
     super(null,null);
     this.match=match;
+    this.origin=o;
   }
   
   @Override
@@ -462,7 +478,7 @@ public class RewriteSystem {
     for(RewriteRule rule:rules){
       MatchLinear matcher=new MatchLinear(rule.vars);
       if (rule.lhs.apply(matcher,term.get())){
-        MatchSubstitution sigma=new MatchSubstitution(matcher.match);
+        MatchSubstitution sigma=new MatchSubstitution(matcher.match,term.get().getOrigin());
         Debug("++ match axiom %s",rule.name);
         term.set(sigma.rewrite(rule.rhs));
         return true;
