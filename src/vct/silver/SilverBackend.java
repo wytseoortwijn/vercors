@@ -41,8 +41,9 @@ public class SilverBackend {
     if (jarfile.exists()){
       container=new JarContainer(jarfile);
     } else {
-      jarfile=Configuration.getToolHome().resolve(silver_module.get()+"/"+tool+"/target/scala-2.10/"+tool+".jar").toFile();
-      File classdir=Configuration.getToolHome().resolve(silver_module.get()+"/"+tool+"/target/scala-2.10/classes").toFile();
+      String jar=tool.equals("silicon_qp")?"silicon-quantified-permissions":tool;
+      jarfile=Configuration.getToolHome().resolve(silver_module.get()+"/"+tool+"/target/scala-2.11/"+jar+".jar").toFile();
+      File classdir=Configuration.getToolHome().resolve(silver_module.get()+"/"+tool+"/target/scala-2.11/classes").toFile();
       container=new UnionContainer(new DirContainer(classdir),new JarContainer(jarfile));
     }
     Object obj;
