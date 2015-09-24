@@ -37,9 +37,16 @@ public class CSLencoder extends AbstractRewriter {
   @Override
   public void visit(MethodInvokation e){
     Method m=e.getDefinition();
-    ASTClass cl=(ASTClass)m.getParent();
-    String name=cl.getName();
-    if (name.startsWith("Atomic")){
+    boolean replace=false;
+    ASTNode decl=m.getParent();
+    if(decl instanceof ASTClass){
+      ASTClass cl=(ASTClass)decl;
+      String name=cl.getName();
+      if (name.startsWith("Atomic")){
+        replace=true;
+      }
+    }
+    if(replace){
       switch(m.getKind()){
       case Constructor:
         super.visit(e);
