@@ -881,7 +881,8 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
     if (a.object!=null && a.object.getType()!=null && a.object.getType().toString().equals("History")){
       String prefix=in_action?"hist_":"free_";
       if (a.value==null){
-        result=create.invokation(rewrite(a.object),null,prefix+"get_"+a.name);
+        //result=create.invokation(rewrite(a.object),null,prefix+"get_"+a.name);
+        result=create.dereference(rewrite(a.object),a.name+"_hist_value");
       } else {
         result=create.invokation(rewrite(a.object),null,prefix+"set_"+a.name,rewrite(a.value));
       }
