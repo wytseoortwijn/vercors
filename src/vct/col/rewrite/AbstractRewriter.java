@@ -619,7 +619,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   
   @Override
   public void visit(ParallelAtomic pa){
-    result=create.parallel_atomic(rewrite(pa.block),pa.sync_list.toArray(new String[0]));
+    result=create.csl_atomic(rewrite(pa.block),rewrite(pa.sync_list.toArray(new ASTNode[0])));
   }
   
   @Override

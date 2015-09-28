@@ -39,12 +39,12 @@ public class ParallelAtomic extends ASTNode {
  
   public final BlockStatement block; 
   
-  public final ArrayList<String> sync_list;
+  public final ArrayList<ASTNode> sync_list;
   
   
-  public ParallelAtomic(BlockStatement block,String ... sync){
+  public ParallelAtomic(BlockStatement block,ASTNode ... sync){
     sync_list=new ArrayList();
-    for(String s:sync){
+    for(ASTNode s:sync){
       sync_list.add(s);
     }
     this.block=block;

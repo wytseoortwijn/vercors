@@ -32,6 +32,53 @@ public class CSLencoder extends AbstractRewriter {
     }
   }
 
+  private boolean has_csl_inv(ASTClass cl){
+    for(Method m:cl.dynamicMethods()){
+      if (m.name.equals("csl_invariant")){
+        return true;
+      }
+    }
+    return false;
+  }
+  
+  @Override
+  public void visit(Method m){
+    if(m.kind==Method.Kind.Constructor && has_csl_inv((ASTClass)m.getParent())){
+      Method.Kind kind=Method.Kind.Constructor;
+      ContractBuilder cb=new ContractBuilder();
+      rewrite(m.getContract(),cb);
+      cb.ensures(create.invokation(null,null,"csl_invariant"));
+      String name=m.name;
+      DeclarationStatement args[]=rewrite(m.getArgs());
+      BlockStatement body;
+      if (m.getBody()!=null){
+        body=(BlockStatement)rewrite(m.getBody());
+        body.add_statement(create.expression(StandardOperator.Fold,
+            create.invokation(null,null,"csl_invariant")
+        ));   
+      } else {
+        body=null;
+      }
+      Contract contract=cb.getContract();
+      Type returns=rewrite(m.getReturnType());
+      result=create.method_kind(kind, returns, contract, name, args, m.usesVarArgs(), body);
+    } else {
+      super.visit(m);
+    }
+  }
+  
+  @Override
+  public void visit(ParallelAtomic pa){
+    BlockStatement block=rewrite(pa.block);
+    for(ASTNode node:pa.sync_list){
+      block.prepend(create.expression(StandardOperator.Unfold,create.invokation(rewrite(node),null,"csl_invariant")));
+      block.prepend(create.special(ASTSpecial.Kind.Inhale,create.invokation(rewrite(node),null,"csl_invariant")));
+      block.append(create.expression(StandardOperator.Fold,create.invokation(rewrite(node),null,"csl_invariant")));
+      block.append(create.special(ASTSpecial.Kind.Exhale,create.invokation(rewrite(node),null,"csl_invariant")));
+    }
+    result=block;
+  }
+  
   private AtomicInteger count=new AtomicInteger();
   
   @Override

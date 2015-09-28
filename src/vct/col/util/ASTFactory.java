@@ -713,12 +713,23 @@ public BlockStatement block(Origin origin, ASTNode ... args) {
    * Create a new parallel atomic block.
    */
   public ParallelAtomic parallel_atomic(Origin origin,BlockStatement block,String ... strings){
-    ParallelAtomic res=new ParallelAtomic(block,strings);
-    res.setOrigin(origin);
-    res.accept_if(post);
-    return res;
+    ASTNode labels[]=new ASTNode[strings.length];
+    for(int i=0;i<strings.length;i++){
+      labels[i]=label(strings[i]);
+    }
+    return csl_atomic(origin,block,labels);
   }
   
+  public ParallelAtomic csl_atomic(BlockStatement block,ASTNode ... invs){
+    return csl_atomic(origin_stack.get(),block,invs);
+  }
+  public ParallelAtomic csl_atomic(Origin origin,BlockStatement block,ASTNode ... invs){
+    ParallelAtomic res=new ParallelAtomic(block,invs);
+    res.setOrigin(origin);
+    res.accept_if(post);
+    return res;    
+  }
+ 
   
   public ParallelBlock parallel_block(ParallelBlock.Mode mode,Contract c,
       DeclarationStatement iters[],DeclarationStatement decls[],ASTNode inv,BlockStatement block){

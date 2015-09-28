@@ -1243,9 +1243,11 @@ public class JavaPrinter extends AbstractPrinter {
   public void visit(ParallelAtomic pa){
     out.printf("atomic (");
     String sep="";
-    for(String s:pa.sync_list){
-      out.printf("%s%s",sep,s);
+    for(ASTNode s:pa.sync_list){
+      out.printf("%s",sep);
       sep=",";
+      nextExpr();
+      s.apply(this);
     }
     out.printf(")");
     visit(pa.block);

@@ -834,6 +834,11 @@ public class JavaJMLtoCol extends AbstractJavaToCol implements JavaJMLVisitor<AS
     if (match(ctx,"witness",null,";")){
       res=create.expression(StandardOperator.Witness,convert(ctx,1));
     }
+    if (match(ctx,"atomic","(",null,")",null)){
+      ASTNode args[]=convert_list((ParserRuleContext)ctx.getChild(2),",");
+      BlockStatement block=(BlockStatement)convert(ctx,4);
+      res=create.csl_atomic(block,args);
+    }
     if (res!=null){
       res.setGhost(true);
     }

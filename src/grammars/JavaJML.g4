@@ -66,6 +66,7 @@ specificationStatement
     | 'merge' resourceExpression ',' resourceExpression ',' resourceExpression ',' resourceExpression ',' resourceExpression ';'
     | '}' 'spec_ignore'
     | 'spec_ignore' '{'
+    | 'atomic' '(' expressionList ')' block
     ;
 
 proofScript :
