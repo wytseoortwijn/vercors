@@ -74,7 +74,10 @@ public class SilverBackend {
       res.setException(e);
       return res;
     }
-    SilverVerifier<Origin,VerificationError,T,E,S,Decl,DFunc,DAxiom,Program> verifier=new WrappedSilverVerifier(obj);
+    if (!(obj instanceof SilverVerifier)){
+      hre.System.Fail("Plugin is incompatible: cannot cast verifier.");
+    }
+    SilverVerifier<Origin,VerificationError,T,E,S,Decl,DFunc,DAxiom,Program> verifier=(SilverVerifier)obj;
     verifier.set_detail(Configuration.detailed_errors.get());
     SilverTypeMap<T> type=new SilverTypeMap(verifier);
     SilverExpressionMap<T, E, Decl> expr=new SilverExpressionMap(verifier,type);
