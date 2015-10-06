@@ -24,7 +24,7 @@ import com.google.code.tempusfugit.concurrency.ConcurrentTestRunner;
 public class ManualTest extends ToolTest {
 
   @Test
-  public void test_example1() {
+  public void test_example1_err() {
     sem_get();
     try {
       VCTResult res = run("vct", "--silver=silicon", "--no-context",
@@ -52,7 +52,7 @@ public class ManualTest extends ToolTest {
   }
 
   @Test
-  public void test_example3() {
+  public void test_example3_err() {
     sem_get();
     try {
       VCTResult res = run("vct", "--silver=silicon",

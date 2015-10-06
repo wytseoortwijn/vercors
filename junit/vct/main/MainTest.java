@@ -687,7 +687,7 @@ public class MainTest extends ToolTest {
     }
   }
   @Test
-  public void testLockSetDemo() {
+  public void testLockSetDemoErr() {
     sem_get();
     try {
       VCTResult res = run("vct", "--silver=silicon","//examples/locks/lockset-demo.java");

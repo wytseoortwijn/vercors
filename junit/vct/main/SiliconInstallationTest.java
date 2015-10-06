@@ -104,7 +104,7 @@ public class SiliconInstallationTest extends ToolTest {
   }
   
   @Test
-  public void testGoto1(){
+  public void testGoto1err(){
       VCTResult res=run("vct","--silver=silicon","//examples/goto/goto1.pvl");
       res.checkVerdict(Verdict.Fail);
   }
@@ -116,13 +116,13 @@ public class SiliconInstallationTest extends ToolTest {
   }
   
   @Test
-  public void testValue1(){
+  public void testValue1err(){
       VCTResult res=run("vct","--silver=silicon","//examples/technical/test-value1.java");
       res.checkVerdict(Verdict.Fail);
   }
   
   @Test
-  public void testValue2(){
+  public void testValue2err(){
       VCTResult res=run("vct","--silver=silicon","//examples/technical/test-value2.java");
       res.checkVerdict(Verdict.Fail);
   }
