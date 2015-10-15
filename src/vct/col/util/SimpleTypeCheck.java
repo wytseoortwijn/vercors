@@ -455,6 +455,25 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       e.setType(new PrimitiveType(Sort.Resource));
       return;
     }
+    if (op==StandardOperator.AbstractState){
+      e.getArg(0).accept(this);
+      Type t=e.getArg(0).getType();
+      if (t==null) Fail("Data type unknown.");
+      if (!(t instanceof ClassType)){
+        Fail("Data type must be a class type.");
+      }
+      ASTClass cl=source().find((ClassType)t);
+      enter(cl);
+      e.getArg(1).accept(this);
+      t=e.getArg(1).getType();
+      if (t==null) Fail("Formula type unknown.");
+      if(!t.isBoolean()){
+        Fail("expression type is %s rather than boolean",t);
+      }
+      leave(cl);
+      e.setType(new PrimitiveType(Sort.Resource));
+      return;
+    }
     super.visit(e);
     ASTNode argss[]=e.getArguments();
     Type tt[]=new Type[argss.length];

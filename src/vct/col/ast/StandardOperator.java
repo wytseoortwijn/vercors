@@ -265,6 +265,10 @@ public enum StandardOperator {
    */
   Future(3),
   /**
+   * The abstract state operator for Histories and Futures
+   */
+  AbstractState(2),
+  /**
    * Specifies that a sub-term in a higher order rewrite patterns is independent of a variable.
    */
   IndependentOf(2),

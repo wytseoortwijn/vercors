@@ -649,6 +649,23 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
   @Override
   public void visit(OperatorExpression e){
     switch(e.getOperator()){
+    case AbstractState:{
+      ASTNode data=rewrite(e.getArg(0));
+      ASTNode half=create.expression(StandardOperator.Div,create.constant(1),create.constant(2));
+      ASTClass cl=source().find((ClassType)e.getArg(0).getType());
+      ArrayList<ASTNode> props=new ArrayList();
+      HashMap<NameExpression,ASTNode> map=new HashMap();
+      Substitution sigma=new Substitution(source(),map);
+      for(DeclarationStatement decl:cl.dynamicFields()){
+        props.add(create.expression(StandardOperator.Perm,
+            create.dereference(data,decl.getName()),half));
+        map.put(create.field_name(decl.getName()),
+            create.dereference(data,decl.getName()+"_hist_init"));
+      }
+      props.add(rewrite(sigma.rewrite(e.getArg(1))));
+      result=create.fold(StandardOperator.Star,props);
+      return;
+    }
     case Or:
       if(e.getType().isPrimitive(Sort.Process)){
         result=create.invokation(null,null,"p_merge",rewrite(e.getArguments()));

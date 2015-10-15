@@ -60,6 +60,7 @@ public class JavaSyntax extends Syntax {
         syntax.addFunction(Take,"take");
         syntax.addFunction(History,"Hist");
         syntax.addFunction(Future,"Future");
+        syntax.addFunction(AbstractState,"AbstractState");
         syntax.addFunction(Contribution,"Contribution");
         syntax.addFunction(Held,"held");
         
