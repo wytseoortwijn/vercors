@@ -480,6 +480,18 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       break;
     }
     case History:{
+      String type=tt[0].toString();
+      if(!type.endsWith("History")){
+        Fail("First argument of History must be a History class, not %s.",type);
+      }
+      e.setType(new PrimitiveType(Sort.Resource));
+      break;
+    }
+    case Future:{
+      String type=tt[0].toString();
+      if(!type.endsWith("Future")){
+        Fail("First argument of Future must be a Future class, not %s.",type);
+      }
       e.setType(new PrimitiveType(Sort.Resource));
       break;
     }

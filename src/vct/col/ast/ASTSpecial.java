@@ -28,6 +28,8 @@ public class ASTSpecial extends ASTNode {
     DeclareAction,
     CreateHistory,
     DestroyHistory,
+    CreateFuture,
+    DestroyFuture,
     SplitHistory,
     MergeHistory,
     /** Transfer resources into and out of atomic regions. */

@@ -47,6 +47,7 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
       is_algebra|=m.getReturnType().isPrimitive(Sort.Process);
     }
     if (is_algebra){
+      boolean is_history=cl.name.equals("History");
       composite_map=new Hashtable<String,String>();
       process_map=new Hashtable<String,Method>();
       adt=create.adt("Process");
@@ -134,7 +135,7 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
           } else if (m.getReturnType().isPrimitive(Sort.Process)){
             add_process_to_adt(m);
             if (m.getBody()==null) {
-              add_begin_and_commit_to_class(m);
+              add_begin_and_commit_to_class(m,is_history);
             }
           } else if (m.getReturnType().isPrimitive(Sort.Resource)) {
             hist_class.add(rewrite(m));
@@ -431,7 +432,7 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
     
   }
     
-  private void add_begin_and_commit_to_class(Method m) {
+  private void add_begin_and_commit_to_class(Method m,boolean is_history) {
     // TODO Auto-generated method stub
     Type returns=create.primitive_type(Sort.Void);
     int N=m.getArity();
@@ -446,16 +447,17 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
     }
     ContractBuilder begin_cb=new ContractBuilder();
     ContractBuilder commit_cb=new ContractBuilder();
+    ASTNode proc=create.local_name("proc");
+    ASTNode action_proc=create.invokation(null, null, "p_seq",create.invokation(null, null,"p_"+m.name,args), create.local_name("proc"));
+    ASTNode proc_action=create.invokation(null, null, "p_seq", create.local_name("proc"),create.invokation(null, null,"p_"+m.name,args));
     begin_cb.requires(create.expression(StandardOperator.NEQ,create.local_name("frac"),create.reserved_name(ASTReserved.NoPerm)));
     begin_cb.ensures(create.expression(StandardOperator.NEQ,create.local_name("frac"),create.reserved_name(ASTReserved.NoPerm)));
     commit_cb.requires(create.expression(StandardOperator.NEQ,create.local_name("frac"),create.reserved_name(ASTReserved.NoPerm)));
     commit_cb.ensures(create.expression(StandardOperator.NEQ,create.local_name("frac"),create.reserved_name(ASTReserved.NoPerm)));
-    begin_cb.requires(create.invokation(null, null,"hist_idle",create.local_name("frac"),create.local_name("proc")));
-    begin_cb.ensures(create.invokation(null, null,"hist_do_"+m.name,create.local_name("frac"),create.local_name("proc")));
-    commit_cb.requires(create.invokation(null, null,"hist_do_"+m.name,create.local_name("frac"),create.local_name("proc")));
-    commit_cb.ensures(create.invokation(null, null,"hist_idle",create.local_name("frac"),
-        create.invokation(null, null, "p_seq", create.local_name("proc"),
-             create.invokation(null, null,"p_"+m.name,args))));
+    begin_cb.requires(create.invokation(null, null,"hist_idle",create.local_name("frac"),is_history?proc:action_proc));
+    begin_cb.ensures(create.invokation(null, null,"hist_do_"+m.name,create.local_name("frac"),proc));
+    commit_cb.requires(create.invokation(null, null,"hist_do_"+m.name,create.local_name("frac"),proc));
+    commit_cb.ensures(create.invokation(null, null,"hist_idle",create.local_name("frac"),is_history?proc_action:proc));
     Contract c=m.getContract();
     HashMap<NameExpression,ASTNode> old_map=new HashMap();
     HashMap<NameExpression,ASTNode> new_map=new HashMap();
@@ -622,7 +624,19 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
   }
   */
 
-
+  private boolean isProcessRef(ASTNode n){
+    String type=n.getType().toString();
+    return type.equals("History")||type.equals("Future");
+  }
+  private boolean isHistoryRef(ASTNode n){
+    String type=n.getType().toString();
+    return type.equals("History");
+  }
+  private boolean isFutureRef(ASTNode n){
+    String type=n.getType().toString();
+    return type.equals("Future");
+  }
+  
   @Override
   public void visit(PrimitiveType t){
     if (t.sort==Sort.Process){
@@ -647,6 +661,7 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
         return;
       }
       break;
+    case Future:
     case History:{
       ASTNode hist=e.getArg(0);
       ASTNode frac=e.getArg(1);
@@ -658,7 +673,7 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
       if (e.getArg(0)instanceof FieldAccess){
         FieldAccess f=(FieldAccess)e.getArg(0);
         ASTNode frac=rewrite(e.getArg(1));
-        if (f.object.getType().toString().equals("History")){
+        if (isProcessRef(f.object)){
           ASTNode p1=create.expression(Perm,create.dereference(rewrite(f.object),f.name+"_hist_value"),frac);
           ASTNode p2=create.expression(PointsTo,create.dereference(rewrite(f.object),f.name+"_hist_mode"),
               frac,create.constant(1));
@@ -674,7 +689,7 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
       if (e.getArg(0)instanceof FieldAccess){
         FieldAccess f=(FieldAccess)e.getArg(0);
         ASTNode frac=rewrite(e.getArg(1));
-        if (f.object.getType().toString().equals("History")){
+        if (isProcessRef(f.object)){
           ASTNode p1=create.expression(Perm,create.dereference(rewrite(f.object),f.name+"_hist_value"),frac);
           ASTNode p2=create.expression(PointsTo,create.dereference(rewrite(f.object),f.name+"_hist_mode"),
               frac,create.constant(0));
@@ -878,7 +893,7 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
   
   @Override
   public void visit(FieldAccess a){
-    if (a.object!=null && a.object.getType()!=null && a.object.getType().toString().equals("History")){
+    if (a.object!=null && a.object.getType()!=null && isProcessRef(a.object)){
       String prefix=in_action?"hist_":"free_";
       if (a.value==null){
         //result=create.invokation(rewrite(a.object),null,prefix+"get_"+a.name);

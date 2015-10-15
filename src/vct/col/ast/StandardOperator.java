@@ -261,6 +261,10 @@ public enum StandardOperator {
    */
   History(3),
   /**
+   * The future predicate takes a history, a fraction and a process as arguments.
+   */
+  Future(3),
+  /**
    * Specifies that a sub-term in a higher order rewrite patterns is independent of a variable.
    */
   IndependentOf(2),

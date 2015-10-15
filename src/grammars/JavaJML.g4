@@ -61,6 +61,8 @@ specificationStatement
     | 'csl_subject' expression ';'
     | 'action' expression ',' expression ',' expression ',' expression ';'
     | 'create' resourceExpression ';'
+    | 'create' resourceExpression ',' resourceExpression ';'
+    | 'destroy' resourceExpression ';'
     | 'destroy' resourceExpression ',' resourceExpression ';'
     | 'split' resourceExpression ',' resourceExpression ',' resourceExpression ',' resourceExpression ',' resourceExpression ';'
     | 'merge' resourceExpression ',' resourceExpression ',' resourceExpression ',' resourceExpression ',' resourceExpression ';'
