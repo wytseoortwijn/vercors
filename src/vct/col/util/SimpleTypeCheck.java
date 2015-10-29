@@ -463,14 +463,17 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
         Fail("Data type must be a class type.");
       }
       ASTClass cl=source().find((ClassType)t);
-      enter(cl);
+      variables.enter();
+      for(DeclarationStatement decl:cl.dynamicFields()){
+        variables.add(decl.getName(),new VariableInfo(decl,Kind.Local));
+      }
       e.getArg(1).accept(this);
       t=e.getArg(1).getType();
       if (t==null) Fail("Formula type unknown.");
       if(!t.isBoolean()){
         Fail("expression type is %s rather than boolean",t);
       }
-      leave(cl);
+      variables.leave();
       e.setType(new PrimitiveType(Sort.Resource));
       return;
     }

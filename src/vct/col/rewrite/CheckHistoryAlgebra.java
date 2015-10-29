@@ -658,7 +658,7 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
       Substitution sigma=new Substitution(source(),map);
       for(DeclarationStatement decl:cl.dynamicFields()){
         props.add(create.expression(StandardOperator.Perm,
-            create.dereference(data,decl.getName()),half));
+            create.dereference(data,decl.getName()+"_hist_init"),half));
         map.put(create.field_name(decl.getName()),
             create.dereference(data,decl.getName()+"_hist_init"));
       }
