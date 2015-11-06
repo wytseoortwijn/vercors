@@ -92,6 +92,7 @@ public class SilverExpressionMap<T,E,Decl> implements ASTMapping<E>{
       E e3=e.getArg(2).apply(this);
       return create.and(o,create.field_access(o,e1,e2),create.eq(o, e1, e3));
     }
+    case CurrentPerm: return create.current_perm(o,e.getArg(0).apply(this));
     case ITE: return create.cond(o,e.getArg(0).apply(this),e.getArg(1).apply(this),e.getArg(2).apply(this));
     case Perm: return create.field_access(o,e.getArg(0).apply(this),e.getArg(1).apply(this));
     case Value: return create.field_access(o,e.getArg(0).apply(this),create.read_perm(o));

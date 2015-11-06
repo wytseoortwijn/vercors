@@ -31,9 +31,16 @@ public class SilverBackend {
   public static StringSetting silver_module=new StringSetting("viper/git");
   public static IntegerSetting silicon_z3_timeout=new IntegerSetting(30000);
   
+  
   public static <T,E,S,Decl,DFunc,DAxiom,Program>
-  TestReport TestSilicon(ProgramUnit arg, String tool) {
-    hre.System.Output("verifying with %s backend",silver_module.get());
+  SilverVerifier<Origin,VerificationError,T,E,S,Decl,DFunc,DAxiom,Program>
+  getVerifier(String tool){
+    boolean parser=tool.equals("parser");
+    if (parser){
+      tool="silicon";
+    } else {
+      hre.System.Output("verifying with %s backend",silver_module.get());
+    }
     long start_time=System.currentTimeMillis();
     File jarfile=Configuration.getToolHome().resolve(silver_module.get()+"/"+tool+".jar").toFile();
     //System.err.printf("adding jar %s to path%n",jarfile);
@@ -43,8 +50,14 @@ public class SilverBackend {
     } else {
       String jar=tool.equals("silicon_qp")?"silicon-quantified-permissions":tool;
       jarfile=Configuration.getToolHome().resolve(silver_module.get()+"/"+tool+"/target/scala-2.11/"+jar+".jar").toFile();
-      File classdir=Configuration.getToolHome().resolve(silver_module.get()+"/"+tool+"/target/scala-2.11/classes").toFile();
-      container=new UnionContainer(new DirContainer(classdir),new JarContainer(jarfile));
+      File classdir1=Configuration.getToolHome().resolve(silver_module.get()+"/viper-api/bin").toFile();
+      File classdir2=Configuration.getToolHome().resolve(silver_module.get()+"/silver/target/scala-2.11/classes").toFile();
+      File classdir3=Configuration.getToolHome().resolve(silver_module.get()+"/"+tool+"/target/scala-2.11/classes").toFile();
+      container=new UnionContainer(
+//          new DirContainer(classdir1),
+          new DirContainer(classdir2),
+          new DirContainer(classdir3),
+          new JarContainer(jarfile));
     }
     Object obj;
     //TODO: Properties silver_props=new Properties();
@@ -60,7 +73,9 @@ public class SilverBackend {
       //TODO: is.close();
       //TODO: System.err.printf("verifier properties: %s%n", verifier_props);
       Class v_class;
-      if (tool.contains("silicon")){
+      if (parser) {
+        v_class=loader.loadClass("viper.api.SilverImplementation");
+      } else if (tool.contains("silicon")){
         v_class=loader.loadClass("viper.api.SiliconVerifier");
       } else if (tool.contains("carbon")) {
         v_class=loader.loadClass("viper.api.CarbonVerifier");
@@ -70,14 +85,21 @@ public class SilverBackend {
       obj=v_class.newInstance();
     } catch(Exception e) {
       e.printStackTrace();
-      TestReport res=new TestReport();
-      res.setException(e);
-      return res;
+      throw new HREError("Exception %s",e);
     }
     if (!(obj instanceof SilverVerifier)){
       hre.System.Fail("Plugin is incompatible: cannot cast verifier.");
     }
     SilverVerifier<Origin,VerificationError,T,E,S,Decl,DFunc,DAxiom,Program> verifier=(SilverVerifier)obj;
+    verifier.set_tool_home(Configuration.getToolHome());
+    return verifier;
+  }
+  
+  public static <T,E,S,Decl,DFunc,DAxiom,Program>
+  TestReport TestSilicon(ProgramUnit arg, String tool) {
+    hre.System.Output("verifying with %s backend",silver_module.get());
+    long start_time=System.currentTimeMillis();
+    SilverVerifier<Origin,VerificationError,T,E,S,Decl,DFunc,DAxiom,Program> verifier=getVerifier(tool);
     verifier.set_detail(Configuration.detailed_errors.get());
     SilverTypeMap<T> type=new SilverTypeMap(verifier);
     SilverExpressionMap<T, E, Decl> expr=new SilverExpressionMap(verifier,type);

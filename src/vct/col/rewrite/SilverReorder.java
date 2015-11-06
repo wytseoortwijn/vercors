@@ -1,5 +1,8 @@
 package vct.col.rewrite;
 
+import java.util.Iterator;
+
+import hre.util.MultiNameSpace;
 import vct.col.ast.*;
 
 public class SilverReorder extends AbstractRewriter {
@@ -7,6 +10,10 @@ public class SilverReorder extends AbstractRewriter {
   public SilverReorder(ProgramUnit source) {
     super(source);
   }
+  
+  private int count=0;
+  
+  MultiNameSpace <String,String> locals=new MultiNameSpace();
 
   private BlockStatement main_block=null;
   
@@ -21,14 +28,76 @@ public class SilverReorder extends AbstractRewriter {
     main_block=tmp;
   }
   
+  
+  @Override
+  public void visit(NameExpression n){
+    switch(n.getKind()){
+    case Local:{
+      Debug("lookup %s",n.getName());
+      Iterator<String> names=locals.lookup(n.getName());
+      if (!names.hasNext()){
+        Debug("not found");
+        result=create.local_name(n.getName());
+      } else {
+        String res=names.next();
+        Debug("found %s",res);
+        result=create.local_name(res);
+      }
+      break;    
+    }
+    case Label:{
+      Debug("lookup %s",n.getName());
+      Iterator<String> names=locals.lookup(n.getName());
+      if (!names.hasNext()){
+        Debug("not found");
+        result=create.label(n.getName());
+      } else {
+        String res=names.next();
+        Debug("found %s",res);
+        Warning("mapping label %s to local",n.getName());
+        result=create.local_name(res);
+      }
+      break;    
+    }
+    case Unresolved:{
+      Debug("lookup %s",n.getName());
+      Iterator<String> names=locals.lookup(n.getName());
+      if (!names.hasNext()){
+        Debug("not found");
+        result=create.unresolved_name(n.getName());
+      } else {
+        String res=names.next();
+        Debug("found %s",res);
+        result=create.unresolved_name(res);
+      }
+      break;    
+    }
+    default:
+      super.visit(n);
+      break;
+    }
+  }
+  
   @Override
   public void visit(DeclarationStatement d){
-    super.visit(d);
-    if (main_block!=null){
-      Warning("moving decl %s",d.name);
-      Debug("rewriting if: moving decl");
-      main_block.prepend(result);
-      result=null;
+    if (currentBlock!=null){
+      String name=d.name;
+      count++;
+      DeclarationStatement res=create.field_decl(
+          name+"__"+count,
+          rewrite(d.getType()),
+          rewrite(d.getInit()));
+      Debug("mapping %s",name);
+      locals.add(name,name+"__"+count);
+      if (main_block!=null){
+        Debug("moving decl %s",d.name);
+        main_block.prepend(res);
+        result=null;
+      } else {
+        result=res;
+      }
+    } else {
+      super.visit(d);
     }
   }
   
@@ -38,6 +107,36 @@ public class SilverReorder extends AbstractRewriter {
     main_block=null;
     super.visit(e);
     main_block=tmp;
+  }
+  
+  @Override
+  public void visit(LoopStatement S){
+    locals.enter();
+    BlockStatement tmp=main_block;
+    if(tmp==null){
+      main_block=currentBlock;
+    }
+    super.visit(S);
+    main_block=tmp;    
+    locals.leave();
+  }
+  
+  @Override
+  public void visit(Method m){
+    locals.enter();
+    super.visit(m);
+    locals.leave();
+  }
+
+  public void visit(BlockStatement block){
+    locals.enter();
+    BlockStatement tmp=main_block;
+    if(tmp==null){
+      main_block=currentBlock;
+    }
+    super.visit(block);
+    main_block=tmp;
+    locals.leave();
   }
   
 }
