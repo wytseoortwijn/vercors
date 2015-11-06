@@ -9,6 +9,7 @@ import vct.antlr4.parser.ColJavaParser;
 import vct.antlr4.parser.ColPVLParser;
 import vct.col.ast.ProgramUnit;
 import vct.col.util.Parser;
+import vct.silver.ColSilverParser;
 import static hre.System.Fail;
 import static hre.System.Progress;
 
@@ -22,6 +23,7 @@ public class Parsers {
     case "i":return new ColIParser();
     case "java":return new ColJavaParser();
     case "pvl":return new ColPVLParser();
+    case "sil":return new ColSilverParser();
     }
     Fail("no parser for %s is known",extension);
     return null;

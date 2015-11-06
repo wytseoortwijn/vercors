@@ -153,6 +153,7 @@ public class Main
     clops.add(verifast.getEnable("select Verifast backend"),"verifast");
     BooleanSetting dafny=new BooleanSetting(false);
     clops.add(dafny.getEnable("select Dafny backend"),"dafny");
+    
     CommandLineTesting.add_options(clops);
 
     final BooleanSetting check_defined=new BooleanSetting(false);
@@ -694,7 +695,9 @@ public class Main
       classes.add(name);
     }
     List<String> passes=null;
-    if (boogie.get()) {
+    if (pass_list.iterator().hasNext()){
+      // --passes option overrides --backend
+    } else if (boogie.get()) {
     	passes=new ArrayList<String>();
     	passes.add("java_resolve");
       passes.add("standardize");
@@ -984,7 +987,7 @@ public class Main
       passes.add("check");
       passes.add("silver");     
     } else {
-    	if (!pass_list.iterator().hasNext()) Abort("no back-end or passes specified");
+    	Abort("no back-end or passes specified");
     }
     {
       CompositeReport res=new CompositeReport();
