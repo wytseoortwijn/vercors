@@ -3,6 +3,7 @@ package vct.col.util;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.List;
 
 import vct.col.ast.*;
 import vct.col.ast.ASTClass.ClassKind;
@@ -573,6 +574,10 @@ public BlockStatement block(Origin origin, ASTNode ... args) {
     res.setOrigin(origin_stack.get());
     res.accept_if(post);
     return res;
+  }
+
+  public MethodInvokation invokation(ASTNode object,ClassType dispatch,String method,List<ASTNode> args){
+    return invokation(object,dispatch,method,args.toArray(new ASTNode[args.size()]));
   }
 
   /**

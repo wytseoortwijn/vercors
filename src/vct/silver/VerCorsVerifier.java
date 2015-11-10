@@ -62,8 +62,18 @@ public class VerCorsVerifier implements
   public void add_function(ProgramUnit p, Origin o, String name,
       java.util.List<DeclarationStatement> args, Type t,
       java.util.List<ASTNode> pres, java.util.List<ASTNode> posts, ASTNode body) {
-    // TODO Auto-generated method stub
-    
+    enter(o);
+    ContractBuilder cb=new ContractBuilder();
+    for(ASTNode c:pres){
+      cb.requires(c);
+    }
+    for(ASTNode c:posts){
+      cb.ensures(c);
+    }
+    Method m=create.function_decl(t,cb.getContract(), name, args.toArray(new DeclarationStatement[0]), body);
+    m.setStatic(true);
+    p.add(m);
+    leave();
   }
 
   @Override
@@ -104,14 +114,18 @@ public class VerCorsVerifier implements
         block);
     m.setStatic(true);
     p.add(m);
-    
+    leave();
   }
 
   @Override
   public void add_predicate(ProgramUnit p, Origin o, String name,
       java.util.List<DeclarationStatement> args, ASTNode body) {
     // TODO Auto-generated method stub
-    
+    enter(o);
+    Method m=create.predicate(name, body, args.toArray(new DeclarationStatement[0]));
+    m.setStatic(true);
+    p.add(m);
+    leave();   
   }
 
   @Override
@@ -358,8 +372,10 @@ public class VerCorsVerifier implements
 
   @Override
   public ASTNode fold(Origin o, ASTNode expr) {
-    // TODO Auto-generated method stub
-    throw new HREError("missing case");
+    enter(o);
+    ASTNode res=create.expression(StandardOperator.Fold,expr);
+    leave();
+    return res;
   }
 
   @Override
@@ -381,8 +397,10 @@ public class VerCorsVerifier implements
   public ASTNode function_call(Origin o, String name,
       java.util.List<ASTNode> args, Type rt,
       java.util.List<DeclarationStatement> pars) {
-    // TODO Auto-generated method stub
-    throw new HREError("missing case");
+    enter(o);
+    ASTNode res=create.invokation(null,null,name, args);
+    leave();
+    return res;
   }
 
   @Override
@@ -510,8 +528,13 @@ public class VerCorsVerifier implements
       java.util.List<ASTNode> args, java.util.List<ASTNode> outs,
       java.util.List<DeclarationStatement> pars,
       java.util.List<DeclarationStatement> rets) {
-    // TODO Auto-generated method stub
-    throw new HREError("missing case");
+    enter(o);
+    ArrayList list=new ArrayList();
+    list.addAll(args);
+    list.addAll(outs);
+    ASTNode res=create.invokation(null,null,name,list);
+    leave();
+    return res;
   }
 
   @Override
@@ -610,8 +633,10 @@ public class VerCorsVerifier implements
   @Override
   public ASTNode predicate_call(Origin o, String name,
       java.util.List<ASTNode> args) {
-    // TODO Auto-generated method stub
-    throw new HREError("missing case");
+    enter(o);
+    ASTNode res=create.invokation(null, null, name, args);
+    leave();
+    return res;
   }
 
   @Override
@@ -650,9 +675,11 @@ public class VerCorsVerifier implements
 
   @Override
   public ASTNode scale_access(Origin o, ASTNode e1, ASTNode e2) {
-    // TODO Auto-generated method stub
-    throw new HREError("missing case");
-  }
+    enter(o);
+    ASTNode res=create.expression(StandardOperator.Scale, e1,e2);
+    leave();
+    return res;
+ }
   
   @Override
   public ASTNode seq_contains(Origin o, ASTNode e1, ASTNode e2) {
@@ -704,14 +731,18 @@ public class VerCorsVerifier implements
 
   @Override
   public ASTNode unfold(Origin o, ASTNode expr) {
-    // TODO Auto-generated method stub
-    throw new HREError("missing case");
+    enter(o);
+    ASTNode res=create.expression(StandardOperator.Unfold,expr);
+    leave();
+    return res;
   }
 
   @Override
   public ASTNode unfolding_in(Origin o, ASTNode e1, ASTNode e2) {
-    // TODO Auto-generated method stub
-    throw new HREError("missing case");
+    enter(o);
+    ASTNode res=create.expression(StandardOperator.Unfolding,e1,e2);
+    leave();
+    return res;
   }
 
   @Override
