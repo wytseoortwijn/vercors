@@ -71,6 +71,7 @@ import vct.col.rewrite.IterationContractEncoder;
 import vct.col.rewrite.KernelRewriter;
 import vct.col.rewrite.LockEncoder;
 import vct.col.rewrite.MergeLoops;
+import vct.col.rewrite.OptimizeQuantifiers;
 import vct.col.rewrite.PVLCompiler;
 import vct.col.rewrite.ParallelBlockEncoder;
 import vct.col.rewrite.PureMethodsAsFunctions;
@@ -546,6 +547,11 @@ public class Main
        return new JavaResolver(arg).rewriteAll();
      }
    });
+   defined_passes.put("quant-optimize",new CompilerPass("insert satisfyability checks for all methods"){
+     public ProgramUnit apply(ProgramUnit arg,String ... args){
+       return new OptimizeQuantifiers(arg).rewriteAll();
+     }
+   });
    defined_passes.put("rewrite_arrays",new CompilerPass("rewrite arrays to sequences of cells"){
       public ProgramUnit apply(ProgramUnit arg,String ... args){
         return new RewriteArrayRef(arg,RewriteArrayRef.Target.Cell).rewriteAll();
@@ -979,6 +985,7 @@ public class Main
       passes.add("standardize");
       passes.add("check"); 
       passes.add("silver-optimize");
+      passes.add("quant-optimize");
       passes.add("standardize-functions");
       passes.add("standardize");
       passes.add("check");      
