@@ -94,7 +94,20 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
           )
       ));
       adt.add_axiom(create.axiom("seq_assoc",
-          create.forall(create.constant(true),
+          create.binder(
+              Binder.FORALL,
+              create.primitive_type(Sort.Boolean),
+              new DeclarationStatement[]{
+                 create.field_decl("p1", adt_type)
+                ,create.field_decl("p2", adt_type)
+                ,create.field_decl("p3", adt_type)},
+              new ASTNode[][]{
+                new ASTNode[]{create.invokation(null, null, "p_seq",
+                    create.invokation(null, null,"p_seq",create.local_name("p1"),create.local_name("p2")),
+                    create.local_name("p3")
+                )}
+              },
+              create.constant(true),
               create.expression(StandardOperator.EQ,
                   create.invokation(null, null, "p_seq",
                       create.invokation(null, null,"p_seq",create.local_name("p1"),create.local_name("p2")),
@@ -104,9 +117,6 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
                       create.invokation(null, null, "p_seq",create.local_name("p2"),create.local_name("p3"))
                   )
               )
-              ,create.field_decl("p1", adt_type)
-              ,create.field_decl("p2", adt_type)
-              ,create.field_decl("p3", adt_type)
           )
       ));
       target().add(adt);
@@ -496,46 +506,87 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
     hist_class.add_dynamic(create.predicate("hist_do_"+m.name,null,args_short));
   }
 
+  private ASTNode rebuild(ASTNode x,ASTNode y){
+    if (x.isa(StandardOperator.Mult)){
+      ASTNode lhs=((OperatorExpression)x).getArg(0);
+      ASTNode rhs=((OperatorExpression)x).getArg(1);
+      return create.invokation(null, null,"p_seq",rewrite(lhs),rebuild(rhs,y));
+    } else {
+      return create.invokation(null, null,"p_seq",rewrite(x),y);
+    }
+  }
   protected void add_lemma_to_adt(Method m) {
     DeclarationStatement args[]=rewrite(m.getArgs());
     Contract c=m.getContract();
     int N=m.getArity();
+    ASTNode eq=c.post_condition;
+    if (!eq.isa(EQ)){
+      Abort("cannot generate axiom for %s",Configuration.getDiagSyntax().print(eq)); 
+    }
+    ASTNode lhs=((OperatorExpression)c.post_condition).getArg(0);
+    ASTNode rhs=((OperatorExpression)c.post_condition).getArg(1);
+    lhs=rebuild(lhs,create.local_name("p"));
+    rhs=create.invokation(null, null,"p_seq",rewrite(rhs),create.local_name("p"));
     ASTNode [] arg_names = new ASTNode[N];
     for(int i=0;i<N;i++){
       arg_names[i]=create.local_name(m.getArgument(i));
     }
-    ASTNode eq=create.binder(
-        Binder.FORALL,
-        create.primitive_type(Sort.Boolean),
-        copy_rw.rewrite(m.getArgs()),
-        new ASTNode[0][],
-        create.constant(true),
-        rewrite(c.post_condition)
-    );
+    eq=create.binder(
+          Binder.FORALL,
+          create.primitive_type(Sort.Boolean),
+          rewrite(create.field_decl("p",adt_type),m.getArgs()),
+          new ASTNode[][]{new ASTNode[]{lhs}},
+          create.constant(true),
+          create.expression(EQ,lhs,rhs)
+      );
     adt.add_axiom(create.axiom(m.name+"_post",eq));
   }
 
   protected void add_process_to_adt(Method m) {
     DeclarationStatement args[]=rewrite(m.getArgs());
     ASTNode m_body=m.getBody();
+    int N=m.getArity();
+    ASTNode [] arg_names = new ASTNode[N];
+    for(int i=0;i<N;i++){
+      arg_names[i]=create.local_name(m.getArgument(i));
+    }
     if (m_body!=null){
-      int N=m.getArity();
-      ASTNode [] arg_names = new ASTNode[N];
-      for(int i=0;i<N;i++){
-        arg_names[i]=create.local_name(m.getArgument(i));
-      }
-      ASTNode eq=create.binder(
+      ASTNode eq=create.expression(StandardOperator.EQ,
+              rewrite(m.getBody()),
+              create.invokation(null, null,"p_"+m.name , arg_names)
+          );
+      if(N>0){
+        ASTNode trigger;
+        if (m.getBody().isa(StandardOperator.Mult)){
+          trigger=rewrite(m.getBody());
+        } else {
+          trigger=create.invokation(null, null,"p_"+m.name , arg_names);
+        }
+        eq=create.binder(
           Binder.FORALL,
           create.primitive_type(Sort.Boolean),
           copy_rw.rewrite(m.getArgs()),
-          new ASTNode[][]{new ASTNode[]{create.invokation(null, null,"p_"+m.name , arg_names)}},
+          new ASTNode[][]{new ASTNode[]{trigger}},
           create.constant(true),
-          create.expression(StandardOperator.EQ,
-              rewrite(m.getBody()),
-              create.invokation(null, null,"p_"+m.name , arg_names)
-          )
-      );
-      adt.add_axiom(create.axiom(m.name+"_def",eq));
+          eq
+        );
+      }
+      adt.add_axiom(create.axiom(m.name+"_def_1",eq));
+    }
+    {
+      ASTNode tmp=create.invokation(null, null,"p_"+m.name , arg_names);
+      ASTNode lhs=create.invokation(null, null,"p_seq",create.local_name("p"),tmp);
+      ASTNode rhs=create.invokation(null, null,"p_seq",create.local_name("p"),
+          create.invokation(null, null,"p_seq",tmp,create.invokation(null, null,"p_empty")));
+      ASTNode eq=create.binder(
+          Binder.FORALL,
+          create.primitive_type(Sort.Boolean),
+          copy_rw.rewrite(create.field_decl("p",adt_type),m.getArgs()),
+          new ASTNode[][]{new ASTNode[]{lhs}},
+          create.constant(true),
+          create.expression(EQ,lhs,rhs)
+        );
+      adt.add_axiom(create.axiom(m.name+"_def_2",eq));
     }
     adt.add_cons(create.function_decl(adt_type, null,"p_"+m.name,args,null));
   }
