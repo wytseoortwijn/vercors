@@ -363,16 +363,21 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
 
   protected void add_begin_hist_method(ASTClass cl) {
     Method begin_hist;
+    boolean hist=hist_class.getName().equals("History");
     ContractBuilder cb=new ContractBuilder();
     for(DeclarationStatement d:cl.dynamicFields()){
       cb.requires(create.expression(Perm,create.field_name(d.name+"_hist_value"),create.reserved_name(FullPerm)));
       cb.requires(create.expression(PointsTo,create.field_name(d.name+"_hist_mode"),
-          create.reserved_name(FullPerm),create.constant(0)));
+          create.reserved_name(FullPerm),create.constant(hist?0:1)));
       cb.requires(create.expression(Perm,create.field_name(d.name+"_hist_init"),create.reserved_name(FullPerm)));
-      cb.requires(create.expression(Perm,create.field_name(d.name+"_hist_act"),create.reserved_name(FullPerm)));
+      if (hist){
+        cb.requires(create.expression(Perm,create.field_name(d.name+"_hist_act"),create.reserved_name(FullPerm)));
+      } else {
+        cb.ensures(create.expression(Perm,create.field_name(d.name+"_hist_act"),create.reserved_name(FullPerm)));
+      }
       cb.ensures(create.expression(Perm,create.field_name(d.name+"_hist_value"),create.reserved_name(FullPerm)));
       cb.ensures(create.expression(PointsTo,create.field_name(d.name+"_hist_mode"),
-          create.reserved_name(FullPerm),create.constant(1)));
+          create.reserved_name(FullPerm),create.constant(hist?1:0)));
       cb.ensures(create.expression(Perm,create.field_name(d.name+"_hist_init"),create.reserved_name(FullPerm)));
       cb.ensures(create.expression(EQ
           , create.field_name(d.name+"_hist_value")
@@ -380,21 +385,30 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
       ));
       cb.ensures(create.expression(EQ
           , create.field_name(d.name+"_hist_init")
-          , create.expression(Old,create.field_name(d.name+"_hist_value"))
+          , create.expression(Old,create.field_name(hist?d.name+"_hist_value":d.name+"_hist_init"))
       ));
+      if (!hist){
+        cb.ensures(create.expression(EQ
+            , create.field_name(d.name+"_hist_init")
+            , create.field_name(d.name+"_hist_value")
+        ));
+      }
     }
-    cb.ensures(create.invokation(null, null, "hist_idle",
+    ASTNode tmp=create.invokation(null, null, "hist_idle",
         create.reserved_name(ASTReserved.FullPerm),
         create.invokation(null, null, "p_empty")
-    ));
+    );
+    if (hist){ cb.ensures(tmp); } else { cb.requires(tmp); }
     begin_hist=create.method_decl(
         create.primitive_type(Sort.Void),
         cb.getContract(),
-        "begin_hist",
+        hist?"begin_hist":"end_future",
         new DeclarationStatement[0],
         null
     );
     hist_class.add(begin_hist);
+    System.out.printf("%s%n",Configuration.getDiagSyntax().print(begin_hist));
+
   }
 
   protected void add_split_merge_methods(ASTClass cl) {
@@ -825,138 +839,138 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
     }
     case CreateHistory:{
       ASTNode hist=rewrite(s.args[0]);
-      /*
-      NameExpression lbl=s.args[0].getLabel(0);
-      currentBlock.add_statement(create.field_decl(lbl.getName(), create.class_type("Ref")));
-      currentBlock.add_statement(create.expression(StandardOperator.Assert,rewrite(s.args[1])));
-      currentBlock.add_statement(create.special(ASTSpecial.Kind.Inhale,
-          create.invokation(create.local_name(lbl.getName()),null,"hist_idle",rewrite(((OperatorExpression)s.args[0]).getArguments()))
-      ));
-      result=null;//create.comment("// end of create");
-      */
       result=create.invokation(hist, null , "begin_hist");
       break;
     }
+    case CreateFuture:{
+      setUpEffect(s);
+      break;
+    }
+    case DestroyFuture:{
+      ASTNode future=rewrite(s.args[0]);
+      result=create.invokation(future, null , "end_future");
+      break; 
+    }
     case DestroyHistory:{
-      ASTNode hist=s.args[0];
-      String name="end_hist_"+count.incrementAndGet();
-      ClassType ct=(ClassType)hist.getType();
-      if (ct==null){
-        Abort("type of %s is null",Configuration.getDiagSyntax().print(hist));
-      }
-      ASTClass cl=source().find(ct);
-      
-      ASTNode proc=s.args[1];
-      if (!(proc instanceof MethodInvokation)){
-        Fail("second argument of destroy must be a defined process");
-      }
-      MethodInvokation effect=(MethodInvokation)proc;
-      
-      Method def=effect.getDefinition();
-      
-      Method end_hist;
-      
-      final HashMap<String,ASTNode> map=new HashMap();
-      final HashMap<String,ASTNode> new_map=new HashMap();
-      AbstractRewriter sigma=new AbstractRewriter(source()){
-        @Override
-        public void visit(Dereference d){
-          ASTNode n=map.get(d.field);
-          if (n==null){
-            super.visit(d);
-          } else {
-            result=copy_rw.rewrite(n);
-          }
-        }
-        @Override
-        public void visit(FieldAccess d){
-          ASTNode n=map.get(d.name);
-          if (n==null){
-            super.visit(d);
-          } else {
-            result=copy_rw.rewrite(n);
-          }
-        }
-      };
-      AbstractRewriter new_sigma=new AbstractRewriter(source()){
-        @Override
-        public void visit(Dereference d){
-          ASTNode n=new_map.get(d.field);
-          if (n==null){
-            super.visit(d);
-          } else {
-            result=copy_rw.rewrite(n);
-          }
-        }
-        @Override
-        public void visit(FieldAccess d){
-          ASTNode n=new_map.get(d.name);
-          Warning("name %s",d.name);
-          if (n==null){
-            super.visit(d);
-          } else {
-            result=copy_rw.rewrite(n);
-          }
-        }
-      };
-      ApplyOld rename_old=new ApplyOld(sigma);
-      ContractBuilder cb=new ContractBuilder();
-      for(DeclarationStatement d:cl.dynamicFields()){
-        map.put(d.name,create.expression(Old,create.field_name(d.name+"_hist_init")));
-        new_map.put(d.name,create.field_name(d.name+"_hist_value"));
-        cb.requires(create.expression(Perm,create.field_name(d.name+"_hist_value"),create.reserved_name(FullPerm)));
-        cb.requires(create.expression(PointsTo,create.field_name(d.name+"_hist_mode"),
-            create.reserved_name(FullPerm),create.constant(1)));
-        cb.requires(create.expression(Perm,create.field_name(d.name+"_hist_init"),create.reserved_name(FullPerm)));
-        cb.ensures(create.expression(Perm,create.field_name(d.name+"_hist_value"),create.reserved_name(FullPerm)));
-        cb.ensures(create.expression(PointsTo,create.field_name(d.name+"_hist_mode"),
-            create.reserved_name(FullPerm),create.constant(0)));
-        cb.ensures(create.expression(Perm,create.field_name(d.name+"_hist_init"),create.reserved_name(FullPerm)));
-        cb.ensures(create.expression(Perm,create.field_name(d.name+"_hist_act"),create.reserved_name(FullPerm)));
-        cb.ensures(create.expression(EQ
-            , create.field_name(d.name+"_hist_value")
-            , create.expression(Old,create.field_name(d.name+"_hist_value"))
-        ));
-        cb.ensures(create.expression(EQ
-            , create.field_name(d.name+"_hist_init")
-            , create.expression(Old,create.field_name(d.name+"_hist_value"))
-        ));
-      }
-      Simplify simp=new Simplify(this);
-      cb.ensures(new_sigma.rewrite(rename_old.rewrite(def.getContract().post_condition)));
-      end_hist=create.method_decl(
-          create.primitive_type(Sort.Void),
-          cb.getContract(),
-          name,
-          rewrite(def.getArgs()),
-          null
-      );
-      hist_class.add_dynamic(end_hist);
-
-      result=create.invokation(rewrite(hist), null ,name,rewrite(effect.getArgs()));
-/*
-      NameExpression lbl=s.args[0].getLabel(0);
-      currentBlock.add_statement(create.special(ASTSpecial.Kind.Exhale,
-          create.invokation(create.local_name(lbl.getName()),null,"hist_idle",rewrite(((OperatorExpression)s.args[0]).getArguments()))
-      ));     
-      currentBlock.add_statement(create.expression(StandardOperator.Assume,rewrite(s.args[2])));
-      */
-      /* functional check impossible because process function headers are not generated.
-      ContractBuilder cb=new ContractBuilder();
-      Type returns=create.primitive_type(Sort.Void);
-      DeclarationStatement args[]=new DeclarationStatement[0];
-      BlockStatement body=create.block();
-      CheckProcessAlgebra cpa=new CheckProcessAlgebra(source());
-      cpa.create_body(body,((OperatorExpression)s.args[0]).getArg(1));
-      currentClass.add_dynamic(create.method_decl(returns,cb.getContract(), "check_destroy", args, body));
-      */
-      //create.comment("// end of destroy");;
+      setUpEffect(s);
       break;
     }
     default:
         super.visit(s);
         break;
     }
+  }
+
+  private void setUpEffect(ASTSpecial s) {
+    ASTNode model=s.args[0];
+    boolean hist=isHistoryRef(model);
+    String name=(hist?"end_hist_":"begin_future_")+count.incrementAndGet();
+    ASTNode proc=s.args[1];
+    if (!(proc instanceof MethodInvokation)){
+      Fail("second argument of %s must be a defined process",hist?"destroy":"create");
+    }
+    MethodInvokation effect=(MethodInvokation)proc;
+    
+    
+    
+    ClassType ct=(ClassType)model.getType();
+    if (ct==null){
+      Abort("type of %s is null",Configuration.getDiagSyntax().print(model));
+    }
+    ASTClass cl=source().find(ct);
+    
+    
+    Method def=effect.getDefinition();
+    
+    Method end_hist;
+    
+    final HashMap<String,ASTNode> map=new HashMap();
+    final HashMap<String,ASTNode> new_map=new HashMap();
+    AbstractRewriter sigma=new AbstractRewriter(source()){
+      @Override
+      public void visit(Dereference d){
+        ASTNode n=map.get(d.field);
+        if (n==null){
+          super.visit(d);
+        } else {
+          result=copy_rw.rewrite(n);
+        }
+      }
+      @Override
+      public void visit(FieldAccess d){
+        ASTNode n=map.get(d.name);
+        if (n==null){
+          super.visit(d);
+        } else {
+          result=copy_rw.rewrite(n);
+        }
+      }
+    };
+    AbstractRewriter new_sigma=new AbstractRewriter(source()){
+      @Override
+      public void visit(Dereference d){
+        ASTNode n=new_map.get(d.field);
+        if (n==null){
+          super.visit(d);
+        } else {
+          result=copy_rw.rewrite(n);
+        }
+      }
+      @Override
+      public void visit(FieldAccess d){
+        ASTNode n=new_map.get(d.name);
+        Warning("name %s",d.name);
+        if (n==null){
+          super.visit(d);
+        } else {
+          result=copy_rw.rewrite(n);
+        }
+      }
+    };
+    ApplyOld rename_old=new ApplyOld(sigma);
+    ContractBuilder cb=new ContractBuilder();
+    for(DeclarationStatement d:cl.dynamicFields()){
+      map.put(d.name,create.expression(Old,create.field_name(d.name+(hist?"_hist_init":"_hist_value"))));
+      new_map.put(d.name,create.field_name(d.name+(hist?"_hist_value":"_hist_init")));
+      cb.requires(create.expression(Perm,create.field_name(d.name+"_hist_value"),create.reserved_name(FullPerm)));
+      cb.requires(create.expression(PointsTo,create.field_name(d.name+"_hist_mode"),
+          create.reserved_name(FullPerm),create.constant(hist?1:0)));
+      cb.requires(create.expression(Perm,create.field_name(d.name+"_hist_init"),create.reserved_name(FullPerm)));
+      cb.ensures(create.expression(Perm,create.field_name(d.name+"_hist_value"),create.reserved_name(FullPerm)));
+      cb.ensures(create.expression(PointsTo,create.field_name(d.name+"_hist_mode"),
+          create.reserved_name(FullPerm),create.constant(hist?0:1)));
+      cb.ensures(create.expression(Perm,create.field_name(d.name+"_hist_init"),create.reserved_name(FullPerm)));
+      if(hist){
+        cb.ensures(create.expression(Perm,create.field_name(d.name+"_hist_act"),create.reserved_name(FullPerm)));
+      } else {
+        cb.requires(create.expression(Perm,create.field_name(d.name+"_hist_act"),create.reserved_name(FullPerm)));
+      }
+      cb.ensures(create.expression(EQ
+          , create.field_name(d.name+"_hist_value")
+          , create.expression(Old,create.field_name(d.name+"_hist_value"))
+      ));
+    }
+    Simplify simp=new Simplify(this);
+    cb.ensures(new_sigma.rewrite(rename_old.rewrite(def.getContract().post_condition)));
+    
+    ASTNode tmp=create.invokation(null, null, "hist_idle",
+        create.reserved_name(ASTReserved.FullPerm),
+        rewrite(effect)
+    );
+    if (hist){ cb.requires(tmp); } else { cb.ensures(tmp); }
+
+    
+    end_hist=create.method_decl(
+        create.primitive_type(Sort.Void),
+        cb.getContract(),
+        name,
+        rewrite(def.getArgs()),
+        null
+    );
+    hist_class.add_dynamic(end_hist);
+    System.out.printf("%s%n",Configuration.getDiagSyntax().print(end_hist));
+
+    result=create.invokation(rewrite(model), null ,name,rewrite(effect.getArgs()));
   }
   
   @Override
