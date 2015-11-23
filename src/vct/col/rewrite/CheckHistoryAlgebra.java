@@ -953,9 +953,14 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
     Simplify simp=new Simplify(this);
     cb.ensures(new_sigma.rewrite(rename_old.rewrite(def.getContract().post_condition)));
     
+    ArrayList<ASTNode> def_names=new ArrayList();
+    for(DeclarationStatement d:def.getArgs()){
+      def_names.add(create.local_name(d.name));
+    }
+    
     ASTNode tmp=create.invokation(null, null, "hist_idle",
         create.reserved_name(ASTReserved.FullPerm),
-        rewrite(effect)
+        create.invokation(null,null,"p_"+effect.method,def_names)
     );
     if (hist){ cb.requires(tmp); } else { cb.ensures(tmp); }
 
