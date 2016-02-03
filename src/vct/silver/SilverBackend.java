@@ -28,7 +28,7 @@ import vct.util.Configuration;
 
 public class SilverBackend {
   
-  public static StringSetting silver_module=new StringSetting("viper/git");
+  public static StringSetting silver_module=new StringSetting(null);
   public static IntegerSetting silicon_z3_timeout=new IntegerSetting(30000);
   
   
@@ -39,24 +39,26 @@ public class SilverBackend {
     if (parser){
       tool="silicon";
     } else {
-      hre.System.Output("verifying with %s backend",silver_module.get());
+      hre.System.Output("verifying with %s %s backend",
+          silver_module.used()?silver_module.get():"builtin",tool);
     }
     long start_time=System.currentTimeMillis();
-    File jarfile=Configuration.getToolHome().resolve(silver_module.get()+"/"+tool+".jar").toFile();
+    File jarfile;
+    if (silver_module.used()){
+      jarfile=Configuration.getToolHome().resolve(silver_module.get()+"/"+tool+".jar").toFile();
+    } else {
+      jarfile=Configuration.getHome().resolve("viper/"+tool+"/target/scala-2.11/"+tool+".jar").toFile();
+    }
     //System.err.printf("adding jar %s to path%n",jarfile);
     Container container;
-    if (jarfile.exists()){
+    if (silver_module.used()){
       container=new JarContainer(jarfile);
     } else {
-      String jar=tool.equals("silicon_qp")?"silicon-quantified-permissions":tool;
-      jarfile=Configuration.getToolHome().resolve(silver_module.get()+"/"+tool+"/target/scala-2.11/"+jar+".jar").toFile();
-      File classdir1=Configuration.getToolHome().resolve(silver_module.get()+"/viper-api/bin").toFile();
-      File classdir2=Configuration.getToolHome().resolve(silver_module.get()+"/silver/target/scala-2.11/classes").toFile();
-      File classdir3=Configuration.getToolHome().resolve(silver_module.get()+"/"+tool+"/target/scala-2.11/classes").toFile();
+      File classdir1=Configuration.getHome().resolve("viper/silver/target/scala-2.11/classes").toFile();
+      File classdir2=Configuration.getHome().resolve("viper/"+tool+"/target/scala-2.11/classes").toFile();
       container=new UnionContainer(
-//          new DirContainer(classdir1),
+          new DirContainer(classdir1),
           new DirContainer(classdir2),
-          new DirContainer(classdir3),
           new JarContainer(jarfile));
     }
     Object obj;
@@ -115,6 +117,7 @@ public class SilverBackend {
           ArrayList<Decl> in=new ArrayList();
           ArrayList<Decl> out=new ArrayList();
           for(DeclarationStatement decl:m.getArgs()){
+            System.err.printf("declaring %s%n", decl.getName());
             Decl d=verifier.decl(decl.getOrigin(),decl.getName(),decl.getType().apply(type));
             if (decl.isValidFlag(ASTFlags.OUT_ARG) && decl.getFlag(ASTFlags.OUT_ARG)){
               out.add(d);
