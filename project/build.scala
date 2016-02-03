@@ -11,6 +11,7 @@ object CarbonBuild extends Build {
           version := "1.0-SNAPSHOT",
           scalaVersion := "2.11.7",
           scalacOptions in Compile ++= Seq("-deprecation", "-unchecked", "-feature"),
+          dependencyClasspath in Compile += new File("../viper-api/bin"), /* add VerCors/Viper interface */
           libraryDependencies += "org.rogach" %% "scallop" % "0.9.5",
           libraryDependencies += "org.jgrapht" % "jgrapht-core" % "0.9.0"
        )
