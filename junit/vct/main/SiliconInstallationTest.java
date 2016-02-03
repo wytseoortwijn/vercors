@@ -31,19 +31,7 @@ public class SiliconInstallationTest extends ToolTest {
       VCTResult res=run("silicon","//examples/backends/test-fail.sil");  
       res.mustSay("Assignment might fail. Divisor 0 might be zero.");
   }
-  
-  @Test
-  public void testSiliconQPPass(){
-      VCTResult res=run("silicon_qp","//examples/backends/test-pass.sil");  
-      res.mustSay("No errors found.");
-  }
-
-  @Test
-  public void testSiliconQPFail(){
-      VCTResult res=run("silicon_qp","//examples/backends/test-fail.sil");  
-      res.mustSay("Assignment might fail. Divisor 0 might be zero.");
-  }
-  
+   
   @Test
   public void testHistoryProcessesPVL(){
       VCTResult res=run("vct","--silver=silicon","--check-defined","//examples/histories/History.pvl");

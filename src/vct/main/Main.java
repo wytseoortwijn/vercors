@@ -678,6 +678,19 @@ public class Main
     if (!(boogie.get() || chalice.get() || chalice2sil.get() || silver.used() || dafny.get() || verifast.get() || pass_list.iterator().hasNext())) {
       Fail("no back-end or passes specified");
     }
+    if (silver.used()){
+      switch(silver.get()){
+      case "silicon_qp":
+        Warning("silicon_qp has been merged into silicon, using silicon instead");
+        silver.set("silicon");
+        break;
+      case "silicon":
+      case "carbon": 
+        break;
+      default:
+        Fail("unknown silver backend: %s",silver.get());
+      }
+    }
     Progress("parsing inputs...");
     int cnt = 0;
     long startTime = System.currentTimeMillis();

@@ -97,7 +97,7 @@ public class ToolTest extends TestCase {
         }
         args[0]+=" --encoded="+dir+File.separator+test_name+ext;
       }
-      if (args[1].startsWith("--silver")){
+      if (SilverBackend.silver_module.used()){
         args[0]+=" --silver-module="+SilverBackend.silver_module.get();
       }
       //p=new MessageProcess(args);
