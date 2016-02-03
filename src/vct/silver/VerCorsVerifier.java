@@ -752,7 +752,7 @@ public class VerCorsVerifier implements
   }
 
   @Override
-  public java.util.List<? extends ViperError> verify(Path tool_home,
+  public java.util.List<? extends ViperError<Origin>> verify(Path tool_home,
       Properties settings, ProgramUnit program) {
     // TODO Auto-generated method stub
     throw new HREError("missing case");

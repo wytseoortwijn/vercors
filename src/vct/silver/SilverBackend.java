@@ -1,10 +1,9 @@
 package vct.silver;
 
 import viper.api.*;
+
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
@@ -42,7 +41,6 @@ public class SilverBackend {
       hre.System.Output("verifying with %s %s backend",
           silver_module.used()?silver_module.get():"builtin",tool);
     }
-    long start_time=System.currentTimeMillis();
     File jarfile;
     if (silver_module.used()){
       jarfile=Configuration.getToolHome().resolve(silver_module.get()+"/"+tool+".jar").toFile();
@@ -74,7 +72,7 @@ public class SilverBackend {
       //TODO: verifier_props.load(is);
       //TODO: is.close();
       //TODO: System.err.printf("verifier properties: %s%n", verifier_props);
-      Class v_class;
+      Class<?> v_class;
       if (parser) {
         v_class=loader.loadClass("viper.api.SilverImplementation");
       } else if (tool.contains("silicon")){
@@ -92,7 +90,8 @@ public class SilverBackend {
     if (!(obj instanceof SilverVerifier)){
       hre.System.Fail("Plugin is incompatible: cannot cast verifier.");
     }
-    SilverVerifier<Origin,VerificationError,T,E,S,Decl,DFunc,DAxiom,Program> verifier=(SilverVerifier)obj;
+    @SuppressWarnings("unchecked")
+    SilverVerifier<Origin,VerificationError,T,E,S,Decl,DFunc,DAxiom,Program> verifier=(SilverVerifier<Origin, VerificationError, T, E, S, Decl, DFunc, DAxiom, Program>)obj;
     verifier.set_tool_home(Configuration.getToolHome());
     return verifier;
   }
@@ -103,21 +102,18 @@ public class SilverBackend {
     long start_time=System.currentTimeMillis();
     SilverVerifier<Origin,VerificationError,T,E,S,Decl,DFunc,DAxiom,Program> verifier=getVerifier(tool);
     verifier.set_detail(Configuration.detailed_errors.get());
-    SilverTypeMap<T> type=new SilverTypeMap(verifier);
-    SilverExpressionMap<T, E, Decl> expr=new SilverExpressionMap(verifier,type);
-    SilverStatementMap<T, E, S, Decl> stat=new SilverStatementMap(verifier,type,expr);
+    SilverTypeMap<T> type=new SilverTypeMap<T>(verifier);
+    SilverExpressionMap<T, E, Decl> expr=new SilverExpressionMap<T,E,Decl>(verifier,type);
+    SilverStatementMap<T, E, S, Decl> stat=new SilverStatementMap<T,E,S,Decl>(verifier,type,expr);
     Program program=verifier.program();
     for(ASTNode entry:arg) {
       if (entry instanceof Method) {
         Method m = (Method)entry;
         switch(m.kind){
         case Plain:{
-          //hre.System.Warning("plain method %s",m.name);
-          
-          ArrayList<Decl> in=new ArrayList();
-          ArrayList<Decl> out=new ArrayList();
+          ArrayList<Decl> in=new ArrayList<Decl>();
+          ArrayList<Decl> out=new ArrayList<Decl>();
           for(DeclarationStatement decl:m.getArgs()){
-            System.err.printf("declaring %s%n", decl.getName());
             Decl d=verifier.decl(decl.getOrigin(),decl.getName(),decl.getType().apply(type));
             if (decl.isValidFlag(ASTFlags.OUT_ARG) && decl.getFlag(ASTFlags.OUT_ARG)){
               out.add(d);
@@ -125,23 +121,23 @@ public class SilverBackend {
               in.add(d);
             }
           }
-          ArrayList<Decl> locals=new ArrayList();
+          ArrayList<Decl> locals=new ArrayList<Decl>();
           S body;
           if (m.getBody() instanceof BlockStatement){
             BlockStatement block=(BlockStatement)m.getBody();
-            ArrayList<S> stats=new ArrayList();
+            ArrayList<S> stats=new ArrayList<S>();
             split_block(verifier, type, stat, locals, block, stats);
             body=verifier.block(block.getOrigin(),stats);
           } else if (m.getBody()==null){
             Origin o=m.getOrigin();
-            ArrayList<S> l=new ArrayList();
+            ArrayList<S> l=new ArrayList<S>();
             l.add(verifier.inhale(o,verifier.Constant(o, false)));
             body=verifier.block(o,l);
           } else {
             throw new HREError("unexpected body %s",Configuration.getDiagSyntax().print(m.getBody()));
           }
-          ArrayList<E> pres=new ArrayList();
-          ArrayList<E> posts=new ArrayList();
+          ArrayList<E> pres=new ArrayList<E>();
+          ArrayList<E> posts=new ArrayList<E>();
           Contract c=m.getContract();
           if (c!=null){
             for(ASTNode n:ASTUtils.conjuncts(c.pre_condition,StandardOperator.Star)){
@@ -155,14 +151,14 @@ public class SilverBackend {
           break;
         }
         case Pure:{
-          ArrayList<Decl> args=new ArrayList();
+          ArrayList<Decl> args=new ArrayList<Decl>();
           for(DeclarationStatement decl:m.getArgs()){
             Decl d=verifier.decl(decl.getOrigin(),decl.getName(),decl.getType().apply(type));
             args.add(d);
           }
           T t=m.getReturnType().apply(type);
-          ArrayList<E> pres=new ArrayList();
-          ArrayList<E> posts=new ArrayList();
+          ArrayList<E> pres=new ArrayList<E>();
+          ArrayList<E> posts=new ArrayList<E>();
           Contract c=m.getContract();
           if (c!=null){
             for(ASTNode n:ASTUtils.conjuncts(c.pre_condition,StandardOperator.Star)){
@@ -180,7 +176,7 @@ public class SilverBackend {
         case Predicate:{
           ASTNode b=m.getBody();
           E body=(b==null?null:b.apply(expr));
-          ArrayList<Decl> args=new ArrayList();
+          ArrayList<Decl> args=new ArrayList<Decl>();
           for(DeclarationStatement decl:m.getArgs()){
             Decl d=verifier.decl(decl.getOrigin(),decl.getName(),decl.getType().apply(type));
             args.add(d);
@@ -202,9 +198,9 @@ public class SilverBackend {
         }
       } else if (entry instanceof AxiomaticDataType) {
         AxiomaticDataType adt=(AxiomaticDataType)entry;
-        ArrayList<DFunc> funcs=new ArrayList();
+        ArrayList<DFunc> funcs=new ArrayList<DFunc>();
         for(Method m:adt.constructors()){
-          ArrayList<Decl> args=new ArrayList();
+          ArrayList<Decl> args=new ArrayList<Decl>();
           for(DeclarationStatement decl:m.getArgs()){
             Decl d=verifier.decl(decl.getOrigin(),decl.getName(),decl.getType().apply(type));
             args.add(d);
@@ -212,18 +208,18 @@ public class SilverBackend {
           funcs.add(verifier.dfunc(m.getOrigin(),m.name, args,m.getReturnType().apply(type)));
         }
         for(Method m:adt.mappings()){
-          ArrayList<Decl> args=new ArrayList();
+          ArrayList<Decl> args=new ArrayList<Decl>();
           for(DeclarationStatement decl:m.getArgs()){
             Decl d=verifier.decl(decl.getOrigin(),decl.getName(),decl.getType().apply(type));
             args.add(d);
           }
           funcs.add(verifier.dfunc(m.getOrigin(),m.name, args,m.getReturnType().apply(type)));
         }
-        ArrayList<DAxiom> axioms=new ArrayList();
+        ArrayList<DAxiom> axioms=new ArrayList<DAxiom>();
         for(Axiom axiom:adt.axioms()){
           axioms.add(verifier.daxiom(axiom.getOrigin(),axiom.name,axiom.getRule().apply(expr)));
         }
-        ArrayList<String> pars=new ArrayList();
+        ArrayList<String> pars=new ArrayList<String>();
         for(DeclarationStatement decl:adt.getParameters()){
           pars.add(decl.getName());
         }
@@ -264,9 +260,9 @@ public class SilverBackend {
     TestReport report=new TestReport();
     start_time=System.currentTimeMillis();
     try {
-      List<? extends ViperError> errs=verifier.verify(Configuration.getToolHome(),settings,program);
+      List<? extends ViperError<Origin>> errs=verifier.verify(Configuration.getToolHome(),settings,program);
       if (errs.size()>0){
-        for(ViperError e:errs){
+        for(ViperError<Origin> e:errs){
           int N=e.getExtraCount();
           for(int i=0;i<N;i++){
             Origin o=(Origin)e.getOrigin(i);
