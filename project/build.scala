@@ -39,6 +39,7 @@ object SiliconBuild extends Build {
               name := "Silicon",
               mainClass in assembly := Some("viper.silicon.Silicon"),
               jarName in assembly := "silicon.jar",
+              dependencyClasspath in Compile += new File("../viper-api/bin"), /* add VerCors/Viper interface */
               test in assembly := {}, /* Skip tests before assembling fat jar. Assembling stops if tests fails. */
               fork := true,
                 /* Fork Silicon when run and tested. Avoids problems with file
