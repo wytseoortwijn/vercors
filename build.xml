@@ -13,7 +13,7 @@
   <property name="bin"          value="${basedir}/bin"/>
   <property name="lib"          value="${basedir}/libs"/>
   <property name="dist"         value="${basedir}/dist"/>
-  <property name="libpath"      value="${basedir}/../hre/hre.jar:${basedir}/../core/vct-core.jar:${lib}/antlr-4.5-complete.jar:${basedir}/../libs/commons-lang3-3.1/commons-lang3-3.1.jar:${basedir}/../../../viper/git/viper-api/bin"/>
+  <property name="libpath"      value="${basedir}/../hre/hre.jar:${basedir}/../core/vct-core.jar:${lib}/antlr-4.5-complete.jar:${basedir}/../libs/commons-lang3-3.1/commons-lang3-3.1.jar:${basedir}/../viper/viper-api/bin"/>
   <property environment="env"/>
 
   <target name="clean">
