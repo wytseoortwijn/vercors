@@ -44,6 +44,31 @@ public class RewriteArrayRef extends AbstractRewriter {
 	@Override
 	public void visit(OperatorExpression e){
 		switch (e.getOperator()){
+		  case NEQ:
+		  {
+        ASTNode e0=e.getArg(0);
+        ASTNode e1=e.getArg(1);
+        ASTNode array=null;
+        if (e0.isReserved(ASTReserved.Null) && e1.getType().isPrimitive(Sort.Array)){
+          array=e1;
+        }
+        if (e1.isReserved(ASTReserved.Null) && e0.getType().isPrimitive(Sort.Array)){
+          array=e0;
+        }
+        if(array==null){
+          super.visit(e);
+        } else {
+          array=rewrite(array);
+          ASTNode guard=create.expression(StandardOperator.And,
+              create.expression(StandardOperator.LTE,create.constant(0),create.local_name("i_481")),
+              create.expression(StandardOperator.LT,create.local_name("i_481"),create.expression(StandardOperator.Size,array)));
+          ASTNode claim=create.expression(StandardOperator.Value,create.dereference(
+              create.expression(StandardOperator.Subscript,array,create.local_name("i_481")),"array_dummy"));
+          DeclarationStatement decl=create.field_decl("i_481",create.primitive_type(Sort.Integer));
+          result=create.starall(guard, claim, decl);
+        }
+		    break;
+		  }
 		  case Subscript:
 		  	super.visit(e);
 			  if (e.getArg(0).getType().isPrimitive(Sort.Array)){
@@ -128,6 +153,7 @@ public class RewriteArrayRef extends AbstractRewriter {
         String s=t.toString();
         ref.add_dynamic(create.field_decl(s+"_value",t));
       }
+      ref.add_dynamic(create.field_decl("array_dummy",create.primitive_type(Sort.Integer)));
     }
     return res;
   }
