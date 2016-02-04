@@ -7,7 +7,7 @@
   <property name="bin"          value="${basedir}/bin"/>
   <property name="libs"         value="${basedir}/libs"/>
   <property name="dist"         value="${basedir}/dist"/>
-  <property name="libpath"      value="${basedir}/../hre/hre.jar:${basedir}/../core/vct-core.jar:${basedir}/../libs/hamcrest.core_1.3.0.jar:${basedir}/../libs/junit_4.11.0.jar:${basedir}/../libs/tempus-fugit-1.1.jar:${basedir}/../silver/silver-backends.jar"/>
+  <property name="libpath"      value="${basedir}/../hre/hre.jar:${basedir}/../core/vct-core.jar:${basedir}/../libs/hamcrest.core_1.3.0.jar:${basedir}/../libs/junit_4.11.0.jar:${basedir}/../libs/tempus-fugit-1.1.jar"/>
   <property environment="env"/>
 
   <target name="clean">
