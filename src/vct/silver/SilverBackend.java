@@ -255,7 +255,7 @@ public class SilverBackend {
 
     Properties settings=new Properties();
     if (tool.startsWith("silicon")){
-      settings.setProperty("smt.soft_timeout",silicon_z3_timeout.get()+"");
+      //settings.setProperty("smt.soft_timeout",silicon_z3_timeout.get()+"");
     }
     TestReport report=new TestReport();
     start_time=System.currentTimeMillis();
