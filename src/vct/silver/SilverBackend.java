@@ -275,6 +275,7 @@ public class SilverBackend {
         report.setVerdict(Verdict.Pass);
       }
     } catch (Exception e){
+      e.printStackTrace();
       report.setVerdict(Verdict.Error);
     }
     end_time=System.currentTimeMillis();
