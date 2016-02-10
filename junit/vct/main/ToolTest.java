@@ -120,11 +120,11 @@ public class ToolTest extends TestCase {
     case "silicon":
     case "silicon_qp":
       String z3;
-      if (vct.boogie.Main.z3_module.used()){
-        z3=vct.boogie.Main.z3_module.get();
-      } else {
+      //if (vct.boogie.Main.z3_module.used()){
+      //  z3=vct.boogie.Main.z3_module.get();
+      //} else {
         z3="z3/4.3.2";
-      }
+      //}
       sh=Configuration.getShell(
           z3,
           vct.silver.SilverBackend.silver_module.get());
