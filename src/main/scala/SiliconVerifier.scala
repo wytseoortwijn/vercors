@@ -23,7 +23,7 @@ class SiliconVerifier[O,Err] extends SilverImplementation[O,Err] {
       entry => z3_config=z3_config+sep+(entry._1)+"="+(entry._2) ; sep=" "
     }
     z3_config+="\"";
-    println(z3_config);
+    //println(z3_config);
     silicon.parseCommandLine(Seq(
         "--z3Exe",z3_exe,
         "--z3ConfigArgs",z3_config,
