@@ -382,26 +382,27 @@ public class KernelRewriter extends AbstractRewriter {
         AbstractRewriter filter_resource=new FilterClause(this,true);
         AbstractRewriter filter_booleans=new FilterClause(this,false);
         AbstractRewriter simplify=new Simplify(this);
+        /*
         System.err.printf("kernel %s%n", base_name);
         System.err.printf("// resources%n");
         for(ASTNode clause:ASTUtils.conjuncts(filter_resource.rewrite(contract.pre_condition),StandardOperator.Star)){
           System.err.printf("requires (\\forall* int tid; 0 <= tid && tid < tcount ;%n            ");
-          vct.util.Configuration.getDiagSyntax().print(System.out,simplify.rewrite(clause));
+          vct.util.Configuration.getDiagSyntax().print(System.err,simplify.rewrite(clause));
           System.err.printf(");%n");
         }
         System.err.printf("// required properties%n");
         for(ASTNode clause:ASTUtils.conjuncts(filter_booleans.rewrite(contract.pre_condition),StandardOperator.Star)){
           System.err.printf("requires (\\forall int tid; 0 <= tid && tid < tcount ;%n            ");
-          vct.util.Configuration.getDiagSyntax().print(System.out,simplify.rewrite(clause));
+          vct.util.Configuration.getDiagSyntax().print(System.err,simplify.rewrite(clause));
           System.err.printf(");%n");
         }
         System.err.printf("// ensured properties%n");
         for(ASTNode clause:ASTUtils.conjuncts(filter_booleans.rewrite(contract.post_condition),StandardOperator.Star)){
           System.err.printf("ensures  (\\forall int tid; 0 <= tid && tid < tcount ;%n            ");
-          vct.util.Configuration.getDiagSyntax().print(System.out,simplify.rewrite(clause));
+          vct.util.Configuration.getDiagSyntax().print(System.err,simplify.rewrite(clause));
           System.err.printf(");%n");
         }        
-        
+        */
         
         /* end kernel contract */
         /*

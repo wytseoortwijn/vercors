@@ -98,7 +98,7 @@ public class SilverBackend {
   
   public static <T,E,S,Decl,DFunc,DAxiom,Program>
   TestReport TestSilicon(ProgramUnit arg, String tool) {
-    hre.System.Output("verifying with %s backend",silver_module.get());
+    //hre.System.Output("verifying with %s backend",silver_module.get());
     long start_time=System.currentTimeMillis();
     SilverVerifier<Origin,VerificationError,T,E,S,Decl,DFunc,DAxiom,Program> verifier=getVerifier(tool);
     verifier.set_detail(Configuration.detailed_errors.get());
