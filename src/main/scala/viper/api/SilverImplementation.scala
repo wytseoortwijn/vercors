@@ -291,7 +291,7 @@ class SilverImplementation[O,Err] extends viper.api.SilverVerifier[O,Err,Type,Ex
               prog.predicates.asScala.toList,
               prog.methods.asScala.toList)()
               
-    println("=============\n" + program + "\n=============\n")
+    //println("=============\n" + program + "\n=============\n")
 
     val report = new java.util.ArrayList[viper.api.ViperError[O]]()
     val verifier=createVerifier(tool_home,settings)
