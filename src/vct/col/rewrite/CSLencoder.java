@@ -114,7 +114,7 @@ public class CSLencoder extends AbstractRewriter {
         }
       }
       if (subjects.size()==0){
-        Warning("no explicit subjects for atomic method call.");
+        //Warning("no explicit subjects for atomic method call.");
         subjects.add(create.reserved_name(ASTReserved.This));
       }
       BlockStatement block=currentBlock;
