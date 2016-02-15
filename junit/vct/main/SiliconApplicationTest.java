@@ -329,4 +329,47 @@ public class SiliconApplicationTest extends ToolTest {
       sem.release();
     }  
   }
+  
+  @Test
+  public void testLFQbasics(){
+    sem_get();
+    try {
+      VCTResult res=run("vct","--silver=silicon","//examples/layers/LFQ.java");
+      res.checkVerdict(Verdict.Pass);
+    } finally {
+      sem.release();
+    }  
+  }
+  
+  @Test
+  public void testLFQhist(){
+    sem_get();
+    try {
+      VCTResult res=run("vct","--silver=silicon","--check-history","//examples/layers/LFQHist.java");
+      res.checkVerdict(Verdict.Pass);
+    } finally {
+      sem.release();
+    }  
+  }
+  
+  @Test
+  public void testJava6Lock(){
+    sem_get();
+    try {
+      VCTResult res=run("vct","--silver=silicon","//examples/layers/Java6Lock.java");
+      res.checkVerdict(Verdict.Pass);
+    } finally {
+      sem.release();
+    }
+  }
+  
+  @Test
+  public void testHistoryLFQ(){
+      VCTResult res=run("vct","--silver=silicon","--check-history",
+          "//examples/layers/HistoryApplication.java");
+      res.checkVerdict(Verdict.Pass);
+  }
+  
+
+  
 }
