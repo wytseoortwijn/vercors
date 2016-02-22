@@ -26,6 +26,7 @@ import vct.col.ast.Type;
 import vct.col.ast.PrimitiveType.Sort;
 import vct.col.ast.ProgramUnit;
 import vct.col.ast.StandardOperator;
+import vct.util.Configuration;
 
 public class RewriteArrayRef extends AbstractRewriter {
 
@@ -58,14 +59,24 @@ public class RewriteArrayRef extends AbstractRewriter {
         if(array==null){
           super.visit(e);
         } else {
+          ASTNode base;
+          Type t=array.getType();
           array=rewrite(array);
+          if (t.getArgCount()==2){
+            base=create.expression(StandardOperator.EQ,
+                create.expression(StandardOperator.Size, array),
+                rewrite(t.getArg(1)));
+          } else {
+            base=create.constant(true);
+          }
           ASTNode guard=create.expression(StandardOperator.And,
               create.expression(StandardOperator.LTE,create.constant(0),create.local_name("i_481")),
               create.expression(StandardOperator.LT,create.local_name("i_481"),create.expression(StandardOperator.Size,array)));
           ASTNode claim=create.expression(StandardOperator.Value,create.dereference(
               create.expression(StandardOperator.Subscript,array,create.local_name("i_481")),"array_dummy"));
           DeclarationStatement decl=create.field_decl("i_481",create.primitive_type(Sort.Integer));
-          result=create.starall(guard, claim, decl);
+          result=create.expression(StandardOperator.Star,
+              base, create.starall(guard, claim, decl));
         }
 		    break;
 		  }
