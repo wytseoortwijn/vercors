@@ -1,8 +1,10 @@
 package vct.main;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
@@ -40,6 +42,7 @@ public class CommandLineTesting {
     } else {
       collection=selftest;
     }
+    HashMap<String,Result> list=new HashMap();
     for(String suite:collection){
       Class<?> cls=testmap.get(suite);
       if (cls==null) {
@@ -49,9 +52,15 @@ public class CommandLineTesting {
       }
       System.err.printf("Running %s.%n",cls);
       Result result = junit.run(cls);
+      list.put(cls.toString(),result);
+    }
+    boolean OK=true;
+    for(Entry<String,Result> e:list.entrySet()){
+      String name=e.getKey();
+      Result result=e.getValue();
       int E=result.getFailureCount();
       System.err.printf("==============================================%n");
-      System.err.printf("While running %s: %d failures out of %d tests%n",cls,E,result.getRunCount());
+      System.err.printf("While running %s: %d failures out of %d tests%n",name,E,result.getRunCount());
       if (E>0){
         System.err.printf("----------------------------------------------%n");
         System.err.printf("The following tests failed:%n");
@@ -59,14 +68,16 @@ public class CommandLineTesting {
           System.err.printf("%s%n",f.getDescription());
         }
       }
-      System.err.printf("==============================================%n");
-      if (E>0) {
-        System.err.printf("test suite %s failed.%n",suite);
-        System.exit(1);
-      }
+      if (E>0) OK=false;
     }
-    System.err.printf("all test suites have been succesful.%n");
-    System.exit(0);
+    System.err.printf("==============================================%n");
+    if (OK){
+      System.err.printf("all test suites have been succesful.%n");
+      System.exit(0);
+    } else {
+      System.err.printf("one or more test suites failed.%n");
+      System.exit(1);
+    }
   }
   
   private static StringListSetting selftest=new StringListSetting();
