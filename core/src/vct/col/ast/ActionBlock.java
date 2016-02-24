@@ -1,5 +1,7 @@
 package vct.col.ast;
 
+import java.util.Map;
+
 public class ActionBlock extends ASTNode {
 
   @Override
@@ -12,12 +14,14 @@ public class ActionBlock extends ASTNode {
   public final ASTNode process;
   public final ASTNode action;
   public final ASTNode block;
+  public final Map<String,ASTNode> map;
   
-  public ActionBlock(ASTNode history,ASTNode fraction,ASTNode process,ASTNode action,ASTNode block){
+  public ActionBlock(ASTNode history,ASTNode fraction,ASTNode process,ASTNode action,Map<String,ASTNode> map, ASTNode block){
     this.history=history;
     this.fraction=fraction;
     this.process=process;
     this.action=action;
+    this.map=map;
     this.block=block;
   }
   

@@ -43,6 +43,7 @@ public class SpecificationCollector extends AbstractRewriter {
     case Ensures:
     case Invariant:
     case Modifies:
+    case Accessible:
       if (currentContractBuilder != null) break;
     default:
       super.visit(s);
@@ -50,8 +51,12 @@ public class SpecificationCollector extends AbstractRewriter {
     }
     switch(s.kind){
     case Modifies:{
-    	currentContractBuilder.modifies(rewrite(s.args));
-    	break;
+      currentContractBuilder.modifies(rewrite(s.args));
+      break;
+    }
+    case Accessible:{
+      currentContractBuilder.accesses(rewrite(s.args));
+      break;
     }
     case Given:
     {

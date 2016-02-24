@@ -4,6 +4,7 @@ package vct.util;
 import vct.col.ast.ASTDeclaration;
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTReserved;
+import vct.col.ast.ASTSpecial;
 import vct.col.ast.PrimitiveType.Sort;
 import vct.col.ast.ProgramUnit;
 import vct.col.ast.StandardOperator;
@@ -46,6 +47,9 @@ public class Syntax {
   
   private Map<ASTReserved,String> reserved2syntax = new HashMap<ASTReserved, String>();
   private Map<String,ASTReserved> syntax2reserved = new HashMap<String, ASTReserved>();
+
+  private Map<ASTSpecial.Kind,String> special2syntax = new HashMap<ASTSpecial.Kind, String>();
+  private Map<String,ASTSpecial.Kind> syntax2special = new HashMap<String, ASTSpecial.Kind>();
   
   /**
    * Get a pattern that can be matched against an ANTLR 4.x parse tree.
@@ -201,10 +205,30 @@ public class Syntax {
     pattern_map.put(op, pattern.toArray(full_syntax));
   }
   
+  
+  public void addSpecial(ASTSpecial.Kind word,String string) {
+    special2syntax.put(word,string);
+    syntax2special.put(string,word);
+  }
+
+  public boolean is_special(String text) {
+    return syntax2special.containsKey(text);
+  }
+
+  public ASTSpecial.Kind special(String text) {
+    return syntax2special.get(text);
+  }
+
+  public String getSyntax(ASTSpecial.Kind word) {
+    return special2syntax.get(word);
+  }
+
+  
   public void addReserved(ASTReserved word,String string) {
     reserved2syntax.put(word,string);
     syntax2reserved.put(string,word);
   }
+
 /*  
   public Iterable<String> reserved(){
     return reserved2syntax.keySet();

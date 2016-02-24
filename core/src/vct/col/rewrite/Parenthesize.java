@@ -25,6 +25,7 @@ public class Parenthesize extends AbstractRewriter {
     cb.given(rewrite(c.given));
     cb.yields(rewrite(c.yields));
     if (c.modifies!=null) cb.modifies(rewrite(c.modifies)); 
+    if (c.accesses!=null) cb.accesses(rewrite(c.accesses)); 
     cb.appendInvariant(rewrite(c.invariant));
     cb.requires(rewrite(c.pre_condition));
     cb.ensures(rewrite(c.post_condition));

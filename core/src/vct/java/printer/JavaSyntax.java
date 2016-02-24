@@ -5,6 +5,7 @@ package vct.java.printer;
 import hre.ast.TrackingOutput;
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTReserved;
+import vct.col.ast.ASTSpecial;
 import vct.col.rewrite.Parenthesize;
 import hre.HREError;
 import vct.util.Syntax;
@@ -80,7 +81,10 @@ public class JavaSyntax extends Syntax {
         syntax.addReserved(ThreadLocal,"thread_local");
         syntax.addReserved(Pure,"pure");
         syntax.addReserved(CurrentThread,"\\current_thread");
-        
+
+        syntax.addSpecial(ASTSpecial.Kind.DeclareAction,"action");
+        syntax.addSpecial(ASTSpecial.Kind.ChooseHistory,"choose");
+               
         JavaVerCorsSyntax=syntax;
         
       }

@@ -237,6 +237,12 @@ public class AbstractPrinter extends AbstractVisitor {
     case Pragma:
       out.printf("@pragma(\"%s\")%n", s.args[0]);
       break;
+    case Modifies:
+      out.println("modifies ...");
+      break;
+    case Accessible:
+      out.println("accessible ...");
+      break;
     default:
       setExpr();
       out.printf("%s ",s.kind);
@@ -251,7 +257,7 @@ public class AbstractPrinter extends AbstractVisitor {
           out.print("null");
         } else {
           s.args[i].accept(this);
-        }       
+        }
       }
       out.println(";");
       break;

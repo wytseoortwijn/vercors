@@ -57,14 +57,17 @@ public class ColJavaParser implements vct.col.util.Parser {
         pu=new CommentRewriter(pu,new JMLCommentParser(ec)).rewriteAll();
         Progress("Specification parsing took %dms",tk.show());
         ec.report();
+        Debug("program after specification parsing:%n%s",pu);
         
         pu=new FlattenVariableDeclarations(pu).rewriteAll();
         Progress("Flattening variables took %dms",tk.show());
         //vct.util.Configuration.getDiagSyntax().print(System.out,pu);
+        Debug("program after flattening variables:%n%s",pu);
         
         pu=new SpecificationCollector(pu).rewriteAll();
         Progress("Shuffling specifications took %dms",tk.show());        
         //vct.util.Configuration.getDiagSyntax().print(System.out,pu);
+        Debug("program after collecting specs:%n%s",pu);
         
         pu=new JavaPostProcessor(pu).rewriteAll();
         Progress("post processing took %dms",tk.show());        

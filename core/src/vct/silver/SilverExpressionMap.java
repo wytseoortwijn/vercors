@@ -130,7 +130,8 @@ public class SilverExpressionMap<T,E,Decl> implements ASTMapping<E>{
 
     case Mult: return create.mult(o,e.getArg(0).apply(this),e.getArg(1).apply(this));
     case Div:{
-      if (e.getType().isPrimitive(PrimitiveType.Sort.Fraction)){
+      if (e.getType().isPrimitive(PrimitiveType.Sort.Fraction)||
+          e.getType().isPrimitive(PrimitiveType.Sort.ZFraction)){
         return create.frac(o,e.getArg(0).apply(this),e.getArg(1).apply(this));
       } else {
         return create.div(o,e.getArg(0).apply(this),e.getArg(1).apply(this));

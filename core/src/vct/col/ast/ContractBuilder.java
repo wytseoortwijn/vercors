@@ -21,6 +21,7 @@ public class ContractBuilder {
   private ArrayList<DeclarationStatement> given=new ArrayList<DeclarationStatement>();
   private ArrayList<DeclarationStatement> yields=new ArrayList<DeclarationStatement>();
   private HashSet<ASTNode> modifiable;
+  private HashSet<ASTNode> accessible;
   private ArrayList<DeclarationStatement> signals=new ArrayList<DeclarationStatement>();
   
   public boolean isEmpty() {
@@ -165,13 +166,24 @@ public class ContractBuilder {
     if (modifiable!=null){
       mods=modifiable.toArray(new ASTNode[0]);
     }
-    return new Contract(given.toArray(decls),yields.toArray(decls),mods,invariant,pre_condition,post_condition,signals.toArray(decls));
+    ASTNode[] accs=null;
+    if (accessible!=null){
+      accs=accessible.toArray(new ASTNode[0]);
+    }
+    return new Contract(given.toArray(decls),yields.toArray(decls),mods,accs,invariant,pre_condition,post_condition,signals.toArray(decls));
   }
   public void modifies(ASTNode ... locs) {
     empty=false;
     if (modifiable==null) modifiable=new HashSet<ASTNode>();
     for (ASTNode loc : locs){
       modifiable.add(loc);
+    }
+  }
+  public void accesses(ASTNode ... locs) {
+    empty=false;
+    if (accessible==null) accessible=new HashSet<ASTNode>();
+    for (ASTNode loc : locs){
+      accessible.add(loc);
     }
   }
 

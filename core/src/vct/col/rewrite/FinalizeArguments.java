@@ -66,7 +66,7 @@ public class FinalizeArguments extends AbstractRewriter {
           ASTNode inv=mc.invariant.apply(sigma);
           ASTNode pre=mc.pre_condition.apply(sigma);
           ASTNode post=mc.post_condition.apply(sigma);
-          c=new Contract(rewrite(mc.given),rewrite(mc.yields),rewrite(mc.modifies),inv,pre,post);
+          c=new Contract(rewrite(mc.given),rewrite(mc.yields),rewrite(mc.modifies),rewrite(mc.accesses),inv,pre,post);
           if (mc.getOrigin()!=null){
             c.setOrigin(mc);
           }

@@ -5,6 +5,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import hre.HREError;
 import hre.ast.MessageOrigin;
@@ -228,6 +230,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
     cb.given(rewrite(c.given));
     cb.yields(rewrite(c.yields));
     if (c.modifies!=null) cb.modifies(rewrite(c.modifies)); 
+    if (c.accesses!=null) cb.accesses(rewrite(c.accesses)); 
     in_invariant=true;
     for(ASTNode clause:ASTUtils.conjuncts(c.invariant,StandardOperator.Star)){
       cb.appendInvariant(rewrite(clause));
@@ -732,11 +735,16 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
 
   @Override
   public void visit(ActionBlock ab) {
+    Map<String,ASTNode> map=new HashMap();
+    for(Entry<String, ASTNode> e:ab.map.entrySet()){
+      map.put(e.getKey(),rewrite(e.getValue()));
+    }
     result=create.action_block(
         rewrite(ab.history),
         rewrite(ab.fraction),
         rewrite(ab.process),
         rewrite(ab.action),
+        map,
         rewrite(ab.block)
     );
   }

@@ -28,6 +28,7 @@ public class Contract extends ASTNode {
   public final DeclarationStatement yields[];
   public final DeclarationStatement signals[];
   public final ASTNode modifies[];
+  public final ASTNode accesses[];
   
   public boolean isEmpty() {
     return invariant.isConstant(default_true)
@@ -41,7 +42,12 @@ public class Contract extends ASTNode {
 
   private HashSet<String> labels=new HashSet<String>();
     
-  public Contract(DeclarationStatement given[],DeclarationStatement yields[],ASTNode inv,ASTNode pre_condition,ASTNode post_condition){
+  public Contract(
+      DeclarationStatement given[],
+      DeclarationStatement yields[],
+      ASTNode inv,
+      ASTNode pre_condition,
+      ASTNode post_condition){
     this.invariant=inv;
     this. pre_condition= pre_condition;
     this.post_condition=post_condition;
@@ -49,28 +55,45 @@ public class Contract extends ASTNode {
     this.yields=yields;
     this.signals=null;
     modifies=null;
+    accesses=null;
     build_labels();
   }
   
-  public Contract(DeclarationStatement given[],DeclarationStatement yields[],ASTNode modifies[],ASTNode inv,ASTNode pre_condition,ASTNode post_condition){
+  public Contract(
+      DeclarationStatement given[],
+      DeclarationStatement yields[],
+      ASTNode modifies[],
+      ASTNode accesses[],
+      ASTNode inv,
+      ASTNode pre_condition,
+      ASTNode post_condition){
     this.invariant=inv;
     this. pre_condition= pre_condition;
     this.post_condition=post_condition;
     this.given=given;
     this.yields=yields;
     this.modifies=modifies;
+    this.accesses=accesses;
     this.signals=null;
     build_labels();
   }
   
-  public Contract(DeclarationStatement given[],DeclarationStatement yields[],ASTNode modifies[],ASTNode inv,
-      ASTNode pre_condition,ASTNode post_condition,DeclarationStatement[]signals){
+  public Contract(
+      DeclarationStatement given[],
+      DeclarationStatement yields[],
+      ASTNode modifies[],
+      ASTNode accesses[],
+      ASTNode inv,
+      ASTNode pre_condition,
+      ASTNode post_condition,
+      DeclarationStatement[]signals){
     this.invariant=inv;
     this. pre_condition= pre_condition;
     this.post_condition=post_condition;
     this.given=given;
     this.yields=yields;
     this.modifies=modifies;
+    this.accesses=accesses;
     this.signals=signals;
     build_labels();
   }

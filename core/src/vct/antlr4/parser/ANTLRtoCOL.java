@@ -455,8 +455,11 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
       if (match(ctx,"(",null,")")){
         return convert(ctx,1);
       } else if (match(ctx,"modifies",null,";")){
-      	ASTNode list[]=convert_list((ParserRuleContext) ctx.getChild(1), ",");
+        ASTNode list[]=convert_list((ParserRuleContext) ctx.getChild(1), ",");
         return create.special_decl(ASTSpecialDeclaration.Kind.Modifies,list);
+      } else if (match(ctx,"accessible",null,";")){
+        ASTNode list[]=convert_list((ParserRuleContext) ctx.getChild(1), ",");
+        return create.special_decl(ASTSpecialDeclaration.Kind.Accessible,list);
       } else if (match(ctx,"requires",null,";")){                     
         return create.special_decl(ASTSpecialDeclaration.Kind.Requires,convert(ctx,1));
       } else if (match(ctx,"ensures",null,";")){
@@ -468,6 +471,18 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
         return create.special_decl(ASTSpecialDeclaration.Kind.Given,create.block(decl));
       } else if (match(ctx,"yields",null,";")){
         return create.special_decl(ASTSpecialDeclaration.Kind.Yields,create.block(convert(ctx,1)));
+      }
+      ParseTree tmp=ctx.getChild(0);
+      int N=ctx.getChildCount();
+      if(tmp instanceof TerminalNode){
+        Token tok=((TerminalNode)tmp).getSymbol();
+        if (syntax.is_special(tok.getText())){
+          if (!match(N-1,false,ctx,";")){
+            throw new HREError("missing ; at end of special");
+          }
+          ASTNode list[]=convert_list(ctx, 1, N-1, ",");
+          return create.special(syntax.special(tok.getText()),list);
+        }
       }
     } else if (arg0 instanceof TerminalNode){
       Token tok=((TerminalNode)arg0).getSymbol();

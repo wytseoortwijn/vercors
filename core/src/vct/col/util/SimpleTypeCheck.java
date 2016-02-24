@@ -123,7 +123,8 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
         if (!ti.supertypeof(source(), arg.getType())){
           Fail("argument type %d incompatible",i);
         }
-        if (ti.isPrimitive(PrimitiveType.Sort.Fraction)){
+        if (ti.isPrimitive(PrimitiveType.Sort.Fraction)||
+            ti.isPrimitive(PrimitiveType.Sort.ZFraction)){
           force_frac(arg);
         }
       }
@@ -628,6 +629,7 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     }
     case CurrentPerm:{
       if (!(e.getArg(0) instanceof Dereference)
+      && !(e.getArg(0) instanceof FieldAccess)
       && !e.getArg(0).isa(StandardOperator.Subscript)
       && !((e.getArg(0) instanceof NameExpression) && (((NameExpression)e.getArg(0)).getKind()==Kind.Field))
       ){
@@ -748,6 +750,12 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
         Fail("Types of left and right-hand side argument are uncomparable: %s/%s",t1,t2);
       }
       e.setType(new PrimitiveType(Sort.Boolean));
+      if (t1.isPrimitive(Sort.ZFraction) || t1.isPrimitive(Sort.Fraction)){
+        force_frac(e.getArg(1));
+      }
+      if (t2.isPrimitive(Sort.ZFraction) || t2.isPrimitive(Sort.Fraction)){
+        force_frac(e.getArg(0));
+      }
       break;
     }
     case ITE:
@@ -769,6 +777,12 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       } else {
         //Warning("ITE type %s",t1);
         e.setType(t1);
+      }
+      if (t1.isPrimitive(Sort.ZFraction) || t1.isPrimitive(Sort.Fraction)){
+        force_frac(e.getArg(2));
+      }
+      if (t2.isPrimitive(Sort.ZFraction) || t2.isPrimitive(Sort.Fraction)){
+        force_frac(e.getArg(1));
       }
       break;
     }
@@ -1111,8 +1125,19 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
   }
   
   private void force_frac(ASTNode arg) {
-    if (arg.getType().isPrimitive(Sort.ZFraction)) return;
-    if (arg.getType().isPrimitive(Sort.Fraction)) return;
+    if (arg.getType().isPrimitive(Sort.ZFraction)||
+        arg.getType().isPrimitive(Sort.Fraction)) {
+      if (arg instanceof OperatorExpression){
+        OperatorExpression e=(OperatorExpression)arg;
+        switch(e.getOperator()){
+        case ITE:
+          force_frac(e.getArg(1));
+          force_frac(e.getArg(2));
+          break;
+        }
+      }
+      return;
+    }
     arg.setType(new PrimitiveType(Sort.Fraction));
     if (arg instanceof OperatorExpression){
       OperatorExpression e=(OperatorExpression)arg;

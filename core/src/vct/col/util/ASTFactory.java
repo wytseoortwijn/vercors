@@ -4,6 +4,7 @@ package vct.col.util;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
 
 import vct.col.ast.*;
 import vct.col.ast.ASTClass.ClassKind;
@@ -1052,8 +1053,14 @@ public Axiom axiom(String name,ASTNode exp){
     return expression(op,all_args);
   }
   
-  public ActionBlock action_block(ASTNode history,ASTNode fraction,ASTNode process,ASTNode action, ASTNode block) {
-    ActionBlock res=new ActionBlock(history,fraction,process,action,block);
+  public ActionBlock action_block(
+      ASTNode history,
+      ASTNode fraction,
+      ASTNode process,
+      ASTNode action,
+      Map<String,ASTNode> map,
+      ASTNode block) {
+    ActionBlock res=new ActionBlock(history,fraction,process,action,map,block);
     res.setOrigin(origin_stack.get());
     res.accept_if(post);
     return res;

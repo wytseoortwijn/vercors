@@ -27,6 +27,7 @@ specificationPrimary
     : '\\old' '(' expression ')'
     | '\\id' '(' expression ')'
     | '\\typeof' '(' expression ')'
+    | 'perm' '(' expression ')'
     | '\\result'
     | type '{' expressionList? '}'
     | '(' '\\forall' type Identifier ';' expression ';' resourceExpression ')'

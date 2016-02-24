@@ -32,6 +32,7 @@ public class ASTSpecial extends ASTNode {
     DestroyFuture,
     SplitHistory,
     MergeHistory,
+    ChooseHistory,
     /** Transfer resources into and out of atomic regions. */
     Transfer,
     /** Mark the subjects, whose invariants are available in an atomic region. */

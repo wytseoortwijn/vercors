@@ -151,10 +151,17 @@ public class CommentRewriter extends AbstractRewriter {
       if (comment.startsWith("/*@")||comment.startsWith("//@")){
         queue.add(s);
         result=null;
-      } else if (comment.startsWith("#pragma")) {
-        result=create.special_decl(Kind.Pragma, create.constant(comment.substring(7).trim()));
       } else {
-        super.visit(s);
+        if (queue.size()>0){
+          if(parser.contract(current_sequence(),grabQueue())!=null){
+            Abort("Contract in unexpected location.");
+          }
+        }
+        if (comment.startsWith("#pragma")) {
+          result=create.special_decl(Kind.Pragma, create.constant(comment.substring(7).trim()));
+        } else {
+          super.visit(s);
+        }
       }
       break;
     }

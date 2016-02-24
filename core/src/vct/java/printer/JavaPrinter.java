@@ -6,6 +6,7 @@ import hre.ast.TrackingOutput;
 import hre.ast.TrackingTree;
 
 import java.io.PrintStream;
+import java.util.Map.Entry;
 
 import org.apache.commons.lang3.StringEscapeUtils;
 
@@ -100,6 +101,10 @@ public class JavaPrinter extends AbstractPrinter {
     nextExpr(); ab.process.accept(this);
     out.printf(",");
     nextExpr(); ab.action.accept(this);
+    for(Entry<String, ASTNode> e:ab.map.entrySet()){
+      out.printf(", %s, ",e.getKey());
+      nextExpr(); e.getValue().accept(this);
+    }
     out.printf(")");
     ab.block.accept(this);
   }
@@ -178,6 +183,19 @@ public class JavaPrinter extends AbstractPrinter {
   }
   @Override
   public void visit(ASTSpecial s){
+    String syn=syntax.getSyntax(s.kind);
+    if (syn!=null){
+      out.print(syn);
+      setExpr();
+      String sep=" ";
+      for(ASTNode n:s.args){
+        out.print(sep);
+        sep=",";
+        n.accept(this);
+      }
+      out.println(";");
+      return;
+    }
     switch(s.kind){
     case Fork:{
       out.printf("fork ");
@@ -570,6 +588,21 @@ public class JavaPrinter extends AbstractPrinter {
             out.printf(", ");
             nextExpr();
             contract.modifies[i].accept(this);
+          }
+          out.lnprintf(";");
+        }
+      }
+      if (contract.accesses!=null){
+        out.printf("accessible ");
+        if (contract.accesses.length==0){
+          out.lnprintf("\\nothing;");
+        } else {
+          nextExpr();
+          contract.accesses[0].accept(this);
+          for(int i=1;i<contract.accesses.length;i++){
+            out.printf(", ");
+            nextExpr();
+            contract.accesses[i].accept(this);
           }
           out.lnprintf(";");
         }

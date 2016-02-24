@@ -1,6 +1,8 @@
 package vct.antlr4.parser;
 
 
+import java.util.HashMap;
+
 import vct.col.ast.ASTClass;
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTSpecial;
@@ -215,12 +217,18 @@ public class JavaPostProcessor extends AbstractRewriter {
       ASTNode fraction=rewrite(decl.args[1]);
       ASTNode process=rewrite(decl.args[2]);
       ASTNode action=rewrite(decl.args[3]);
+      HashMap<String,ASTNode> map=new HashMap();
+      for(int i=4;i<decl.args.length;i+=2){
+        String field=decl.args[i].toString();
+        ASTNode frac=rewrite(decl.args[i+1]);
+        map.put(field,frac);
+      }
       BlockStatement block=create.block();
       int N=b.size();
       for(int i=1;i<N;i++){
         block.add(rewrite(b.get(i)));
       }
-      result=create.action_block(history,fraction,process, action, block);
+      result=create.action_block(history,fraction,process, action,map,block);
     } else {
       super.visit(b);
     }
