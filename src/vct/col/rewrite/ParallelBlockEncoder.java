@@ -161,44 +161,93 @@ public class ParallelBlockEncoder extends AbstractRewriter {
       Fail("barrier outside of parallel block");
     }
     BlockStatement res=rewrite(pb.body);
-    if (res==null) res=create.block();
-    
-    res.prepend(create.special(ASTSpecial.Kind.Inhale,blocks.peek().inv));
-    for(ASTNode clause:ASTUtils.reverse(ASTUtils.conjuncts(pb.contract.pre_condition, StandardOperator.Star))){
-      ASTNode cl;
-      if (clause.getType().isBoolean()){
-        cl=create.forall(copy_rw.rewrite(iters_guard_prime_before), sigma_prime.rewrite(clause) , iter_decls_prime);
-      } else {
-        cl=create.starall(copy_rw.rewrite(iters_guard_prime_before), sigma_prime.rewrite(clause) , iter_decls_prime);
+    if (res==null){
+      ContractBuilder main_cb=new ContractBuilder();
+      ContractBuilder check_cb=new ContractBuilder();
+      Hashtable<String,Type> main_vars=free_vars(pb);
+      Hashtable<String,Type> check_vars=new Hashtable(main_vars);
+      ParallelBlock blk=blocks.peek();
+      ArrayList<ASTNode> guard_list=new ArrayList();
+      ArrayList<DeclarationStatement> guard_decls=new ArrayList();
+      for(DeclarationStatement decl:blk.iters){
+        ASTNode tmp=create.expression(StandardOperator.Member,create.unresolved_name(decl.name),decl.getInit());
+        guard_list.add(tmp);
+        guard_decls.add(create.field_decl(decl.name, decl.getType()));
       }
-      res.prepend(create.special(ASTSpecial.Kind.Inhale,cl));
-      if (clause.getType().isBoolean()){
-        cl=create.forall(copy_rw.rewrite(iters_guard_prime_after), sigma_prime.rewrite(clause) , iter_decls_prime);
-      } else {
-        cl=create.starall(copy_rw.rewrite(iters_guard_prime_after), sigma_prime.rewrite(clause) , iter_decls_prime);
+      ASTNode iters_guard=create.fold(StandardOperator.And,guard_list);
+      DeclarationStatement iters_decl[]=guard_decls.toArray(new DeclarationStatement[0]);
+      for(ASTNode clause:ASTUtils.conjuncts(pb.contract.pre_condition, StandardOperator.Star)){
+        if (clause.getType().isBoolean()){
+          check_cb.requires(create.forall(iters_guard, clause,iters_decl));
+        } else {
+          check_cb.requires(create.starall(iters_guard, clause,iters_decl));
+        }
       }
-      res.prepend(create.special(ASTSpecial.Kind.Inhale,cl));
+      for(ASTNode clause:ASTUtils.conjuncts(pb.contract.post_condition, StandardOperator.Star)){
+        if (clause.getType().isBoolean()){
+          check_cb.ensures(create.forall(iters_guard, clause,iters_decl));
+        } else {
+          check_cb.ensures(create.starall(iters_guard, clause,iters_decl));
+        }
+      }
+      count++;
+      String main_name="barrier_main_"+count;
+      String check_name="barrier_check_"+count;
+      rewrite(pb.contract,main_cb);
+      currentTargetClass.add(create.method_decl(
+          create.primitive_type(Sort.Void),
+          check_cb.getContract(),
+          check_name,
+          gen_pars(check_vars),
+          create.block()
+      ));
+      currentTargetClass.add(create.method_decl(
+          create.primitive_type(Sort.Void),
+          main_cb.getContract(),
+          main_name,
+          gen_pars(main_vars),
+          null
+      ));
+      result=gen_call(main_name,main_vars);
+    } else {
+      Abort("Cannot encode barrier with statements");
+      res.prepend(create.special(ASTSpecial.Kind.Inhale,blocks.peek().inv));
+      for(ASTNode clause:ASTUtils.reverse(ASTUtils.conjuncts(pb.contract.pre_condition, StandardOperator.Star))){
+        ASTNode cl;
+        if (clause.getType().isBoolean()){
+          cl=create.forall(copy_rw.rewrite(iters_guard_prime_before), sigma_prime.rewrite(clause) , iter_decls_prime);
+        } else {
+          cl=create.starall(copy_rw.rewrite(iters_guard_prime_before), sigma_prime.rewrite(clause) , iter_decls_prime);
+        }
+        res.prepend(create.special(ASTSpecial.Kind.Inhale,cl));
+        if (clause.getType().isBoolean()){
+          cl=create.forall(copy_rw.rewrite(iters_guard_prime_after), sigma_prime.rewrite(clause) , iter_decls_prime);
+        } else {
+          cl=create.starall(copy_rw.rewrite(iters_guard_prime_after), sigma_prime.rewrite(clause) , iter_decls_prime);
+        }
+        res.prepend(create.special(ASTSpecial.Kind.Inhale,cl));
+      }
+      
+      res.append(create.special(ASTSpecial.Kind.Exhale,blocks.peek().inv));
+      for(ASTNode clause:ASTUtils.reverse(ASTUtils.conjuncts(pb.contract.post_condition, StandardOperator.Star))){
+        ASTNode cl;
+        if (clause.getType().isBoolean()){
+          cl=create.forall(copy_rw.rewrite(iters_guard_prime_before), sigma_prime.rewrite(clause) , iter_decls_prime);
+        } else {
+          cl=create.starall(copy_rw.rewrite(iters_guard_prime_before), sigma_prime.rewrite(clause) , iter_decls_prime);
+        }
+        res.append(create.special(ASTSpecial.Kind.Exhale,cl));
+        if (clause.getType().isBoolean()){
+          cl=create.forall(copy_rw.rewrite(iters_guard_prime_after), sigma_prime.rewrite(clause) , iter_decls_prime);
+        } else {
+          cl=create.starall(copy_rw.rewrite(iters_guard_prime_after), sigma_prime.rewrite(clause) , iter_decls_prime);
+        }
+        res.append(create.special(ASTSpecial.Kind.Exhale,cl));
+      }
+      result=res;
     }
-    
-    res.append(create.special(ASTSpecial.Kind.Exhale,blocks.peek().inv));
-    for(ASTNode clause:ASTUtils.reverse(ASTUtils.conjuncts(pb.contract.post_condition, StandardOperator.Star))){
-      ASTNode cl;
-      if (clause.getType().isBoolean()){
-        cl=create.forall(copy_rw.rewrite(iters_guard_prime_before), sigma_prime.rewrite(clause) , iter_decls_prime);
-      } else {
-        cl=create.starall(copy_rw.rewrite(iters_guard_prime_before), sigma_prime.rewrite(clause) , iter_decls_prime);
-      }
-      res.append(create.special(ASTSpecial.Kind.Exhale,cl));
-      if (clause.getType().isBoolean()){
-        cl=create.forall(copy_rw.rewrite(iters_guard_prime_after), sigma_prime.rewrite(clause) , iter_decls_prime);
-      } else {
-        cl=create.starall(copy_rw.rewrite(iters_guard_prime_after), sigma_prime.rewrite(clause) , iter_decls_prime);
-      }
-      res.append(create.special(ASTSpecial.Kind.Exhale,cl));
-    }
-    
-    result=res;
   }
+
   @Override
   public void visit(ParallelAtomic pb){
     if (blocks.empty()){
