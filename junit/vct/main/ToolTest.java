@@ -21,7 +21,7 @@ import junit.framework.TestCase;
 
 public class ToolTest extends TestCase {
 
-  protected static Semaphore sem = new Semaphore(Runtime.getRuntime().availableProcessors()/2);
+  protected static Semaphore sem = new Semaphore(Runtime.getRuntime().availableProcessors()/3);
 
   private EnumSet<Feature> allowed=EnumSet.noneOf(Feature.class);
   private EnumSet<Feature> required=EnumSet.noneOf(Feature.class);

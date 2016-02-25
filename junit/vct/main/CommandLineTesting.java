@@ -43,13 +43,16 @@ public class CommandLineTesting {
       collection=selftest;
     }
     HashMap<String,Result> list=new HashMap();
-    for(String suite:collection){
+    for(String suite:collection){ // check if all tests are valid.
       Class<?> cls=testmap.get(suite);
       if (cls==null) {
         System.err.printf("unknown test suite %s%n",suite);
         System.err.printf("valid test suties are: %s%n",testmap.keySet());
         System.exit(1);
       }
+    }
+    for(String suite:collection){ // run all the valid tests.
+      Class<?> cls=testmap.get(suite);
       System.err.printf("Running %s.%n",cls);
       Result result = junit.run(cls);
       list.put(cls.toString(),result);
