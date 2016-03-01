@@ -45,7 +45,7 @@ public interface SilverExpression<O,T,E,Decl> {
   public E function_call(O o,String name,List<E> args,T rt,List<Decl> pars);
   public E result(O o,T t);
   
-  public E domain_call(O o,String name,List<E> args,Map<String,T> dpars,T rt,List<Decl> pars); 
+  public E domain_call(O o,String name,List<E> args,Map<String,T> dpars,T rt,List<Decl> pars,String domain); 
  
   public E field_access(O o,E e1, E e2);
   public E scale_access(O o,E e1, E e2);

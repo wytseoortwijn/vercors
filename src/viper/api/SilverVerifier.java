@@ -62,9 +62,9 @@ public interface SilverVerifier<O,Err,T,E,S,Decl,DFunc,DAxiom,P>
   
   public void add_function(P p,O o,String name,List<Decl> args,T t,List<E> pres,List<E> posts,E body);
   
-  public DAxiom daxiom(O o,String name,E expr);
+  public DAxiom daxiom(O o,String name,E expr,String domain);
   
-  public DFunc dfunc(O o,String name,List<Decl> args,T t);
+  public DFunc dfunc(O o,String name,List<Decl> args,T t,String domain);
   
   public void add_adt(P p,O o,String name,List<DFunc> funs,List<DAxiom> axioms,List<String> pars);
   /**
