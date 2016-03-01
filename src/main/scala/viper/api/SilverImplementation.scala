@@ -75,11 +75,11 @@ class SilverImplementation[O,Err] extends viper.api.SilverVerifier[O,Err,Type,Ex
   def seq_contains(o:O,e1:Exp,e2:Exp):Exp = SeqContains(e1,e2)(NoPosition,new OriginInfo(o))
   def any_set_contains(o:O,e1:Exp,e2:Exp):Exp = AnySetContains(e1,e2)(NoPosition,new OriginInfo(o))
   
-  def domain_call(o: O,name:String,args:List[Exp], dpars: java.util.Map[String,Type],rt:Type,pars:List[LocalVarDecl]) : Exp = {
+  def domain_call(o: O,name:String,args:List[Exp], dpars: java.util.Map[String,Type],rt:Type,pars:List[LocalVarDecl],domain:String) : Exp = {
       val tm : Map[viper.silver.ast.TypeVar,viper.silver.ast.Type] = dpars.entrySet().asScala.map {
         case e:java.util.Map.Entry[String,Type] => (TypeVar(e.getKey()),e.getValue())
       }.toMap
-      DomainFuncApp(name,args.asScala.toSeq,tm)(NoPosition,new OriginInfo(o),rt,pars.asScala)
+      DomainFuncApp(name,args.asScala.toSeq,tm)(NoPosition,new OriginInfo(o),rt,pars.asScala,domain)
   }
 
   def if_then_else(o:O,c:Exp,s1:Stmt,s2:Stmt):Stmt =If(c,s1,s2) (NoPosition,new OriginInfo(o))
@@ -265,12 +265,12 @@ class SilverImplementation[O,Err] extends viper.api.SilverVerifier[O,Err,Type,Ex
     p.functions.add(Function(name,args.asScala,t,pres.asScala,posts.asScala,b)(NoPosition,new OriginInfo(o)))
   }
   
-  def dfunc(o:O,name:String,args:List[LocalVarDecl],t:Type)={
-    DomainFunc(name,args.asScala,t,false)(NoPosition,new OriginInfo(o))
+  def dfunc(o:O,name:String,args:List[LocalVarDecl],t:Type,domain:String)={
+    DomainFunc(name,args.asScala,t,false)(NoPosition,new OriginInfo(o),domain)
   }
   
-  def daxiom(o:O,name:String,expr:Exp)={
-    DomainAxiom(name,expr)(NoPosition,new OriginInfo(o))
+  def daxiom(o:O,name:String,expr:Exp,domain:String)={
+    DomainAxiom(name,expr)(NoPosition,new OriginInfo(o),domain)
   }
   
   def add_adt(p:Prog,o:O,name:String,funcs:List[DomainFunc],axioms:List[DomainAxiom],pars:List[String])={
