@@ -218,8 +218,9 @@ public class SilverExpressionMap<T,E,Decl> implements ASTMapping<E>{
       }
       if(m.getParent() instanceof AxiomaticDataType){
         //TODO: use correct dpars map!
+        AxiomaticDataType adt=(AxiomaticDataType)m.getParent();
         HashMap<String, T> dpars=new HashMap<String, T>();
-        return create.domain_call(o, name, args, dpars, rt, pars);
+        return create.domain_call(o, name, args, dpars, rt, pars, adt.name);
       } else {
         return create.function_call(o, name, args, rt, pars);
       }

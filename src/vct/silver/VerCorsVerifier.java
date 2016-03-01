@@ -240,7 +240,7 @@ public class VerCorsVerifier implements
   }
   
   @Override
-  public AxiomaticDataType daxiom(Origin o, String name, ASTNode expr) {
+  public AxiomaticDataType daxiom(Origin o, String name, ASTNode expr, String domain) {
     // TODO Auto-generated method stub
     throw new HREError("missing case");
   }
@@ -255,7 +255,7 @@ public class VerCorsVerifier implements
 
   @Override
   public Method dfunc(Origin o, String name,
-      java.util.List<DeclarationStatement> args, Type t) {
+      java.util.List<DeclarationStatement> args, Type t, String domain) {
     // TODO Auto-generated method stub
     throw new HREError("missing case");
   }
@@ -271,7 +271,7 @@ public class VerCorsVerifier implements
   @Override
   public ASTNode domain_call(Origin o, String name,
       java.util.List<ASTNode> args, Map<String, Type> dpars, Type rt,
-      java.util.List<DeclarationStatement> pars) {
+      java.util.List<DeclarationStatement> pars, String domain) {
     // TODO Auto-generated method stub
     throw new HREError("missing case");
   }

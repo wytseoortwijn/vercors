@@ -205,7 +205,7 @@ public class SilverBackend {
             Decl d=verifier.decl(decl.getOrigin(),decl.getName(),decl.getType().apply(type));
             args.add(d);
           }
-          funcs.add(verifier.dfunc(m.getOrigin(),m.name, args,m.getReturnType().apply(type)));
+          funcs.add(verifier.dfunc(m.getOrigin(),m.name, args,m.getReturnType().apply(type),adt.name));
         }
         for(Method m:adt.mappings()){
           ArrayList<Decl> args=new ArrayList<Decl>();
@@ -213,11 +213,11 @@ public class SilverBackend {
             Decl d=verifier.decl(decl.getOrigin(),decl.getName(),decl.getType().apply(type));
             args.add(d);
           }
-          funcs.add(verifier.dfunc(m.getOrigin(),m.name, args,m.getReturnType().apply(type)));
+          funcs.add(verifier.dfunc(m.getOrigin(),m.name, args,m.getReturnType().apply(type),adt.name));
         }
         ArrayList<DAxiom> axioms=new ArrayList<DAxiom>();
         for(Axiom axiom:adt.axioms()){
-          axioms.add(verifier.daxiom(axiom.getOrigin(),axiom.name,axiom.getRule().apply(expr)));
+          axioms.add(verifier.daxiom(axiom.getOrigin(),axiom.name,axiom.getRule().apply(expr),adt.name));
         }
         ArrayList<String> pars=new ArrayList<String>();
         for(DeclarationStatement decl:adt.getParameters()){
