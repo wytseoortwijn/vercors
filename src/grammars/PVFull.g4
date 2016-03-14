@@ -21,7 +21,7 @@ field : type ID ( ',' ID )* ';' ;
 
 function : contract modifiers type ID '(' args ')' '=' expr ';' ;
 
-modifiers : ( 'static' | 'thread_local' )*;
+modifiers : ( 'static' | 'thread_local' | 'inline' )*;
 
 method : contract type gen_id '(' args ')' block ;
 
