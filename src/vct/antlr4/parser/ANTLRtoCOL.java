@@ -101,6 +101,8 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
    */
   protected HashMap<String,Class<?>> context=new HashMap<String,Class<?>>();
 
+  public final Class<?> lexer_class;
+  
   /**
    * Create a new parse tree converter.
    * 
@@ -113,6 +115,7 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
    */
   public ANTLRtoCOL(Syntax syntax,String filename,BufferedTokenStream tokens,
       org.antlr.v4.runtime.Parser parser, int identifier, Class<?> lexer_class){
+    this.lexer_class=lexer_class;
     this.syntax=syntax;
     this.filename=filename;
     current_filename=filename;
@@ -165,12 +168,26 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
   }
 
   /** Get static field by reflection. */
+  public static boolean hasStaticInt(Class<?> cl,String field){
+    try {
+      Field f=cl.getDeclaredField(field);
+      return true;
+    } catch (NoSuchFieldException e) {
+      return false;
+    } catch (SecurityException e) {
+      e.printStackTrace();
+    } catch (IllegalArgumentException e) {
+      e.printStackTrace();
+    }
+    throw hre.System.Failure("reflection failed to work for field %s",field);
+  }
+  /** Get static field by reflection. */
   public static int getStaticInt(Class<?> cl,String field){
     try {
       Field f=cl.getDeclaredField(field);
       return f.getInt(null);
     } catch (NoSuchFieldException e) {
-      e.printStackTrace();
+      throw hre.System.Failure("class has no static field %s",field);
     } catch (SecurityException e) {
       e.printStackTrace();
     } catch (IllegalArgumentException e) {
@@ -178,7 +195,7 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
     } catch (IllegalAccessException e) {
       e.printStackTrace();
     }
-    throw hre.System.Failure("class has no static field %s",field);
+    throw hre.System.Failure("reflection failed to work for field %s",field);
   }
   
   /** Enter a new context for processing parse trees by setting the current origin
@@ -584,6 +601,14 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
     for(int i=0;i<pattern.length;i++){
       if (pattern[i]==null) continue;
       ParseTree item=ctx.children.get(ofs+i);
+      if (item instanceof TerminalNode){
+        if(hasStaticInt(lexer_class, pattern[i])) {
+          int id=getStaticInt(lexer_class, pattern[i]);
+          TerminalNode tn=(TerminalNode)item;
+          Token tok=tn.getSymbol();
+          if (tok.getType() == id) continue;
+        }
+      }
       Class cls=context.get(pattern[i]);
       if (cls==null){
         cls=context.get(pattern[i]+"Context");

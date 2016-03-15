@@ -106,13 +106,13 @@ public abstract class AbstractCtoCOL extends ANTLRtoCOL {
       String name=getIdentifier(ctx,0);
       return create.invokation(null,null,name,new ASTNode[0]);
     }
-    if (ctx.children.size()==1){
-      ParseTree t=ctx.getChild(0);
-      if (t instanceof TerminalNode){
-        TerminalNode tn=(TerminalNode)t;
-        Token tok=tn.getSymbol();
-        return create.constant(Integer.parseInt(tok.getText()));
-      }
+    if (match(ctx,"Identifier")){
+      return convert(ctx,0);
+    }
+    if (match(ctx,"Constant")){
+      TerminalNode tn=(TerminalNode)ctx.getChild(0);
+      Token tok=tn.getSymbol();
+      return create.constant(Integer.parseInt(tok.getText()));
     }
     return null;
   }
