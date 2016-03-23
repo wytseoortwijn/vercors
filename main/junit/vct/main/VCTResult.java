@@ -19,7 +19,8 @@ class VCTResult {
         if (((String)msg.getArg(0)).indexOf(string)>=0) return;
       }
     }
-    fail("expected output "+string+" not found");
+    verdict=Verdict.Fail;
+    //fail("expected output "+string+" not found");
   };
   public void checkVerdict(Verdict res){
     if (verdict != res) fail("bad result : "+verdict);

@@ -1,5 +1,8 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
-// vct --chalice SwapLong.java
+//:: cases SwapLong
+//:: tools chalice
+//:: verdict Fail
+
 public class SwapLong {
 
   long F;

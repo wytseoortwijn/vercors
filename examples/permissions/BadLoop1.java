@@ -1,3 +1,7 @@
+// -*- tab-width:2 ; indent-tabs-mode:nil -*-
+//:: cases BaddLoop1
+//:: tools chalice
+//:: verdict Fail
 class Counter {
   private int val;
   /*@ requires Perm(val,100) ** n>=0; */

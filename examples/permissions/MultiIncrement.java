@@ -1,3 +1,7 @@
+// -*- tab-width:2 ; indent-tabs-mode:nil -*-
+//:: cases MultiIncrement
+//:: tools chalice
+
 public class MultiIncrement {
 
   public static int shared;

@@ -1,5 +1,7 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
-
+//:: cases Incr
+//:: tools chalice silicon
+//:: verdict Fail
 /* vct --chalice Incr.java
    Should complain about incr_n_badinv and no other method.
 */
@@ -35,6 +37,7 @@ class Incr {
   {
     int tmp;
     tmp=n;
+    //:: expect error
     /*@ loop_invariant val+tmp==\old(val)+n && tmp>0; */
     /*@ loop_invariant Perm(val,1); */
     while(tmp>0)

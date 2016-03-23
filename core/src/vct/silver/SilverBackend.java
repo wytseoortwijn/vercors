@@ -267,7 +267,11 @@ public class SilverBackend {
           for(int i=0;i<N;i++){
             Origin o=(Origin)e.getOrigin(i);
             String msg=e.getError(i);
-            o.report("error",msg);
+            if (o==null){
+              System.err.printf("unknown location: %s%n", msg);
+            } else {
+              o.report("error",msg);
+            }
           }
         }
         report.setVerdict(Verdict.Fail);

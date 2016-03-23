@@ -1,5 +1,8 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
-// vct --chalice SwapInteger.java
+//:: cases SwapInteger
+//:: tools chalice
+//:: verdict Fail
+
 public class SwapInteger {
 
   int F;

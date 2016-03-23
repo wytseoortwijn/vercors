@@ -1,7 +1,8 @@
-/*
-    VerCors Tool, 
-    vct --chalice TreeStack.java
+// -*- tab-width:2 ; indent-tabs-mode:nil -*-
+//:: cases TreeStack
+//:: tools chalice
 
+/*
     Note that this specification only validates access permissions.
     TODO:
       * extend state with all properties of a binary search tree.

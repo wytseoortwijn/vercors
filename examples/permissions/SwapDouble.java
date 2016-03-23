@@ -1,5 +1,8 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
-// vct --chalice SwapDouble.java
+//:: cases SwapDouble
+//:: tools chalice
+//:: verdict Fail
+
 public class SwapDouble {
 
   double F;

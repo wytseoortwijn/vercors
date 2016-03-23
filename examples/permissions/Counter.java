@@ -1,3 +1,6 @@
+// -*- tab-width:2 ; indent-tabs-mode:nil -*-
+//:: cases Counter
+//:: tools chalice
 /*
 check with vct --chalice Counter.java
 */

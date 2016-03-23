@@ -1,10 +1,8 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
-/* See pg 42, phd Hurlin.
+//:: cases RosterFixed
+//:: tools chalice
 
-  vct --chalice RosterFixed.java
-  Should yield a Pass.
-
-*/
+/* See pg 42, phd Hurlin. */
 
 class Roster {
   int id;
