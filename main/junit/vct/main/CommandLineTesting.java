@@ -40,55 +40,6 @@ public class CommandLineTesting {
   public static void run_testsuites(){
     ToolTest tt=new ToolTest();
     VCTResult res;
-    res=tt.run("z3","-smt2","//examples/backends/test-sat.smt");
-    if (res.verdict==Verdict.Inconclusive){
-      res.verdict=Verdict.Pass;
-    } else {
-      System.err.println("Z3 did not execute properly");
-      System.exit(1);
-    }
-    res.mustSay("p true");
-    res.mustSay("q true");
-    if (res.verdict !=Verdict.Pass) {
-      System.err.println("Z3 did not conclude sat");
-      System.exit(1);
-    }
-    res=tt.run("z3","-smt2","//examples/backends/test-unsat.smt");  
-    if (res.verdict==Verdict.Inconclusive){
-      res.verdict=Verdict.Pass;
-    } else {
-      System.err.println("Z3 did not execute properly");
-      System.exit(1);
-    }
-    res.mustSay("unsat");
-    if (res.verdict !=Verdict.Pass) {
-      System.err.println("Z3 did not conclude unsat");
-      System.exit(1);
-    }
-    res=tt.run("boogie","//examples/backends/test-pass.bpl");  
-    if (res.verdict==Verdict.Inconclusive){
-      res.verdict=Verdict.Pass;
-    } else {
-      System.err.println("Boogie did not execute properly");
-      System.exit(1);
-    }
-    res.mustSay("Boogie program verifier finished with 1 verified, 0 errors");
-    if (res.verdict !=Verdict.Pass) {
-      System.err.println("Boogie did not pass the passing test");
-      System.exit(1);
-    }
-    res=tt.run("boogie","//examples/backends/test-fail.bpl");  
-    if (res.verdict==Verdict.Inconclusive){
-      res.verdict=Verdict.Pass;
-    } else {
-      System.err.println("Boogie did not execute properly");
-      System.exit(1);
-    }
-    res.mustSay("Boogie program verifier finished with 0 verified, 1 error");
-    if (res.verdict !=Verdict.Pass) {
-      System.err.println("Boogie did not pass the failing test");
-      System.exit(1);
-    }
    
 /* 
   @Test
@@ -132,6 +83,51 @@ public class CommandLineTesting {
 */
     TestcaseVisitor tv=new TestcaseVisitor();
     for(String dir:selftest){
+      if (dir.equals("")){
+        System.err.println("Testing backends.");
+        res=runtest(tt,Verdict.Inconclusive,"z3","-smt2","//examples/backends/test-sat.smt");
+        res.mustSay("p true");
+        res.mustSay("q true");
+        check(res,"z3","sat");
+
+        res=runtest(tt,Verdict.Inconclusive,"z3","-smt2","//examples/backends/test-unsat.smt");  
+        res.mustSay("unsat");
+        check(res,"z3","unsat");
+
+        res=runtest(tt,Verdict.Inconclusive,"boogie","//examples/backends/test-pass.bpl");  
+        res.mustSay("Boogie program verifier finished with 1 verified, 0 errors");
+        check(res,"boogie","passing");
+
+        res = runtest(tt,Verdict.Inconclusive,"boogie","//examples/backends/test-fail.bpl");
+        res.mustSay("Boogie program verifier finished with 0 verified, 1 error");
+        check(res,"boogie","failing");
+        
+        res=runtest(tt,Verdict.Inconclusive,"chalice","//examples/backends/test-pass.chalice");  
+        res.mustSay("Boogie program verifier finished with 3 verified, 0 errors");
+        check(res,"chalice","passing");
+        
+        res=runtest(tt,Verdict.Inconclusive,"chalice","//examples/backends/test-fail.chalice");  
+        res.mustSay("Boogie program verifier finished with 2 verified, 1 error");
+        check(res,"chalice","failing");
+        
+        res=runtest(tt,Verdict.Inconclusive,"carbon","//examples/backends/test-pass.sil");  
+        res.mustSay("No errors found.");
+        check(res,"carbon","passing");
+        
+        res=runtest(tt,Verdict.Error,"carbon","//examples/backends/test-fail.sil");  
+        res.mustSay("Assignment might fail. Divisor 0 might be zero.");
+        check(res,"carbon","failing");
+
+        res=runtest(tt,Verdict.Inconclusive,"silicon","//examples/backends/test-pass.sil");  
+        res.mustSay("No errors found.");
+        check(res,"silicon","passing");
+
+        res=runtest(tt,Verdict.Error,"silicon","//examples/backends/test-fail.sil");  
+        res.mustSay("Assignment might fail. Divisor 0 might be zero.");
+        check(res,"silicon","failing");
+
+        continue;
+      }
       try {
         Files.walkFileTree(Paths.get(dir).toAbsolutePath(),tv);
       } catch (IOException e) {
@@ -187,55 +183,28 @@ public class CommandLineTesting {
     } else {
       System.exit(1);
     }
-    
-    /*
-    JUnitCore junit = new JUnitCore();
-    Iterable<String> collection;
-    if (selftest.contains("*")){
-      collection=testmap.keySet();
-    } else {
-      collection=selftest;
-    }
-    HashMap<String,Result> list=new HashMap();
-    for(String suite:collection){ // check if all tests are valid.
-      Class<?> cls=testmap.get(suite);
-      if (cls==null) {
-        System.err.printf("unknown test suite %s%n",suite);
-        System.err.printf("valid test suties are: %s%n",testmap.keySet());
-        System.exit(1);
-      }
-    }
-    for(String suite:collection){ // run all the valid tests.
-      Class<?> cls=testmap.get(suite);
-      System.err.printf("Running %s.%n",cls);
-      Result result = junit.run(cls);
-      list.put(cls.toString(),result);
-    }
-    boolean OK=true;
-    for(Entry<String,Result> e:list.entrySet()){
-      String name=e.getKey();
-      Result result=e.getValue();
-      int E=result.getFailureCount();
-      System.err.printf("==============================================%n");
-      System.err.printf("While running %s: %d failures out of %d tests%n",name,E,result.getRunCount());
-      if (E>0){
-        System.err.printf("----------------------------------------------%n");
-        System.err.printf("The following tests failed:%n");
-        for (Failure f:result.getFailures()){
-          System.err.printf("%s%n",f.getDescription());
-        }
-      }
-      if (E>0) OK=false;
-    }
-    System.err.printf("==============================================%n");
-    if (OK){
-      System.err.printf("all test suites have been succesful.%n");
-      System.exit(0);
-    } else {
-      System.err.printf("one or more test suites failed.%n");
+  }
+
+  private static void check(VCTResult res,String tool,String test) {
+    if (res.verdict !=Verdict.Pass) {
+      System.err.printf("%s did not pass the %s test%s",tool,test);
       System.exit(1);
     }
-    */
+  }
+
+  private static VCTResult runtest(ToolTest tt,Verdict expect,String ... args) {
+    System.err.printf("executing");
+    for(String s:args) System.err.printf(" %s",s);
+    System.err.println();
+    VCTResult res;
+    res=tt.run(args);  
+    if (res.verdict==expect){
+      res.verdict=Verdict.Pass;
+    } else {
+      System.err.printf("%s did not execute properly%n",args[0]);
+      System.exit(1);
+    }
+    return res;
   }
   
   private static StringListSetting selftest=new StringListSetting();
