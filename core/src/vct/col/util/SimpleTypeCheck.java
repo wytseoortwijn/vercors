@@ -777,6 +777,12 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       e.setType(t);
       break;
     }
+    case Identity:
+    {
+      Type t=e.getArg(0).getType();
+      e.setType(t);
+      break;
+    }
     case PreIncr:
     case PreDecr:
     case PostIncr:

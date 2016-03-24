@@ -82,6 +82,7 @@ import vct.col.rewrite.ScaleAlways;
 import vct.col.rewrite.SetGetIntroduce;
 import vct.col.rewrite.SilverClassReduction;
 import vct.col.rewrite.SilverConstructors;
+import vct.col.rewrite.SilverImplementIdentity;
 import vct.col.rewrite.SilverReorder;
 import vct.col.rewrite.SimplifyCalls;
 import vct.col.rewrite.Standardize;
@@ -588,6 +589,11 @@ public class Main
         return new ScaleAlways(arg).rewriteAll();
       }
     });
+    defined_passes.put("silver-identity",new CompilerPass("Implement identity operator for Silver"){
+      public ProgramUnit apply(ProgramUnit arg,String ... args){
+        return new SilverImplementIdentity(arg).rewriteAll();
+      }
+    });
     defined_passes.put("silver-optimize",new CompilerPass("Optimize expressions for Silver"){
       public ProgramUnit apply(ProgramUnit arg,String ... args){
         RewriteSystem trs=RewriteSystems.getRewriteSystem("silver_optimize");
@@ -991,6 +997,7 @@ public class Main
       passes.add("reorder");
       passes.add("flatten_before_after");
       passes.add("silver-reorder");
+      passes.add("silver-identity");
       passes.add("standardize");
       passes.add("check"); 
       passes.add("silver-optimize");

@@ -285,7 +285,11 @@ public enum StandardOperator {
   /**
    * Standard predicate that indicates that a non-reentrant lock is held on an object. 
    */
-  Held(1)
+  Held(1),
+  /**
+   * The identity operator.
+   */
+  Identity(1)
   ;
 
   private final int arity;

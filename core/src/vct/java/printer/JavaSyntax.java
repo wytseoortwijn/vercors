@@ -63,6 +63,7 @@ public class JavaSyntax extends Syntax {
         syntax.addFunction(AbstractState,"AbstractState");
         syntax.addFunction(Contribution,"Contribution");
         syntax.addFunction(Held,"held");
+        syntax.addFunction(Identity,"\\id");
         
         syntax.addOperator(Unfolding,140,"\\unfolding","\\in","");
         syntax.addOperator(IndependentOf, -1 , "(" ,"!",")");
@@ -73,7 +74,6 @@ public class JavaSyntax extends Syntax {
         syntax.addReserved(ThreadLocal,"thread_local");
         syntax.addReserved(Pure,"pure");
         syntax.addReserved(CurrentThread,"\\current_thread");
-
         
         JavaVerCorsSyntax=syntax;
         

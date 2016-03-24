@@ -38,6 +38,7 @@ public class PVLSyntax {
       //syntax.addFunction(Tail,"tail");
       syntax.addFunction(Value,"Value");
       syntax.addFunction(PointsTo,"PointsTo");
+      syntax.addFunction(Identity,"id");
       //syntax.addFunction(ArrayPerm,"ArrayPerm");
       syntax.addFunction(Old,"\\old");
 

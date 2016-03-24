@@ -61,6 +61,7 @@ expr
  | (lexpr | 'Value' | 'Perm' | 'PointsTo' | 'Hist' | '\\old' | '?' ) tuple
  | '(' ('\\sum' | '\\exists' | '\\forall' | '\\forall*') type ID ';' expr (';' expr )? ')'
  | '(' expr ')'
+ | 'id' '(' expr ')'
  | 'new' ID tuple
  | 'new' type '[' expr ']'
  | 'null'

@@ -184,7 +184,7 @@ public class RecognizeMultiDim extends AbstractRewriter {
           idx_args[N+i]=args.get(N-i-1);
         }
         multidimset.add(N);
-        idx=create.invokation(null,null,"multidim_index_"+N,idx_args);
+        idx=create.expression(StandardOperator.Identity,create.invokation(null,null,"multidim_index_"+N,idx_args));
       } else {
         int i=dims.length-1;
         idx=args.get(i);
