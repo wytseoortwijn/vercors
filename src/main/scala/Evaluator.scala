@@ -175,7 +175,9 @@ trait DefaultEvaluator[ST <: Store[ST],
                     case Some(data) =>
                       val v2qv = toMap(σ.γ.values collect {
                         case (k, v: Var) if qvars.contains(v) && !data.formalArgs.contains(k) =>
-                          v -> Var(SimpleIdentifier(k.name), v.sort)})
+                          v -> Var(SimpleIdentifier(k.name), v.sort)
+                        case (k, v: Var) if v == data.formalResult =>
+                          v -> data.limitedFunctionApplication})
                       fvfLookup.replace(v2qv)
                     case None =>
                       fvfLookup}
@@ -204,12 +206,20 @@ trait DefaultEvaluator[ST <: Store[ST],
              *       which might occur in 'e.f', and therefore, in 'lookup(..., e.f)'.
              *       To prevent that 'y@2' ends up in the function definition axiom, all such
              *       occurrences 'z@i' are replaced by just 'z'.
+             *
+             *       Similarly, HeapAccessReplacingExpressionTranslator translates 'result',
+             *       as used in function postconditions, to an application of the limited
+             *       function symbol. However, if 'result' occurs in the receiver expression
+             *       of a QP field access, e.g. in 'loc(a, result).val', then the function
+             *       recorder records 'loc(a, result@99).val'.
              */
             val lk = c1.functionRecorder.data match {
               case Some(data) =>
                 val v2qv = toMap(σ.γ.values collect {
                   case (k, v: Var) if qvars.contains(v) && !data.formalArgs.contains(k) =>
-                    v -> Var(SimpleIdentifier(k.name), v.sort)})
+                    v -> Var(SimpleIdentifier(k.name), v.sort)
+                  case (k, v: Var) if v == data.formalResult =>
+                    v -> data.limitedFunctionApplication})
                 fvfLookup.replace(v2qv)
               case None =>
                 fvfLookup}
@@ -524,6 +534,11 @@ trait DefaultEvaluator[ST <: Store[ST],
                     consume(σ, FullPerm(), acc, pve, c3)((σ1, snap, c4) => {
 //                      val c5 = c4.copy(functionRecorder = c4.functionRecorder.recordSnapshot(pa, c4.branchConditions, snap))
                       val c5 = c4.copy(functionRecorder = c4.functionRecorder.recordSnapshot(pa, decider.pcs.branchConditions, snap))
+                        /* Recording the unfolded predicate's snapshot is necessary in order to create the
+                         * additional predicate-based trigger function applications because these are applied
+                         * to the function arguments and the predicate snapshot
+                         * (see 'predicateTriggers' in FunctionData.scala).
+                         */
                       decider.assume(App(predicateSupporter.data(predicate).triggerFunction, snap +: tArgs))
 //                    val insγ = Γ(predicate.formalArgs map (_.localVar) zip tArgs)
                       val body = pa.predicateBody(c5.program).get /* Only non-abstract predicates can be unfolded */
@@ -558,10 +573,10 @@ trait DefaultEvaluator[ST <: Store[ST],
           Q(SeqUpdate(ts.head, ts(1), ts(2)), c1))
 
       case ast.ExplicitSeq(es) =>
-        evals2(σ, es.reverse, Nil, _ => pve, c)((tEs, c1) => {
+        evals2(σ, es, Nil, _ => pve, c)((tEs, c1) => {
           val tSeq =
             tEs.tail.foldLeft[SeqTerm](SeqSingleton(tEs.head))((tSeq, te) =>
-              SeqAppend(SeqSingleton(te), tSeq))
+              SeqAppend(tSeq, SeqSingleton(te)))
           assume(SeqLength(tSeq) === IntLiteral(es.size))
           Q(tSeq, c1)})
 
