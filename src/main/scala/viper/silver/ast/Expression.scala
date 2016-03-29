@@ -7,7 +7,7 @@
 package viper.silver.ast
 
 import org.kiama.output._
-import utility.{Nodes, GenericTriggerGenerator, Expressions, Consistency}
+import viper.silver.ast.utility._
 
 /** Expressions. */
 sealed trait Exp extends Node with Typed with Positioned with Infoed with PrettyExpression {
@@ -121,9 +121,11 @@ case class MagicWand(left: Exp, right: Exp)(val pos: Position = NoPosition, val 
     })
   }
 
+  // maybe rename this sometime
   def subexpressionsToEvaluate(p: Program): Seq[Exp] = {
     this.shallowCollect {
       case old: Old => old
+      case lo: LabelledOld => lo
       case e: Exp if !e.isHeapDependent(p) => e
     }
   }
@@ -168,6 +170,14 @@ case class MagicWand(left: Exp, right: Exp)(val pos: Position = NoPosition, val 
     }
 
     eq(this.left, other.left) && eq(this.right, other.right)
+  }
+
+  override def isValid : Boolean = this match {
+    case _ if  left.contains[ForPerm] => false
+    case _ if right.contains[ForPerm] => false
+    case _ if  left.deepCollect{ case q: Forall if !q.isPure => q }.nonEmpty => false
+    case _ if right.deepCollect{ case q: Forall if !q.isPure => q }.nonEmpty => false
+    case _ => true
   }
 }
 
@@ -287,22 +297,25 @@ object FuncApp {
 }
 
 /** User-defined domain function application. */
-case class DomainFuncApp(funcname: String, args: Seq[Exp], typVarMap: Map[TypeVar, Type])(val pos: Position, val info: Info, typPassed: => Type, formalArgsPassed: => Seq[LocalVarDecl]) extends AbstractDomainFuncApp with PossibleTrigger {
+case class DomainFuncApp(funcname: String, args: Seq[Exp], typVarMap: Map[TypeVar, Type])
+                        (val pos: Position, val info: Info, typPassed: => Type, formalArgsPassed: => Seq[LocalVarDecl],val domainName:String)
+  extends AbstractDomainFuncApp with PossibleTrigger {
   args foreach Consistency.checkNoPositiveOnly
 //  args foreach (_.isPure)
   def typ = typPassed
   def formalArgs = formalArgsPassed
   def func = (p:Program) => p.findDomainFunction(funcname)
   def getArgs = args
-  def withArgs(newArgs: Seq[Exp]) = DomainFuncApp(funcname,newArgs,typVarMap)(pos,info,typ,formalArgs)
+  def withArgs(newArgs: Seq[Exp]) = DomainFuncApp(funcname,newArgs,typVarMap)(pos,info,typ,formalArgs,domainName)
   def asManifestation = this
 }
 object DomainFuncApp {
-  def apply(func : DomainFunc, args: Seq[Exp], typVarMap: Map[TypeVar, Type])(pos: Position = NoPosition, info: Info = NoInfo) : DomainFuncApp = DomainFuncApp(func.name,args,typVarMap)(pos,info,func.typ.substitute(typVarMap),func.formalArgs map {
+  def apply(func : DomainFunc, args: Seq[Exp], typVarMap: Map[TypeVar, Type])(pos: Position = NoPosition, info: Info = NoInfo) : DomainFuncApp =
+    DomainFuncApp(func.name,args,typVarMap)(pos,info,func.typ.substitute(typVarMap),func.formalArgs map {
     fa =>
       // substitute parameter types
       LocalVarDecl(fa.name, fa.typ.substitute(typVarMap))(fa.pos)
-  })
+  },func.domainName)
 }
 
 // --- Field and predicate accesses
@@ -416,6 +429,14 @@ sealed trait QuantifiedExp extends Exp {
   def variables: Seq[LocalVarDecl]
   def exp: Exp
   lazy val typ = Bool
+
+  override def isValid : Boolean = this match {
+    case _ if contains[MagicWand] => false
+    case _ if contains[ForPerm] => false
+    case _ if isPure && contains[AccessPredicate] => false
+    case _ if !isPure && contains[PredicateAccess] => false
+    case _ => true
+  }
 }
 
 object QuantifiedExp {
@@ -424,23 +445,23 @@ object QuantifiedExp {
 
 /** Universal quantification. */
 case class Forall(variables: Seq[LocalVarDecl], triggers: Seq[Trigger], exp: Exp)(val pos: Position = NoPosition, val info: Info = NoInfo) extends QuantifiedExp {
-  require(Consistency.supportedQuantifier(this), s"This form of quantified permission is not supported: { $this } .")
+  //require(isValid, s"Invalid quantifier: { $this } .")
+
   /** Returns an identical forall quantification that has some automatically generated triggers
     * if necessary and possible.
     */
-          lazy val autoTrigger: Forall = {
-            if (triggers.isEmpty) {
-              Expressions.generateTriggerSet(this) match {
-                case Some((vars, triggerSets)) =>
-                  Forall(vars, triggerSets.map(set => Trigger(set.exps)()), exp)(pos, info)
-                case None =>
-                  /* Couldn't generate triggers */
+  lazy val autoTrigger: Forall = {
+    if (triggers.isEmpty) {
+      Expressions.generateTriggerSet(this) match {
+        case Some((vars, triggerSets)) =>
+          Forall(vars, triggerSets.map(set => Trigger(set.exps)()), exp)(pos, info)
+        case None =>
+          /* Couldn't generate triggers */
           this
       }
     } else {
       // triggers already present
       this
-
     }
   }
 }
@@ -455,10 +476,10 @@ case class Exists(variables: Seq[LocalVarDecl], exp: Exp)(val pos: Position = No
 case class ForPerm(variable: LocalVarDecl, accessList: Seq[Location], body: Exp)
                   (val pos: Position = NoPosition, val info: Info = NoInfo) extends Exp with QuantifiedExp {
   require(body isSubtype Bool)
-
+  Consistency.checkNoPositiveOnly(body)
   Consistency.recordIfNot(body, Consistency.noPerm(body),
     "forperm expression is not allowed to contain perm expressions")
-  Consistency.recordIfNot(body, Consistency.noForallRefs(body),
+  Consistency.recordIfNot(body, Consistency.noForPerm(body),
     "forperm expression is not allowed to contain nested forperm expressions")
 
   def variables: Seq[LocalVarDecl] = Seq(variable)
@@ -466,6 +487,12 @@ case class ForPerm(variable: LocalVarDecl, accessList: Seq[Location], body: Exp)
 
   //TODO: make type of Seq more specific
   override lazy val typ = Bool
+
+  override def isValid : Boolean = this match {
+    case _ if body.contains[PermExp] => false
+    case ForPerm(_, Seq( Predicate(_, Seq(LocalVarDecl(_, Ref)), _) ), _) => true
+    case _ => false
+  }
 }
 
 

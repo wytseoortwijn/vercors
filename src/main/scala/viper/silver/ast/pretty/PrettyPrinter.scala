@@ -168,7 +168,7 @@ object PrettyPrinter extends org.kiama.output.PrettyPrinter with ParenPrettyPrin
       case MultisetType(elemType) => "Multiset" <> "[" <> show(elemType) <> "]"
       case TypeVar(v) => v
       case dt@DomainType(domainName, typVarsMap) =>
-        val typArgs = dt.domainTypVars map (t => show(typVarsMap.getOrElse(t, t)))
+        val typArgs = dt.typeParameters map (t => show(typVarsMap.getOrElse(t, t)))
         domainName <> (if (typArgs.isEmpty) empty else brackets(ssep(typArgs.to[collection.immutable.Seq], comma <> space)))
     }
   }
@@ -283,7 +283,7 @@ object PrettyPrinter extends org.kiama.output.PrettyPrinter with ParenPrettyPrin
         (if (triggers.isEmpty) empty else space <> ssep((triggers map show).to[collection.immutable.Seq], space)) <+>
         show(exp))
     case ForPerm(v, fields, exp) =>
-      parens("forallrefs"
+      parens("forperm"
         <+> brackets(ssep((fields map showLocation).to[collection.immutable.Seq], comma <> space))
         <+> v.name <+> "::" <+> show(exp))
 

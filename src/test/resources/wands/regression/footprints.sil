@@ -6,9 +6,11 @@ method test1(x: Ref)
 {
   assert x.l != null
 
-  //:: ExpectedOutput(package.failed:receiver.null)
+  //:: UnexpectedOutput(package.failed:receiver.null, /silicon/issue/219/)
+  //:: ExpectedOutput(package.failed:insufficient.permission)
+  //:: MissingOutput(package.failed:insufficient.permission, /silicon/issue/219/)
   package acc(x.l) --* acc(x.l) && acc(x.l.v)
-    /* The x.l from the LHS might no longer be non-null */
+    /* The x.l from the LHS might no longer have the same value */
 }
 
 method test2(x: Ref)
@@ -29,10 +31,14 @@ method test3(x: Ref)
 {
   x.v := true
   //:: ExpectedOutput(wand.not.wellformed)
+  //:: MissingOutput(wand.not.wellformed, /carbon/issue/105/)
+  //:: UnexpectedOutput(package.failed:insufficient.permission, /carbon/issue/105/)
+  //:: MissingOutput(wand.not.wellformed, /silicon/issue/201/)
+  //:: UnexpectedOutput(package.failed:insufficient.permission, /silicon/issue/201/)
   package true --* x.v
 
-  /* Preceding package previously succeeded, which allowed the following to succeed as well */
-//  x.v := false
-//  apply true --* x.v
-//  assert false
+  /* If the preceding package had succeeded, it would allow the following to succeed as well */
+  x.v := false
+  apply true --* x.v
+  assert false
 }
