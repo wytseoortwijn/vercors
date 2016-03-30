@@ -1,6 +1,7 @@
+bin
 .classpath
 .externalToolBuilders
 .project
 .settings
-
+vct-tool.jar
 
