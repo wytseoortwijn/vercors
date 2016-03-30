@@ -1,0 +1,24 @@
+// -*- tab-width:2 ; indent-tabs-mode:nil -*-
+
+/*
+ * This example can be verified with Chalice:
+ * vct --chalice box.pvl
+ */
+
+class Box {
+  int cnts;
+
+  requires Perm(this.cnts,100);
+  ensures  PointsTo(this.cnts,100,o);
+  void put(int o){
+    this.cnts = o;
+  }
+  
+  given    frac v;
+  requires Perm(this.cnts,v);
+  ensures  PointsTo(this.cnts,v,\old(this.cnts)) ** \result == this.cnts;
+  int get(){
+    return this.cnts;
+  }
+}
+
