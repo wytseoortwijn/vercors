@@ -1,5 +1,5 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
-//:: cases BaddLoop1
+//:: cases BadLoop1
 //:: tools chalice
 //:: verdict Fail
 class Counter {

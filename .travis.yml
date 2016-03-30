@@ -26,7 +26,7 @@ addons:
 
 script:
  - ant jar
- - vct --test="",$TRAVIS_BUILD_DIR/examples/permissions
+ - vct --test="",$TRAVIS_BUILD_DIR/examples
 
 deploy:
   provider: releases
