@@ -1,0 +1,157 @@
+<!-- -*- tab-width:2 ; indent-tabs-mode:nil -*- -->
+<!-- this file is used for command line building,
+     somehow eclipse is unable to parse this file,
+     so we use jar-build.xml to include thte shared
+     jar building target.
+  -->
+
+<project name="VerCors Tool" default="jar">
+
+  <property name="src"          value="${basedir}/src"/>
+  <property name="gen"          value="${basedir}/gensrc"/>
+  <property name="doc"          value="${basedir}/doc"/>
+  <property name="bin"          value="${basedir}/bin"/>
+  <property name="lib"          value="${basedir}/libs"/>
+  <property name="dist"         value="${basedir}/dist"/>
+  <property name="libpath"      value="${basedir}/../hre/hre.jar:${basedir}/../core/vct-core.jar:${lib}/antlr-4.5-complete.jar:${basedir}/../libs/commons-lang3-3.1/commons-lang3-3.1.jar:${basedir}/../viper/viper-api/bin"/>
+  <property environment="env"/>
+
+  <target name="clean">
+    <delete dir="${gen}"/>
+    <mkdir dir="${gen}"/>   
+    <delete dir="${bin}"/>
+    <delete file="vct-core.jar"/>
+  </target>
+  
+	<target name="generate" depends="C,CML,Java,JavaJML,PVFull">
+    <echo>Finished parser generation.</echo>
+	</target>
+
+  <target name="C" depends="check.C" unless="C.uptodate">
+    <echo>
+    Running ANTLR v4 on C.g4
+    </echo>
+  	<mkdir dir="${gen}/vct/parsers"/>
+    <java fork="yes" dir="${src}/grammars" classpath="${lib}" jar="${lib}/antlr-4.5-complete.jar">
+      <arg value="-o"/><arg value="${gen}/vct/parsers"/>
+      <arg value="-visitor"/>
+      <arg value="C.g4"/>
+    </java>
+  </target>
+  <target name="check.C">
+  	<uptodate property="C.uptodate">
+      <srcfiles dir="${src}/grammars"/>
+      <globmapper from="C.g4" to="${gen}/vct/parsers/C.tokens"/>
+    </uptodate>
+  </target>
+  
+  <target name="CML" depends="check.CML" unless="CML.uptodate">
+    <echo>
+    Running ANTLR v4 on CML.g4
+    </echo>
+  	<mkdir dir="${gen}/vct/parsers"/>
+    <java fork="yes" dir="${src}/grammars" classpath="${lib}" jar="${lib}/antlr-4.5-complete.jar">
+      <arg value="-o"/><arg value="${gen}/vct/parsers"/>
+      <arg value="-visitor"/>
+      <arg value="CML.g4"/>
+    </java>
+  </target>
+  <target name="check.CML">
+  	<uptodate property="CML.uptodate">
+      <srcfiles dir="${src}/grammars"/>
+      <mapper type="regexp" from="VerCorsML.g4|CML.g4|C.g4" to="${gen}/vct/parsers/CML.tokens"/>
+    </uptodate>
+  </target>
+
+  <target name="Java" depends="check.Java" unless="Java.uptodate">
+    <echo>
+    Running ANTLR v4 on Java.g4
+    </echo>
+  	<mkdir dir="${gen}/vct/parsers"/>
+    <java fork="yes" dir="${src}/grammars" classpath="${lib}" jar="${lib}/antlr-4.5-complete.jar">
+      <arg value="-o"/><arg value="${gen}/vct/parsers"/>
+      <arg value="-visitor"/>
+      <arg value="Java.g4"/>
+    </java>
+  </target>
+  <target name="check.Java">
+  	<uptodate property="Java.uptodate">
+      <srcfiles dir="${src}/grammars"/>
+      <globmapper from="Java.g4" to="${gen}/vct/parsers/Java.tokens"/>
+    </uptodate>
+  </target>
+  
+  <target name="JavaJML" depends="check.JavaJML" unless="JavaJML.uptodate">
+    <echo>
+    Running ANTLR v4 on JavaJML.g4
+    </echo>
+  	<mkdir dir="${gen}/vct/parsers"/>
+    <java fork="yes" dir="${src}/grammars" classpath="${lib}" jar="${lib}/antlr-4.5-complete.jar">
+      <arg value="-o"/><arg value="${gen}/vct/parsers"/>
+      <arg value="-visitor"/>
+      <arg value="JavaJML.g4"/>
+    </java>
+  </target>
+  <target name="check.JavaJML">
+  	<uptodate property="JavaJML.uptodate">
+      <srcfiles dir="${src}/grammars"/>
+      <mapper type="regexp" from="VerCorsML.g4|JavaJML.g4|Java.g4" to="${gen}/vct/parsers/JavaJML.tokens"/>
+    </uptodate>
+  </target>
+  
+
+
+  <target name="PVFull" depends="check.PVFull" unless="PVFull.uptodate">
+    <echo>
+    Running ANTLR v4 on PVFull.g4
+    </echo>
+  	<mkdir dir="${gen}/pv/parser"/>
+    <java fork="yes" dir="${src}/grammars" classpath="${lib}" jar="${lib}/antlr-4.5-complete.jar">
+      <arg value="-o"/><arg value="${gen}/pv/parser"/>
+      <arg value="-visitor"/>
+      <arg value="PVFull.g4"/>
+    </java>
+  </target>
+  <target name="check.PVFull">
+  	<uptodate property="PVFull.uptodate">
+      <srcfiles dir="${src}/grammars"/>
+      <globmapper from="PVFull.g4" to="${gen}/pv/parser/PVFull.tokens"/>
+    </uptodate>
+  </target>
+	
+
+	  <target name="compile" depends="generate">
+	    <mkdir dir="${bin}"/>
+	    <javac destdir="${bin}"
+	           classpath="${bin}:${libpath}"
+	           debug="on"
+	           includeAntRuntime="false"
+	           source="1.7"
+	           target="1.7"
+	           depend="true">
+	      <src path="${src}"/>
+	      <src path="${gen}"/>
+	      <include name="**/*.java"/>
+	    </javac>
+	  </target>
+	
+  <target name="jar-build" description="Generate the jar file">
+    <!-- This target has no dependencies to allow calling from eclipse. -->
+		<jar destfile="vct-core.jar" >
+      <manifest>
+        <attribute name="Built-By" value="${user.name}"/>
+      </manifest>
+		  <fileset dir="bin">
+		  	<include name="**" />
+		  </fileset>
+		</jar>
+	</target>
+
+	<target name="jar" description="Compile and Generate the jar file" depends="compile">
+	  <!-- do not inline! -->
+		<antcall target="jar-build"/>
+	</target>
+
+</project>
+
+
