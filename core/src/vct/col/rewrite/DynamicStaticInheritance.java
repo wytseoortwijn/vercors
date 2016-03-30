@@ -300,6 +300,7 @@ public class DynamicStaticInheritance extends AbstractRewriter {
     }
     for(Method m:cl.methods()){
       boolean is_final=m.isValidFlag(ASTFlags.FINAL)&&m.getFlag(ASTFlags.FINAL);
+      create.enter(m);
       switch(m.kind){
       case Predicate:{
         int N=m.getArity();
@@ -321,6 +322,7 @@ public class DynamicStaticInheritance extends AbstractRewriter {
         open.setStatic(m.isStatic());
         res.add(open);
         ASTNode body=tag_this.rewrite(m.getBody());
+        /* DELETE due to override instead of chain...
         if (parent!=null){
           for(int i=0;i<N;i++){
             names[i]=create.local_name(m.getArgument(i));
@@ -333,6 +335,7 @@ public class DynamicStaticInheritance extends AbstractRewriter {
           base.labeled("parent");
           body=create.expression(StandardOperator.Star,base,body);
         }
+        */
         Method local=create.method_kind(
             m.kind,
             copy_rw.rewrite(m.getReturnType()),
@@ -398,10 +401,12 @@ public class DynamicStaticInheritance extends AbstractRewriter {
         Fail("missing case: %s",m.kind);
       }
     }
+    create.leave();
     result=res;
   }
 
   private void gen_inherited(ASTClass res,ASTClass parent,Method m,ASTNode names[],String class_name) {
+    create.enter(m);
     String name=m.getName();
     Contract c=m.getContract();
     BlockStatement block=create.block();
@@ -446,7 +451,7 @@ public class DynamicStaticInheritance extends AbstractRewriter {
         m.usesVarArgs(),
         body);
     res.add_dynamic(local);             
-
+    create.leave();
   }
   
 

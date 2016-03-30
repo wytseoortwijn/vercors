@@ -19,6 +19,8 @@ public class SilverClassReduction extends AbstractRewriter {
 
   private static final String SEP="__";
       
+  private static final String ILLEGAL_CAST="possibly_illegal_cast";
+  
   private ASTClass ref_class;
   
   public SilverClassReduction(ProgramUnit source) {
@@ -40,6 +42,7 @@ public class SilverClassReduction extends AbstractRewriter {
           new DeclarationStatement[]{create.field_decl("val",create.class_type("Ref"))},
           null
       ));
+      ref_class.add(create.field_decl(ILLEGAL_CAST,create.class_type("Ref")));
     }
   }
   
@@ -93,6 +96,18 @@ public class SilverClassReduction extends AbstractRewriter {
     }
     case TypeOf:{
       result=create.invokation(null,null,"type_of",rewrite(e.getArg(0)));
+      break;
+    }
+    case Cast:{
+      ASTNode object=rewrite(e.getArg(1));
+      Type t=(Type)e.getArg(0);
+      ASTNode condition=create.invokation(null, null,"instanceof",
+          create.invokation(null,null,"type_of",object),
+          //create.invokation(null,null,"type_of",object));
+          create.invokation(create.class_type("TYPE"),null,"class_"+t));
+          
+      ASTNode illegal=create.dereference(object,ILLEGAL_CAST);
+      result=create.expression(StandardOperator.ITE,condition,object,illegal);
       break;
     }
     default:

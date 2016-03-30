@@ -115,7 +115,7 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       e.setType(t);
       int N=m.getArity();
       if (e.getArity()!=N){
-        Fail("different number of arguments");
+        Fail("different number of arguments for %s (%d instead of %d)",m.name,e.getArity(),N);
       }
       for(int i=0;i<N;i++){
         Type ti=m.getArgType(i);

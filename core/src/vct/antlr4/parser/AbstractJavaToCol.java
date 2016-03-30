@@ -112,6 +112,9 @@ public class AbstractJavaToCol extends ANTLRtoCOL {
     if (match(ctx,null,"instanceof",null)){
       return create.expression(StandardOperator.Instance,convert(ctx,0),convert(ctx,2));
     }
+    if (match(ctx,"(",null,")",null)) {
+      return create.expression(StandardOperator.Cast,convert(ctx,1),convert(ctx,3));
+    }
     return null;    
   }
 

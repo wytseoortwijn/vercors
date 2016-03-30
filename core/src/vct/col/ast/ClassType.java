@@ -134,6 +134,9 @@ public class ClassType extends Type {
     for(ClassType ct_parent:cl.super_classes){
       if (supertype_search(context,ct_parent)) return true;
     }
+    for(ClassType ct_parent:cl.implemented_classes){
+      if (supertype_search(context,ct_parent)) return true;
+    }
     return false;
   }
 

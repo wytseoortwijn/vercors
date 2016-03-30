@@ -15,6 +15,7 @@ import vct.col.ast.ASTDeclaration;
 import vct.col.ast.ASTFlags;
 import vct.col.ast.ASTFrame;
 import vct.col.ast.ASTNode;
+import vct.col.ast.ASTReserved;
 import vct.col.ast.ASTSequence;
 import vct.col.ast.ASTSpecial;
 import vct.col.ast.ASTSpecialDeclaration;
@@ -795,5 +796,19 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   @Override
   public void visit(FieldAccess a){
     result=create.set_field(a.claz, rewrite(a.object), a.name, rewrite(a.value));
+  }
+
+  public ASTNode inline_call(MethodInvokation e){
+    return inline_call(e,e.getDefinition());
+  }
+  public ASTNode inline_call(MethodInvokation e, Method def) {
+    int N=def.getArity();
+    HashMap<NameExpression,ASTNode> map=new HashMap<NameExpression, ASTNode>();
+    Substitution sigma=new Substitution(source(),map);
+    map.put(create.reserved_name(ASTReserved.This), rewrite(e.object));
+    for(int i=0;i<N;i++){
+      map.put(create.unresolved_name(def.getArgument(i)),rewrite(e.getArg(i)));
+    }
+    return sigma.rewrite(rewrite(def.getBody()));
   }
 }

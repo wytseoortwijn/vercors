@@ -1,13 +1,9 @@
 package vct.col.rewrite;
 
-import java.util.HashMap;
-
 import vct.col.ast.ASTFlags;
 import vct.col.ast.ASTNode;
-import vct.col.ast.ASTReserved;
 import vct.col.ast.Method;
 import vct.col.ast.MethodInvokation;
-import vct.col.ast.NameExpression;
 import vct.col.ast.OperatorExpression;
 import vct.col.ast.ProgramUnit;
 import vct.col.ast.StandardOperator;
@@ -20,7 +16,6 @@ public class InlinePredicatesRewriter extends AbstractRewriter {
     super(source);
     this.auto=auto;
   }
-
   
   @Override
   public void visit(MethodInvokation e){
@@ -31,19 +26,11 @@ public class InlinePredicatesRewriter extends AbstractRewriter {
     boolean inline;
     inline = inline(def);
     if (inline){
-      int N=def.getArity();
-      HashMap<NameExpression,ASTNode> map=new HashMap<NameExpression, ASTNode>();
-      Substitution sigma=new Substitution(source(),map);
-      map.put(create.reserved_name(ASTReserved.This), rewrite(e.object));
-      for(int i=0;i<N;i++){
-        map.put(create.unresolved_name(def.getArgument(i)),rewrite(e.getArg(i)));
-      }
-      result=sigma.rewrite(rewrite(def.getBody()));
+      result=inline_call(e, def);
     } else {
       super.visit(e);
     }
   }
-
 
   protected boolean inline(Method def) {
     boolean inline;

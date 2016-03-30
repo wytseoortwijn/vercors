@@ -349,6 +349,14 @@ public BlockStatement block(Origin origin, ASTNode ... args) {
     origin_stack.enter();
   }
   
+  /**
+   * Enter a new stack frame of the origin stack.
+   */
+  public void enter(ASTNode n){
+    origin_stack.enter();
+    setOrigin(n.getOrigin());
+  }
+  
   public OperatorExpression expression(E origin,StandardOperator op, ASTNode ... args){
     return expression(origin_source.create(origin),op,args);
   }

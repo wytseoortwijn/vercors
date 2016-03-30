@@ -1,5 +1,9 @@
 package vct.col.rewrite;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
+
 import hre.ast.MessageOrigin;
 import vct.col.ast.*;
 
@@ -8,6 +12,9 @@ public class AddTypeADT extends AbstractRewriter {
   public static final String type_adt="TYPE";
 
   private AxiomaticDataType adt;
+  
+  private HashSet<String> rootclasses=new HashSet();
+  private HashMap<String,Set<String>> subclasses=new HashMap();
   
   public AddTypeADT(ProgramUnit source) {
     super(source);
@@ -28,6 +35,11 @@ public class AddTypeADT extends AbstractRewriter {
     adt.add_axiom(create.axiom("object_top",create.forall(
         create.constant(true),
         create.invokation(null, null,"instanceof",create.invokation(null,null,"class_Object"),create.local_name("t")),
+        new DeclarationStatement[]{create.field_decl("t",create.class_type(type_adt))}
+    )));
+    adt.add_axiom(create.axiom("object_eq",create.forall(
+        create.constant(true),
+        create.invokation(null, null,"instanceof",create.local_name("t"),create.local_name("t")),
         new DeclarationStatement[]{create.field_decl("t",create.class_type(type_adt))}
     )));
     create.leave();
@@ -60,15 +72,40 @@ public class AddTypeADT extends AbstractRewriter {
     super.visit(cl);
     ASTClass res=(ASTClass)result;
     adt.add_cons(create.function_decl(create.class_type(type_adt),null,"class_"+cl.name,new DeclarationStatement[0],null));
+    if (cl.super_classes.length==0){
+      for(String other:rootclasses){
+        adt.add_axiom(create.axiom("different_"+other+"_"+cl.name,
+            create.expression(StandardOperator.Not,
+               create.invokation(null, null,"instanceof",
+                   create.invokation(null,null,"class_"+other),
+                   create.invokation(null,null,"class_"+cl.name)))
+        ));
+        adt.add_axiom(create.axiom("different_"+cl.name+"_"+other,
+            create.expression(StandardOperator.Not,
+               create.invokation(null, null,"instanceof",
+                   create.invokation(null,null,"class_"+cl.name),
+                   create.invokation(null,null,"class_"+other)))
+        ));
+      }
+      rootclasses.add(cl.name);
+    } else {
+      // TODO
+    }
     result=res;
   }
   
   public void visit(OperatorExpression e){
     switch(e.getOperator()){
     case Instance:
-      result=create.expression(StandardOperator.EQ,
-          create.expression(StandardOperator.TypeOf,rewrite(e.getArg(0))),
-          create.invokation(create.class_type(type_adt),null,"class_"+e.getArg(1))
+      result=create.expression(StandardOperator.And,
+          create.expression(StandardOperator.NEQ,
+              rewrite(e.getArg(0)),
+              create.reserved_name(ASTReserved.Null)
+          ),
+          create.invokation(null, null,"instanceof",
+            create.expression(StandardOperator.TypeOf,rewrite(e.getArg(0))),
+            create.invokation(create.class_type(type_adt),null,"class_"+e.getArg(1))
+          )
       );
       break;
     default:
