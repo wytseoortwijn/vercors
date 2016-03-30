@@ -1,0 +1,18 @@
+#!/bin/bash
+# find out location of binary
+DETECT=`dirname "$0"`
+# parent is platform directory
+DETECT=`dirname "$DETECT"`
+# parent is home
+export VCT_HOME=`dirname "$DETECT"`
+
+export Z3_EXE=`which z3`
+if [ ! -x "$Z3_EXE"  -o ! -f "$Z3_EXE" ] ; then
+  echo "could not find Z3" 1>&2 
+  exit 1
+fi
+
+CP=$VCT_HOME/viper/silicon/target/scala-2.11/classes:$VCT_HOME/viper/silicon/target/scala-2.11/silicon.jar
+
+exec java -Xss128M -cp "$CP" viper.silicon.SiliconRunner "$@"
+

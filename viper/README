@@ -1,0 +1,55 @@
+This directory contains the Viper subsystem for VerCors.
+
+The easy way to set up for developing with eclipse is:
+
+1. Build from the command line.
+
+2. Create a java project Viper API the compiles viper-api
+
+3. Create a Scala project Silver that compiles silver
+   Settings will be fixed later!
+   
+4. Create a Silicon project that compiles silicon
+   Settings will be fixed later!
+
+5. Create a Carbion project that compiles carbon
+   Settings will be fixed later!
+
+6. Fix the setup for Silver:
+
+sources:
+  silver/src/main/scala
+
+output:
+  Silver/target/scala-2.11/classes
+
+dependencies:
+  project Viper API
+  Silicon/target/scala-2.11/silicon.jar
+  Java
+
+7. Fix setup for Silicon:
+sources:
+  silicon/src/main/scala
+
+output:
+  Silicon/target/scala-2.11/classes
+
+dependencies:
+  project Viper API
+  Silicon/target/scala-2.11/silicon.jar
+  Java
+
+8. Fix setup for Carbon:
+sources:
+  carbon/src/main/scala
+
+output:
+  Carbon/target/scala-2.11/classes
+
+dependencies:
+  project Viper API
+  Carbon/target/scala-2.11/carbon.jar
+  Java
+
+
