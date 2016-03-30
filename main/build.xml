@@ -7,7 +7,7 @@
   <property name="bin"          value="${basedir}/bin"/>
   <property name="libs"         value="${basedir}/libs"/>
   <property name="dist"         value="${basedir}/dist"/>
-  <property name="libpath"      value="${basedir}/../hre/hre.jar:${basedir}/../core/vct-core.jar:${basedir}/../libs/hamcrest.core_1.3.0.jar:${basedir}/../libs/junit_4.11.0.jar:${basedir}/../libs/tempus-fugit-1.1.jar"/>
+  <property name="libpath"      value="${basedir}/../hre/hre.jar:${basedir}/../core/vct-core.jar"/>
   <property environment="env"/>
 
   <target name="clean">
@@ -17,15 +17,6 @@
   
   <target name="compile">
     <mkdir dir="${bin}"/>
-    <javac srcdir="${basedir}/junit"
-           destdir="${bin}"
-           classpath="${bin}:${libpath}"
-           debug="on"
-           includeAntRuntime="false"
-           source="1.7"
-           target="1.7">
-      <include name="**/*.java"/>
-    </javac>
     <javac srcdir="${src}"
            destdir="${bin}"
            classpath="${bin}:${libpath}"

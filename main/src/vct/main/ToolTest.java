@@ -12,48 +12,17 @@ import java.nio.file.Paths;
 import java.util.EnumSet;
 import java.util.concurrent.Semaphore;
 
-import org.junit.Assume;
-import org.junit.Test;
-
 import vct.silver.SilverBackend;
 import vct.util.Configuration;
-import junit.framework.TestCase;
 import static hre.System.Debug;
 
-public class ToolTest extends TestCase {
+public class ToolTest {
 
-  protected static Semaphore sem = new Semaphore(Runtime.getRuntime().availableProcessors()/3);
-
-  private EnumSet<Feature> allowed=EnumSet.noneOf(Feature.class);
-  private EnumSet<Feature> required=EnumSet.noneOf(Feature.class);
+  private static Object sem=new Object(){};
   
-  public void allow(Feature ... tests){
-    for(Feature test:tests){
-      allowed.add(test);
-    }
+  public static void fail(String msg){
+    System.err.printf("failure: %s%n",msg);
   }
-  public void require(Feature ...tests){
-    for(Feature test:tests){
-      required.add(test);
-    }
-  }
-  
-  public void sem_get(Feature ... tests) {
-    int count=0;
-    for(Feature test:tests){
-      Assume.assumeTrue(allowed.isEmpty()||allowed.contains(test));
-      if (required.contains(test)) count++;
-    }
-    Assume.assumeTrue(count==required.size());
-    try {
-      sem.acquire();
-    } catch (InterruptedException e) {
-      fail("test interrupted");
-      return;
-    }
-  
-  }
-
   public VCTResult run(String ... args) {
     StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
     int idx=0;

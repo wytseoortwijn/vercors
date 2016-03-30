@@ -31,10 +31,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-import org.junit.runner.JUnitCore;
-import org.junit.runner.Result;
-import org.junit.runner.notification.Failure;
-
 import vct.antlr4.parser.JavaResolver;
 import vct.clang.printer.CPrinter;
 import vct.col.annotate.DeriveModifies;

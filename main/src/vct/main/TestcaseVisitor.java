@@ -24,10 +24,6 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.junit.runner.JUnitCore;
-import org.junit.runner.Result;
-import org.junit.runner.notification.Failure;
-
 import hre.config.Option;
 import hre.config.OptionParser;
 import hre.config.StringListSetting;
