@@ -5,7 +5,7 @@ case "mono-$VERSION" in
  mono-3.*)
  ;;
  *)
-    echo "Could not find a known good version of mono"
+    echo "WARNING: mono version $VERSION is not among the known good versions"
     exit 1;
  ;;
 esac
