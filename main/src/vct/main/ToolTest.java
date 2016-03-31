@@ -87,6 +87,10 @@ public class ToolTest {
           vct.silver.SilverBackend.silver_module.get());
      
       break;
+    case "dafny":
+      sh=Configuration.getShell(
+          vct.boogie.Main.dafny_module.get());
+      break;
     case "silicon":
     case "silicon_qp":
       String z3;

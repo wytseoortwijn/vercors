@@ -65,6 +65,14 @@ public class CommandLineTesting {
         res.mustSay("Boogie program verifier finished with 2 verified, 1 error");
         check(res,"chalice","failing");
         
+        res=runtest(tt,Verdict.Inconclusive,"dafny","/compile:0","//examples/backends/test-pass.dfy");  
+        res.mustSay("Dafny program verifier finished with 2 verified, 0 errors");
+        check(res,"dafny","passing");
+        
+        res=runtest(tt,Verdict.Error,"dafny","/compile:0","//examples/backends/test-fail.dfy");  
+        res.mustSay("Dafny program verifier finished with 1 verified, 1 error");
+        check(res,"dafny","failing");
+        
         res=runtest(tt,Verdict.Inconclusive,"carbon","//examples/backends/test-pass.sil");  
         res.mustSay("No errors found.");
         check(res,"carbon","passing");
