@@ -37,6 +37,8 @@ public class TestcaseVisitor extends SimpleFileVisitor<Path>{
   
   public HashSet<Path> unmarked=new HashSet();
   
+  public boolean delayed_fail=false;
+  
   public static String extension(Path path){
     Path file=path.getFileName();
     String name=file.toString();
@@ -66,6 +68,7 @@ public class TestcaseVisitor extends SimpleFileVisitor<Path>{
       switch(ext){
       case "c":
       case "java":
+      case "pvl":
         {
           BufferedReader is=new BufferedReader(new InputStreamReader(new FileInputStream(file.toFile())));
           String line;
@@ -91,9 +94,13 @@ public class TestcaseVisitor extends SimpleFileVisitor<Path>{
                 break;
               case "tool":
               case "tools":
-                for(int i=1;i<cmds.length;i++) {
-                  for(String test:cases){
-                    Testcase tc=testsuite.get(test);
+                for(String test:cases){
+                  Testcase tc=testsuite.get(test);
+                  if (!tc.tools.isEmpty()){
+                    System.err.printf("%s: tools for test %s already set.%n",file,test);
+                    delayed_fail=true;
+                  }
+                  for(int i=1;i<cmds.length;i++) {  
                     tc.tools.add(cmds[i]);
                   }
                 }

@@ -1,0 +1,22 @@
+#!/usr/bin/awk -f
+BEGIN {
+  if (length(fragment)==0) {
+    print "fragment is not set"
+    exit 1
+  }
+  B="begin(" fragment ")"
+  E="end(" fragment ")"
+  S="skip(" fragment ")"
+}
+index($0,B) { show=1 }
+index($0,E) { show=0 }
+/\/\/.*begin\(.*\)/ { next }
+/\/\/.*end\(.*\)/ { next }
+/\/\/.*skip\(.*\)/ { if (index($0,S)) next }
+{
+  if (show) {
+    gsub("//.*skip(.*).*","")
+    print
+  }
+}
+

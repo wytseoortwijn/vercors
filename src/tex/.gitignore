@@ -1,0 +1,12 @@
+
+*.aux
+*.bbl
+*.blg
+*.log
+*.out
+*.toc
+manual.pdf
+
+*.bak
+*~
+

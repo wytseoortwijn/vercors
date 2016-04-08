@@ -1,0 +1,145 @@
+\ProvidesPackage{jmllistings}
+
+\RequirePackage{listings}
+%%% \RequirePackage{bold-extra}
+
+\lstdefinelanguage[JML]{Java}{% 
+% The lists of keywords are clustered in case you would like to have 
+% different styles for different kinds of keywords. Because of this, 
+% all keywords of dialect-free Java are redefined.
+% The key to keywords: (note that this might change!)
+% 1 = other (non of the below) Java keywords
+% 2 = special types
+% 3 = modifiers
+% 4 = special JML expressions
+% 5 = clause keywords
+% 6 = ``invariant-like'' keywords
+% 7 = JML* ADT operators
+% 8 = Java doc keywords
+alsoletter = {\\},%
+morekeywords= [1]{% other Java keywords
+      global,barrier,gsize,tid,mod,fork,join,%
+      break,case,catch,class,%
+      const,continue,default,do,else,extends,false,%
+      finally,footprint,for,goto,if,implements,import,instanceof,%
+      interface,label,new,null,package,%
+      return,super,switch,this,throw,%
+      throws,true,try,void,while},%
+morekeywords = [2]{% special types
+	resource,given,yields,frac,perm,boolean,byte,char,double,float,int,long,short,\\bigint,\\locset,\\real,\\seq,\\TYPE},%
+morekeywords = [3]{% modifiers
+	abstract,code,code_bigint_math,code_java_math,code_safe_math,
+	extract,final,ghost,helper,instance,model,native,non_null,nullable,private,protected,
+	peer,\\peer,public,pure,rep,\\rep,spec_bigint_math,spec_java_math,spec_protected,
+	spec_public,spec_safe_math,static,strictfp,strictly_pure,synchronized,%
+%%%	transient,%
+	uninitialized,volatile},%
+morekeywords = [4]{% special JML expressions
+        \\at,
+	\\created,\\disjoint,\\duration,\\everything,\\exists,\\forall,\\fresh,
+	\\index,\\invariant_for,
+	\\is_initialized,\\lblneg,\\lblpos,\\lockset,\\max,\\measured_by,\\min,\\new_elems_fresh,\\nonnullelements,
+	\\not_accessed,\\not_assigned,\\not_modified,\\not_specified,\\nothing,\\num_of,
+	\\old,\\only_assigned,\\only_called,\\only_captured,\\pre,\\product,\\reach,\\reachLocs,\\result,
+	\\same,\\seq_contains,\\space,\\subset,\\sum,\\type,\\type_of,\\working_space,\\values},%
+morekeywords = [5]{% clause keywords
+	accessible,accessible_redundantly,assert,assert_redundantly,assignable,
+        assignable_local,assignable_remote,
+	assignable_redundantly,assume,assume_redudantly,breaks,breaks_redundantly,
+	callable,callable_redundantly,captures,captures_redundantly,continues,continues_redundantly,
+	debug,declassify,decreases,decreases_redundantly,decresing,decresing_redundantly,diverges,
+	diverges_redundantly,duration,duration_redundantly,ensures,ensures_redundantly,
+	for_example,\\from,hence_by,\\if,implies_that,in,in_redundantly,\\into,loop_invariant,
+	loop_invariant_redundantly,measured_by,measured_by_redundantly,maintaining,
+	maintaining_redundantly,maps,maps_redundantly,refining,represents,
+	requires,respects,signals,signal_only,\\such_that,\\to,unreachable,when,working_space},%
+morekeywords = [6]{% ``invariant-like'' keywords
+    pred,group,%	
+	abrupt_behavior,abrupt_behaviour,also,axiom,behavior,behaviour,
+	constraint,exceptional_behavior,exceptional_behaviour,initially,
+	invariant,monitors_for,normal_behavior,normal_behaviour,readable,writable},%
+morekeywords = [7]{% ADT functions (predicates are above)
+\\seq_empty,\\seq_singleton,\\seq_get,\\seq_put,\\seq_reverse,\\seq_length,\\index_of,\\seq_concat,\\empty,\\singleton,\\set_union,\\intersect,\\set_minus,\\all_fields,\\infinite_union,\\less_than_nothing},
+%% Java doc tags:  FIXME: add more here
+  morekeywords=[8]{@param,@returns,@preconditions,@postconditions,@invariants},%
+  morecomment = [s]{/*}{*/},%
+  morecomment = [l]//,%
+  morecomment = [n]{(*}{*)},%
+  moredelim =*[s]{/*@}{@*/},% overwrites comment definition in dialect-free Java
+  moredelim =*[s]{/*+KeY@}{@+KeY*/},
+  moredelim =*[l]//@,%
+  moredelim =*[l]//+KeY@,
+  morestring=[b]",%
+  morestring=[b]',%
+  sensitive,%
+}[keywords,comments,strings]
+
+\newlength{\ourlistingleftmargin}
+\settowidth{\ourlistingleftmargin}{{\tiny 99}}
+\addtolength{\ourlistingleftmargin}{\lst@numbersep}
+
+\lstdefinestyle{ourstyle}{%
+  xleftmargin=\ourlistingleftmargin,
+  basicstyle=\small\normalfont\sffamily,%
+  commentstyle=\slshape,%
+  keywordstyle=\let\slshape\upshape\bfseries,%
+%  basewidth=0.5em,%
+  aboveskip=\smallskipamount,
+  belowskip=\smallskipamount,
+  keepspaces=true,
+%  columns=fullflexible,
+  columns=flexible,
+  numberbychapter=false,
+  captionpos=b,
+  numberstyle=\tiny,
+  stepnumber=2,
+  firstnumber=1,
+}
+
+% Env. definitions for languages
+
+\lstnewenvironment{lstjavajml}[1][]{%
+  \lstset{style=ourstyle,language={[jml]java},#1}%
+  }{}
+
+\lstnewenvironment{lstjml}[1][]{%
+  \lstset{style=ourstyle,language={[jml]java},#1}%
+  }{}
+
+\lstnewenvironment{lstjava}[1][]{%
+  \lstset{style=ourstyle,language={[jml]java},#1}%
+  }{}
+
+\lstset{language=[jml]java,style=ourstyle}
+
+\def\lst@DeInit{%
+    \lst@XPrintToken \lst@EOLUpdate
+    \global\advance\lst@newlines\m@ne
+    \lst@ifshowlines
+        \lst@DoNewLines
+    \else
+        \setbox\@tempboxa\vbox{\lst@DoNewLines}%
+    \fi
+    \lst@ifdisplaystyle \par\removelastskip \fi
+    \lsthk@ExitVars\everypar{}\lsthk@DeInit\normalbaselines\normalcolor
+    \lst@ifbox
+        \egroup $\hss \egroup
+        \vrule\@width\lst@maxwidth\@height\z@\@depth\z@
+    \else
+        \lst@ifdisplaystyle
+            \par\penalty-50\vspace\lst@belowskip
+        \fi
+    \fi
+    \ifx\lst@multicols\@empty\else
+        \def\lst@next{\global\let\@checkend\@gobble
+                      \endmulticols
+                      \global\let\@checkend\lst@@checkend}
+        \expandafter\lst@next
+    \fi
+    \lst@MakeCaption b%
+    \ifx\lst@float\relax\else
+        \expandafter\lst@endfloat
+    \fi
+    \endgroup}
+
+

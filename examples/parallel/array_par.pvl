@@ -1,0 +1,23 @@
+// -*- tab-width:2 ; indent-tabs-mode:nil -*-
+//:: cases BarrierWithAtomicStatement
+//:: tools
+class Ref {
+  requires N>0;
+  requires (\forall* int i;0 <= i && i < N ; Perm(ar[i],write));
+  ensures  (\forall* int i;0 <= i && i < N ; Perm(ar[i],write));
+  ensures  (\forall int i;0 <= i && i < N ; ar[i]==0);
+  void vector(int N, int[N] ar){
+    par main(int i = 0 .. N;int x=0;x==0 ==> (\forall* int k;0 <= k && k < N ; Perm(ar[k],write)))
+      ensures  Perm(ar[i],write) ** ar[i]==0;
+      ensures  x==1;
+    {
+      assert x==0;
+      barrier()
+        ensures Perm(ar[i],write);
+      {
+        x=1;
+      }
+      ar[i]=0;
+    }
+  }
+}

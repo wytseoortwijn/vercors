@@ -1,0 +1,94 @@
+\chapter{Keywords}
+
+\section*{Special types}
+\begin{description}
+\item[frac] non-zero fractions
+\item[zfrac] zero-able fractions
+\item[resource] type of resource expressions
+\item[classtype] type of type expressions
+\item[seq$<$E$>$] Seqeunce or list of E
+\item[set$<$E$>$] Set of E
+\item[bag$<$E$>$] Bag of E
+\item[cell$<$E$>$] Object that contains a single E with set and get (internal use only)
+\item[process] Type of both actions and defined processes in histories.
+\end{description}
+
+\section*{method and parallel loop contracts}
+
+\begin{description}
+\item[given] ghost in parameter
+\item[yields] ghost out parameter
+\item[??] ghost in/out parameter
+\item[requires] pre condition
+\item[ensures] post condition
+\item[keep] pre and post condition
+\item[modifies] could possibly write these variables (sequential only?)
+\end{description}
+
+\section*{sequential loop contracts}
+
+\begin{description}
+\item[loop\_invariant]
+\end{description}
+
+\section*{proof statements}
+
+\begin{description}
+\item[assert] check is a property is true
+\item[assume] assume the truth of the given property (TODO: argument must be boolean?)
+\item[refute] prove that the property is not true
+\item[inhale] add the given permissions and properties
+\item[exhale] discard the specified permissions
+\item[fold] Wrap permissions inside definition
+\item[unfold] Unwrap a bundle of permissions
+\item[create] Prove a magic wand formula
+\item[qed] Conclude proof of magic wand
+\item[use] extract permissions and/or reuse facts in a magic wand proof
+\item[apply] Apply a magic wand
+\item[witness] declaring witness names
+\item[send . to .] Release permission to a future loop iteration
+\item[recv . from .] Acquire permission from a previous loop iteration
+\item[open] Open a definition in a predicate environment
+\item[close] Close a definition in a predicate environment
+\item[transfer] transfer permissions into and out of a CSL atomic block, consisting
+of an atomic call, including the preceeding with and following then blocks.
+\end{description}
+
+\section*{expression decoration}
+
+\begin{description}
+\item[label] attach a label to an arbitrary expression
+\item[with] to be executed just before the expression is evaluated
+\item[then] to be executed just after an expression is evaluated
+\end{description}
+
+
+\section*{expressions}
+
+\begin{description}
+\item[**] Separating conjunction
+\item[-*] Magic wand
+\item[Perm] Field permission
+\item[PointsTo] Field permission and value
+\item[ArrayPerm] Quantifier free way of specifying access permissions for arrays.
+\item[?x] Bind the name x to and output parameter
+\item[???] Scaling operator for groups?
+\item[Value] Declare an epsilon permission on a field
+\item[unfolding . in .] Temporarily unfold definitions in (pure) expressions.
+\item[$\backslash$old] refer to values in the 'old' state.
+\item[$\backslash$result] refer to the result of a method call.
+\end{description}
+
+\section*{PVL specific constructs}
+
+\begin{description}
+\item[barrier] PVL only keyword to denote a kernel barrier
+\item[fork] Fork off the run method of an object
+\item[join] Join with the thread running teh run method of an object
+\item[lock] lock what precisely?
+\item[unlock] unlock what precisely?
+\item[action] insert an action into a history
+\item[create] create a history
+\item[destroy] destroy a history
+\end{description}
+

@@ -1,0 +1,20 @@
+// -*- tab-width:2 ; indent-tabs-mode:nil -*-
+//:: cases ZeroMixedArray
+//:: tools
+class Ref {
+  requires N>0 && M > 0 ;
+  requires (\forall* int i;0 <= i && i < M*N ; Perm(ar[i],write));
+  ensures  (\forall* int i;0 <= i && i < M*N ; Perm(ar[i],write));
+  ensures  (\forall int i;0 <= i && i < M*N ; ar[i]==0);
+  void vector(int M, int N, int[M*N] ar){
+    batch outer(int i = 0 .. M;;true)
+    {
+      par inner(int j= N*i .. N*(i+1);;true)
+        requires Perm(ar[j],write);
+        ensures  Perm(ar[j],write) ** ar[j]==0;
+      {
+        ar[i]=0;
+      }
+    }
+  }
+}

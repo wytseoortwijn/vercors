@@ -1,6 +1,7 @@
 package vct.col.rewrite;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Stack;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -255,10 +256,18 @@ public class ParallelBlockEncoder extends AbstractRewriter {
       Fail("atomic region outside of parallel block");
     }
     BlockStatement res=rewrite(pb.block);
+    HashSet<String> sync_list=new HashSet();
+    for(ASTNode n:pb.sync_list) sync_list.add(n.toString());
+    System.err.printf("sync list %s%n", sync_list);
     for(ParallelBlock b:blocks){
-      if (pb.sync_list.contains(b.getLabel(0).getName())){
+      String name=b.getLabel(0).getName();
+      System.err.printf("block %s%n", name);
+      if (sync_list.contains(name)){
+        System.err.printf("block %s is used%n", name);
         res.prepend(create.special(ASTSpecial.Kind.Inhale,b.inv));
         res.append(create.special(ASTSpecial.Kind.Exhale,b.inv));
+      } else {
+        System.err.printf("block %s is skipped%n", name);
       }
     }
     result=res;

@@ -32,7 +32,7 @@ addons:
 script:
  - ant jar
 # - ant dist 
- - vct --test="",$TRAVIS_BUILD_DIR/examples
+ - vct --test="",$TRAVIS_BUILD_DIR/examples,$TRAVIS_BUILD_DIR/src/tex/examples
 
 #deploy:
 #  provider: releases

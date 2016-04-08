@@ -145,8 +145,10 @@ public class Main
     clops.add(chalice.getEnable("select Chalice backend"),"chalice");
     BooleanSetting chalice2sil=new BooleanSetting(false);
     clops.add(chalice2sil.getEnable("select Silicon backend via chalice2sil"),"chalice2sil");
-    final StringSetting silver=new StringSetting("silicon");
+    final StringSetting silver=new StringSetting("silver");
     clops.add(silver.getAssign("select Silver backend (silicon/carbon)"),"silver");
+    clops.add(silver.getAssign("select Silicon backend","silicon"),"silicon");
+    clops.add(silver.getAssign("select Carbon backend","carbon"),"carbon");
     BooleanSetting verifast=new BooleanSetting(false);
     clops.add(verifast.getEnable("select Verifast backend"),"verifast");
     BooleanSetting dafny=new BooleanSetting(false);

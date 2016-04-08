@@ -1,0 +1,18 @@
+// -*- tab-width:2 ; indent-tabs-mode:nil -*-
+//:: cases ZeroKernel
+//:: tools silicon
+//:: verdict Pass
+// vct --silver=silicon_qp zero-kernel.pvl
+
+kernel zero {
+
+  global int[tcount] x;
+  
+  requires Perm(x[tid],write);
+  ensures  Perm(x[tid],write) ** x[tid]==0;
+  void main(){
+    x[tid]=0;
+  }
+
+}
+

@@ -18,9 +18,17 @@ public class StringSetting {
   
   private class AssignOption extends AbstractOption {
     StringSetting about;
+    String default_value;
+    
+    public AssignOption(StringSetting about,String help,String value){
+      super(value==null,true,help);
+      this.about=about;
+      this.default_value=value;
+    }
     public AssignOption(StringSetting about,String help){
       super(value==null,true,help);
       this.about=about;
+      this.default_value=null;
     }
     public void pass(String value){
       opt_used=true;
@@ -30,10 +38,16 @@ public class StringSetting {
     public void pass(){
       opt_used=true;
       used=true;
+      about.value=default_value;
     }
   }
+
   public Option getAssign(String help){
     return new AssignOption(this,help);
+  }
+  
+  public Option getAssign(String help,String value){
+    return new AssignOption(this,help,value);
   }
   public String get(){
     return value;

@@ -1,0 +1,107 @@
+\chapter{Overview of the VerCors Language}
+
+This chapter gives a quick overview of the main ingredients of the
+VerCors language, including program and specification language, and a
+few special proof hints. The next chapter illustrates the most
+important features on several examples.
+ 
+\section{The Syntax of PVL}
+
+The syntax of PVL is similar to the syntax of Java.
+The most important differences are the following.
+\begin{itemize}
+\item The visibility modifiers \lstinline+public, private, protected +, etc. are not allowed.
+\item In principle, \lstinline+static+ members are not allowed.
+\item Thread creation is Java like, but because PVL has no inheritance, it
+is written \lstinline+fork t+. Likewise, thread joining
+is written \lstinline+join t+ (see Section~\ref{sec:forkjoin} for an example).
+\item There are some additional primitive types:
+\begin{description}
+\item[resource] the type of separation logic formulas
+\item[frac] the type of permission fractions
+\item[seq$<E>$] the type of lists (or sequences) over the type \(E\).
+Similar to Java arrays, \(E\) can be a primitive type. (See
+section \ref{list examples}\ for examples of list expressions.)
+\item[set$<E>$] Sets of elements of type $E$.
+\item[bag$<E>$] Bags of elements of type $E$.
+\end{description}
+\item There is a shorthand to define functions (\emph{i.e.}, query
+  methods without side effects). They can be defined by giving their
+  contract and
+formal parameters, followed by the $=$ sign and their body. For
+example, the \lstinline+fib+ function can be defined as follows:
+\begin{verbatim}
+requires n>=0;
+static int fib(int n) = n<2 ? 1 : fib(n-1) + fib(n-2);
+\end{verbatim}
+Note that functions that do not depend on the field of an object are an
+exception to the \lstinline+static+ rule:
+without declaring such a function static, it cannot be proven that the same function
+in two instances is actually the same function.
+\item Abstract predicates are functions of type \lstinline+resource+.
+Predicates are not allowed to have a contract. Because they are functions they can be static.
+\end{itemize}
+
+\section{Specification and Annotation Language}
+
+\subsection{Formulas}
+
+In addition to the standard operators from first-order logic, the
+following constructs are available to define assertions.
+\begin{description}
+\item[Perm(loc,$\pi$)]: fraction $\pi \in (0,\ldots,1]$ access to  the location \lstinline+loc+. 
+\item[PointsTo(loc,$\pi$,$v$)]: fraction $\pi \in (0,1]$ access to the location \lstinline+loc+, which contains the value $v$.
+\item[Value(loc)]: infinitesimal read access to the location \lstinline+loc+.
+\item[($\backslash$forall $\tau~v$ ; $\psi$ ; $\phi$ )]: boolean universal quantification: $\forall i : \phi \Rightarrow \psi$.
+\item[($\backslash$forall* $\tau~v$ ; $\psi$ ; $\phi$ )]: separating universal quantification: $\bigstar i : \phi \Rightarrow \psi$.
+\end{description}
+
+The separation logic \(\star\) operator is written \lstinline+**+ in
+PVL, to disambiguate it from multiplication.
+
+Note that while the PVL language does not allow the \lstinline+final+ modifier,
+you can get the same effect by using the \lstinline+Value+ predicate on a field.
+That is, the fraction of a permission that has to be given up to create
+a \lstinline+Value+ permission can never be recovered and hence 
+write permission can never be recovered.
+
+\subsection{Contract clauses}
+
+Method contracts can use the following clauses:
+\begin{description}
+\item[requires $\phi$;] denotes a pre-condition $\phi$.
+\item[ensures $\phi$;] denotes a post-condition $\phi$.
+\item[given $\tau~v$;] declares a ghost formal in-parameter $v$ of type $\tau$.
+\item[yields $\tau~v$;] declares a ghost formal out-parameter $v$ of type $\tau$.
+\end{description}
+
+For example, a method that takes some permission $p$ for a field \lstinline+x+
+and returns possibly less permission $q$ can be specified as follows:
+\begin{lstlisting}
+  given    frac p;
+  requires Perm(x,p);
+  yields   frac q;
+  ensures  Perm(x,q) ** q <= p;
+  void drop() { ...
+\end{lstlisting}
+
+\subsection{Proof annotations}
+
+In addition to the intermediate assertions, sometimes also proof hints
+are necessary. The following proof hints are available.
+
+\begin{description}
+\item[assert $\phi$;]: assert the given resource property $\phi$.
+\item[assume $\phi$;]: assume the given resource property $\phi$.
+\item[unfold $f(\vec x)$;]: replace $f(\vec x)$ by its body.
+\item[fold $f(\vec x)$;]: pack the body of $f(\vec x)$ into the
+  function.
+\item[\(<\)expr\(>\) with { ... }]: after the \lstinline+with+ clause,
+  actual parameters can be given for the ghost in-parameters.  
+\item[\(<\)expr\(>\) then { ... }]: after the \lstinline+then+ clause,
+  ghost out-parameters can be assigned to locally visible variables.
+\item[unfolding \(<\)predicate\(>\) in \(<\)expr\(>\)]: evaluate the expression,
+while temporarily unfolding the predicate.
+\end{description}
+
+

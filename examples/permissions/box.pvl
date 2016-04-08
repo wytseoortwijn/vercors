@@ -1,4 +1,6 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
+//:: cases Box
+//:: tools chalice
 
 /*
  * This example can be verified with Chalice:

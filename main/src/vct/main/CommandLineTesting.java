@@ -92,16 +92,21 @@ public class CommandLineTesting {
         continue;
       }
       try {
-        Files.walkFileTree(Paths.get(dir).toAbsolutePath(),tv);
+        Files.walkFileTree(Paths.get(dir),tv);
       } catch (IOException e) {
         e.printStackTrace();
       }
     }
+    if (tv.delayed_fail) System.exit(1);
     int successes=0;
+    HashMap<String,Testcase> untested=new HashMap<String,Testcase>();
     HashMap<String,String> failures=new HashMap<String, String>();
     for(Entry<String,Testcase> item:tv.testsuite.entrySet()){
       String name=item.getKey();
       Testcase test=item.getValue();
+      if (test.tools.isEmpty()){
+        untested.put(name,test);
+      }
       for(String tool:test.tools){
         ArrayList<String> cmd=new ArrayList<String>();
         cmd.add("vct");
@@ -114,7 +119,7 @@ public class CommandLineTesting {
           cmd.add("--"+tool);
         }
         for(String opt:test.options) cmd.add(opt);
-        for(Path f:test.files) cmd.add(f.toString());
+        for(Path f:test.files) cmd.add(f.toAbsolutePath().toString());
         System.err.printf("running %s/%s:%n",name,tool);
         for(String s:cmd){
           System.err.printf(" %s",s);
@@ -131,6 +136,20 @@ public class CommandLineTesting {
       }
     }
     boolean pass=true;
+    if (!untested.isEmpty()){
+      System.err.printf("The following %d tests have been disabled:%n",untested.size());
+      for(Entry<String,Testcase> item:untested.entrySet()){
+        String name=item.getKey();
+        Testcase test=item.getValue();
+        System.err.printf("  %s ",name);
+        String sep="(";
+        for(Path f:test.files) {
+          System.err.printf("%s%s",sep,f.toString());
+          sep=" ";
+        }
+        System.err.printf(")%n");
+      }
+    }
     if(failures.isEmpty()){
       System.err.printf("all %d tests passed%n",successes);
     } else {
@@ -143,7 +162,10 @@ public class CommandLineTesting {
     }
     if (tv.unmarked.size()>0){
       pass=false;
-      System.err.printf("there were %d unmarked files%n",tv.unmarked.size());
+      System.err.printf("there were %d unmarked files:%n",tv.unmarked.size());
+      for(Path p: tv.unmarked){
+        System.err.printf("  %s%n",p);
+      }
     }
     if(pass){
       System.exit(0);

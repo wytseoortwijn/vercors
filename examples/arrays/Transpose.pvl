@@ -1,0 +1,43 @@
+// -*- tab-width:2 ; indent-tabs-mode:nil -*-
+//:: cases TransposeCopy
+//:: tools silicon
+//:: verdict Pass
+
+/*
+  Specified and verified implementation of a copying matrix transpose.
+*/
+
+class Ref {
+  requires M>0 && N > 0;
+  requires (\forall* int i1 ; 0 <= i1 && i1 < M ;
+             (\forall* int j1 ; 0 <= j1 && j1 < N ;
+               Perm(out[i1][j1],write)));
+  requires (\forall* int i1 ; 0 <= i1 && i1 < N ;
+             (\forall* int j1 ; 0 <= j1 && j1 < M ;
+               Perm(inp[i1][j1],1/2)));
+  ensures  M>0 && N > 0;
+  ensures  (\forall* int i1 ; 0 <= i1 && i1 < M ;
+             (\forall* int j1 ; 0 <= j1 && j1 < N ;
+               Perm(out[i1][j1],write)));
+  ensures  (\forall* int i1 ; 0 <= i1 && i1 < N ;
+             (\forall* int j1 ; 0 <= j1 && j1 < M ;
+               Perm(inp[i1][j1],1/2)));
+  ensures  (\forall int i ; 0 <= i && i < M ;
+             (\forall int j ; 0 <= j && j < N ;
+               out[i][j]==inp[j][i]));          
+  ensures  (\forall int i ; 0 <= i && i < M ;
+             (\forall int j ; 0 <= j && j < N ;
+               inp[j][i]==\old(inp[j][i])));          
+  void transpose(int M,int N,int[M][N] out,int[N][M] inp){
+    for(int i=0..M,int j=0..N)
+        requires Perm(out[i][j],write);
+        requires Perm(inp[j][i],1/4);
+        ensures  Perm(out[i][j],write);
+        ensures  Perm(inp[j][i],1/4);
+        ensures  out[i][j]==inp[j][i];
+      {
+        out[i][j]=inp[j][i];
+      }
+  }
+}
+
