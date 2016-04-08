@@ -1,5 +1,5 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
-//:: cases ZeroArrayLoop
+//:: cases ZeroArrayLoopPVL
 //:: tools silicon
 //:: verdict Pass
 class array {
