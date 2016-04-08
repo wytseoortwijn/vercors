@@ -107,7 +107,22 @@ public class CommandLineTesting {
       if (test.tools.isEmpty()){
         untested.put(name,test);
       }
+      boolean possible=true;
+      if (lang_option.used()){
+        for(Path p:test.files){
+          String lang=TestcaseVisitor.extension(p);
+          if (!langs.contains(lang)){
+            possible=false;
+            break;
+          }
+        }
+      }
+      if (!possible) continue;
       for(String tool:test.tools){
+        if (backend_option.used()&&!backends.contains(tool)) {
+          // skip tests for back ends that are not selected.
+          continue;
+        }
         ArrayList<String> cmd=new ArrayList<String>();
         cmd.add("vct");
         switch(tool){
@@ -196,6 +211,10 @@ public class CommandLineTesting {
     return res;
   }
   
+  private static StringListSetting langs=new StringListSetting();
+  private static Option lang_option;
+  private static StringListSetting backends=new StringListSetting();
+  private static Option backend_option;
   private static StringListSetting selftest=new StringListSetting();
   private static Option append_option;
   protected static StringSetting savedir=new StringSetting(null);
@@ -204,6 +223,8 @@ public class CommandLineTesting {
     append_option=selftest.getAppendOption("execute test suites from the command line. "+
         "Each test suite is a folder which is scanned for valid test inputs");
     clops.add(append_option,"test");
+    clops.add(backend_option=backends.getAppendOption("select the back ends to run tests for"),"tool");
+    clops.add(lang_option=langs.getAppendOption("select test input languages"),"lang");
     clops.add(savedir.getAssign("save intermediate files to given directory"),"save-intermediate");
   }
 
