@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
 
@@ -260,7 +261,13 @@ public class SilverBackend {
     TestReport report=new TestReport();
     start_time=System.currentTimeMillis();
     try {
-      List<? extends ViperError<Origin>> errs=verifier.verify(Configuration.getToolHome(),settings,program);
+      HashSet<Origin> reachable=new HashSet();
+      List<? extends ViperError<Origin>> errs=verifier.verify(Configuration.getToolHome(),settings,program,reachable);
+      for(Origin o:reachable){
+        if (!stat.refuted.contains(o)){
+          System.err.printf("unregistered location %s marked reachable%n",o);
+        }
+      }
       if (errs.size()>0){
         for(ViperError<Origin> e:errs){
           int N=e.getExtraCount();
@@ -277,6 +284,12 @@ public class SilverBackend {
         report.setVerdict(Verdict.Fail);
       } else {
         report.setVerdict(Verdict.Pass);
+      }
+      for(Origin o:stat.refuted){
+        if(!reachable.contains(o)){
+          o.report("error","statement is not reachable");
+          report.setVerdict(Verdict.Fail);
+        }
       }
     } catch (Exception e){
       e.printStackTrace();

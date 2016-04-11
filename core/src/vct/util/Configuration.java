@@ -179,6 +179,9 @@ public class Configuration {
   public static ModuleShell getShell(String ... modules){
     ModuleShell shell;
     try {
+      if (modules.length==0){
+        return new ModuleShell();
+      }
       //System.err.printf("home: %s%ngeneric:%s%nsystem:%s%n",getHome(),generic_deps,system_deps);
       shell = new ModuleShell(getHome().resolve(Paths.get("modules")));
       for (String p:modulepath){

@@ -1,6 +1,7 @@
 package vct.silver;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 
 import hre.HREError;
 import hre.ast.Origin;
@@ -14,9 +15,10 @@ public class SilverStatementMap<T,E,S,Decl> implements ASTMapping<S>{
 
   private SilverVerifier<Origin,?,T,E,S,Decl,?,?,?> create;
   private SilverTypeMap<T> type;
-
   private SilverExpressionMap<T,E,Decl> expr;
 
+  public HashSet<Origin> refuted=new HashSet<Origin>();
+  
   public SilverStatementMap(SilverVerifier<Origin,?,T,E,S,Decl,?,?,?> backend,SilverTypeMap<T> type,SilverExpressionMap<T,E,Decl> expr){
     this.create = backend;
     this.type = type;
@@ -60,6 +62,10 @@ public class SilverStatementMap<T,E,S,Decl> implements ASTMapping<S>{
   public S map(OperatorExpression e) {
     switch(e.getOperator()){
     case Assert: return create.assert_(e.getOrigin(),e.getArg(0).apply(expr));
+    case Refute: {
+      refuted.add(e.getOrigin());
+      return create.refute(e.getOrigin(),e.getArg(0).apply(expr));
+    }
     case Assume: return create.inhale(e.getOrigin(),e.getArg(0).apply(expr));
     case Fold: return create.fold(e.getOrigin(),e.getArg(0).apply(expr));
     case Unfold: return create.unfold(e.getOrigin(),e.getArg(0).apply(expr));

@@ -8,3 +8,12 @@ class OriginInfo[O](origin : O) extends Info {
   
   override def toString():String = loc.toString()
 }
+
+class RefuteInfo[O](origin : O) extends OriginInfo[O](origin) {
+  // This class is used to tag a Not that is the result of
+  // encoding "refute x;" as "assert !x;". 
+}
+
+object Reachable {
+  var reachable = scala.collection.mutable.Set[Info]()
+}

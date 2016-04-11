@@ -16,6 +16,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import hre.config.Option;
 import hre.config.OptionParser;
@@ -151,8 +152,18 @@ public class CommandLineTesting {
       }
     }
     boolean pass=true;
+    for (String file:tv.files_by_name.keySet()){
+      Set<Path> items=tv.files_by_name.get(file);
+      if (items.size()>1){
+        System.err.printf("Warning: tehre are multiple instance of %s:%n ",file);
+        for(Path p:items){
+          System.err.printf(" %s",p);
+        }
+        System.err.printf("%n");
+      }
+    }
     if (!untested.isEmpty()){
-      System.err.printf("The following %d tests have been disabled:%n",untested.size());
+      System.err.printf("Warning: the following %d tests have been disabled:%n",untested.size());
       for(Entry<String,Testcase> item:untested.entrySet()){
         String name=item.getKey();
         Testcase test=item.getValue();

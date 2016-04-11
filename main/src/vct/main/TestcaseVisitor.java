@@ -6,7 +6,6 @@ import java.nio.file.FileVisitResult;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
-
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -23,6 +22,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import hre.config.Option;
 import hre.config.OptionParser;
@@ -32,6 +32,8 @@ import hre.config.StringSetting;
 import java.io.BufferedInputStream;
 
 public class TestcaseVisitor extends SimpleFileVisitor<Path>{
+  
+  public final HashMap<String,Set<Path>> files_by_name=new HashMap();
   
   public final HashMap<String,Testcase> testsuite=new HashMap();
   
@@ -64,12 +66,19 @@ public class TestcaseVisitor extends SimpleFileVisitor<Path>{
       } else if (attrs.isSymbolicLink()){
         type="symlink";
       }
+      String name=file.getFileName().toString().toLowerCase();
       String ext=extension(file);
       switch(ext){
       case "c":
       case "java":
       case "pvl":
         {
+          Set<Path> set=files_by_name.get(name);
+          if (set==null){
+            set=new HashSet();
+            files_by_name.put(name,set);
+          }
+          set.add(file);          
           BufferedReader is=new BufferedReader(new InputStreamReader(new FileInputStream(file.toFile())));
           String line;
           HashSet<String> cases=new HashSet();

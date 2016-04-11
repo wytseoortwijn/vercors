@@ -1,18 +1,60 @@
 package hre.io;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 
 import static hre.System.Debug;
-import static hre.System.Warning;
-import static hre.System.Abort;
 import static hre.System.Progress;
 
+class RMRF extends Thread {
+
+  class Visitor extends SimpleFileVisitor<Path>{
+    
+    @Override
+    public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
+        throws IOException
+    {
+        Files.deleteIfExists(file);
+        return FileVisitResult.CONTINUE;
+    }
+    @Override
+    public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs)
+        throws IOException
+    {
+            return FileVisitResult.CONTINUE;
+    }
+    @Override
+    public FileVisitResult postVisitDirectory(Path dir, IOException e)
+        throws IOException
+    {
+        Files.deleteIfExists(dir);
+        return FileVisitResult.CONTINUE;
+    }
+
+    
+  }
+  
+  private final Path path;
+  public RMRF(Path p){
+    path=p;
+  }
+  
+  public void run(){
+    try {
+      Files.walkFileTree(path,new Visitor());
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+}
 public class ModuleShell {
 
+  private boolean module_enabled;
+  
   private MessageProcess shell;
   public Path shell_dir;
   
@@ -20,20 +62,29 @@ public class ModuleShell {
     return shell;
   }
   
-  public ModuleShell(Path modules_home,Path ... modules_path) throws IOException{
+  public ModuleShell() throws IOException{
     shell_dir=Files.createTempDirectory("modsh").toRealPath();
-    shell_dir.toFile().deleteOnExit();
+    Runtime.getRuntime().addShutdownHook(new RMRF(shell_dir));
     String OS=System.getProperty("os.name");
     Progress("starting shell on %s in %s",OS,shell_dir);
     if(OS.startsWith("Windows")){
-        shell=new MessageProcess(shell_dir,"cmd.exe");
-        Debug("initializing modules from %s",modules_home);
+      shell=new MessageProcess(shell_dir,"cmd.exe");
+    } else {
+      shell=new MessageProcess(shell_dir,"/bin/bash");
+    }
+    module_enabled=false;
+  }
+  
+  public ModuleShell(Path modules_home,Path ... modules_path) throws IOException{
+    this();
+    String OS=System.getProperty("os.name");
+    Progress("starting shell on %s in %s",OS,shell_dir);
+    Debug("initializing modules from %s",modules_home);
+    if(OS.startsWith("Windows")){
         shell.send("set MODULESHOME=%s",modules_home);
         String path=System.getenv("PATH");
         shell.send("set Path=%s\\windows;"+path,modules_home);
       } else {
-        shell=new MessageProcess(shell_dir,"/bin/bash");
-        Debug("initializing modules from %s",modules_home);
         shell.send("export MODULESHOME=%s",modules_home);
         shell.send("module() { eval `tclsh %s/modulecmd.tcl bash $*`; }",modules_home);
       }
@@ -41,6 +92,7 @@ public class ModuleShell {
       Debug("using modules in %s",p);
       shell.send("module use %s",p.toString().replace('\\','/'));
     }
+    module_enabled=true;
   }
   
   public void send(String format,Object ... args){

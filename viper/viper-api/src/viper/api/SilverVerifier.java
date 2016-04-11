@@ -73,7 +73,7 @@ public interface SilverVerifier<O,Err,T,E,S,Decl,DFunc,DAxiom,P>
    * @param program The program to be verified.
    * @return test report
    */
-  public List<? extends ViperError<O>> verify(Path tool_home,Properties settings,P program);
+  public List<? extends ViperError<O>> verify(Path tool_home,Properties settings,P program,java.util.Set<O> reachable);
   
   public void write_program(PrintWriter pw,P program);
 
@@ -100,4 +100,5 @@ public interface SilverVerifier<O,Err,T,E,S,Decl,DFunc,DAxiom,P>
   public void set_origin_factory(OriginFactory<O> f);
   
   public OriginFactory<O> get_origin_factory();
+  
 }

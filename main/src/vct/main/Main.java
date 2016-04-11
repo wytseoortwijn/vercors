@@ -876,6 +876,7 @@ public class Main
 //      passes.add("check");
       passes.add("filter_spec_ignore");
       passes.add("java_resolve");
+      if (sat_check.get()) passes.add("sat_check");
       passes.add("lock-encode");
       passes.add("standardize");
       passes.add("check");

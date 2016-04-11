@@ -164,6 +164,14 @@ public class VerCorsVerifier implements
   }
 
   @Override
+  public ASTNode refute(Origin o, ASTNode expr) {
+    enter(o);
+    ASTNode res=create.expression(StandardOperator.Refute, expr);
+    leave();
+    return res;
+  }
+
+  @Override
   public ASTNode assignment(Origin o, ASTNode loc, ASTNode val) {
     enter(o);
     ASTNode res=create.assignment(loc, val);
@@ -753,7 +761,7 @@ public class VerCorsVerifier implements
 
   @Override
   public java.util.List<? extends ViperError<Origin>> verify(Path tool_home,
-      Properties settings, ProgramUnit program) {
+      Properties settings, ProgramUnit program, java.util.Set<Origin> reachable) {
     // TODO Auto-generated method stub
     throw new HREError("missing case");
   }
@@ -799,5 +807,6 @@ public class VerCorsVerifier implements
   public OriginFactory<Origin> get_origin_factory() {
     return of;
   }
+
 
 }

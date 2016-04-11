@@ -209,6 +209,10 @@ class SilverImplementation[O,Err] extends viper.api.SilverVerifier[O,Err,Type,Ex
   def inhale(o:O, e:Exp) : Stmt = Inhale(e)(NoPosition,new OriginInfo(o))
   def exhale(o:O, e:Exp) : Stmt = Exhale(e)(NoPosition,new OriginInfo(o))
   def assert_(o:O, e:Exp) : Stmt = Assert(e)(NoPosition,new OriginInfo(o))
+  def refute(o:O, e:Exp) : Stmt = {
+    Assert(Not(e)(NoPosition,new RefuteInfo(o)))(NoPosition,new OriginInfo(o))
+  }
+  
   def fold(o:O, e:Exp) : Stmt = Fold(e.asInstanceOf[PredicateAccessPredicate])(NoPosition,new OriginInfo(o))
   def unfold(o:O, e:Exp) : Stmt = Unfold(e.asInstanceOf[PredicateAccessPredicate])(NoPosition,new OriginInfo(o))
   def goto_(o:O, l:String) : Stmt = Goto(l)(NoPosition,new OriginInfo(o))
@@ -284,7 +288,7 @@ class SilverImplementation[O,Err] extends viper.api.SilverVerifier[O,Err,Type,Ex
     println(s"$text (${obj.getClass.getSimpleName}): $obj")
   }
  
-  def verify(tool_home:Path,settings:Properties,prog:Prog) : List[viper.api.ViperError[O]] = {
+  def verify(tool_home:Path,settings:Properties,prog:Prog,reachable:java.util.Set[O]) : List[viper.api.ViperError[O]] = {
     val program = Program(prog.domains.asScala.toList,
               prog.fields.asScala.toList,
               prog.functions.asScala.toList,
@@ -294,6 +298,7 @@ class SilverImplementation[O,Err] extends viper.api.SilverVerifier[O,Err,Type,Ex
     //println("=============\n" + program + "\n=============\n")
 
     val report = new java.util.ArrayList[viper.api.ViperError[O]]()
+    Reachable.reachable.clear()
     val verifier=createVerifier(tool_home,settings)
     //println("verifier: "+ verifier);
     println("running verify");
@@ -365,7 +370,10 @@ class SilverImplementation[O,Err] extends viper.api.SilverVerifier[O,Err,Type,Ex
           }
          }
        
-   }
+    }
+    Reachable.reachable.map(
+      o => reachable.add(o.asInstanceOf[OriginInfo[O]].loc)
+    )
     report
   }
 

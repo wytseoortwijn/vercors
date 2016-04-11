@@ -2,7 +2,7 @@
 
 def:
 	@echo "please use:"
-	@echo "  make plans      to compile the description of parallel PVL"
+	@echo "  make manual      to compile the user manual"
 
 manual:
 	TEXINPUTS=$(TEXINPUTS):../../examples// pdflatex manual

@@ -22,6 +22,9 @@ public interface SilverStatement<O, T, E, Decl, S> {
   /** Create a statement that asserts a boolean/permission expression. */
   public S assert_(O o,E expr);
 
+  /** Create a statement that refutes a boolean expression. */
+  public S refute(O o,E expr);
+
   public S fold(O o,E expr);
   
   public S unfold(O o,E expr);

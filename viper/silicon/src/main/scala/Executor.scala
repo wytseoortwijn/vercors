@@ -307,6 +307,22 @@ trait DefaultExecutor[ST <: Store[ST],
         val pve = AssertFailed(assert)
 
         a match {
+          case ast.Not(expr) if a.info.isInstanceOf[viper.api.RefuteInfo[_]] =>
+            if (decider.checkSmoke()) {
+              // Unreachable branches are OK. 
+              Success()
+            } else {
+              // Add to reachable set and continue.
+              viper.api.Reachable.reachable+=a.info
+              if (config.disableSubsumption()) {
+                val r =
+                  consume(σ, FullPerm(), a, pve, c)((σ1, _, c1) =>
+                    Success())
+                r && Q(σ, c)
+              } else
+                consume(σ, FullPerm(), a, pve, c)((σ1, _, c1) =>
+                  Q(σ, c1))
+            }
           /* "assert true" triggers a heap compression. */
           case _: ast.TrueLit =>
             heapCompressor.compress(σ, σ.h, c)

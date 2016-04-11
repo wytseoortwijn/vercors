@@ -46,6 +46,9 @@ public class ToolTest {
     res.verdict=Verdict.Inconclusive;
     switch(args[0]){
     case "vct":
+      if (args[1].equals("--syntax")){
+        args[1]="--passes=standardize,check,java";
+      }
       if (OS.startsWith("Windows")){
         args[0]=f+"\\windows\\bin\\"+args[0]+".cmd"; //DRB --added
       } else {
