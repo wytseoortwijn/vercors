@@ -10,9 +10,7 @@ import vct.col.ast.*;
 import vct.col.ast.ASTSpecial.Kind;
 import vct.col.ast.PrimitiveType.Sort;
 import vct.col.util.ASTUtils;
-import vct.col.ast.ParallelBlock.Mode;
 import vct.util.Configuration;
-import static vct.col.ast.ParallelBlock.Mode.*;
 
 
 public class ParallelBlockEncoder extends AbstractRewriter {
@@ -22,6 +20,7 @@ public class ParallelBlockEncoder extends AbstractRewriter {
   }
 
   private int count=0;
+  private Stack<ASTNode> inv_blocks=new Stack();
   private Stack<ParallelBlock> blocks=new Stack();
   private DeclarationStatement iter_decls[];
   private ASTNode iters_guard;
@@ -31,10 +30,17 @@ public class ParallelBlockEncoder extends AbstractRewriter {
   private Substitution sigma_prime;
   
   @Override
+  public void visit(ParallelInvariant inv){
+    inv_blocks.push(inv);
+    BlockStatement block=rewrite(inv.block);
+    block.prepend(create.special(ASTSpecial.Kind.Exhale,rewrite(inv.inv)));
+    block.append(create.special(ASTSpecial.Kind.Inhale,rewrite(inv.inv)));
+    result=block;
+    inv_blocks.pop();
+  }
+  
+  @Override
   public void visit(ParallelBlock pb){
-    if (blocks.size()>0 && blocks.peek().mode==Sync){
-      Fail("nested parallel blocks");
-    }
     Contract c=pb.contract;
     if (c==null){
       Fail("parallel block without a contract");
@@ -77,41 +83,11 @@ public class ParallelBlockEncoder extends AbstractRewriter {
       check_vars.put(pb.iters[i].name,pb.iters[i].getType());
       prime.put(create.local_name(pb.iters[i].name),create.local_name(pb.iters[i].name+"__prime"));
     }
-    for(int i=0;i<pb.decls.length;i++){
-      String name=pb.decls[i].name;
-      Type t=pb.decls[i].getType();
-      ASTNode init=pb.decls[i].getInit();
-      if (t.isPrimitive(Sort.Array)){
-        // Arrays become given parameters.
-        String fname=name;
-        res.add(create.field_decl(fname,t));
-        String iname="i"+local_suffix;
-        DeclarationStatement d=create.field_decl(iname,create.primitive_type(Sort.Integer));
-        ASTNode guard=and(lte(constant(0),create.local_name(iname)),less(create.local_name(iname),t.getArg(1)));
-        ASTNode field=create.expression(StandardOperator.Subscript,create.local_name(fname),create.local_name(iname));
-        res.add(create.special(Kind.Inhale,create.starall(guard,
-            create.expression(StandardOperator.Perm,field,create.reserved_name(ASTReserved.FullPerm)),d)));
-        res.add(create.special(Kind.Inhale,create.forall(guard,
-            create.expression(StandardOperator.EQ,field,init),d)));
-        call_with.add(create.assignment(create.unresolved_name(name),create.local_name(fname)));
-        check_cb.given(create.field_decl(name,t));
-        main_cb.given(create.field_decl(name,t));
-      } else {
-        // Scalars become yielded parameters.
-        check_cb.yields(rewrite(pb.decls[i]));
-        main_cb.yields(create.field_decl(pb.decls[i].name, pb.decls[i].getType()));
-        init=rewrite(init);
-        if(init!=null){
-          map.put(create.local_name(pb.decls[i].name), init);
-        }
-      }
-    }
     iters_guard=create.fold(StandardOperator.And,guard_list);
     sigma_prime=new Substitution(source(),prime);
     iters_guard_prime_before=create.fold(StandardOperator.And,guard_prime_list_before);
     iters_guard_prime_after=create.fold(StandardOperator.And,guard_prime_list_after);
     
-    main_cb.requires(sigma.rewrite(pb.inv));
     for(ASTNode clause:ASTUtils.conjuncts(c.pre_condition, StandardOperator.Star)){
       check_cb.requires(clause);
       if (clause.getType().isBoolean()){
@@ -120,7 +96,7 @@ public class ParallelBlockEncoder extends AbstractRewriter {
         main_cb.requires(create.starall(copy_rw.rewrite(iters_guard), rewrite(clause) , iter_decls));
       }
     }
-    main_cb.ensures(pb.inv);
+    
     for(ASTNode clause:ASTUtils.conjuncts(c.post_condition, StandardOperator.Star)){
       check_cb.ensures(clause);
       if (clause.getType().isBoolean()){
@@ -158,7 +134,7 @@ public class ParallelBlockEncoder extends AbstractRewriter {
   
   @Override
   public void visit(ParallelBarrier pb){
-    if (blocks.empty() || blocks.peek().mode!=Sync){
+    if (blocks.empty()){
       Fail("barrier outside of parallel block");
     }
     BlockStatement res=rewrite(pb.body);
@@ -213,7 +189,7 @@ public class ParallelBlockEncoder extends AbstractRewriter {
       result=gen_call(main_name,main_vars);
     } else {
       Abort("Cannot encode barrier with statements");
-      res.prepend(create.special(ASTSpecial.Kind.Inhale,blocks.peek().inv));
+      //res.prepend(create.special(ASTSpecial.Kind.Inhale,blocks.peek().inv));
       for(ASTNode clause:ASTUtils.reverse(ASTUtils.conjuncts(pb.contract.pre_condition, StandardOperator.Star))){
         ASTNode cl;
         if (clause.getType().isBoolean()){
@@ -230,7 +206,7 @@ public class ParallelBlockEncoder extends AbstractRewriter {
         res.prepend(create.special(ASTSpecial.Kind.Inhale,cl));
       }
       
-      res.append(create.special(ASTSpecial.Kind.Exhale,blocks.peek().inv));
+      //res.append(create.special(ASTSpecial.Kind.Exhale,blocks.peek().inv));
       for(ASTNode clause:ASTUtils.reverse(ASTUtils.conjuncts(pb.contract.post_condition, StandardOperator.Star))){
         ASTNode cl;
         if (clause.getType().isBoolean()){
@@ -252,22 +228,22 @@ public class ParallelBlockEncoder extends AbstractRewriter {
 
   @Override
   public void visit(ParallelAtomic pb){
-    if (blocks.empty()){
+    if (inv_blocks.empty()){
       Fail("atomic region outside of parallel block");
     }
     BlockStatement res=rewrite(pb.block);
     HashSet<String> sync_list=new HashSet();
     for(ASTNode n:pb.sync_list) sync_list.add(n.toString());
     System.err.printf("sync list %s%n", sync_list);
-    for(ParallelBlock b:blocks){
-      String name=b.getLabel(0).getName();
-      System.err.printf("block %s%n", name);
-      if (sync_list.contains(name)){
-        System.err.printf("block %s is used%n", name);
-        res.prepend(create.special(ASTSpecial.Kind.Inhale,b.inv));
-        res.append(create.special(ASTSpecial.Kind.Exhale,b.inv));
+    for(ASTNode ib:inv_blocks){
+      if (ib instanceof ParallelInvariant){
+        ParallelInvariant inv=(ParallelInvariant)ib;
+        if (sync_list.contains(inv.label)){
+          res.prepend(create.special(ASTSpecial.Kind.Inhale,inv.inv));
+          res.append(create.special(ASTSpecial.Kind.Exhale,inv.inv));
+        }
       } else {
-        System.err.printf("block %s is skipped%n", name);
+        Abort("unexpected kind of invariant: %s",ib.getClass());
       }
     }
     result=res;

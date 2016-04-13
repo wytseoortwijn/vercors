@@ -97,8 +97,8 @@ statement
  | 'witness' expr ';' 
  | 'if' '(' expr ')' block ( 'else' block )?
  | 'barrier' '(' fence_list ')' ( '{' contract '}' | contract block )
- | 'for' '(' iters ')' with_then contract block
- | ( 'batch' | 'par' ) ID '(' iters ';' decls ';' expr ')' with_then contract block
+ | 'par' ID? '(' iters ')' contract block
+ | 'invariant' ID '(' expr ')' block 
  | 'atomic' '(' id_list ')' block 
  | invariant 'while' '(' expr ')' block
  | type ID ('=' expr | (',' ID)* ) ';'

@@ -442,38 +442,27 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
     if (match(ctx,null,"=",null,";")){
       return create.assignment(convert(ctx,0),convert(ctx,2));
     }
-    if (match(ctx,null,null,"(",null,";",null,";", null,")",null,null,null)){
-      ParallelBlock.Mode mode;
-      if (match(0,true,ctx,"batch")){
-        mode=ParallelBlock.Mode.Batch;
-      } else if (match(0,true,ctx,"par")){
-        mode=ParallelBlock.Mode.Sync;
-      } else {
-        mode=null;
-      }
-      if (mode !=null){
-        String label=getIdentifier(ctx, 1);
-        DeclarationStatement iters[]=checkDecls(convert_list((ParserRuleContext)ctx.getChild(3), ","));
-        DeclarationStatement decls[]=checkDecls(convert_list((ParserRuleContext)ctx.getChild(5), ","));
-        Contract c=(Contract)convert(ctx, 10);
-        BlockStatement block=(BlockStatement)convert(ctx, 11);
-        ASTNode inv=convert(ctx,7);
-        ParallelBlock res=create.parallel_block(mode, c, iters, decls, inv, block);
-        add_with_then(res,(ParserRuleContext)ctx.getChild(9));
-        res.addLabel(create.label(label));
-        return res;
-      }
-    }
-    if (match(ctx,"for","(",null,")",null,null,null)){
-      ASTNode iters[]=convert_list((ParserRuleContext)ctx.getChild(2), ",");
-      ASTNode contract=convert(ctx, 5);
-      ASTNode block=convert(ctx, 6);
-      DeclarationStatement decls[]=new DeclarationStatement[iters.length];
-      ASTNode guard=convert_iters(decls,iters);
-      ForEachLoop res=create.foreach(decls,guard,block);
-      res.setContract((Contract)contract);
-      add_with_then(res,(ParserRuleContext)ctx.getChild(4));
+    if (match(ctx,"par",null,"(",null,")",null,null)){
+      String label=getIdentifier(ctx, 1);
+      DeclarationStatement iters[]=checkDecls(convert_list((ParserRuleContext)ctx.getChild(3), ","));
+      Contract c=(Contract)convert(ctx, 5);
+      BlockStatement block=(BlockStatement)convert(ctx, 6);
+      ParallelBlock res=create.parallel_block(label, c, iters, block);
       return res;
+    }
+    if (match(ctx,"par","(",null,")",null,null)){
+      String label="";
+      DeclarationStatement iters[]=checkDecls(convert_list((ParserRuleContext)ctx.getChild(2), ","));
+      Contract c=(Contract)convert(ctx, 4);
+      BlockStatement block=(BlockStatement)convert(ctx, 5);
+      ParallelBlock res=create.parallel_block(label, c, iters, block);
+      return res;
+    }
+    if (match(ctx,"invariant",null,"(",null,")",null)){
+      String label=getIdentifier(ctx, 1);
+      ASTNode inv=convert(ctx, 3);
+      ASTNode block=convert(ctx, 5);
+      return create.invariant_block(label,inv,(BlockStatement)block);
     }
     if (match(ctx,"atomic","(",null,")",null)){
       return create.parallel_atomic(

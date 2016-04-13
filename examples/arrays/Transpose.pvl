@@ -29,7 +29,7 @@ class Ref {
              (\forall int j ; 0 <= j && j < N ;
                inp[j][i]==\old(inp[j][i])));          
   void transpose(int M,int N,int[M][N] out,int[N][M] inp){
-    for(int i=0..M,int j=0..N)
+    par(int i=0..M,int j=0..N)
         requires Perm(out[i][j],write);
         requires Perm(inp[j][i],1/4);
         ensures  Perm(out[i][j],write);

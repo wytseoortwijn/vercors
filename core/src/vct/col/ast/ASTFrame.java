@@ -431,9 +431,6 @@ public abstract class ASTFrame<T> {
         for(DeclarationStatement decl:pb.iters){
           variables.add(decl.getName(),new VariableInfo(decl,NameExpression.Kind.Local));
         }
-        for(DeclarationStatement decl:pb.decls){
-          variables.add(decl.getName(),new VariableInfo(decl,NameExpression.Kind.Local));
-        }
         break;
       case LEAVE:
         variables.leave();

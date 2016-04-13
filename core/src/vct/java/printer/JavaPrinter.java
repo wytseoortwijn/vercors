@@ -1269,22 +1269,11 @@ public class JavaPrinter extends AbstractPrinter {
 
   @Override
   public void visit(ParallelBlock pb){
-    switch(pb.mode){
-    case Batch: out.printf("batch("); break;
-    case Async: out.printf("async("); break;
-    case Sync: out.printf("parallel("); break;
-    }
+    out.printf("parallel(");
     for(int i=0;i<pb.iters.length;i++){
       pb.iters[i].accept(this);
       if(i>0) out.printf(",");
     }
-    out.printf(";");
-    for(int i=0;i<pb.decls.length;i++){
-      pb.decls[i].accept(this);
-      if(i>0) out.printf(",");
-    }
-    out.printf(";");
-    pb.inv.accept(this);
     out.println(")");
     if(pb.get_before()!=null) {
       out.print(" with ");

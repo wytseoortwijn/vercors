@@ -12,6 +12,7 @@ import vct.col.ast.LoopStatement;
 import vct.col.ast.Method;
 import vct.col.ast.OperatorExpression;
 import vct.col.ast.ParallelBlock;
+import vct.col.ast.ParallelInvariant;
 import vct.col.ast.PrimitiveType.Sort;
 import vct.col.ast.RecursiveVisitor;
 import vct.col.ast.StandardOperator;
@@ -135,6 +136,11 @@ public class FeatureScanner extends RecursiveVisitor<Object> {
   
   public void visit(ParallelBlock pb){
     super.visit(pb);
+    has_parallel_blocks=true;
+  }
+
+  public void visit(ParallelInvariant inv){
+    super.visit(inv);
     has_parallel_blocks=true;
   }
 

@@ -3,10 +3,6 @@
 //:: tools silicon
 //:: verdict Pass
 
-/*
-  vct --silver=silicon_qp summation-kernel.pvl
-*/
-
 class Ref {
 
   int res;
@@ -21,32 +17,44 @@ class Ref {
   ensures  (\forall int i;0 <= i && i < N ; ar[i]==\old(ar[i]));
   ensures  res==(\sum int i;0 <= i && i < N ; ar[i]);
   void do_sum(int N, int[N] ar){
-    par main (int i = 0 .. N;int[N] contrib=0;
-        N>0 ** Perm(res,write)**(\forall* int k;0 <= k && k < N ; Perm(contrib[k],1/2))
-        ** res==(\sum int k;0 <= k && k < N ; contrib[k])
-    ) with {
-      assert (\forall int k;0 <= k && k < N ; contrib[k]==0);
-      assume (\sum int k;0 <= k && k < N ; contrib[k])==0;
-    } then {
-      assert (\forall int k;0 <= k && k < N ; contrib[k]==ar[k]);
-      assume (\sum int k;0 <= k && k < N ; contrib[k])==(\sum int k;0 <= k && k < N ; ar[k]);
-    }
-      requires N>0;
-      requires Perm(ar[i],1/4);
-      requires Perm(contrib[i],1/2);
-      requires contrib[i]==0;
-      ensures  N>0;
-      ensures  Perm(ar[i],1/4);
-      ensures  Perm(contrib[i],1/2);
-      ensures  contrib[i]==ar[i];
+    int[N] contrib=new int[N];
+    par (int i=0..N)
+      requires Perm(contrib[i],1);
+      ensures Perm(contrib[i],1) ** contrib[i]==0;
     {
-      atomic(main) {
-        res = res + ar[i];
-        
-        assert res == (\sum int k;0 <= k && k < N ; contrib[k]) + ar[i];
-        contrib[i] = contrib[i] + ar[i];
-        assume res == (\sum int k;0 <= k && k < N ; contrib[k]);
+      contrib[i]=0;
+    }
+
+    assert (\forall int k;0 <= k && k < N ; contrib[k]==0);
+    assume (\sum int k;0 <= k && k < N ; contrib[k])==0;
+
+    invariant main(
+      N>0 ** Perm(res,write)**(\forall* int k;0 <= k && k < N ; Perm(contrib[k],1/2))
+      ** res==(\sum int k;0 <= k && k < N ; contrib[k])
+    ){
+      par (int i = 0 .. N)
+        requires N>0;
+        requires Perm(ar[i],1/4);
+        requires Perm(contrib[i],1/2);
+        requires contrib[i]==0;
+        ensures  N>0;
+        ensures  Perm(ar[i],1/4);
+        ensures  Perm(contrib[i],1/2);
+        ensures  contrib[i]==ar[i];
+      {
+        atomic(main) {
+          res = res + ar[i];
+          
+          assert res == (\sum int k;0 <= k && k < N ; contrib[k]) + ar[i];
+          contrib[i] = contrib[i] + ar[i];
+          assume res == (\sum int k;0 <= k && k < N ; contrib[k]);
+        }
       }
     }
+    
+    assert (\forall int k;0 <= k && k < N ; contrib[k]==ar[k]);
+    assert res==(\sum int k;0 <= k && k < N ; contrib[k]);
+    assume res==(\sum int k;0 <= k && k < N ; ar[k]);
+
   }
 }

@@ -744,26 +744,30 @@ public BlockStatement block(Origin origin, ASTNode ... args) {
   }
  
   
-  public ParallelBlock parallel_block(ParallelBlock.Mode mode,Contract c,
-      DeclarationStatement iters[],DeclarationStatement decls[],ASTNode inv,BlockStatement block){
-     return parallel_block(origin_stack.get(),mode,c, iters,decls,inv, block);
-   }
-
-  public ParallelBlock parallel_block(E origin,ParallelBlock.Mode mode,Contract c,
-      DeclarationStatement iters[],DeclarationStatement decls[],ASTNode inv,BlockStatement block){
-     return parallel_block(origin_source.create(origin),mode,c, iters,decls,inv,block);
-   }
+  public ParallelBlock parallel_block(
+      String label,
+      Contract c,
+      DeclarationStatement iters[],
+      BlockStatement block
+  ){
+    return parallel_block(origin_stack.get(),label,c, iters, block);
+  }
 
   /**
     * Create a new parallel block.
     */
-   public ParallelBlock parallel_block(Origin origin,ParallelBlock.Mode mode,Contract contract,
-       DeclarationStatement iters[],DeclarationStatement decls[],ASTNode inv,BlockStatement block){
-     ParallelBlock res=new ParallelBlock(mode,contract, iters,decls, inv, block);
-     res.setOrigin(origin);
-     res.accept_if(post);
-     return res;
-   }
+  public ParallelBlock parallel_block(
+    Origin origin,
+    String label,
+    Contract contract,
+    DeclarationStatement iters[],
+    BlockStatement block
+  ){
+    ParallelBlock res=new ParallelBlock(label,contract, iters, block);
+    res.setOrigin(origin);
+    res.accept_if(post);
+    return res;
+  }
 
   /**
    * Create a predicate declaration.
@@ -1124,6 +1128,18 @@ public Axiom axiom(String name,ASTNode exp){
 
   public FieldAccess get_field(ClassName claz,ASTNode obj,String name){
     return set_field(origin_stack.get(),claz,obj,name,null);
+  }
+
+  public ASTNode invariant_block(String label, ASTNode inv, BlockStatement block) {
+    return invariant_block(origin_stack.get(),label,inv,block);
+  }
+
+  private ASTNode invariant_block(Origin origin, String label, ASTNode inv,
+      BlockStatement block) {
+    ParallelInvariant res=new ParallelInvariant(label,inv,block);
+    res.setOrigin(origin);
+    res.accept_if(post);
+    return res;
   }
 
 }

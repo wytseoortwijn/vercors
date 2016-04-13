@@ -1,15 +1,12 @@
 package vct.col.ast;
 
-import java.util.Arrays;
-
-public class ParallelBlock extends ExpressionNode {
-
+public class ParallelInvariant extends ASTNode {
+  
   @Override
   public <R,A> R accept_simple(ASTMapping1<R,A> map,A arg){
     return map.map(this,arg);
   }
 
-  
   @Override
   public <T> void accept_simple(ASTVisitor<T> visitor){
     try {
@@ -35,21 +32,14 @@ public class ParallelBlock extends ExpressionNode {
       throw t;
     }
   }
- 
+
   public final String label;
-  public final Contract contract;
-  public final DeclarationStatement iters[];
-  public final BlockStatement block; 
+  public final ASTNode inv;
+  public final BlockStatement block;
   
-  public ParallelBlock(
-      String label,
-      Contract contract,
-      DeclarationStatement iters[],
-      BlockStatement block)
-  {
+  public ParallelInvariant(String label, ASTNode inv,BlockStatement block){
     this.label=label;
-    this.contract=contract;
-    this.iters=Arrays.copyOf(iters,iters.length);
+    this.inv=inv;
     this.block=block;
   }
 

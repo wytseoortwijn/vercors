@@ -346,6 +346,11 @@ public class SilverStatementMap<T,E,S,Decl> implements ASTMapping<S>{
   }
 
   @Override
+  public S map(ParallelInvariant inv) {
+    return null;
+  }
+
+  @Override
   public S map(NameSpace nameSpace) {
     // TODO Auto-generated method stub
     return null;

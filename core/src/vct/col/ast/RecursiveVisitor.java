@@ -266,6 +266,11 @@ public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
   public void visit(ParallelAtomic pa){
     dispatch(pa.block);
   }
+  
+  public void visit(ParallelInvariant inv){
+    dispatch(inv.inv);
+    dispatch(inv.block);
+  }
 
   public void visit(ParallelBarrier pb){
     dispatch(pb.contract);
@@ -274,9 +279,7 @@ public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
   public void visit(ParallelBlock pb){
     dispatch(pb.contract);
     dispatch(pb.iters);
-    dispatch(pb.decls);
     dispatch(pb.block);
-    dispatch(pb.inv);
   }
 
   public void visit(Contract c){

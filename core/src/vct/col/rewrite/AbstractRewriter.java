@@ -49,6 +49,7 @@ import vct.col.ast.OperatorExpression;
 import vct.col.ast.ParallelAtomic;
 import vct.col.ast.ParallelBarrier;
 import vct.col.ast.ParallelBlock;
+import vct.col.ast.ParallelInvariant;
 import vct.col.ast.PrimitiveType;
 import vct.col.ast.ProgramUnit;
 import vct.col.ast.RecordType;
@@ -624,13 +625,16 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   }
   
   @Override
+  public void visit(ParallelInvariant inv){
+    result=create.invariant_block(inv.label,rewrite(inv.inv),rewrite(inv.block));
+  }
+  
+  @Override
   public void visit(ParallelBlock pb){
     ParallelBlock res=create.parallel_block(
-        pb.mode,
+        pb.label,
         rewrite(pb.contract),
         rewrite(pb.iters),
-        rewrite(pb.decls),
-        rewrite(pb.inv),
         rewrite(pb.block)
     );
     res.set_before(rewrite(pb.get_before()));

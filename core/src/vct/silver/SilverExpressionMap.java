@@ -415,6 +415,11 @@ public class SilverExpressionMap<T,E,Decl> implements ASTMapping<E>{
   }
 
   @Override
+  public E map(ParallelInvariant inv) {
+    return null;
+  }
+
+  @Override
   public E map(NameSpace nameSpace) {
     return null;
   }

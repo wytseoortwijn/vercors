@@ -24,7 +24,7 @@ class Ref {
     ensures  (\forall int i; 0  < i && i < N ;  c[i] == i+2);
 
   void forward(int N,int[N] a,int[N] b, int[N] c){
-    par fwd (int i=0..N;;true)
+    par fwd (int i=0..N)
       requires Perm(a[i],write);
       requires Perm(b[i],1/2);
       requires Perm(c[i],write);
@@ -60,7 +60,7 @@ class Ref {
    requires (\forall* int i ; 0 <= i && i < N ; Perm(b[i],write));
    requires (\forall* int i ; 0 <= i && i < N ; Perm(c[i],write));
   void host(int N,int[N] a,int[N] b, int[N] c){
-    for(int i=0..N)
+    par(int i=0..N)
       requires Perm(b[i],write);
       ensures  Perm(b[i],write) ** b[i]==i;
     {

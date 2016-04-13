@@ -82,4 +82,6 @@ public interface ASTMapping<R> {
 
   public R map(FieldAccess a);
 
+  public R map(ParallelInvariant inv);
+
 }
