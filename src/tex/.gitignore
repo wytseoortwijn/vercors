@@ -5,6 +5,8 @@
 *.log
 *.out
 *.toc
+
+devguide.pdf
 manual.pdf
 
 *.bak
