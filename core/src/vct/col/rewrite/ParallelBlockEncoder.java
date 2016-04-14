@@ -50,8 +50,6 @@ public class ParallelBlockEncoder extends AbstractRewriter {
     String main_name="parallel_block_main_"+count;
     String check_name="parallel_block_check_"+count;
     String local_suffix="_local_"+count;
-    BlockStatement res=create.block();
-    BlockStatement call_with=create.block();
     Hashtable<String,Type> main_vars=free_vars(pb);
     Debug("free main vars: %s",main_vars);
     Hashtable<String,Type> check_vars=new Hashtable(main_vars);
@@ -112,22 +110,7 @@ public class ParallelBlockEncoder extends AbstractRewriter {
         gen_pars(check_vars),
         rewrite(pb.block)
     ));
-    currentTargetClass.add(create.method_decl(
-        create.primitive_type(Sort.Void),
-        main_cb.getContract(),
-        main_name,
-        gen_pars(main_vars),
-        null
-    ));
-    if (pb.get_before()!=null) for(ASTNode S:pb.get_before()){
-      res.add(sigma.rewrite(S));
-    }
-    MethodInvokation call=gen_call(main_name,main_vars);
-    call.set_before(call_with);
-    res.add(call);
-    if (pb.get_after()!=null) for(ASTNode S:pb.get_after()){
-      res.add(rewrite(S));
-    }
+    Contract res=main_cb.getContract();
     blocks.pop();
     result=res;
   }
@@ -138,17 +121,29 @@ public class ParallelBlockEncoder extends AbstractRewriter {
       Fail("barrier outside of parallel block");
     }
     BlockStatement res=rewrite(pb.body);
-    if (res==null){
+    //if (res==null){
       ContractBuilder main_cb=new ContractBuilder();
       ContractBuilder check_cb=new ContractBuilder();
       Hashtable<String,Type> main_vars=free_vars(pb);
       Hashtable<String,Type> check_vars=new Hashtable(main_vars);
-      ParallelBlock blk=blocks.peek();
+      ParallelBlock blk=null;
+      for(ParallelBlock b:blocks){
+        if(b.label.equals(pb.label)){
+          blk=b;
+        }
+      }
+      if(blk==null){
+        Fail("Block %s not found on block stack",pb.label);
+      }
       ArrayList<ASTNode> guard_list=new ArrayList();
       ArrayList<DeclarationStatement> guard_decls=new ArrayList();
       for(DeclarationStatement decl:blk.iters){
         ASTNode tmp=create.expression(StandardOperator.Member,create.unresolved_name(decl.name),decl.getInit());
         guard_list.add(tmp);
+        tmp=create.expression(StandardOperator.Size,decl.getInit());
+        tmp=create.expression(StandardOperator.GT,tmp,create.constant(0));
+        check_cb.requires(tmp);
+        check_cb.ensures(tmp);
         guard_decls.add(create.field_decl(decl.name, decl.getType()));
         check_vars.remove(decl.name);
       }
@@ -172,12 +167,23 @@ public class ParallelBlockEncoder extends AbstractRewriter {
       String main_name="barrier_main_"+count;
       String check_name="barrier_check_"+count;
       rewrite(pb.contract,main_cb);
+      for(ASTNode ib:inv_blocks){
+        if (ib instanceof ParallelInvariant){
+          ParallelInvariant inv=(ParallelInvariant)ib;
+          if (pb.invs.contains(inv.label)){
+            check_cb.requires(inv.inv);
+            check_cb.ensures(inv.inv);
+          }
+        } else {
+          Abort("unexpected kind of invariant: %s",ib.getClass());
+        }
+      }
       currentTargetClass.add(create.method_decl(
           create.primitive_type(Sort.Void),
           check_cb.getContract(),
           check_name,
           gen_pars(check_vars),
-          create.block()
+          res
       ));
       currentTargetClass.add(create.method_decl(
           create.primitive_type(Sort.Void),
@@ -187,7 +193,9 @@ public class ParallelBlockEncoder extends AbstractRewriter {
           null
       ));
       result=gen_call(main_name,main_vars);
-    } else {
+    //} else {
+      
+    if (false){
       Abort("Cannot encode barrier with statements");
       //res.prepend(create.special(ASTSpecial.Kind.Inhale,blocks.peek().inv));
       for(ASTNode clause:ASTUtils.reverse(ASTUtils.conjuncts(pb.contract.pre_condition, StandardOperator.Star))){
@@ -226,6 +234,27 @@ public class ParallelBlockEncoder extends AbstractRewriter {
     }
   }
 
+  @Override
+  public void visit(ParallelRegion region){
+    count++;
+    String main_name="parrallel_region_main_"+count;
+    ContractBuilder main_cb=new ContractBuilder();
+    Hashtable<String,Type> main_vars=free_vars(region.blocks);
+    for(ParallelBlock pb:region.blocks){
+      Contract c=(Contract)rewrite((ASTNode)pb);
+      main_cb.requires(c.pre_condition);
+      main_cb.ensures(c.post_condition);
+    }
+    currentTargetClass.add(create.method_decl(
+        create.primitive_type(Sort.Void),
+        main_cb.getContract(),
+        main_name,
+        gen_pars(main_vars),
+        null
+    ));
+    result=gen_call(main_name,main_vars);
+  }
+  
   @Override
   public void visit(ParallelAtomic pb){
     if (inv_blocks.empty()){

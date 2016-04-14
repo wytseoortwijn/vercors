@@ -50,6 +50,7 @@ import vct.col.ast.ParallelAtomic;
 import vct.col.ast.ParallelBarrier;
 import vct.col.ast.ParallelBlock;
 import vct.col.ast.ParallelInvariant;
+import vct.col.ast.ParallelRegion;
 import vct.col.ast.PrimitiveType;
 import vct.col.ast.ProgramUnit;
 import vct.col.ast.RecordType;
@@ -637,14 +638,17 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
         rewrite(pb.iters),
         rewrite(pb.block)
     );
-    res.set_before(rewrite(pb.get_before()));
-    res.set_after(rewrite(pb.get_after()));
     result=res;
   }
   
   @Override
+  public void visit(ParallelRegion region){
+    result=create.region(rewrite(region.blocks));
+  }
+  
+  @Override
   public void visit(ParallelBarrier pb){
-    result=create.barrier(rewrite(pb.contract),pb.fences,rewrite(pb.body));
+    result=create.barrier(pb.label,rewrite(pb.contract),pb.invs,rewrite(pb.body));
   }
 
   @Override

@@ -86,6 +86,8 @@ public interface ASTVisitor<T> {
   public void visit(FieldAccess a);
 
   public void visit(ParallelInvariant inv);
+  
+  public void visit(ParallelRegion region);
 
 }
 

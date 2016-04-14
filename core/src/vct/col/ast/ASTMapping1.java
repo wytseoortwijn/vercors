@@ -54,6 +54,8 @@ public interface ASTMapping1<R,A1> {
 
   public R map(ParallelBlock parallelBlock,A1 a);
 
+  public R map(ParallelRegion region,A1 a);
+
   public R map(Contract contract,A1 a);
 
   public R map(ASTSpecial special,A1 a);

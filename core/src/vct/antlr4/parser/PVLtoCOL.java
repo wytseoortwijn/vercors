@@ -7,6 +7,7 @@ import hre.HREError;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.List;
 
 import org.antlr.v4.runtime.BufferedTokenStream;
@@ -40,6 +41,7 @@ import pv.parser.PVFullParser.Kernel_fieldContext;
 import pv.parser.PVFullParser.LexprContext;
 import pv.parser.PVFullParser.MethodContext;
 import pv.parser.PVFullParser.ModifiersContext;
+import pv.parser.PVFullParser.Par_unitContext;
 import pv.parser.PVFullParser.ProgramContext;
 import pv.parser.PVFullParser.StatementContext;
 import pv.parser.PVFullParser.TupleContext;
@@ -64,6 +66,7 @@ import vct.col.ast.Method;
 import vct.col.ast.NameExpression;
 import vct.col.ast.ParallelBarrier;
 import vct.col.ast.ParallelBlock;
+import vct.col.ast.ParallelRegion;
 import vct.col.ast.ProgramUnit;
 import vct.col.ast.StandardOperator;
 import vct.col.ast.Type;
@@ -438,25 +441,45 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
   private String tuple="TupleContext";
 
   @Override
+  public ASTNode visitPar_unit(Par_unitContext ctx) {
+    if (match(ctx,"Contract","Block")){
+      Contract c=(Contract)convert(ctx, 0);
+      BlockStatement block=(BlockStatement)convert(ctx, 1);
+      return create.parallel_block("", c, new DeclarationStatement[0], block);
+    }
+    if(match(ctx,"(",null,")","Contract","Block")){
+      DeclarationStatement iters[]=checkDecls(convert_list((ParserRuleContext)ctx.getChild(1), ","));
+      Contract c=(Contract)convert(ctx, 3);
+      BlockStatement block=(BlockStatement)convert(ctx, 4);
+      return create.parallel_block("", c, iters, block);      
+    }
+    if (match(ctx,null,"(",null,")",null,null)){
+      String label=getIdentifier(ctx, 0);
+      DeclarationStatement iters[]=checkDecls(convert_list((ParserRuleContext)ctx.getChild(2), ","));
+      Contract c=(Contract)convert(ctx, 4);
+      BlockStatement block=(BlockStatement)convert(ctx, 5);
+      return create.parallel_block(label, c, iters, block);
+    }
+    return null;
+  }
+
+  @Override
   public ASTNode visitStatement(StatementContext ctx) {
     if (match(ctx,null,"=",null,";")){
       return create.assignment(convert(ctx,0),convert(ctx,2));
     }
-    if (match(ctx,"par",null,"(",null,")",null,null)){
-      String label=getIdentifier(ctx, 1);
-      DeclarationStatement iters[]=checkDecls(convert_list((ParserRuleContext)ctx.getChild(3), ","));
-      Contract c=(Contract)convert(ctx, 5);
-      BlockStatement block=(BlockStatement)convert(ctx, 6);
-      ParallelBlock res=create.parallel_block(label, c, iters, block);
-      return res;
-    }
-    if (match(ctx,"par","(",null,")",null,null)){
-      String label="";
-      DeclarationStatement iters[]=checkDecls(convert_list((ParserRuleContext)ctx.getChild(2), ","));
-      Contract c=(Contract)convert(ctx, 4);
-      BlockStatement block=(BlockStatement)convert(ctx, 5);
-      ParallelBlock res=create.parallel_block(label, c, iters, block);
-      return res;
+    if (match(0,true,ctx,"par","Par_unit")){
+      int offset=0;
+      ArrayList<ParallelBlock> res=new ArrayList();
+      do {
+        ParallelBlock blk=(ParallelBlock)convert(ctx,offset+1);
+        res.add(blk);
+        offset+=2;
+      } while (match(offset,true,ctx,"and","Par_unit"));
+      if (offset == ctx.getChildCount()){
+        return create.region(res);
+      }
+      Warning("incomplete match of parallel region");
     }
     if (match(ctx,"invariant",null,"(",null,")",null)){
       String label=getIdentifier(ctx, 1);
@@ -552,33 +575,29 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
     if (match(ctx,"ExprContext",";")){
       return convert(ctx,0);
     }
-    if (match(0,true,ctx,"barrier","(",null,")")){
-      EnumSet<ParallelBarrier.Fence> fences=EnumSet.noneOf(ParallelBarrier.Fence.class);
-      if (((ParserRuleContext)ctx.children.get(2)).children!=null){
-        for (ParseTree item:((ParserRuleContext)ctx.children.get(2)).children){
+    if (match(0,true,ctx,"barrier","(",null)){
+      String name=getIdentifier(ctx, 2);
+      ArrayList<String> invs=new ArrayList();
+      int offset;
+      if (match(0,true,ctx,"barrier","(",null,";",null,")")){
+        for (ParseTree item:((ParserRuleContext)ctx.children.get(4)).children){
           String tag=item.toString();
-          switch(tag){
-          case "local":
-            fences.add(ParallelBarrier.Fence.Local);
-            continue;
-          case "global":
-            fences.add(ParallelBarrier.Fence.Global);
-            continue;
-          default:
-            Fail("unknown fence %s",tag);
-          }
+          invs.add(tag);
         }
+        offset=6;
+      } else {
+        offset=4;
       }
       Contract c=null;
       BlockStatement body=null;
-      if (match(ctx,"barrier","(",null,")",null,null)){
-        c=(Contract)convert(ctx,4);
-        body=(BlockStatement)convert(ctx,5);
-        return create.barrier(c,fences,body);
+      if (match(offset,false,ctx,null,null)){
+        c=(Contract)convert(ctx,offset);
+        body=(BlockStatement)convert(ctx,offset+1);
+        return create.barrier(name,c,invs,body);
       }
-      if (match(ctx,"barrier","(",null,")","{",null,"}")){
-        c=(Contract)convert(ctx,5);
-        return create.barrier(c,fences,body);
+      if (match(offset,false,ctx,"{",null,"}")){
+        c=(Contract)convert(ctx,offset+1);
+        return create.barrier(name,c,invs,body);
       }
     }
     return visit(ctx);

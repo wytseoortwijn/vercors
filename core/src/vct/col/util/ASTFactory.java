@@ -181,19 +181,15 @@ public class ASTFactory<E> implements FrameControl {
     return res;    
   }
   
-  public ParallelBarrier barrier(Contract c,EnumSet<ParallelBarrier.Fence> fences, BlockStatement body){
-     return barrier(origin_stack.get(),c,fences,body);
+  public ParallelBarrier barrier(String label,Contract c,ArrayList<String> fences, BlockStatement body){
+     return barrier(origin_stack.get(),label,c,fences,body);
    }
   
-  public ParallelBarrier barrier(E origin,Contract c,EnumSet<ParallelBarrier.Fence> fences, BlockStatement body){
-     return barrier(origin_source.create(origin),c,fences,body);
-   }
-
   /**
     * Create a new barrier node.
     */
-   public ParallelBarrier barrier(Origin origin,Contract c,EnumSet<ParallelBarrier.Fence> fences, BlockStatement body){
-     ParallelBarrier res=new ParallelBarrier(c,fences,body);
+   public ParallelBarrier barrier(Origin origin,String label,Contract c,ArrayList<String> fences, BlockStatement body){
+     ParallelBarrier res=new ParallelBarrier(label,c,fences,body);
      res.setOrigin(origin);
      res.accept_if(post);
      return res;
@@ -870,7 +866,10 @@ public ASTSpecial special(Origin origin, vct.col.ast.ASTSpecial.Kind kind, ASTNo
    return special_decl(origin_stack.get(),kind,args);
  }
 
-  public BindingExpression starall(ASTNode guard, ASTNode claim, DeclarationStatement ... decl) {
+  public ASTNode starall(ASTNode guard, ASTNode claim, DeclarationStatement ... decl) {
+    if (decl.length==0){
+      return expression(StandardOperator.Implies,guard,claim);
+    }
     int i=decl.length-1;
     BindingExpression res=new BindingExpression(
         Binder.STAR,
@@ -898,11 +897,14 @@ public ASTSpecial special(Origin origin, vct.col.ast.ASTSpecial.Kind kind, ASTNo
     return res;
   }
   
-  public BindingExpression forall(ASTNode guard, ASTNode claim, DeclarationStatement ... decl) {
+  public ASTNode forall(ASTNode guard, ASTNode claim, DeclarationStatement ... decl) {
     return forall(new ASTNode[0][],guard,claim,decl);
   }
   
-  public BindingExpression forall(ASTNode triggers[][],ASTNode guard, ASTNode claim, DeclarationStatement ... decl) {
+  public ASTNode forall(ASTNode triggers[][],ASTNode guard, ASTNode claim, DeclarationStatement ... decl) {
+    if (decl.length==0){
+      return expression(StandardOperator.Implies,guard,claim);
+    }
     int i=decl.length-1;
     BindingExpression res=new BindingExpression(
         Binder.FORALL,
@@ -1140,6 +1142,21 @@ public Axiom axiom(String name,ASTNode exp){
     res.setOrigin(origin);
     res.accept_if(post);
     return res;
+  }
+
+  public ParallelRegion region(ParallelBlock ... blocks) {
+    return region(origin_stack.get(),blocks);
+  }
+
+  public ParallelRegion region(Origin origin,ParallelBlock ... blocks) {
+    ParallelRegion res=new ParallelRegion(blocks);
+    res.setOrigin(origin);
+    res.accept_if(post);
+    return res;
+  }
+
+  public ASTNode region(ArrayList<ParallelBlock> res) {
+    return region(res.toArray(new ParallelBlock[res.size()]));
   }
 
 }

@@ -433,6 +433,11 @@ public class SilverExpressionMap<T,E,Decl> implements ASTMapping<E>{
   public E map(FieldAccess a) { 
     return null;
   }
+
+  @Override
+  public E map(ParallelRegion region) {
+    return null;
+  }
   
   
   

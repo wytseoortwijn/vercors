@@ -127,8 +127,6 @@ public class NameScanner extends RecursiveVisitor<Object> {
       safe_decls.add(pb.iters[i]);
     }
     super.visit(pb);
-    if (pb.get_before()!=null) pb.get_before().accept(this);
-    if (pb.get_after()!=null) pb.get_after().accept(this);
     auto_before_after=false;
     for(int i=0;i<pb.iters.length;i++){
       vars.remove(pb.iters[i].name);

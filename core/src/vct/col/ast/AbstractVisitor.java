@@ -120,6 +120,8 @@ public class AbstractVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
 
   @Override public void visit(ParallelBlock pb){ visit_any(pb); }
   
+  @Override public void visit(ParallelRegion pb){ visit_any(pb); }
+  
   @Override public void visit(Contract c){ visit_any(c); }
 
   @Override public void visit(ASTSpecial s){ visit_any(s); }

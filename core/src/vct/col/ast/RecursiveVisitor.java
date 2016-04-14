@@ -281,6 +281,10 @@ public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
     dispatch(pb.iters);
     dispatch(pb.block);
   }
+  
+  public void visit(ParallelRegion region){
+    dispatch(region.blocks);
+  }
 
   public void visit(Contract c){
     dispatch(c.invariant);

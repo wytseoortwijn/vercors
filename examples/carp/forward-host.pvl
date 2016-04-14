@@ -42,7 +42,7 @@ class Ref {
       ensures  i==N-1 ==> Perm(a[i],1/2);
     {
       a[i]=b[i]+1;
-      barrier(){
+      barrier(fwd){
         requires i < N-1 ==> Perm(a[i],1/2);
         requires i < N-1 ==> a[i]==i+1;
         ensures  i > 0   ==> Perm(a[i-1],1/2);

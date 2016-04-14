@@ -265,6 +265,12 @@ class MatchLinear implements ASTMapping1<Boolean,ASTNode> {
   }
 
   @Override
+  public Boolean map(ParallelRegion region, ASTNode a) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
   public Boolean map(Contract contract, ASTNode a) {
     // TODO Auto-generated method stub
     return null;

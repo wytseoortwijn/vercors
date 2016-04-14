@@ -1,0 +1,27 @@
+// -*- tab-width:2 ; indent-tabs-mode:nil -*-
+//:: cases BlockParallellism
+//:: tools silicon
+class Ref {
+  int x;
+  int y;
+  int z;
+  
+  requires Perm(x,1)**Perm(y,1)**Perm(z,1)**x+y==z;
+  ensures  Perm(x,1)**Perm(y,1)**Perm(z,1)**x+y==z;
+  void main(int c){
+    par
+      requires Perm(x,1);
+      ensures  Perm(x,1) ** x == \old(x)+c;
+    {
+      x=x+c;
+    }
+    and
+      requires Perm(y,1);
+      ensures  Perm(y,1) ** y == \old(y)-c;
+    {
+      y=y-c;
+    }
+  }
+}
+
+

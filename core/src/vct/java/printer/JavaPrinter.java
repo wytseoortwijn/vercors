@@ -1275,14 +1275,6 @@ public class JavaPrinter extends AbstractPrinter {
       if(i>0) out.printf(",");
     }
     out.println(")");
-    if(pb.get_before()!=null) {
-      out.print(" with ");
-      pb.get_before().accept(this);
-    }
-    if(pb.get_after()!=null) {
-      out.print(" then ");
-      pb.get_after().accept(this);
-    }
     if(pb.contract!=null){
       visit(pb.contract);
     }
@@ -1294,7 +1286,7 @@ public class JavaPrinter extends AbstractPrinter {
     if(pb.contract==null){
       Fail("parallel barrier with null contract!");
     } else {
-      out.printf("barrier%s{",pb.fences);
+      out.printf("barrier(%s;%s){",pb.label,pb.invs);
       out.println("");
       out.incrIndent();
       visit(pb.contract);
@@ -1306,6 +1298,24 @@ public class JavaPrinter extends AbstractPrinter {
       }
       
     }
+  }
+  @Override
+  public void visit(ParallelInvariant pb){
+    out.printf("invaratiant %s (",pb.label);
+    nextExpr();
+    pb.inv.accept(this);
+    out.printf(")");
+    pb.block.accept(this);
+  }
+  @Override
+  public void visit(ParallelRegion region){
+    out.println("parallel {");
+    for(ParallelBlock pb:region.blocks){
+      out.incrIndent();
+      pb.accept(this);
+      out.decrIndent();
+    }
+    out.println("}");
   }
   
   public void visit(ConstantExpression ce){

@@ -358,7 +358,6 @@ public class SilverStatementMap<T,E,S,Decl> implements ASTMapping<S>{
 
   @Override
   public S map(TryCatchBlock tcb) {
-    // TODO Auto-generated method stub
     return null;
   }
 
@@ -371,6 +370,11 @@ public class SilverStatementMap<T,E,S,Decl> implements ASTMapping<S>{
       var.setOrigin(a);
       return assignment(a.getOrigin(),var,a.value);
     }
+  }
+
+  @Override
+  public S map(ParallelRegion region) {
+    return null;
   }
 
 

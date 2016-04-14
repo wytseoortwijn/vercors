@@ -96,8 +96,8 @@ statement
  | 'assume' expr ';' 
  | 'witness' expr ';' 
  | 'if' '(' expr ')' block ( 'else' block )?
- | 'barrier' '(' fence_list ')' ( '{' contract '}' | contract block )
- | 'par' ID? '(' iters ')' contract block
+ | 'barrier' '(' ID ( ';' id_list )? ')' ( '{' contract '}' | contract block )
+ | 'par' par_unit ( 'and' par_unit )* 
  | 'invariant' ID '(' expr ')' block 
  | 'atomic' '(' id_list ')' block 
  | invariant 'while' '(' expr ')' block
@@ -111,6 +111,11 @@ statement
  | 'destroy' expr ',' expr ',' expr ';'
  | 'goto' ID ';'
  | 'label' ID ';'
+ ;
+
+par_unit
+ : ID? '(' iters ')' contract block
+ | contract block
  ;
 
 id_list : ( ID ( ',' ID )* )? ;

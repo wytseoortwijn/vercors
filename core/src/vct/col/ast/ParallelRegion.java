@@ -1,15 +1,14 @@
 package vct.col.ast;
 
-import java.util.ArrayList;
-import java.util.EnumSet;
+import java.util.Arrays;
 
-public class ParallelBarrier extends ASTNode {
-
+public class ParallelRegion extends ASTNode {
+  
   @Override
   public <R,A> R accept_simple(ASTMapping1<R,A> map,A arg){
     return map.map(this,arg);
   }
-  
+
   @Override
   public <T> void accept_simple(ASTVisitor<T> visitor){
     try {
@@ -35,20 +34,11 @@ public class ParallelBarrier extends ASTNode {
       throw t;
     }
   }
- 
-  public final String label;
+
+  public ParallelBlock blocks[];
   
-  public final Contract contract;
-  
-  public final ArrayList<String> invs;
-  
-  public final BlockStatement body;
-  
-  public ParallelBarrier(String label,Contract contract, ArrayList<String> fences, BlockStatement body){
-    this.label=label;
-    this.contract=contract;
-    this.invs=new ArrayList(fences);
-    this.body=body;
+  public ParallelRegion(ParallelBlock ... blocks){
+    this.blocks=Arrays.copyOf(blocks,blocks.length);
   }
 
 }
