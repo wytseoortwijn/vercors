@@ -6,15 +6,20 @@
   <condition property="deps" value="${basedir}/deps" else="${basedir}/../..">
     <available file="${basedir}/deps" type="dir"/>
   </condition>
- 
+  
+  <condition property="sbtcommand" value="${basedir}/windows/bin/vct-sbt.cmd"
+                                    else="${basedir}/unix/bin/vct-sbt">
+    <os family="windows" />
+  </condition>  
+
 	<property name="dist"         value="${basedir}/dist"/>
   <property environment="env"/>
 
   <target name="clean">
     <ant antfile="build.xml" dir="${basedir}/viper/viper-api" inheritAll="false" target="clean"/>
-    <exec dir="${basedir}/viper/silver" executable="vct-sbt.cmd"> <arg value="clean" /> </exec>
-    <exec dir="${basedir}/viper/silicon" executable="vct-sbt.cmd"> <arg value="clean" /> </exec>
-    <exec dir="${basedir}/viper/carbon" executable="vct-sbt.cmd"> <arg value="clean" /> </exec>
+    <exec dir="${basedir}/viper/silver" executable="${sbtcommand}"> <arg value="clean" /> </exec>
+    <exec dir="${basedir}/viper/silicon" executable="${sbtcommand}"> <arg value="clean" /> </exec>
+    <exec dir="${basedir}/viper/carbon" executable="${sbtcommand}"> <arg value="clean" /> </exec>
     <ant antfile="build.xml" dir="${basedir}/hre" inheritAll="false" target="clean"/>
     <ant antfile="build.xml" dir="${basedir}/core" inheritAll="false" target="clean"/>
     <ant antfile="build.xml" dir="${basedir}/main" inheritAll="false" target="clean"/>
@@ -26,9 +31,9 @@
   
   <target name="jar">
     <ant antfile="build.xml" dir="${basedir}/viper/viper-api" inheritAll="false"/>
-    <exec dir="${basedir}/viper/silver" executable="vct-sbt.cmd"> <arg value="compile" /> </exec>
-    <exec dir="${basedir}/viper/silicon" executable="vct-sbt.cmd"> <arg value="assembly" /> </exec>
-    <exec dir="${basedir}/viper/carbon" executable="vct-sbt.cmd"> <arg value="assembly" /> </exec>
+    <exec dir="${basedir}/viper/silver" executable="${sbtcommand}"> <arg value="compile" /> </exec>
+    <exec dir="${basedir}/viper/silicon" executable="${sbtcommand}"> <arg value="assembly" /> </exec>
+    <exec dir="${basedir}/viper/carbon" executable="${sbtcommand}"> <arg value="assembly" /> </exec>
     <ant antfile="build.xml" dir="${basedir}/hre" inheritAll="false" target="jar"/>
     <ant antfile="build.xml" dir="${basedir}/core" inheritAll="false" target="jar"/>
     <ant antfile="build.xml" dir="${basedir}/main" inheritAll="false" target="jar"/>
