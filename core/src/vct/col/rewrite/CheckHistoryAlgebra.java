@@ -996,4 +996,31 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
     }
   }
 
+  /**
+   * This method determines the classes that have to be rewritten first.
+   * @param d
+   * @return
+   */
+  private boolean high_prio(ASTDeclaration d){
+    return (d instanceof AxiomaticDataType)||d.name.equals("History")||d.name.equals("Future");
+  }
+  
+  @Override
+  public ProgramUnit rewriteAll(){
+    for(ASTDeclaration d:source().get()){
+      if(high_prio(d)){
+        ASTDeclaration tmp=rewrite(d);
+        if(tmp!=null) target().add(tmp);
+      }
+    }
+    for(ASTDeclaration d:source().get()){
+      if(!high_prio(d)){
+        ASTDeclaration tmp=rewrite(d);
+        if(tmp!=null) target().add(tmp);
+      }
+    }
+    target().index_classes();
+    return target();
+  }
+
 }
