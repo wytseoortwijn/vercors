@@ -621,7 +621,7 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
         if (item instanceof ParserRuleContext)
         {//BLM - DRB --added
         ParserRuleContext item_ctx = (ParserRuleContext) item;
-        if(item_ctx.children.size() ==1 )            
+        if(item_ctx.children !=null && item_ctx.children.size() ==1 )            
         	if (item_ctx.children.get(0).toString().equals(pattern[i])) continue;
         }
         return false;
