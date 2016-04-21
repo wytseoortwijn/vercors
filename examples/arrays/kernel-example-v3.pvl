@@ -1,0 +1,32 @@
+// -*- tab-width:2 ; indent-tabs-mode:nil -*-
+//:: cases kernel-example-v3
+//:: tools
+
+// disabled due to refactoring of kernel support.
+kkernel Ref {
+  global int[tcount] a;
+  global int[tcount] b;
+  global int[tcount] c;
+
+  requires Perm(a[tid],write);
+  requires Perm(b[tid],write);
+  requires Perm(c[tid],1/4) ** c[tid] > 0;
+  
+  ensures  Perm(a[tid],1/4) ** a[tid] > 0;
+  ensures  Perm(b[tid],1/4) ** b[tid] > 0;
+  ensures  Perm(c[tid],1/4) ** c[tid] > 0;
+  void main(){
+    b[tid]=c[tid];
+    barrier(global){
+      requires Perm(b[tid],1/4);
+      requires b[tid]>0;
+      ensures  tid>0 ==> Perm(b[tid-1],1/4);
+      ensures  tid>0 ==> b[tid-1]>0;
+    }
+    if(tid>0) {
+      a[tid]=b[tid-1]+b[tid];
+    } else {
+      a[tid]=b[tid];
+    }
+  }
+}

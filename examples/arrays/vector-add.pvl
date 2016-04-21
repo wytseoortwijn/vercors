@@ -1,0 +1,27 @@
+// -*- tab-width:2 ; indent-tabs-mode:nil -*-
+//:: cases vector-add-kernel
+//:: tools
+
+// disabled due to refactoring of kernel support.
+
+kernel Ref {
+  global int[tcount] a;
+  global int[tcount] b;
+  global int[tcount] c;
+
+  requires Perm(a[tid],write);
+  requires Perm(b[tid],1/2);
+  requires Perm(c[tid],1/2);
+
+  ensures  Perm(a[tid],write);
+  ensures  Perm(b[tid],1/2);
+  ensures  Perm(c[tid],1/2);
+
+  ensures  b[tid]==\old(b[tid]);
+  ensures  c[tid]==\old(c[tid]);
+  ensures  a[tid]==b[tid]+c[tid];
+
+  void main(){
+    a[tid]=b[tid]+c[tid];
+  }
+}

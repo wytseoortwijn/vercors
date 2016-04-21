@@ -9,4 +9,5 @@ class Testcase {
   public ArrayList<String> options=new ArrayList();
   public HashSet<Path> files=new HashSet();
   public String verdict="Pass";
+  public HashSet<String> suites=new HashSet();
 }

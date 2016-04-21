@@ -108,8 +108,8 @@ public class CommandLineTesting {
       if (test.tools.isEmpty()){
         untested.put(name,test);
       }
-      boolean possible=true;
       if (lang_option.used()){
+        boolean possible=true;
         for(Path p:test.files){
           String lang=TestcaseVisitor.extension(p);
           if (!langs.contains(lang)){
@@ -117,8 +117,28 @@ public class CommandLineTesting {
             break;
           }
         }
+        if (!possible) continue;
       }
-      if (!possible) continue;
+      if (include_option.used()){
+        boolean possible=false;
+        for(String suite:test.suites){
+          if (includes.contains(suite)){
+            possible=true;
+            break;
+          }
+        }
+        if (!possible) continue;
+      }
+      if (exclude_option.used()){
+        boolean possible=true;
+        for(String suite:test.suites){
+          if (excludes.contains(suite)){
+            possible=false;
+            break;
+          }
+        }
+        if (!possible) continue;
+      }
       for(String tool:test.tools){
         if (backend_option.used()&&!backends.contains(tool)) {
           // skip tests for back ends that are not selected.
@@ -155,7 +175,7 @@ public class CommandLineTesting {
     for (String file:tv.files_by_name.keySet()){
       Set<Path> items=tv.files_by_name.get(file);
       if (items.size()>1){
-        System.err.printf("Warning: tehre are multiple instance of %s:%n ",file);
+        System.err.printf("Warning: there are multiple instance of %s:%n ",file);
         for(Path p:items){
           System.err.printf(" %s",p);
         }
@@ -222,6 +242,11 @@ public class CommandLineTesting {
     return res;
   }
   
+  private static StringListSetting includes=new StringListSetting();
+  private static Option include_option;
+  private static StringListSetting excludes=new StringListSetting();
+  private static Option exclude_option;
+  
   private static StringListSetting langs=new StringListSetting();
   private static Option lang_option;
   private static StringListSetting backends=new StringListSetting();
@@ -237,6 +262,8 @@ public class CommandLineTesting {
     clops.add(backend_option=backends.getAppendOption("select the back ends to run tests for"),"tool");
     clops.add(lang_option=langs.getAppendOption("select test input languages"),"lang");
     clops.add(savedir.getAssign("save intermediate files to given directory"),"save-intermediate");
+    clops.add(include_option=includes.getAppendOption("include test suites"),"include-suite");
+    clops.add(exclude_option=excludes.getAppendOption("exclude test suites"),"exclude-suite");
   }
 
 }

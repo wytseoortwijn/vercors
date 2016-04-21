@@ -1,0 +1,12 @@
+// -*- tab-width:2 ; indent-tabs-mode:nil -*-
+//:: cases TypeError
+//:: tools silicon
+//:: verdict Error
+
+class err {
+
+ void typeerror(){
+   assert 1==true;
+ }
+ 
+}

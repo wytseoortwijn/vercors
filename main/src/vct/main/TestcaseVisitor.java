@@ -120,6 +120,15 @@ public class TestcaseVisitor extends SimpleFileVisitor<Path>{
                   tc.verdict=cmds[1];
                 }                
                 break;
+              case "suites":
+              case "suite":
+                for(String test:cases){
+                  Testcase tc=testsuite.get(test);
+                  for(int i=1;i<cmds.length;i++) {  
+                    tc.suites.add(cmds[i]);
+                  }
+                }                
+                break;
               case "option":
               case "options":
                 for(int i=1;i<cmds.length;i++) {

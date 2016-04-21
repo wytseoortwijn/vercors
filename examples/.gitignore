@@ -1,0 +1,10 @@
+boogie-input.bpl
+boogie-output.txt
+boogie-output.xml
+tmp.chalice
+tmp.sil
+tmp/
+
+*~
+*.class
+
