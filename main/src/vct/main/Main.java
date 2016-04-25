@@ -896,8 +896,13 @@ public class Main
         passes.add("user-inline");
       }
       passes.add("standardize");
-      passes.add("check");        
-      if (features.usesParallelBlocks()){
+      passes.add("check");
+      if (features.usesCSL()){
+        passes.add("csl-encode");
+        passes.add("standardize");
+        passes.add("check");
+      }
+      if (features.usesParallelBlocks()||features.usesCSL()){
         passes.add("parallel_blocks");
         passes.add("standardize");
         passes.add("check");        
@@ -960,11 +965,6 @@ public class Main
       passes.add("current_thread");
       passes.add("standardize");
       passes.add("check");    
-      if (features.usesCSL()){
-        passes.add("csl-encode");
-        passes.add("standardize");
-        passes.add("check");
-      }
       passes.add("flatten");
       passes.add("assign");
       passes.add("reorder");

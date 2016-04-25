@@ -255,12 +255,45 @@ public class ParallelBlockEncoder extends AbstractRewriter {
     result=gen_call(main_name,main_vars);
   }
   
+  
   @Override
-  public void visit(ParallelAtomic pb){
-    if (inv_blocks.empty()){
-      Fail("atomic region outside of parallel block");
+  public void visit(ParallelAtomic pa){
+    BlockStatement block=rewrite(pa.block);
+    for(ASTNode node:pa.sync_list){
+      if (node instanceof NameExpression){
+        NameExpression name=(NameExpression)node;
+        if (name.getKind()==NameExpression.Kind.Label){
+          boolean found=false;
+          for(ASTNode ib:inv_blocks){
+            if (ib instanceof ParallelInvariant){
+              ParallelInvariant inv=(ParallelInvariant)ib;
+              if (inv.label.equals(name.toString())){
+                block.prepend(create.special(ASTSpecial.Kind.Inhale,inv.inv));
+                block.append(create.special(ASTSpecial.Kind.Exhale,inv.inv));
+                found=true;
+              }
+            }
+          }
+          if (found){
+            continue;
+          }
+          Fail("Could not find an invariant labeled %s",name);
+        }
+      }
+      block.prepend(create.expression(StandardOperator.Unfold,create.invokation(rewrite(node),null,"csl_invariant")));
+      block.prepend(create.special(ASTSpecial.Kind.Inhale,create.invokation(rewrite(node),null,"csl_invariant")));
+      block.append(create.expression(StandardOperator.Fold,create.invokation(rewrite(node),null,"csl_invariant")));
+      block.append(create.special(ASTSpecial.Kind.Exhale,create.invokation(rewrite(node),null,"csl_invariant")));
     }
+    result=block;
+  }
+
+
+  public void vissit(ParallelAtomic pb){
     BlockStatement res=rewrite(pb.block);
+    
+    
+    /*
     HashSet<String> sync_list=new HashSet();
     for(ASTNode n:pb.sync_list) sync_list.add(n.toString());
     System.err.printf("sync list %s%n", sync_list);
@@ -275,6 +308,7 @@ public class ParallelBlockEncoder extends AbstractRewriter {
         Abort("unexpected kind of invariant: %s",ib.getClass());
       }
     }
+    */
     result=res;
   }
 }

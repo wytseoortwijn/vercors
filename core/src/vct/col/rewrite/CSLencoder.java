@@ -67,18 +67,6 @@ public class CSLencoder extends AbstractRewriter {
     }
   }
   
-  @Override
-  public void visit(ParallelAtomic pa){
-    BlockStatement block=rewrite(pa.block);
-    for(ASTNode node:pa.sync_list){
-      block.prepend(create.expression(StandardOperator.Unfold,create.invokation(rewrite(node),null,"csl_invariant")));
-      block.prepend(create.special(ASTSpecial.Kind.Inhale,create.invokation(rewrite(node),null,"csl_invariant")));
-      block.append(create.expression(StandardOperator.Fold,create.invokation(rewrite(node),null,"csl_invariant")));
-      block.append(create.special(ASTSpecial.Kind.Exhale,create.invokation(rewrite(node),null,"csl_invariant")));
-    }
-    result=block;
-  }
-  
   private AtomicInteger count=new AtomicInteger();
   
   @Override
@@ -117,14 +105,16 @@ public class CSLencoder extends AbstractRewriter {
         //Warning("no explicit subjects for atomic method call.");
         subjects.add(create.reserved_name(ASTReserved.This));
       }
-      BlockStatement block=currentBlock;
+      BlockStatement block=create.block();
       if (!m.getReturnType().isVoid()){
-        block.add(create.field_decl(result_name,rewrite(m.getReturnType())));
+        currentBlock.add(create.field_decl(result_name,rewrite(m.getReturnType())));
       }
+      /*
       for(ASTNode node:subjects){
         block.add(create.special(ASTSpecial.Kind.Inhale,create.invokation(rewrite(node),null,"csl_invariant")));
         block.add(create.expression(StandardOperator.Unfold,create.invokation(rewrite(node),null,"csl_invariant")));
       }
+      */
       for(ASTNode s:e.get_before()){
         if (s.isSpecial(ASTSpecial.Kind.Transfer)){
           Warning("ignoring transfer statement at %s",s.getOrigin());
@@ -147,10 +137,13 @@ public class CSLencoder extends AbstractRewriter {
           block.add(sigma.rewrite(rewrite(s)));
         }
       }
+      /*
       for(ASTNode node:subjects){
         block.add(create.expression(StandardOperator.Fold,create.invokation(rewrite(node),null,"csl_invariant")));
         block.add(create.special(ASTSpecial.Kind.Exhale,create.invokation(rewrite(node),null,"csl_invariant")));
       }
+      */
+      currentBlock.add(create.csl_atomic(block,subjects.toArray(new ASTNode[0])));
       if (m.getReturnType().isVoid()){
         result=create.comment("// dummy");
       } else {
