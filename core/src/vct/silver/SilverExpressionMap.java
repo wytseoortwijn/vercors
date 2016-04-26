@@ -13,6 +13,8 @@ import viper.api.*;
 
 public class SilverExpressionMap<T,E,Decl> implements ASTMapping<E>{
 
+  public boolean failure=false;
+  
   private SilverVerifier<Origin,?,T,E,?,Decl,?,?,?> create;
   private SilverTypeMap<T> type;
 
@@ -283,22 +285,24 @@ public class SilverExpressionMap<T,E,Decl> implements ASTMapping<E>{
     Origin o = e.getOrigin();
     switch(e.binder){
     case STAR:
-      if (e.getDeclarations().length>1){
-        Abort("nested \\forall* quantifiers are not supported yet in Silver.");
-      }
-      boolean good=false;
-      if (e.main.isa(StandardOperator.Perm)||e.main.isa(StandardOperator.Value)){
-        ASTNode loc=((OperatorExpression)e.main).getArg(0);
-        if (loc instanceof Dereference){
-          loc=((Dereference)loc).object;
-          if (loc.isa(StandardOperator.Subscript)){
-            loc=((OperatorExpression)loc).getArg(1);
-            good=loc instanceof NameExpression;
+      if ((e.main instanceof BindingExpression)||e.getDeclarations().length>1){
+        hre.System.Warning("Simplification failure:%n%s",e);
+        failure=true;
+      } else {
+        boolean good=false;
+        if (e.main.isa(StandardOperator.Perm)||e.main.isa(StandardOperator.Value)){
+          ASTNode loc=((OperatorExpression)e.main).getArg(0);
+          if (loc instanceof Dereference){
+            loc=((Dereference)loc).object;
+            if (loc.isa(StandardOperator.Subscript)){
+              loc=((OperatorExpression)loc).getArg(1);
+              good=loc instanceof NameExpression;
+            }
           }
         }
-      }
-      if(!good){
-        hre.System.Warning("Possible simplification failure: \\forall* argument is not of the form Perm(S[i].v,e) or Value(S[i].v) in%n%s",e);
+        if(!good){
+          hre.System.Warning("Possible simplification failure: %n%s",e);
+        }
       }
     case FORALL:
       E expr;

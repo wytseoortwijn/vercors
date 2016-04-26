@@ -241,6 +241,9 @@ public class SilverBackend {
     }
     long end_time=System.currentTimeMillis();
     System.err.printf("Backend AST conversion took %d ms%n", end_time-start_time);
+    if (expr.failure){
+      hre.System.Fail("Exit due to failures");
+    }
     String fname=vct.util.Configuration.backend_file.get();
     if (fname!=null){
       PrintWriter pw=null;
