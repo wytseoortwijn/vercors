@@ -122,17 +122,43 @@ class SilverImplementation[O,Err] extends viper.api.SilverVerifier[O,Err,Type,Ex
   def neq(o:O,e1:Exp,e2:Exp) :Exp = NeCmp(e1,e2)(NoPosition,new OriginInfo(o))
   def eq(o:O,e1:Exp,e2:Exp) :Exp = EqCmp(e1,e2)(NoPosition,new OriginInfo(o))
   
-  def gt(o:O,e1:Exp,e2:Exp) :Exp = GtCmp(e1,e2)(NoPosition,new OriginInfo(o))
-  def lt(o:O,e1:Exp,e2:Exp) :Exp = LtCmp(e1,e2)(NoPosition,new OriginInfo(o))
-  def gte(o:O,e1:Exp,e2:Exp) :Exp = GeCmp(e1,e2)(NoPosition,new OriginInfo(o))
-  //def lte(o:O,e1:Exp,e2:Exp) :Exp = LeCmp(e1,e2)(NoPosition,new OriginInfo(o))
+  def gt(o:O,e1:Exp,e2:Exp) :Exp = {
+    e1 match {
+      case LocalVar(n) => if (e1.asInstanceOf[LocalVar].typ==Perm)
+          PermGtCmp(e1,e2)(NoPosition,new OriginInfo(o))
+        else
+          GtCmp(e1,e2)(NoPosition,new OriginInfo(o))
+      case e:PermExp => PermGtCmp(e1,e2)(NoPosition,new OriginInfo(o))
+      case _  => GtCmp(e1,e2)(NoPosition,new OriginInfo(o))
+    }
+  }
+  def lt(o:O,e1:Exp,e2:Exp) :Exp = {
+    e1 match {
+      case LocalVar(n) => if (e1.asInstanceOf[LocalVar].typ==Perm)
+          PermLtCmp(e1,e2)(NoPosition,new OriginInfo(o))
+        else
+          LtCmp(e1,e2)(NoPosition,new OriginInfo(o))
+      case e:PermExp => PermLtCmp(e1,e2)(NoPosition,new OriginInfo(o))
+      case _  => LtCmp(e1,e2)(NoPosition,new OriginInfo(o))
+    }
+  }
+  def gte(o:O,e1:Exp,e2:Exp) :Exp = {
+    e1 match {
+      case LocalVar(n) => if (e1.asInstanceOf[LocalVar].typ==Perm)
+          PermGeCmp(e1,e2)(NoPosition,new OriginInfo(o))
+        else
+          GeCmp(e1,e2)(NoPosition,new OriginInfo(o))
+      case e:PermExp => PermGeCmp(e1,e2)(NoPosition,new OriginInfo(o))
+      case _  => GeCmp(e1,e2)(NoPosition,new OriginInfo(o))
+    }
+  }
   def lte(o:O,e1:Exp,e2:Exp) :Exp = {
     e1 match {
       case LocalVar(n) => if (e1.asInstanceOf[LocalVar].typ==Perm)
           PermLeCmp(e1,e2)(NoPosition,new OriginInfo(o))
         else
           LeCmp(e1,e2)(NoPosition,new OriginInfo(o))
-      case e:PermLeCmp => PermDiv(e1,e2)(NoPosition,new OriginInfo(o))
+      case e:PermExp => PermLeCmp(e1,e2)(NoPosition,new OriginInfo(o))
       case _  => LeCmp(e1,e2)(NoPosition,new OriginInfo(o))
     }
   }
@@ -177,7 +203,16 @@ class SilverImplementation[O,Err] extends viper.api.SilverVerifier[O,Err,Type,Ex
       case _  => Add(e1,e2)(NoPosition,new OriginInfo(o))
     }
   }
-  def sub(o:O,e1:Exp,e2:Exp) :Exp = Sub(e1,e2)(NoPosition,new OriginInfo(o))
+  def sub(o:O,e1:Exp,e2:Exp) :Exp = {
+    e1 match {
+      case LocalVar(n) => if (e1.asInstanceOf[LocalVar].typ==Perm)
+          PermSub(e1,e2)(NoPosition,new OriginInfo(o))
+        else
+          Sub(e1,e2)(NoPosition,new OriginInfo(o))
+      case e:PermExp => PermSub(e1,e2)(NoPosition,new OriginInfo(o))
+      case _  => Sub(e1,e2)(NoPosition,new OriginInfo(o))
+    }
+  }
   def neg(o:O,e1:Exp):Exp = Minus(e1)(NoPosition,new OriginInfo(o))
   def minus(o:O,e1:Exp):Exp = Minus(e1)(NoPosition,new OriginInfo(o))
   
