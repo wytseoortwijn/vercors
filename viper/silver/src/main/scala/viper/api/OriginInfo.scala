@@ -1,6 +1,7 @@
 package viper.api
 
 import viper.silver.ast.Info
+import viper.silver.ast.Function
 
 class OriginInfo[O](origin : O) extends Info {
   val loc=origin
@@ -16,4 +17,8 @@ class RefuteInfo[O](origin : O) extends OriginInfo[O](origin) {
 
 object Reachable {
   var reachable = scala.collection.mutable.Set[Info]()
+  
+  var gonogo : viper.api.VerficationControl = null;
+
 }
+

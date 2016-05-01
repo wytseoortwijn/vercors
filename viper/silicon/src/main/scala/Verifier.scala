@@ -19,6 +19,7 @@ import viper.silicon.supporters.functions.FunctionSupporterProvider
 import viper.silicon.supporters.qps._
 import viper.silicon.reporting.{DefaultStateFormatter, Bookkeeper}
 import viper.silicon.utils.NoOpStatefulComponent
+import viper.silver.verifier.Success
 
 object DefaultVerifier {
   type ST = MapBackedStore
@@ -93,31 +94,49 @@ class DefaultVerifier(val config: Config)
   def verify(program: ast.Program): List[VerificationResult] = {
     emitPreamble(program)
 
-//    ev.predicateSupporter.handlePredicates(program)
+    //    ev.predicateSupporter.handlePredicates(program)
 
     /* FIXME: A workaround for Silver issue #94.
      * toList must be before flatMap. Otherwise Set will be used internally and some
      * error messages will be lost.
      */
     val functionVerificationResults = functionsSupporter.units.toList flatMap (function =>
-      functionsSupporter.verify(function, createInitialContext(function, program)))
+      if (viper.api.Reachable.gonogo == null || viper.api.Reachable.gonogo.function(function.name)) {
+        val l = functionsSupporter.verify(function, createInitialContext(function, program))
+        System.err.printf("Results for %s are %s%n",function.name,l);
+        l
+      } else {
+        List()
+      })
 
     val predicateVerificationResults = predicateSupporter.units.toList flatMap (predicate =>
-      predicateSupporter.verify(predicate, createInitialContext(predicate, program)))
+      if (viper.api.Reachable.gonogo == null || viper.api.Reachable.gonogo.predicate(predicate.name)) {
+        val l = predicateSupporter.verify(predicate, createInitialContext(predicate, program))
+        System.err.printf("Results for %s are %s%n",predicate.name,l);
+        l
+      } else {
+        List()
+      })
 
     val methodVerificationResults =
       methodSupporter.units.toList
-                           .filterNot(excludeMethod)
-                           .flatMap(method => {
-      val c = createInitialContext(method, program)
-//      ev.quantifiedChunkSupporter.initLastFVF(c.qpFields) /* TODO: Implement properly */
+        .filterNot(excludeMethod)
+        .flatMap(method => {
+          if (viper.api.Reachable.gonogo == null || viper.api.Reachable.gonogo.method(method.name)) {
+            val c = createInitialContext(method, program)
+            //      ev.quantifiedChunkSupporter.initLastFVF(c.qpFields) /* TODO: Implement properly */
 
-      methodSupporter.verify(method, c)
-    })
+            val l = methodSupporter.verify(method, c)
+            System.err.printf("Results for %s are %s%n",method.name,l);
+            l
+          } else {
+            List()
+          }
+        })
 
-    (   functionVerificationResults
-     ++ predicateVerificationResults
-     ++ methodVerificationResults)
+    (functionVerificationResults
+      ++ predicateVerificationResults
+      ++ methodVerificationResults)
   }
 
   private def createInitialContext(member: ast.Member, program: ast.Program): C = {
