@@ -315,7 +315,7 @@ class QuantifiedPermModule(val verifier: Verifier)
               }) ++
               (if (!usingOldState) curPerm := permSub(curPerm, permVar) else Nil)
           })
-      case w@sil.MagicWand(left,right) =>
+      case w@sil.MagicWand(_,_) =>
         val wandRep = wandModule.getWandRepresentation(w)
         val curPerm = currentPermission(translateNull, wandRep)
         Comment("permLe")++ //using RealLit(1.0) instead of FullPerm due to permLe's implementation
@@ -398,8 +398,8 @@ class QuantifiedPermModule(val verifier: Verifier)
           wildcardAssms ++
           notNull ++
           permPositive ++
-          enoughPerm ++
           CommentBlock("check if receiver " + recv.toString() + " is injective",injectiveAssertion) ++
+          enoughPerm ++
           CommentBlock("assumptions for inverse of receiver " + recv.toString(), Assume(invAssm1)++Assume(invAssm2)) ++
           Assume(Forall(obj,ts, condTrueLocations&&condFalseLocations )) ++
           independentLocations ++
