@@ -19,6 +19,7 @@ import viper.silicon.state._
 import viper.silicon.state.terms._
 import viper.silicon.state.terms.implicits._
 import viper.silicon.state.terms.perms.IsNonNegative
+import viper.silicon.state.terms.predef.`?r`
 import viper.silicon.supporters._
 import viper.silicon.supporters.qps.{SummarisingFvfDefinition, QuantifiedChunkSupporter}
 import viper.silicon.supporters.functions.FunctionSupporter
@@ -150,103 +151,34 @@ trait DefaultEvaluator[ST <: Store[ST],
         assume(tConstraints)
         Q(WildcardPerm(tVar), c)
 
-      case ast.CurrentPerm(locacc) =>
-        evalLocationAccess(σ, locacc, pve, c)((name, args, c1) =>
-          chunkSupporter.getChunk(σ, c.partiallyConsumedHeap.getOrElse(σ.h), name, args, c1) match {
-            case Some(ch) => Q(ch.perm, c1)
-            case None => Q(NoPerm(), c1)
-          })
-
       case fa: ast.FieldAccess if c.qpFields.contains(fa.field) =>
         eval(σ, fa.rcv, pve, c)((tRcvr, c1) => {
           val (quantifiedChunks, _) = quantifiedChunkSupporter.splitHeap(σ.h, fa.field.name)
           c.fvfCache.get((fa.field, quantifiedChunks)) match {
             case Some(fvfDef: SummarisingFvfDefinition) if !config.disableValueMapCaching() =>
-//              decider.assert(σ, PermLess(NoPerm(), quantifiedChunkSupporter.permission(quantifiedChunks, tRcvr, fa.field))) {
               decider.assert(σ, PermLess(NoPerm(), fvfDef.totalPermissions(tRcvr))) {
                 case false =>
                   Failure(pve dueTo InsufficientPermission(fa))
                 case true =>
-                  /* TODO: Re-use code between this and the 'case None' further down */
                   val fvfLookup = Lookup(fa.field.name, fvfDef.fvf, tRcvr)
-                  val qvars = c1.quantifiedVariables//.filter(qv => tRcvr.existsDefined{case `qv` => true})
-                  val bcs = List.empty[Term]//decider.pcs.branchConditions
-                  val lk = c1.functionRecorder.data match {
-                    case Some(data) =>
-                      val v2qv = toMap(σ.γ.values collect {
-                        case (k, v: Var) if qvars.contains(v) && !data.formalArgs.contains(k) =>
-                          v -> Var(SimpleIdentifier(k.name), v.sort)
-                        case (k, v: Var) if v == data.formalResult =>
-                          v -> data.limitedFunctionApplication})
-                      fvfLookup.replace(v2qv)
-                    case None =>
-                      fvfLookup}
-                  val fr1 = c1.functionRecorder.recordSnapshot(fa, bcs, lk)
+                  val fr1 = c1.functionRecorder.recordSnapshot(fa, decider.pcs.branchConditions, fvfLookup)
                   val c2 = c1.copy(functionRecorder = fr1)
                   Q(fvfLookup, c2)}
 
             case _ =>
               quantifiedChunkSupporter.withValue(σ, σ.h, fa.field, Nil, True(), tRcvr, pve, fa, c1)(fvfDef => {
-                //            val fvfDomain = fvfDef.domainDefinitions
                 val fvfLookup = Lookup(fa.field.name, fvfDef.fvf, tRcvr)
-                //            val fvfLookup = Apply(fvfDef.fvf, Seq(tRcvr))
-//                assume(/*fvfDomain ++ */fvfDef.valueDefinitions)
                 assume(fvfDef)
-                val qvars = c1.quantifiedVariables//.filter(qv => tRcvr.existsDefined{case `qv` => true})
-//            val fr1 = c1.functionRecorder.recordSnapshot(fa, c1.branchConditions, fvfLookup)
-//                                         .recordQPTerms(qvars, c1.branchConditions, /*fvfDomain ++ */fvfDef.valueDefinitions)
-            val bcs = List.empty[Term]//decider.pcs.branchConditions
-            /* TODO: Implement less hacky.
-             *       When a function's precondition is translated (when its definitional axiom
-             *       is generated), local variables that are not parameters of the function
-             *       itself will be translated as-is, i.e. 'x' will be translated to 'x', not to
-             *       some 'x@1'. This (currently) only affects quantified variables: at this
-             *       point, where the snapshot mapping 'e.f |-> lookup(..., e.f)' is recorded
-             *       by the function recorder, a quantified variable 'y' is bound to some 'y@2',
-             *       which might occur in 'e.f', and therefore, in 'lookup(..., e.f)'.
-             *       To prevent that 'y@2' ends up in the function definition axiom, all such
-             *       occurrences 'z@i' are replaced by just 'z'.
-             *
-             *       Similarly, HeapAccessReplacingExpressionTranslator translates 'result',
-             *       as used in function postconditions, to an application of the limited
-             *       function symbol. However, if 'result' occurs in the receiver expression
-             *       of a QP field access, e.g. in 'loc(a, result).val', then the function
-             *       recorder records 'loc(a, result@99).val'.
-             */
-            val lk = c1.functionRecorder.data match {
-              case Some(data) =>
-                val v2qv = toMap(σ.γ.values collect {
-                  case (k, v: Var) if qvars.contains(v) && !data.formalArgs.contains(k) =>
-                    v -> Var(SimpleIdentifier(k.name), v.sort)
-                  case (k, v: Var) if v == data.formalResult =>
-                    v -> data.limitedFunctionApplication})
-                fvfLookup.replace(v2qv)
-              case None =>
-                fvfLookup}
-            val fr1 = c1.functionRecorder.recordSnapshot(fa, bcs, lk)
-                                         .recordQPTerms(qvars, bcs, /*fvfDomain ++ */fvfDef.quantifiedValueDefinitions)
-            val fr2 = if (true/*fvfDef.freshFvf*/) fr1.recordFvf(fa.field, fvfDef.fvf) else fr1
-            val c2 = c1.copy(functionRecorder = fr2,
-                             fvfCache = if (config.disableValueMapCaching()) c1.fvfCache else c1.fvfCache + ((fa.field, quantifiedChunks) -> fvfDef))
-            Q(fvfLookup, c2)})}})
-
-//        eval(σ, fa.rcv, pve, c)((tRcvr, c1) => {
-//          quantifiedChunkSupporter.withValue(σ, σ.h, fa.field, Nil, True(), tRcvr, pve, fa, c1)(fvfDef => {
-////            val fvfDomain = fvfDef.domainDefinitions
-//            val fvfLookup = Lookup(fa.field.name, fvfDef.fvf, tRcvr)
-////            val fvfLookup = Apply(fvfDef.fvf, Seq(tRcvr))
-//            assume(/*fvfDomain ++ */fvfDef.valueDefinitions)
-//            val qvars = c1.quantifiedVariables.filter(qv => tRcvr.existsDefined{case `qv` => true})
-//            val fr1 = c1.functionRecorder.recordSnapshot(fa, c1.branchConditions, fvfLookup)
-//                                         .recordQPTerms(qvars, c1.branchConditions, /*fvfDomain ++ */fvfDef.valueDefinitions)
-//            val fr2 = if (true/*fvfDef.freshFvf*/) fr1.recordFvf(fa.field, fvfDef.fvf) else fr1
-//            val c2 = c1.copy(functionRecorder = fr2)
-//            Q(fvfLookup, c2)})})
+                val fr1 = c1.functionRecorder.recordSnapshot(fa, decider.pcs.branchConditions, fvfLookup)
+                                             .recordQPTerms(c1.quantifiedVariables, decider.pcs.branchConditions, /*fvfDomain ++ */fvfDef.quantifiedValueDefinitions)
+                val fr2 = if (true/*fvfDef.freshFvf*/) fr1.recordFvf(fa.field, fvfDef.fvf) else fr1
+                val c2 = c1.copy(functionRecorder = fr2,
+                                 fvfCache = if (config.disableValueMapCaching()) c1.fvfCache else c1.fvfCache + ((fa.field, quantifiedChunks) -> fvfDef))
+                Q(fvfLookup, c2)})}})
 
       case fa: ast.FieldAccess =>
         evalLocationAccess(σ, fa, pve, c)((name, args, c1) =>
           chunkSupporter.withChunk(σ, σ.h, name, args, None, fa, pve, c1)((ch, c2) => {
-//            val c3 = c2.copy(functionRecorder = c2.functionRecorder.recordSnapshot(fa, c2.branchConditions, ch.snap))
             val c3 = c2.copy(functionRecorder = c2.functionRecorder.recordSnapshot(fa, decider.pcs.branchConditions, ch.snap))
             Q(ch.snap, c3)}))
 
@@ -296,14 +228,15 @@ trait DefaultEvaluator[ST <: Store[ST],
 
       case ast.Implies(e0, e1) =>
         eval(σ, e0, pve, c)((t0, c1) =>
-          join[Term, Term](c1, QB =>
-            branch(σ, t0, c1,
-              (c2: C) => eval(σ, e1, pve, c2)(QB),
-              (c2: C) => QB(True(), c2))
-          )(entries => {
-            assert(entries.length <= 2)
-            Implies(t0, entries.headOption.map(_.data).getOrElse(True()))
-          })(Q))
+          evalImplies(σ, t0, e1, pve, c1)(Q))
+//          join[Term, Term](c1, QB =>
+//            branch(σ, t0, c1,
+//              (c2: C) => eval(σ, e1, pve, c2)(QB),
+//              (c2: C) => QB(True(), c2))
+//          )(entries => {
+//            assert(entries.length <= 2)
+//            Implies(t0, entries.headOption.map(_.data).getOrElse(True()))
+//          })(Q))
 
       case ite @ ast.CondExp(e0, e1, e2) =>
         eval(σ, e0, pve, c)((t0, c1) =>
@@ -363,6 +296,10 @@ trait DefaultEvaluator[ST <: Store[ST],
       case ast.PermSub(e0, e1) =>
         evalBinOp(σ, e0, e1, PermMinus, pve, c)(Q)
 
+      case ast.PermMinus(e0) =>
+        eval(σ, e0, pve, c)((t0, c1) =>
+          Q(PermMinus(NoPerm(), t0), c1))
+
       case ast.PermMul(e0, e1) =>
         evalBinOp(σ, e0, e1, PermTimes, pve, c)(Q)
 
@@ -398,34 +335,55 @@ trait DefaultEvaluator[ST <: Store[ST],
           val fi = symbolConverter.toFunction(c.program.findDomainFunction(funcName), inSorts :+ outSort)
           Q(App(fi, tArgs), c1)})
 
-      case ast.ForPerm(varDecl, accessList, body) =>
+      case ast.CurrentPerm(locacc) =>
         val h = c.partiallyConsumedHeap.getOrElse(σ.h)
+        evalLocationAccess(σ, locacc, pve, c)((name, args, c1) => {
+          val loc = locacc.loc(c1.program)
+          /* It is assumed that, for a given field/predicate identifier (loc)
+           * either only quantified or only non-quantified chunks are used.
+           */
+          val usesQPChunks =
+            loc match {
+              case field: ast.Field => c.qpFields.contains(field)
+              case pred: ast.Predicate => false /* TODO: Support predicates under QPs */
+            }
+          val perm =
+            if (usesQPChunks) {
+              val chs = h.values.collect { case ch: QuantifiedChunk if ch.name == name => ch }
+              chs.foldLeft(NoPerm(): Term)((q, ch) =>
+                PermPlus(q, ch.perm.replace(`?r`, args.head))) /* TODO: Support predicates under QPs */
+            } else {
+              val chs = h.values.collect { case ch: BasicChunk if ch.name == name => ch }
+              chs.foldLeft(NoPerm(): Term)((q, ch) => {
+                val argsPairWiseEqual = And(args.zip(ch.args).map{case (a1, a2) => a1 === a2})
+                PermPlus(q, Ite(argsPairWiseEqual, ch.perm, NoPerm()))})
+            }
+          Q(perm, c1)})
+
+      case ast.ForPerm(varDecl, accessList, body) =>
+        val σ1 = σ \ c.partiallyConsumedHeap.getOrElse(σ.h)
         val qvar = varDecl.localVar
         val locs = accessList.map(_.name)
+        val chs = σ1.h.values.collect { case ch: BasicChunk if locs contains ch.name => ch }
 
         /* Iterate over the list of relevant chunks in continuation passing style (very similar
          * to evals), and evaluate the forperm-body with a different qvar assignment each time.
          */
-        def bindRcvrAndEvalBody(rcvrs: Iterable[Term],
+        def bindRcvrAndEvalBody(chs: Iterable[BasicChunk],
                                 ts: Seq[Term],
                                 c: C)
                                (Q: (Seq[Term], C) => VerificationResult)
-                               : VerificationResult =
-
-          if (rcvrs.isEmpty)
+                               : VerificationResult = {
+          if (chs.isEmpty)
             Q(ts.reverse, c)
-          else
-            eval(σ \+ (qvar, rcvrs.head), body, pve, c)((tBody, c1) =>
-              bindRcvrAndEvalBody(rcvrs.tail, tBody +: ts, c1)(Q))
-
-        val rcvrs: Iterable[Term] = h.values.collect {
-          case fch: FieldChunk if locs contains fch.name => (fch.rcvr, fch.perm)
-          case pch: PredicateChunk if locs contains pch.name => (pch.args.head, pch.perm)
-        }.collect {
-          case (rcvr, perm) if decider.check(σ, PermLess(NoPerm(), perm), config.checkTimeout()) => rcvr
+          else {
+            val ch = chs.head
+            val rcvr = ch.args.head /* NOTE: If ch is a predicate chunk, only the first argument is used */
+            evalImplies(σ1 \+ (qvar, rcvr), PermLess(NoPerm(), ch.perm), body, pve, c)((tImplies, c1) =>
+              bindRcvrAndEvalBody(chs.tail, tImplies +: ts, c1)(Q))}
         }
 
-        bindRcvrAndEvalBody(rcvrs, Seq.empty, c)((ts, c1) =>
+        bindRcvrAndEvalBody(chs, Seq.empty, c)((ts, c1) =>
           Q(And(ts), c1))
 
       case sourceQuant: ast.QuantifiedExp /*if config.disableLocalEvaluations()*/ =>
@@ -440,40 +398,12 @@ trait DefaultEvaluator[ST <: Store[ST],
 
         val body = eQuant.exp
         val vars = eQuant.variables map (_.localVar)
-
-        val tVars = vars map (v => fresh(v.name, toSort(v.typ)))
-        val γVars = Γ(vars zip tVars)
-        val σQuant = σ \+ γVars
-
-        val c0 = c.copy(quantifiedVariables = tVars ++ c.quantifiedVariables,
-                        recordPossibleTriggers = true,
-                        possibleTriggers = Map.empty)
-
-        decider.locally[(Quantification, Iterable[Term], Quantification, C)](QB => {
-          val preMark = decider.setPathConditionMark()
-          eval(σQuant, body, pve, c0)((tBody, c1) => {
-            val πDelta = decider.pcs.after(preMark).assumptions
-            evalTriggers(σQuant, eTriggers, πDelta, pve, c1)((triggers, c2) => {
-              val sourceLine = utils.ast.sourceLine(sourceQuant)
-              val tQuant = Quantification(qantOp, tVars, tBody, triggers, s"prog.l$sourceLine")
-              val (tAuxTopLevel, tAuxNested) = state.utils.partitionAuxiliaryTerms(πDelta)
-              val tAuxQuant = Quantification(qantOp, tVars, And(tAuxNested), triggers, s"prog.l$sourceLine-aux")
-              val c3 = c2.copy(quantifiedVariables = c2.quantifiedVariables.drop(tVars.length),
-                               recordPossibleTriggers = c.recordPossibleTriggers,
-                               possibleTriggers = c.possibleTriggers ++ (if (c.recordPossibleTriggers) c2.possibleTriggers else Map()))
-              QB(tQuant, tAuxTopLevel, tAuxQuant, c3)})})
-        }){case (tQuant, tAuxTopLevel, tAuxQuant, c1) =>
-//          val (_fvfDefs, _tOthers) =
-//            tAuxTopLevel.partition(_.isInstanceOf[SummarisingFvfDefinition])
-//                        .asInstanceOf[(Iterable[SummarisingFvfDefinition], Iterable[Term])]
-          decider.prover.logComment("Top-level auxiliary terms")
-          assume(tAuxTopLevel)
-//          assume(_tOthers)
-//          assume(_fvfDefs.flatMap(_.quantifiedValueDefinitions))
+        val name = s"prog.l${utils.ast.sourceLine(sourceQuant)}"
+        evalQuantified(σ, qantOp, vars, Nil, Seq(body), eTriggers, name, pve, c){case (tVars, _, Seq(tBody), tTriggers, tAuxQuant, c1) =>
           decider.prover.logComment("Nested auxiliary terms")
           assume(tAuxQuant)
-          Q(tQuant, c1)
-        }
+          val tQuant = Quantification(qantOp, tVars, tBody, tTriggers, name)
+          Q(tQuant, c1)}
 
       case fapp @ ast.FuncApp(funcName, eArgs) =>
         val pvePre = PreconditionInAppFalse(fapp)
@@ -650,12 +580,83 @@ trait DefaultEvaluator[ST <: Store[ST],
     resultTerm
   }
 
+  def evalQuantified(σ: S, quant: Quantifier, vars: Seq[ast.LocalVar], es1: Seq[ast.Exp], es2: Seq[ast.Exp], triggers: Seq[ast.Trigger], name: String, pve: PartialVerificationError, c: C)
+                    (Q: (Seq[Var], Seq[Term], Seq[Term], Seq[Trigger], Quantification, C) => VerificationResult)
+                    : VerificationResult = {
+
+    val tVars = vars map (v => fresh(v.name, toSort(v.typ)))
+    val γVars = Γ(vars zip tVars)
+    val σQuant = σ \+ γVars
+
+    val c0 = c.copy(quantifiedVariables = tVars ++ c.quantifiedVariables,
+                    recordPossibleTriggers = true,
+                    possibleTriggers = Map.empty)
+
+    decider.locally[(Seq[Term], Seq[Term], Seq[Trigger], Iterable[Term], Quantification, C)](QB => {
+      val preMark = decider.setPathConditionMark()
+      evals(σQuant, es1, _ => pve, c0)((ts1, c1) => {
+        val bc = And(ts1)
+        decider.setCurrentBranchCondition(bc)
+        evals(σQuant, es2, _ => pve, c1)((ts2, c2) => {
+          val πDelta = decider.pcs.after(preMark).assumptions - bc
+          evalTriggers(σQuant, triggers, πDelta, pve, c2)((tTriggers, c3) => {
+            val (tAuxTopLevel, tAuxNested) = state.utils.partitionAuxiliaryTerms(πDelta)
+            val tAuxQuant = Quantification(quant, tVars, And(tAuxNested), tTriggers, s"$name-aux")
+            val c4 = c3.copy(quantifiedVariables = c3.quantifiedVariables.drop(tVars.length),
+                             recordPossibleTriggers = c.recordPossibleTriggers,
+                             possibleTriggers = c.possibleTriggers ++ (if (c.recordPossibleTriggers) c3.possibleTriggers else Map()))
+            QB(ts1, ts2, tTriggers, tAuxTopLevel, tAuxQuant, c4)})})})
+    }){case (ts1, ts2, tTriggers, tAuxTopLevel, tAuxQuant, c1) =>
+      decider.prover.logComment("Top-level auxiliary terms")
+      assume(tAuxTopLevel)
+      Q(tVars, ts1, ts2, tTriggers, tAuxQuant, c1)
+    }
+  }
+
+  def evalImplies(σ: S, tLhs: Term, eRhs: ast.Exp, pve: PartialVerificationError, c: C)
+                 (Q: (Term, C) => VerificationResult)
+                 : VerificationResult = {
+
+    join[Term, Term](c, QB =>
+      branch(σ, tLhs, c,
+        (c1: C) => eval(σ, eRhs, pve, c1)(QB),
+        (c1: C) => QB(True(), c1))
+    )(entries => {
+      assert(entries.length <= 2)
+      Implies(tLhs, entries.headOption.map(_.data).getOrElse(True()))
+    })(Q)
+  }
+
   def evalOld(σ: S, h: H, e: ast.Exp, pve: PartialVerificationError, c: C)
              (Q: (Term, C) => VerificationResult)
              : VerificationResult =
 
-    eval(σ \ h, e, pve, c.copy(partiallyConsumedHeap = None))((t, c1) =>
-      Q(t, c1.copy(partiallyConsumedHeap = c.partiallyConsumedHeap)))
+    if (c.retrying) {
+      /* See comment in DefaultDecider.tryOrFail */
+      var originalChunks: Option[Iterable[Chunk]] = None
+      def compressHeapIfRetrying(c: C, σ: S, h: H) {
+        if (c.retrying) {
+          originalChunks = Some(h.values)
+          heapCompressor.compress(σ, h, c)
+        }
+      }
+      def restoreHeapIfPreviouslyCompressed(h: H) {
+        originalChunks match {
+          case Some(chunks) => h.replace(chunks)
+          case None => /* Nothing to do here */
+        }
+      }
+
+      compressHeapIfRetrying(c, σ, h)
+      val r =
+        eval(σ \ h, e, pve, c.copy(partiallyConsumedHeap = None))((t, c1) =>
+          Q(t, c1.copy(partiallyConsumedHeap = c.partiallyConsumedHeap)))
+      restoreHeapIfPreviouslyCompressed(h)
+
+      r
+    } else
+      eval(σ \ h, e, pve, c.copy(partiallyConsumedHeap = None))((t, c1) =>
+        Q(t, c1.copy(partiallyConsumedHeap = c.partiallyConsumedHeap)))
 
   def evalLocationAccess(σ: S,
                          locacc: ast.LocationAccess,
@@ -717,13 +718,7 @@ trait DefaultEvaluator[ST <: Store[ST],
                           (Q: (Seq[Trigger], C) => VerificationResult)
                           : VerificationResult = {
 
-    val eTriggerSets = silverTriggers map (_.exps)
-//    val πPre = decider.π
-
-    evalTriggers(σ, eTriggerSets, Nil, pve, c)((tTriggersSets, c1) => {
-      val hasFieldAccesses =
-        eTriggerSets.exists(_.exists(_.existsDefined { case fa: ast.FieldAccess => fa }))
-
+    evalTriggers(σ, silverTriggers map (_.exps), Nil, pve, c)((tTriggersSets, c1) => {
       /* [2015-12-15 Malte]
        *   Evaluating triggers that did not occur in the body (and whose corresponding term has
        *   therefore not already been recorded in the context) might introduce new path conditions,
@@ -740,28 +735,8 @@ trait DefaultEvaluator[ST <: Store[ST],
        *         Using such effectively "undefined" symbols in triggers will most likely result in
        *         incompletenesses because the corresponding quantifiers will not be triggered.
        */
-      val allPathConditions = bodyPathConditions // ++ (decider.π -- πPre)
 
-      val expandedTriggersSets =
-        if (hasFieldAccesses)
-          QuantifiedChunkSupporter.expandFvfLookupsInTriggers(tTriggersSets, allPathConditions)
-        else
-          Seq.empty
-
-      /* [2015-12-15 Malte]
-       *   The expanded trigger sets are not enough, the unexpanded triggers are needed as well.
-       *   This is, because the "unexpanded" field value function will be used in the actual
-       *   quantification (term), and it must therefore be possible to trigger the auxiliary
-       *   quantification by mentioning the "unexpanded" field value function.
-       *   Regression test quantifiedpermissions/misc/triggers_field_deref.sil, method test07a,
-       *   illustrates this issue.
-       *
-       *   NOTE: This might no longer be an issue once Silicon re-uses field value functions
-       *         (instead of introducing a fresh field value function for each field dereference).
-       */
-      val allTriggersSets = tTriggersSets ++ expandedTriggersSets
-
-      Q(allTriggersSets map Trigger, c1)})
+      Q(tTriggersSets map Trigger, c1)})
   }
 
   /** Evaluates the given list of trigger sets `eTriggerSets` (expressions) and passes the result

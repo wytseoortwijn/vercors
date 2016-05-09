@@ -130,80 +130,47 @@ trait DefaultConsumer[ST <: Store[ST], H <: Heap[H], S <: State[ST, H, S]]
             (c2: C) => consume(σ, h, p, a1, pve, c2)(Q),
             (c2: C) => consume(σ, h, p, a2, pve, c2)(Q)))
 
-      case ast.utility.QuantifiedPermissions.QPForall(qvar, condition, rcvr, field, loss, forall, fa) =>
-        val tQVar = decider.fresh(qvar.name, toSort(qvar.typ))
-        val γQVar = Γ(ast.LocalVar(qvar.name)(qvar.typ), tQVar)
-        val σQVar = σ \+ γQVar
-        val c0 = c.copy(quantifiedVariables = tQVar +: c.quantifiedVariables)
-        decider.locally[(Term, Term, Term, Iterable[Term], Quantification, C)](QB => {
-          val preMark = decider.setPathConditionMark()
-          eval(σQVar, condition, pve, c0)((tCond, c1) =>
-            if (decider.check(σQVar, Not(tCond), config.checkTimeout())) {
-              /* The condition cannot be satisfied, hence we don't need to consume anything. */
-              val c2 = c1.copy(quantifiedVariables = c1.quantifiedVariables.tail)
-              Q(h, Unit, c2)
-            } else {
-              decider.setCurrentBranchCondition(tCond)
-              eval(σQVar, rcvr, pve, c1)((tRcvr, c2) =>
-                decider.assert(σ, tRcvr !== Null()) {
-                  case true =>
-                    eval(σQVar, loss, pve, c2)((pLoss, c3) =>
-                      decider.assert(σ, perms.IsNonNegative(pLoss)) {
-                        case true =>
-                          val πDelta = decider.pcs.after(preMark).assumptions - tCond /* Removing tCond is crucial */
-                          val (tAuxTopLevel, tAuxNested) = state.utils.partitionAuxiliaryTerms(πDelta)
-                          val tAuxQuantNoTriggers = Forall(tQVar, And(tAuxNested), Nil, s"prog.l${utils.ast.sourceLine(forall)}-aux")
-                          val c4 = c3.copy(quantifiedVariables = c3.quantifiedVariables.tail)
-                          QB(tCond, tRcvr, pLoss, tAuxTopLevel, tAuxQuantNoTriggers, c4)
-                        case false =>
-                          Failure(pve dueTo NegativePermission(loss))})
-                  case false =>
-                    Failure(pve dueTo ReceiverNull(fa))})})
-        }){case (tCond, tRcvr, pLoss, tAuxTopLevel, tAuxQuantNoTriggers, c1) =>
-            val hints = quantifiedChunkSupporter.extractHints(Some(tQVar), Some(tCond), tRcvr)
-            val chunkOrderHeuristics = quantifiedChunkSupporter.hintBasedChunkOrderHeuristic(hints)
-            val invFct =
-              quantifiedChunkSupporter.getFreshInverseFunction(tQVar, tRcvr, tCond, c1.quantifiedVariables)
-            decider.prover.logComment("Top-level auxiliary terms")
-            assume(tAuxTopLevel)
-            decider.prover.logComment("Nested auxiliary terms")
-            assume(tAuxQuantNoTriggers.copy(triggers = invFct.invOfFct.triggers)) /* NOTE: It might be necessary to do the same as in DefaultProducer */
-  //          val (quantifiedChunks, _) = quantifiedChunkSupporter.splitHeap(h2, field.name)
-  //          qpForallCache.get((forall, toSet(quantifiedChunks))) match {
-                /* TODO: Re-enable caching. Needs to take context.branchConditions into account as well. Something else? */
-  //            case Some((tQVarCached, tRcvrCached, tCondCached, invAxiomsCached, hCached, chCached, cCached))
-  //              if tRcvr == tRcvrCached.replace(tQVarCached, tQVar) && tCond == tCondCached.replace(tQVarCached, tQVar) =>
-  //              assume(invAxiomsCached)
-  //              Q(hCached, chCached.fvf, /*ch :: */Nil, cCached)
-  //            case _ =>
-            /* TODO: Can we omit/simplify the injectivity check in certain situations? */
-            val receiverInjective = quantifiedChunkSupporter.injectivityAxiom(tQVar, tCond, tRcvr)
-            decider.prover.logComment("Check receiver injectivity")
-            decider.assert(σ, receiverInjective) {
+      case ast.utility.QuantifiedPermissions.QPForall(qvar, cond, rcvr, field, loss, forall, fa) =>
+        val qid = s"prog.l${utils.ast.sourceLine(forall)}"
+        evalQuantified(σ, Forall, Seq(qvar.localVar), Seq(cond), Seq(rcvr, loss), Nil, qid, pve, c){
+          case (Seq(tQVar), Seq(tCond), Seq(tRcvr, tLoss), _, tAuxQuantNoTriggers, c1) =>
+            decider.assert(σ, Forall(tQVar, Implies(tCond, tRcvr !== Null()), Nil)) {
               case true =>
-                decider.prover.logComment("Definitional axioms for inverse functions")
-                assume(invFct.definitionalAxioms)
-                val inverseReceiver = invFct(`?r`) // e⁻¹(r)
-                quantifiedChunkSupporter.splitLocations(σ, h, field, Some(tQVar), inverseReceiver, tCond, tRcvr, PermTimes(pLoss, p), chunkOrderHeuristics, c1) {
-                  case Some((h1, ch, fvfDef, c2)) =>
-                    val fvfDomain = if (c2.fvfAsSnap) fvfDef.domainDefinitions(invFct) else Seq.empty
-                    decider.prover.logComment("Definitional axioms for field value function")
-                    assume(fvfDomain ++ fvfDef.valueDefinitions)
-                    //                if (!config.disableQPCaching())
-                    //                  qpForallCache.update((forall, toSet(quantifiedChunks)), (tQVar, tRcvr, tCond, invFct.definitionalAxioms, h3, ch, c2))
-                    val fr1 = c2.functionRecorder.recordQPTerms(c2.quantifiedVariables,
-//                                                                c2.branchConditions,
-                                                                decider.pcs.branchConditions,
-                                                                invFct.definitionalAxioms ++ fvfDomain ++ fvfDef.valueDefinitions)
-                    val fr2 = if (true/*fvfDef.freshFvf*/) fr1.recordFvf(field, fvfDef.fvf) else fr1
-                    val c3 = c2.copy(functionRecorder = fr2)
-                    Q(h1, ch.fvf.convert(sorts.Snap), c3)
-                  case None =>
-                    Failure(pve dueTo InsufficientPermission(fa))}
+                decider.assert(σ, Forall(tQVar, Implies(tCond, perms.IsNonNegative(tLoss)), Nil)) {
+                  case true =>
+                    val hints = quantifiedChunkSupporter.extractHints(Some(tQVar), Some(tCond), tRcvr)
+                    val chunkOrderHeuristics = quantifiedChunkSupporter.hintBasedChunkOrderHeuristic(hints)
+                    val invFct =
+                      quantifiedChunkSupporter.getFreshInverseFunction(tQVar, tRcvr, tCond, c1.quantifiedVariables)
+                    decider.prover.logComment("Nested auxiliary terms")
+                    assume(tAuxQuantNoTriggers.copy(vars = invFct.invOfFct.vars, triggers = invFct.invOfFct.triggers))
+                    /* TODO: Can we omit/simplify the injectivity check in certain situations? */
+                    val receiverInjective = quantifiedChunkSupporter.injectivityAxiom(tQVar, tCond, tRcvr)
+                    decider.prover.logComment("Check receiver injectivity")
+                    decider.assert(σ, receiverInjective) {
+                      case true =>
+                        decider.prover.logComment("Definitional axioms for inverse functions")
+                        assume(invFct.definitionalAxioms)
+                        val inverseReceiver = invFct(`?r`) // e⁻¹(r)
+                        quantifiedChunkSupporter.splitLocations(σ, h, field, Some(tQVar), inverseReceiver, tCond, tRcvr, PermTimes(tLoss, p), chunkOrderHeuristics, c1) {
+                          case Some((h1, ch, fvfDef, c2)) =>
+                            val fvfDomain = if (c2.fvfAsSnap) fvfDef.domainDefinitions(invFct) else Seq.empty
+                            decider.prover.logComment("Definitional axioms for field value function")
+                            assume(fvfDomain ++ fvfDef.valueDefinitions)
+                            val fr1 = c2.functionRecorder.recordQPTerms(c2.quantifiedVariables,
+                                                                        decider.pcs.branchConditions,
+                                                                        invFct.definitionalAxioms ++ fvfDomain ++ fvfDef.valueDefinitions)
+                            val fr2 = if (true/*fvfDef.freshFvf*/) fr1.recordFvf(field, fvfDef.fvf) else fr1
+                            val c3 = c2.copy(functionRecorder = fr2)
+                            Q(h1, ch.fvf.convert(sorts.Snap), c3)
+                          case None =>
+                            Failure(pve dueTo InsufficientPermission(fa))}
+                      case false =>
+                        Failure(pve dueTo ReceiverNotInjective(fa))}
+                  case false =>
+                    Failure(pve dueTo NegativePermission(loss))}
               case false =>
-                Failure(pve dueTo ReceiverNotInjective(fa))}
-            //}
-        }
+                Failure(pve dueTo ReceiverNull(fa))}}
 
       case ast.AccessPredicate(fa @ ast.FieldAccess(eRcvr, field), perm)
           if c.qpFields.contains(field) =>
@@ -286,7 +253,7 @@ trait DefaultConsumer[ST <: Store[ST], H <: Heap[H], S <: State[ST, H, S]]
           case _ => sys.error(s"Expected a magic wand, but found node $φ")
         }
 
-      case pckg @ ast.Packaging(eWand, eIn) =>
+      case pckg @ ast.PackagingGhostOp(eWand, eIn) =>
 //        val pve = PackagingFailed(pckg)
         magicWandSupporter.packageWand(σ, eWand, pve, c)((chWand, c1) => {
           val h2 = h + chWand /* h2 = σUsed'' */
@@ -299,7 +266,7 @@ trait DefaultConsumer[ST <: Store[ST], H <: Heap[H], S <: State[ST, H, S]]
           consume(σEmp, σEmp.h, FullPerm(), eIn, pve, c2)((h3, _, c3) =>
             Q(h3, decider.fresh(sorts.Snap), c3))})
 
-      case ast.Applying(eWandOrVar, eIn) =>
+      case ast.ApplyingGhostOp(eWandOrVar, eIn) =>
         val (eWand, eLHSAndWand, γ1) = eWandOrVar match {
           case _eWand: ast.MagicWand =>
             (_eWand, ast.And(_eWand.left, _eWand)(_eWand.left.pos, _eWand.left.info), σ.γ)
@@ -320,16 +287,16 @@ trait DefaultConsumer[ST <: Store[ST], H <: Heap[H], S <: State[ST, H, S]]
             consume(σ1, h1, FullPerm(), eIn, pve, c1)((h4, _, c4) =>
               Q(h4, decider.fresh(sorts.Snap), c4))}
 
-      case ast.Folding(acc @ ast.PredicateAccessPredicate(ast.PredicateAccess(eArgs, predicateName), ePerm),
-                       eIn) =>
+      case ast.FoldingGhostOp(acc @ ast.PredicateAccessPredicate(ast.PredicateAccess(eArgs, predicateName), ePerm),
+                              eIn) =>
 
         heuristicsSupporter.tryOperation[S, H](s"folding $acc")(σ, h, c)((σ, h, c, QS) =>
           magicWandSupporter.foldingPredicate(σ, acc, pve, c)(QS)){case (σ1, h1, c1) =>
             consume(σ1, h1, FullPerm(), eIn, pve, c1)((h4, _, c4) =>
               Q(h4, decider.fresh(sorts.Snap), c4))}
 
-      case ast.Unfolding(acc @ ast.PredicateAccessPredicate(ast.PredicateAccess(eArgs, predicateName), ePerm),
-                       eIn) if c.exhaleExt && !φ.isPure =>
+      case ast.UnfoldingGhostOp(acc @ ast.PredicateAccessPredicate(ast.PredicateAccess(eArgs, predicateName), ePerm),
+                                eIn) =>
 
         heuristicsSupporter.tryOperation[S, H](s"unfolding $acc")(σ, h, c)((σ, h, c, QS) =>
           magicWandSupporter.unfoldingPredicate(σ, acc, pve, c)(QS)){case (σ1, h1, c1) =>
