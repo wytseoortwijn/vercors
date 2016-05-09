@@ -27,8 +27,31 @@
       <arg value="fragment=all"/>
       <arg value="${fibonacci_pvl}"/>
     </exec>
+  	<exec executable="${basedir}/extract"
+	        failonerror="true"
+	        dir="${basedir}"
+	        output="${basedir}/array-all.pvl">
+      <arg value="-v"/>
+      <arg value="fragment=all"/>
+      <arg value="${basedir}/../../examples/manual/array.pvl"/>
+    </exec>
   </target>
 
+  <target name="manual" depends="extract">
+    <exec executable="pdflatex"
+	        failonerror="true"
+	        dir="${basedir}">
+	    <arg value="manual"/>
+	    <env key="TEXINPUTS" value="${basedir}/../../examples//:.::" />
+    </exec>
+    <exec executable="pdflatex"
+	        failonerror="true"
+	        dir="${basedir}">
+	    <arg value="manual"/>
+	    <env key="TEXINPUTS" value="${basedir}/../../examples//:.::" />
+    </exec>
+  </target>
+  
   <target name="pdf" depends="extract">
     <exec executable="pdflatex"
 	        failonerror="true"

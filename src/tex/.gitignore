@@ -7,6 +7,7 @@
 *.toc
 
 fibonacci-*.pvl
+array-*.pvl
 
 devguide.pdf
 manual.pdf
