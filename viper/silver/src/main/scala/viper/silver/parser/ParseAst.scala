@@ -8,11 +8,13 @@ package viper.silver.parser
 
 import org.kiama.util.Positions
 import viper.silver.ast.MagicWandOp
+
 import scala.util.parsing.input.Position
 import org.kiama.attribution.Attributable
 import viper.silver.ast.utility.Visitor
 import viper.silver.parser.TypeHelper._
-import java.nio.file.Path
+import viper.silver.verifier.{ParseError, ParseReport}
+
 import scala.language.implicitConversions
 
 /**
@@ -20,11 +22,49 @@ import scala.language.implicitConversions
  */
 
 trait KiamaPositioned {
+
+  /** Do not use these first three interfaces for reporting the positions.
+      They may or may not contain the rel_file field, depending on whether
+      the AST is constructed through the Parser or via the Scala interfaces. */
+
+  /** TODO get ride of 'implicit def liftPos' of Translator.scala and make these methods private. */
   def start = Positions.getStart(this)
-  def setStart(p:Position) = Positions.setStart(this,p)
-  def setPos(a:Any) : this.type = Positions.dupPos(a,this)
+  def startWhite = Positions.getStartWhite(this)
   def finish = Positions.getFinish(this)
-  def setFinish(p:Position) = Positions.setFinish(this,p)
+
+  /** Used for reporting the starting position of an AST node. */
+  def startPosStr = start match {
+    case fp: FilePosition =>
+      s"${fp.file.getFileName}@${start}"
+    case _ =>
+      s"${start}"
+  }
+
+  /** Used for reporting the range of positions occupied by an AST node. */
+  def rangeStr = start match {
+    case fp_a: FilePosition =>
+      require(finish.isInstanceOf[FilePosition],
+        s"start and finish positions must be instances of FilePosition at the same time")
+      val fp_b = finish.asInstanceOf[FilePosition]
+      if (fp_a.file == fp_b.file)
+        s"${fp_a.file.getFileName}@[${start.line}.${start.column}-${finish.line}.${finish.column}]"
+      else
+        // An AST node should probably not spread between multiple source files, but who knows?
+        s"[$fp_a-$fp_b]"
+    case _ =>
+      s"[${start}-${finish}]"
+  }
+
+  private def setStart(p: Position) = Positions.setStart(this, (p))
+  private def setStartWhite(p: Position) = Positions.setStartWhite(this, (p))
+  private def setFinish(p: Position) = Positions.setFinish(this, (p))
+
+  def setPos(a: KiamaPositioned): this.type = {
+    setStart(a.start)
+    setStartWhite(a.startWhite)
+    setFinish(a.finish)
+    this
+  }
 }
 
 /**
@@ -66,10 +106,11 @@ sealed trait PNode extends KiamaPositioned with Attributable {
   /** @see [[Transformer.transform()]]  */
   def transform(pre: PartialFunction[PNode, PNode] = PartialFunction.empty)
                (recursive: PNode => Boolean = !pre.isDefinedAt(_),
-                post: PartialFunction[PNode, PNode] = PartialFunction.empty)
+                post: PartialFunction[PNode, PNode] = PartialFunction.empty,
+                allowChangingNodeType: Boolean = false)
                : this.type =
 
-    Transformer.transform[this.type](this, pre)(recursive, post)
+    Transformer.transform[this.type](this, pre)(recursive, post, allowChangingNodeType)
 
   /** @see [[Visitor.deepCollect()]] */
   def deepCollect[A](f: PartialFunction[PNode, A]) : Seq[A] =
@@ -400,10 +441,10 @@ object POpApp{
   def pRes     = PTypeVar(pResS)
 }
 
-case class PFunctApp(func: PIdnUse, args: Seq[PExp]) extends POpApp
+case class PFunctApp(func: PIdnUse, args: Seq[PExp], typeAnnotated : Option[PType] = None) extends POpApp
 {
   override val opName = func.name
-  override def signatures = function match{
+  override def signatures = if (function.formalArgs.size == args.size) (function match{
     case pf:PFunction => Set(
       new PTypeSubstitution(args.indices.map(i => POpApp.pArg(i).domain.name -> function.formalArgs(i).typ) :+ (POpApp.pRes.domain.name -> function.typ))
     )
@@ -413,7 +454,8 @@ case class PFunctApp(func: PIdnUse, args: Seq[PExp]) extends POpApp
           args.indices.map(i => POpApp.pArg(i).domain.name -> function.formalArgs(i).typ.substitute(domainTypeRenaming.get)) :+
             (POpApp.pRes.domain.name -> pdf.typ.substitute(domainTypeRenaming.get)))
       )
-  }
+  }) else Set() // this case is handled in Resolver.scala (- method check) which generates the appropriate error message
+
   var function : PAnyFunction = null
   override def extraLocalTypeVariables = _extraLocalTypeVariables
   var _extraLocalTypeVariables : Set[PDomainType] = Set()
@@ -458,7 +500,8 @@ case class PBinExp(left: PExp, opName: String, right: PExp) extends POpApp {
     case "*" => Set(
       Map(POpApp.pArgS(0) -> Int, POpApp.pArgS(1) -> Int, POpApp.pResS -> Int),
       Map(POpApp.pArgS(0) -> Perm, POpApp.pArgS(1) -> Perm, POpApp.pResS -> Perm),
-      Map(POpApp.pArgS(0) -> Int, POpApp.pArgS(1) -> Perm, POpApp.pResS -> Perm)
+      Map(POpApp.pArgS(0) -> Int, POpApp.pArgS(1) -> Perm, POpApp.pResS -> Perm),
+      Map(POpApp.pArgS(0) -> Perm, POpApp.pArgS(1) -> Int, POpApp.pResS -> Perm)
     )
     case "/" => Set(
       Map(POpApp.pArgS(0) -> Int, POpApp.pArgS(1) -> Int, POpApp.pResS -> Perm),
@@ -583,20 +626,25 @@ sealed trait PUnFoldingExp extends PHeapOpApp{
 }
 
 case class PUnfolding(acc: PAccPred, exp: PExp) extends PUnFoldingExp{
-  override final val opName = "#unfolding"
-}
-case class PFolding(acc: PAccPred, exp: PExp) extends PUnFoldingExp{
-  override final val opName = "#folding"
+  override final val opName = "unfolding"
 }
 
-case class PApplying(wand: PExp, exp: PExp) extends PHeapOpApp{
+case class PUnfoldingGhostOp(acc: PAccPred, exp: PExp) extends PUnFoldingExp {
+  override final val opName = "unfolding"
+}
+
+case class PFoldingGhostOp(acc: PAccPred, exp: PExp) extends PUnFoldingExp {
+  override final val opName = "folding"
+}
+
+case class PApplyingGhostOp(wand: PExp, exp: PExp) extends PHeapOpApp {
   override final val opName = "applying"
   override final val args = Seq(wand,exp)
   val signatures : Set[PTypeSubstitution] = Set(
     Map(POpApp.pArgS(0) -> Wand, POpApp.pResS -> POpApp.pArg(1))
   )
 }
-case class PPackaging(wand: PExp, exp: PExp) extends PHeapOpApp{
+case class PPackagingGhostOp(wand: PExp, exp: PExp) extends PHeapOpApp{
   override final val opName = "packaging"
   override final val args = Seq(wand,exp)
   val signatures : Set[PTypeSubstitution]  = Set(
@@ -831,7 +879,7 @@ case class PGoto(targets: PIdnUse) extends PStmt
 case class PTypeVarDecl(idndef: PIdnDef) extends PLocalDeclaration
 
 case class PLetWand(idndef: PIdnDef, exp: PExp) extends PStmt with PLocalDeclaration
-case class PDefine(idndef: PIdnDef, args: Option[Seq[PIdnDef]], exp: PExp) extends PStmt with PLocalDeclaration
+case class PDefine(idndef: PIdnDef, args: Option[Seq[PIdnDef]], body: PNode) extends PStmt with PLocalDeclaration
 case class PSkip() extends PStmt
 
 sealed trait PScope extends PNode {
@@ -878,7 +926,9 @@ sealed trait PAnyFunction extends PMember with PGlobalDeclaration with PTypedDec
   def formalArgs: Seq[PFormalArgDecl]
   def typ: PType
 }
-case class PProgram(file: Path, domains: Seq[PDomain], fields: Seq[PField], functions: Seq[PFunction], predicates: Seq[PPredicate], methods: Seq[PMethod]) extends PNode
+
+case class PProgram(files: List[PImport], domains: Seq[PDomain], fields: Seq[PField], functions: Seq[PFunction], predicates: Seq[PPredicate], methods: Seq[PMethod], errors: Seq[ParseReport]) extends PNode
+case class PImport(file: String) extends PNode
 case class PMethod(idndef: PIdnDef, formalArgs: Seq[PFormalArgDecl], formalReturns: Seq[PFormalArgDecl], pres: Seq[PExp], posts: Seq[PExp], body: PStmt) extends PMember with PGlobalDeclaration
 case class PDomain(idndef: PIdnDef, typVars: Seq[PTypeVarDecl], funcs: Seq[PDomainFunction], axioms: Seq[PAxiom]) extends PMember with PGlobalDeclaration
 case class PFunction(idndef: PIdnDef, formalArgs: Seq[PFormalArgDecl], typ: PType, pres: Seq[PExp], posts: Seq[PExp], body: Option[PExp]) extends PAnyFunction
@@ -933,10 +983,10 @@ object Nodes {
       case PResultLit() => Nil
       case PFieldAccess(rcv, field) => Seq(rcv, field)
       case PPredicateAccess(args, pred) => args ++ Seq(pred)
-      case PFunctApp(func, args) => Seq(func) ++ args
+      case PFunctApp(func, args, optType) => Seq(func) ++ args ++ (optType match { case Some(t) => Seq(t) case None => Nil})
       case e: PUnFoldingExp => Seq(e.acc, e.exp)
-      case PApplying(wand, in) => Seq(wand, in)
-      case PPackaging(wand, in) => Seq(wand, in)
+      case PApplyingGhostOp(wand, in) => Seq(wand, in)
+      case PPackagingGhostOp(wand, in) => Seq(wand, in)
       case PExists(vars, exp) => vars ++ Seq(exp)
       case po: POldExp => Seq(po.e)
       case PLet(exp, nestedScope) => Seq(exp, nestedScope)
@@ -984,8 +1034,10 @@ object Nodes {
       case PLocalVarDecl(idndef, typ, init) => Seq(idndef, typ) ++ (if (init.isDefined) Seq(init.get) else Nil)
       case PFresh(vars) => vars
       case PConstraining(vars, stmt) => vars ++ Seq(stmt)
-      case PProgram(file, domains, fields, functions, predicates, methods) =>
+      case PProgram(files, domains, fields, functions, predicates, methods, errors) =>
         domains ++ fields ++ functions ++ predicates ++ methods
+      case PImport(file) =>
+        Seq()
       case PDomain(idndef, typVars, funcs, axioms) => Seq(idndef) ++ typVars ++ funcs ++ axioms
       case PField(idndef, typ) => Seq(idndef, typ)
       case PMethod(idndef, args, rets, pres, posts, body) =>
@@ -999,7 +1051,7 @@ object Nodes {
       case PAxiom(idndef, exp) => Seq(idndef, exp)
       case PTypeVarDecl(name) => Seq(name)
       case PLetWand(idndef, wand) => Seq(idndef, wand)
-      case PDefine(idndef, optArgs, exp) => Seq(idndef) ++ optArgs.getOrElse(Nil) ++ Seq(exp)
+      case PDefine(idndef, optArgs, body) => Seq(idndef) ++ optArgs.getOrElse(Nil) ++ Seq(body)
       case _: PSkip => Nil
     }
   }

@@ -1,0 +1,19 @@
+field val: Int
+field next: Ref
+
+predicate LLInf(x: Ref, i: Int) {
+     acc(x.val) && x.val == i
+  && acc(x.next)
+  && acc(LLInf(x.next, i + 1))
+}
+
+method test04(x: Ref) {
+  package
+        acc(LLInf(x, 0))
+    --*
+        unfolding acc(LLInf(x, 0)) in
+        unfolding acc(LLInf(x.next, 1)) in
+        acc(x.next) && acc(x.next.val) && x.next.val == 1
+        
+  assert acc(LLInf(x, 0)) --* acc(x.next) && acc(x.next.val) && x.next.val == 1
+}

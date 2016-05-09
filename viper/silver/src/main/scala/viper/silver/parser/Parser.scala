@@ -1,3 +1,4 @@
+
 /*
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -7,48 +8,75 @@
 package viper.silver.parser
 
 import java.nio.file.Path
+
+import org.kiama.util.Positions._
 import org.kiama.util.WhitespacePositionedParserUtilities
+import viper.silver.ast._
+import viper.silver.verifier.ParseError
+
+import scala.collection.immutable.Iterable
+import scala.collection.mutable
+import scala.language.implicitConversions
+import scala.language.reflectiveCalls
+
+import viper.silver.verifier._
 
 /**
- * A parser for the SIL language that takes a string and produces an intermediate
- * AST ([[viper.silver.parser.PNode]]), or a parse error.  The intermediate AST can
- * then be type-checked and translated into the SIL AST ([[viper.silver.ast.Node]])
- * using [[viper.silver.parser.Translator]].
- *
- * IMPORTANT: If you change or extend the syntax, please also update the synatx
- * description in documentation/syntax as well as the syntax highlighting definitions
- * in util/highlighting!
- *
- * IMPORTANT: Also keep the parser in sync with the pretty printer!
- */
+  * A parser for the SIL language that takes a string and produces an intermediate
+  * AST ([[viper.silver.parser.PNode]]), or a parse error.  The intermediate AST can
+  * then be type-checked and translated into the SIL AST ([[viper.silver.ast.Node]])
+  * using [[viper.silver.parser.Translator]].
+  *
+  * IMPORTANT: If you change or extend the syntax, please also update the syntax
+  * description in documentation/syntax as well as the syntax highlighting definitions
+  * in util/highlighting!
+  *
+  * IMPORTANT: Also keep the parser in sync with the pretty printer!
+  */
 object Parser extends BaseParser {
   override def file = _file
   var _file: Path = null
+  var _imports: mutable.HashMap[Path, Boolean] = null
 
   def parse(s: String, f: Path) = {
     _file = f
-    val r = parseAll(parser, s)
-    r match {
-      // make sure the tree is correctly initialized
-      case Success(e, _) => e.initTreeProperties()
-      case _ =>
+    _imports = mutable.HashMap((f, true))
+    val rp = RecParser(f)
+    rp.parse(s) match {
+      case rp.Success(a, b) => Success(a, b)
+      case rp.Failure(a, b) => Failure(a, b)
+      case rp.Error(a, b) => Error(a, b)
     }
-    r
+  }
+
+  case class RecParser(file: Path) extends BaseParser {
+    def parse(s: String) = parseAll(parser, s)
   }
 }
 
+/**
+  * ATG: Kiama does not support AST node positions with files.
+  * MultiFileParserPosition is a workaround case class which extends util.parsing.input.Position
+  * and provides the missing field (file) from the AbstractSourcePosition trait.
+  */
+case class FilePosition(file: Path, pos: util.parsing.input.Position)
+  extends util.parsing.input.Position with HasLineColumn
+{
+  override lazy val line = pos.line
+  override lazy val column = pos.column
+  override lazy val lineContents = toString
+  override lazy val toString = s"${file.getFileName}@$pos"
+}
 
-/* A parser intended for debugging. Extend it and make parsing rules log their invocation
- * by changing a rule such as
- *   lazy val foo = body
- * to
- *   lazy val foo = "foo" !!! body
- *
- * Taken from http://jim-mcbeath.blogspot.be/2011/07/debugging-scala-parser-combinators.html
- */
-
-import scala.language.implicitConversions
-import scala.language.reflectiveCalls
+/**
+  * A parser intended for debugging. Extend it and make parsing rules log their invocation
+  * by changing a rule such as
+  *   lazy val foo = body
+  * to
+  *   lazy val foo = "foo" !!! body
+  *
+  * Taken from http://jim-mcbeath.blogspot.be/2011/07/debugging-scala-parser-combinators.html
+  */
 
 object DebuggingParser {
   var depth: Int = 0
@@ -77,23 +105,38 @@ trait DebuggingParser extends WhitespacePositionedParserUtilities {
 }
 
 
-/* This parser is a PackratParser and thus CAN support left recursive parsing
- * rules with memoisation. You have to EXPLICITLY declare the return type of
- * such rules as PackratPerser[T], though. Moreover, if sub-rules further down
- * the line are not declared to return a PackratParser, then the memoisation
- * won't be total and the run-time is no longer linear. Mixing different
- * parsers is otherwise fine.
- *
- * See the Kiama documentation for further information, for example,
- * http://code.google.com/p/kiama/wiki/ParserCombs.
- */
+/**
+  * This parser is a PackratParser and thus CAN support left recursive parsing
+  * rules with memoisation. You have to EXPLICITLY declare the return type of
+  * such rules as PackratPerser[T], though. Moreover, if sub-rules further down
+  * the line are not declared to return a PackratParser, then the memoisation
+  * won't be total and the run-time is no longer linear. Mixing different
+  * parsers is otherwise fine.
+  *
+  * See the Kiama documentation for further information, for example,
+  * http://code.google.com/p/kiama/wiki/ParserCombs.
+  */
 trait BaseParser extends /*DebuggingParser*/ WhitespacePositionedParserUtilities {
+
+  override def parseAndPosition[T] (f : Input => ParseResult[T], in : Input) : ParseResult[T] =
+    f (in) match {
+      case res @ Success (t, in1) =>
+        val startoffset = handleWhiteSpace (in)
+        val newin = in.drop (startoffset - in.offset)
+        setStart (t, FilePosition(file, newin.pos))
+        setStartWhite (t, FilePosition(file, in.pos))
+        setFinish (t, FilePosition(file, in1.pos))
+        res
+      case res =>
+        res
+    }
 
   /** The file we are currently parsing (for creating positions later). */
   def file: Path
 
   /** A helper method for wrapping keywords so that identifiers that have a keyword as their
-    *  prefix are parsed correctly.*/
+    *  prefix are parsed correctly.
+    */
   private def keyword(identifier: String) = not(s"$identifier$identOtherLetter".r) ~> identifier
 
   /**
@@ -111,6 +154,8 @@ trait BaseParser extends /*DebuggingParser*/ WhitespacePositionedParserUtilities
     "true", "false",
     // null
     "null",
+    // preamble importing
+    "import",
     // declaration keywords
     "method", "function", "predicate", "program", "domain", "axiom", "var", "returns", "field", "define", "wand",
     // specifications
@@ -142,7 +187,7 @@ trait BaseParser extends /*DebuggingParser*/ WhitespacePositionedParserUtilities
     "variant", "hale", "tersection"*/
   )
 
-  lazy val parser = phrase(programDecl)
+  lazy val parser: PackratParser[PProgram] = phrase(programDecl)
 
   // --- Whitespace
 
@@ -156,41 +201,122 @@ trait BaseParser extends /*DebuggingParser*/ WhitespacePositionedParserUtilities
   // --- Declarations
 
   lazy val programDecl =
-    rep(defineDecl | domainDecl | fieldDecl | functionDecl | predicateDecl | methodDecl) ^^ {
+    rep(preambleImport | defineDecl | domainDecl | fieldDecl | functionDecl | predicateDecl | methodDecl) ^^ {
       case decls =>
-        var globalDefines: Seq[PDefine] = decls.collect{case d: PDefine => d}
+        var globalDefines: Seq[PDefine] = decls.collect { case d: PDefine => d }
         globalDefines = expandDefines(globalDefines, globalDefines)
 
-        val fields = decls collect { case d: PField => d }
+        val imports: List[PImport] = decls.collect { case i: PImport => i }
 
-        val methods = decls collect {
-          case meth: PMethod =>
-            var localDefines = meth.deepCollect {case n: PDefine => n}
-            localDefines = expandDefines(localDefines ++ globalDefines, localDefines)
-
-            val methWithoutDefines =
-              if (localDefines.isEmpty)
-                meth
-              else
-                meth.transform { case la: PDefine => PSkip().setPos(la) }()
-
-            expandDefines(localDefines ++ globalDefines, methWithoutDefines)
+        val dups: Iterable[ParseError] = imports.groupBy(identity).collect {
+          case (imp@ PImport(x), List(_,_,_*)) =>
+            val dup_pos = imp.start.asInstanceOf[viper.silver.ast.Position]
+            val report = s"""multiple imports of the same file "$x" detected"""
+            //println(s"warning: $report ($dup_pos)")
+            ParseError(report, dup_pos)
         }
 
-        val domains = decls collect { case d: PDomain => expandDefines(globalDefines, d) }
-        val functions = decls collect { case d: PFunction => expandDefines(globalDefines, d) }
-        val predicates = decls collect { case d: PPredicate => expandDefines(globalDefines, d) }
+        //println(s"imports in current file: $imports")
+        //println(s"all imports: ${viper.silver.parser.Parser._imports}")
 
-        PProgram(file, domains, fields, functions, predicates, methods)
+        val imp_progs_results: List[Either[ParseReport, Any] with Product with Serializable] = imports.collect {
+          case imp@ PImport(imp_file) =>
+            val imp_path = java.nio.file.Paths.get(file.getParent + "/" + imp_file)
+            val imp_pos = imp.start.asInstanceOf[viper.silver.ast.Position]
+
+            if (java.nio.file.Files.notExists(imp_path))
+              Left(ParseError(s"""file "$imp_path" does not exist""", imp_pos))
+
+            else if (java.nio.file.Files.isSameFile(imp_path, file))
+              Left(ParseError(s"""importing yourself is probably not a good idea!""", imp_pos))
+
+            else if (viper.silver.parser.Parser._imports.put(imp_path, true).isEmpty) {
+              val source = scala.io.Source.fromFile(imp_path.toString)
+              val buffer = try {
+                Right(source.getLines.toArray)
+              } catch {
+                case e@(_: RuntimeException | _: java.io.IOException) =>
+                  Left(ParseError(s"""could not import file ($e)""", imp_pos))
+              } finally {
+                source.close()
+              }
+              buffer match {
+                case Left(e) => Left(e)
+                case Right(s) =>
+                  //TODO print debug info iff --dbg switch is used
+                  //println(s"@importing $imp_file into $file")
+
+                  val p = viper.silver.parser.Parser.RecParser(imp_path)
+                  p.parse(s.mkString("\n") + "\n") match {
+                    case p.Success(a, _) => Right(a)
+                    case p.Failure(msg, next) => Left(ParseError(s"Failure: $msg", FilePosition(imp_path, next.pos)))
+                    case p.Error(msg, next) => Left(ParseError(s"Error: $msg", FilePosition(imp_path, next.pos)))
+                  }
+              }
+            }
+
+            else {
+              val report = s"found loop dependency among these imports:\n" +
+                viper.silver.parser.Parser._imports.map {case (k,v)=>k} .mkString("\n")
+              println(s"warning: $report\n(loop starts at $imp_pos)")
+              Right(ParseWarning(report, imp_pos))
+            }
+        }
+
+        val imp_progs = imp_progs_results.collect { case Right(p) => p }
+
+        val imp_reports = imp_progs_results.collect { case Left(e) => e } ++
+          imp_progs.collect { case PProgram(_, _, _, _, _, _, e: List[ParseReport]) => e }.flatten ++
+            dups
+
+        val files =
+          imp_progs.collect { case PProgram(f: List[PImport], _, _, _, _, _, _) => f }.flatten ++
+            imports
+
+        val domains =
+          imp_progs.collect { case PProgram(_, d: List[PDomain], _, _, _, _, _) => d }.flatten ++
+            decls.collect { case d: PDomain => expandDefines(globalDefines, d) }
+
+        val fields =
+          imp_progs.collect { case PProgram(_, _, f: List[PField], _, _, _, _) => f }.flatten ++
+            decls.collect { case f: PField => f }
+
+        val functions =
+          imp_progs.collect { case PProgram(_, _, _, f: List[PFunction], _, _, _) => f }.flatten ++
+            decls.collect { case d: PFunction => expandDefines(globalDefines, d) }
+
+        val predicates =
+          imp_progs.collect { case PProgram(_, _, _, _, p: List[PPredicate], _, _) => p }.flatten ++
+            decls.collect { case d: PPredicate => expandDefines(globalDefines, d) }
+
+        val methods =
+          imp_progs.collect { case PProgram(_, _, _, _, _, m: List[PMethod], _) => m }.flatten ++
+            decls.collect {
+              case meth: PMethod =>
+                var localDefines = meth.deepCollect {case n: PDefine => n}
+                localDefines = expandDefines(localDefines ++ globalDefines, localDefines)
+
+                val methWithoutDefines =
+                  if (localDefines.isEmpty)
+                    meth
+                  else
+                    meth.transform { case la: PDefine => PSkip().setPos(la) }()
+
+                expandDefines(localDefines ++ globalDefines, methWithoutDefines)
+            }
+
+        PProgram(files, domains, fields, functions, predicates, methods, imp_reports)
     }
 
   lazy val fieldDecl =
     ("field" ~> idndef) ~ (":" ~> typ <~ opt(";")) ^^ PField
 
   lazy val methodDecl =
-    methodSignature ~ rep(pre) ~ rep(post) ~ block ^^ {
-      case name ~ args ~ rets ~ pres ~ posts ~ body =>
+    methodSignature ~ rep(pre) ~ rep(post) ~ opt(block) ^^ {
+      case name ~ args ~ rets ~ pres ~ posts ~ Some(body) =>
         PMethod(name, args, rets.getOrElse(Nil), pres, posts, PSeqn(body))
+      case name ~ args ~ rets ~ pres ~ posts ~ None =>
+        PMethod(name, args, rets.getOrElse(Nil), pres, posts, PSeqn(Seq(PInhale(PBoolLit(b = false)))))
     }
 
   lazy val methodSignature =
@@ -233,8 +359,8 @@ trait BaseParser extends /*DebuggingParser*/ WhitespacePositionedParserUtilities
         PDomain(
           name,
           typparams.getOrElse(Nil),
-          funcs map (f=>PDomainFunction(f.idndef,f.formalArgs,f.typ,f.unique)(PIdnUse(name.name))),
-          axioms map (a=>PAxiom(a.idndef,a.exp)(PIdnUse(name.name))))
+          funcs map (f => PDomainFunction(f.idndef,f.formalArgs,f.typ,f.unique)(PIdnUse(name.name)).setPos(f)),
+          axioms map (a=>PAxiom(a.idndef,a.exp)(PIdnUse(name.name)).setPos(a)))
     }
 
   lazy val domainTypeVarDecl =
@@ -246,6 +372,16 @@ trait BaseParser extends /*DebuggingParser*/ WhitespacePositionedParserUtilities
   // --- Statements
 
   def parens[A](p: Parser[A]) = "(" ~> p <~ ")"
+  def quoted[A](p: Parser[A]) = "\"" ~> p <~ "\""
+
+  lazy val relativeFilePath =
+    "\\A[~.]?(?:\\/?[.\\w-\\s])+".r
+
+  lazy val preambleImport =
+    keyword("import") ~> quoted(relativeFilePath) ^^ {
+      case filename =>
+        PImport(filename)
+    }
 
   lazy val block: Parser[Seq[PStmt]] =
     "{" ~> (stmts <~ "}")
@@ -291,7 +427,10 @@ trait BaseParser extends /*DebuggingParser*/ WhitespacePositionedParserUtilities
   lazy val varDecl =
     ("var" ~> idndef) ~ (":" ~> typ) ~ opt(":=" ~> exp) ^^ PLocalVarDecl
   lazy val defineDecl =
-    ("define" ~> idndef) ~ opt("(" ~> repsep(idndef, ",") <~ ")") ~ exp ^^ PDefine
+    ("define" ~> idndef) ~ opt("(" ~> repsep(idndef, ",") <~ ")") ~ (exp | block) ^^ {
+      case iddef ~ args ~ (e: PExp) => PDefine(iddef, args, e)
+      case iddef ~ args ~ (ss: Seq[PStmt] @unchecked) => PDefine(iddef, args, PSeqn(ss))
+    }
   lazy val letwandDecl =
     ("wand" ~> idndef) ~ (":=" ~> exp) ^^ PLetWand
   lazy val fresh =
@@ -447,7 +586,7 @@ trait BaseParser extends /*DebuggingParser*/ WhitespacePositionedParserUtilities
       setTypedEmpty | explicitSetNonEmpty |
       explicitMultisetNonEmpty | multiSetTypedEmpty |
       seqTypedEmpty | seqLength | explicitSeqNonEmpty | seqRange |
-      fapp |
+      fapp | typedFapp |
       idnuse
 
   lazy val accessPred: PackratParser[PAccPred] =
@@ -458,8 +597,16 @@ trait BaseParser extends /*DebuggingParser*/ WhitespacePositionedParserUtilities
   lazy val predicateAccessPred: PackratParser[PAccPred] =
     accessPred | predAcc ^^ {case loc => PAccPred(loc, PFullPerm())}
 
+  lazy val typedFapp: PackratParser[PExp] =
+    parens(idnuse ~ parens(actualArgList) ~ (":" ~> typ)) ^^ {
+      case func ~ args ~ typeGiven => PFunctApp(func,args,Some(typeGiven))
+    }
+
   lazy val fapp: PackratParser[PExp] =
-    idnuse ~ parens(actualArgList) ^^ PFunctApp
+    idnuse ~ parens(actualArgList) ^^ {
+      case func ~ args => PFunctApp(func,args,None)
+    }
+
 
   lazy val actualArgList: PackratParser[Seq[PExp]] =
     repsep(exp, ",")
@@ -508,7 +655,7 @@ trait BaseParser extends /*DebuggingParser*/ WhitespacePositionedParserUtilities
     ("unfolding" ~> predicateAccessPred) ~ ("in" ~> exp) ^^ PUnfolding
 
   lazy val folding: PackratParser[PExp] =
-    ("folding" ~> predicateAccessPred) ~ ("in" ~> exp) ^^ PFolding
+    ("folding" ~> predicateAccessPred) ~ ("in" ~> exp) ^^ PFoldingGhostOp
 
   lazy val applying: PackratParser[PExp] =
     /* We must be careful here to not create ambiguities in our grammar.
@@ -526,11 +673,11 @@ trait BaseParser extends /*DebuggingParser*/ WhitespacePositionedParserUtilities
      * Moreover, not using a memoising parser might make the parser
      * significantly slower.
      */
-    ("applying" ~> ("(" ~> realMagicWandExp <~ ")" | idnuse)) ~ ("in" ~> exp) ^^ PApplying
+    ("applying" ~> ("(" ~> realMagicWandExp <~ ")" | idnuse)) ~ ("in" ~> exp) ^^ PApplyingGhostOp
 
   lazy val packaging: PackratParser[PExp] =
     /* See comment on applying */
-    ("packaging" ~> ("(" ~> realMagicWandExp <~ ")" | idnuse)) ~ ("in" ~> exp) ^^ PPackaging
+    ("packaging" ~> ("(" ~> realMagicWandExp <~ ")" | idnuse)) ~ ("in" ~> exp) ^^ PPackagingGhostOp
 
   lazy val let: PackratParser[PExp] =
     ("let" ~> idndef <~ "==") ~ ("(" ~> exp <~ ")") ~ ("in" ~> exp) ^^ { case id ~ exp1 ~ exp2 =>
@@ -661,8 +808,34 @@ trait BaseParser extends /*DebuggingParser*/ WhitespacePositionedParserUtilities
   private def doExpandDefines[N <: PNode](defines: Seq[PDefine], node: N): Option[N] = {
     var expanded = false
 
-    def lookupOrElse(piu: PIdnUse, els: PExp) =
-      defines.find(_.idndef.name == piu.name).fold[PExp](els) _
+    def lookupOrElse(piu: PIdnUse, els: PNode) =
+      defines.find(_.idndef.name == piu.name).fold[PNode](els) _
+
+    def expandAllegedInvocation(target: PIdnUse, targetArgs: Seq[PExp], els: PNode): PNode = {
+      /* Potentially expand a named assertion that takes arguments, e.g. A(x, y) */
+      lookupOrElse(target, els)(define => define.args match {
+        case None =>
+          /* There is a named assertion with name `target`, but the named
+           * assertion takes arguments. Hence, `target` cannot denote the
+           * use of a named assertion.
+           */
+          els
+        case Some(args) if targetArgs.length != args.length =>
+          /* Similar to the previous case */
+          els
+        case Some(args) =>
+          expanded = true
+
+          define.body.transform {
+            /* Expand the named assertion's formal arguments by the given actual arguments */
+            case piu: PIdnUse =>
+              args.indexWhere(_.name == piu.name) match {
+                case -1 => piu
+                case i => targetArgs(i)
+              }
+          }() : PNode /* [2014-06-31 Malte] Type-checker wasn't pleased without it */
+      })
+    }
 
     val potentiallyExpandedNode =
       node.transform {
@@ -675,33 +848,11 @@ trait BaseParser extends /*DebuggingParser*/ WhitespacePositionedParserUtilities
           lookupOrElse(piu, piu)(define => {
             expanded = true
 
-            define.exp
+            define.body
           })
 
-        case fapp: PFunctApp =>
-          /* Potentially expand a named assertion that takes arguments, e.g. A(x, y) */
-          lookupOrElse(fapp.func, fapp)(define => define.args match {
-            case None =>
-              /* There is a named assertion with name `func`, but the named
-               * assertion takes arguments. Hence, the fapp cannot denote the
-               * use of a named assertion.
-               */
-              fapp
-            case Some(args) if fapp.args.length != args.length =>
-              /* Similar to the previous case */
-              fapp
-            case Some(args) =>
-              expanded = true
-
-              define.exp.transform {
-                /* Expand the named assertion's formal arguments by the given actual arguments */
-                case piu: PIdnUse =>
-                  args.indexWhere(_.name == piu.name) match {
-                    case -1 => piu
-                    case i => fapp.args(i)
-                  }
-              }() : PExp /* [2014-06-31 Malte] Type-checker wasn't pleased without it */
-          })
+        case fapp: PFunctApp => expandAllegedInvocation(fapp.func, fapp.args, fapp)
+        case call: PMethodCall => expandAllegedInvocation(call.method, call.args, call)
       }(recursive = _ => true)
 
     if (expanded) Some(potentiallyExpandedNode)

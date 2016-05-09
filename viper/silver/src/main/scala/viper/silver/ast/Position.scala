@@ -27,6 +27,7 @@ case object NoPosition extends Position {
 trait HasLineColumn extends Position {
   def line: Int
   def column: Int
+  override def toString = s"$line.$column"
 }
 
 case class LineColumnPosition(line: Int, column: Int) extends HasLineColumn
@@ -43,7 +44,7 @@ trait AbstractSourcePosition extends HasLineColumn {
   lazy val column = start.column
 
   override def toString =
-    s"${if(file==null || file.getFileName==null) "" else file.getFileName.toString},$line:$column"
+    s"${if(file==null || file.getFileName==null) "" else file.getFileName.toString + "@"}$line.$column"
 }
 
 object AbstractSourcePosition {

@@ -1,0 +1,6 @@
+//:: IgnoreFile(/Silver/issue/136/)
+//:: IgnoreFile(/Silver/issue/135/)
+import "main.sil"
+
+function libb(): Bool
+	ensures result == main()

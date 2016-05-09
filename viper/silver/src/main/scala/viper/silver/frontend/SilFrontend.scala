@@ -8,15 +8,16 @@ package viper.silver.frontend
 
 import java.io.File
 import java.nio.file.{Path, Paths}
+
 import org.apache.commons.io.FilenameUtils
 import org.kiama.util.Messaging
-import org.rogach.scallop.exceptions.{Version, Help, ScallopException}
+import org.rogach.scallop.exceptions.{Help, ScallopException, Version}
 import viper.silver.parser._
 import viper.silver.verifier._
 import viper.silver.verifier.CliOptionError
 import viper.silver.verifier.Failure
 import viper.silver.verifier.ParseError
-import viper.silver.ast.{Position, HasLineColumn, AbstractSourcePosition, SourcePosition, Program}
+import viper.silver.ast.{AbstractSourcePosition, HasLineColumn, Position, Program, SourcePosition}
 import viper.silver.verifier.TypecheckerError
 import viper.silver.ast.utility.Consistency
 
@@ -198,10 +199,11 @@ trait SilFrontend extends DefaultFrontend {
 
   override def doParse(input: String): Result[ParserResult] = {
     val file = _inputFile.get
-    val p = Parser.parse(input, file)
-    p match {
-      case Parser.Success(e, _) =>
-        Succ(e)
+    Parser.parse(input, file) match {
+      case Parser.Success(e@ PProgram(_, _, _, _, _, _, err_list), _) =>
+        if (err_list.isEmpty || err_list.forall{ case p => p.isInstanceOf[ParseWarning] })
+          Succ({ e.initTreeProperties(); e })
+        else Fail(err_list)
       case Parser.Failure(msg, next) =>
         Fail(List(ParseError(s"Failure: $msg", SourcePosition(file, next.pos.line, next.pos.column))))
       case Parser.Error(msg, next) =>
@@ -223,14 +225,31 @@ trait SilFrontend extends DefaultFrontend {
             Succ(program)
 
           case None => // then these are translation messages
-            Fail(Messaging.sortmessages(Consistency.messages) map (m => TypecheckerError(m.label, SourcePosition(_inputFile.get, m.pos.line, m.pos.column)))) // AS: note: m.label may not be the right field here, but I think it is - the interface changed.
+            Fail(Messaging.sortmessages(Consistency.messages) map (m =>
+              {
+                TypecheckerError(
+                // AS: note: m.label may not be the right field here, but I think it is - the interface changed.
+
+                m.label, m.pos match {
+                  case fp: FilePosition =>
+                    SourcePosition(fp.file, m.pos.line, m.pos.column)
+                  case _ =>
+                    SourcePosition(_inputFile.get, m.pos.line, m.pos.column)
+                })
+
+              }))
         }
 
       case None =>
-       val errors = for (m <- Messaging.sortmessages(r.messages)) yield {
-          TypecheckerError(m.label, SourcePosition(_inputFile.get, m.pos.line, m.pos.column))
+        val errors = for (m <- Messaging.sortmessages(r.messages)) yield {
+          TypecheckerError(m.label, m.pos match {
+            case fp: FilePosition =>
+              SourcePosition(fp.file, m.pos.line, m.pos.column)
+            case _ =>
+              SourcePosition(_inputFile.get, m.pos.line, m.pos.column)
+          })
         }
-      Fail(errors)
+        Fail(errors)
     }
   }
 

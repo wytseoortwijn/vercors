@@ -5,7 +5,7 @@ domain List[T] {
     function cons(x: T, xs: List[T]): List[T]
     function length(xs: List[T]): Int
     axiom nil_length {
-        length(nil()) == 0
+        length((nil() : List[T])) == 0
     }
     axiom cons_length {
         forall x: T :: forall xs: List[T] :: length(cons(x, xs)) == (length(xs) + 1)

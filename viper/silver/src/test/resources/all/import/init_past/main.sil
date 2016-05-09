@@ -1,0 +1,7 @@
+//:: IgnoreFile(/Silver/issue/136/)
+import "liba.sil"
+
+method main()
+{
+    assert LibB(77, false)
+}

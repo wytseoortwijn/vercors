@@ -17,11 +17,12 @@ object Transformer {
   def transform[A <: PNode](node: A,
                             pre: PartialFunction[PNode, PNode] = PartialFunction.empty)(
                             recursive: PNode => Boolean = !pre.isDefinedAt(_),
-                            post: PartialFunction[PNode, PNode] = PartialFunction.empty): A = {
+                            post: PartialFunction[PNode, PNode] = PartialFunction.empty,
+                            allowChangingNodeType: Boolean = false): A = {
 
     @inline
     def go[B <: PNode](root: B): B = {
-      transform(root, pre)(recursive, post)
+      transform(root, pre)(recursive, post, allowChangingNodeType)
     }
 
     def recurse(parent: PNode): PNode = {
@@ -46,12 +47,14 @@ object Transformer {
         case _: PNullLit => parent
         case PFieldAccess(rcv, idnuse) => PFieldAccess(go(rcv), go(idnuse))
         case PPredicateAccess(args, idnuse) => PPredicateAccess( args map go, go(idnuse))
-        case PFunctApp(func, args) => PFunctApp(go(func), args map go)
+        case PFunctApp(func, args, explicitType) => PFunctApp(go(func), args map go, ( explicitType match {case Some(t) => Some(go(t)) case None => None}))
 
         case PUnfolding(acc, exp) => PUnfolding(go(acc), go(exp))
-        case PFolding(acc, exp) => PFolding(go(acc), go(exp))
-        case PApplying(wand, exp) => PApplying(go(wand), go(exp))
-        case PPackaging(wand, exp) => PPackaging(go(wand), go(exp))
+
+        case PUnfoldingGhostOp(acc, exp) => PUnfoldingGhostOp(go(acc), go(exp))
+        case PFoldingGhostOp(acc, exp) => PFoldingGhostOp(go(acc), go(exp))
+        case PApplyingGhostOp(wand, exp) => PApplyingGhostOp(go(wand), go(exp))
+        case PPackagingGhostOp(wand, exp) => PPackagingGhostOp(go(wand), go(exp))
 
         case PExists(vars, exp) => PExists(vars map go, go(exp))
         case PForall(vars, triggers, exp) => PForall(vars map go, triggers map (_ map go), go(exp))
@@ -107,7 +110,8 @@ object Transformer {
         case PLetNestedScope(idndef, body) => PLetNestedScope(go(idndef), go(body))
         case _: PSkip => parent
 
-        case PProgram(file, domains, fields, functions, predicates, methods) => PProgram(file, domains map go, fields map go, functions map go, predicates map go, methods map go)
+        case PProgram(files, domains, fields, functions, predicates, methods, errors) => PProgram(files, domains map go, fields map go, functions map go, predicates map go, methods map go, errors)
+        case PImport(file) => PImport(file)
         case PMethod(idndef, formalArgs, formalReturns, pres, posts, body) => PMethod(go(idndef), formalArgs map go, formalReturns map go, pres map go, posts map go, go(body))
         case PDomain(idndef, typVars, funcs, axioms) => PDomain(go(idndef), typVars map go, funcs map go, axioms map go)
         case PField(idndef, typ) => PField(go(idndef), go(typ))
@@ -117,7 +121,8 @@ object Transformer {
         case pda@PAxiom(idndef, exp) => PAxiom(go(idndef), go(exp))(domainName = pda.domainName)
       }
 
-      assert(newNode.getClass == parent.getClass, "Transformer is not expected to change type of nodes.")
+      if (!allowChangingNodeType)
+        assert(newNode.getClass == parent.getClass, "Transformer is not expected to change type of nodes.")
 
       newNode.setPos(parent)
     }

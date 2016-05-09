@@ -28,13 +28,12 @@ import viper.silver.ast.utility.{Consistency, Visitor, Statements}
  * Messaging feature.
  */
 case class Translator(program: PProgram) {
-  val file = program.file
 
   def translate: Option[Program] /*(Program, Seq[Messaging.Record])*/ = {
     // assert(TypeChecker.messagecount == 0, "Expected previous phases to succeed, but found error messages.") // AS: no longer sharing state with these phases
 
     program match {
-      case PProgram(_, pdomains, pfields, pfunctions, ppredicates, pmethods) =>
+      case PProgram(_, pdomains, pfields, pfunctions, ppredicates, pmethods, _) =>
         (pdomains ++ pfields ++ pfunctions ++ ppredicates ++
             pmethods ++ (pdomains flatMap (_.funcs))) foreach translateMemberSignature
 
@@ -134,12 +133,12 @@ case class Translator(program: PProgram) {
   private def stmt(s: PStmt): Stmt = {
     val pos = s
     s match {
-      case PVarAssign(idnuse, PFunctApp(func, args)) if members.get(func.name).get.isInstanceOf[Method] =>
+      case PVarAssign(idnuse, PFunctApp(func, args, _)) if members.get(func.name).get.isInstanceOf[Method] =>
         /* This is a method call that got parsed in a slightly confusing way.
          * TODO: Get rid of this case! There is a matching case in the resolver.
          */
         val call = PMethodCall(Seq(idnuse), func, args)
-        call.setStart(s.start)
+        call.setPos(s)
         stmt(call)
       case PVarAssign(idnuse, rhs) =>
         LocalVarAssign(LocalVar(idnuse.name)(ttyp(idnuse.typ), pos), exp(rhs))(pos)
@@ -157,7 +156,8 @@ case class Translator(program: PProgram) {
       case PUnfold(e) =>
         Unfold(exp(e).asInstanceOf[PredicateAccessPredicate])(pos)
       case PPackageWand(e) =>
-        Package(exp(e).asInstanceOf[MagicWand])(pos)
+        val wand = translateWandToBePackaged(e.asInstanceOf[PBinExp])
+        Package(wand)(pos)
       case PApplyWand(e) =>
         Apply(exp(e))(pos)
       case PInhale(e) =>
@@ -236,7 +236,12 @@ case class Translator(program: PProgram) {
             }
           case "*" =>
             r.typ match {
-              case Int => Mul(l, r)(pos)
+              case Int =>
+                l.typ match {
+                  case Int => Mul(l, r)(pos)
+                  case Perm => IntPermMul(r, l)(pos)
+                  case _ => sys.error("should not occur in type-checked program")
+                }
               case Perm =>
                 l.typ match {
                   case Int => IntPermMul(l, r)(pos)
@@ -301,7 +306,12 @@ case class Translator(program: PProgram) {
         val e = exp(pe)
         op match {
           case "+" => e
-          case "-" => Minus(e)(pos)
+          case "-" =>
+            e.typ match {
+              case Int => Minus(e)(pos)
+              case Perm => PermMinus(e)(pos)
+              case _ => sys.error("unexpected type")
+            }
           case "!" => Not(e)(pos)
         }
       case PInhaleExhaleExp(in, ex) =>
@@ -324,10 +334,10 @@ case class Translator(program: PProgram) {
         FieldAccess(exp(rcv), findField(idn))(pos)
       case p@PPredicateAccess(args, idn) =>
         PredicateAccess(args map exp, findPredicate(idn))(pos)
-      case pfa@PFunctApp(func, args) =>
+      case pfa@PFunctApp(func, args, _) =>
         members.get(func.name).get match {
           case f: Function => FuncApp(f, args map exp)(pos)
-          case f @ DomainFunc(name, formalArgs, typ, _) => {
+          case f @ DomainFunc(name, formalArgs, typ, _) =>
             val actualArgs = args map exp
             val translatedTyp = ttyp(pexp.typ)
             type TypeSubstitution = Map[TypeVar, Type]
@@ -339,26 +349,27 @@ case class Translator(program: PProgram) {
               case None => None
             }
             so match {
-              case Some(s) => {
+              case Some(s) =>
                 val d = members.get(f.domainName).get.asInstanceOf[Domain]
                 assert(s.keys.toSet.subsetOf(d.typVars.toSet))
-                val sp = s//completeWithDefault(d.typVars,s)
+                val sp = s //completeWithDefault(d.typVars,s)
                 assert(sp.keys.toSet == d.typVars.toSet)
                 DomainFuncApp(f, actualArgs, sp)(pos)
-              }
               case _ => sys.error("type unification error - should report and not crash")
             }
-          }
           case _ => sys.error("unexpected reference to non-function")
         }
       case PUnfolding(loc, e) =>
         Unfolding(exp(loc).asInstanceOf[PredicateAccessPredicate], exp(e))(pos)
-      case PFolding(loc, e) =>
-        Folding(exp(loc).asInstanceOf[PredicateAccessPredicate], exp(e))(pos)
-      case PApplying(e, in) =>
-        Applying(exp(e), exp(in))(pos)
-      case PPackaging(e, in) =>
-        Packaging(exp(e).asInstanceOf[MagicWand], exp(in))(pos)
+      case PUnfoldingGhostOp(loc, e) =>
+        UnfoldingGhostOp(exp(loc).asInstanceOf[PredicateAccessPredicate], exp(e))(pos)
+      case PFoldingGhostOp(loc, e) =>
+        FoldingGhostOp(exp(loc).asInstanceOf[PredicateAccessPredicate], exp(e))(pos)
+      case PApplyingGhostOp(e, in) =>
+        ApplyingGhostOp(exp(e), exp(in))(pos)
+      case PPackagingGhostOp(e, in) =>
+        val wand = translateWandToBePackaged(e.asInstanceOf[PBinExp])
+        PackagingGhostOp(wand, exp(in))(pos)
       case PLet(exp1, PLetNestedScope(variable, body)) =>
         Let(liftVarDecl(variable), exp(exp1), exp(body))(pos)
       case _: PLetNestedScope =>
@@ -449,11 +460,14 @@ case class Translator(program: PProgram) {
 //  implicit def liftPos(pos: scala.util.parsing.input.Position): SourcePosition =
 //    SourcePosition(file, pos.line, pos.column)
 
-  /** Takes a [[org.kiama.util.Positioned]] and turns it into a [[viper.silver.ast.SourcePosition]]. */
+  /** Takes a [[viper.silver.parser.KiamaPositioned]] and turns it into a [[viper.silver.ast.SourcePosition]]. */
   implicit def liftPos(pos: KiamaPositioned): SourcePosition = {
     val start = LineColumnPosition(pos.start.line, pos.start.column)
     val end = LineColumnPosition(pos.finish.line, pos.finish.column)
-    SourcePosition(file, start, end)
+    pos.start match {
+      case fp: FilePosition => SourcePosition(fp.file, start, end)
+      case _ => SourcePosition(null, start, end)
+    }
   }
 
   /** Takes a `PFormalArgDecl` and turns it into a `LocalVar`. */
@@ -491,5 +505,29 @@ case class Translator(program: PProgram) {
       sys.error("unknown type unexpected here")
     case PPredicateType() =>
       sys.error("unexpected use of internal typ")
+  }
+
+  private def translateWandToBePackaged(pwand: PBinExp): MagicWand = {
+    /* Translates a PWand and turns expressions such as unfolding into the
+     * corresponding ghost operation.
+     */
+
+    val f: PartialFunction[PNode, PNode] = {
+      /* Make f defined for all ghost operations so that we keep on transforming
+       * down the potential chain of ghost operations
+       */
+      case e: PFoldingGhostOp => e
+      case e: PApplyingGhostOp => e
+      case e: PPackagingGhostOp => e
+      /* Rewrite unfolding expressions to unfolding ghost operations (along the
+       * potential chain of ghost operations)
+       */
+      case unf: PUnfolding => PUnfoldingGhostOp(unf.acc, unf.exp).setPos(unf)
+    }
+
+    val rhs = pwand.right.transform(f)(recursive = f.isDefinedAt, allowChangingNodeType = true)
+    val ghostOpWand = pwand.copy(right = rhs).setPos(pwand)
+
+    exp(ghostOpWand).asInstanceOf[MagicWand]
   }
 }
