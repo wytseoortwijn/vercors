@@ -2,19 +2,8 @@ package vct.clang.printer;
 
 import java.io.PrintStream;
 
-import vct.col.ast.ASTClass;
-import vct.col.ast.ASTDeclaration;
-import vct.col.ast.ASTNode;
-import vct.col.ast.AssignmentStatement;
-import vct.col.ast.BlockStatement;
-import vct.col.ast.Contract;
-import vct.col.ast.DeclarationStatement;
-import vct.col.ast.IfStatement;
-import vct.col.ast.Method;
-import vct.col.ast.NameExpression;
-import vct.col.ast.OperatorExpression;
-import vct.col.ast.ProgramUnit;
-import vct.col.ast.ReturnStatement;
+import vct.col.ast.*;
+import vct.col.ast.PrimitiveType.Sort;
 import vct.util.AbstractPrinter;
 import hre.ast.TrackingOutput;
 import hre.ast.TrackingTree;
@@ -39,6 +28,19 @@ public class CPrinter extends AbstractPrinter {
 	  super.post_visit(node);
 	}
 
+	@Override
+	public void visit(PrimitiveType t){
+	  switch(t.sort){
+	  case Pointer:
+	    t.getArg(0).accept(this);
+	    out.printf("*");
+	    break;
+	  default:
+	    super.visit(t);
+	    break;
+	  }
+	}
+	
 	public void visit(ASTClass cl){
 		//if (cl.getDynamicCount()>0) {
 		//	Fail("dynamic entries are illegal in C");
@@ -52,13 +54,19 @@ public class CPrinter extends AbstractPrinter {
 	}
 	
 	public void visit(DeclarationStatement decl){
-		decl.getType().accept(this);
-		out.printf(" %s",decl.getName());
-		if (decl.getInit()!=null){
-			out.printf("=");
-			decl.getInit().accept(this);
-		}
-		if (!in_expr) {
+	  Type t=decl.getType();
+	  if (t.isPrimitive(Sort.CVarArgs)){
+	    out.printf("...");
+	  } else {
+  	  t.accept(this);
+  		out.printf(" %s",decl.getName());
+  		if (decl.getInit()!=null){
+  			out.printf("=");
+  			nextExpr();
+  			decl.getInit().accept(this);
+  		}
+	  }
+		if (current_method()==null) {
 			out.printf(";%n%n");
 		}
 	}
@@ -129,6 +137,30 @@ public class CPrinter extends AbstractPrinter {
 			out.printf(";%n");
 		}
 	}
+	
+	@Override
+	public void visit(LoopStatement l){
+	  if (l.getInitBlock()==null){
+	    out.printf("while(");
+	    nextExpr();
+	    l.getEntryGuard().accept(this);
+	    out.printf(")");
+	    l.getBody().accept(this);
+	  } else {
+	    super.visit(l);
+	  }
+	}
+	
+/*
+ 	public void visit(ConstantExpression ce){
+    if (ce.value instanceof StringValue){
+      out.print("\""+org.apache.commons.lang3.StringEscapeUtils.escapeJava(ce.toString())+"\"");
+    } else {
+      out.print(ce.toString());
+    }
+  }
+*/
+	
 	public void visit(ReturnStatement s){
 		if (s.getExpression()==null){
 			out.printf("return");
@@ -136,34 +168,26 @@ public class CPrinter extends AbstractPrinter {
 			out.printf("return ");
 			nextExpr();
 			s.getExpression().accept(this);
-		}
-		if (in_expr){
-			out.printf(";");
-		} else {
-			out.lnprintf(";");
-		}
-		
+		}		
 	}
 	public void visit(BlockStatement block) {
-		boolean block_expr=in_expr;
-		if (block_expr) {
-			out.printf("{");
-		} else {
-			out.lnprintf("{");
-			out.incrIndent();
-		}
-		int N=block.getLength();
-		for(int i=0;i<N;i++){
-		  ASTNode S=block.getStatement(i);
-		  S.accept(this);
-			if (S instanceof OperatorExpression){
-			  if (block_expr) out.printf(";"); else out.lnprintf(";");
-			}
-		}
-		if (!block_expr) {
-			out.decrIndent();
-		}
-		out.printf("}");
+    boolean block_expr=in_expr;
+    if (block_expr) {
+    	out.printf("{");
+    } else {
+    	out.lnprintf("{");
+    	out.incrIndent();
+    }
+    int N=block.getLength();
+    for(int i=0;i<N;i++){
+      ASTNode S=block.getStatement(i);
+      S.accept(this);
+      if (block_expr) out.printf(";"); else out.lnprintf(";");
+    }
+    if (!block_expr) {
+    	out.decrIndent();
+    }
+    out.printf("}");
 	}
 
 	public static TrackingTree dump_expr(PrintStream out, ASTNode node) {

@@ -45,7 +45,7 @@ public class VariableDeclaration extends ASTNode {
   /**
    * Multiple variable declarations on top of the given base type.
    */
-  private ArrayList<DeclarationStatement> vars=new ArrayList<DeclarationStatement>();
+  private ArrayList<ASTDeclaration> vars=new ArrayList<ASTDeclaration>();
   
   /**
    * Create an empty list of variables.
@@ -89,14 +89,14 @@ public class VariableDeclaration extends ASTNode {
    * 
    * @param decl
    */
-  public void add(DeclarationStatement decl){
+  public void add(ASTDeclaration decl){
     vars.add(decl);
   }
   
   /**
-   * Iterate over the variable declarations.
+   * Iterate over the (variable) declarations.
    */
-  public Iterable<DeclarationStatement> get(){
+  public Iterable<ASTDeclaration> get(){
     return vars;
   }
 
@@ -106,23 +106,37 @@ public class VariableDeclaration extends ASTNode {
    *  
    * @return
    */
+  public ASTDeclaration[] flatten_decl() {
+    return flatten_list().toArray(new ASTDeclaration[0]);
+  }
+    
   public DeclarationStatement[] flatten() {
-    ArrayList<DeclarationStatement> list=new ArrayList();
+    return flatten_list().toArray(new DeclarationStatement[0]);
+  }
+    
+  private ArrayList<ASTDeclaration> flatten_list(){
+    ArrayList<ASTDeclaration> list=new ArrayList();
     Map<String,Type> map=new HashMap();
     AbstractRewriter rw=new MultiSubstitution(null,map);
     rw.create.setOrigin(getOrigin());
     map.put(COMMON_NAME,basetype);
-    for(DeclarationStatement d:vars){
-      String name=d.getName();
-      map.put(name,basetype);
-      Type fulltype=rw.rewrite(d.getType());
-      map.remove(name);
-      DeclarationStatement tmp=rw.create.field_decl(name,fulltype, rw.copy_rw.rewrite(d.getInit()));
-      if (isValidFlag(ASTFlags.STATIC)){
-        tmp.setStatic(isStatic());
+    for(ASTDeclaration decl:vars){
+      if (decl instanceof DeclarationStatement){
+        DeclarationStatement d=(DeclarationStatement)decl;
+        String name=d.getName();
+        map.put(name,basetype);
+        Type fulltype=rw.rewrite(d.getType());
+        map.remove(name);
+        DeclarationStatement tmp=rw.create.field_decl(name,fulltype, rw.copy_rw.rewrite(d.getInit()));
+        if (isValidFlag(ASTFlags.STATIC)){
+          tmp.setStatic(isStatic());
+        }
+        list.add(tmp);
+      } else {
+        Method m=(Method)decl;
+        list.add(rw.rewrite(m));
       }
-      list.add(tmp);
     }
-    return list.toArray(new DeclarationStatement[0]);
+    return list;
   }
 }

@@ -3,7 +3,7 @@
 //:: tools chalice
 //:: verdict Pass
 //:: options --explicit
-//:: suite test
+
 /*
  Example: Semaphore 
  Description: Semaphore using AtomicInteger as synchronizer. 

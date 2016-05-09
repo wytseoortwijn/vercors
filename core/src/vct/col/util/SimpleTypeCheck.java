@@ -497,6 +497,10 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     
     
     switch(op){
+    case IterationOwner:{
+      e.setType(new PrimitiveType(Sort.Integer));
+      break;
+    }
     case TypeOf:{
       e.setType(new ClassType("<<null>>"));
       break;
@@ -961,6 +965,7 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       if (!(t1 instanceof PrimitiveType)) Fail("base must be array or sequence type.");
       PrimitiveType t=(PrimitiveType)t1;
       switch(t.sort){
+        case Pointer:
         case Sequence:
         case Array:
         {

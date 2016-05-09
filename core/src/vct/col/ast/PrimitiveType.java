@@ -38,7 +38,8 @@ public final class PrimitiveType extends Type {
     Array,
     Location,
     Process,
-    Pointer};
+    Pointer,
+    CVarArgs};
 
   public final Sort sort;
   public PrimitiveType(Sort sort,ASTNode ... args){
@@ -150,7 +151,9 @@ public final class PrimitiveType extends Type {
   }
   
   public boolean supertypeof(ProgramUnit context, Type t){
+    
     switch(this.sort){
+    case CVarArgs: return true;
     case Array:
       if (t.isPrimitive(this.sort)){
         return args[0].equals(((PrimitiveType)t).args[0]);
@@ -162,9 +165,10 @@ public final class PrimitiveType extends Type {
         String name[]=ct.getNameFull();
         if (name.length==1 && name[0].equals("<<null>>")) return true;
       }
-     }
+    }
     if (t instanceof PrimitiveType){
       PrimitiveType pt=(PrimitiveType)t;
+      //Warning("testing (%s/%s)",this.sort,pt.sort);
       if (equals(t)) return true;
       switch(this.sort){
       case Void:
@@ -240,6 +244,17 @@ public final class PrimitiveType extends Type {
         break;
       case Double:
         break;
+      case Pointer:
+        if (t.isPrimitive(Sort.String)){
+          Type tt=((Type)args[0]);
+          if (tt.isPrimitive(Sort.Char)) return true;
+          if (tt instanceof TypeExpression){
+            TypeExpression te=(TypeExpression)tt;
+            if (te.op==TypeOperator.Const && te.types[0].isPrimitive(Sort.Char)) return true;
+          }
+          Fail("missing case in PrimitiveType.supertypeof (%s/%s)",this.sort,pt.sort);
+        }
+        break;
       default:
         Fail("missing case in PrimitiveType.supertypeof (%s/%s)",this.sort,pt.sort);
       }
@@ -248,6 +263,7 @@ public final class PrimitiveType extends Type {
   }
   
   public boolean isPrimitive(Sort sort) {
+    if(sort==Sort.String && this.sort==Sort.Pointer && ((Type)args[0]).isPrimitive(Sort.Char)) return true;
     return this.sort==sort;
   }
 

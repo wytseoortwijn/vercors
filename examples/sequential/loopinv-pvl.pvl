@@ -9,8 +9,6 @@ method f_bad: Fail (loop invariant maintenance violation)
 
 */
 
-class Main {
-
   requires n>0;
   ensures \result==n * n;
   int f_ok(int n){
@@ -43,5 +41,4 @@ class Main {
     return res;
   }
 
-}
 

@@ -14,7 +14,7 @@ public class ASTSpecialDeclaration extends ASTDeclaration {
   public static enum Kind {
     Comment,
     Invariant,
-    Contract, Requires, Ensures, Given, Yields, Modifies,
+    Contract, Requires, Ensures, Given, Yields, Modifies, Pragma, With, Then
   };
 
   public final Kind kind;

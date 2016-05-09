@@ -40,7 +40,8 @@ specificationPrimary
     | '(' expression '\\memberof' expression ')'
     | '['  expression '..' expression ')'
     | '*'
-    | '\\current_thread'
+    | '\\current_thread' 
+    | '\\owner' '(' expression ',' expression ',' expression ')'
     ;
 
 expressionList

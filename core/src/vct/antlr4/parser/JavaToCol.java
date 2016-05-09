@@ -32,14 +32,14 @@ public class JavaToCol extends AbstractJavaToCol implements JavaVisitor<ASTNode>
 
   public static ProgramUnit convert(ParseTree tree, String file_name,BufferedTokenStream tokens,Parser parser) {
     ProgramUnit unit=new ProgramUnit();
-    JavaToCol visitor=new JavaToCol(JavaSyntax.getJava(),file_name,tokens,parser);
+    JavaToCol visitor=new JavaToCol(unit,JavaSyntax.getJava(),file_name,tokens,parser);
     visitor.scan_to(unit,tree);
     return unit;
   }
 
-  public JavaToCol(Syntax syntax, String filename, BufferedTokenStream tokens,
+  public JavaToCol(ASTSequence<?> unit,Syntax syntax, String filename, BufferedTokenStream tokens,
       Parser parser) {
-    super(syntax, filename, tokens, parser, JavaLexer.Identifier, JavaLexer.COMMENT,JavaLexer.class);
+    super(unit,syntax, filename, tokens, parser, JavaLexer.Identifier, JavaLexer.COMMENT,JavaLexer.class);
   }
 
   @Override

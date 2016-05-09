@@ -14,6 +14,7 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 
 import vct.clang.printer.CSyntax;
 import vct.col.ast.*;
+import vct.col.ast.ASTClass.ClassKind;
 import vct.col.ast.PrimitiveType.Sort;
 import vct.parsers.CLexer;
 import vct.parsers.CParser.AbstractDeclaratorContext;
@@ -136,7 +137,7 @@ public class CtoCOL extends AbstractCtoCOL implements CVisitor<ASTNode> {
     // create a new compilation unit.
     ProgramUnit unit=new ProgramUnit();
     // Create a visitor that can do the conversion.
-    AbstractCtoCOL visitor=new CtoCOL(CSyntax.getC(),file_name,tokens,parser);
+    AbstractCtoCOL visitor=new CtoCOL(unit,CSyntax.getC(),file_name,tokens,parser);
     // Invoke the generic conversion method in ANTLRtoCOL.
     // This method will scan the parse tree for declarations
     // and put them in the compilation unit.
@@ -144,8 +145,8 @@ public class CtoCOL extends AbstractCtoCOL implements CVisitor<ASTNode> {
     return unit;
   }
 
-  private CtoCOL(Syntax syntax, String filename, BufferedTokenStream tokens,org.antlr.v4.runtime.Parser parser) {
-    super(syntax, filename, tokens,parser,CLexer.Identifier,CLexer.class);
+  private CtoCOL(ProgramUnit unit,Syntax syntax, String filename, BufferedTokenStream tokens,org.antlr.v4.runtime.Parser parser) {
+    super(unit,syntax, filename, tokens,parser,CLexer.Identifier,CLexer.class);
   }
 
   @Override
@@ -219,7 +220,11 @@ public class CtoCOL extends AbstractCtoCOL implements CVisitor<ASTNode> {
 
   @Override
   public ASTNode visitCastExpression(CastExpressionContext ctx) {
-    // TODO Auto-generated method stub
+    if (match(ctx,"(",null,")",null)){
+      Type t=checkType(convert(ctx,1));
+      ASTNode e=convert(ctx,3);
+      return create.expression(StandardOperator.Cast,t,e);
+    }
     return null;
   }
 
@@ -256,10 +261,10 @@ public class CtoCOL extends AbstractCtoCOL implements CVisitor<ASTNode> {
     } else if (match(ctx,null,null,";")){
       VariableDeclaration res=create.variable_decl(checkType(convert(ctx,0)));
       ParserRuleContext list=(ParserRuleContext)ctx.getChild(1);
-      ASTNode decls[]=convert_list(list,",");
+      ASTNode decls[]=convert_linked_list(list,",");
       for(int i=0;i<decls.length;i++){
-        if (decls[i] instanceof DeclarationStatement){
-          res.add((DeclarationStatement)decls[i]);
+        if (decls[i] instanceof ASTDeclaration){
+          res.add((ASTDeclaration)decls[i]);
         } else if (decls[i] instanceof OperatorExpression){
           OperatorExpression e=(OperatorExpression)decls[i];
           DeclarationStatement d=(DeclarationStatement)e.getArg(0);
@@ -293,18 +298,20 @@ public class CtoCOL extends AbstractCtoCOL implements CVisitor<ASTNode> {
     hre.System.Debug("\"last:\" %s",tmp.toStringTree(parser));
     String name=null;
     if (expect!=null && expect==DeclarationStatement.class){
-      if (!match(tmp,"TypedefName")){
-        throw new HREError("missing name when declaration is expected.");
+      if (match(tmp,"TypedefName")){
+        name=getIdentifier(tmp, 0);
+        hre.System.Debug("\"name:\" %s",name);
+        i=i-1;
+        tmp=(ParserRuleContext)((ParserRuleContext)ctx.getChild(i)).getChild(0);
+      } else {
+        return null;
       }
-      name=getIdentifier(tmp, 0);
-      hre.System.Debug("\"name:\" %s",name);
-      i=i-1;
-      tmp=(ParserRuleContext)((ParserRuleContext)ctx.getChild(i)).getChild(0);     
     }
     if (match(tmp,"TypedefName")){
       tmp=(ParserRuleContext)((ParserRuleContext)tmp).getChild(0);
     } 
     hre.System.Debug("\"type:\" %s",tmp.toStringTree(parser));
+    expect=Type.class;
     ASTNode t=convert(tmp);
     Type type=null;
     if (t instanceof Type){
@@ -316,18 +323,22 @@ public class CtoCOL extends AbstractCtoCOL implements CVisitor<ASTNode> {
     }
     i=i-1;
     while(i>=0){
-      if (i==0){
-        if (match((ParserRuleContext)ctx.getChild(0),"StorageClassSpecifier")){
+      if (i==0 && match((ParserRuleContext)ctx.getChild(0),"StorageClassSpecifier")){
           hre.System.Debug("\"class:\" %s",ctx.getChild(0).toStringTree(parser));
           String sclass=((ParserRuleContext)((ParserRuleContext)ctx.getChild(0))).getText();
           hre.System.Debug("\"class:\" %s",sclass);
           switch(sclass){
           case "typedef":
             return create.field_decl(name,create.primitive_type(Sort.Class) ,type);
+          case "extern":
+            type=create.__extern(type);
+          case "static":
+            type=create.__static(type);
+            break;
+          default:
+            hre.System.Abort("missing case");
           }
-          hre.System.Abort("missing case");
-        }
-      } if (match((ParserRuleContext)ctx.getChild(i),"TypeQualifier")){
+      } else if (match((ParserRuleContext)ctx.getChild(i),"TypeQualifier")){
         hre.System.Debug("\"tspec:\" %s",ctx.getChild(i).toStringTree(parser));
         String modifier=((ParserRuleContext)((ParserRuleContext)ctx.getChild(i))).getText();
         switch(modifier){
@@ -533,15 +544,22 @@ public class CtoCOL extends AbstractCtoCOL implements CVisitor<ASTNode> {
 
   @Override
   public ASTNode visitFunctionDefinition(FunctionDefinitionContext ctx) {
-    int ofs=0;
-    Type t=create.primitive_type(Sort.Integer);
+    int ofs;
+    Type t;
+    /*
     if (match(0,true,ctx,"DeclarationSpecifierContext")){
+      System.err.printf("TYPE... %s%n",ctx.getChild(1).toStringTree(parser));
       ofs=1;
       t=(Type)convert(ctx,1);
+    } else
+      */
+    if (match(0,true,ctx,"DeclaratorContext")) {
+      t=create.primitive_type(Sort.Integer);
+      ofs=0;
     } else {
       t=(Type)convert(ctx,0);
+      ofs=1;
     }
-    ofs++;
     String name=null;
     ArrayList<DeclarationStatement> args=new ArrayList<DeclarationStatement>();
     if (match((DeclaratorContext)ctx.getChild(ofs),"DirectDeclaratorContext")){
@@ -664,22 +682,49 @@ public class CtoCOL extends AbstractCtoCOL implements CVisitor<ASTNode> {
   		  LoopStatement res=(LoopStatement)create.while_loop(convert(ctx,2),convert(ctx,4));
   	      scan_comments_after(res.get_after(), ctx.getChild(3));	      
   	      return res;
-    } else if (match(ctx,"for","(",null,";",null,";",null,")",null)){ //DRB --Added    
-      ASTNode body=convert(ctx,8);
-      ASTNode init=convert(ctx,2);
-      ASTNode test=convert(ctx,4);
-      ASTNode update=convert(ctx,6);
+    } else if (match(0,true,ctx,"for","(")){
+      int ofs=1;
+      ASTNode init;
+      ASTNode test=null;
+      if (match(ofs,true,ctx,"(",";")){
+        ofs++;
+        init=null;
+      } else if (match(ofs,true,ctx,"(",null,";")) {
+        init=convert(ctx,ofs+1);
+        ofs+=2;
+      } else if (match(ofs,true,ctx,"(",null,null,";")){
+        init=convert(ctx,ofs+1);
+        init=((VariableDeclaration)init).flatten()[0];
+        test=convert(ctx,ofs+2);
+        ofs+=3;
+      } else {
+        return null;
+      }
+      if (match(ofs,true,ctx,";",";")){
+        ofs++;
+        test=create.constant(true);
+      } else if (match(ofs,true,ctx,";",null,";")) {
+        test=convert(ctx,ofs+1);
+        ofs+=2;
+      }
+      ASTNode update;
+      if (match(ofs,true,ctx,";",")")){
+        ofs++;
+        update=create.constant(true);
+      } else if (match(ofs,true,ctx,";",null,")")) {
+        update=convert(ctx,ofs+1);
+        ofs+=2;
+      } else {
+        return null;
+      }
+      ASTNode body;
+      if (match(ofs,false,ctx,")",null)){
+        body=convert(ctx,ofs+1);
+      } else {
+        return null;
+      }
       LoopStatement res=create.for_loop(init,test,update,body);
-      scan_comments_after(res.get_after(), ctx.getChild(7));
-      return res;
-    } else if (match(ctx,"for","(",null,null,";",null,")",null)){ 
-      ASTNode body=convert(ctx,7);
-      ASTNode init=convert(ctx,2);
-      init=((VariableDeclaration)init).flatten()[0];
-      ASTNode test=convert(ctx,3);
-      ASTNode update=convert(ctx,5);
-      LoopStatement res=create.for_loop(init,test,update,body);
-      scan_comments_after(res.get_after(), ctx.getChild(6));
+      scan_comments_after(res.get_after(), ctx.getChild(ofs));
       return res;
     }	else {
       return null;
@@ -778,7 +823,29 @@ public class CtoCOL extends AbstractCtoCOL implements CVisitor<ASTNode> {
 
   @Override
   public ASTNode visitSpecifierQualifierList(SpecifierQualifierListContext ctx) {
-    // TODO Auto-generated method stub
+    if (match(ctx,"unsigned",null)){
+      ASTNode tmp=convert(ctx,1);
+      if (tmp instanceof DeclarationStatement){
+        DeclarationStatement decl=(DeclarationStatement)convert(ctx,1);
+        return create.field_decl(decl.name,create.type_expression(TypeOperator.Unsigned,decl.getType()));
+      } else {
+        return create.type_expression(TypeOperator.Unsigned,(Type)tmp);
+      }
+    }
+    if (match(ctx,"const",null)){
+      ASTNode tmp=convert(ctx,1);
+      if (tmp instanceof DeclarationStatement){
+        DeclarationStatement decl=(DeclarationStatement)convert(ctx,1);
+        return create.field_decl(decl.name,create.type_expression(TypeOperator.Const,decl.getType()));
+      } else {
+        return create.type_expression(TypeOperator.Const,(Type)tmp);
+      }
+    }
+    if (match(ctx,null,null)){
+      Type t=checkType(convert(ctx,0));
+      String name=getIdentifier(ctx,1);
+      return create.field_decl(name, t);
+    }
     return null;
   }
 
@@ -810,7 +877,16 @@ public class CtoCOL extends AbstractCtoCOL implements CVisitor<ASTNode> {
 
   @Override
   public ASTNode visitStructDeclaration(StructDeclarationContext ctx) {
-    // TODO Auto-generated method stub
+    if (match(ctx,null,null,";")){
+      Type t=checkType(convert(ctx,0));
+      VariableDeclaration decl=create.variable_decl(t);
+      ASTNode n = convert(ctx,1);
+      decl.add((DeclarationStatement)n);
+      return decl;
+    }
+    if (match(ctx,null,";")){
+      return convert(ctx,0);
+    }
     return null;
   }
 
@@ -838,10 +914,43 @@ public class CtoCOL extends AbstractCtoCOL implements CVisitor<ASTNode> {
     return null;
   }
 
+  private int struct_no=0;
+  
   @Override
   public ASTNode visitStructOrUnionSpecifier(StructOrUnionSpecifierContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
+    if (match(ctx,"struct",null)){
+      String name=getIdentifier(ctx,1);
+      return create.class_type(name);
+    }
+    String name=null;
+    int ofs;
+    if (match(0,true,ctx,"struct",null,"{")){
+      name=getIdentifier(ctx,1);
+      ofs=3;
+    } else if (match(0,true,ctx,"struct","{")){
+      name="struct_"+(++struct_no);
+      ofs=2;
+    } else {
+      return null;
+    }
+    ASTClass res=new ASTClass(name,ClassKind.Record);
+    res.setOrigin(create.getOrigin());
+    if (!match(ofs,true,ctx,null,"}")){
+      return null;
+    }
+    scan_to(res,ctx,ofs,ofs+1);
+    ofs+=2;
+    int N=ctx.getChildCount();
+    if (N==ofs){
+      if (expect!=null && expect==Type.class){
+        unit.add(res);
+        return create.class_type(name); 
+      } else {
+        return res;
+      }
+    } else {
+      return null;
+    }
   }
 
   @Override
@@ -857,7 +966,11 @@ public class CtoCOL extends AbstractCtoCOL implements CVisitor<ASTNode> {
 
   @Override
   public ASTNode visitTypeName(TypeNameContext ctx) {
-    // TODO Auto-generated method stub
+    System.err.printf("%s%n",ctx.toStringTree(parser));
+    if (match(ctx,null,"AbstractDeclarator")){
+      // TODO: check that the second part is *!
+      return create.type_expression(TypeOperator.PointerTo,checkType(convert(ctx,0)));
+    }
     return null;
   }
 
@@ -885,7 +998,9 @@ public class CtoCOL extends AbstractCtoCOL implements CVisitor<ASTNode> {
 
   @Override
   public ASTNode visitUnaryExpression(UnaryExpressionContext ctx) {
-    // TODO Auto-generated method stub
+    if(match(ctx,"sizeof",null)){
+      return create.expression(StandardOperator.SizeOf,convert(ctx,1));
+    }
     return null;
   }
 

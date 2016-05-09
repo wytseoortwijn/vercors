@@ -23,10 +23,28 @@
     <delete file="vct-core.jar"/>
   </target>
   
-	<target name="generate" depends="C,CML,Java,JavaJML,PVFull">
+	<target name="generate" depends="C,CML,Java,JavaJML,PVFull,omp">
     <echo>Finished parser generation.</echo>
 	</target>
 
+  <target name="omp" depends="check.omp" unless="omp.uptodate">
+    <echo>
+    Running ANTLR v4 on omp.g4
+    </echo>
+  	<mkdir dir="${gen}/vct/parsers"/>
+    <java fork="yes" dir="${src}/grammars" classpath="${lib}" jar="${lib}/antlr-4.5-complete.jar">
+      <arg value="-o"/><arg value="${gen}/vct/parsers"/>
+      <arg value="-visitor"/>
+      <arg value="omp.g4"/>
+    </java>
+  </target>
+  <target name="check.omp">
+  	<uptodate property="omp.uptodate">
+      <srcfiles dir="${src}/grammars"/>
+      <globmapper from="omp.g4" to="${gen}/vct/parsers/omp.tokens"/>
+    </uptodate>
+  </target>
+  
   <target name="C" depends="check.C" unless="C.uptodate">
     <echo>
     Running ANTLR v4 on C.g4

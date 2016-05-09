@@ -40,9 +40,13 @@ public class JavaPrinter extends AbstractPrinter {
       //out.printf("[");
     }
     if (node.annotated()) for(ASTNode ann:node.annotations()) {
-      nextExpr();
-      ann.accept(this);
-      out.printf(" ");
+      if (ann==null){
+        out.printf(" <null annotation> ");
+      } else {
+        nextExpr();
+        ann.accept(this);
+        out.printf(" ");
+      }
     }
   }
   
@@ -1248,6 +1252,9 @@ public class JavaPrinter extends AbstractPrinter {
         t.getArg(0).accept(this);
         out.printf(">");
         break;
+      case CVarArgs:
+        out.printf("...");
+        break;
       default:
         super.visit(t);
     }
@@ -1331,45 +1338,22 @@ public class JavaPrinter extends AbstractPrinter {
   public void visit(VariableDeclaration decl){
     decl.basetype.accept(this);
     String sep=" ";
-    for(DeclarationStatement d:decl.get()){
+    for(ASTDeclaration dd:decl.get()){
       out.print(sep);
       sep=",";
-      d.getType().accept(this);
-      ASTNode init=d.getInit();
-      if (init!=null){
-        out.print("=");
-        init.accept(this);
+      if (dd instanceof DeclarationStatement){
+        DeclarationStatement d = (DeclarationStatement)dd;
+        d.getType().accept(this);
+        ASTNode init=d.getInit();
+        if (init!=null){
+          out.print("=");
+          init.accept(this);
+        }
+      } else {
+        out.print("TODO");
       }
     }
     out.println(";");
-  }
-  
-  @Override
-  public void visit(TypeExpression t){
-    switch(t.op){
-    case Const:
-      out.printf("const ");
-      t.types[0].apply(this);
-      break;
-    case Kernel:
-      out.printf("__kernel ");
-      t.types[0].apply(this);
-      break;
-    case Global:
-      out.printf("__global ");
-      t.types[0].apply(this);
-      break;
-    case Local:
-      out.printf("__local ");
-      t.types[0].apply(this);
-      break;
-    case Unsigned:
-      out.printf("unsigned ");
-      t.types[0].apply(this);
-      break;
-    default:
-      throw new HREError("Missing case: %s",t.op);
-    }
   }
   
   @Override

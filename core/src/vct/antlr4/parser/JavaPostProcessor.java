@@ -36,6 +36,9 @@ public class JavaPostProcessor extends AbstractRewriter {
   @Override
   public void visit(ASTSpecial s){
     switch(s.kind){
+    case DeclareAction:
+      Fail("cannot create block around action",s.getOrigin());
+      break;
     case Expression:
       result=rewrite(s.args[0]);
       break;

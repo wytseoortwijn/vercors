@@ -1,6 +1,7 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 //:: cases TreeStack
 //:: tools chalice
+//:: suite medium
 
 /*
     Note that this specification only validates access permissions.

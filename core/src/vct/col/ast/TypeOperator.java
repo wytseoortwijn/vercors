@@ -9,6 +9,9 @@ public enum TypeOperator {
   Unsigned,
   Kernel,
   Global,
-  Local
+  Local,
+  Extern,
+  Static,
+  PointerTo
   
 }

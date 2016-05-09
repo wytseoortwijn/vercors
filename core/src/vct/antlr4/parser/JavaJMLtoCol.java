@@ -38,13 +38,13 @@ public class JavaJMLtoCol extends AbstractJavaToCol implements JavaJMLVisitor<AS
   
   public static TempSequence convert(ParseTree tree, String file_name,BufferedTokenStream tokens,Parser parser) {
     TempSequence unit=new TempSequence();
-    JavaJMLtoCol visitor=new JavaJMLtoCol(JavaSyntax.getJava(JavaDialect.JavaVerCors),file_name,tokens,parser);
+    JavaJMLtoCol visitor=new JavaJMLtoCol(unit,JavaSyntax.getJava(JavaDialect.JavaVerCors),file_name,tokens,parser);
     visitor.scan_to(unit,tree);
     return unit;
   }
 
-  public JavaJMLtoCol(Syntax syntax, String filename, BufferedTokenStream tokens, Parser parser) {
-    super(syntax, filename, tokens, parser, JavaJMLLexer.Identifier, JavaJMLLexer.COMMENT,JavaJMLLexer.class);
+  public JavaJMLtoCol(ASTSequence<?> unit,Syntax syntax, String filename, BufferedTokenStream tokens, Parser parser) {
+    super(unit,syntax, filename, tokens, parser, JavaJMLLexer.Identifier, JavaJMLLexer.COMMENT,JavaJMLLexer.class);
   }
 
   @Override

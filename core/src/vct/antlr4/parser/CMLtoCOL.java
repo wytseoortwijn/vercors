@@ -126,15 +126,15 @@ public class CMLtoCOL extends AbstractCtoCOL implements CMLVisitor<ASTNode> {
 
   public static TempSequence convert(ParseTree tree, String file_name,BufferedTokenStream tokens,org.antlr.v4.runtime.Parser parser) {
     TempSequence unit=new TempSequence();
-    CMLtoCOL visitor=new CMLtoCOL(CSyntax.getCML(),file_name,tokens,parser,CMLLexer.Identifier,CMLLexer.COMMENT);
+    CMLtoCOL visitor=new CMLtoCOL(unit, CSyntax.getCML(),file_name,tokens,parser,CMLLexer.Identifier,CMLLexer.COMMENT);
     visitor.scan_to(unit,tree);
     return unit;
   }
 
-  public CMLtoCOL(Syntax syntax, String filename, BufferedTokenStream tokens,
+  public CMLtoCOL(ASTSequence<?> unit,Syntax syntax, String filename, BufferedTokenStream tokens,
       Parser parser, int identifier, int comment
   ) {
-    super(syntax, filename, tokens, parser, identifier, CMLLexer.class);
+    super(unit, syntax, filename, tokens, parser, identifier, CMLLexer.class);
   }
 
   @Override

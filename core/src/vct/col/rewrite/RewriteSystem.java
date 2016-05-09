@@ -523,6 +523,9 @@ public class RewriteSystem {
       }
     }
     for(ASTNode d:pu.find(sys)){
+      if(d instanceof DeclarationStatement){
+        continue;
+      }
       if (d instanceof Axiom){
         Axiom axiom=(Axiom)d;
         //Warning("axiom %s",axiom.name);
@@ -536,7 +539,17 @@ public class RewriteSystem {
       }
       if (d instanceof Method && ((Method)d).kind==Method.Kind.Pure){
         methods.add((Method)d);
+        continue;
       }
+      if (d instanceof Method && ((Method)d).kind==Method.Kind.Constructor){
+        continue;
+      }
+      if (d instanceof ASTSpecialDeclaration &&
+         ((ASTSpecialDeclaration)d).kind==ASTSpecialDeclaration.Kind.Comment) {
+        continue;
+      }
+      d.getOrigin().report("fatal","unexpected item in rewrite system.");
+      Fail("Fatal");
     }
 
   }

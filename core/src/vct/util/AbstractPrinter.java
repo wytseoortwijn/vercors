@@ -1,10 +1,13 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 package vct.util;
 
+import hre.HREError;
 import hre.ast.MessageOrigin;
 import hre.ast.Origin;
 import hre.ast.TrackingOutput;
+
 import java.util.*;
+
 import vct.col.ast.*;
 import vct.util.Syntax.Associativity;
 import static hre.System.*;
@@ -72,6 +75,46 @@ public class AbstractPrinter extends AbstractVisitor {
     current_precedence=0;
   }
 
+  @Override
+  public void visit(TypeExpression t){
+    switch(t.op){
+    case Extern:
+      out.printf("extern ");
+      t.types[0].apply(this);
+      break;
+    case Static:
+      out.printf("static ");
+      t.types[0].apply(this);
+      break;
+    case Const:
+      out.printf("const ");
+      t.types[0].apply(this);
+      break;
+    case Kernel:
+      out.printf("__kernel ");
+      t.types[0].apply(this);
+      break;
+    case Global:
+      out.printf("__global ");
+      t.types[0].apply(this);
+      break;
+    case Local:
+      out.printf("__local ");
+      t.types[0].apply(this);
+      break;
+    case Unsigned:
+      out.printf("unsigned ");
+      t.types[0].apply(this);
+      break;
+    case PointerTo:
+      t.types[0].apply(this);
+      out.printf("*");
+      break;
+    default:
+      throw new HREError("Missing case: %s",t.op);
+    }
+  }
+  
   public void visit(Hole hole){
     out.printf("[.]");  
   }
@@ -165,19 +208,36 @@ public class AbstractPrinter extends AbstractVisitor {
   }
   
   public void visit(ASTSpecial s){
-    switch(s.kind){
-    default:
-      Abort("unimplemented special %s",s.kind);
+    setExpr();
+    out.printf("%s ",s.kind);
+    if (s.args[0]==null) {
+      out.print("null");
+    } else {
+      s.args[0].accept(this);
     }
+    for (int i=1; i<s.args.length;i++){
+      out.printf(", ");
+      if (s.args[i]==null) {
+        out.print("null");
+      } else {
+        s.args[i].accept(this);
+      }       
+    }
+    out.println(";");
   }
   
   public void visit(ASTSpecialDeclaration s){
     switch(s.kind){
-    case Invariant:
-    case Given:
-    case Yields:
-    case Requires:
-    case Ensures:
+    case Comment:
+      String lines[]=s.args[0].toString().split("\n");
+      for(int i=0;i<lines.length;i++){
+        out.println(lines[i]);
+      }
+      break;
+    case Pragma:
+      out.printf("@pragma(\"%s\")%n", s.args[0]);
+      break;
+    default:
       setExpr();
       out.printf("%s ",s.kind);
       if (s.args[0]==null) {
@@ -185,16 +245,16 @@ public class AbstractPrinter extends AbstractVisitor {
       } else {
         s.args[0].accept(this);
       }
+      for (int i=1; i<s.args.length;i++){
+        out.printf(", ");
+        if (s.args[i]==null) {
+          out.print("null");
+        } else {
+          s.args[i].accept(this);
+        }       
+      }
       out.println(";");
       break;
-    case Comment:
-      String lines[]=s.args[0].toString().split("\n");
-      for(int i=0;i<lines.length;i++){
-        out.println(lines[i]);
-      }
-      break;
-    default:
-      Abort("unimplemented special declaration %s",s.kind);
     }
   }
 }

@@ -32,7 +32,7 @@ addons:
 script:
  - ant jar
 # - ant dist 
- - vct --exclude-suite=slow --test="",$TRAVIS_BUILD_DIR/examples
+ - vct --exclude-suite=slow,medium --test="",$TRAVIS_BUILD_DIR/examples
 
 #deploy:
 #  provider: releases

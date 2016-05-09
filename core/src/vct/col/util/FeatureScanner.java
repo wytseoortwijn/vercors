@@ -1,10 +1,12 @@
 package vct.col.util;
 
 import java.util.EnumSet;
+import java.util.HashSet;
 
 import vct.col.ast.ASTClass;
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTSpecial;
+import vct.col.ast.ASTSpecialDeclaration;
 import vct.col.ast.BindingExpression;
 import vct.col.ast.Contract;
 import vct.col.ast.ForEachLoop;
@@ -93,6 +95,20 @@ public class FeatureScanner extends RecursiveVisitor<Object> {
     }
   }
 
+  private HashSet<String> pragmas=new HashSet();
+  
+  @Override
+  public void visit(ASTSpecialDeclaration s){
+    switch(s.kind){
+    case Pragma:{
+      String pragma=((ASTSpecialDeclaration)s).args[0].toString().split(" ")[0];
+      pragmas.add(pragma);
+      System.err.printf("added %s to pragmas%n",pragma);
+    }
+    default:
+      super.visit(s);
+    }
+  }
   @Override
   public void visit(ASTSpecial s){
     specials_used.add(s.kind);
@@ -161,5 +177,8 @@ public class FeatureScanner extends RecursiveVisitor<Object> {
   public void visit(OperatorExpression e){
     super.visit(e);
     ops_used.add(e.getOperator());
+  }
+  public boolean usesPragma(String string) {
+    return pragmas.contains(string);
   }
 }

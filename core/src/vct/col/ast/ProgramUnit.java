@@ -250,7 +250,7 @@ public class ProgramUnit implements ASTSequence<ProgramUnit> {
     if (item instanceof ASTDeclaration){
       add((ASTDeclaration)item);
     } else if(item instanceof VariableDeclaration) {
-      for(DeclarationStatement d:((VariableDeclaration)item).flatten()){
+      for(ASTDeclaration d:((VariableDeclaration)item).flatten_decl()){
         add(d);
       }
     } else {

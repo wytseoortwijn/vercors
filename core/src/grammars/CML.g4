@@ -18,6 +18,7 @@ specificationStatement
     | 'send' resourceExpression 'to' Identifier ',' expression ';'
     | 'recv' resourceExpression 'from' Identifier ',' expression ';'
     | 'assert' resourceExpression ';'
+    | contractClause 
     ;
     
 specificationDeclaration

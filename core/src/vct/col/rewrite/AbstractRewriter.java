@@ -19,6 +19,7 @@ import vct.col.ast.ASTReserved;
 import vct.col.ast.ASTSequence;
 import vct.col.ast.ASTSpecial;
 import vct.col.ast.ASTSpecialDeclaration;
+import vct.col.ast.ASTSpecialDeclaration.Kind;
 import vct.col.ast.ASTWith;
 import vct.col.ast.AbstractVisitor;
 import vct.col.ast.ActionBlock;
@@ -664,7 +665,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   @Override
   public void visit(VariableDeclaration decl) {
     VariableDeclaration res=create.variable_decl(decl.basetype);
-    for(DeclarationStatement d:decl.get()){
+    for(ASTDeclaration d:decl.get()){
       res.add(rewrite(d));
     }
     result=res;

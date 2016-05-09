@@ -67,6 +67,8 @@ import vct.col.rewrite.IterationContractEncoder;
 import vct.col.rewrite.KernelRewriter;
 import vct.col.rewrite.LockEncoder;
 import vct.col.rewrite.MergeLoops;
+import vct.col.rewrite.OpenCLtoPVL;
+import vct.col.rewrite.OpenMPtoPVL;
 import vct.col.rewrite.OptimizeQuantifiers;
 import vct.col.rewrite.PVLCompiler;
 import vct.col.rewrite.ParallelBlockEncoder;
@@ -506,10 +508,20 @@ public class Main
         return arg;
       }
     });
-    defined_passes.put("parallel_blocks",new CompilerPass("Encoded the proof obligations for parallel blocks"){
+    defined_passes.put("opencl2pvl",new CompilerPass("Compile OpenMP pragmas to PVL"){
       public ProgramUnit apply(ProgramUnit arg,String ... args){
-        return new ParallelBlockEncoder(arg).rewriteAll();
+        return new OpenCLtoPVL(arg).rewriteAll();
       }
+    });
+    defined_passes.put("openmp2pvl",new CompilerPass("Compile OpenMP pragmas to PVL"){
+      public ProgramUnit apply(ProgramUnit arg,String ... args){
+        return new OpenMPtoPVL(arg).rewriteAll();
+      }
+    });
+    defined_passes.put("parallel_blocks",new CompilerPass("Encoded the proof obligations for parallel blocks"){
+        public ProgramUnit apply(ProgramUnit arg,String ... args){
+          return new ParallelBlockEncoder(arg).rewriteAll();
+        }
     });
     defined_passes.put("pvl-compile",new CompilerPass("Compile PVL classes to Java classes"){
       public ProgramUnit apply(ProgramUnit arg,String ... args){
@@ -897,12 +909,17 @@ public class Main
       }
       passes.add("standardize");
       passes.add("check");
+      if (features.usesPragma("omp")){
+        passes.add("openmp2pvl");
+        passes.add("standardize");
+        passes.add("check");
+      }
       if (features.usesCSL()){
         passes.add("csl-encode");
         passes.add("standardize");
         passes.add("check");
       }
-      if (features.usesParallelBlocks()||features.usesCSL()){
+      if (features.usesParallelBlocks()||features.usesCSL()||features.usesPragma("omp")){
         passes.add("parallel_blocks");
         passes.add("standardize");
         passes.add("check");        

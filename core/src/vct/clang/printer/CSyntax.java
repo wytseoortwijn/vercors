@@ -3,6 +3,7 @@ package vct.clang.printer;
 import hre.ast.TrackingOutput;
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTReserved;
+import vct.col.ast.StandardOperator;
 import vct.util.Syntax;
 import vct.util.VerCorsSyntax;
 import static vct.col.ast.StandardOperator.*;
@@ -29,6 +30,9 @@ public class CSyntax extends Syntax{
     
     syntax.addPrefix(UMinus, "-", 150);
     syntax.addPrefix(UPlus, "+", 150);
+    syntax.addPrefix(Not,"!",150);
+    syntax.addPrefix(AddrOf,"&",150);
+    syntax.addPrefix(Indirection,"*",150);
 
     syntax.addLeftFix(Mult,"*",130);
     syntax.addLeftFix(Div,"/",130);
@@ -48,6 +52,12 @@ public class CSyntax extends Syntax{
     syntax.addInfix(EQ,"==",90);
     syntax.addInfix(NEQ,"!=",90);
     
+    syntax.addInfix(BitAnd,"&",80);
+    
+    syntax.addInfix(BitXor,"^",70);
+
+    syntax.addInfix(BitOr,"|",60);
+
     syntax.addLeftFix(And, "&&", 50);
     
     syntax.addLeftFix(Or, "||", 40);
@@ -56,7 +66,7 @@ public class CSyntax extends Syntax{
     syntax.addRightFix(Assign,"=",30);
     syntax.addRightFix(AddAssign,"+=",30);
     syntax.addRightFix(SubAssign,"-=",30);
-    syntax.addRightFix(MulAssign,"*= ",30);
+    syntax.addRightFix(MulAssign,"*=",30);
     syntax.addRightFix(DivAssign,"/=",30);
     syntax.addRightFix(RemAssign,"%=",30);
     syntax.addRightFix(AndAssign,"&=",30);
@@ -65,6 +75,8 @@ public class CSyntax extends Syntax{
     syntax.addRightFix(ShlAssign,"<<=",30);
     syntax.addRightFix(ShrAssign,">>=",30);
 
+    syntax.addFunction(SizeOf, "sizeof");
+    
     syntax.addPrimitiveType(Double,"double");
     syntax.addPrimitiveType(Integer,"int");
     //syntax.addPrimitiveType(Fraction,"frac");

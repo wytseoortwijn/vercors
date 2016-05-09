@@ -2,6 +2,8 @@
 //:: cases Roster
 //:: tools chalice
 //:: options --explicit
+//:: suite medium
+
 /**
   See pg 42, phd Hurlin.
   The command line to verify with the VerCors Tool is:

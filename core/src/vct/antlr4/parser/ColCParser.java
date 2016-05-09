@@ -3,9 +3,13 @@ package vct.antlr4.parser;
 import static hre.System.*;
 import hre.ast.FileOrigin;
 
+import java.io.BufferedInputStream;
+import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -39,14 +43,38 @@ public class ColCParser extends ColIParser {
         Runtime runtime=Runtime.getRuntime();
                     	
       	String command=Configuration.cpp_command.get();
-      	for(String p:Configuration.cpp_include_path){
-      	  command+=" -I"+p;
-      	}
+      	command+=" -nostdinc -isystem "+Configuration.getHome().resolve("include");
+        for(String p:Configuration.cpp_include_path){
+          command+=" -I"+p;
+        }
+        for(String p:Configuration.cpp_defines){
+          command+=" -D"+p;
+        }
       	command+=" "+file_name;
       	
       	Progress("pre-processing command line: %s",command);
-      	Process process=runtime.exec(command);
-          
+      	final Process process=runtime.exec(command);
+        Thread t=new Thread(){
+          public void run(){
+            DataInputStream err=new DataInputStream(process.getErrorStream());
+            boolean err_found=false;
+            String s;
+            try {
+              while((s=err.readLine())!=null){
+                System.err.println(s);
+                if (s.matches(".*error.*")) err_found=true;
+              }
+            } catch (IOException e) {
+              e.printStackTrace();
+              err_found=true;
+            }
+            if (err_found){
+              System.exit(1);
+            }
+          }
+        };
+        t.setDaemon(true);
+        t.start();
       	return parse(file_name,process.getInputStream());
       } catch (FileNotFoundException e) {
         Fail("File %s has not been found",file_name);

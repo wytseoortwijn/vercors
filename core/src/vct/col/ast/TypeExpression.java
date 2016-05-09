@@ -16,8 +16,18 @@ public class TypeExpression extends Type {
     this.op=op;
     types=Arrays.copyOf(t,t.length);
   }
-
   
+  public boolean isNumeric() {
+    switch(op){
+    case Local:
+    case Global:
+    case Long:
+      return types[0].isNumeric();
+    default:
+      return false;
+    }
+  }
+
   @Override
   public <T> void accept_simple(ASTVisitor<T> visitor){
     try {

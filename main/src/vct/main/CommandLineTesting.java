@@ -11,6 +11,7 @@ import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -99,6 +100,7 @@ public class CommandLineTesting {
       }
     }
     if (tv.delayed_fail) System.exit(1);
+    HashMap<String,Integer> times=new HashMap();
     int successes=0;
     HashMap<String,Testcase> untested=new HashMap<String,Testcase>();
     HashMap<String,String> failures=new HashMap<String, String>();
@@ -163,6 +165,7 @@ public class CommandLineTesting {
         System.err.printf("%n");
         res=tt.run(cmd.toArray(new String[0]));
         System.err.printf("finished %s/%s: %s/%s %n",name,tool,res.verdict,test.verdict);
+        times.put(name+"/"+tool,res.times.get("entire run"));
         if (res.verdict.toString().equals(test.verdict)){
           successes++;
         } else {
@@ -195,6 +198,12 @@ public class CommandLineTesting {
         }
         System.err.printf(")%n");
       }
+    }
+    System.err.printf("verification times (ms):%n");
+    ArrayList<String> list = new ArrayList(times.keySet());
+    Collections.sort(list);
+    for(String t:list){
+      System.err.printf("%35s: %10d%n",t,times.get(t));
     }
     if(failures.isEmpty()){
       System.err.printf("all %d tests passed%n",successes);

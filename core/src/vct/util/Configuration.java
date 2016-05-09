@@ -90,6 +90,11 @@ public class Configuration {
   public static final StringListSetting cpp_include_path=new StringListSetting();
   
   /**
+   * The definitions passed to the C pre processor.
+   */
+  public static final StringListSetting cpp_defines=new StringListSetting();
+  
+  /**
    * The command that invokes the C pre processor.
    */
   public static final StringSetting cpp_command=new StringSetting("clang -C -E");
@@ -118,6 +123,7 @@ public class Configuration {
     clops.add(Configuration.modulepath.getAppendOption("configure path for finding back end modules"),"module-path");
     clops.add(cpp_command.getAssign("set the C Pre Processor command"),"cpp");
     clops.add(cpp_include_path.getAppendOption("add to the CPP include path"),'I',"include");
+    clops.add(cpp_defines.getAppendOption("add to the CPP defined variables"),'D');
   }
 
   /**

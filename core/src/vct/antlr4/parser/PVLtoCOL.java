@@ -54,6 +54,7 @@ import vct.col.ast.ASTClass;
 import vct.col.ast.ASTFlags;
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTReserved;
+import vct.col.ast.ASTSequence;
 import vct.col.ast.ASTSpecial;
 import vct.col.ast.BeforeAfterAnnotations;
 import vct.col.ast.BlockStatement;
@@ -86,12 +87,12 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
 
   public static ProgramUnit convert(ParseTree tree, String file_name,BufferedTokenStream tokens,org.antlr.v4.runtime.Parser parser) {
     ProgramUnit unit=new ProgramUnit();
-    PVLtoCOL visitor=new PVLtoCOL(PVLSyntax.get(),file_name,tokens,parser);
+    PVLtoCOL visitor=new PVLtoCOL(unit,PVLSyntax.get(),file_name,tokens,parser);
     visitor.scan_to(unit,tree);
     return unit;
   }
-  public PVLtoCOL(Syntax syntax, String filename, BufferedTokenStream tokens,org.antlr.v4.runtime.Parser parser) {
-    super(syntax, filename, tokens,parser,PVFullLexer.ID,PVFullLexer.class);
+  public PVLtoCOL(ASTSequence<?> unit,Syntax syntax, String filename, BufferedTokenStream tokens,org.antlr.v4.runtime.Parser parser) {
+    super(unit, syntax, filename, tokens,parser,PVFullLexer.ID,PVFullLexer.class);
   }
 
   @Override

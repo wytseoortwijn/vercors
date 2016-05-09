@@ -8,16 +8,21 @@ import org.antlr.v4.runtime.BufferedTokenStream;
 import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.Vocabulary;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
+import vct.col.ast.ASTDeclaration;
 import vct.col.ast.ASTNode;
+import vct.col.ast.ASTSequence;
 import vct.col.ast.BlockStatement;
 import vct.col.ast.ClassType;
 import vct.col.ast.DeclarationStatement;
+import vct.col.ast.Method.Kind;
 import vct.col.ast.NameExpression;
 import vct.col.ast.PrimitiveType;
 import vct.col.ast.PrimitiveType.Sort;
+import vct.col.ast.ProgramUnit;
 import vct.col.ast.Type;
 import vct.col.ast.VariableDeclaration;
 import vct.parsers.CParser.BlockItemListContext;
@@ -37,11 +42,11 @@ import vct.util.Syntax;
 */
 public abstract class AbstractCtoCOL extends ANTLRtoCOL {
 
-  public AbstractCtoCOL(Syntax syntax,
+  public AbstractCtoCOL(ASTSequence<?> unit,Syntax syntax,
       String filename,
       BufferedTokenStream tokens, Parser parser, int identifier, Class<?> lexer_class
   ) {
-    super(syntax, filename, tokens, parser, identifier, lexer_class);
+    super(unit, syntax, filename, tokens, parser, identifier, lexer_class);
   }
 
   
@@ -106,13 +111,41 @@ public abstract class AbstractCtoCOL extends ANTLRtoCOL {
       String name=getIdentifier(ctx,0);
       return create.invokation(null,null,name,new ASTNode[0]);
     }
-    if (match(ctx,"Identifier")){
-      return convert(ctx,0);
-    }
-    if (match(ctx,"Constant")){
-      TerminalNode tn=(TerminalNode)ctx.getChild(0);
+    ParseTree t=ctx.getChild(0);
+    if (t instanceof TerminalNode){
+      TerminalNode tn=(TerminalNode)t;
       Token tok=tn.getSymbol();
-      return create.constant(Integer.parseInt(tok.getText()));
+      Vocabulary voc=parser.getVocabulary();
+      String name=voc.getSymbolicName(tok.getType());
+      String text=tok.getText();
+      switch(name){
+        case "Identifier":
+          return convert(ctx,0);
+        case "Constant":
+          if (text.matches("[0-9]*")){
+            return create.constant(Integer.parseInt(text));
+          } else if (text.matches("0x[0-9]*")) {
+            return create.constant(Integer.parseInt(text.substring(2),16));
+          } else if (text.matches("[0-9]*[.][0-9]*")) {
+            return create.constant(Float.parseFloat(text));
+          } else if (text.matches("['].*[']")) {
+            return create.constant(text);
+          } else {
+            throw new hre.HREError("could not match constant: %s",text);
+          }
+        case "StringLiteral":
+          String str=text;
+          int i=1;
+          while(i<ctx.getChildCount()){
+            tn=(TerminalNode)ctx.getChild(i);
+            tok=tn.getSymbol();
+            str=str+tok.getText();
+            i++;
+          }
+          return create.constant(str);
+        default:
+          throw new hre.HREError("missing case in visitPrimaryExpression: %s",name);
+      }
     }
     return null;
   }
@@ -126,18 +159,24 @@ public abstract class AbstractCtoCOL extends ANTLRtoCOL {
   protected void convert_parameters(ArrayList<DeclarationStatement> args,
       ParserRuleContext arg_ctx) throws Failure {
     if (match(arg_ctx,null,",","...")){
-      throw hre.System.Failure("C varargs are not supported.");
+      args.add(create.field_decl("va_args", create.primitive_type(Sort.CVarArgs)));
     }
     arg_ctx=(ParserRuleContext)arg_ctx.getChild(0);
     while(match(arg_ctx,null,",",null)){
       args.add(0,(DeclarationStatement)convert(arg_ctx,2));
       arg_ctx=(ParserRuleContext)arg_ctx.getChild(0);
     }
-    args.add(0,(DeclarationStatement)convert(arg_ctx));
+    ASTNode n=convert(arg_ctx);
+    if (n instanceof DeclarationStatement){
+      args.add(0,(DeclarationStatement)n);
+    } else {
+      args.add(0,create.field_decl("__x_"+args.size(),(Type)n));
+    }
+      
   }
 
 
-  public DeclarationStatement getDirectDeclarator(ParserRuleContext ctx) {
+  public ASTDeclaration getDirectDeclarator(ParserRuleContext ctx) {
     //hre.System.Warning("direct declarator %s",ctx.toStringTree(parser));
     if (match(ctx,(String)null)){
       String name=getIdentifier(ctx,0);
@@ -146,17 +185,16 @@ public abstract class AbstractCtoCOL extends ANTLRtoCOL {
     boolean pars=false;
     if (match(ctx,null,"(",")")||(pars=match(ctx,null,"(","ParameterTypeList",")"))){
       String name=getIdentifier(ctx, 0);
-      ArrayList<Type> types=new ArrayList();
-      if (pars){
-        ArrayList<DeclarationStatement> args=new ArrayList();
+      ArrayList<DeclarationStatement> args=new ArrayList();
+      if (pars){  
         convert_parameters(args,(ParserRuleContext)ctx.getChild(2));
-        for(DeclarationStatement d:args){
-          types.add(d.getType());
-        }
-      } else {
-        types.add(create.primitive_type(Sort.Void));
       }
-      return create.field_decl(name,create.arrow_type(types.toArray(new Type[0]),VariableDeclaration.common_type));
+      boolean varargs=false;
+      if (args.size()>0){
+        Type t=args.get(args.size()-1).getType();
+        varargs=t.isPrimitive(Sort.CVarArgs);
+      }
+      return create.method_kind(Kind.Plain, VariableDeclaration.common_type, null, name, args, varargs, null);
     }
     if (match(ctx,null,"[","]")){
       DeclarationStatement d=(DeclarationStatement)convert(ctx,0);
@@ -164,10 +202,14 @@ public abstract class AbstractCtoCOL extends ANTLRtoCOL {
       t=create.primitive_type(PrimitiveType.Sort.Array,t);
       return create.field_decl(d.getName(),t);
     }
-    if (match(ctx,null,"[",null,"]")){
+    int N=ctx.getChildCount();
+    if (match(0,true,ctx,null,"[") && match(N-1,false,ctx,"]")){
       DeclarationStatement d=(DeclarationStatement)convert(ctx,0);
       Type t=d.getType();
-      t=create.primitive_type(PrimitiveType.Sort.Array,t,convert(ctx,2));
+      if (N>4) {
+        hre.System.Warning("ignoring %d modifiers in declaration",N-4);
+      }
+      t=create.primitive_type(PrimitiveType.Sort.Array,t,convert(ctx,N-2));
       return create.field_decl(d.getName(),t);
     }
     return null;
@@ -183,7 +225,7 @@ public abstract class AbstractCtoCOL extends ANTLRtoCOL {
         if (v instanceof DeclarationStatement){
           VariableDeclaration decl=create.variable_decl(t);
           decl.add((DeclarationStatement)v);
-          DeclarationStatement vars[]=decl.flatten();
+          ASTDeclaration vars[]=decl.flatten();
           if (vars.length==1) return vars[0];
         } else if (v instanceof NameExpression){
           String name=((NameExpression)v).getName();

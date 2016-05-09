@@ -130,23 +130,24 @@ public class BoogiePrinter extends AbstractBoogiePrinter {
   public void visit(ASTClass cl){
     int N=cl.getStaticCount();
     int M=cl.getDynamicCount();
-    if (M==1 && cl.getDynamic(0) instanceof Method){
-      Method m=(Method)cl.getDynamic(0);
-      if (m.kind==Method.Kind.Constructor) M=0;
-    }
-    if (N>0 && M>0) {
-      throw new Error("mixed static/dynamic "+N+"/"+M+" in boogie");
+    for(int i=0;i<M;i++) {
+      if (cl.getDynamic(i) instanceof Method){
+        Method m=(Method)cl.getDynamic(i);
+        if (m.kind==Method.Kind.Constructor){
+          continue;
+        }
+      } else if (cl.getDynamic(i) instanceof ASTSpecialDeclaration){
+        ASTSpecialDeclaration s=(ASTSpecialDeclaration)cl.getDynamic(i);
+        if (s.kind==ASTSpecialDeclaration.Kind.Comment){
+          continue;
+        }
+      }
+      throw new Error("illegal non-static in Boogie input");
     }
     if (N==1 && cl.getStatic(0) instanceof ASTClass){
       visit((ASTClass)cl.getStatic(0));
     } else for(int i=0;i<N;i++){
       cl.getStatic(i).accept(this);
-      out.println("");
-    }
-    if (M==1 && cl.getDynamic(0) instanceof ASTClass){
-      visit((ASTClass)cl.getDynamic(0));
-    } else for(int i=0;i<M;i++){
-      cl.getDynamic(i).accept(this);
       out.println("");
     }
   }

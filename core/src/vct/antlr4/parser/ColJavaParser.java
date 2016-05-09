@@ -60,6 +60,7 @@ public class ColJavaParser implements vct.col.util.Parser {
         
         pu=new FlattenVariableDeclarations(pu).rewriteAll();
         Progress("Flattening variables took %dms",tk.show());
+        //vct.util.Configuration.getDiagSyntax().print(System.out,pu);
         
         pu=new SpecificationCollector(pu).rewriteAll();
         Progress("Shuffling specifications took %dms",tk.show());        

@@ -29,6 +29,7 @@ public class SpecificationCollector extends AbstractRewriter {
   
   public SpecificationCollector(ProgramUnit source) {
     super(source);
+    currentContractBuilder=new ContractBuilder();
   }
 
   
@@ -42,21 +43,11 @@ public class SpecificationCollector extends AbstractRewriter {
     case Ensures:
     case Invariant:
     case Modifies:
-      break;
-    case Comment:
-        // TODO: find a way to keep comments.
-        // For now, they are removed to solve static/dynamic issues!
-        //super.visit(s);
-        //result.setFlag(ASTFlags.STATIC, false);
-        return;
+      if (currentContractBuilder != null) break;
     default:
-      if (currentContractBuilder!=null){
-        Abort("Special %s cannot be part of contract",s.kind);
-      }
       super.visit(s);
       return;
     }
-    if (currentContractBuilder==null) currentContractBuilder=new ContractBuilder();
     switch(s.kind){
     case Modifies:{
     	currentContractBuilder.modifies(rewrite(s.args));
@@ -89,23 +80,48 @@ public class SpecificationCollector extends AbstractRewriter {
     case Invariant:
       currentContractBuilder.appendInvariant(rewrite(s.args[0]));
       break;
+    default:
+      Abort("Missing case %s",s.kind);
     }
   }
 
   @Override
   public void visit(ASTClass c){
-    super.visit(c);
-    if (currentContractBuilder!=null){
+
+    String name=c.getName();
+    if (name==null) {
+      Abort("illegal class without name");
+    } else {
+      Debug("rewriting class "+name);
+      ASTClass res=new ASTClass(name,c.kind,rewrite(c.parameters),rewrite(c.super_classes),rewrite(c.implemented_classes));
+      res.setOrigin(c.getOrigin());
+      currentTargetClass=res;
+      Contract contract=c.getContract();
+      if (currentContractBuilder==null){
+        currentContractBuilder=new ContractBuilder();
+      }
+      if (contract!=null){
+        rewrite(contract,currentContractBuilder);
+      }
+      res.setContract(currentContractBuilder.getContract());
+      currentContractBuilder=new ContractBuilder();
+      for(ASTNode item:c){
+        res.add(rewrite(item));
+      }
+      result=res;
+      currentTargetClass=null;
+    }
+
+    if (!currentContractBuilder.isEmpty()){
       Abort("class contains unattached contract clauses");
     }
+    currentContractBuilder=null;
   }
 
   @Override
   public void visit(Method m){
     super.visit(m);
-    if (currentContractBuilder!=null){
-      Abort("body of method contains unattached contract clauses");
-    }
+    currentContractBuilder=new ContractBuilder();
   }
   @Override
   public void visit(LoopStatement s){
@@ -173,5 +189,34 @@ public class SpecificationCollector extends AbstractRewriter {
     }
   }
   
+  @Override
+  public void visit(BlockStatement block){
+    BlockStatement tmp=currentBlock;
+    currentBlock=create.block();
+    
+    int N=block.getLength();
+    for(int i=0;i<N;i++){
+      if (block.get(i) instanceof ASTSpecialDeclaration && currentContractBuilder==null){
+        int j;
+        for(j=i+1;j<N && (block.get(j) instanceof ASTSpecialDeclaration);j++){
+        }
+        if (j<N && block.get(j) instanceof LoopStatement) {
+          currentContractBuilder=new ContractBuilder();
+        } else {
+          j--;
+          for(;i<j;i++){
+            currentBlock.add(rewrite(block.get(i)));
+          }
+        }
+      }
+      currentBlock.add(rewrite(block.get(i)));
+      //if (block.get(i) instanceof LoopStatement){
+      //  
+      //}
+    }
+    
+    result=currentBlock;
+    currentBlock=tmp;
+  }
 }
 

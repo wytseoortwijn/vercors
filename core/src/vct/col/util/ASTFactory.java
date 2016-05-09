@@ -624,6 +624,9 @@ public BlockStatement block(Origin origin, ASTNode ... args) {
   public Method method_decl(Type returns,Contract contract,String name,DeclarationStatement args[],ASTNode body){
     return method_kind(Method.Kind.Plain,returns,contract,name,args,false,body);
   }
+  public Method method_decl(Type returns,Contract contract,String name,List<DeclarationStatement> args,ASTNode body){
+    return method_kind(Method.Kind.Plain,returns,contract,name,args.toArray(new DeclarationStatement[args.size()]),false,body);
+  }
   
   /**
    * Create a method declaration
@@ -634,6 +637,9 @@ public BlockStatement block(Origin origin, ASTNode ... args) {
   /**
    * Create a method declaration
    */
+  public Method method_kind(Method.Kind kind,Type returns,Contract contract,String name,List<DeclarationStatement> args,boolean varArgs,ASTNode body){    
+    return method_kind(kind,returns,contract,name,args.toArray(new DeclarationStatement[args.size()]),varArgs,body);
+  }
   public Method method_kind(Method.Kind kind,Type returns,Contract contract,String name,DeclarationStatement args[],boolean varArgs,ASTNode body){
     Method res=new Method(kind,name,returns,contract,args,varArgs,body);
     res.setOrigin(origin_stack.get());
@@ -1055,6 +1061,13 @@ public Axiom axiom(String name,ASTNode exp){
   
   public Type __const(Type type) {
     return type_expression(TypeOperator.Const,type);
+  }
+  
+  public Type __extern(Type type) {
+    return type_expression(TypeOperator.Extern,type);
+  }
+  public Type __static(Type type) {
+    return type_expression(TypeOperator.Static,type);
   }
 
   public Type type_expression(TypeOperator op,Type ... args) {

@@ -9,7 +9,7 @@ package pv.parser;
   public final static int LINEDIRECTION=Integer.MAX_VALUE;
 }
 
-program  : (claz|kernel)* (block)? ;
+program  : (claz|kernel|block|field|method|abs_decl|function)* (block)? ;
 
 claz : contract 'class' ID '{'( field | method | function | constructor | abs_decl )* '}' ;
 
@@ -61,6 +61,7 @@ expr
  | (lexpr | 'Value' | 'Perm' | 'PointsTo' | 'Hist' | '\\old' | '?' ) tuple
  | '(' ('\\sum' | '\\exists' | '\\forall' | '\\forall*') type ID ';' expr (';' expr )? ')'
  | '(' expr ')'
+ | '\\owner' '(' expr ',' expr ',' expr ')'
  | 'id' '(' expr ')'
  | 'new' ID tuple
  | 'new' type '[' expr ']'

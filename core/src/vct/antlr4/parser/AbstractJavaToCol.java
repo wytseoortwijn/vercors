@@ -37,9 +37,9 @@ public class AbstractJavaToCol extends ANTLRtoCOL {
   private final int IntegerLiteral;
   private final int StringLiteral;
   
-  public AbstractJavaToCol(Syntax syntax, String filename,
+  public AbstractJavaToCol(ASTSequence<?> unit,Syntax syntax, String filename,
       BufferedTokenStream tokens, Parser parser, int identifier, int comment, Class<?> lexer_class) {
-    super(syntax, filename, tokens, parser, identifier, lexer_class);
+    super(unit,syntax, filename, tokens, parser, identifier, lexer_class);
     IntegerLiteral=getStaticInt(lexer_class,"IntegerLiteral");
     StringLiteral=getStaticInt(lexer_class,"StringLiteral");
   }

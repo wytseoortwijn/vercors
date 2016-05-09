@@ -214,6 +214,7 @@ public enum StandardOperator {
   /** check if an element is a member of a container. */
   Member(2),
   AddrOf(1),
+  SizeOf(1),
   /** head of a list. */
   Head(1),
   /** tail of a list. */
@@ -289,7 +290,15 @@ public enum StandardOperator {
   /**
    * The identity operator.
    */
-  Identity(1)
+  Identity(1),
+  /**
+   * The C indirection operator (*).
+   */
+  Indirection(1),
+  /**
+   * The iteration owner construct for OpenMP loops. 
+   */
+  IterationOwner(3)
   ;
 
   private final int arity;

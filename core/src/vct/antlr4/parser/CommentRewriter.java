@@ -13,6 +13,7 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 
 import vct.col.ast.*;
+import vct.col.ast.ASTSpecialDeclaration.Kind;
 import vct.col.rewrite.AbstractRewriter;
 import vct.parsers.CMLLexer;
 import vct.parsers.CMLParser;
@@ -150,6 +151,8 @@ public class CommentRewriter extends AbstractRewriter {
       if (comment.startsWith("/*@")||comment.startsWith("//@")){
         queue.add(s);
         result=null;
+      } else if (comment.startsWith("#pragma")) {
+        result=create.special_decl(Kind.Pragma, create.constant(comment.substring(7).trim()));
       } else {
         super.visit(s);
       }

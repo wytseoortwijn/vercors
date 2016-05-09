@@ -101,6 +101,9 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
    */
   protected HashMap<String,Class<?>> context=new HashMap<String,Class<?>>();
 
+  
+  public final ASTSequence<?> unit;
+  
   public final Class<?> lexer_class;
   
   /**
@@ -113,8 +116,9 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
    * @param identifier The number of the token that represents identifiers.
    * @param lexer_class The class of the lexer for the language.
    */
-  public ANTLRtoCOL(Syntax syntax,String filename,BufferedTokenStream tokens,
+  public ANTLRtoCOL(ASTSequence<?>  unit,Syntax syntax,String filename,BufferedTokenStream tokens,
       org.antlr.v4.runtime.Parser parser, int identifier, Class<?> lexer_class){
+    this.unit=unit;
     this.lexer_class=lexer_class;
     this.syntax=syntax;
     this.filename=filename;
@@ -459,6 +463,9 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
         return create.special_decl(ASTSpecialDeclaration.Kind.Ensures,convert(ctx,1));
       } else if (match(ctx,"given",null,";")){
         return create.special_decl(ASTSpecialDeclaration.Kind.Given,create.block(convert(ctx,1)));
+      } else if (match(ctx,"given",null,null,";")){
+        DeclarationStatement decl=create.field_decl(getIdentifier(ctx,2),checkType(convert(ctx,1)));
+        return create.special_decl(ASTSpecialDeclaration.Kind.Given,create.block(decl));
       } else if (match(ctx,"yields",null,";")){
         return create.special_decl(ASTSpecialDeclaration.Kind.Yields,create.block(convert(ctx,1)));
       }
