@@ -55,6 +55,14 @@ public class AddTypeADT extends AbstractRewriter {
           create.invokation(create.class_type(type_adt),null,"class_"+m.name)
       ));
     }
+    //else if (!m.isStatic()) {
+    //  String name=((ASTClass)m.getParent()).name;
+    //  currentContractBuilder=new ContractBuilder();
+    //  currentContractBuilder.ensures(create.invokation(null, null,"instanceof",
+    //      create.expression(StandardOperator.TypeOf,create.reserved_name(ASTReserved.This)),
+    //      create.invokation(create.class_type(type_adt),null,"class_"+name)
+    //    ));
+    //}
     super.visit(m);
     if (m.getKind()==Method.Kind.Constructor){
       Method c=(Method)result;
@@ -65,6 +73,8 @@ public class AddTypeADT extends AbstractRewriter {
         )));
       }
       result=c;
+    } else if (!m.isStatic()) {
+      
     }
   }
 
@@ -96,6 +106,19 @@ public class AddTypeADT extends AbstractRewriter {
   
   public void visit(OperatorExpression e){
     switch(e.getOperator()){
+    case EQ:
+      if (e.getArg(0).isa(StandardOperator.TypeOf)
+        && e.getArg(1) instanceof ClassType){
+        result=create.expression(StandardOperator.EQ,rewrite(e.getArg(0)),
+               create.invokation(create.class_type(type_adt),null,"class_"+e.getArg(1)));
+      } else if(e.getArg(1).isa(StandardOperator.TypeOf)
+          && e.getArg(0) instanceof ClassType) {
+        result=create.expression(StandardOperator.EQ,rewrite(e.getArg(1)),
+            create.invokation(create.class_type(type_adt),null,"class_"+e.getArg(0)));       
+      } else {
+        super.visit(e);
+      }
+      break;
     case Instance:
       result=create.expression(StandardOperator.And,
           create.expression(StandardOperator.NEQ,

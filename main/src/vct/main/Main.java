@@ -948,7 +948,10 @@ public class Main
         passes.add("check");       
       }
       boolean has_type_adt=false;
-      if (features.usesOperator(StandardOperator.Instance)||features.usesInheritance()){
+      if (  features.usesOperator(StandardOperator.Instance)
+        || features.usesInheritance()
+        || features.usesOperator(StandardOperator.TypeOf)
+      ){
         passes.add("add-type-adt");
         passes.add("standardize");
         passes.add("check");
