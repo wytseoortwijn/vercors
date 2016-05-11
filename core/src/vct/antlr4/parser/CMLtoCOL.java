@@ -12,6 +12,7 @@ import org.antlr.v4.runtime.tree.ParseTree;
 
 import vct.clang.printer.CSyntax;
 import vct.col.ast.*;
+import vct.col.syntax.Syntax;
 import vct.parsers.*;
 import vct.parsers.CMLParser.AbstractDeclaratorContext;
 import vct.parsers.CMLParser.AdditiveExpressionContext;
@@ -111,7 +112,6 @@ import vct.parsers.CMLParser.UnaryOperatorContext;
 import vct.parsers.CMLParser.SpecificationStatementContext;
 import vct.parsers.CMLParser.SpecificationSequenceContext;
 import vct.util.Configuration;
-import vct.util.Syntax;   
 
 /**
  * Convert CML (C Modeling Language) parse trees to COL.

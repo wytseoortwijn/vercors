@@ -11,7 +11,8 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 
 import vct.col.ast.*;
 import vct.col.ast.PrimitiveType.Sort;
-import vct.java.printer.JavaSyntax;
+import vct.col.syntax.JavaSyntax;
+import vct.col.syntax.Syntax;
 import vct.parsers.JavaParser.*;
 import vct.parsers.*;
 import vct.parsers.JavaParser.ClassBodyContext;
@@ -21,7 +22,6 @@ import vct.parsers.JavaParser.SpecificationPrimaryContext;
 import vct.parsers.JavaParser.SpecificationPrimitiveTypeContext;
 import vct.parsers.JavaParser.SpecificationStatementContext;
 import vct.util.Configuration;
-import vct.util.Syntax;
 
 /**
  * Convert Java parse trees to COL.

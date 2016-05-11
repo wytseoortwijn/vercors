@@ -25,11 +25,11 @@ import vct.col.ast.PrimitiveType.Sort;
 import vct.col.ast.ProgramUnit;
 import vct.col.ast.Type;
 import vct.col.ast.VariableDeclaration;
+import vct.col.syntax.Syntax;
 import vct.parsers.CParser.BlockItemListContext;
 import vct.parsers.CParser.CompoundStatementContext;
 import vct.parsers.CParser.LabeledStatementContext;
 import vct.parsers.CParser.PrimaryExpressionContext;
-import vct.util.Syntax;
 
 /**
  * Convert the shared parts of CML and C parse trees to COL.

@@ -1,5 +1,5 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
-package vct.util;
+package vct.col.print;
 
 import hre.HREError;
 import hre.ast.MessageOrigin;
@@ -9,7 +9,8 @@ import hre.ast.TrackingOutput;
 import java.util.*;
 
 import vct.col.ast.*;
-import vct.util.Syntax.Associativity;
+import vct.col.syntax.Syntax;
+import vct.col.syntax.Syntax.Associativity;
 import static hre.System.*;
 
 /**

@@ -3,7 +3,7 @@ package vct.antlr4.parser;
 
 import hre.ast.TrackingOutput;
 import vct.col.ast.ASTNode;
-import vct.util.Syntax;
+import vct.col.syntax.Syntax;
 import static vct.col.ast.StandardOperator.*;
 import static vct.col.ast.ASTReserved.FullPerm;
 import static vct.col.ast.ASTReserved.NoPerm;

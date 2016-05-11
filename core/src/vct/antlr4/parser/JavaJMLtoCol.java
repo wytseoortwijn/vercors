@@ -11,8 +11,9 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.Parser;
 
 import vct.col.ast.*;
+import vct.col.syntax.JavaSyntax;
+import vct.col.syntax.Syntax;
 import vct.java.printer.JavaDialect;
-import vct.java.printer.JavaSyntax;
 import vct.parsers.JavaJMLParser.*;
 import vct.parsers.*;
 import vct.parsers.JavaJMLParser.AxiomDeclarationContext;
@@ -27,7 +28,6 @@ import vct.parsers.JavaJMLParser.SpecificationPrimaryContext;
 import vct.parsers.JavaJMLParser.SpecificationPrimitiveTypeContext;
 import vct.parsers.JavaJMLParser.SpecificationSequenceContext;
 import vct.parsers.JavaJMLParser.SpecificationStatementContext;
-import vct.util.Syntax;
 
 /**
  * Convert JML parse trees to COL.

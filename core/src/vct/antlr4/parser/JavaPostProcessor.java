@@ -21,8 +21,8 @@ import vct.col.ast.ProgramUnit;
 import vct.col.ast.StandardOperator;
 import vct.col.ast.Type;
 import vct.col.rewrite.AbstractRewriter;
+import vct.col.syntax.JavaSyntax;
 import vct.java.printer.JavaDialect;
-import vct.java.printer.JavaSyntax;
 
 /**
  * Rewrite a Java AST, produced by parsing, to conform to the COL AST standard.  

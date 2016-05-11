@@ -92,13 +92,13 @@ import vct.col.rewrite.StripConstructors;
 import vct.col.rewrite.VoidCalls;
 import vct.col.rewrite.VoidCallsThrown;
 import vct.col.rewrite.WandEncoder;
+import vct.col.syntax.JavaSyntax;
+import vct.col.syntax.Syntax;
 import vct.col.util.FeatureScanner;
 import vct.col.util.SimpleTypeCheck;
 import vct.java.printer.JavaDialect;
-import vct.java.printer.JavaSyntax;
 import vct.util.ClassName;
 import vct.util.Configuration;
-import vct.util.Syntax;
 import static hre.System.*;
 
 /**

@@ -1,15 +1,15 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 
-package vct.java.printer;
+package vct.col.syntax;
 
 import hre.ast.TrackingOutput;
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTReserved;
 import vct.col.ast.ASTSpecial;
 import vct.col.rewrite.Parenthesize;
+import vct.java.printer.JavaDialect;
+import vct.java.printer.JavaPrinter;
 import hre.HREError;
-import vct.util.Syntax;
-import vct.util.VerCorsSyntax;
 import static vct.col.ast.StandardOperator.*;
 import static vct.col.ast.PrimitiveType.Sort.*;
 import static vct.col.ast.ASTReserved.*;

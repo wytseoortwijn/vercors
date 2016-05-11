@@ -16,7 +16,6 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import pv.parser.PVFullLexer;
 import pv.parser.PVFullParser;
 import vct.java.printer.JavaDialect;
-import vct.java.printer.JavaSyntax;
 import vct.parsers.*;
 import vct.util.Configuration;
 import vct.col.ast.ASTClass;
@@ -28,6 +27,7 @@ import vct.col.rewrite.AnnotationInterpreter;
 import vct.col.rewrite.EncodeAsClass;
 import vct.col.rewrite.FlattenVariableDeclarations;
 import vct.col.rewrite.VerCorsDesugar;
+import vct.col.syntax.JavaSyntax;
 
 /**
  * Parse specified code and convert the contents to COL. 

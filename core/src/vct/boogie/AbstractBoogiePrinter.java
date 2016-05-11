@@ -5,6 +5,8 @@ import java.util.HashMap;
 
 import hre.ast.TrackingOutput;
 import vct.col.ast.*;
+import vct.col.print.AbstractPrinter;
+import vct.col.syntax.Syntax;
 import vct.col.util.ASTUtils;
 import vct.util.*;
 import static hre.System.Fail;

@@ -1,13 +1,15 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
-package vct.util;
+package vct.col.syntax;
 
 import vct.col.ast.ASTDeclaration;
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTReserved;
 import vct.col.ast.ASTSpecial;
+import vct.col.ast.ASTSpecialDeclaration;
 import vct.col.ast.PrimitiveType.Sort;
 import vct.col.ast.ProgramUnit;
 import vct.col.ast.StandardOperator;
+import vct.col.print.AbstractPrinter;
 import hre.HREError;
 import hre.ast.TrackingOutput;
 
@@ -29,6 +31,56 @@ import java.util.EnumMap;
  */
 public class Syntax {
 
+  /**
+   * Map annotations to keywords.
+   */
+  private Map<ASTSpecialDeclaration.Kind,String> annotation_print=
+    new EnumMap<ASTSpecialDeclaration.Kind,String>(ASTSpecialDeclaration.Kind.class);
+  /**
+   * Map keywords to annotations.
+   * If an annotation can have a variable number of
+   * arguments then the keyword must be unique.
+   * Annotations with different numbers of arguments can have
+   * overloaded keywords.
+   */
+  private Map<String,Map<Integer,ASTSpecialDeclaration.Kind>> annotation_parse=
+    new HashMap();
+  
+  public void add_annotation(ASTSpecialDeclaration.Kind kind,String syntax){
+    Map<Integer,ASTSpecialDeclaration.Kind> parse=annotation_parse.get(syntax);
+    int arity=kind.arity();
+    if (parse==null){
+      parse=new HashMap();
+      annotation_parse.put(syntax,parse);
+    } else {
+      if (arity < 0) {
+        throw new HREError("keyword %s is already mapped");
+      }
+    }
+    if (arity < 0){
+      arity=-1;
+    }
+    parse.put(arity,kind);
+    annotation_print.put(kind, syntax);
+  }
+  
+  String get_annotation(ASTSpecialDeclaration.Kind kind){
+    return annotation_print.get(kind);
+  }
+  
+  boolean is_annotation(String string){
+    return annotation_parse.get(string)!=null;
+  }
+  
+  ASTSpecialDeclaration.Kind get_annotation(String string,int argc){
+    Map<Integer,ASTSpecialDeclaration.Kind> parse=annotation_parse.get(string);
+    ASTSpecialDeclaration.Kind res=parse.get(-1);
+    if(res==null){
+      res=parse.get(argc);
+    }
+    return res;
+  }
+  
   public final String language;
   
   public Syntax(String language){

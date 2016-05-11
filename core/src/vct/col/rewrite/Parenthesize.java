@@ -8,8 +8,8 @@ import vct.col.ast.DeclarationStatement;
 import vct.col.ast.OperatorExpression;
 import vct.col.ast.ProgramUnit;
 import vct.col.ast.StandardOperator;
-import vct.util.Syntax;
-import vct.util.Syntax.Associativity;
+import vct.col.syntax.Syntax;
+import vct.col.syntax.Syntax.Associativity;
 
 public class Parenthesize extends AbstractRewriter {
 

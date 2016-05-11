@@ -75,7 +75,7 @@ import vct.col.ast.ASTClass.ClassKind;
 import vct.col.ast.Method.Kind;
 import vct.col.ast.PrimitiveType.Sort;
 import vct.col.ast.VariableDeclaration;
-import vct.util.Syntax;
+import vct.col.syntax.Syntax;
 import static vct.col.ast.ASTReserved.*;
 
 /**

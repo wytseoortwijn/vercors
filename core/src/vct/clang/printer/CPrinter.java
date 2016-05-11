@@ -4,7 +4,7 @@ import java.io.PrintStream;
 
 import vct.col.ast.*;
 import vct.col.ast.PrimitiveType.Sort;
-import vct.util.AbstractPrinter;
+import vct.col.print.AbstractPrinter;
 import hre.ast.TrackingOutput;
 import hre.ast.TrackingTree;
 

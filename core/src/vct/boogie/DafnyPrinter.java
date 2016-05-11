@@ -9,7 +9,7 @@ import vct.col.ast.DeclarationStatement;
 import vct.col.ast.Method;
 import vct.col.ast.PrimitiveType;
 import vct.col.ast.Type;
-import vct.util.Syntax;
+import vct.col.syntax.Syntax;
 
 public class DafnyPrinter extends AbstractBoogiePrinter {
 

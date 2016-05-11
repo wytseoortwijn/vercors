@@ -15,6 +15,7 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 import vct.col.ast.*;
 import vct.col.ast.ASTSpecial.Kind;
 import vct.col.ast.PrimitiveType.Sort;
+import vct.col.syntax.Syntax;
 import vct.java.printer.JavaPrinter;
 import vct.parsers.JavaJMLLexer;
 import vct.parsers.JavaLexer;
@@ -22,7 +23,6 @@ import vct.parsers.JavaParser.BlockContext;
 import vct.parsers.JavaParser.ClassBodyContext;
 import vct.parsers.JavaParser.ClassBodyDeclarationContext;
 import vct.parsers.JavaParser.LiteralContext;
-import vct.util.Syntax;
 import static hre.System.*;
 
 import org.apache.commons.lang3.StringEscapeUtils;

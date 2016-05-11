@@ -38,11 +38,11 @@ import vct.col.ast.ProgramUnit;
 import vct.col.ast.StandardOperator;
 import vct.col.ast.Type;
 import vct.col.ast.VariableDeclaration;
+import vct.col.syntax.Syntax;
 import vct.col.util.ASTFactory;
 import vct.parsers.CLexer;
 import vct.parsers.CParser.AdditiveExpressionContext;
 import vct.parsers.JavaJMLParser.SpecificationPrimaryContext;
-import vct.util.Syntax;
 import static hre.System.*;
 
 /**

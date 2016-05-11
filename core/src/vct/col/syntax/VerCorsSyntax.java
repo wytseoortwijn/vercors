@@ -1,4 +1,4 @@
-package vct.util;
+package vct.col.syntax;
 
 import static vct.col.ast.ASTReserved.Any;
 import static vct.col.ast.ASTReserved.FullPerm;

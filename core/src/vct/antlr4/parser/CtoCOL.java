@@ -16,6 +16,7 @@ import vct.clang.printer.CSyntax;
 import vct.col.ast.*;
 import vct.col.ast.ASTClass.ClassKind;
 import vct.col.ast.PrimitiveType.Sort;
+import vct.col.syntax.Syntax;
 import vct.parsers.CLexer;
 import vct.parsers.CParser.AbstractDeclaratorContext;
 import vct.parsers.CParser.AdditiveExpressionContext;
@@ -106,7 +107,6 @@ import vct.parsers.CParser.UnaryExpressionContext;
 import vct.parsers.CParser.UnaryOperatorContext;
 import vct.parsers.CVisitor;
 import vct.util.ClassName;
-import vct.util.Syntax;
 import static hre.System.*;
 
 /**

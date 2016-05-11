@@ -12,6 +12,8 @@ import org.apache.commons.lang3.StringEscapeUtils;
 
 import vct.col.ast.*;
 import vct.col.ast.PrimitiveType.Sort;
+import vct.col.print.AbstractPrinter;
+import vct.col.syntax.JavaSyntax;
 import vct.col.util.ASTUtils;
 import vct.util.*;
 import static hre.System.Abort;
@@ -27,7 +29,7 @@ import static hre.System.Warning;
 public class JavaPrinter extends AbstractPrinter {
   
   public final JavaDialect dialect;
-  protected JavaPrinter(TrackingOutput out,JavaDialect dialect){
+  public JavaPrinter(TrackingOutput out,JavaDialect dialect){
     super(JavaSyntax.getJava(dialect),out);
     this.dialect=dialect;
   }

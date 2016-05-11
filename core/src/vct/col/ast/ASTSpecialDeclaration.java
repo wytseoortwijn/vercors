@@ -15,7 +15,19 @@ public class ASTSpecialDeclaration extends ASTDeclaration {
     Comment,
     Invariant,
     Contract, Requires, Ensures, Given, Yields, Modifies, Pragma, With, Then,
-    Accessible
+    Accessible;
+    
+    private final int arity;
+    
+    Kind(){
+      this.arity=1;
+    }
+    Kind(int arity){
+      this.arity=arity;
+    }
+    
+    public int arity(){ return arity; }
+
   };
 
   public final Kind kind;
