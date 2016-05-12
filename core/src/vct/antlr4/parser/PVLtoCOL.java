@@ -227,6 +227,14 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
         return create.expression(StandardOperator.PointsTo,getTuple((ParserRuleContext)ctx.children.get(1)));
       }
     }
+    if (match(ctx,"idle",tuple)){
+      ASTNode args[]=getTuple((ParserRuleContext)ctx.getChild(1));
+      return create.expression(StandardOperator.PVLidleToken,args);
+    }
+    if (match(ctx,"running",tuple)){
+      ASTNode args[]=getTuple((ParserRuleContext)ctx.getChild(1));
+      return create.expression(StandardOperator.PVLjoinToken,args);
+    }
     if (match(ctx,"held",tuple)){
       ASTNode args[]=getTuple((ParserRuleContext)ctx.getChild(1));
       return create.expression(StandardOperator.Held,args);
@@ -362,15 +370,18 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
       return create.class_type(name,arg);
     }
     if (match(0,true,ctx,"TerminalNode")){
-      switch(ctx.children.get(0).toString()){
-        case "boolean": res=create.primitive_type(Sort.Boolean); break;
-        case "frac": res=create.primitive_type(Sort.Fraction); break;
-        case "zfrac": res=create.primitive_type(Sort.ZFraction); break;
-        case "int": res=create.primitive_type(Sort.Integer); break;
-        case "resource": res=create.primitive_type(Sort.Resource); break;
-        case "void": res=create.primitive_type(Sort.Void); break;
-        case "process": res=create.primitive_type(Sort.Process); break;
-        default: res=create.class_type(ctx.children.get(0).toString());
+      String type=ctx.children.get(0).toString();
+      Sort S=null;
+      for (Sort s:Sort.values()){
+        if (type.equals(syntax.getPrimitiveType(s))){
+          S=s;
+          break;
+        }
+      }
+      if (S==null){
+        res=create.class_type(type);
+      } else {
+        res=create.primitive_type(S);
       }
     } else if (match(0,true,ctx,"ClassType")) {
       res=checkType(convert(ctx,0));
@@ -730,12 +741,16 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
   @Override
   public ASTNode visitMethod(MethodContext ctx) {
     Contract c=(Contract) convert(ctx.children.get(0));
-    Type returns=(Type)convert(ctx.children.get(1));
-    String name=getGeneralizedIdentifier(ctx,2);
-    DeclarationStatement args[]=convertArgs((ArgsContext) ctx.children.get(4));
-    ASTNode body=convert(ctx.children.get(6));
+    int ofs=0;
+    if (match(1,true,ctx,"static")){
+      ofs=1;
+    }
+    Type returns=(Type)convert(ctx.children.get(ofs+1));
+    String name=getGeneralizedIdentifier(ctx,ofs+2);
+    DeclarationStatement args[]=convertArgs((ArgsContext) ctx.children.get(ofs+4));
+    ASTNode body=convert(ctx.children.get(ofs+6));
     ASTNode res=create.method_decl(returns,c, name, args ,body);
-    res.setStatic(false);
+    res.setStatic(ofs==1);
     return res;
   }
 

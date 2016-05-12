@@ -68,4 +68,19 @@ public class PVLCompiler extends AbstractRewriter {
     result=currentTargetClass;
     currentTargetClass=null;
   }
+  
+  @Override
+  public void visit(OperatorExpression e){
+    switch(e.getOperator()){
+    case PVLidleToken:
+      result=create.invokation(rewrite(e.getArg(0)),null,"isIdle");
+      break;
+    case PVLjoinToken:
+      result=create.invokation(rewrite(e.getArg(0)),null,"isRunning");
+      break;
+    default:
+      super.visit(e);
+      break;
+    }
+  }
 }

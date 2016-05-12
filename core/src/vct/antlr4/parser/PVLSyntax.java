@@ -136,6 +136,8 @@ public class PVLSyntax {
       syntax.addPrimitiveType(Resource,"resource");
       syntax.addPrimitiveType(Boolean,"boolean");
       syntax.addPrimitiveType(Process,"process");
+      syntax.addPrimitiveType(String,"string");
+      
       /*
       syntax.addPrimitiveType(Class,"classtype");
       syntax.addPrimitiveType(Char,"char");
@@ -153,6 +155,9 @@ public class PVLSyntax {
       syntax.addReserved(CurrentThread,"current_thread");
       
       syntax.addOperator(Unfolding,140,"unfolding","in","");
+      
+      syntax.addFunction(PVLidleToken,"idle");
+      syntax.addFunction(PVLjoinToken,"running");
     }
     return syntax;
   }

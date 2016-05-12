@@ -1,0 +1,25 @@
+// -*- tab-width:2 ; indent-tabs-mode:nil -*-
+//:: cases ForkPVLerr1
+//:: tools silicon
+//:: verdict Fail
+
+class Test {
+
+
+  requires true;
+  ensures  true;
+  void run(){
+    
+  }
+
+  void test(){
+    Test t1=new Test();
+    fork t1;
+    fork t1;
+    
+  }
+  
+}
+
+
+

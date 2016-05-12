@@ -23,7 +23,7 @@ function : contract modifiers type ID '(' args ')' '=' expr ';' ;
 
 modifiers : ( 'static' | 'thread_local' | 'inline' )*;
 
-method : contract type gen_id '(' args ')' block ;
+method : contract ('static')? type gen_id '(' args ')' block ;
 
 constructor : contract ID '(' args ')' block ;
 
@@ -139,7 +139,7 @@ lexpr : ('this' | '\\result' | ID ) ('.' gen_id | '[' expr ']' )* ;
 
 type
  : CONTAINER '<' type '>'
- | ( 'process' | 'int' | 'boolean' | 'zfrac' | 'frac' | 'resource' | 'void' | ID | classType ) ('[' expr? ']')*
+ | ( 'string' | 'process' | 'int' | 'boolean' | 'zfrac' | 'frac' | 'resource' | 'void' | ID | classType ) ('[' expr? ']')*
  ;
 
 gen_id : ID | CONTAINER ; 

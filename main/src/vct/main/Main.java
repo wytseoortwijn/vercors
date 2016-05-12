@@ -897,7 +897,11 @@ public class Main
         passes.add("standardize");
         passes.add("check");
       }
-      if (features.usesSpecial(ASTSpecial.Kind.Fork)){
+      if (features.usesSpecial(ASTSpecial.Kind.Fork)
+         ||features.usesSpecial(ASTSpecial.Kind.Join)
+         ||features.usesOperator(StandardOperator.PVLidleToken)
+         ||features.usesOperator(StandardOperator.PVLjoinToken)
+      ){
         passes.add("fork-join-encode");
         passes.add("standardize");
         passes.add("check");

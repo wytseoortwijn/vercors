@@ -298,7 +298,15 @@ public enum StandardOperator {
   /**
    * The iteration owner construct for OpenMP loops. 
    */
-  IterationOwner(3)
+  IterationOwner(3),
+  /**
+   * The built-in idle token of PVL.
+   */
+  PVLidleToken(1),
+  /**
+   * The built-in join token of PVL.
+   */
+  PVLjoinToken(1)
   ;
 
   private final int arity;

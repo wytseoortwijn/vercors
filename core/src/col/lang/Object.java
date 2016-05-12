@@ -1,5 +1,7 @@
 package col.lang;
 
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.Lock;
@@ -50,6 +52,26 @@ public class Object implements Runnable {
   
   private volatile Thread t;
   
+  
+  public synchronized boolean isIdle(){
+    Method m=null;
+    try {
+      m=getClass().getMethod("run");
+    } catch (NoSuchMethodException e) {
+      // OK if it does not exists
+    } catch (SecurityException e) {
+      return t==null;
+    }
+    if (m==null || !Modifier.isStatic(m.getModifiers())){
+      throw new Error("checking idle on non-runnable object");
+    }
+    return t==null;
+  }
+
+  public synchronized boolean isRunning(){
+    return t!=null;
+  }
+  
   public synchronized void fork(){
     if (t==null){
       t=new Thread(this);
@@ -59,7 +81,7 @@ public class Object implements Runnable {
     }
   }
   
-  public void join(){
+  public synchronized void join(){
     if (t==null){
       throw new Error("tasks must be forked before they can be joined");
     } else {
@@ -68,6 +90,7 @@ public class Object implements Runnable {
       } catch (InterruptedException e) {
         throw new Error("unexpected interruption of join");
       }
+      t=null;
     }
   }
   

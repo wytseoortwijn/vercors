@@ -498,6 +498,12 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     
     
     switch(op){
+    case PVLidleToken:
+    case PVLjoinToken:
+    {
+      e.setType(new PrimitiveType(Sort.Resource));
+      break;
+    }
     case IterationOwner:{
       e.setType(new PrimitiveType(Sort.Integer));
       break;
