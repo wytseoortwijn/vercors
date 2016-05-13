@@ -186,4 +186,62 @@ should be thought of as extending the \lstinline+Thread+ class in Java.
 \label{fibonacci}
 \end{listing}
 
+\section{Using locks in PVL}
+
+Simple non-reentrant locks can be used in PVL.
+To be able to lock objects belonging to a certain class:
+\begin{enumerate}
+\item The class must define the predicate \lstinline+lock_invariant()+.
+\item The class must have a constructors, and the lock
+invariant must hold at the end of the constructor. (If it does not, the tool
+will complain that it cannot fold because there is an implicit fold at the end of the constructor.)
+\item The syntax for locking and unlocking an object \lstinline+o+ is \lstinline+lock o;+
+and \lstinline+unlock o;+, respectively.
+\end{enumerate}
+
+
+As an example, we show the classical Owicki-Gries example: two threads are spawned and each
+thread increments a global variable by one. The main program code can be found in
+\listref{og main} and the code for the worker in \listref{og worker}.
+
+\begin{listing}
+\lstinputlisting[linerange={2-481}]{OwickiGries.pvl} 
+\caption{Owicki-Gries main code.}
+\label{og main}
+\end{listing}
+
+\begin{listing}
+\lstinputlisting[linerange={2-481}]{Worker.pvl} 
+\caption{Owicki-Gries worker code.}
+\label{og worker}
+\end{listing}
+
+The PVL language also has \lstinline+wait o;+ and
+a \lstinline+notify o;+ statements. These statements behave as the Java \lstinline+wait+
+and \lstinline+notifyAll()+ statements. Moreover, they require that the lock is held:
+\lstinline+held(o)+. (See files in \verb+examples/waitnotify+.)
+
+\section{Compiling and Running PVL Programs}
+
+An experimental compiler for PVL programs exists. The compiler
+translates PVL to Java, which allows PVL code to be called from Java.
+For example, the code in \listref{og test} instantiates and calls
+the Owicki-Gries main method.
+To compile the program, run the (unix only) \verb+pvlc+ script:
+\begin{verbatim}
+pvlc OwickiGries.pvl TestOwickiGries.java Worker.pvl
+\end{verbatim}
+This will translate the PVL files into Java and then it will compile
+both the generated and hand-written Java files.
+To run a program use the \verb+pvl+ script:
+\begin{verbatim}
+pvl TestOwickiGries
+\end{verbatim}
+
+\begin{listing}
+\lstinputlisting[linerange={2-481}]{TestOwickiGries.java} 
+\caption{Owicki-Gries test code.}
+\label{og test}
+\end{listing}
+
 
