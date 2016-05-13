@@ -197,8 +197,6 @@ public enum StandardOperator {
   Length(1),
   /** Get the size of a container, such as a sequence. */
   Size(1),
-  /** Empty list */
-  Nil(1),
   /** pre-pre element to list */
   Cons(2),
   /** Drop elements from a list */

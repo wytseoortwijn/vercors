@@ -94,7 +94,8 @@ public class Standardize extends AbstractRewriter {
       if (m!=null){
         String adt=((AxiomaticDataType)m.getParent()).name;
         //System.err.printf("%s is an ADT method from %s%n", e.method,);
-        object=create.name(Kind.ADT, null,adt);
+        //object=create.name(Kind.ADT, null,adt);
+        object=create.class_type(adt);
       }
     }
     if (object==null){

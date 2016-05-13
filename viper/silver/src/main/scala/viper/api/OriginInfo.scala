@@ -106,4 +106,5 @@ object AlwaysGo extends viper.api.VerificationControl[Object] {
  def pass(x$1: Object): Unit = {}
  def progress(x$1: String, x$2: Object*): Unit = {}
  def profile(x$1: Object, x$2: String): Unit = {}
+ def detail(): Boolean = false
 }

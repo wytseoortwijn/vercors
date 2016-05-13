@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.SortedMap;
 
 import vct.col.ast.*;
 import vct.col.ast.ASTClass.ClassKind;
@@ -14,6 +16,7 @@ import vct.col.ast.PrimitiveType.Sort;
 import vct.col.rewrite.AbstractRewriter;
 import vct.util.ClassName;
 import vct.util.Configuration;
+import viper.api.Triple;
 import hre.ast.Origin;
 import hre.util.FrameControl;
 import hre.util.FrameReference;
@@ -238,6 +241,7 @@ public BlockStatement block(Origin origin, ASTNode ... args) {
     res.accept_if(post);
     return res;
   }
+
   public ClassType class_type(Origin origin,String name,ASTNode ... args){
     String tmp[]=new String[1];
     tmp[0]=name;
@@ -373,6 +377,9 @@ public BlockStatement block(Origin origin, ASTNode ... args) {
   public OperatorExpression expression(StandardOperator op, ASTNode ... args){
     return expression(origin_stack.get(),op,args);
   }
+  public OperatorExpression expression(StandardOperator op, List<ASTNode> args){
+    return expression(origin_stack.get(),op,args.toArray(new ASTNode[args.size()]));
+  }
   /**
    * Create a new variable declaration with default value.
    * 
@@ -384,12 +391,16 @@ public BlockStatement block(Origin origin, ASTNode ... args) {
    * @return An AST node containing the variable declaration.
    */
   public DeclarationStatement field_decl(String name, Type type,ASTNode ... init) {
+    return field_decl(origin_stack.get(),name,type,init);
+  }
+  
+  public DeclarationStatement field_decl(Origin o,String name, Type type,ASTNode ... init) {
     if (type.isNull()){
       Abort("cannot declare variable %s of <<null>> type.",name);
     }
     if (init !=null && init.length>1) Abort("cannot have more than one initial value.");
     DeclarationStatement res=new DeclarationStatement(name,type,init==null?null:init.length==0?null:init[0]);
-    res.setOrigin(origin_stack.get());
+    res.setOrigin(o);
     res.accept_if(post);
     return res;    
   }
@@ -571,6 +582,19 @@ public BlockStatement block(Origin origin, ASTNode ... args) {
     return res;    
   }
   
+  /**
+   * Create a new domain function call.
+   */
+  public ASTNode domain_call(String domain,String method,ASTNode ... args){
+    MethodInvokation res=new MethodInvokation(class_type(domain),null,method,args);
+    res.setOrigin(origin_stack.get());
+    res.accept_if(post);
+    return res;
+  }
+  
+  public ASTNode domain_call(String domain,String method,List<ASTNode> args){
+    return domain_call(domain,method,args.toArray(new ASTNode[args.size()]));
+  }
   /**
    * Create a new method invokation node.
    */
@@ -905,10 +929,7 @@ public ASTSpecial special(Origin origin, vct.col.ast.ASTSpecial.Kind kind, ASTNo
   }
   
   public ASTNode forall(ASTNode guard, ASTNode claim, DeclarationStatement ... decl) {
-    return forall(new ASTNode[0][],guard,claim,decl);
-  }
-  
-  public ASTNode forall(ASTNode triggers[][],ASTNode guard, ASTNode claim, DeclarationStatement ... decl) {
+    // Separate quantifiers are needed for the simplifier! 
     if (decl.length==0){
       return expression(StandardOperator.Implies,guard,claim);
     }
@@ -917,7 +938,7 @@ public ASTSpecial special(Origin origin, vct.col.ast.ASTSpecial.Kind kind, ASTNo
         Binder.FORALL,
         primitive_type(PrimitiveType.Sort.Boolean),
         new DeclarationStatement[]{decl[i]},
-        triggers,
+        new ASTNode[0][],
         guard,
         claim
     );
@@ -929,13 +950,31 @@ public ASTSpecial special(Origin origin, vct.col.ast.ASTSpecial.Kind kind, ASTNo
           Binder.FORALL,
           primitive_type(PrimitiveType.Sort.Boolean),
           new DeclarationStatement[]{decl[i]},
-          triggers,
+          new ASTNode[0][],
           constant(true),
           res
       );
       res.setOrigin(origin_stack.get());
       res.accept_if(post);
     }
+    return res;
+  }
+  
+  public ASTNode forall(ASTNode triggers[][],ASTNode guard, ASTNode claim, DeclarationStatement ... decl) {
+    // Single quantifier is needed for correct triggering of axioms. 
+    if (decl.length==0){
+      return expression(StandardOperator.Implies,guard,claim);
+    }
+    BindingExpression res=new BindingExpression(
+        Binder.FORALL,
+        primitive_type(PrimitiveType.Sort.Boolean),
+        decl,
+        triggers,
+        guard,
+        claim
+    );
+    res.setOrigin(origin_stack.get());
+    res.accept_if(post);
     return res;
   }
  /**
@@ -1177,6 +1216,52 @@ public Axiom axiom(String name,ASTNode exp){
 
   public ASTNode region(ArrayList<ParallelBlock> res) {
     return region(res.toArray(new ParallelBlock[res.size()]));
+  }
+
+  public Method function_decl(Type t, Contract contract, String name,
+      java.util.List<DeclarationStatement> args, ASTNode body) {
+    return function_decl(t,contract,name,args.toArray(new DeclarationStatement[args.size()]),body);
+  }
+
+  public ASTNode expression(StandardOperator op, ASTNode n,java.util.List<ASTNode> ns) {
+    return expression(op,n,ns.toArray(new ASTNode[ns.size()]));
+  }
+
+  public ClassType class_type(String name, Map<String, Type> args) {
+    return class_type(name,toArray(args));
+  }
+
+  private <E extends ASTNode> ASTNode[] toArray(Map<String, E> map){
+    ArrayList<ASTNode> list=new ArrayList();
+    for(Entry<String, E> e:map.entrySet()){
+      ASTNode n=e.getValue();
+      n.addLabel(label(e.getKey()));
+      list.add(n);
+    }
+    return list.toArray(new ASTNode[map.size()]);
+  }
+
+  public DeclarationStatement[] to_decls(List<Triple<Origin,String,Type>> vars){
+    DeclarationStatement[] res=new DeclarationStatement[vars.size()];
+    for(int i=0;i<res.length;i++){
+      Triple<Origin,String,Type> d=vars.get(i);
+      res[i]=field_decl(d.v1,d.v2,d.v3);
+    }
+    return res;
+  }
+  public ASTNode exists(ASTNode e, List<Triple<Origin,String,Type>> vars) {
+    return exists(constant(true),e,to_decls(vars));
+  }
+
+  public TypeVariable type_variable(String name) {
+    return type_variable(origin_stack.get(),name);
+  }
+  
+  public TypeVariable type_variable(Origin o,String name) {
+    TypeVariable res=new TypeVariable(name);
+    res.setOrigin(o);
+    res.accept_if(post);    
+    return res;
   }
 
 }

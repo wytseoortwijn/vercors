@@ -11,7 +11,7 @@ import java.util.List;
  * @param <E> Type of objects that represent expressions.
  * @param <S> Type of objects that represent statements.
  */
-public interface SilverStatement<O, T, E, Decl, S> {
+public interface StatementFactory<O, T, E, S> {
 
   /** Create a statement that inhales a boolean/permission expression. */
   public S inhale(O o,E expr);
@@ -48,10 +48,10 @@ public interface SilverStatement<O, T, E, Decl, S> {
   public S block(O o,List<S> stats);
   
   /** Create a while loop. */
-  public S while_loop(O o,E cond,List<E> invs,List<Decl> locals,S body);
+  public S while_loop(O o,E cond,List<E> invs,List<Triple<O,String,T>> locals,S body);
   
   /** Create a method call. */
-  public S method_call(O o,String name,List<E> args,List<E> outs,List<Decl> pars,List<Decl> rets);
+  public S method_call(O o,String name,List<E> args,List<E> outs,List<Triple<O,String,T>> pars,List<Triple<O,String,T>> rets);
   
   /** Create an if-the-else. */
   public S if_then_else(O o,E c,S s1,S s2);

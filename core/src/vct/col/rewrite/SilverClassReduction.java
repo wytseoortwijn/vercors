@@ -64,7 +64,8 @@ public class SilverClassReduction extends AbstractRewriter {
   @Override
   public void visit(ClassType t){
     if (source().find(t.getNameFull())==null){
-      result=create.class_type(t.getNameFull());
+      // ADT type
+      super.visit(t);
     } else {
       result=create.class_type("Ref");
     }
@@ -95,16 +96,16 @@ public class SilverClassReduction extends AbstractRewriter {
       break;
     }
     case TypeOf:{
-      result=create.invokation(null,null,"type_of",rewrite(e.getArg(0)));
+      result=create.domain_call("TYPE","type_of",rewrite(e.getArg(0)));
       break;
     }
     case Cast:{
       ASTNode object=rewrite(e.getArg(1));
       Type t=(Type)e.getArg(0);
       ASTNode condition=create.invokation(null, null,"instanceof",
-          create.invokation(null,null,"type_of",object),
+          create.domain_call("TYPE","type_of",object),
           //create.invokation(null,null,"type_of",object));
-          create.invokation(create.class_type("TYPE"),null,"class_"+t));
+          create.domain_call("TYPE","class_"+t));
           
       ASTNode illegal=create.dereference(object,ILLEGAL_CAST);
       result=create.expression(StandardOperator.ITE,condition,object,illegal);

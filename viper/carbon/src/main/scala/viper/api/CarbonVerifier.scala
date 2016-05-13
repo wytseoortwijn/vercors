@@ -3,7 +3,7 @@ package viper.api
 import java.nio.file.Path
 import java.util.Properties
 
-class CarbonVerifier[O,Err] extends SilverImplementation[O,Err] {
+class CarbonVerifier[O,Err](o:OriginFactory[O]) extends SilverImplementation[O,Err](o) {
   override def createVerifier(tool_home:Path,settings:Properties):viper.silver.verifier.Verifier = {
     def OS=System.getProperty("os.name");
     val z3_exe=if(OS.startsWith("Windows")){

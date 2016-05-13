@@ -89,6 +89,8 @@ public interface ASTVisitor<T> {
   
   public void visit(ParallelRegion region);
 
+  public void visit(TypeVariable v);
+
 }
 
 

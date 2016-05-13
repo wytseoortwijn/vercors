@@ -2,6 +2,7 @@ package vct.silver;
 
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Set;
 import java.util.TimerTask;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -106,5 +107,9 @@ public class ViperControl implements VerificationControl<Origin> {
       future.cancel(false);
       scheduler.shutdown();
     }
+  }
+  
+  public boolean detail(){
+    return Configuration.detailed_errors.get();
   }
 }
