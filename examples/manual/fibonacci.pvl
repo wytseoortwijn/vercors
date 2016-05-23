@@ -10,7 +10,7 @@
  *
  *   vct --silver=silicon fibonacci.pvl
  */
-
+// begin(all)
 class Fib {
   static int fib(int n)=n<2?1:fib(n-1)+fib(n-2);
   
@@ -35,3 +35,5 @@ class Fib {
     input = n;
   }
 }
+// end(all)
+

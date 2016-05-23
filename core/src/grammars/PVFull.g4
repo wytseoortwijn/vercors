@@ -9,25 +9,21 @@ package pv.parser;
   public final static int LINEDIRECTION=Integer.MAX_VALUE;
 }
 
-program  : (claz|kernel|block|field|method|abs_decl|function)* (block)? ;
+program  : (claz|kernel|block|field|method_decl)* (block)? ;
 
-claz : contract 'class' ID '{'( field | method | function | constructor | abs_decl )* '}' ;
+claz : contract 'class' ID '{'( field | method_decl | constructor )* '}' ;
 
-kernel : 'kernel' ID '{' ( kernel_field | method | function )* '}' ;
+kernel : 'kernel' ID '{' ( kernel_field | method_decl )* '}' ;
 
 kernel_field : ('global' | 'local') type ID ( ',' ID )* ';' ;
 
 field : type ID ( ',' ID )* ';' ;
 
-function : contract modifiers type ID '(' args ')' '=' expr ';' ;
+modifiers : ( 'static' | 'thread_local' | 'inline' | 'pure' )*;
 
-modifiers : ( 'static' | 'thread_local' | 'inline' )*;
+method_decl : contract modifiers type ID '(' args ')' ( '=' expr ';' | ';' | block ) ;
 
-method : contract ('static')? type gen_id '(' args ')' block ;
-
-constructor : contract ID '(' args ')' block ;
-
-abs_decl : contract type ID '(' args ')' ';' ;
+constructor : contract ID '(' args ')' ( block | ';' ) ;
 
 contract :
  ( 'modifies' expr ';'
@@ -84,7 +80,7 @@ tuple : '(' ( | expr (',' expr)*) ')';
 block : '{' statement* '}' ;
 
 statement
- : 'return' expr ';'
+ : 'return' expr? ';'
  | 'lock' expr ';'
  | 'unlock' expr ';'
  | 'wait' expr ';'
@@ -95,6 +91,7 @@ statement
  | 'unfold' expr ';'
  | 'assert' expr ';' 
  | 'assume' expr ';' 
+ | 'refute' expr ';' 
  | 'witness' expr ';' 
  | 'if' '(' expr ')' block ( 'else' block )?
  | 'barrier' '(' ID ( ';' id_list )? ')' ( '{' contract '}' | contract block )

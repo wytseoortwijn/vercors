@@ -18,7 +18,6 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 
 import pv.parser.PVFullLexer;
 import pv.parser.PVFullParser;
-import pv.parser.PVFullParser.Abs_declContext;
 import pv.parser.PVFullParser.ArgsContext;
 import pv.parser.PVFullParser.BlockContext;
 import pv.parser.PVFullParser.ClassTypeContext;
@@ -30,7 +29,6 @@ import pv.parser.PVFullParser.DeclsContext;
 import pv.parser.PVFullParser.ExprContext;
 import pv.parser.PVFullParser.Fence_listContext;
 import pv.parser.PVFullParser.FieldContext;
-import pv.parser.PVFullParser.FunctionContext;
 import pv.parser.PVFullParser.Gen_idContext;
 import pv.parser.PVFullParser.Id_listContext;
 import pv.parser.PVFullParser.InvariantContext;
@@ -39,7 +37,7 @@ import pv.parser.PVFullParser.ItersContext;
 import pv.parser.PVFullParser.KernelContext;
 import pv.parser.PVFullParser.Kernel_fieldContext;
 import pv.parser.PVFullParser.LexprContext;
-import pv.parser.PVFullParser.MethodContext;
+import pv.parser.PVFullParser.Method_declContext;
 import pv.parser.PVFullParser.ModifiersContext;
 import pv.parser.PVFullParser.Par_unitContext;
 import pv.parser.PVFullParser.ProgramContext;
@@ -62,12 +60,8 @@ import vct.col.ast.Contract;
 import vct.col.ast.ContractBuilder;
 import vct.col.ast.DeclarationStatement;
 import vct.col.ast.Dereference;
-import vct.col.ast.ForEachLoop;
-import vct.col.ast.Method;
 import vct.col.ast.NameExpression;
-import vct.col.ast.ParallelBarrier;
 import vct.col.ast.ParallelBlock;
-import vct.col.ast.ParallelRegion;
 import vct.col.ast.ProgramUnit;
 import vct.col.ast.StandardOperator;
 import vct.col.ast.Type;
@@ -420,24 +414,38 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
   }
 
   @Override
-  public ASTNode visitFunction(FunctionContext ctx) {
+  public ASTNode visitMethod_decl(Method_declContext ctx) {
     Contract c=(Contract) convert(ctx.children.get(0));
-    int offset=1;
-    Type returns=(Type)convert(ctx.children.get(offset+1));
-    String name=getIdentifier(ctx,offset+2);
-    DeclarationStatement args[]=convertArgs((ArgsContext) ctx.children.get(offset+4));
-    ASTNode body=convert(ctx.children.get(offset+7));
-    Kind kind;
-    if (returns.isPrimitive(Sort.Resource)) {
-      kind=Kind.Predicate;
+    Type returns=(Type)convert(ctx.children.get(2));
+    String name=getIdentifier(ctx,3);
+    DeclarationStatement args[]=convertArgs((ArgsContext) ctx.children.get(5));
+    Kind kind=Kind.Plain;
+    ASTNode body;
+    if (match(7,false,ctx,";")){
+      body=null;
+    } else if (match(7,false,ctx,"=",null,";")){
+      body=convert(ctx,8);
+      if (returns.isPrimitive(Sort.Resource)) {
+        kind=Kind.Predicate;
+      } else {
+        kind=Kind.Pure;
+      }
     } else {
-      kind=Kind.Pure;
+      body=convert(ctx,7);
     }
-    ASTNode res=create.method_kind(kind,returns,c, name, args ,body);
     ParserRuleContext flags=(ParserRuleContext)ctx.getChild(1);
     for(int i=0;i<flags.getChildCount();i++){
-      if (match(i,true,flags,"static")){
-        res.setStatic(true);
+      if (match(i,true,flags,"pure")){
+        kind=Kind.Pure;
+      }
+    }
+    ASTNode res=create.method_kind(kind,returns,c, name, args ,body);
+    res.setStatic(false);
+    for(int i=0;i<flags.getChildCount();i++){
+      if (match(i,true,flags,"pure")){
+        // already accounted for
+      } else if (match(i,true,flags,"static")){
+         res.setStatic(true);
       } else if (match(i,true,flags,"thread_local")){
         res.setFlag(ASTFlags.THREAD_LOCAL,true);
       } else if (match(i,true,flags,"inline")){
@@ -504,6 +512,9 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
           (BlockStatement)convert(ctx,4),
           getIdentifierList((ParserRuleContext)ctx.getChild(2), ","));
     }
+    if (match(ctx,"return",";")){
+      return create.return_statement();
+    }
     if (match(ctx,"return",null,";")){
       return create.return_statement(convert(ctx,1));
     }
@@ -528,6 +539,9 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
     }
     if (match(ctx,"create",null,",",null,";")){
       return create.special(ASTSpecial.Kind.CreateHistory,convert(ctx,1),convert(ctx,3));
+    }
+    if (match(ctx,"refute",null,";")){
+      return create.expression(StandardOperator.Refute,convert(ctx,1));
     }
     if (match(ctx,"destroy",null,",",null,",",null,";")){
       return create.special(ASTSpecial.Kind.DestroyHistory,convert(ctx,1),convert(ctx,3),convert(ctx,5));
@@ -725,33 +739,7 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
 
   @Override
   public ASTNode visitProgram(ProgramContext ctx) {
-    /*
-    for(ParseTree item:ctx.children){
-      if (item instanceof ClazContext || item instanceof KernelContext){
-        ASTClass cl=(ASTClass)convert(item);
-        unit.add(cl);
-      } else {
-        Fail("cannot handle %s at top level",item.getClass());
-      }
-    }
-*/
     return null;
-  }
-
-  @Override
-  public ASTNode visitMethod(MethodContext ctx) {
-    Contract c=(Contract) convert(ctx.children.get(0));
-    int ofs=0;
-    if (match(1,true,ctx,"static")){
-      ofs=1;
-    }
-    Type returns=(Type)convert(ctx.children.get(ofs+1));
-    String name=getGeneralizedIdentifier(ctx,ofs+2);
-    DeclarationStatement args[]=convertArgs((ArgsContext) ctx.children.get(ofs+4));
-    ASTNode body=convert(ctx.children.get(ofs+6));
-    ASTNode res=create.method_decl(returns,c, name, args ,body);
-    res.setStatic(ofs==1);
-    return res;
   }
 
   private ASTNode get_invokation(ParserRuleContext ctx,int ofs) {
@@ -849,22 +837,7 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
     }
     return null;
   }
-  @Override
-  public ASTNode visitAbs_decl(Abs_declContext ctx) {
-    Contract c=(Contract) convert(ctx.children.get(0));
-    Type returns=(Type)convert(ctx.children.get(1));
-    String name=getIdentifier(ctx,2);
-    DeclarationStatement args[]=convertArgs((ArgsContext) ctx.children.get(4));
-    ASTNode res;
-    if (returns.isPrimitive(Sort.Resource)){
-      res=create.predicate(name, null, args);
-    } else {
-      res=create.method_decl(returns,c, name, args , null);
-    }
-    
-    res.setStatic(false);
-    return res;
-  }
+
   @Override
   public ASTNode visitIters(ItersContext ctx) {
     // TODO Auto-generated method stub

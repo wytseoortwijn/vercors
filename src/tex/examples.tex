@@ -63,7 +63,7 @@ The loop invariant has three components:
 \begin{itemize}
 \item a boolean component specifying the invariant
 for the loop counter \lstinline+i+, 
-\item a resource component specifying that \lstinline+c+ is not null, and
+\item a resource component specifying that \lstinline+c+ is not null and that \lstinline+c.x+ can be written, and
 \item another boolean component specifying the functional invariant on
   the counter.
 \end{itemize}
@@ -181,7 +181,7 @@ method in the class \lstinline+Thread+ in Java. Every object in PVL that impleme
 should be thought of as extending the \lstinline+Thread+ class in Java.
 
 \begin{listing}
-\lstinputlisting[linerange={11-34}]{fibonacci.pvl}
+\lstinputlisting{fibonacci-all.pvl}
 \caption{Parallel Fibonacci}
 \label{fibonacci}
 \end{listing}
