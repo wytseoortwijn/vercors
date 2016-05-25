@@ -17,7 +17,6 @@ import org.antlr.v4.runtime.tree.ParseTree;
 
 import pv.parser.PVFullLexer;
 import pv.parser.PVFullParser;
-import vct.java.printer.JavaDialect;
 import vct.parsers.*;
 import vct.util.Configuration;
 import vct.col.ast.ASTClass;
@@ -27,6 +26,7 @@ import vct.col.ast.ProgramUnit;
 import vct.col.rewrite.AbstractRewriter;
 import vct.col.rewrite.AnnotationInterpreter;
 import vct.col.rewrite.FlattenVariableDeclarations;
+import vct.col.syntax.JavaDialect;
 import vct.col.syntax.JavaSyntax;
 
 /**

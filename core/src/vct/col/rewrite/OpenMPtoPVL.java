@@ -75,7 +75,7 @@ public class OpenMPtoPVL extends AbstractRewriter {
                   cb.getContract(),
                   new DeclarationStatement[]{ range },
                   dst_block);
-              currentBlock.add(create.region(pblock));
+              currentBlock.add(create.region(null,pblock));
               continue;
             } else {
               create.enter(s);
@@ -115,7 +115,7 @@ public class OpenMPtoPVL extends AbstractRewriter {
                   new DeclarationStatement[]{ range },
                   body
               );
-              currentBlock.add(create.region(pblock));        
+              currentBlock.add(create.region(null,pblock));        
               continue;
             } else {
               create.enter(s);

@@ -1,6 +1,7 @@
 package vct.col.rewrite;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Stack;
@@ -240,22 +241,116 @@ public class ParallelBlockEncoder extends AbstractRewriter {
     String main_name="parrallel_region_main_"+count;
     ContractBuilder main_cb=new ContractBuilder();
     Hashtable<String,Type> main_vars=free_vars(region.blocks);
-    for(ParallelBlock pb:region.blocks){
-      Contract c=(Contract)rewrite((ASTNode)pb);
-      main_cb.requires(c.pre_condition);
-      main_cb.ensures(c.post_condition);
+    BlockStatement body;
+    if (region.contract==null){
+      for(ParallelBlock pb:region.blocks){
+        Contract c=(Contract)rewrite((ASTNode)pb);
+        main_cb.requires(c.pre_condition);
+        main_cb.ensures(c.post_condition);
+      }
+      body=null;
+    } else {
+      rewrite(region.contract,main_cb);
+      body=create.block();
+      for(ParallelBlock pb:region.blocks){
+        Contract c=(Contract)rewrite((ASTNode)pb);
+        body.add(create.special(Kind.Exhale,c.pre_condition));
+        body.add(create.special(Kind.Inhale,c.post_condition));
+      }
+      HashMap<String,ParallelBlock> blocks=new HashMap();
+      HashMap<String,HashSet<String>> deps=new HashMap();
+      for(ParallelBlock pb:region.blocks){
+        HashSet<String> before=new HashSet();
+        before.add(pb.label);
+        for(ASTNode d:pb.deps){
+          if (d instanceof NameExpression){
+            String dep=d.toString();
+            HashSet<String> trans=deps.get(dep);
+            if (trans==null) {
+              Fail("dependency %s of %s is unknown",dep,pb.label);
+            }
+            before.addAll(trans);
+          } else {
+            Fail("cannot deal with dependency %s",Configuration.getDiagSyntax().print(d));
+          }
+        }
+        for(String d:deps.keySet()){
+          if (!before.contains(d)){
+            gen_consistent(region.contract.pre_condition,blocks.get(d),pb);
+          }
+        }
+        deps.put(pb.label,before);
+        blocks.put(pb.label,pb);
+      }
     }
     currentTargetClass.add(create.method_decl(
         create.primitive_type(Sort.Void),
         main_cb.getContract(),
         main_name,
         gen_pars(main_vars),
-        null
+        body
     ));
     result=gen_call(main_name,main_vars);
   }
   
   
+  private void gen_consistent(ASTNode pre_condition, ParallelBlock pb1, ParallelBlock pb2) {
+    HashMap<NameExpression, ASTNode> map1=new HashMap();
+    Substitution sigma1=new Substitution(source(),map1);
+    HashMap<NameExpression, ASTNode> map2=new HashMap();
+    Substitution sigma2=new Substitution(source(),map2);
+    ContractBuilder cb=new ContractBuilder();
+    cb.requires(pre_condition);
+    Hashtable<String,Type> main_vars=free_vars(pre_condition);
+    ArrayList<ASTNode> list=new ArrayList();
+    int N=0;
+    for(DeclarationStatement decl:pb1.iters){
+      String name="x"+(++N);
+      main_vars.put(name,decl.getType());
+      map1.put(create.unresolved_name(decl.name),create.unresolved_name(name));
+      OperatorExpression range=(OperatorExpression)decl.getInit();
+      cb.requires(create.expression(
+          StandardOperator.LTE,rewrite(range.getArg(0)),create.unresolved_name(name))
+      );
+      cb.requires(create.expression(
+          StandardOperator.LT,create.unresolved_name(name),rewrite(range.getArg(1)))
+      );
+    }
+    for(DeclarationStatement decl:pb2.iters){
+      String name="x"+(++N);
+      main_vars.put(name,decl.getType());
+      map2.put(create.unresolved_name(decl.name),create.unresolved_name(name));
+      OperatorExpression range=(OperatorExpression)decl.getInit();
+      cb.requires(create.expression(
+          StandardOperator.LTE,rewrite(range.getArg(0)),create.unresolved_name(name))
+      );
+      cb.requires(create.expression(
+          StandardOperator.LT,create.unresolved_name(name),rewrite(range.getArg(1)))
+      );
+    }    
+    for(ASTNode clause:ASTUtils.conjuncts(pb1.contract.pre_condition,StandardOperator.Star)){
+      if(clause.getType().isResource()){
+        list.add(sigma1.rewrite(clause));
+      }
+    }
+    for(ASTNode clause:ASTUtils.conjuncts(pb2.contract.pre_condition,StandardOperator.Star)){
+      if(clause.getType().isResource()){
+        list.add(sigma2.rewrite(clause));
+      }      
+    }
+    currentTargetClass.add(create.method_decl(
+        create.primitive_type(Sort.Void),
+        cb.getContract(),
+        "check_"+pb1.label+"_"+pb2.label,
+        gen_pars(main_vars),
+        create.block(
+          create.expression(StandardOperator.Assert,create.fold(StandardOperator.Star, list))
+        )
+    ));
+
+    
+  }
+
   @Override
   public void visit(ParallelAtomic pa){
     BlockStatement block=rewrite(pa.block);

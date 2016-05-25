@@ -86,11 +86,11 @@ import vct.col.rewrite.StripConstructors;
 import vct.col.rewrite.VoidCalls;
 import vct.col.rewrite.VoidCallsThrown;
 import vct.col.rewrite.WandEncoder;
+import vct.col.syntax.JavaDialect;
 import vct.col.syntax.JavaSyntax;
 import vct.col.syntax.Syntax;
 import vct.col.util.FeatureScanner;
 import vct.col.util.SimpleTypeCheck;
-import vct.java.printer.JavaDialect;
 import vct.util.ClassName;
 import vct.util.Configuration;
 import static hre.System.*;
@@ -654,7 +654,7 @@ public class Main
     });
     defined_checks.put("verifast",new ValidationPass("verify with VeriFast"){
       public TestReport apply(ProgramUnit arg,String ... args){
-        vct.java.printer.JavaPrinter.dump(System.out,JavaDialect.JavaVeriFast,arg);
+        vct.col.print.JavaPrinter.dump(System.out,JavaDialect.JavaVeriFast,arg);
         return vct.verifast.Main.TestVerifast(arg);
       }
     });

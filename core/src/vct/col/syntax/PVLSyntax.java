@@ -1,10 +1,11 @@
-package vct.antlr4.parser;
+package vct.col.syntax;
 
 
 import hre.ast.TrackingOutput;
 import vct.col.ast.ASTNode;
 import vct.col.ast.StandardOperator;
 import vct.col.syntax.Syntax;
+import vct.col.ast.ASTReserved;
 import static vct.col.ast.StandardOperator.*;
 import static vct.col.ast.ASTReserved.FullPerm;
 import static vct.col.ast.ASTReserved.NoPerm;
@@ -161,6 +162,8 @@ public class PVLSyntax {
       
       syntax.addFunction(PVLidleToken,"idle");
       syntax.addFunction(PVLjoinToken,"running");
+      
+      syntax.addReserved(ASTReserved.Any, "*");
     }
     return syntax;
   }

@@ -95,7 +95,7 @@ statement
  | 'witness' expr ';' 
  | 'if' '(' expr ')' block ( 'else' block )?
  | 'barrier' '(' ID ( ';' id_list )? ')' ( '{' contract '}' | contract block )
- | 'par' par_unit ( 'and' par_unit )* 
+ | contract 'par' par_unit ( 'and' par_unit )* 
  | 'invariant' ID '(' expr ')' block 
  | 'atomic' '(' id_list ')' block 
  | invariant 'while' '(' expr ')' block
@@ -115,9 +115,17 @@ statement
  ;
 
 par_unit
- : ID? '(' iters ')' contract block
+ : ID? '(' iters ( ';' wait_list )? ')' contract block
  | contract block
  ;
+
+wait_list : wait_for ( ',' wait_for )* ;
+
+wait_for : ID ( '(' id_arg_list ')' ) ? ;
+
+id_arg_list : id_arg ( ',' id_arg )* ;
+
+id_arg : ID | '*' ;
 
 id_list : ( ID ( ',' ID )* )? ;
 

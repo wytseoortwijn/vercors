@@ -211,9 +211,12 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
     
     Origin origin;
     if (node instanceof ParserRuleContext){    	
-    	ParserRuleContext ctx=(ParserRuleContext)node;    	
-    	origin=origin(ctx.start,ctx.stop);
-      
+    	ParserRuleContext ctx=(ParserRuleContext)node;
+    	if (ctx.stop==null) {
+    	  origin=origin(ctx.start,ctx.start);
+    	} else {
+      	origin=origin(ctx.start,ctx.stop);
+    	}
     } else  if (node instanceof TerminalNode) {    	
       Token tok=((TerminalNode)node).getSymbol();
       origin=origin(tok,tok);
