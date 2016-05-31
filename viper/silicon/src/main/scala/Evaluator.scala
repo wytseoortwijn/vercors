@@ -83,48 +83,37 @@ trait DefaultEvaluator[ST <: Store[ST],
         log.debug(stateFormatter.format(σ, decider.π))
         if (c.reserveHeaps.nonEmpty)
           log.debug("hR = " + c.reserveHeaps.map(stateFormatter.format).mkString("", ",\n     ", ""))
-        if (c.evalHeap.nonEmpty)
-          log.debug("hE = " + c.evalHeap.map(stateFormatter.format).mkString("", ",\n     ", ""))
         c.lhsHeap.foreach(h => log.debug("hLHS = " + stateFormatter.format(h)))
         decider.prover.logComment(s"[eval] $e")
     }
 
-    eval2(σ \ c.evalHeap.getOrElse(σ.h), e, pve, c.copy(recordEffects = false))((t, c1) => {
-      val c2 =
-        if (c1.recordPossibleTriggers)
+    /* Switch to the eval heap (σUsed) of magic wand's exhale-ext, if necessary.
+     * Also deactivate magic wand's recording of consumed and produced permissions: if the
+     * evaluation to perform involves consuming or producing permissions, e.g. because of
+     * an unfolding expression, these should not be recorded.
+     */
+    val σ1 = σ \ magicWandSupporter.getEvalHeap(σ, c)
+    val c1 = c.copy(reserveHeaps = Nil, exhaleExt = false, recordEffects = false)
+
+    eval2(σ1, e, pve, c1)((t, c2) => {
+      val c3 =
+        if (c2.recordPossibleTriggers)
           e match {
             case pt: ast.PossibleTrigger =>
-              c1.copy(possibleTriggers = c1.possibleTriggers + (pt -> t))
-            case fa: ast.FieldAccess if c.qpFields.contains(fa.field) =>
-              c1.copy(possibleTriggers = c1.possibleTriggers + (fa -> t))
+              c2.copy(possibleTriggers = c2.possibleTriggers + (pt -> t))
+            case fa: ast.FieldAccess if c2.qpFields.contains(fa.field) =>
+              c2.copy(possibleTriggers = c2.possibleTriggers + (fa -> t))
             case _ =>
-              c1}
+              c2}
         else
-          c1
-      Q(t, c2.copy(recordEffects = c.recordEffects))})
+          c2
+      val c4 = c3.copy(reserveHeaps = c.reserveHeaps, exhaleExt = c.exhaleExt, recordEffects = c.recordEffects)
+      Q(t, c4)})
   }
 
   protected def eval2(σ: S, e: ast.Exp, pve: PartialVerificationError, c: C)
                      (Q: (Term, C) => VerificationResult)
                      : VerificationResult = {
-
-    /* Since commit 0cf1f26, evaluating unfoldings is a local operation, and it
-     * might be tempting to think that we don't need to locally evaluate
-     * Implies and Ite anymore. However, that is not true, because not all of
-     * them occur in the context of an unfolding. They can also occur in a
-     * pre/postcondition such as 'requires b1 ==> b2', in which case Silicon
-     * still shouldn't branch.
-     */
-
-    /* TODO: LocalEvaluationResults collect contexts as well.
-     *       However, only one context can be passed on to Q, and currently
-     *       the one from the first LocalEvaluationResult is taken.
-     *       This shouldn't be much of a problem, except maybe for debugging,
-     *       as long as the context doesn't keep track of any crucial
-     *       information. This may not always be the case, however. E.g., the
-     *       Wands-Silicon prototype (for the rejected FM'14 paper) uses the
-     *       context to record the reserve heap.
-     */
 
     val resultTerm = e match {
       case _: ast.TrueLit => Q(True(), c)
@@ -668,11 +657,7 @@ trait DefaultEvaluator[ST <: Store[ST],
     locacc match {
       case ast.FieldAccess(eRcvr, field) =>
         eval(σ, eRcvr, pve, c)((tRcvr, c1) =>
-          decider.assert(σ, tRcvr !== Null()){
-            case true =>
-              Q(field.name, tRcvr :: Nil, c1)
-            case false =>
-              Failure(pve dueTo ReceiverNull(locacc))})
+          Q(field.name, tRcvr :: Nil, c1))
       case ast.PredicateAccess(eArgs, predicateName) =>
         evals(σ, eArgs, _ => pve, c)((tArgs, c1) =>
           Q(predicateName, tArgs, c1))

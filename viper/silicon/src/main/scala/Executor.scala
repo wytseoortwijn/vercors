@@ -225,33 +225,25 @@ trait DefaultExecutor[ST <: Store[ST],
 
         val pve = AssignmentFailed(ass)
         eval(σ, eRcvr, pve, c)((tRcvr, c1) =>
-          eval(σ, rhs, pve, c1)((tRhs, c2) =>
-            decider.assert(σ, tRcvr !== Null()){
-              case false =>
-                Failure(pve dueTo ReceiverNull(fa))
-              case true =>
-                val hints = quantifiedChunkSupporter.extractHints(None, None, tRcvr)
-                val chunkOrderHeuristics = quantifiedChunkSupporter.hintBasedChunkOrderHeuristic(hints)
-                quantifiedChunkSupporter.splitSingleLocation(σ, σ.h, field, tRcvr, FullPerm(), chunkOrderHeuristics, c2) {
-                  case Some((h1, _, _, c3)) =>
-                    val (fvf, optFvfDef) = quantifiedChunkSupporter.createFieldValueFunction(field, tRcvr, tRhs)
-                    optFvfDef.foreach(fvfDef => assume(fvfDef.domainDefinitions ++ fvfDef.valueDefinitions))
-                    val ch = quantifiedChunkSupporter.createSingletonQuantifiedChunk(tRcvr, field.name, fvf, FullPerm())
-                    Q(σ \ h1 \+ ch, c3)
-                  case None =>
-                    Failure(pve dueTo InsufficientPermission(fa))}}))
+          eval(σ, rhs, pve, c1)((tRhs, c2) => {
+            val hints = quantifiedChunkSupporter.extractHints(None, None, tRcvr)
+            val chunkOrderHeuristics = quantifiedChunkSupporter.hintBasedChunkOrderHeuristic(hints)
+            quantifiedChunkSupporter.splitSingleLocation(σ, σ.h, field, tRcvr, FullPerm(), chunkOrderHeuristics, c2) {
+              case Some((h1, _, _, c3)) =>
+                val (fvf, optFvfDef) = quantifiedChunkSupporter.createFieldValueFunction(field, tRcvr, tRhs)
+                optFvfDef.foreach(fvfDef => assume(fvfDef.domainDefinitions ++ fvfDef.valueDefinitions))
+                val ch = quantifiedChunkSupporter.createSingletonQuantifiedChunk(tRcvr, field.name, fvf, FullPerm())
+                Q(σ \ h1 \+ ch, c3)
+              case None =>
+                Failure(pve dueTo InsufficientPermission(fa))}}))
 
       case ass @ ast.FieldAssign(fa @ ast.FieldAccess(eRcvr, field), rhs) =>
         val pve = AssignmentFailed(ass)
         eval(σ, eRcvr, pve, c)((tRcvr, c1) =>
-          decider.assert(σ, tRcvr !== Null()){
-            case true =>
-              eval(σ, rhs, pve, c1)((tRhs, c2) =>
-                chunkSupporter.withChunk(σ, σ.h, field.name, Seq(tRcvr), Some(FullPerm()), fa, pve, c2)((fc, c3) => {
-                  val t = ssaifyRhs(tRhs, field.name, field.typ)
-                  Q(σ \- fc \+ FieldChunk(tRcvr, field.name, tRhs, fc.perm), c3)}))
-            case false =>
-              Failure(pve dueTo ReceiverNull(fa))})
+          eval(σ, rhs, pve, c1)((tRhs, c2) =>
+            chunkSupporter.withChunk(σ, σ.h, field.name, Seq(tRcvr), Some(FullPerm()), fa, pve, c2)((fc, c3) => {
+              val t = ssaifyRhs(tRhs, field.name, field.typ)
+              Q(σ \- fc \+ FieldChunk(tRcvr, field.name, tRhs, fc.perm), c3)})))
 
       case ast.NewStmt(v, fields) =>
         val tRcvr = fresh(v)
@@ -391,17 +383,15 @@ trait DefaultExecutor[ST <: Store[ST],
         val pve = PackageFailed(pckg)
         val c0 = c.copy(reserveHeaps = H() :: σ.h :: Nil,
                         recordEffects = true,
-                        producedChunks = Nil,
-                        consumedChunks = Nil :: Nil :: Nil,
+                        consumedChunks = Nil :: Nil,
                         letBoundVars = Nil)
         magicWandSupporter.packageWand(σ, wand, pve, c0)((chWand, c1) => {
-          assert(c1.reserveHeaps.length == 3, s"Expected exactly 3 reserve heaps in the context, but found ${c1.reserveHeaps.length}")
-          val h1 = c1.reserveHeaps(2)
+          assert(c1.reserveHeaps.length == 1) /* c1.reserveHeap is expected to be [σ.h'], i.e. the remainder of σ.h */
+          val h1 = c1.reserveHeaps.head
           val c2 = c1.copy(exhaleExt = false,
                            reserveHeaps = Nil,
                            lhsHeap = None,
                            recordEffects = false,
-                           producedChunks = Nil,
                            consumedChunks = Stack(),
                            letBoundVars = Nil)
           Q(σ \ (h1 + chWand), c2)})

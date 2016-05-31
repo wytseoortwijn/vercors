@@ -80,8 +80,6 @@ trait ChunkSupporterProvider[ST <: Store[ST],
   protected val stateFactory: StateFactory[ST, H, S]
   protected val config: Config
 
-  import stateFactory._
-
   object chunkSupporter extends ChunkSupporter[ST, H, S, C] {
     private case class PermissionsConsumptionResult(consumedCompletely: Boolean)
 
@@ -104,15 +102,16 @@ trait ChunkSupporterProvider[ST <: Store[ST],
 //      }
 
       heuristicsSupporter.tryOperation[H, Term](description)(σ, h, c)((σ1, h1, c1, QS) => {
-        consume(σ, h1, name, args, perms, locacc, pve, c1)((h2, optCh, c2, results) =>
+        consume(σ, h1, name, args, perms, locacc, pve, c1)((h2, optCh, c2) =>
           optCh match {
             case Some(ch) =>
               QS(h2, ch.snap.convert(sorts.Snap), c2)
             case None =>
               /* Not having consumed anything could mean that we are in an infeasible
                * branch, or that the permission amount to consume was zero.
+               * Returning a fresh snapshot in these cases should not lose any information.
                */
-            QS(h2, Unit, c2)
+            QS(h2, decider.fresh(sorts.Snap), c2)
           })
       })(Q)
     }
@@ -125,69 +124,47 @@ trait ChunkSupporterProvider[ST <: Store[ST],
                         locacc: ast.LocationAccess,
                         pve: PartialVerificationError,
                         c: C)
-                       (Q: (H, Option[BasicChunk], C, PermissionsConsumptionResult) => VerificationResult)
+                       (Q: (H, Option[BasicChunk], C) => VerificationResult)
                        : VerificationResult = {
 
-      /* TODO: Integrate into regular, (non-)exact consumption that follows afterwards */
-      if (c.exhaleExt)
-      /* Function "transfer" from wands paper.
-       * Permissions are transferred from the stack of heaps to σUsed, which is
-       * h in the current context.
+      /* [2016-05-27 Malte] Performing this check slows down the verification quite
+       * a bit (from 4 minutes down to 5 minutes, for the whole test suite). Only
+       * checking the property on-failure (within decider.withChunk) is likely to
+       * perform better.
        */
-        return magicWandSupporter.consumeFromMultipleHeaps(σ, c.reserveHeaps, name, args, perms, locacc, pve, c)((hs, chs, c1/*, pcr*/) => {
-          val c2 = c1.copy(reserveHeaps = hs)
-          val pcr = PermissionsConsumptionResult(false) // TODO: PermissionsConsumptionResult is bogus!
-
-          val c3 =
-            if (c2.recordEffects) {
-              assert(chs.length == c2.consumedChunks.length)
-              val bcs = decider.pcs.branchConditions
-              val consumedChunks3 =
-                chs.zip(c2.consumedChunks).foldLeft(Stack[Seq[(Stack[Term], BasicChunk)]]()) {
-                  case (accConsumedChunks, (optCh, consumed)) =>
-                    optCh match {
-//                      case Some(ch) => ((c2.branchConditions -> ch) +: consumed) :: accConsumedChunks
-                      case Some(ch) => ((bcs -> ch) +: consumed) :: accConsumedChunks
-                      case None => consumed :: accConsumedChunks
-                    }
-                }.reverse
-
-              c2.copy(consumedChunks = consumedChunks3)
-            } else
-              c2
-          //        val c3 = chs.last match {
-          //          case Some(ch) if c2.recordEffects =>
-          //            c2.copy(consumedChunks = c2.consumedChunks :+ (guards -> ch))
-          //          case _ => c2
-          //        }
-
-          val usedChunks = chs.flatten
-          /* Returning any of the usedChunks should be fine w.r.t to the snapshot
-           * of the chunk, since consumeFromMultipleHeaps should have equated the
-           * snapshots of all usedChunks.
+//      if (decider.check(σ, perms === NoPerm(), config.checkTimeout())) {
+//        /* Don't try looking for a chunk (which might fail) if zero permissions are
+//         * to be consumed.
+//         */
+//        Q(h, None, c)
+//      } else {
+        if (c.exhaleExt) {
+          /* TODO: Integrate magic wand's transferring consumption into the regular,
+           * (non-)exact consumption (the code following this if-branch)
            */
-          Q(h + H(usedChunks), usedChunks.headOption, c3, pcr)})
-
-      if (terms.utils.consumeExactRead(perms, c.constrainableARPs)) {
-        withChunk(σ, h, name, args, Some(perms), locacc, pve, c)((ch, c1) => {
-          if (decider.check(σ, IsNoAccess(PermMinus(ch.perm, perms)), config.checkTimeout())) {
-            Q(h - ch, Some(ch), c1, PermissionsConsumptionResult(true))}
-          else
-            Q(h - ch + (ch - perms), Some(ch), c1, PermissionsConsumptionResult(false))})
-      } else {
-        withChunk(σ, h, name, args, None, locacc, pve, c)((ch, c1) => {
-          decider.assume(PermLess(perms, ch.perm))
-          Q(h - ch + (ch - perms), Some(ch), c1, PermissionsConsumptionResult(false))})
-      }
+          magicWandSupporter.transfer(σ, name, args, perms, locacc, pve, c)((optCh, c1) =>
+            Q(h, optCh, c1))
+        } else {
+          if (terms.utils.consumeExactRead(perms, c.constrainableARPs)) {
+            withChunk(σ, h, name, args, Some(perms), locacc, pve, c)((ch, c1) => {
+              if (decider.check(σ, IsNoAccess(PermMinus(ch.perm, perms)), config.checkTimeout())) {
+                Q(h - ch, Some(ch), c1)}
+              else
+                Q(h - ch + (ch - perms), Some(ch), c1)})
+          } else {
+            withChunk(σ, h, name, args, None, locacc, pve, c)((ch, c1) => {
+              decider.assume(PermLess(perms, ch.perm))
+              Q(h - ch + (ch - perms), Some(ch), c1)})
+          }
+        }
+//      }
     }
 
     def produce(σ: S, h: H, ch: BasicChunk, c: C): (H, C) = {
       val (h1, matchedChunk) = heapCompressor.merge(σ, h, ch, c)
       val c1 = c//recordSnapshot(c, matchedChunk, ch)
-//      val c2 = recordProducedChunk(c1, ch, c.branchConditions)
-      val c2 = recordProducedChunk(c1, ch, decider.pcs.branchConditions)
 
-      (h1, c2)
+      (h1, c1)
     }
 
     /*
@@ -272,16 +249,5 @@ trait ChunkSupporterProvider[ST <: Store[ST],
 
       chunk
     }
-
-    /*
-     * Miscellaneous
-     */
-
-    private def recordProducedChunk(c: C, producedChunk: BasicChunk, guards: Stack[Term]): C =
-      c.recordEffects match {
-        case true => c.copy(producedChunks = c.producedChunks :+ (guards -> producedChunk))
-        case false => c
-      }
-
   }
 }
