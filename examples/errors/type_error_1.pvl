@@ -1,5 +1,5 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
-//:: cases TypeError
+//:: cases TypeError1
 //:: tools silicon
 //:: verdict Error
 

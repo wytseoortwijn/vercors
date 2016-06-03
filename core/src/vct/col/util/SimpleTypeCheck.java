@@ -1277,13 +1277,23 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     case LET:
       e.setType(t);
       break;
-    case STAR:
-      e.setType(new PrimitiveType(Sort.Resource));
+    case STAR:{
+      Type res=new PrimitiveType(Sort.Resource);
+      if (!res.supertypeof(source(), t)){
+        Fail("main argument of %s quantifier must be resource",e.binder);
+      }
+      e.setType(res);
       break;
+    }
     case EXISTS:
-    case FORALL:
-      e.setType(new PrimitiveType(Sort.Boolean));
+    case FORALL:{
+      Type res=new PrimitiveType(Sort.Boolean);
+      if (!res.supertypeof(source(), t)) {
+        Fail("main argument of %s quantifier must be boolean",e.binder);
+      }
+      e.setType(res);
       break;
+    }
     case SUM:
       e.setType(t);
       break;

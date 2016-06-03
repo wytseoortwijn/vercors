@@ -166,6 +166,9 @@ public class CommandLineTesting {
         res=tt.run(cmd.toArray(new String[0]));
         System.err.printf("finished %s/%s: %s/%s %n",name,tool,res.verdict,test.verdict);
         times.put(name+"/"+tool,res.times.get("entire run"));
+        if (res.verdict==null){
+          res.verdict=Verdict.Error;
+        }
         if (res.verdict.toString().equals(test.verdict)){
           successes++;
         } else {
