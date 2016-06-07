@@ -1,0 +1,13 @@
+// -*- tab-width:2 ; indent-tabs-mode:nil -*-
+//:: cases LocationError1
+//:: tools silicon
+//:: verdict Error
+
+class C {
+
+  requires Value(arg);
+  void main(C arg){
+  }
+
+}
+

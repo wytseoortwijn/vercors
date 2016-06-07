@@ -634,13 +634,7 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       break;
     }
     case CurrentPerm:{
-      if (!(e.getArg(0) instanceof Dereference)
-      && !(e.getArg(0) instanceof FieldAccess)
-      && !e.getArg(0).isa(StandardOperator.Subscript)
-      && !((e.getArg(0) instanceof NameExpression) && (((NameExpression)e.getArg(0)).getKind()==Kind.Field))
-      ){
-        Fail("first argument of Perm must be a field or an array element");
-      }
+      check_location(e.getArg(0),"argument of CurrentPerm");
       t1=e.getArg(0).getType();
       if (t1==null) Fail("type of argument unknown at %s",e.getOrigin());
       e.setType(new PrimitiveType(Sort.Fraction));
@@ -667,13 +661,7 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     case HistoryPerm:
     case Perm:
     {
-      if (!(e.getArg(0) instanceof Dereference)
-      && !(e.getArg(0) instanceof FieldAccess)
-      && !e.getArg(0).isa(StandardOperator.Subscript)
-      && !((e.getArg(0) instanceof NameExpression) && (((NameExpression)e.getArg(0)).getKind()==Kind.Field))
-      ){
-        Fail("first argument of Perm must be a field or an array element");
-      }
+      check_location(e.getArg(0),"first argument");
       if (!t2.isBoolean() && !t2.isNumeric()) Fail("type of right argument is %s rather than a numeric type at %s",t2,e.getOrigin());
       force_frac(e.getArg(1));
       e.setType(new PrimitiveType(Sort.Resource));
@@ -681,13 +669,7 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     }
     case PointsTo:
     {
-      if (!(e.getArg(0) instanceof Dereference)
-      && !(e.getArg(0) instanceof FieldAccess)
-      && !e.getArg(0).isa(StandardOperator.Subscript)
-      && !((e.getArg(0) instanceof NameExpression) && (((NameExpression)e.getArg(0)).getKind()==Kind.Field))
-      ){
-        Fail("first argument of PointsTo must be a field or an array element");
-      }
+      check_location(e.getArg(0),"first argument");
       t1=e.getArg(0).getType();
       if (t1==null) Fail("type of left argument unknown at %s",e.getOrigin());
       t2=e.getArg(1).getType();
@@ -711,12 +693,14 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       e.setType(new PrimitiveType(Sort.Resource));
       break;
     } 
+    case Value:
+      check_location(e.getArg(0),"argument");
+      e.setType(new PrimitiveType(Sort.Resource));
+      break;
     case AddsTo:
     case ReducibleSum:
     case ReducibleMin:
     case ReducibleMax:
-    case Value:
-    case Volatile:
     case ArrayPerm:
       // TODO: check arguments
       e.setType(new PrimitiveType(Sort.Resource));
@@ -1113,6 +1097,17 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       Abort("missing case of operator %s",op);
       break;
     }
+  }
+
+  private void check_location(ASTNode arg,String what) {
+    if (!(arg instanceof Dereference)
+    && !(arg instanceof FieldAccess)
+    && !arg.isa(StandardOperator.Subscript)
+    && !((arg instanceof NameExpression) && (((NameExpression)arg).getKind()==Kind.Field))
+    ){
+      Fail("%s is not a heap location",what);
+    }
+
   }
 
   private void checkMathOperator(OperatorExpression e, StandardOperator op,

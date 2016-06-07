@@ -30,7 +30,6 @@ public class VerCorsSyntax {
     syntax.addFunction(PointsTo,"PointsTo");
     syntax.addFunction(ArrayPerm,"ArrayPerm");
     syntax.addFunction(AddsTo,"AddsTo");
-    syntax.addFunction(Volatile, "Volatile");
     syntax.addFunction(Old,"\\old");
     syntax.addFunction(Length,"\\length");
     syntax.addFunction(Get,"get?");
