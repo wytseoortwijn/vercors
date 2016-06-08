@@ -1104,10 +1104,10 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     && !(arg instanceof FieldAccess)
     && !arg.isa(StandardOperator.Subscript)
     && !((arg instanceof NameExpression) && (((NameExpression)arg).getKind()==Kind.Field))
+    && !arg.getType().isPrimitive(Sort.Location)
     ){
       Fail("%s is not a heap location",what);
     }
-
   }
 
   private void checkMathOperator(OperatorExpression e, StandardOperator op,
@@ -1159,6 +1159,9 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     super.visit(e);
     Type object_type=e.object.getType();
     if (object_type==null) Fail("type of object unknown at "+e.getOrigin());
+    if (object_type.isPrimitive(Sort.Location)){
+      object_type=(Type)object_type.getArg(0);
+    }
     if (object_type instanceof PrimitiveType){
       if (e.field.equals("length")){
         e.setType(new PrimitiveType(Sort.Integer));

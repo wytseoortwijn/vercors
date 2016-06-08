@@ -51,6 +51,7 @@ public final class PrimitiveType extends Type {
       case Bag:
       case Cell:
       case Pointer:
+      case Location:
         if (N!=1) Abort("illegal argument count");
         break;
       case Array:

@@ -133,12 +133,12 @@ class Queue {
   
   // the final field ref is an atomic reference,
   // for which we have write permission.
-  inline static resource RPerm(AtomicNode ref)=
+  inline static resource RPerm(loc<AtomicNode> ref)=
     Value(ref) ** Perm(ref.ref,1);
 
   // the final field ref is an atomic reference,
   // for which we have write permission and know the value.
-  inline static resource RPointsTo(AtomicNode ref, Node val)=
+  inline static resource RPointsTo(loc<AtomicNode> ref, Node val)=
     Value(ref) ** Perm(ref.ref,1) ** ref.ref==val;
   
   resource chain(Node n1,Node n2,seq<int> vals)=

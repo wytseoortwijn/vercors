@@ -53,9 +53,9 @@ class Thread {
   Lock locks[];
 
   /*@
-    inline resource APerm(AtomicInteger ref,frac p)=
+    inline resource APerm(loc<AtomicInteger> ref,frac p)=
       Value(ref)**Perm(ref.val,p);
-    inline resource APointsTo(AtomicInteger ref,frac p,int v)=
+    inline resource APointsTo(loc<AtomicInteger> ref,frac p,int v)=
       Value(ref)**PointsTo(ref.val,p,v);
     
     inline thread_local resource common()= Value(T) **
@@ -135,9 +135,9 @@ class Lock {
       Value(held) **
       Value(subject);
       
-    inline resource APerm(AtomicInteger ref,frac p)=
+    inline resource APerm(loc<AtomicInteger> ref,frac p)=
       Value(ref)**Perm(ref.val,p);
-    inline resource APointsTo(AtomicInteger ref,frac p,int v)=
+    inline resource APointsTo(loc<AtomicInteger> ref,frac p,int v)=
       Value(ref)**PointsTo(ref.val,p,v);
   @*/
   
