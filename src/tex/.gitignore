@@ -6,6 +6,8 @@
 *.out
 *.toc
 
+fibonacci-*.pvl
+
 devguide.pdf
 manual.pdf
 

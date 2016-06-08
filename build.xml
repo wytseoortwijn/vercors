@@ -29,6 +29,28 @@
     </delete>
   </target>
   
+  <target name="assembly">
+  	<jar destfile="vct-tool.jar" >
+      <manifest>
+        <attribute name="Main-Class" value="vct.main.Main"/>
+        <attribute name="Built-By" value="${user.name}"/>
+      </manifest>
+		  <fileset dir="hre/bin">
+		  	<include name="**" />
+		  </fileset>
+		  <fileset dir="core/bin">
+		  	<include name="**" />
+		  </fileset>
+		  <fileset dir="main/bin">
+		  	<include name="**" />
+		  </fileset>
+		  <fileset dir="viper/viper-api/bin">
+		  	<include name="**" />
+		  </fileset>
+		  <zipfileset src="core/libs/antlr-4.5-complete.jar" excludes="META-INF/*" />
+		</jar>
+  </target>
+  
   <target name="jar">
     <ant antfile="build.xml" dir="${basedir}/viper/viper-api" inheritAll="false"/>
     <exec dir="${basedir}/viper/silver" executable="${sbtcommand}"> <arg value="compile" /> </exec>
@@ -37,15 +59,9 @@
     <ant antfile="build.xml" dir="${basedir}/hre" inheritAll="false" target="jar"/>
     <ant antfile="build.xml" dir="${basedir}/core" inheritAll="false" target="jar"/>
     <ant antfile="build.xml" dir="${basedir}/main" inheritAll="false" target="jar"/>
-    <exec dir="${basedir}/src/tex" executable="make">
-      <arg value="manual"/>
-    </exec>
   </target>
   
   <target name="doc" depends="jar">
-    <exec dir="${basedir}/src/tex" executable="make">
-      <arg value="devguide"/>
-    </exec>
     <mkdir dir="${basedir}/doc/api"/>
     <javadoc
            overview="${basedir}/src/overview.html"
@@ -85,6 +101,7 @@
       <link href="http://developer.java.sun.com/developer/products/xml/docs/api/"/>
       -->
     </javadoc>
+    <ant antfile="build.xml" dir="${basedir}/src/tex" inheritAll="false" target="PDF"/>
   </target>  
 
 <!-- 

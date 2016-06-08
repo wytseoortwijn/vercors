@@ -1,0 +1,61 @@
+<!-- -*- tab-width:2 ; indent-tabs-mode:nil -*- -->
+<project name="VerCors Tool Documentation" default="pdf">
+
+  <property environment="env"/>
+  
+  <property name="examples"   value="${basedir}/../../examples"/>
+  <property name="fibonacci_pvl"          value="${basedir}/../../examples/manual/fibonacci.pvl"/>
+
+  <target name="clean">
+    <delete>
+      <fileset dir="${basedir}" includes="fibonacci-*.pvl"/>
+      <fileset dir="${basedir}" includes="*.aux"/>
+      <fileset dir="${basedir}" includes="*.bbl"/>
+      <fileset dir="${basedir}" includes="*.blg"/>
+      <fileset dir="${basedir}" includes="*.log"/>
+      <fileset dir="${basedir}" includes="*.out"/>
+      <fileset dir="${basedir}" includes="*.toc"/>
+    </delete>
+  </target>
+
+  <target name="extract">
+  	<exec executable="${basedir}/extract"
+	        failonerror="true"
+	        dir="${basedir}"
+	        output="${basedir}/fibonacci-all.pvl">
+      <arg value="-v"/>
+      <arg value="fragment=all"/>
+      <arg value="${fibonacci_pvl}"/>
+    </exec>
+  </target>
+
+  <target name="PDF" depends="extract">
+    <exec executable="pdflatex"
+	        failonerror="true"
+	        dir="${basedir}">
+	    <arg value="manual"/>
+	    <env key="TEXINPUTS" value="${basedir}/../../examples//:.::" />
+    </exec>
+    <exec executable="pdflatex"
+	        failonerror="true"
+	        dir="${basedir}">
+	    <arg value="manual"/>
+	    <env key="TEXINPUTS" value="${basedir}/../../examples//:.::" />
+    </exec>
+    <exec executable="pdflatex"
+	        failonerror="true"
+	        dir="${basedir}">
+	    <arg value="devguide"/>
+	    <env key="TEXINPUTS" value="${basedir}/../../examples//:.::" />
+    </exec>
+    <exec executable="pdflatex"
+	        failonerror="true"
+	        dir="${basedir}">
+	    <arg value="devguide"/>
+	    <env key="TEXINPUTS" value="${basedir}/../../examples//:.::" />
+    </exec>
+  </target>
+
+</project>
+
+
