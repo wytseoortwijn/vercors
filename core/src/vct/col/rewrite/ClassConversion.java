@@ -33,6 +33,10 @@ public class ClassConversion extends AbstractRewriter {
   public void visit(NameExpression e){
     if (e.isReserved(ASTReserved.This)){
       if (constructor_this.peek()){
+        if (in_requires){
+          e.getOrigin().report("error","pre-condition of constructor may not refer to this");
+          Fail("fatal error");
+        }
         result=create.reserved_name(ASTReserved.Result);
       } else {
         result=create.unresolved_name(THIS);
