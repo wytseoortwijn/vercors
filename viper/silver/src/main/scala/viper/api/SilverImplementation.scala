@@ -323,7 +323,8 @@ class SilverImplementation[O,Err] extends viper.api.SilverVerifier[O,Err,Type,Ex
     println(s"$text (${obj.getClass.getSimpleName}): $obj")
   }
  
-  def verify(tool_home:Path,settings:Properties,prog:Prog,reachable:java.util.Set[O]) : List[viper.api.ViperError[O]] = {
+  def verify(tool_home:Path,settings:Properties,prog:Prog,reachable:java.util.Set[O],
+      control:VerificationControl[O]) : List[viper.api.ViperError[O]] = {
     val program = Program(prog.domains.asScala.toList,
               prog.fields.asScala.toList,
               prog.functions.asScala.toList,
@@ -331,7 +332,9 @@ class SilverImplementation[O,Err] extends viper.api.SilverVerifier[O,Err,Type,Ex
               prog.methods.asScala.toList)()
               
     //println("=============\n" + program + "\n=============\n")
-
+    
+    Reachable.gonogo = control.asInstanceOf[VerificationControl[Object]];
+    
     val report = new java.util.ArrayList[viper.api.ViperError[O]]()
     Reachable.reachable.clear()
     val verifier=createVerifier(tool_home,settings)

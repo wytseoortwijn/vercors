@@ -17,7 +17,14 @@ public class FileOrigin implements Origin {
   public int linesBefore=2;
   public int linesAfter=2;
   
-  
+
+  private void do_result(String result) {
+    String file=getName();
+    FileContext fc=data.get(file);
+    if (fc==null) return;
+    fc.mark(this,result);
+  }
+
   private static Hashtable<String,FileContext> data=new Hashtable<String,FileContext>();
   
   public void printContext(PrintStream out,int before,int after){
@@ -34,8 +41,8 @@ public class FileOrigin implements Origin {
     }
   }
   
-  public static void add(String file){
-    data.put(file,new FileContext(file));
+  public static void add(String file,boolean gui){
+    data.put(file,new FileContext(file,gui));
   }
   public synchronized void report(String level, Iterable<String> message) {
     printContext(System.out,linesBefore,linesAfter);     
@@ -46,6 +53,10 @@ public class FileOrigin implements Origin {
   }
   
   public synchronized void report(String level, String ... message) {
+    if (level.equals("result")){
+      do_result(message[0]);
+      return;
+    }
     printContext(System.out, linesBefore,linesAfter);     
     for(String line:message){
       System.out.printf("  %s%n",line);

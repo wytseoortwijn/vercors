@@ -26,6 +26,7 @@ import vct.col.util.ASTFactory;
 import vct.error.VerificationError;
 import viper.api.OriginFactory;
 import viper.api.SilverVerifier;
+import viper.api.VerificationControl;
 import viper.api.ViperError;
 
 public class VerCorsVerifier implements
@@ -761,8 +762,8 @@ public class VerCorsVerifier implements
 
   @Override
   public java.util.List<? extends ViperError<Origin>> verify(Path tool_home,
-      Properties settings, ProgramUnit program, java.util.Set<Origin> reachable) {
-    // TODO Auto-generated method stub
+      Properties settings, ProgramUnit program, java.util.Set<Origin> reachable,
+      VerificationControl<Origin> control) {
     throw new HREError("missing case");
   }
 
@@ -770,7 +771,6 @@ public class VerCorsVerifier implements
   public ASTNode while_loop(Origin o, ASTNode cond,
       java.util.List<ASTNode> invs,
       java.util.List<DeclarationStatement> locals, ASTNode body) {
-    // TODO Auto-generated method stub
     enter(o);
     BlockStatement block=create.block();
     for(DeclarationStatement d:locals){

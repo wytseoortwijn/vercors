@@ -20,6 +20,7 @@ import viper.silicon.supporters.qps._
 import viper.silicon.reporting.{DefaultStateFormatter, Bookkeeper}
 import viper.silicon.utils.NoOpStatefulComponent
 import viper.silver.verifier.Success
+import viper.api.OriginInfo
 
 object DefaultVerifier {
   type ST = MapBackedStore
@@ -90,7 +91,7 @@ class DefaultVerifier(val config: Config)
   }
 
   /* Program verification */
-
+  
   def verify(program: ast.Program): List[VerificationResult] = {
     emitPreamble(program)
 
@@ -101,18 +102,26 @@ class DefaultVerifier(val config: Config)
      * error messages will be lost.
      */
     val functionVerificationResults = functionsSupporter.units.toList flatMap (function =>
-      if (viper.api.Reachable.gonogo == null || viper.api.Reachable.gonogo.function(function.name)) {
+      if (viper.api.VControl.gonogo(function)) {
         val l = functionsSupporter.verify(function, createInitialContext(function, program))
-        System.err.printf("Results for %s are %s%n",function.name,l);
+        val ok=l match {
+          case Seq(viper.silicon.interfaces.Success()) => true
+          case _ => false
+        }
+        viper.api.VControl.report(function,ok)
         l
       } else {
         List()
       })
 
     val predicateVerificationResults = predicateSupporter.units.toList flatMap (predicate =>
-      if (viper.api.Reachable.gonogo == null || viper.api.Reachable.gonogo.predicate(predicate.name)) {
+      if (viper.api.VControl.gonogo(predicate)) {
         val l = predicateSupporter.verify(predicate, createInitialContext(predicate, program))
-        System.err.printf("Results for %s are %s%n",predicate.name,l);
+        val ok=l match {
+          case Seq(viper.silicon.interfaces.Success()) => true
+          case _ => false
+        }
+        viper.api.VControl.report(predicate,ok)
         l
       } else {
         List()
@@ -122,12 +131,16 @@ class DefaultVerifier(val config: Config)
       methodSupporter.units.toList
         .filterNot(excludeMethod)
         .flatMap(method => {
-          if (viper.api.Reachable.gonogo == null || viper.api.Reachable.gonogo.method(method.name)) {
+          if (viper.api.VControl.gonogo(method)) {
             val c = createInitialContext(method, program)
             //      ev.quantifiedChunkSupporter.initLastFVF(c.qpFields) /* TODO: Implement properly */
 
             val l = methodSupporter.verify(method, c)
-            System.err.printf("Results for %s are %s%n",method.name,l);
+            val ok=l match {
+              case Seq(viper.silicon.interfaces.Success()) => true
+              case _ => false
+            }
+            viper.api.VControl.report(method,ok)
             l
           } else {
             List()

@@ -194,6 +194,8 @@ public class Main
     clops.add(infer_modifies.getEnable("infer modifies clauses"),"infer-modifies");
     BooleanSetting no_context=new BooleanSetting(false);
     clops.add(no_context.getEnable("disable printing the context of errors"),"no-context");
+    BooleanSetting gui_context=new BooleanSetting(false);
+    clops.add(gui_context.getEnable("enable the gui extension of the context"),"gui");
     
     StringListSetting debug_list=new StringListSetting();
     clops.add(debug_list.getAppendOption("print debug message for given classes and/or packages"),"debug");
@@ -713,7 +715,7 @@ public class Main
     for(String name : input){
       File f=new File(name);
       if (!no_context.get()){
-        FileOrigin.add(name);
+        FileOrigin.add(name,gui_context.get());
       }
       program.add(Parsers.parseFile(f.getPath()));
       cnt++;

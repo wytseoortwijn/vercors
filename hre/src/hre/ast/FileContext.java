@@ -1,5 +1,8 @@
 package hre.ast;
 
+import java.awt.Color;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -9,21 +12,63 @@ import java.io.PrintStream;
 import java.io.Reader;
 import java.util.ArrayList;
 
+import javax.swing.JFrame;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyleContext;
+
 import static hre.System.*;
 
 public class FileContext {
   private ArrayList<String> list=new ArrayList<String>();
-  public FileContext(String file){
+  private ArrayList<Integer> offset=new ArrayList<Integer>();
+  private final FileSwingContext gui;
+  
+  public FileContext(String file,boolean use_gui){
+    if (use_gui) {
+      gui=new FileSwingContext();  
+    } else {
+      gui=null;
+    }
     try {
+      
       BufferedReader in=new BufferedReader(new FileReader(file));
       String line;
+      int pos=0;
       while((line=in.readLine())!=null){
         list.add(line);
+        try {
+          if(use_gui){
+            pos=gui.doc.getLength();
+            offset.add(pos);
+            gui.doc.insertString(pos, line + "\n" ,gui.doc.getStyle("regular"));
+          }
+          } catch (BadLocationException ble) {
+          System.err.println("Couldn't insert initial text into text pane.");
+          }
       }
+      //gui.paneScrollPane.scrollRectToVisible(aRect);
       in.close();
+      if (use_gui) SwingUtilities.invokeLater(new Runnable() {
+        public void run() {
+          //Turn off metal's use of bold fonts
+          UIManager.put("swing.boldMetal", Boolean.FALSE);
+          JFrame frame = new JFrame("TextSamplerDemo");
+          frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+          //Add content to the window.
+          frame.add(gui);
+          //Display the window.
+          frame.pack();
+          frame.setVisible(true);
+        }
+      });
     } catch (IOException e){
       Abort("Could not create context for %s: %s",file,e);
     }
+    
   }
   
   public void printLines(PrintStream out,int begin,int end){
@@ -36,6 +81,14 @@ public class FileContext {
     return list.get(i-1);
   }
   public void printContext(PrintStream out,FileOrigin o,int before, int after){
+    if (gui!=null){
+      final StyleContext cont = StyleContext.getDefaultStyleContext();
+      final AttributeSet attr = cont.addAttribute(cont.getEmptySet(),
+          StyleConstants.Background, Color.RED);
+      int begin=offset.get(o.getFirstLine()-1)+o.getFirstColumn()-1;
+      int end=offset.get(o.getLastLine()-1)+o.getLastColumn();
+      gui.doc.setCharacterAttributes(begin,end-begin, attr ,false);
+    }
     int N=o.getFirstLine()-before;
     if (N<1) N=1;
     int K=o.getLastLine();
@@ -88,12 +141,35 @@ public class FileContext {
         out.printf("]%n");
       }
     }
-    //out.print("     0");
-    //for(int i=2;i<=len;i+=2) out.printf(" %d",((i/10)%10));
-    //out.println();
-    //out.print("     0");
-    //for(int i=2;i<=len;i+=2) out.printf(" %d",(i%10));
-    //out.println();
   }
+
+  public void mark(FileOrigin o, String result) {
+    if (gui!=null){
+      Color color=Color.lightGray;
+      switch(result){
+      case "pass": color=Color.green; break;
+      case "fail": color=Color.red; break;
+      }
+      final StyleContext cont = StyleContext.getDefaultStyleContext();
+      final AttributeSet attr = cont.addAttribute(cont.getEmptySet(), StyleConstants.Background, color);
+      int begin=offset.get(o.getFirstLine()-1)+o.getFirstColumn()-1;
+      int end=offset.get(o.getLastLine()-1)+o.getLastColumn();
+      gui.doc.setCharacterAttributes(begin,end-begin, attr ,false);
+    }
+  }
+  
+  /* Code related to scrolling to a given location..
+      Rectangle s=gui.textPane.getBounds();
+      Rectangle r=gui.textPane.getVisibleRect();
+      Rectangle p=null;
+      try {
+        p = gui.textPane.modelToView(4000);
+        gui.textPane.scrollRectToVisible(p);
+      } catch (BadLocationException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
+      System.err.printf("visible %s of %s (%s) %n",r,s,p);
+   */
 
 }

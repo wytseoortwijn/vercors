@@ -73,7 +73,12 @@ public interface SilverVerifier<O,Err,T,E,S,Decl,DFunc,DAxiom,P>
    * @param program The program to be verified.
    * @return test report
    */
-  public List<? extends ViperError<O>> verify(Path tool_home,Properties settings,P program,java.util.Set<O> reachable);
+  public List<? extends ViperError<O>> verify(
+      Path tool_home,
+      Properties settings,
+      P program,
+      java.util.Set<O> reachable,
+      VerificationControl<O> control);
   
   public void write_program(PrintWriter pw,P program);
 

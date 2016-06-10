@@ -265,7 +265,8 @@ public class SilverBackend {
     start_time=System.currentTimeMillis();
     try {
       HashSet<Origin> reachable=new HashSet();
-      List<? extends ViperError<Origin>> errs=verifier.verify(Configuration.getToolHome(),settings,program,reachable);
+      List<? extends ViperError<Origin>> errs=verifier.verify(
+          Configuration.getToolHome(),settings,program,reachable,new ViperControl());
       for(Origin o:reachable){
         if (!stat.refuted.contains(o)){
           System.err.printf("unregistered location %s marked reachable%n",o);
