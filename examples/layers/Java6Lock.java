@@ -99,10 +99,8 @@ thread_local resource lockset(bag<int> S)=
     res=locks[lock_id].trylock();
     /*@
       if (res) {
-        assert true;
         fold lockset(S+bag<int>{lock_id});
       } else {
-        assert true;
         fold lockset(S);
       }
     @*/
