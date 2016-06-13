@@ -71,7 +71,9 @@ public class CurrentThreadRewriter extends AbstractRewriter {
         for(DeclarationStatement d:m.getArgs()){
           args.add(rewrite(d));
         }
-        cb.requires(create.expression(StandardOperator.GTE,create.local_name(ctname),create.constant(0)));
+        if (m.kind!=Method.Kind.Predicate){
+          cb.requires(create.expression(StandardOperator.GTE,create.local_name(ctname),create.constant(0)));
+        }
         rewrite(m.getContract(),cb);
         ASTNode body=rewrite(m.getBody());
         result=create.method_kind(m.kind,returns, cb.getContract(), m.name, args.toArray(new DeclarationStatement[0]), body);

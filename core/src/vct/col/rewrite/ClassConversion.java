@@ -76,9 +76,11 @@ public class ClassConversion extends AbstractRewriter {
       ArrayList<DeclarationStatement> args=new ArrayList();
       if (m.kind!=Method.Kind.Constructor && !m.isStatic()){
         args.add(create.field_decl(THIS,create.class_type(cl.name)));
-        cb.requires(create.expression(StandardOperator.NEQ,
+        if (m.kind!=Method.Kind.Predicate){
+          cb.requires(create.expression(StandardOperator.NEQ,
             create.local_name(THIS),
             create.reserved_name(ASTReserved.Null)));
+        }
       }
       for(DeclarationStatement d:m.getArgs()){
         args.add(rewrite(d));

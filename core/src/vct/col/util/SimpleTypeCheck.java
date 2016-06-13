@@ -290,8 +290,36 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     ASTNode body=m.getBody();
     Contract contract=m.getContract();
     if (contract!=null){
-      if (contract.pre_condition.getType()==null) Abort("untyped pre condition"); // TODO check boolean.
-      if (contract.post_condition.getType()==null) Abort("untyped post condition"); // TODO check boolean.
+      if (m.kind==Method.Kind.Predicate){
+        ASTNode tt=new ConstantExpression(true);
+        if (!contract.pre_condition.equals(tt)){
+          Fail("predicates cannot have contracts (%s)",Configuration.getDiagSyntax().print(contract.pre_condition));
+        }
+        if (!contract.post_condition.equals(tt)){
+          Fail("predicates cannot have contracts");
+        }
+      }
+      Type pre_t=contract.pre_condition.getType();
+      if (pre_t==null) Abort("untyped pre condition"); // TODO check boolean.
+      if (!pre_t.isPrimitive(Sort.Resource) && !pre_t.isPrimitive(Sort.Boolean)){
+        contract.pre_condition.getOrigin().report("error","pre condition is not a resource");
+        Fail("type error");
+      }
+      Type post_t=contract.post_condition.getType();
+      if (post_t==null) Abort("untyped post condition"); // TODO check boolean.
+      if (!post_t.isPrimitive(Sort.Boolean)){
+        if (m.kind==Method.Kind.Pure){
+          for(ASTNode clause:ASTUtils.conjuncts(contract.post_condition, StandardOperator.Star)){
+            if (!clause.getType().isPrimitive(Sort.Boolean)){
+              clause.getOrigin().report("error","post condition of function "+m.name+" is not a boolean");
+              Fail("type error");
+            }
+          }
+        } else if (!post_t.isPrimitive(Sort.Resource)){
+          contract.post_condition.getOrigin().report("error","post condition is not a resource");
+          Fail("type error");
+        }
+      }
     }
     if (body!=null && (body instanceof BlockStatement)) {
       //TODO: determine type of block
