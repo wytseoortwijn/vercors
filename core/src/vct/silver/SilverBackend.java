@@ -7,8 +7,10 @@ import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 
 import hre.HREError;
 import hre.ast.Origin;
@@ -107,11 +109,13 @@ public class SilverBackend {
     SilverExpressionMap<T, E, Decl> expr=new SilverExpressionMap<T,E,Decl>(verifier,type);
     SilverStatementMap<T, E, S, Decl> stat=new SilverStatementMap<T,E,S,Decl>(verifier,type,expr);
     Program program=verifier.program();
+    Hashtable<String,Set<Origin>> refuted=new Hashtable();
     for(ASTNode entry:arg) {
       if (entry instanceof Method) {
         Method m = (Method)entry;
         switch(m.kind){
         case Plain:{
+          stat.refuted=new HashSet();
           ArrayList<Decl> in=new ArrayList<Decl>();
           ArrayList<Decl> out=new ArrayList<Decl>();
           for(DeclarationStatement decl:m.getArgs()){
@@ -149,6 +153,8 @@ public class SilverBackend {
             }
           }
           verifier.add_method(program,m.getOrigin(),m.name,pres,posts,in,out,locals,body);
+          refuted.put(m.name,stat.refuted);
+          stat.refuted=null;
           break;
         }
         case Pure:{
@@ -263,15 +269,11 @@ public class SilverBackend {
     }
     TestReport report=new TestReport();
     start_time=System.currentTimeMillis();
+    ViperControl control=new ViperControl();
     try {
       HashSet<Origin> reachable=new HashSet();
       List<? extends ViperError<Origin>> errs=verifier.verify(
-          Configuration.getToolHome(),settings,program,reachable,new ViperControl());
-      for(Origin o:reachable){
-        if (!stat.refuted.contains(o)){
-          System.err.printf("unregistered location %s marked reachable%n",o);
-        }
-      }
+          Configuration.getToolHome(),settings,program,reachable,control);
       if (errs.size()>0){
         for(ViperError<Origin> e:errs){
           int N=e.getExtraCount();
@@ -289,15 +291,27 @@ public class SilverBackend {
       } else {
         report.setVerdict(Verdict.Pass);
       }
-      for(Origin o:stat.refuted){
-        if(!reachable.contains(o)){
-          o.report("error","statement is not reachable");
-          report.setVerdict(Verdict.Fail);
+      HashSet<Origin> accounted=new HashSet();
+      for(String method:control.verified_methods){
+        for(Origin o:refuted.get(method)){
+          if(!reachable.contains(o)){
+            o.report("error","statement is not reachable");
+            report.setVerdict(Verdict.Fail);
+          } else {
+            accounted.add(o);
+          }
+        }
+      }
+      for(Origin o:reachable){
+        if (!accounted.contains(o)){
+          System.err.printf("unregistered location %s marked reachable%n",o);
         }
       }
     } catch (Exception e){
       e.printStackTrace();
       report.setVerdict(Verdict.Error);
+    } finally {
+      control.done();
     }
     end_time=System.currentTimeMillis();
     System.err.printf("verification took %d ms%n", end_time-start_time);

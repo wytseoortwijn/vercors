@@ -12,8 +12,8 @@ public class IntegerSetting {
   
   private class AssignOption extends AbstractOption {
     IntegerSetting about;
-    public AssignOption(IntegerSetting about,String help){
-      super(true,true,help);
+    public AssignOption(IntegerSetting about,String help,boolean required){
+      super(required,true,help);
       this.about=about;
     }
     public void pass(String value){
@@ -23,8 +23,13 @@ public class IntegerSetting {
   }
   
   public Option getAssign(String help){
-    return new AssignOption(this,help);
+    return new AssignOption(this,help,true);
   }
+  
+  public Option getOptionalAssign(String help){
+    return new AssignOption(this,help,false);
+  }
+
   public int get(){
     return value;
   }

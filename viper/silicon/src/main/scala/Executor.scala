@@ -206,6 +206,7 @@ trait DefaultExecutor[ST <: Store[ST],
         Q(σ, c1)
 
       case ass @ ast.LocalVarAssign(v, rhs) =>
+        viper.api.VControl.profile(stmt,"local assignment")
         v.typ match {
           case ast.Wand =>
             assert(rhs.isInstanceOf[ast.MagicWand], s"Expected magic wand but found $rhs (${rhs.getClass.getName}})")
@@ -222,7 +223,7 @@ trait DefaultExecutor[ST <: Store[ST],
       /* Assignment for a field that contains quantified chunks */
       case ass @ ast.FieldAssign(fa @ ast.FieldAccess(eRcvr, field), rhs)
               if c.qpFields.contains(field) =>
-
+        viper.api.VControl.profile(stmt,"heap assignment (quantified)")
         val pve = AssignmentFailed(ass)
         eval(σ, eRcvr, pve, c)((tRcvr, c1) =>
           eval(σ, rhs, pve, c1)((tRhs, c2) => {
@@ -238,6 +239,7 @@ trait DefaultExecutor[ST <: Store[ST],
                 Failure(pve dueTo InsufficientPermission(fa))}}))
 
       case ass @ ast.FieldAssign(fa @ ast.FieldAccess(eRcvr, field), rhs) =>
+        viper.api.VControl.profile(stmt,"heap assignment")
         val pve = AssignmentFailed(ass)
         eval(σ, eRcvr, pve, c)((tRcvr, c1) =>
           eval(σ, rhs, pve, c1)((tRhs, c2) =>
@@ -246,6 +248,7 @@ trait DefaultExecutor[ST <: Store[ST],
               Q(σ \- fc \+ FieldChunk(tRcvr, field.name, tRhs, fc.perm), c3)})))
 
       case ast.NewStmt(v, fields) =>
+        viper.api.VControl.profile(stmt,"new")
         val tRcvr = fresh(v)
         assume(tRcvr !== Null())
         /* TODO: Verify similar to the code in DefaultProducer/ast.FieldAccessPredicate - unify */
@@ -269,6 +272,7 @@ trait DefaultExecutor[ST <: Store[ST],
         Q(σ1, c)
 
       case ast.Fresh(vars) =>
+        viper.api.VControl.profile(stmt,"fresh vars")
         val (arps, arpConstraints) =
           vars.map(v => (v, decider.freshARP()))
               .map{case (variable, (value, constrain)) => ((variable, value), constrain)}
@@ -281,7 +285,9 @@ trait DefaultExecutor[ST <: Store[ST],
         assume(toSet(arpConstraints))
         Q(σ \ γ1, c)
 
-      case inhale @ ast.Inhale(a) => a match {
+      case inhale @ ast.Inhale(a) =>
+        viper.api.VControl.profile(inhale,"inhale")
+        a match {
         case _: ast.FalseLit =>
           /* We're done */
           Success()
@@ -291,11 +297,13 @@ trait DefaultExecutor[ST <: Store[ST],
       }
 
       case exhale @ ast.Exhale(a) =>
+        viper.api.VControl.profile(exhale,"exhale")
         val pve = ExhaleFailed(exhale)
         consume(σ, FullPerm(), a, pve, c)((σ1, _, c1) =>
           Q(σ1, c1))
 
       case assert @ ast.Assert(a) =>
+        viper.api.VControl.profile(assert,"assertion or refute")
         val pve = AssertFailed(assert)
 
         a match {
@@ -341,6 +349,7 @@ trait DefaultExecutor[ST <: Store[ST],
         }
 
       case call @ ast.MethodCall(methodName, eArgs, lhs) =>
+        viper.api.VControl.profile(call,"method call")
         val meth = c.program.findMethod(methodName)
         val pvefCall = (_: ast.Exp) =>  CallFailed(call)
         val pvefPre = (_: ast.Exp) =>  PreconditionInCallFalse(call)
@@ -358,6 +367,7 @@ trait DefaultExecutor[ST <: Store[ST],
               Q(σ3 \ (g = σ.g, γ = σ.γ + lhsγ), c5)})})})
 
       case fold @ ast.Fold(ast.PredicateAccessPredicate(ast.PredicateAccess(eArgs, predicateName), ePerm)) =>
+        viper.api.VControl.profile(fold,"fold")
         val predicate = c.program.findPredicate(predicateName)
         val pve = FoldFailed(fold)
         evals(σ, eArgs, _ => pve, c)((tArgs, c1) =>
@@ -369,6 +379,7 @@ trait DefaultExecutor[ST <: Store[ST],
                   Failure(pve dueTo NegativePermission(ePerm))}))
 
       case unfold @ ast.Unfold(ast.PredicateAccessPredicate(pa @ ast.PredicateAccess(eArgs, predicateName), ePerm)) =>
+        viper.api.VControl.profile(unfold,"unfold")
         val predicate = c.program.findPredicate(predicateName)
         val pve = UnfoldFailed(unfold)
         evals(σ, eArgs, _ => pve, c)((tArgs, c1) =>
@@ -380,6 +391,7 @@ trait DefaultExecutor[ST <: Store[ST],
                   Failure(pve dueTo NegativePermission(ePerm))}))
 
       case pckg @ ast.Package(wand) =>
+        viper.api.VControl.profile(pckg,"package")
         val pve = PackageFailed(pckg)
         val c0 = c.copy(reserveHeaps = H() :: σ.h :: Nil,
                         recordEffects = true,
@@ -397,6 +409,7 @@ trait DefaultExecutor[ST <: Store[ST],
           Q(σ \ (h1 + chWand), c2)})
 
       case apply @ ast.Apply(e) =>
+        viper.api.VControl.profile(apply,"apply")
         /* TODO: Try to unify this code with that from DefaultConsumer/applying */
 
         val pve = ApplyFailed(apply)

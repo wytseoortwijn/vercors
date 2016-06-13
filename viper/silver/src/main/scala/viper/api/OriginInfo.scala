@@ -24,6 +24,10 @@ object Reachable {
 }
 
 object VControl {
+
+  def profile(node : viper.silver.ast.Infoed,task : String){
+    Reachable.gonogo.profile(get_origin(node.info),task)
+  }
   
   def get_origin[O](info : viper.silver.ast.Info):O ={
     if (info.isInstanceOf[OriginInfo[O]]){
@@ -38,7 +42,7 @@ object VControl {
   def gonogo(fun : viper.silver.ast.Function):Boolean={
     time=System.currentTimeMillis();
     val res=Reachable.gonogo.function(get_origin(fun.info),fun.name)
-    System.err.printf("function %s: %s%n",fun.name,if (res) "Go" else "Skip");
+    Reachable.gonogo.progress("function %s: %s",fun.name,if (res) "Go" else "Skip");
     res
   }
   
@@ -48,7 +52,7 @@ object VControl {
     } else {
       Reachable.gonogo.fail(get_origin(fun.info));
     }
-    System.err.printf("function %s: %s (%dms)%n",
+    Reachable.gonogo.progress("function %s: %s (%dms)",
         fun.name,
         (if (result) "Pass" else "Fail"),
         new java.lang.Long(System.currentTimeMillis()-time));
@@ -57,7 +61,7 @@ object VControl {
   def gonogo(fun : viper.silver.ast.Predicate):Boolean={
     time=System.currentTimeMillis();
     val res=Reachable.gonogo.predicate(get_origin(fun.info),fun.name)
-    System.err.printf("predicate %s: %s%n",fun.name,if (res) "Go" else "Skip");
+    Reachable.gonogo.progress("predicate %s: %s",fun.name,if (res) "Go" else "Skip");
     res
   }
   
@@ -67,7 +71,7 @@ object VControl {
     } else {
       Reachable.gonogo.fail(get_origin(fun.info));
     }
-    System.err.printf("predicate %s: %s (%dms)%n",
+    Reachable.gonogo.progress("predicate %s: %s (%dms)",
         fun.name,
         (if (result) "Pass" else "Fail"),
         new java.lang.Long(System.currentTimeMillis()-time));
@@ -76,7 +80,7 @@ object VControl {
   def gonogo(fun : viper.silver.ast.Method):Boolean={
     time=System.currentTimeMillis();
     val res=Reachable.gonogo.method(get_origin(fun.info),fun.name)
-    System.err.printf("method %s: %s%n",fun.name,if (res) "Go" else "Skip");
+    Reachable.gonogo.progress("method %s: %s",fun.name,if (res) "Go" else "Skip");
     res
   }
   
@@ -86,7 +90,7 @@ object VControl {
     } else {
       Reachable.gonogo.fail(get_origin(fun.info));
     }
-    System.err.printf("method %s: %s (%dms)%n",
+    Reachable.gonogo.progress("method %s: %s (%dms)",
         fun.name,
         (if (result) "Pass" else "Fail"),
         new java.lang.Long(System.currentTimeMillis()-time));
@@ -100,4 +104,6 @@ object AlwaysGo extends viper.api.VerificationControl[Object] {
  def predicate(x$1: Object,x$2: String): Boolean = true
  def fail(x$1: Object): Unit = {}
  def pass(x$1: Object): Unit = {}
+ def progress(x$1: String, x$2: Object*): Unit = {}
+ def profile(x$1: Object, x$2: String): Unit = {}
 }

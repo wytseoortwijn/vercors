@@ -11,5 +11,9 @@ public interface VerificationControl<O> {
   void pass(O origin);
   
   void fail(O origin);
+  
+  void progress(String fmt,Object ... args);
+
+  void profile(O o, String task);
     
 }

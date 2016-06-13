@@ -17,7 +17,7 @@ public class SilverStatementMap<T,E,S,Decl> implements ASTMapping<S>{
   private SilverTypeMap<T> type;
   private SilverExpressionMap<T,E,Decl> expr;
 
-  public HashSet<Origin> refuted=new HashSet<Origin>();
+  public HashSet<Origin> refuted=null;
   
   public SilverStatementMap(SilverVerifier<Origin,?,T,E,S,Decl,?,?,?> backend,SilverTypeMap<T> type,SilverExpressionMap<T,E,Decl> expr){
     this.create = backend;

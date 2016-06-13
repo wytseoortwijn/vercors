@@ -15,6 +15,8 @@ import vct.col.syntax.JavaSyntax;
 import vct.col.syntax.Syntax;
 import vct.java.printer.JavaDialect;
 import hre.config.BooleanSetting;
+import hre.config.IntegerSetting;
+import hre.config.Option;
 import hre.config.OptionParser;
 import hre.config.StringListSetting;
 import hre.config.StringSetting;
@@ -125,8 +127,15 @@ public class Configuration {
     clops.add(cpp_command.getAssign("set the C Pre Processor command"),"cpp");
     clops.add(cpp_include_path.getAppendOption("add to the CPP include path"),'I',"include");
     clops.add(cpp_defines.getAppendOption("add to the CPP defined variables"),'D');
+    clops.add(profiling_option, "profile");
+    clops.add(skip.getAppendOption("comma separated list of methods that may be skipped during verification"),"skip");
   }
 
+  public static IntegerSetting profiling=new IntegerSetting(1000);
+  public static Option profiling_option=profiling.getOptionalAssign("Enable profiling");
+  
+  public static StringListSetting skip=new StringListSetting();
+  
   /**
    * Contains the absolute path to the home of the tool set installation.
    */

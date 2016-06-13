@@ -47,6 +47,7 @@ public class InlineMethod extends Substitution {
     this.return_label=return_label;
     BlockStatement body=(BlockStatement)m.getBody();
     for(ASTNode s:body){
+      if (s.isa(StandardOperator.Refute)) continue;
       tmp=rewrite(s);
       OriginWrapper.wrap(null, tmp,branch);
       block.add(tmp);            
