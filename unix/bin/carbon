@@ -7,6 +7,15 @@ DETECT=`dirname "$DETECT"`
 # parent is home
 export VCT_HOME=`dirname "$DETECT"`
 
+case `uname -s` in
+MINGW64_NT-6.1)
+SEP=";"
+;;
+*)
+SEP=":"
+;;
+esac
+
 export BOOGIE_EXE=`which boogie`
 if [ ! -x "$BOOGIE_EXE" -o ! -f "$BOOGIE_EXE" ] ; then
   echo "could not find boogie" 1>&2
@@ -19,7 +28,7 @@ if [ ! -x "$Z3_EXE"  -o ! -f "$Z3_EXE" ] ; then
   exit 1
 fi
 
-CP=$VCT_HOME/viper/carbon/target/scala-2.11/classes:$VCT_HOME/viper/carbon/target/scala-2.11/carbon.jar
+CP=$VCT_HOME/viper/carbon/target/scala-2.11/classes$SEP$VCT_HOME/viper/carbon/target/scala-2.11/carbon.jar
 
 exec java -Xss128M -cp "$CP" viper.carbon.Carbon "$@"
 

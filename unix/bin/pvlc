@@ -7,6 +7,15 @@ DETECT=`dirname "$DETECT"`
 # parent is home
 export VCT_HOME=`dirname "$DETECT"`
 
+case `uname -s` in
+MINGW64_NT-6.1)
+SEP=";"
+;;
+*)
+SEP=":"
+;;
+esac
+
 if [ -d $VCT_HOME/deps/modules ] ; then
   TOOL_HOME=$VCT_HOME/deps
 else
@@ -16,32 +25,32 @@ fi
 export TOOL_HOME
 
 if [ -d $VCT_HOME/hre/bin ] ; then
-    VCT_PATH=$CLASSPATH:$VCT_HOME/hre/bin
+    VCT_PATH=$CLASSPATH$SEP$VCT_HOME/hre/bin
 else
-    VCT_PATH=$CLASSPATH:$VCT_HOME/hre/hre.jar
+    VCT_PATH=$CLASSPATH$SEP$VCT_HOME/hre/hre.jar
 fi
 if [ -d $VCT_HOME/core/bin ] ; then
-    VCT_PATH+=:$VCT_HOME/core/bin
+    VCT_PATH+=$SEP$VCT_HOME/core/bin
 else
-    VCT_PATH+=:$VCT_HOME/core/vct-core.jar
+    VCT_PATH+=$SEP$VCT_HOME/core/vct-core.jar
 fi
-VCT_PATH+=:$VCT_HOME/core/libs/antlr-4.5-complete.jar
+VCT_PATH+=$SEP$VCT_HOME/core/libs/antlr-4.5-complete.jar
 if [ -d $VCT_HOME/main/bin ] ; then
-    VCT_PATH+=:$VCT_HOME/main/bin
+    VCT_PATH+=$SEP$VCT_HOME/main/bin
 else 
-    VCT_PATH+=:$VCT_HOME/main/vct-tool.jar 
+    VCT_PATH+=$SEP$VCT_HOME/main/vct-tool.jar 
 fi
-VCT_PATH+=:$VCT_HOME/libs/commons-lang3-3.1/commons-lang3-3.1.jar
-VCT_PATH+=:$VCT_HOME/libs/junit_4.11.0.jar
-VCT_PATH+=:$VCT_HOME/libs/tempus-fugit-1.1.jar
-VCT_PATH+=:$VCT_HOME/libs/hamcrest.core_1.3.0.jar
+VCT_PATH+=$SEP$VCT_HOME/libs/commons-lang3-3.1/commons-lang3-3.1.jar
+VCT_PATH+=$SEP$VCT_HOME/libs/junit_4.11.0.jar
+VCT_PATH+=$SEP$VCT_HOME/libs/tempus-fugit-1.1.jar
+VCT_PATH+=$SEP$VCT_HOME/libs/hamcrest.core_1.3.0.jar
 
 JAVA_FILES=""
 for f in "$@" ; do
   case "$f" in
     *.pvl)
       echo "compiling $f"
-      java -Xss128M -XX:-UseSplitVerifier -cp "$VCT_PATH" vct.main.Main --passes=pvl-compile,codegen=. "$f"
+      java -Xss128M -cp "$VCT_PATH" vct.main.Main --passes=pvl-compile,codegen=. "$f"
       tmp=`echo $f | sed 's/pvl/java/'`
       JAVA_FILES="$JAVA_FILES $tmp" 
     ;;
