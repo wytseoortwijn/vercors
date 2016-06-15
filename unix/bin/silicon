@@ -6,9 +6,14 @@ DETECT=`dirname "$DETECT"`
 # parent is home
 export VCT_HOME=`dirname "$DETECT"`
 
+function f() {
+  echo $VCT_HOME | sed 's#^/\([a-z]\)\(/\|$\)#\1:\2#' | sed 's|/|\\|g'
+}
+
 case `uname -s` in
 MINGW64_NT-6.1)
 SEP=";"
+VCT_HOME=`f`
 ;;
 *)
 SEP=":"
