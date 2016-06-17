@@ -54,7 +54,7 @@ expr
  | '?' ID
  | 'unfolding' expr 'in' expr 
  | lexpr '->' ID tuple
- | (lexpr | 'Value' | 'Perm' | 'PointsTo' | 'Hist' | '\\old' | '?' ) tuple
+ | ( ID | lexpr | 'Value' | 'HPerm' | 'Perm' | 'PointsTo' | 'Hist' | '\\old' | '?' ) tuple
  | '(' ('\\sum' | '\\exists' | '\\forall' | '\\forall*') type ID ';' expr (';' expr )? ')'
  | '(' expr ')'
  | '\\owner' '(' expr ',' expr ',' expr ')'
@@ -104,9 +104,11 @@ statement
  | block
  | lexpr '=' expr ';'
  | '{*' expr '*}'
- | 'action' expr ',' expr block 
+ | 'action' tuple block 
+ | 'create' expr';'
  | 'create' expr ',' expr ';'
- | 'destroy' expr ',' expr ',' expr ';'
+ | 'destroy' expr ',' expr ';'
+ | 'destroy' expr ';'
  | 'goto' ID ';'
  | 'label' ID ';'
  | ID expr ( ( ',' | ID ) expr )* ( ';' | block )
