@@ -56,8 +56,8 @@ specificationStatement
     | 'witness' resourceExpression ';'
     | 'open' resourceExpression block? ';'
     | 'close' resourceExpression ';'
-    | 'send' resourceExpression 'to' Identifier ',' expression ';'
-    | 'recv' resourceExpression 'from' Identifier ',' expression ';'
+//    | 'send' resourceExpression 'to' Identifier ',' expression ';'
+//    | 'recv' resourceExpression 'from' Identifier ',' expression ';'
     | 'transfer' resourceExpression ';' 
     | 'csl_subject' expression ';'
     | 'action' expression ',' expression ',' expression ',' expression ( ',' expression ',' expression )* ';'
@@ -68,6 +68,7 @@ specificationStatement
     | 'split' resourceExpression ',' resourceExpression ',' resourceExpression ',' resourceExpression ',' resourceExpression ';'
     | 'merge' resourceExpression ',' resourceExpression ',' resourceExpression ',' resourceExpression ',' resourceExpression ';'
     | 'choose' resourceExpression ',' resourceExpression ',' resourceExpression ',' resourceExpression ';'
+    | Identifier resourceExpression ( ( ',' | Identifier ) resourceExpression )* ( ';' | block )
     | '}' 'spec_ignore'
     | 'spec_ignore' '{'
     | 'atomic' '(' expressionList ')' block

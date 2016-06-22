@@ -109,6 +109,7 @@ statement
  | 'destroy' expr ',' expr ',' expr ';'
  | 'goto' ID ';'
  | 'label' ID ';'
+ | ID expr ( ( ',' | ID ) expr )* ( ';' | block )
  ;
 
 par_unit

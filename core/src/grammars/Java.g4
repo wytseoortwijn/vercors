@@ -415,7 +415,6 @@ localVariableDeclaration
 
 statement
     :   block
-    |   specificationStatement
     |   ASSERT expression (':' expression)? ';'
     |   'if' parExpression statement ('else' statement)?
     |   'for' '(' forControl ')' statement
@@ -432,6 +431,7 @@ statement
     |   ';'
     |   statementExpression ';'
     |   Identifier ':' statement
+    |   specificationStatement
     ;
 
 specificationStatement

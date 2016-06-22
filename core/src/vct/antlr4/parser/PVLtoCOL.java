@@ -423,6 +423,9 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
     ASTNode body;
     if (match(7,false,ctx,";")){
       body=null;
+      if (returns.isPrimitive(Sort.Resource)) {
+        kind=Kind.Predicate;
+      }
     } else if (match(7,false,ctx,"=",null,";")){
       body=convert(ctx,8);
       if (returns.isPrimitive(Sort.Resource)) {
@@ -542,6 +545,12 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
     }
     if (match(ctx,"refute",null,";")){
       return create.expression(StandardOperator.Refute,convert(ctx,1));
+    }
+    if (match(ctx,"inhale",null,";")){
+      return create.special(ASTSpecial.Kind.Inhale,convert(ctx,1));
+    }
+    if (match(ctx,"exhale",null,";")){
+      return create.special(ASTSpecial.Kind.Exhale,convert(ctx,1));
     }
     if (match(ctx,"destroy",null,",",null,",",null,";")){
       return create.special(ASTSpecial.Kind.DestroyHistory,convert(ctx,1),convert(ctx,3),convert(ctx,5));
