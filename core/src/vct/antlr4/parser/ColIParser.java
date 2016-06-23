@@ -51,25 +51,20 @@ public class ColIParser implements vct.col.util.Parser {
 
     ProgramUnit pu=CtoCOL.convert(tree,file_name,tokens,parser);
     Progress("AST conversion took %dms",tk.show());
-    //System.err.println("after conversion");
-    //Configuration.getDiagSyntax().print(System.err, pu);
+    Debug("after conversion %s",pu);
     
     pu=new CommentRewriter(pu,new CMLCommentParser(ec)).rewriteAll();
     Progress("Specification parsing took %dms",tk.show());
     ec.report();
-    
-    //System.err.println("after comment processing");
-    //Configuration.getDiagSyntax().print(System.err, pu);
+    Debug("after comment processing %s",pu);
 
     pu=new FlattenVariableDeclarations(pu).rewriteAll();
     Progress("Flattening variables took %dms",tk.show());
-    //System.err.println("after flatteing variable decls");
-    //Configuration.getDiagSyntax().print(System.err, pu);
-
+    Debug("after flattening variable decls %s",pu);
+    
     pu=new SpecificationCollector(pu).rewriteAll();
     Progress("Shuffling specifications took %dms",tk.show());    
-    //System.err.println("after collecting specifications");
-    //Configuration.getDiagSyntax().print(System.err, pu);
+    Debug("after collecting specifications %s",pu);
 
     pu=new VerCorsDesugar(pu).rewriteAll();
     Progress("Desugaring took %dms",tk.show());    

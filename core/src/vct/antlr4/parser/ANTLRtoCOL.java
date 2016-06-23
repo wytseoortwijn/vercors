@@ -229,15 +229,19 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
   
   /** Leave context after parse tree has been converted. */ 
   public void leave(ParseTree node, ASTNode res) {
+    /* no longer needed because specifications are gathered in
+     * a follow up pass.
     if (//res instanceof vct.col.ast.MethodInvokation ||
         res instanceof vct.col.ast.LoopStatement){
       BeforeAfterAnnotations loc=(BeforeAfterAnnotations)res;
       BlockStatement block;
       block=loc.get_before();
       scan_loop_comments_before(block,node);
-      block=loc.get_after();
-      scan_comments_after(block,node);
+      //comments following a loop are collected in a later stage.
+      //block=loc.get_after();
+      //scan_comments_after(block,node);
     }
+    */
     create.leave();
   }
   

@@ -679,9 +679,10 @@ public class CtoCOL extends AbstractCtoCOL implements CVisitor<ASTNode> {
 
     // TODO Auto-generated method stub		
   	if (match(ctx,"while","(",null,")",null)){ //DRB --Added		
-  		  LoopStatement res=(LoopStatement)create.while_loop(convert(ctx,2),convert(ctx,4));
-  	      scan_comments_after(res.get_after(), ctx.getChild(3));	      
-  	      return res;
+  		LoopStatement res=(LoopStatement)create.while_loop(convert(ctx,2),convert(ctx,4));
+  		// scan for comments between loop header and loop body.
+  	  scan_comments_after(res.get_after(), ctx.getChild(3));	      
+  	  return res;
     } else if (match(0,true,ctx,"for","(")){
       int ofs=1;
       ASTNode init;
@@ -724,6 +725,8 @@ public class CtoCOL extends AbstractCtoCOL implements CVisitor<ASTNode> {
         return null;
       }
       LoopStatement res=create.for_loop(init,test,update,body);
+      // scan for comments in between loop header and loop body.
+      // Those probably should go in before() rather than in after.
       scan_comments_after(res.get_after(), ctx.getChild(ofs));
       return res;
     }	else {

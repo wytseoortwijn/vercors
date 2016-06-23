@@ -61,13 +61,14 @@ public class CounterState {
     int i=0;
     //@ loop_invariant inv:state(100,v+i);
     //@ loop_invariant i<=n;
-    //@ inv = req ;
-    while(i<n){
+    while(i<n)
+    //@ with { inv = req ; } then { ens = inv; } 
+    {
       //@ unfold inv:state(100,v+i);
       val = val + 1;
       i = i+1;
       //@ fold inv:state(100,v+i);
-    } /*@ ens = inv; */
+    }
   }
 
   /*@
@@ -79,12 +80,13 @@ public class CounterState {
     int i=0;
     //@ loop_invariant inv:state(100,v+i);
     //@ loop_invariant i<=n;
-    //@ inv = req ;
-    while(i<n){
+    while(i<n)
+    //@ with { inv = req ; } then { ens = inv; } 
+    {
       incr_call:incr/*@ v=v+i ; req=inv; */();
       /*@ inv=incr_call.ens; */
       i = i+1;
-    } /*@ ens = inv ; */
+    }
   }
 
   /*@
@@ -136,8 +138,9 @@ public class CounterState {
     //@ loop_invariant c.get(p:100,v:i,req:inv)<=n;
     //@ loop_invariant Perm(val,100);
     //@ loop_invariant c.get(p:100,v:i,req:inv)+v==val;
-    //@ inv = c_res ;
-    while(c.get/*@ p=100; v=i; req=inv; */()<n){
+    while(c.get/*@ p=100; v=i; req=inv; */()<n)
+    //@ with { inv = c_res ; }
+    {
        val=val+1;
        incr_call:c.incr/*@ v=i; req=inv; */();
        //@ i = i + 1 ;
