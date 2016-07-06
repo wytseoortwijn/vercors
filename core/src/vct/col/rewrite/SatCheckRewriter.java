@@ -26,15 +26,17 @@ public class SatCheckRewriter extends AbstractRewriter {
     if (currentContractBuilder==null) currentContractBuilder=new ContractBuilder();
     DeclarationStatement args[]=rewrite(m.getArgs());
     Contract mc=m.getContract();
+    boolean intentional_false=false;
     if (mc!=null){
       rewrite(mc,currentContractBuilder);
+      intentional_false=mc.pre_condition.isConstant(false);
     }
     Method.Kind kind=m.kind;
     Type rt=rewrite(m.getReturnType());
     Contract c=currentContractBuilder.getContract();
     currentContractBuilder=null;
     ASTNode body=rewrite(m.getBody());
-    if (body!=null) switch(kind){
+    if (body!=null && !intentional_false) switch(kind){
     case Plain:
     case Constructor:
       ASTNode refute=create.expression(StandardOperator.Refute,create.constant(false));

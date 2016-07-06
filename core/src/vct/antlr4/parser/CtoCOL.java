@@ -664,13 +664,16 @@ public class CtoCOL extends AbstractCtoCOL implements CVisitor<ASTNode> {
 
   @Override
   public ASTNode visitInitializer(InitializerContext ctx) {
-    // TODO Auto-generated method stub
+    if (match(ctx,"{","InitializerList","}")){
+      ASTNode values[]=convert_linked_list((ParserRuleContext)ctx.getChild(1),",");
+      Type t=create.primitive_type(Sort.Array,create.primitive_type(Sort.Integer));
+      return create.expression(StandardOperator.Build,t,values);
+    }
     return null;
   }
 
   @Override
   public ASTNode visitInitializerList(InitializerListContext ctx) {
-    // TODO Auto-generated method stub
     return null;
   }
 

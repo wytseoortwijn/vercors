@@ -1,8 +1,7 @@
 #ifndef STDIO_H
 #define STDIO_H
 
-
-int printf(const char *format, ...);
+extern int printf(const char *format, ...);
 
 #endif
 

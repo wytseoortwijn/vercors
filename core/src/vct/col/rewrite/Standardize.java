@@ -136,6 +136,15 @@ public class Standardize extends AbstractRewriter {
         if (info!=null) {
           Debug("unresolved %s name %s found during standardize",info.kind,name);
           e.setKind(info.kind);
+        } else {
+          switch (name){
+          case "false":
+            result=create.constant(false);
+            return;
+          case "true":
+            result=create.constant(true);
+            return;
+          }
         }
         super.visit(e);
         break;

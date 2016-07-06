@@ -9,10 +9,18 @@
 */
 public class Sat {
 
+// satisfiable is good.
 /*@
   requires true;
 @*/
   public void good(){
+  }
+
+// intentionally requiring false is acceptable too.
+/*@
+  requires false;
+@*/
+  public void good2(){
   }
 
 }

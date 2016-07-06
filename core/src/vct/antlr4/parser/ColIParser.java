@@ -23,6 +23,7 @@ import vct.col.ast.ASTNode;
 import vct.col.ast.ProgramUnit;
 import vct.col.rewrite.AbstractRewriter;
 import vct.col.rewrite.AnnotationInterpreter;
+import vct.col.rewrite.ConvertTypeExpressions;
 import vct.col.rewrite.EncodeAsClass;
 import vct.col.rewrite.FlattenVariableDeclarations;
 import vct.col.rewrite.VerCorsDesugar;
@@ -62,6 +63,10 @@ public class ColIParser implements vct.col.util.Parser {
     Progress("Flattening variables took %dms",tk.show());
     Debug("after flattening variable decls %s",pu);
     
+    pu=new ConvertTypeExpressions(pu).rewriteAll();
+    Progress("converting type expressions took %dms",tk.show());
+    Debug("after converting type expression %s",pu);
+        
     pu=new SpecificationCollector(pu).rewriteAll();
     Progress("Shuffling specifications took %dms",tk.show());    
     Debug("after collecting specifications %s",pu);

@@ -3,9 +3,9 @@
 
 #define _OPENMP
 
-int omp_get_thread_num();
+extern int omp_get_thread_num();
 
-int omp_get_num_threads();
+extern int omp_get_num_threads();
 
 #endif 
 

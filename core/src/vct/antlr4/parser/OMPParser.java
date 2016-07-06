@@ -20,6 +20,9 @@ import vct.parsers.ompLexer;
 import vct.parsers.ompParser;
 import vct.parsers.ompParser.Omp_optionContext;
 import vct.parsers.ompParser.Omp_scheduleContext;
+import vct.parsers.ompParser.Omp_sectionContext;
+import vct.parsers.ompParser.Omp_sectionsContext;
+import vct.parsers.ompParser.Omp_singleContext;
 import vct.parsers.ompParser.*;
 import vct.parsers.ompVisitor;
 
@@ -123,6 +126,24 @@ class ConversionVisitor implements ompVisitor<OMPelement> {
   @Override
   public OMPelement visitOmp_schedule(Omp_scheduleContext ctx) {
     return new OMPoption(Kind.Schedule,Schedule.Static);
+  }
+
+  @Override
+  public OMPelement visitOmp_single(Omp_singleContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public OMPelement visitOmp_sections(Omp_sectionsContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public OMPelement visitOmp_section(Omp_sectionContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
   }
 
 }

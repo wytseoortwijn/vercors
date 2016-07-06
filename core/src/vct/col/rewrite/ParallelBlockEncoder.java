@@ -253,9 +253,18 @@ public class ParallelBlockEncoder extends AbstractRewriter {
       rewrite(region.contract,main_cb);
       body=create.block();
       for(ParallelBlock pb:region.blocks){
-        Contract c=(Contract)rewrite((ASTNode)pb);
-        body.add(create.special(Kind.Exhale,c.pre_condition));
-        body.add(create.special(Kind.Inhale,c.post_condition));
+        String block_name="block_check_"+(++count);
+        Hashtable<String,Type> block_vars=free_vars(pb);
+        
+        Contract c=(Contract)rewrite((ASTNode)pb);     
+        currentTargetClass.add(create.method_decl(
+            create.primitive_type(Sort.Void),
+            c,
+            block_name,
+            gen_pars(block_vars),
+            null
+        ));
+        body.add(gen_call(block_name,block_vars));
       }
       HashMap<String,ParallelBlock> blocks=new HashMap();
       HashMap<String,HashSet<String>> may_deps=new HashMap();
