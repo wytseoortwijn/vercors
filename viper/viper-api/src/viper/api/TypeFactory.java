@@ -1,5 +1,7 @@
 package viper.api;
 
+import java.util.Map;
+
 /**
  * Factory API for Silver types.
  * 
@@ -7,7 +9,7 @@ package viper.api;
  *
  * @param <T> Type of objects that represent types.
  */
-public interface SilverType<T> {
+public interface TypeFactory<T> {
 
   /** Create an integer type. */
   public T Int();
@@ -31,6 +33,9 @@ public interface SilverType<T> {
   public T Set(T t);
   
   /** Create a domain type. */
-  public T domain_type(String name); 
+  public T domain_type(String name,Map<String,T> args);
+  
+  /** Create a type variable. */
+  public T type_var(String name);
 
 }

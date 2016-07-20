@@ -4,7 +4,7 @@ import java.nio.file.Path
 import java.util.Properties
 import scala.collection.JavaConversions._
 
-class SiliconVerifier[O,Err] extends SilverImplementation[O,Err] {
+class SiliconVerifier[O,Err](o:OriginFactory[O]) extends SilverImplementation[O,Err](o) {
 
   override def createVerifier(tool_home: Path,props: Properties):viper.silver.verifier.Verifier = {
     def OS=System.getProperty("os.name");

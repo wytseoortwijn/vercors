@@ -3,6 +3,7 @@ package vct.silver;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.TreeMap;
 
 import hre.HREError;
 import hre.ast.Origin;
@@ -11,15 +12,17 @@ import vct.col.ast.PrimitiveType.Sort;
 import static hre.System.Abort;
 import viper.api.*;
 
-public class SilverExpressionMap<T,E,Decl> implements ASTMapping<E>{
+public class SilverExpressionMap<T,E> implements ASTMapping<E>{
 
   public boolean failure=false;
   
-  private SilverVerifier<Origin,?,T,E,?,Decl,?,?,?> create;
+  private ExpressionFactory<Origin,T,E> create;
+  private TypeFactory<T> tf;
   private SilverTypeMap<T> type;
 
-  public SilverExpressionMap(SilverVerifier<Origin,?,T,E,?,Decl,?,?,?> backend,SilverTypeMap<T> type){
-    this.create=backend;
+  public SilverExpressionMap(ViperAPI<Origin,?,T,E,?,?,?,?> backend,SilverTypeMap<T> type){
+    this.create=backend.expr;
+    tf=backend._type;
     this.type=type;
   }
 
@@ -64,34 +67,37 @@ public class SilverExpressionMap<T,E,Decl> implements ASTMapping<E>{
   @Override
   public E map(OperatorExpression e) {
     Origin o = e.getOrigin();
+    E e1=null;
+    E e2=null;
+    E e3=null;
+    switch(e.getOperator().arity()){
+    case 3:
+      e3=e.getArg(2).apply(this);
+    case 2:
+      e2=e.getArg(1).apply(this);
+    case 1:
+      e1=e.getArg(0).apply(this);
+    }
     switch(e.getOperator()){
     case Build:{
       ASTNode args[]=e.getArguments();
-      ArrayList<E> elems=new ArrayList<E>();
+      ArrayList<E> elems=new ArrayList();
       for(int i=1;i<args.length;i++){
         elems.add(args[i].apply(this));
       }
       T t=((Type)((Type)e.getArg(0)).getArg(0)).apply(type);
       switch(((PrimitiveType)args[0]).sort){
       case Sequence:
-        return elems.size()>0?create.explicit_seq(o, elems):create.empty_seq(o,t);
+        return create.explicit_seq(o, t, elems);
       case Bag:
-        return elems.size()>0?create.explicit_bag(o, elems):create.empty_bag(o,t);
+        return create.explicit_bag(o, t, elems);
       case Set:
-        return elems.size()>0?create.explicit_set(o, elems):create.empty_set(o,t);
+        return create.explicit_set(o, t, elems);
       default:
         return null;
       }
     }
-    case Nil:{
-      //T t=((Type)((Type)e.getArg(0)).getArg(0)).apply(type);
-      T t=((Type)e.getArg(0)).apply(type);
-      return create.empty_seq(o,t);
-    }
     case PointsTo:{
-      E e1=e.getArg(0).apply(this);
-      E e2=e.getArg(1).apply(this);
-      E e3=e.getArg(2).apply(this);
       return create.and(o,create.field_access(o,e1,e2),create.eq(o, e1, e3));
     }
     case CurrentPerm: return create.current_perm(o,e.getArg(0).apply(this));
@@ -128,7 +134,13 @@ public class SilverExpressionMap<T,E,Decl> implements ASTMapping<E>{
     case EQ: return create.eq(o,e.getArg(0).apply(this),e.getArg(1).apply(this));
     case NEQ: return create.neq(o,e.getArg(0).apply(this),e.getArg(1).apply(this));
 
-    case Mult: return create.mult(o,e.getArg(0).apply(this),e.getArg(1).apply(this));
+    case Mult:{
+      if (e.getType().isPrimitive(Sort.Set) || e.getType().isPrimitive(Sort.Bag)){
+        return create.any_set_intersection(o,e.getArg(0).apply(this),e.getArg(1).apply(this));
+      } else {
+        return create.mult(o,e.getArg(0).apply(this),e.getArg(1).apply(this));
+      }
+    }
     case Div:{
       if (e.getType().isPrimitive(PrimitiveType.Sort.Fraction)||
           e.getType().isPrimitive(PrimitiveType.Sort.ZFraction)){
@@ -147,11 +159,19 @@ public class SilverExpressionMap<T,E,Decl> implements ASTMapping<E>{
         return create.add(o,e.getArg(0).apply(this),e.getArg(1).apply(this));
       }
     }
-    case Minus: return create.sub(o,e.getArg(0).apply(this),e.getArg(1).apply(this));
+    case Minus: {
+      if (e.getType().isPrimitive(Sort.Set) || e.getType().isPrimitive(Sort.Bag)){
+        return create.any_set_minus(o,e.getArg(0).apply(this),e.getArg(1).apply(this));
+      } else {
+        return create.sub(o,e.getArg(0).apply(this),e.getArg(1).apply(this));
+      }
+    }
     case UMinus: return create.neg(o,e.getArg(0).apply(this));
     case Scale:{
       return create.scale_access(o,e.getArg(1).apply(this), e.getArg(0).apply(this));
     }
+    case Append:
+      return create.append(o, e.getArg(0).apply(this),e.getArg(1).apply(this));
     default:
         throw new HREError("cannot map operator %s",e.getOperator());
     }
@@ -163,7 +183,7 @@ public class SilverExpressionMap<T,E,Decl> implements ASTMapping<E>{
     switch(e.getKind()){
     case Label:
       hre.System.Warning("assuming label %s means local Ref at %s",e.getName(),e.getOrigin());
-      return create.local_name(o,e.getName(),create.Ref());
+      return create.local_name(o,e.getName(),tf.Ref());
     case Local:
     case Argument:
       return create.local_name(o,e.getName(),e.getType().apply(type));
@@ -214,17 +234,30 @@ public class SilverExpressionMap<T,E,Decl> implements ASTMapping<E>{
     }
     switch(m.kind){
     case Pure:{
-      T rt=m.getReturnType().apply(type);
-      ArrayList<Decl> pars=new ArrayList<Decl>();
-      for(DeclarationStatement decl:m.getArgs()){
-        pars.add(create.decl(decl.getOrigin(),decl.getName(),decl.getType().apply(type)));
-      }
+      T rt=e.getType().apply(type);
       if(m.getParent() instanceof AxiomaticDataType){
-        //TODO: use correct dpars map!
+        ArrayList<Triple<Origin,String,T>> pars=new ArrayList();
+        for(DeclarationStatement decl:m.getArgs()){
+          Type t=e.getArg(pars.size()).getType();
+          T t2;
+          if (t.isNull()){
+            t2=decl.getType().apply(type);
+          } else {
+            t2=t.apply(type);
+          }
+          pars.add(new Triple(decl.getOrigin(),decl.getName(),t2));
+        }
         AxiomaticDataType adt=(AxiomaticDataType)m.getParent();
         HashMap<String, T> dpars=new HashMap<String, T>();
+        type.domain_type(dpars,(ClassType)e.object);
+        //System.err.printf("%s expression type %s base %s%n",name,e.getType(),e.object);
         return create.domain_call(o, name, args, dpars, rt, pars, adt.name);
       } else {
+        
+        ArrayList<Triple<Origin,String,T>> pars=new ArrayList();
+        for(DeclarationStatement decl:m.getArgs()){
+          pars.add(new Triple(decl.getOrigin(),decl.getName(),decl.getType().apply(type)));
+        }
         return create.function_call(o, name, args, rt, pars);
       }
     }
@@ -325,16 +358,30 @@ public class SilverExpressionMap<T,E,Decl> implements ASTMapping<E>{
       return create.forall(o, convert(e.getDeclarations()),triggers ,expr);
     case EXISTS:
       return create.exists(o, convert(e.getDeclarations()),create.and(o, e.select.apply(this), e.main.apply(this)));
+    case LET:{
+      DeclarationStatement decls[]=e.getDeclarations();
+      E res=e.main.apply(this);
+      for(int i=decls.length-1;i>=0;i--){
+        res=create.let(
+            o,
+            decls[i].name,
+            decls[i].getType().apply(type),
+            decls[i].getInit().apply(this),
+            res
+        );
+      }
+      return res;
+    }
     default:
       Abort("binder %s not supported",e.binder);
     }
     return null;
   }
 
-  private List<Decl> convert(DeclarationStatement[] declarations) {
-    ArrayList<Decl> res=new ArrayList<Decl>();
+  private List<Triple<Origin,String,T>> convert(DeclarationStatement[] declarations) {
+    ArrayList<Triple<Origin,String,T>> res=new ArrayList();
     for(DeclarationStatement d:declarations){
-      res.add(create.decl(d.getOrigin(),d.getName(),d.getType().apply(type)));
+      res.add(new Triple(d.getOrigin(),d.getName(),d.getType().apply(type)));
     }
     return res;
   }
@@ -441,6 +488,12 @@ public class SilverExpressionMap<T,E,Decl> implements ASTMapping<E>{
 
   @Override
   public E map(ParallelRegion region) {
+    return null;
+  }
+
+  @Override
+  public E map(TypeVariable v) {
+    // TODO Auto-generated method stub
     return null;
   }
   

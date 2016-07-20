@@ -72,6 +72,7 @@ public class TestcaseVisitor extends SimpleFileVisitor<Path>{
       case "c":
       case "java":
       case "pvl":
+      case "sil":
         {
           Set<Path> set=files_by_name.get(name);
           if (set==null){

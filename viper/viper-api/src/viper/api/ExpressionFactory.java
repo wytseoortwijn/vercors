@@ -10,14 +10,24 @@ import java.util.Map;
  * @param <O> Type of objects that represent origins.
  * @param <T> Type of objects that represent types.
  * @param <E> Type of objects that represent expressions.
+ * @Param <Decl> Type of declaration (deprecate?).
  */
-public interface SilverExpression<O,T,E,Decl> {
+public interface ExpressionFactory<O,T,E> {
 
   /** Create an integer constant. */
   public E Constant(O o, int i);
 
   /** Create a boolean constant. */
   public E Constant(O o, boolean b);
+
+  /** Create a constant set. */
+  public E explicit_set(O o,T t,List<E> elems);
+  
+  /** Create a constant bag. */
+  public E explicit_bag(O o,T t,List<E> elems);
+  
+  /** Create a constant sequence. */
+  public E explicit_seq(O o,T t,List<E> elems);
 
   /** Create a <code>null</code> constant. */
   public E null_(O o);
@@ -26,12 +36,7 @@ public interface SilverExpression<O,T,E,Decl> {
   public E read_perm(O o);
   public E no_perm(O o);
 
-  public E explicit_set(O o,List<E> elems);
-  public E explicit_bag(O o,List<E> elems);
-  public E explicit_seq(O o,List<E> elems);
-  public E empty_set(O o,T t);
-  public E empty_bag(O o,T t);
-  public E empty_seq(O o,T t);
+
   public E range(O o, E e1, E e2);
   public E take(O o, E e1, E e2);
   public E drop(O o, E e1, E e2);
@@ -42,10 +47,10 @@ public interface SilverExpression<O,T,E,Decl> {
   public E union(O o, E e1, E e2);
   
   public E predicate_call(O o,String name,List<E> args); 
-  public E function_call(O o,String name,List<E> args,T rt,List<Decl> pars);
+  public E function_call(O o,String name,List<E> args,T rt,List<Triple<O,String,T>> pars);
   public E result(O o,T t);
   
-  public E domain_call(O o,String name,List<E> args,Map<String,T> dpars,T rt,List<Decl> pars,String domain); 
+  public E domain_call(O o,String name,List<E> args,Map<String,T> dpars,T rt,List<Triple<O,String,T>> pars,String domain); 
  
   public E field_access(O o,E e1, E e2);
   public E scale_access(O o,E e1, E e2);
@@ -62,10 +67,10 @@ public interface SilverExpression<O,T,E,Decl> {
   public E local_name(O o,String name, T t);
 
   /** Create an universal quantification. */
-  public E forall(O o,List<Decl> vars,List<List<E>> triggers,E e);
+  public E forall(O o,List<Triple<O,String,T>> vars,List<List<E>> triggers,E e);
   
   /** Create an existential quantification. */
-  public E exists(O o,List<Decl> vars,E e);
+  public E exists(O o,List<Triple<O,String,T>> vars,E e);
   
   public E old(O o, E e1);
   
@@ -85,6 +90,11 @@ public interface SilverExpression<O,T,E,Decl> {
 
   public E seq_contains(O o, E e1, E e2);
   public E any_set_contains(O o, E e1, E e2);
+  public E any_set_minus(O o, E e1, E e2);
+  public E any_set_union(O o, E e1, E e2);
+  public E any_set_intersection(O o, E e1, E e2);
+  
+  public E let(O o,String v, T t, E e1, E e2);
   
   public E mult(O o, E e1, E e2);
   public E div(O o, E e1, E e2);
@@ -103,6 +113,5 @@ public interface SilverExpression<O,T,E,Decl> {
   public E cond(O o, E e1, E e2, E e3);
 
   public E current_perm(O o, E expr);
-
 
 }

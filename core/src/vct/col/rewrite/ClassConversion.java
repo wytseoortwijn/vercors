@@ -144,6 +144,7 @@ public class ClassConversion extends AbstractRewriter {
     Method def=s.getDefinition();
     ASTNode extra=null;
     ClassType dispatch=s.dispatch;
+    ASTNode object=null;
     if (def.getParent()==null){
       method=s.method;
     } else if (s.object instanceof ClassType){
@@ -152,6 +153,7 @@ public class ClassConversion extends AbstractRewriter {
         dispatch=null;
       } else if (def.getParent() instanceof AxiomaticDataType){
         method=s.method;
+        object=copy_rw.rewrite(s.object);
       } else {
         method=((ClassType)s.object).getName()+SEP+s.method;
       }
@@ -179,7 +181,7 @@ public class ClassConversion extends AbstractRewriter {
     for(ASTNode arg :s.getArgs()){
       args.add(rewrite(arg));
     }
-    MethodInvokation res=create.invokation(null, dispatch, method, args.toArray(new ASTNode[0]));
+    MethodInvokation res=create.invokation(object, dispatch, method, args.toArray(new ASTNode[0]));
     res.set_before(rewrite(s.get_before()));
     res.set_after(rewrite(s.get_after()));
     if (extra!=null){

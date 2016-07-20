@@ -22,6 +22,9 @@ public class MessageOrigin implements Origin {
     }
     @Override
     public void report(String level, Iterable<String> message) {
+      if (level.equals("result")){
+        return;
+      }
       System.out.println("=========================================");
       System.out.printf("%s in %s:",level,this.message);
       for(String line:message){
@@ -32,6 +35,9 @@ public class MessageOrigin implements Origin {
 
     @Override
     public void report(String level, String... message) {
+      if (level.equals("result")){
+        return;
+      }
       System.out.println("=========================================");
       System.out.printf("%s in %s:",level,this.message);
       for(String line:message){

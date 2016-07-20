@@ -18,4 +18,6 @@ public interface TypeMapping<R> {
 
   public R map(TypeExpression t);
 
+  public R map(TypeVariable v);
+
 }

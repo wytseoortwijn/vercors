@@ -15,5 +15,7 @@ public interface VerificationControl<O> {
   void progress(String fmt,Object ... args);
 
   void profile(O o, String task);
+  
+  boolean detail();
     
 }

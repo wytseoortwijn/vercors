@@ -5,12 +5,14 @@ import viper.api.*;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
+import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
+import java.util.TreeMap;
 
 import hre.HREError;
 import hre.ast.Origin;
@@ -34,8 +36,8 @@ public class SilverBackend {
   public static IntegerSetting silicon_z3_timeout=new IntegerSetting(30000);
   
   
-  public static <T,E,S,Decl,DFunc,DAxiom,Program>
-  SilverVerifier<Origin,VerificationError,T,E,S,Decl,DFunc,DAxiom,Program>
+  public static <T,E,S,DFunc,DAxiom,Program>
+  ViperAPI<Origin,VerificationError,T,E,S,DFunc,DAxiom,Program>
   getVerifier(String tool){
     boolean parser=tool.equals("parser");
     if (parser){
@@ -85,17 +87,21 @@ public class SilverBackend {
       } else {
         throw new HREError("cannot guess the main class of %s",tool);
       }
-      obj=v_class.newInstance();
+      Constructor[] constructors = v_class.getConstructors();
+      if (constructors.length!=1) {
+        throw new HREError("class had %d constructors instead of 1",constructors.length);
+      }
+      obj=constructors[0].newInstance(new HREOrigins());
     } catch(Exception e) {
       e.printStackTrace();
       throw new HREError("Exception %s",e);
     }
-    if (!(obj instanceof SilverVerifier)){
+    if (!(obj instanceof ViperAPI)){
       hre.System.Fail("Plugin is incompatible: cannot cast verifier.");
     }
     @SuppressWarnings("unchecked")
-    SilverVerifier<Origin,VerificationError,T,E,S,Decl,DFunc,DAxiom,Program> verifier=(SilverVerifier<Origin, VerificationError, T, E, S, Decl, DFunc, DAxiom, Program>)obj;
-    verifier.set_tool_home(Configuration.getToolHome());
+    ViperAPI<Origin,VerificationError,T,E,S,DFunc,DAxiom,Program> verifier=(ViperAPI<Origin, VerificationError, T, E, S, DFunc, DAxiom, Program>)obj;
+    //verifier.set_tool_home(Configuration.getToolHome());
     return verifier;
   }
   
@@ -103,153 +109,12 @@ public class SilverBackend {
   TestReport TestSilicon(ProgramUnit arg, String tool) {
     //hre.System.Output("verifying with %s backend",silver_module.get());
     long start_time=System.currentTimeMillis();
-    SilverVerifier<Origin,VerificationError,T,E,S,Decl,DFunc,DAxiom,Program> verifier=getVerifier(tool);
-    verifier.set_detail(Configuration.detailed_errors.get());
-    SilverTypeMap<T> type=new SilverTypeMap<T>(verifier);
-    SilverExpressionMap<T, E, Decl> expr=new SilverExpressionMap<T,E,Decl>(verifier,type);
-    SilverStatementMap<T, E, S, Decl> stat=new SilverStatementMap<T,E,S,Decl>(verifier,type,expr);
-    Program program=verifier.program();
-    Hashtable<String,Set<Origin>> refuted=new Hashtable();
-    for(ASTNode entry:arg) {
-      if (entry instanceof Method) {
-        Method m = (Method)entry;
-        switch(m.kind){
-        case Plain:{
-          stat.refuted=new HashSet();
-          ArrayList<Decl> in=new ArrayList<Decl>();
-          ArrayList<Decl> out=new ArrayList<Decl>();
-          for(DeclarationStatement decl:m.getArgs()){
-            Decl d=verifier.decl(decl.getOrigin(),decl.getName(),decl.getType().apply(type));
-            if (decl.isValidFlag(ASTFlags.OUT_ARG) && decl.getFlag(ASTFlags.OUT_ARG)){
-              out.add(d);
-            } else {
-              in.add(d);
-            }
-          }
-          ArrayList<Decl> locals=new ArrayList<Decl>();
-          S body;
-          if (m.getBody() instanceof BlockStatement){
-            BlockStatement block=(BlockStatement)m.getBody();
-            ArrayList<S> stats=new ArrayList<S>();
-            split_block(verifier, type, stat, locals, block, stats);
-            body=verifier.block(block.getOrigin(),stats);
-          } else if (m.getBody()==null){
-            Origin o=m.getOrigin();
-            ArrayList<S> l=new ArrayList<S>();
-            l.add(verifier.inhale(o,verifier.Constant(o, false)));
-            body=verifier.block(o,l);
-          } else {
-            throw new HREError("unexpected body %s",Configuration.getDiagSyntax().print(m.getBody()));
-          }
-          ArrayList<E> pres=new ArrayList<E>();
-          ArrayList<E> posts=new ArrayList<E>();
-          Contract c=m.getContract();
-          if (c!=null){
-            for(ASTNode n:ASTUtils.conjuncts(c.pre_condition,StandardOperator.Star)){
-              pres.add(n.apply(expr));
-            }
-            for(ASTNode n:ASTUtils.conjuncts(c.post_condition,StandardOperator.Star)){
-              posts.add(n.apply(expr));
-            }
-          }
-          verifier.add_method(program,m.getOrigin(),m.name,pres,posts,in,out,locals,body);
-          refuted.put(m.name,stat.refuted);
-          stat.refuted=null;
-          break;
-        }
-        case Pure:{
-          ArrayList<Decl> args=new ArrayList<Decl>();
-          for(DeclarationStatement decl:m.getArgs()){
-            Decl d=verifier.decl(decl.getOrigin(),decl.getName(),decl.getType().apply(type));
-            args.add(d);
-          }
-          T t=m.getReturnType().apply(type);
-          ArrayList<E> pres=new ArrayList<E>();
-          ArrayList<E> posts=new ArrayList<E>();
-          Contract c=m.getContract();
-          if (c!=null){
-            for(ASTNode n:ASTUtils.conjuncts(c.pre_condition,StandardOperator.Star)){
-              pres.add(n.apply(expr));
-            }
-            for(ASTNode n:ASTUtils.conjuncts(c.post_condition,StandardOperator.Star)){
-              posts.add(n.apply(expr));
-            }
-          }
-          ASTNode b=m.getBody();
-          E body=(b==null?null:b.apply(expr));
-          verifier.add_function(program,m.getOrigin(),m.name,args,t,pres,posts,body);
-          break;
-        }
-        case Predicate:{
-          ASTNode b=m.getBody();
-          E body=(b==null?null:b.apply(expr));
-          ArrayList<Decl> args=new ArrayList<Decl>();
-          for(DeclarationStatement decl:m.getArgs()){
-            Decl d=verifier.decl(decl.getOrigin(),decl.getName(),decl.getType().apply(type));
-            args.add(d);
-          }
-          verifier.add_predicate(program,m.getOrigin(),m.name,args,body);
-          break;
-        }
-        default:
-          throw new HREError("method kind %s not supported",m.kind);
-        }
-      } else if (entry instanceof ASTClass){
-        ASTClass cl=(ASTClass) entry;
-        if (cl.name.equals("Ref")&& cl.kind==ASTClass.ClassKind.Record){
-          for(DeclarationStatement decl:cl.dynamicFields()){
-            verifier.add_field(program, decl.getOrigin(), decl.getName(), decl.getType().apply(type));
-          }
-        } else {
-          throw new HREError("bad class entry: %s",cl.name);
-        }
-      } else if (entry instanceof AxiomaticDataType) {
-        AxiomaticDataType adt=(AxiomaticDataType)entry;
-        ArrayList<DFunc> funcs=new ArrayList<DFunc>();
-        for(Method m:adt.constructors()){
-          ArrayList<Decl> args=new ArrayList<Decl>();
-          for(DeclarationStatement decl:m.getArgs()){
-            Decl d=verifier.decl(decl.getOrigin(),decl.getName(),decl.getType().apply(type));
-            args.add(d);
-          }
-          funcs.add(verifier.dfunc(m.getOrigin(),m.name, args,m.getReturnType().apply(type),adt.name));
-        }
-        for(Method m:adt.mappings()){
-          ArrayList<Decl> args=new ArrayList<Decl>();
-          for(DeclarationStatement decl:m.getArgs()){
-            Decl d=verifier.decl(decl.getOrigin(),decl.getName(),decl.getType().apply(type));
-            args.add(d);
-          }
-          funcs.add(verifier.dfunc(m.getOrigin(),m.name, args,m.getReturnType().apply(type),adt.name));
-        }
-        ArrayList<DAxiom> axioms=new ArrayList<DAxiom>();
-        for(Axiom axiom:adt.axioms()){
-          axioms.add(verifier.daxiom(axiom.getOrigin(),axiom.name,axiom.getRule().apply(expr),adt.name));
-        }
-        ArrayList<String> pars=new ArrayList<String>();
-        for(DeclarationStatement decl:adt.getParameters()){
-          pars.add(decl.getName());
-        }
-        verifier.add_adt(program,adt.getOrigin(),adt.name,funcs,axioms,pars);
-      } else if(entry instanceof ASTSpecialDeclaration){
-        ASTSpecialDeclaration s=(ASTSpecialDeclaration)entry;
-        switch(s.kind){
-          case Comment:
-            // comments are not supported in silver.
-            continue;
-          default:
-            throw new HREError("bad special declaration entry: %s",s.kind);
-
-        }
-      } else {
-        throw new HREError("bad entry: %s",entry.getClass());
-      }
-    }
+    ViperAPI<Origin,VerificationError,T,E,S,DFunc,DAxiom,Program> verifier=getVerifier(tool);
+    //verifier.set_detail(Configuration.detailed_errors.get());
+    VerCorsViperAPI vercors=VerCorsViperAPI.get();
+    Program program=vercors.prog.convert(verifier,arg);
     long end_time=System.currentTimeMillis();
     System.err.printf("Backend AST conversion took %d ms%n", end_time-start_time);
-    if (expr.failure){
-      hre.System.Fail("Exit due to failures");
-    }
     String fname=vct.util.Configuration.backend_file.get();
     if (fname!=null){
       PrintWriter pw=null;
@@ -293,7 +158,7 @@ public class SilverBackend {
       }
       HashSet<Origin> accounted=new HashSet();
       for(String method:control.verified_methods){
-        for(Origin o:refuted.get(method)){
+        for(Origin o:vercors.refuted.get(method)){
           if(!reachable.contains(o)){
             o.report("error","statement is not reachable");
             report.setVerdict(Verdict.Fail);
@@ -318,16 +183,16 @@ public class SilverBackend {
     return report;
   }
 
-  protected static <T, E, S, Decl, Program> void split_block(
-      SilverVerifier<Origin, ?, T, E, S, Decl, ?, ? , Program> verifier,
-      SilverTypeMap<T> type, SilverStatementMap<T, E, S, Decl> stat,
-      ArrayList<Decl> locals, BlockStatement block, ArrayList<S> stats)
+  protected static <T, E, S, Program> void split_block(
+      ExpressionFactory<Origin,T, E> verifier,
+      SilverTypeMap<T> type, SilverStatementMap<T, E, S> stat,
+      List<Triple<Origin,String,T>> locals, BlockStatement block, ArrayList<S> stats)
       throws HREError {
     int i=0;
     int N=block.getLength();
     while(i<N && (block.get(i) instanceof DeclarationStatement)){
       DeclarationStatement decl=(DeclarationStatement)block.get(i);
-      locals.add(verifier.decl(decl.getOrigin(),decl.getName(),decl.getType().apply(type)));
+      locals.add(new Triple(decl.getOrigin(),decl.getName(),decl.getType().apply(type)));
       i=i+1;
     }
     for(;i<N;i++){

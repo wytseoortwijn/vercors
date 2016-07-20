@@ -85,7 +85,6 @@ public class BoogieSyntax extends Syntax {
       chalice=new BoogieSyntax("Chalice",Variant.Chalice);
       setCommon(chalice);
       chalice.addFunction(Perm,"acc");
-      chalice.addOperator(Nil,0,"nil<",">");
       chalice.addOperator(Cons,0,"([","]++(","))");
       chalice.addOperator(Subscript,0,"(",")[","]");
       chalice.addLeftFix(Append,"++",100);

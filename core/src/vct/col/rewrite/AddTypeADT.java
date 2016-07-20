@@ -21,6 +21,7 @@ public class AddTypeADT extends AbstractRewriter {
     create.enter();
     create.setOrigin(new MessageOrigin("Generated type system ADT"));
     adt=create.adt(type_adt);
+    ClassType adt_type=create.class_type(type_adt);
     adt.add_cons(create.function_decl(create.class_type(type_adt),null,"class_Object",new DeclarationStatement[0],null));
     adt.add_map(create.function_decl(
         create.primitive_type(PrimitiveType.Sort.Boolean),
@@ -34,12 +35,12 @@ public class AddTypeADT extends AbstractRewriter {
     ));
     adt.add_axiom(create.axiom("object_top",create.forall(
         create.constant(true),
-        create.invokation(null, null,"instanceof",create.invokation(null,null,"class_Object"),create.local_name("t")),
+        create.invokation(adt_type, null,"instanceof",create.invokation(adt_type,null,"class_Object"),create.local_name("t")),
         new DeclarationStatement[]{create.field_decl("t",create.class_type(type_adt))}
     )));
     adt.add_axiom(create.axiom("object_eq",create.forall(
         create.constant(true),
-        create.invokation(null, null,"instanceof",create.local_name("t"),create.local_name("t")),
+        create.invokation(adt_type, null,"instanceof",create.local_name("t"),create.local_name("t")),
         new DeclarationStatement[]{create.field_decl("t",create.class_type(type_adt))}
     )));
     create.leave();
@@ -86,15 +87,15 @@ public class AddTypeADT extends AbstractRewriter {
       for(String other:rootclasses){
         adt.add_axiom(create.axiom("different_"+other+"_"+cl.name,
             create.expression(StandardOperator.Not,
-               create.invokation(null, null,"instanceof",
-                   create.invokation(null,null,"class_"+other),
-                   create.invokation(null,null,"class_"+cl.name)))
+               create.invokation(create.class_type(type_adt), null,"instanceof",
+                   create.invokation(create.class_type(type_adt),null,"class_"+other),
+                   create.invokation(create.class_type(type_adt),null,"class_"+cl.name)))
         ));
         adt.add_axiom(create.axiom("different_"+cl.name+"_"+other,
             create.expression(StandardOperator.Not,
-               create.invokation(null, null,"instanceof",
-                   create.invokation(null,null,"class_"+cl.name),
-                   create.invokation(null,null,"class_"+other)))
+               create.invokation(create.class_type(type_adt), null,"instanceof",
+                   create.invokation(create.class_type(type_adt),null,"class_"+cl.name),
+                   create.invokation(create.class_type(type_adt),null,"class_"+other)))
         ));
       }
       rootclasses.add(cl.name);
@@ -125,7 +126,7 @@ public class AddTypeADT extends AbstractRewriter {
               rewrite(e.getArg(0)),
               create.reserved_name(ASTReserved.Null)
           ),
-          create.invokation(null, null,"instanceof",
+          create.invokation(create.class_type(type_adt), null,"instanceof",
             create.expression(StandardOperator.TypeOf,rewrite(e.getArg(0))),
             create.invokation(create.class_type(type_adt),null,"class_"+e.getArg(1))
           )

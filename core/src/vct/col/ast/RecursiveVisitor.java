@@ -357,4 +357,8 @@ public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
     dispatch(a.value);
   }
 
+  @Override
+  public void visit(TypeVariable v) {
+  }
+
 }

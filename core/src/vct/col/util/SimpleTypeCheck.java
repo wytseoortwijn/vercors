@@ -1,11 +1,16 @@
 package vct.col.util;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 import vct.col.ast.*;
 import vct.col.ast.NameExpression.Kind;
 import vct.col.ast.PrimitiveType.Sort;
 import vct.col.rewrite.MultiSubstitution;
+import vct.col.rewrite.Substitution;
+import vct.col.rewrite.TypeVarSubstitution;
+import vct.silver.SilverTypeMap;
 import vct.util.Configuration;
 
 public class SimpleTypeCheck extends RecursiveVisitor<Type> {
@@ -100,16 +105,19 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       //Warning("skipping ADT method");
       e.setDefinition(m);
       Type t=m.getReturnType();
-      if (t instanceof PrimitiveType) {
-        e.setType(t); 
-      } else {
-        e.setType(new ClassType("<<null>>"));
+      Map<String,Type> map=new HashMap();
+      TypeVarSubstitution sigma=new TypeVarSubstitution(source(),map);
+      if (!(e.object instanceof ClassType)){
+        Fail("%s is not an ADT in %s",e.object,e);
       }
+      SilverTypeMap.get_adt_subst(sigma.copy_rw,map,(ClassType)e.object);
+      //System.err.printf("before %s %s %s%n",e.method,map,t);
+      e.setType(sigma.rewrite(t));
+      //System.err.printf("result %s after %s%n",e.method,e.getType());
       return;
     }
     m=source().find_procedure(e.method);
     if (m!=null){
-      //Warning("skipping ADT method");
       e.setDefinition(m);
       Type t=m.getReturnType();
       e.setType(t);
@@ -259,19 +267,21 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
         ||loc_type.isNumeric()&&val_type.isNumeric()
     )){
       Fail(fmt,loc_type,val_type);
-    }    
+    }
+    if (loc_type.isPrimitive(Sort.Fraction)||loc_type.isPrimitive(Sort.ZFraction)){
+      force_frac(val);
+    }
   }
   public void visit(AssignmentStatement s){
     ASTNode val=s.getExpression();
     val.accept(this);
     Type val_type=val.getType();
     if (val_type==null) Abort("Value %s has no type.",val);
-    if (val_type.toString().equals("<<label>>")) return;
+    if (val_type.toString().equals("<<label>>")) {
+      return;
+    }
     s.getLocation().accept(this);
     check_loc_val(s.getLocation().getType(),s.getExpression());
-    if (s.getLocation().getType().isPrimitive(Sort.Fraction)){
-      force_frac(s.getExpression());
-    }
   }
   
   public void visit(DeclarationStatement s){
@@ -864,6 +874,14 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     }
     case Mult:
     {
+      // handle intersection meaning of -
+      if (t1.isPrimitive(Sort.Set)||t1.isPrimitive(Sort.Bag)){
+        if (!t1.comparableWith(source(),t2)) {
+          Fail("Types of left and right-hand side argument are uncomparable: %s/%s",t1,t2);
+        }
+        e.setType(t1);
+        break;
+      }
       if (t1.isPrimitive(Sort.Process)){
         if (!t2.isPrimitive(Sort.Process)){
           Fail("Cannot compose process with %s",t2);
@@ -875,6 +893,16 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       break;
     }
     case Minus:
+    {
+      // handle set minus meaning of -
+      if (t1.isPrimitive(Sort.Set)||t1.isPrimitive(Sort.Bag)){
+        if (!t1.comparableWith(source(),t2)) {
+          Fail("Types of left and right-hand side argument are uncomparable: %s/%s",t1,t2);
+        }
+        e.setType(t1);
+        break;
+      }
+    }
     case Div:
     case Mod:
     {
@@ -1044,11 +1072,6 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       e.setType(new PrimitiveType(Sort.Integer));      
       break;
     }
-    case Nil:
-    {
-      e.setType(new PrimitiveType(Sort.Sequence,e.getArg(0)));
-      break;
-    }
     case Append:
     {
       if (!t1.isPrimitive(Sort.Sequence)) Fail("argument of size is not a sequence");
@@ -1083,6 +1106,9 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
           Fail("Could not find constructor");
         }
       } else {
+        if (t.getArgCount()==0){
+          Fail("type without arguments: %s in %s",t,e);
+        }
         t=(Type)t.getArg(0);
         for(int i=1;i<args.length;i++){
           t2=args[i].getType();
@@ -1138,8 +1164,7 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     }
   }
 
-  private void checkMathOperator(OperatorExpression e, StandardOperator op,
-      Type t1, Type t2) {
+  private void checkMathOperator(OperatorExpression e, StandardOperator op, Type t1, Type t2) {
     if (!t1.isNumeric()){
       Fail("First argument of %s is %s rather than a numeric type",op,t1);
     }

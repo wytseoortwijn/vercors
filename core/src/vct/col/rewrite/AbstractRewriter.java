@@ -63,6 +63,7 @@ import vct.col.ast.StandardProcedure;
 import vct.col.ast.TryCatchBlock;
 import vct.col.ast.Type;
 import vct.col.ast.TypeExpression;
+import vct.col.ast.TypeVariable;
 import vct.col.ast.VariableDeclaration;
 import vct.col.util.ASTFactory;
 import vct.col.util.ASTPermission;
@@ -808,6 +809,11 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   @Override
   public void visit(TypeExpression t){
     result=create.type_expression(t.op,rewrite(t.types));
+  }
+  
+  @Override
+  public void visit(TypeVariable t){
+    result=create.type_variable(t.name);
   }
   
   @Override

@@ -2,6 +2,7 @@ package vct.silver;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.TreeMap;
 
 import hre.HREError;
 import hre.ast.Origin;
@@ -11,16 +12,21 @@ import vct.util.Configuration;
 import static hre.System.Abort;
 import viper.api.*;
 
-public class SilverStatementMap<T,E,S,Decl> implements ASTMapping<S>{
+public class SilverStatementMap<T,E,S> implements ASTMapping<S>{
 
-  private SilverVerifier<Origin,?,T,E,S,Decl,?,?,?> create;
+  private StatementFactory<Origin,T,E,S> create;
+  private ExpressionFactory<Origin,T,E> ef;
+  private TypeFactory<T> tf;
+  
   private SilverTypeMap<T> type;
-  private SilverExpressionMap<T,E,Decl> expr;
+  private SilverExpressionMap<T,E> expr;
 
   public HashSet<Origin> refuted=null;
   
-  public SilverStatementMap(SilverVerifier<Origin,?,T,E,S,Decl,?,?,?> backend,SilverTypeMap<T> type,SilverExpressionMap<T,E,Decl> expr){
-    this.create = backend;
+  public SilverStatementMap(ViperAPI<Origin,?,T,E,S,?,?,?> backend,SilverTypeMap<T> type,SilverExpressionMap<T,E> expr){
+    this.create = backend.stat;
+    ef=backend.expr;
+    tf=backend._type;
     this.type = type;
     this.expr = expr;
   }
@@ -78,7 +84,7 @@ public class SilverStatementMap<T,E,S,Decl> implements ASTMapping<S>{
   @Override
   public S map(NameExpression e) {
     E eq=e.apply(expr);
-    eq=create.eq(e.getOrigin(), eq, eq);
+    eq=ef.eq(e.getOrigin(), eq, eq);
     return create.assert_(e.getOrigin(),eq);
   }
 
@@ -113,17 +119,17 @@ public class SilverStatementMap<T,E,S,Decl> implements ASTMapping<S>{
     String name=m.name;
     ArrayList<E> args=new ArrayList();
     ArrayList<E> outs=new ArrayList();
-    ArrayList<Decl> pars=new ArrayList();
-    ArrayList<Decl> rets=new ArrayList();
+    ArrayList<Triple<Origin,String,T>> pars=new ArrayList();
+    ArrayList<Triple<Origin,String,T>> rets=new ArrayList();
     int N=e.getArity();
     DeclarationStatement decl[]=m.getArgs();
     for(int i=0;i<N;i++){
       if (decl[i].isValidFlag(ASTFlags.OUT_ARG) && decl[i].getFlag(ASTFlags.OUT_ARG)){
         outs.add(e.getArg(i).apply(expr));
-        rets.add(create.decl(o, decl[i].name, decl[i].getType().apply(type)));
+        rets.add(new Triple(decl[i].getOrigin(),decl[i].name, decl[i].getType().apply(type)));
       } else {
         args.add(e.getArg(i).apply(expr));
-        pars.add(create.decl(o, decl[i].name, decl[i].getType().apply(type)));
+        pars.add(new Triple(decl[i].getOrigin(),decl[i].name, decl[i].getType().apply(type)));
       }
     }
     return create.method_call(o, name, args, outs, pars, rets);
@@ -198,9 +204,9 @@ public class SilverStatementMap<T,E,S,Decl> implements ASTMapping<S>{
     Origin o=s.getOrigin();
     if (s.getInitBlock()!=null) Abort("not a while loop");
     if (s.getExitGuard()!=null) Abort("not a while loop");
-    ArrayList<Decl> locals=new ArrayList();
+    ArrayList<Triple<Origin,String,T>> locals=new ArrayList();
     ArrayList<S> stats=new ArrayList();
-    SilverBackend.split_block(create, type, this, locals,(BlockStatement) s.getBody(), stats);
+    SilverBackend.split_block(ef, type, this, locals,(BlockStatement) s.getBody(), stats);
     ArrayList<E> invs=new ArrayList();
     for(ASTNode inv:ASTUtils.conjuncts(s.getContract().invariant,StandardOperator.Star)){
       invs.add(inv.apply(expr));
@@ -374,6 +380,12 @@ public class SilverStatementMap<T,E,S,Decl> implements ASTMapping<S>{
 
   @Override
   public S map(ParallelRegion region) {
+    return null;
+  }
+
+  @Override
+  public S map(TypeVariable v) {
+    // TODO Auto-generated method stub
     return null;
   }
 
