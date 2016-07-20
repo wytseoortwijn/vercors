@@ -267,19 +267,21 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
         ||loc_type.isNumeric()&&val_type.isNumeric()
     )){
       Fail(fmt,loc_type,val_type);
-    }    
+    }
+    if (loc_type.isPrimitive(Sort.Fraction)||loc_type.isPrimitive(Sort.ZFraction)){
+      force_frac(val);
+    }
   }
   public void visit(AssignmentStatement s){
     ASTNode val=s.getExpression();
     val.accept(this);
     Type val_type=val.getType();
     if (val_type==null) Abort("Value %s has no type.",val);
-    if (val_type.toString().equals("<<label>>")) return;
+    if (val_type.toString().equals("<<label>>")) {
+      return;
+    }
     s.getLocation().accept(this);
     check_loc_val(s.getLocation().getType(),s.getExpression());
-    if (s.getLocation().getType().isPrimitive(Sort.Fraction)){
-      force_frac(s.getExpression());
-    }
   }
   
   public void visit(DeclarationStatement s){
