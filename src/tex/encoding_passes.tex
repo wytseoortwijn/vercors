@@ -1,0 +1,50 @@
+\chapter{The Compiler Passes}
+
+\section{Magic Wand Encoding}
+
+The magic wand encoding pass:
+\begin{itemize}
+\item Replaces magic wand formulas with abstract predicates.
+\item Replaces magic wand creation blocks with a block that exhales the 
+used permissions and formulas and inhales the magic wand,
+while at the same time generating a method that check the proof
+of the magic wand provided in the create block.
+\item Replaces applications of magic wands with the exhales of the 
+magic wand and the left-hand side, followed by the inhale of the right-hand side.
+\end{itemize}
+
+\subsection{ordering}
+
+The magic wand pass create predicates that have multiple arguments.
+Thus, this pass has to be applied before applying the witness encoding.
+To enable the witness encodign afterwards, any witness label given to a
+magic wand is copied to the generated magic wand predicate.
+
+
+\section{Witness Encoding}
+
+The witness encoding pass allows backends that do not support arbitrary
+predicate parameters to reason about specification with such predicates,
+by encodign these predicates as witness objects that are explicitly
+manipulated.
+
+\subsection{ordering}
+
+This pass has to be applied after any pass that can create predicates
+with arbitrary parameters.
+
+
+\subsection{effect on other passes}
+
+Every pass that is applied before this pass has to preserve the
+witness handling instructions and generate witness handling instructions
+for any new code it inserts.
+
+
+\subsection{limitations}
+
+The current implementation requires witnesses to be used for all predicates that
+are not inlined. By tagging predicates that neither have parameters nor call
+any predicates with parameters, the tagged predicates could be excluded
+from the witness bookkeeping.
+

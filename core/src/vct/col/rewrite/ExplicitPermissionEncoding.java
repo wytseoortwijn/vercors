@@ -8,6 +8,7 @@ import vct.col.ast.ASTClass;
 import vct.col.ast.ASTClass.ClassKind;
 import vct.col.ast.ASTFlags;
 import vct.col.ast.ASTNode;
+import vct.col.ast.ASTSpecial;
 import vct.col.ast.BlockStatement;
 import vct.col.ast.BooleanValue;
 import vct.col.ast.ClassType;
@@ -76,6 +77,7 @@ public class ExplicitPermissionEncoding extends AbstractRewriter {
     result=res; return ;
   }
 
+  
   public void visit(Method m){
     final String class_name=((ASTClass)m.getParent()).getName();
     if (m.kind==Method.Kind.Predicate && !m.getName().equals(WandEncoder.VALID)){
@@ -208,6 +210,10 @@ public class ExplicitPermissionEncoding extends AbstractRewriter {
   
   public void visit(OperatorExpression e){
     switch (e.getOperator()){
+    case Assert:{
+      result=clause_rw.rewrite(e);
+      break;
+    }
     case Witness:{
       ASTNode arg1=e.getArg(0);
       if (arg1.labels()!=1){
@@ -309,6 +315,20 @@ public class ExplicitPermissionEncoding extends AbstractRewriter {
       break;
     }
   }
+  
+  @Override
+  public void visit(ASTSpecial s){
+    switch(s.kind){
+    case Assert:
+    case Inhale:
+    case Exhale:
+      result=clause_rw.rewrite(s);
+      break;
+    default:
+      super.visit(s);
+    }
+  }
+  
 }
 
 class ClauseEncoding extends AbstractRewriter {
@@ -346,10 +366,16 @@ class ClauseEncoding extends AbstractRewriter {
       NameExpression lbl=i.getLabel(0);
       ASTNode body=neq(create.unresolved_name(lbl.getName()),create.reserved_name(Null));
       body=star(body,invoke(create.unresolved_name(lbl.getName()),"valid"));
+      ASTNode args[];
+      if (i.getDefinition().isStatic()){
+        args=rewrite(i.getArgs());
+      } else {
+        args=rewrite(i.object,i.getArgs());
+      }
       body=star(body,invoke(
               create.unresolved_name(lbl.getName()),
               ("check"),
-              rewrite(i.object,i.getArgs())
+              args
           ));
       
       result=body;
@@ -391,10 +417,10 @@ class PredicateClassGenerator extends AbstractRewriter {
     Type pred_type=create.class_type(tmp);
     
     // Start with ref field:
-    pred_class.add_dynamic(create.field_decl("ref",class_type));
+    if (!m.isStatic()) pred_class.add_dynamic(create.field_decl("ref",class_type));
     DeclarationStatement args[]=m.getArgs();
     ArrayList<ASTNode> cons_req=new ArrayList();
-    cons_req.add(create.expression(StandardOperator.NEQ,create.unresolved_name("ref"),create.reserved_name(Null)));
+    if (!m.isStatic()) cons_req.add(create.expression(StandardOperator.NEQ,create.unresolved_name("ref"),create.reserved_name(Null)));
     // Note that permission for fields will be added later.
     
     // Add arguments as fields:
@@ -439,13 +465,23 @@ class PredicateClassGenerator extends AbstractRewriter {
     // Prepare check function;
     ContractBuilder cb=new ContractBuilder();
     cb.requires(create.invokation(null,null, ("valid"), new DeclarationStatement[0]));
-    ASTNode check_body=create.expression(StandardOperator.EQ,create.field_name("ref"),create.local_name("object"));
+    ASTNode check_body;
+    if (m.isStatic()){
+      check_body=create.constant(true);
+    } else {
+      check_body=create.expression(StandardOperator.EQ,create.field_name("ref"),create.local_name("object"));
+    }
     for (DeclarationStatement decl:m.getArgs()){
       ASTNode field=create.dereference(create.reserved_name(This),decl.getName());
       check_body=create.expression(StandardOperator.And,check_body,
           create.expression(StandardOperator.EQ,field,create.local_name(decl.getName())));
     }
-    DeclarationStatement check_decls[]=rewrite(create.field_decl("object",class_type),m.getArgs());
+    DeclarationStatement check_decls[];
+    if (m.isStatic()){
+      check_decls=rewrite(m.getArgs());
+    } else {
+      check_decls=rewrite(create.field_decl("object",class_type),m.getArgs());
+    }
     // Add check function;
     pred_class.add_dynamic(create.function_decl(
         create.primitive_type(Sort.Boolean),
@@ -461,8 +497,14 @@ class PredicateClassGenerator extends AbstractRewriter {
     cb=new ContractBuilder();
     cb.ensures(create.invokation(null,null, ("valid"), new ASTNode[0]));
     int N=m.getArity();
-    ASTNode check_args[]=new ASTNode[N+1];
-    {
+    ASTNode check_args[];
+    int ofs;
+    if (m.isStatic()) {
+      check_args=new ASTNode[N];
+      ofs=0;
+    } else {
+      check_args=new ASTNode[N+1];
+      ofs=1;
       cons_decls.add(create.field_decl("ref",class_type));
       ASTNode field=create.dereference(create.reserved_name(This),"ref");
       check_args[0]=create.local_name("ref");
@@ -471,8 +513,8 @@ class PredicateClassGenerator extends AbstractRewriter {
     for(int i=0;i<N;i++){
       cons_decls.add(create.field_decl(m.getArgument(i),m.getArgType(i)));
       ASTNode field=create.dereference(create.reserved_name(This),m.getArgument(i));
-      check_args[i+1]=create.local_name(m.getArgument(i));
-      cons_body.add_statement(create.assignment(field, check_args[i+1]));
+      check_args[i+ofs]=create.local_name(m.getArgument(i));
+      cons_body.add_statement(create.assignment(field, check_args[i+ofs]));
     }
     cb.requires(cons_req);
     if (m.getBody()!=null) {

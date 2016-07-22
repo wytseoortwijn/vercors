@@ -29,7 +29,7 @@
     </exec>
   </target>
 
-  <target name="PDF" depends="extract">
+  <target name="pdf" depends="extract">
     <exec executable="pdflatex"
 	        failonerror="true"
 	        dir="${basedir}">

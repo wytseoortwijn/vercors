@@ -101,7 +101,7 @@
       <link href="http://developer.java.sun.com/developer/products/xml/docs/api/"/>
       -->
     </javadoc>
-    <ant antfile="build.xml" dir="${basedir}/src/tex" inheritAll="false" target="PDF"/>
+    <ant antfile="build.xml" dir="${basedir}/src/tex" inheritAll="false" target="pdf"/>
   </target>  
 
 <!-- 

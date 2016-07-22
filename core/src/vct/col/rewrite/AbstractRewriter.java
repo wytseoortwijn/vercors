@@ -152,13 +152,13 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
    * This variable references an AST factory, whose Origin is set to
    * the origin of the current node being rewritten.
    */
-  public final ASTFactory create;
+  public final ASTFactory<?> create;
   
-  public final ASTFactory create(Origin origin){
+  public final ASTFactory<?> create(Origin origin){
     create.setOrigin(origin);
     return create;
   }
-  public final ASTFactory create(ASTNode node){
+  public final ASTFactory<?> create(ASTNode node){
     create.setOrigin(node.getOrigin());
     return create;
   }

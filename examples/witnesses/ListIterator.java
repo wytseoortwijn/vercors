@@ -1,8 +1,11 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 //:: cases ListIterator
-//:: tools chalice
+//:: tools
 //:: verdict Pass
+//:: option --explicit
 //:: suite slow
+
+// Example disabled because it must be rewritten.
 
 /**
   

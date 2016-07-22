@@ -3,7 +3,9 @@ package vct.col.rewrite;
 import vct.col.ast.ASTClass;
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTReserved;
+import vct.col.ast.ASTSpecial;
 import vct.col.ast.ConstantExpression;
+import vct.col.ast.ContractBuilder;
 import vct.col.ast.DeclarationStatement;
 import vct.col.ast.Dereference;
 import vct.col.ast.IfStatement;
@@ -32,6 +34,40 @@ public class ChalicePreProcess extends AbstractRewriter {
     super(source);
   }
   
+  private int count;
+  
+  @Override
+  public void visit(ASTSpecial s){
+    boolean exhale=false;
+    switch(s.kind){
+    case Exhale:
+      exhale=true;
+    case Inhale:{
+      count++;
+      String name;
+      ContractBuilder cb=new ContractBuilder();
+      if (exhale){
+        name="exhale_"+count;
+        cb.requires(rewrite(s.args[0]));
+      } else {
+        name="inhale_"+count;
+        cb.ensures(rewrite(s.args[0]));
+      }
+      Hashtable<String,Type> vars=free_vars(s.args[0]);
+      currentTargetClass.add(create.method_decl(
+          create.primitive_type(Sort.Void),
+          cb.getContract(),
+          name,
+          gen_pars(vars),
+          create.block(create.expression(StandardOperator.Assume, create.constant(false)))
+      ));
+      result=gen_call(name,vars);
+      break;
+    }
+    default:
+      super.visit(s);
+    }
+  }
   
   @Override
   public void visit(ConstantExpression e){
