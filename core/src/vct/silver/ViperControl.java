@@ -42,6 +42,7 @@ public class ViperControl implements VerificationControl<Origin> {
   };
 
   public HashSet<String> verified_methods=new HashSet();
+  public HashSet<String> failed_methods=new HashSet();
   
   private Hashtable<Origin,String> origin2method=new Hashtable();
   
@@ -80,12 +81,20 @@ public class ViperControl implements VerificationControl<Origin> {
     String m=origin2method.get(origin);
     if (m!=null){
       verified_methods.add(m);
+    } else {
+      hre.System.Warning("failed to map origin %s to method",origin);
     }
   }
 
   @Override
   public void fail(Origin origin) {
     origin.report("result", "fail");
+    String m=origin2method.get(origin);
+    if (m!=null){
+      failed_methods.add(m);
+    } else {
+      hre.System.Warning("failed to map origin %s to method",origin);
+    }
   }
 
   @Override

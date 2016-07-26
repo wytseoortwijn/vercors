@@ -138,6 +138,7 @@ class DefaultVerifier(val config: Config)
             val l = methodSupporter.verify(method, c)
             val ok=l match {
               case Seq(viper.silicon.interfaces.Success()) => true
+              case Seq(viper.silicon.interfaces.Unreachable()) => true
               case _ => false
             }
             viper.api.VControl.report(method,ok)

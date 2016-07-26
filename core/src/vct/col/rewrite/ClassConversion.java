@@ -74,18 +74,24 @@ public class ClassConversion extends AbstractRewriter {
       ContractBuilder cb=new ContractBuilder();
       String name=cl.name+SEP+m.name;
       ArrayList<DeclarationStatement> args=new ArrayList();
+      ASTNode body=m.getBody();
       if (m.kind!=Method.Kind.Constructor && !m.isStatic()){
         args.add(create.field_decl(THIS,create.class_type(cl.name)));
-        if (m.kind!=Method.Kind.Predicate){
-          cb.requires(create.expression(StandardOperator.NEQ,
+        ASTNode nonnull=create.expression(StandardOperator.NEQ,
             create.local_name(THIS),
-            create.reserved_name(ASTReserved.Null)));
+            create.reserved_name(ASTReserved.Null));
+        if (m.kind!=Method.Kind.Predicate){
+          cb.requires(nonnull);
+        } else {
+          if (body != null) {
+            body=create.expression(StandardOperator.Star,nonnull,body);
+          }
         }
       }
       for(DeclarationStatement d:m.getArgs()){
         args.add(rewrite(d));
       }
-      ASTNode body=rewrite(m.getBody());
+      body=rewrite(body);
       if (m.kind==Method.Kind.Constructor){
         if (body!=null){
           body=create.block(

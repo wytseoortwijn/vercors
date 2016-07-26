@@ -29,7 +29,7 @@ class WandDemo {
   /*@
     requires writeonly();
     ensures  readonly();
-    ensures  w:(readonly()-*writeonly());
+    ensures  readonly()-*writeonly();
   @*/
   void set(int v){
     //@ unfold writeonly();
@@ -40,22 +40,21 @@ class WandDemo {
         unfold readonly();
         use    Perm(this.x,3/4);
         fold   writeonly();
-        qed    w:(readonly()-*writeonly());
+        qed    readonly()-*writeonly();
       }
     @*/
   }
 
 
   void demo(){
-    //@ witness w:(readonly()-*writeonly());
     WandDemo d=new WandDemo();
     int i=1;
     //@ loop_invariant d.writeonly();
     while(true)
     {
-        d.set(i) /*@ then { w=w; } */;
+        d.set(i);
         i=d.get()+d.get();
-        //@ apply w:(readonly()-*writeonly());
+        //@ apply d.readonly()-*d.writeonly();
     }
   }
 

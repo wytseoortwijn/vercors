@@ -4,23 +4,18 @@ package vct.main;
 
 import hre.HREError;
 import hre.ast.FileOrigin;
-import hre.ast.MessageOrigin;
 import hre.config.BooleanSetting;
 import hre.config.OptionParser;
 import hre.config.StringListSetting;
 import hre.config.StringSetting;
 import hre.debug.HeapDump;
 import hre.io.PrefixPrintStream;
-import hre.lang.Ref;
 import hre.util.CompositeReport;
 import hre.util.TestReport;
 import hre.util.TestReport.Verdict;
 
 import java.io.*;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
@@ -32,7 +27,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import vct.antlr4.parser.JavaResolver;
-import vct.clang.printer.CPrinter;
 import vct.col.annotate.DeriveModifies;
 import vct.col.ast.*;
 import vct.col.rewrite.AbstractMethodResolver;
@@ -494,7 +488,7 @@ public class Main
         return new LockEncoder(arg).rewriteAll();
       }
     });
-    defined_passes.put("magicwand",new CompilerPass("Encode magic wand proofs with witnesses"){
+    defined_passes.put("magicwand",new CompilerPass("Encode magic wand proofs with abstract predicates"){
       public ProgramUnit apply(ProgramUnit arg,String ... args){
         return new WandEncoder(arg).rewriteAll();
       }
@@ -727,7 +721,7 @@ public class Main
     }
     FeatureScanner features=new FeatureScanner();
     program.accept(features);
-    classes=new ArrayList();
+    classes=new ArrayList<ClassName>();
     for (ClassName name:program.classNames()){
       classes.add(name);
     }
@@ -860,6 +854,7 @@ public class Main
       passes.add("standardize");
       passes.add("check");      
       passes.add("chalice-preprocess");
+      passes.add("standardize");
       passes.add("check");
       if (chalice.get()){
         passes.add("chalice");
@@ -1051,7 +1046,7 @@ public class Main
         } else {
           pass_args=pass_args[1].split("\\+");
         }
-        Progress("Pass %s %s ...",pass,new ArrayShow(" ",pass_args));
+        Progress("Pass %s %s ...",pass,new ArrayShow(" ",(Object[])pass_args));
         CompilerPass task=defined_passes.get(pass);
         if (show_before.contains(pass)){
           String name=show_file.get();
@@ -1111,7 +1106,7 @@ public class Main
     try {
       defined_passes.put(key,new CompilerPass(description){
         
-        Constructor cons=class1.getConstructor(ProgramUnit.class);
+        Constructor<? extends AbstractRewriter> cons=class1.getConstructor(ProgramUnit.class);
         
         @Override
         public ProgramUnit apply(ProgramUnit arg, String... args) {

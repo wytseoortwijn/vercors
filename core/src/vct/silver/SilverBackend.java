@@ -157,7 +157,9 @@ public class SilverBackend {
         report.setVerdict(Verdict.Pass);
       }
       HashSet<Origin> accounted=new HashSet();
+      //System.err.printf("verified methods: %n");
       for(String method:control.verified_methods){
+        //System.err.printf("  %s%n",method);
         for(Origin o:vercors.refuted.get(method)){
           if(!reachable.contains(o)){
             o.report("error","statement is not reachable");
@@ -167,6 +169,22 @@ public class SilverBackend {
           }
         }
       }
+      for(String method:control.failed_methods){
+        //System.err.printf("  %s%n",method);
+        for(Origin o:vercors.refuted.get(method)){
+          accounted.add(o);
+        }
+      }
+      /*
+      System.err.printf("accounted: %n");
+      for(Origin o:accounted){
+        System.err.printf("  %s%n",o);
+      }
+      System.err.printf("reachable: %n");
+      for(Origin o:reachable){
+        System.err.printf("  %s%n",o);
+      }
+      */
       for(Origin o:reachable){
         if (!accounted.contains(o)){
           System.err.printf("unregistered location %s marked reachable%n",o);

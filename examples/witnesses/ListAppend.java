@@ -1,7 +1,6 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 //:: cases ListAppend
 //:: tools silicon
-//:: options --inline
 
 
 /**
@@ -12,7 +11,7 @@
   
   The command line to verify with the VerCors Tool is:
   
-  vct --silver=silicon --inline ListAppend.java
+  vct --silicon ListAppend.java
   
   The expected result is Pass.
 */
@@ -23,15 +22,8 @@ class List {
   public List next;
   
   /*@
-    public resource state()=
-      Perm(val,1)**Perm(next,1)**next->state();
-
-    requires state();
-    public pure seq<int> contents()=\unfolding state() \in
-        ((next==null)?(seq<int>{val})
-                    :(seq<int>{val}+next.contents()));
-
-    public resource list(seq<int> c)=state() ** contents()==c;
+    public resource list(seq<int> c)=Perm(val,1)**Perm(next,1)**
+      ((next==null)?(c==seq<int>{val}):(|c| > 0 ** head(c)==val ** next.list(tail(c))));
   @*/
 
   /*@
@@ -40,7 +32,7 @@ class List {
   public List(int v){
     val=v;
     next=null;
-    //@ fold state();
+    //@ fold list(seq<int>{v});
   }
   
   /*@
@@ -51,21 +43,28 @@ class List {
     ensures  this.list(L1+L2);
   @*/
   public void append_rec(List l){
-    //@ unfold state();
+    //@ unfold list(L1);
     if (next==null) {
         next=l;
+        //@ fold list(L1+L2);
     } else {
-        next.append_rec(l) /*@ with { L1 = next.contents() ; L2 = L2 ; } @*/;
+        next.append_rec(l) /*@ with { L1 = tail(L1) ; L2 = L2 ; } @*/;
+        //@ fold list(seq<int>{head(L1)}+(tail(L1)+L2));
+        //@ assert |L1|>0;
+        //@ assert seq<int>{head(L1)}+(tail(L1)+L2) == L1+L2;
     }
-    //@ fold state();
-  }
-
-  //@ requires state();
-  public /*@ pure @*/ List get_next(){
-    //@ unfold state();
-    return next;
   }
   
+  
+  /*@
+    given    seq<int> L;
+    requires list(L);
+   */
+  public /*@ pure @*/ List get_next(){
+    //@ unfold list(L);
+    return next;
+  }
+
   /*@
     given    seq<int> L1;
     given    seq<int> L2;
@@ -76,39 +75,41 @@ class List {
   public void append_iter(List l){
     List cursor=this;
     //@ seq<int> prefix=seq<int>{};
-    //@ seq<int> suffix=cursor.contents();
+    //@ seq<int> suffix=L1;
+    
     //@ loop_invariant cursor!=null;
-    //@ loop_invariant cursor.state();
-    //@ loop_invariant suffix==cursor.contents();
+    //@ loop_invariant cursor.list(suffix);
     //@ loop_invariant prefix+suffix==L1;
     //@ loop_invariant l!=null ** l.list(L2);
-    //@ loop_invariant wand:(cursor.list(suffix+L2) -* this.list(L1+L2));
-    while(cursor.get_next()!=null)
+    //@ loop_invariant cursor.list(suffix+L2) -* this.list(L1+L2);
+    while(cursor.get_next()/*@ with { L = suffix; } */ !=null)
     /*@ with {
-        create wand:(this.list(L1+L2) -* this.list(L1+L2)) {}
+        create this.list(L1+L2) -* this.list(L1+L2) {}
     } @*/
     {
         //@ List tmp=cursor;
         //@ seq<int> tmp_suffix=suffix;
-        //@ unfold cursor.state();
+        //@ unfold cursor.list(suffix);
         //@ prefix=prefix+seq<int>{cursor.val};
-        //@ suffix=cursor.next.contents();
+        //@ suffix=tail(suffix);
         cursor=cursor.next;
         /*@
-            create wand:(cursor.list(suffix+L2) -* this.list(L1+L2)) {
+            create cursor.list(suffix+L2) -* this.list(L1+L2) {
                 use    Perm(tmp.val,1);
                 use    Perm(tmp.next,1);
                 use    tmp.next==cursor;
+                use    cursor!=null;
                 use    tmp_suffix==seq<int>{tmp.val}+suffix;
-                fold   tmp.state();
-                apply  wand:(tmp.list(tmp_suffix+L2) -* this.list(L1+L2));
+                use    tmp.list(tmp_suffix+L2) -* this.list(L1+L2);
+                fold   tmp.list(tmp_suffix+L2);
+                apply  tmp.list(tmp_suffix+L2) -* this.list(L1+L2);
             }
         @*/
     }
-    //@ unfold cursor.state();
+    //@ unfold cursor.list(suffix);
     cursor.next=l;
-    //@ fold cursor.state();
-    //@ apply wand:(cursor.list(suffix+L2) -* this.list(L1+L2));
+    //@ fold cursor.list(suffix+L2);
+    //@ apply cursor.list(suffix+L2) -* this.list(L1+L2);
   }
 
 }
