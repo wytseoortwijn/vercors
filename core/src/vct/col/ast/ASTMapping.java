@@ -86,4 +86,6 @@ public interface ASTMapping<R> {
   
   public R map(ParallelRegion region);
 
+  public R map(TypeVariable v);
+
 }

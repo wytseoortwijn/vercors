@@ -21,7 +21,14 @@ public class JavaResolver extends AbstractRewriter {
   }
   
   private boolean ensures_loaded(String ... name){
-    if (source().find(name)!=null){
+    {
+      ASTDeclaration decl=source().find_decl(name);
+      if (decl!=null){
+        if (decl instanceof ASTClass) return true;
+        if (decl instanceof AxiomaticDataType) return true;
+      }
+    }
+    if (name.length==1 && variables.containsKey(name[0])){
       return true;
     }
     if (target().find(name)!=null){

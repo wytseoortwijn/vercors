@@ -34,6 +34,10 @@ public class JavaPrinter extends AbstractPrinter {
     this.dialect=dialect;
   }
 
+  public void visit(TypeVariable v){
+    out.print(v.name);
+  }
+  
   public void pre_visit(ASTNode node){
     super.pre_visit(node);
     for(NameExpression lbl:node.getLabels()){

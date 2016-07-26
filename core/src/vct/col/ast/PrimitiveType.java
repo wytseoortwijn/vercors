@@ -286,7 +286,7 @@ public final class PrimitiveType extends Type {
     case Double:
       return new ConstantExpression((double)0);
     case Sequence:
-      return new OperatorExpression(StandardOperator.Nil,args[0]);
+      return new OperatorExpression(StandardOperator.Build,this);
     default:
       return super.zero();
     }

@@ -193,7 +193,6 @@ public abstract class ASTFrame<T> {
       case ENTER:
         variables.enter();
         for(DeclarationStatement decl:adt.getParameters()){
-          Warning("ADT: adding %s",decl.getName());
           variables.add(decl.getName(),new VariableInfo(decl,NameExpression.Kind.Argument));
         }
         break;

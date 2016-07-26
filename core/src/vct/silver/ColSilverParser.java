@@ -11,13 +11,14 @@ import java.util.Properties;
 import vct.col.ast.ASTClass;
 import vct.col.ast.ASTDeclaration;
 import vct.col.ast.ASTNode;
+import vct.col.ast.Axiom;
 import vct.col.ast.AxiomaticDataType;
 import vct.col.ast.DeclarationStatement;
 import vct.col.ast.Method;
 import vct.col.ast.ProgramUnit;
 import vct.col.ast.Type;
 import vct.error.VerificationError;
-import viper.api.SilverVerifier;
+import viper.api.ViperAPI;
 import viper.api.ViperError;
 
 public class ColSilverParser implements vct.col.util.Parser {
@@ -29,15 +30,14 @@ public class ColSilverParser implements vct.col.util.Parser {
   
   public static <T,E,S,Decl,DFunc,DAxiom,Program>
   ProgramUnit run_test(File f){
-    SilverVerifier<Origin,VerificationError,T,E,S,Decl,DFunc,DAxiom,Program> verifier=
-        SilverBackend.getVerifier("silicon");
-    Program program=verifier.parse_program(f.toString());
+    ViperAPI<Origin,VerificationError,T,E,S,DFunc,DAxiom,Program> viper=
+        SilverBackend.getVerifier("parser");
+    Program program=viper.prog.parse_program(f.toString());
     if (program==null){
       throw new HREError("parsing %s failed",f);
     }
-    SilverVerifier<Origin, VerificationError, Type, ASTNode, ASTNode, DeclarationStatement, Method, AxiomaticDataType, ProgramUnit> verifier2=
-        new VerCorsVerifier();
-    ProgramUnit tmp=verifier.convert(verifier2, program);
+    VerCorsViperAPI vercors=VerCorsViperAPI.get();
+    ProgramUnit tmp=viper.prog.convert(vercors, program);
     ProgramUnit res=new ProgramUnit();
     ASTClass ref=new ASTClass("Ref",ASTClass.ClassKind.Record);
     ref.setOrigin(new MessageOrigin("implicit Ref for %s",f));

@@ -1,16 +1,23 @@
 package vct.silver;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.xml.transform.Source;
+
 import hre.HREError;
+import hre.ast.MessageOrigin;
 import hre.ast.Origin;
 import vct.col.ast.*;
+import vct.col.rewrite.AbstractRewriter;
 import viper.api.*;
 
 public class SilverTypeMap<T> implements TypeMapping<T> {
 
-  private SilverVerifier<Origin,?,T,?,?,?,?,?,?> create;
+  private TypeFactory<T> create;
   
-  public SilverTypeMap(SilverVerifier<Origin,?,T,?,?,?,?,?,?> backend){
-    this.create=backend;
+  public SilverTypeMap(ViperAPI<Origin,?,T,?,?,?,?,?> backend){
+    this.create=backend._type;
   }
   
   @Override
@@ -22,16 +29,52 @@ public class SilverTypeMap<T> implements TypeMapping<T> {
     return res;
   }
 
+  public static void get_adt_subst(
+      AbstractRewriter copy,
+      Map<String,Type> map,
+      ClassType t
+  ){
+    ASTNode args[]=t.getArgs();
+    for(ASTNode a:args){
+      String s=a.getLabel(0).toString();
+      if( s.equals(a.toString())){
+        // System.err.printf("detected type var %s%n",s);
+        // TODO: properly detect type vars!
+        ClassType res=new ClassType(s);
+        res.setOrigin(new MessageOrigin("ADT Type Variable"));
+        map.put(s,res);
+      } else {
+        ASTNode n=copy.rewrite(a);
+        n.clearLabels();
+        map.put(s,(Type)n);
+      }
+    }
+  }
+
+  
+  public T domain_type(HashMap<String,T> map,ClassType t){
+    ASTNode args[]=t.getArgs();
+    for(ASTNode a:args){
+      String s=a.getLabel(0).toString();
+      if( s.toString().equals(a.toString())){
+        // System.err.printf("detected type var %s%n",s);
+        // TODO: properly detect type vars!
+        map.put(s,create.type_var(s));
+      } else {
+        map.put(s,((Type)a).apply(this));
+      }
+    }
+    // System.err.printf("passing map %s to %s%n",map,t.getName());
+    return create.domain_type(t.getName(),map);
+  }
+  
   @Override
   public T map(ClassType t) {
     if (t.getName().equals("Ref")){
       return create.Ref();
     } else {
-      ASTNode args[]=t.getArgs();
-      if (args.length==0){
-        return create.domain_type(t.getName());
-      }
-      throw new HREError("cannot convert class type %s",t.getFullName()); 
+      HashMap<String,T> map=new HashMap();
+      return domain_type(map,t);
     }
   }
 
@@ -83,6 +126,11 @@ public class SilverTypeMap<T> implements TypeMapping<T> {
   @Override
   public T map(TypeExpression t) {
     throw new HREError("type expressions are not supported");
+  }
+
+  @Override
+  public T map(TypeVariable v) {
+    return create.type_var(v.name);
   }
 
 }

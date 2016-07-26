@@ -1,3 +1,7 @@
+// -*- tab-width:2 ; indent-tabs-mode:nil -*-
+//:: case SilverBackEndPass
+//:: verdict Pass
+//:: tools silicon
 
 field test: Bool
 

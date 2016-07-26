@@ -20,6 +20,7 @@ method m1()
    var x : Int;
    var d1x : D1[Int]
    assert f1b(d1x) >= 0 ==> f1b(d1x) == 0
+   d1x := make(1)
 }
 
 method m2()
@@ -28,7 +29,6 @@ method m2()
    d11x := make(make(1))
 }
 
-/*
 field f: Int
 
 domain Bag[T]
@@ -40,20 +40,28 @@ domain Bag[T]
 
     function flatten(b:Bag[Bag[T]]):Bag[T]
 
-    axiom singletonSize { forall t:T :: size(singleton(t))==1 }
+//    axiom singletonSize { forall t:T :: size(singleton(t))==1 }
+
+    axiom emptySize { size((empty() : Bag[T]))==0 }
 
 }
 
+/*
+method m3(){
+  var e : Bag[Int] := empty()
+  var i : Int
+  i := size(e)
+}
 
-method m2()
+
+method m3()
 {
     assert size(singleton(singleton(1)))==1
     var i : Int
 
-//    var b : Bag[Boolean] //Bag[Bag[Boolean]]
-//    b := singleton(empty())
+    var b : Bag[Bag[Bool]]
+    b := singleton(empty())
 }
-
 */
 
 /*
