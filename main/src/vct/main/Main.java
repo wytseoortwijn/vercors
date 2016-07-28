@@ -653,11 +653,6 @@ public class Main
         return new StripConstructors(arg).rewriteAll();
       }
     });
-    defined_passes.put("strip_unused_extern",new CompilerPass("Strip unused extern declarations"){
-      public ProgramUnit apply(ProgramUnit arg,String ... args){
-        return new StripUnusedExtern(arg).rewriteAll();
-      }
-    });
     defined_checks.put("verifast",new ValidationPass("verify with VeriFast"){
       public TestReport apply(ProgramUnit arg,String ... args){
         vct.col.print.JavaPrinter.dump(System.out,JavaDialect.JavaVeriFast,arg);
@@ -895,7 +890,6 @@ public class Main
       passes.add("lock-encode");
       passes.add("standardize");
       passes.add("check");
-      passes.add("strip_unused_extern");
       if (features.usesOperator(StandardOperator.Wand)){
         passes.add("magicwand");
         passes.add("standardize");

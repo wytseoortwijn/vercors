@@ -10,6 +10,31 @@ public class ConvertTypeExpressions extends AbstractRewriter {
   
   
   @Override
+  public void visit(DeclarationStatement d){
+    boolean extern=false;
+    Type t=d.getType(); 
+    while(t instanceof TypeExpression){
+      TypeExpression e=(TypeExpression)t;
+      switch(e.op){
+      case Static:
+        t=e.types[0];
+        break;
+      case Extern:
+        extern=true;
+        t=e.types[0];
+        break;        
+      default:
+        Fail("cannot deal with type operator %s",e.op);
+      }
+    }
+    DeclarationStatement res=create.field_decl(d.name,rewrite(t),rewrite(d.getInit()));
+    if (extern){
+      res.setFlag(ASTFlags.EXTERN,true);
+    }
+    result=res;
+  }
+  
+  @Override
   public void visit(Method m){
     Method res=copy_rw.rewrite(m);
     Type t=m.getReturnType();

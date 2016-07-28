@@ -25,10 +25,14 @@ import vct.col.rewrite.AbstractRewriter;
 import vct.col.rewrite.AnnotationInterpreter;
 import vct.col.rewrite.ConvertTypeExpressions;
 import vct.col.rewrite.EncodeAsClass;
+import vct.col.rewrite.FilterSpecIgnore;
 import vct.col.rewrite.FlattenVariableDeclarations;
+import vct.col.rewrite.Standardize;
+import vct.col.rewrite.StripUnusedExtern;
 import vct.col.rewrite.VerCorsDesugar;
 import vct.col.syntax.JavaDialect;
 import vct.col.syntax.JavaSyntax;
+import vct.col.util.SimpleTypeCheck;
 
 /**
  * Parse specified code and convert the contents to COL. 
@@ -72,16 +76,19 @@ public class ColIParser implements vct.col.util.Parser {
     Debug("after collecting specifications %s",pu);
 
     pu=new VerCorsDesugar(pu).rewriteAll();
-    Progress("Desugaring took %dms",tk.show());    
-    //System.err.println("after desugaring specifications");
-    //Configuration.getDiagSyntax().print(System.err, pu);
+    Progress("Desugaring took %dms",tk.show());
+    Debug("after desugaring",pu);
 
-    // TODO: do not encode here, but at top level!
+    // TODO: encoding as class should not be necessary. 
     pu=new EncodeAsClass(pu).rewriteAll();
-    Progress("Encoding as class took %dms",tk.show());    
-    //System.err.println("after rewriting to Ref class");
-    //Configuration.getDiagSyntax().print(System.err, pu);
-
+    Progress("Encoding as class took %dms",tk.show());
+    Debug("after encoding as class %s",pu);
+    
+    pu=new FilterSpecIgnore(pu).rewriteAll();
+    pu=new StripUnusedExtern(pu).rewriteAll();
+    Progress("Stripping unused parts took %dms",tk.show());    
+    Debug("after stripping unused parts %s",pu);
+    
     return pu;
   }
   

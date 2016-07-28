@@ -1,14 +1,14 @@
 package vct.col.rewrite;
 
+import java.util.HashMap;
 import java.util.HashSet;
 
 import vct.col.ast.*;
 
 
 /**
- * This class strips unused extern functions from C programs.
+ * This class strips unused extern procedures and variables from C programs.
  * It assumes that the C program is contained in the class Ref.
- * Note that it should be called after removing the spec-ignored parts.
  * 
  * @author Stefan Blom
  *
@@ -19,7 +19,13 @@ public class StripUnusedExtern extends AbstractRewriter {
     super(source);
   }
   
-  private static HashSet<String> names=new HashSet();
+  private static HashMap<String,DeclarationStatement> vars=new HashMap();
+  
+  private static HashMap<String,Method> externs=new HashMap();
+
+  private static HashSet<String> used_externs=new HashSet();
+  
+  private static HashSet<String> defined_names=new HashSet();
   
   private class Scanner extends RecursiveVisitor<Object> {
 
@@ -29,49 +35,95 @@ public class StripUnusedExtern extends AbstractRewriter {
     
     @Override
     public void visit(Method m){
-      if (names.contains(m.name)) return;
-      names.add(m.name);
+      defined_names.add(m.name);
+      Method ext=externs.get(m.name);
+      if(ext!=null){
+        if (m.getContract()!=null){
+          Fail("%s: contract must be written for the extern declaration",m.getOrigin());
+        }
+        defined_names.add(m.name);
+      }
       super.visit(m);
     }
     
     @Override
     public void visit(MethodInvokation s){
-      super.visit(s);
-      if (s.getDefinition()==null){
-        Warning("definition of call to %s not set, skipping scan",s.method);
-      } else {
-        s.getDefinition().apply(this);
+      Method ext=externs.get(s.method);
+      if (ext!=null) {
+        used_externs.add(s.method);
       }
+      super.visit(s);
     }
     
   }
 
   private Scanner scanner=new Scanner(source());
-  
-  
+
+  @Override
+  public void visit(DeclarationStatement d){
+    if (d.getParent() instanceof ASTClass){
+      DeclarationStatement real=vars.get(d.name);
+      if(real!=d){
+        return;
+      }
+    }
+    super.visit(d);
+  }
   @Override
   public void visit(Method m){
-    if (names.contains(m.name)){
-      super.visit(m);
+    if (m.isValidFlag(ASTFlags.EXTERN)){
+      if (!used_externs.contains(m.name) || defined_names.contains(m.name)){
+        return;
+      }
+    } else {
+      Method ext=externs.get(m.name);
+      if (ext!=null){
+        if (currentContractBuilder==null&&ext.getContract()!=null){
+          currentContractBuilder=new ContractBuilder();
+        }
+        rewrite(ext.getContract(),currentContractBuilder);
+      }
     }
+    super.visit(m);
   }
   @Override
   public ProgramUnit rewriteAll() {
     if (source().find("Ref")==null){
       return source();
     }
-    int extern_count=0;
-    for(Method m:source().find("Ref").methods()){
-      if (m.isValidFlag(ASTFlags.EXTERN)){
-        System.err.printf("skipping extern %s%n",m.name);
+    ASTClass src=source().find("Ref");
+    for(DeclarationStatement d:src.fields()){
+      DeclarationStatement old=vars.get(d.name);
+      if (d.isValidFlag(ASTFlags.EXTERN)){
+        System.err.printf("extern var %s%n", d.name);
+        if (old != null){
+          Fail("double declaration of %s",d.name);
+        }
       } else {
-        System.err.printf("scanning %s%n",m.name);
-        if (!names.contains(m.name)){
-          m.accept(scanner);
+        if (old!=null && ! old.isValidFlag(ASTFlags.EXTERN)){
+          Fail("double declaration of %s",d.name);
         }
       }
+      vars.put(d.name,d);
     }
-    return super.rewriteAll();
+    for(Method m:source().find("Ref").methods()){
+      if (m.isValidFlag(ASTFlags.EXTERN)){
+        externs.put(m.name,m);
+      }
+    }
+    for(Method m:source().find("Ref").methods()){
+      if (!m.isValidFlag(ASTFlags.EXTERN)){
+        m.accept(scanner);
+      }
+    }
+    ProgramUnit res=super.rewriteAll();
+    for(Method m:res.find("Ref").methods()){
+      m.clearFlag(ASTFlags.EXTERN);
+    }
+    for(ASTNode m:res.find("Ref").fields()){
+      m.clearFlag(ASTFlags.EXTERN);
+    }
+    return res;
   }
 
 

@@ -1,0 +1,32 @@
+\chapter{Verifying C}
+
+
+The VerCors tool can (in principle) verify C programs.
+It does so by first invoking the C preprocessor and
+then verifying the result. Handling the real system
+include files on all platform is not possible, so
+the system include files are taken from an include
+folder in the toolset. It is ongoing work to create
+header files and write contracts for the procedures
+in those files where needed.
+
+
+\begin{listing}
+\lstinputlisting[language=C,escapechar=\$]{c-example.h}
+\caption{Header file declaring a variable and a procedure}
+\label{c header}
+\end{listing}
+
+\begin{listing}
+\lstinputlisting[language=C,escapechar=\$]{c-example-impl.c}
+\caption{Implementation of the header}
+\label{c implementation}
+\end{listing}
+
+\begin{listing}
+\lstinputlisting[language=C,escapechar=\$]{c-example-use.c}
+\caption{Program using the header}
+\label{c use case}
+\end{listing}
+
+
