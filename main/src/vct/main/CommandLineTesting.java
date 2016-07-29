@@ -2,8 +2,11 @@ package vct.main;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PrintStream;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -19,6 +22,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import hre.config.BooleanSetting;
 import hre.config.Option;
 import hre.config.OptionParser;
 import hre.config.StringListSetting;
@@ -26,6 +30,8 @@ import hre.config.StringSetting;
 import hre.util.TestReport.Verdict;
 
 import java.io.BufferedInputStream;
+
+import vct.util.Configuration;
 
 
 public class CommandLineTesting {
@@ -100,6 +106,16 @@ public class CommandLineTesting {
       }
     }
     if (tv.delayed_fail) System.exit(1);
+    String testcmd_prefix="<test>";
+    PrintStream cmds=null;
+    if (command_file.used()){
+      testcmd_prefix="java -cp "+Configuration.getHome().toString()+"/vct-tool.jar vct.main.TestRun ";
+      try {
+        cmds=new PrintStream(new FileOutputStream(command_file.get()));
+      } catch (FileNotFoundException e) {
+        System.exit(1);
+      }
+    }
     HashMap<String,Integer> times=new HashMap();
     int successes=0;
     HashMap<String,Testcase> untested=new HashMap<String,Testcase>();
@@ -158,6 +174,17 @@ public class CommandLineTesting {
         }
         for(String opt:test.options) cmd.add(opt);
         for(Path f:test.files) cmd.add(f.toAbsolutePath().toString());
+        if (command_file.used()){
+          String testcmd=testcmd_prefix+test.verdict;
+          for(String s:cmd){
+            testcmd+=" "+s;
+          }
+          System.err.printf("test %s/%s : %s%n",name,tool,testcmd);
+          cmds.printf("test %s::%s << EOF%n", name,tool);
+          cmds.printf("%s%n",testcmd);
+          cmds.printf("EOF%n");
+          continue;
+        }
         System.err.printf("running %s/%s:%n",name,tool);
         for(String s:cmd){
           System.err.printf(" %s",s);
@@ -267,6 +294,10 @@ public class CommandLineTesting {
   private static Option append_option;
   protected static StringSetting savedir=new StringSetting(null);
   
+  public static StringSetting command_file=new StringSetting(null);
+  private static Option commandlines=
+      command_file.getAssign("output file with list of commands instead");
+  
   public static void add_options(OptionParser clops) {
     append_option=selftest.getAppendOption("execute test suites from the command line. "+
         "Each test suite is a folder which is scanned for valid test inputs");
@@ -276,6 +307,7 @@ public class CommandLineTesting {
     clops.add(savedir.getAssign("save intermediate files to given directory"),"save-intermediate");
     clops.add(include_option=includes.getAppendOption("include test suites"),"include-suite");
     clops.add(exclude_option=excludes.getAppendOption("exclude test suites"),"exclude-suite");
+    clops.add(commandlines,"commands");
   }
 
 }
