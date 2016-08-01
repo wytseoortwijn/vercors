@@ -17,6 +17,7 @@ import hre.util.TestReport.Verdict;
 import java.io.*;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map.Entry;
@@ -25,6 +26,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingDeque;
 
 import vct.antlr4.parser.JavaResolver;
 import vct.col.annotate.DeriveModifies;
@@ -47,20 +49,16 @@ import vct.col.rewrite.DefineDouble;
 import vct.col.rewrite.DynamicStaticInheritance;
 import vct.col.rewrite.ExplicitPermissionEncoding;
 import vct.col.rewrite.FilterClass;
-import vct.col.rewrite.FilterSpecIgnore;
 import vct.col.rewrite.FinalizeArguments;
 import vct.col.rewrite.Flatten;
 import vct.col.rewrite.FlattenBeforeAfter;
 import vct.col.rewrite.ForkJoinEncode;
 import vct.col.rewrite.GenericPass1;
 import vct.col.rewrite.GhostLifter;
-import vct.col.rewrite.GlobalizeStaticsField;
 import vct.col.rewrite.GlobalizeStaticsParameter;
 import vct.col.rewrite.InlinePredicatesRewriter;
-import vct.col.rewrite.IterationContractEncoder;
 import vct.col.rewrite.KernelRewriter;
 import vct.col.rewrite.LockEncoder;
-import vct.col.rewrite.MergeLoops;
 import vct.col.rewrite.OpenCLtoPVL;
 import vct.col.rewrite.OpenMPtoPVL;
 import vct.col.rewrite.OptimizeQuantifiers;
@@ -68,7 +66,6 @@ import vct.col.rewrite.PVLCompiler;
 import vct.col.rewrite.ParallelBlockEncoder;
 import vct.col.rewrite.PureMethodsAsFunctions;
 import vct.col.rewrite.RandomizedIf;
-import vct.col.rewrite.RecognizeLoops;
 import vct.col.rewrite.RecognizeMultiDim;
 import vct.col.rewrite.ReorderAssignments;
 import vct.col.rewrite.RewriteArrayRef;
@@ -83,7 +80,6 @@ import vct.col.rewrite.SilverReorder;
 import vct.col.rewrite.SimplifyCalls;
 import vct.col.rewrite.Standardize;
 import vct.col.rewrite.StripConstructors;
-import vct.col.rewrite.StripUnusedExtern;
 import vct.col.rewrite.VoidCalls;
 import vct.col.rewrite.VoidCallsThrown;
 import vct.col.rewrite.WandEncoder;
@@ -180,8 +176,9 @@ public class Main
     
     BooleanSetting explicit_encoding=new BooleanSetting(false);
     clops.add(explicit_encoding.getEnable("explicit encoding"),"explicit");
-    BooleanSetting inline_predicates=new BooleanSetting(false);
-    clops.add(inline_predicates.getEnable("inline predicates with arguments"),"inline");
+
+    clops.add_removed("the inline option was removed in favor of the inline modifer","inline");
+    
     BooleanSetting global_with_field=new BooleanSetting(false);
     clops.add(global_with_field.getEnable("Encode global access with a field rather than a parameter. (expert option)"),"global-with-field");
     
@@ -435,28 +432,39 @@ public class Main
         return new GhostLifter(arg).rewriteAll();
       }
     });
-    if (global_with_field.get()){
-      Warning("Using the incomplete and experimental field access for globals.");
-      defined_passes.put("globalize",new CompilerPass("split classes into static and dynamic parts"){
-        public ProgramUnit apply(ProgramUnit arg,String ... args){
-          return new GlobalizeStaticsField(arg).rewriteAll();
+    defined_passes.put("globalize",new CompilerPass("split classes into static and dynamic parts"){
+      public ProgramUnit apply(ProgramUnit arg,String ... args){
+        return new GlobalizeStaticsParameter(arg).rewriteAll();
+      }
+    });
+    defined_passes.put("[globalize]",new CompilerPass("globalize if needed"){
+      public ProgramUnit apply(Deque<String> todo,ProgramUnit arg,String ... args){
+        boolean globals=false;
+        for(ASTNode n:program){
+          if (n instanceof DeclarationStatement){
+            globals=true;
+            break;
+          }
+          if (n instanceof ASTClass){
+            ASTClass cl=(ASTClass)n;
+            if (cl.staticFields().iterator().hasNext()){
+              globals=true;
+              break;
+            }
+          }
         }
-      });      
-    } else {
-      defined_passes.put("globalize",new CompilerPass("split classes into static and dynamic parts"){
-        public ProgramUnit apply(ProgramUnit arg,String ... args){
-          return new GlobalizeStaticsParameter(arg).rewriteAll();
+        if(globals){
+          todo.addFirst("check");
+          todo.addFirst("standardize");
+          todo.addFirst("globalize");
         }
-      });
-    }
+        return arg;
+      }
+    });
+
     defined_passes.put("ds_inherit",new CompilerPass("rewrite contracts to reflect inheritance, predicate chaining"){
       public ProgramUnit apply(ProgramUnit arg,String ... args){
         return new DynamicStaticInheritance(arg).rewriteOrdered();
-      }
-    });
-    defined_passes.put("filter_spec_ignore",new CompilerPass("remove spec_ignore sections from code"){
-      public ProgramUnit apply(ProgramUnit arg,String ... args){
-        return new FilterSpecIgnore(arg).rewriteAll();
       }
     });
     defined_passes.put("flatten_before_after",new CompilerPass("move before/after instructions"){
@@ -474,11 +482,6 @@ public class Main
         return new InlinePredicatesRewriter(arg,false).rewriteAll();
       }
     });
-    defined_passes.put("iter",new CompilerPass("Encode iteration contracts as method calls"){
-      public ProgramUnit apply(ProgramUnit arg,String ... args){
-        return new IterationContractEncoder(arg).rewriteAll();
-      }
-    });
     defined_passes.put("kernel-split",new CompilerPass("Split kernels into main, thread and barrier."){
       public ProgramUnit apply(ProgramUnit arg,String ... args){
         return new KernelRewriter(arg).rewriteAll();
@@ -492,11 +495,6 @@ public class Main
     defined_passes.put("magicwand",new CompilerPass("Encode magic wand proofs with abstract predicates"){
       public ProgramUnit apply(ProgramUnit arg,String ... args){
         return new WandEncoder(arg).rewriteAll();
-      }
-    });
-    defined_passes.put("merge_loops",new CompilerPass("Merge nested loops into a single loop"){
-      public ProgramUnit apply(ProgramUnit arg,String ... args){
-        return new MergeLoops(arg).rewriteAll();
       }
     });
     defined_passes.put("modifies",new CompilerPass("Derive modifies clauses for all contracts"){
@@ -523,11 +521,6 @@ public class Main
     defined_passes.put("pvl-compile",new CompilerPass("Compile PVL classes to Java classes"){
       public ProgramUnit apply(ProgramUnit arg,String ... args){
         return new PVLCompiler(arg).rewriteAll();
-      }
-    });
-    defined_passes.put("recognize_loops",new CompilerPass("Recognize for-each loops"){
-      public ProgramUnit apply(ProgramUnit arg,String ... args){
-        return new RecognizeLoops(arg).rewriteAll();
       }
     });
     defined_passes.put("recognize_multidim",new CompilerPass("Recognize multi-dimensional arrays"){
@@ -726,11 +719,11 @@ public class Main
     for (ClassName name:program.classNames()){
       classes.add(name);
     }
-    List<String> passes=null;
+    Deque<String> passes=null;
     if (pass_list.iterator().hasNext()){
       // --passes option overrides --backend
     } else if (boogie.get()) {
-    	passes=new ArrayList<String>();
+    	passes=new LinkedBlockingDeque<String>();
     	passes.add("java_resolve");
       passes.add("standardize");
       passes.add("check");
@@ -757,113 +750,8 @@ public class Main
       passes.add("standardize");
       passes.add("check");
     	passes.add("boogie");
-    } else if (chalice.get()||chalice2sil.get()) {
-      passes=new ArrayList<String>();
-      passes.add("java_resolve");
-      if (sat_check.get()) passes.add("sat_check");
-      passes.add("standardize");
-      passes.add("check");        
-      passes.add("magicwand");
-      passes.add("standardize");
-      passes.add("check");
-      if (inline_predicates.get()){
-        passes.add("auto-inline");
-        passes.add("standardize");
-        passes.add("check");        
-      }
-      if (features.hasStaticItems()){
-        Warning("Encoding globals by means of an argument.");
-        passes.add("standardize");
-        passes.add("check");
-        passes.add("globalize");
-        passes.add("standardize");
-        passes.add("check");
-      }
-      if (features.usesIterationContracts()){
-        passes.add("recognize_multidim");
-        passes.add("recognize_loops");
-        passes.add("merge_loops");
-        passes.add("standardize");
-        passes.add("check");
-        passes.add("iter");
-        passes.add("simplify_quant");
-        passes.add("standardize");
-        passes.add("check");
-      }
-      if (features.usesKernels()){
-        passes.add("kernel-split");
-        //passes.add("simplify_expr");
-        passes.add("standardize");
-        passes.add("check");       
-      }
-      if (features.usesInheritance()){
-        passes.add("standardize");
-        passes.add("check");       
-        passes.add("ds_inherit");
-        passes.add("standardize");
-        passes.add("check");       
-      }
-      if (check_defined.get()){
-        passes.add("check-defined");
-        passes.add("standardize");
-        passes.add("check");
-      }
-      if (features.usesCSL()){
-        passes.add("csl-encode");
-        passes.add("standardize");
-        passes.add("check");
-      }
-      if (explicit_encoding.get()){
-        //passes.add("standardize");
-        //passes.add("check");       
-        passes.add("explicit_encoding");
-        passes.add("standardize");
-        passes.add("check");
-      } else {
-        passes.add("flatten_before_after");
-        passes.add("standardize");
-        passes.add("check");        
-      }
-      passes.add("rewrite_arrays");
-      passes.add("standardize");
-      passes.add("check");
-      passes.add("flatten");
-      passes.add("finalize_args");
-      passes.add("reorder");
-      passes.add("standardize");
-      passes.add("check");
-      if (features.usesDoubles()){
-        Warning("defining Double");
-        passes.add("define_double");
-        passes.add("standardize");
-        passes.add("check");
-      }
-    	passes.add("assign");
-      passes.add("reorder");
-    	passes.add("standardize");
-    	passes.add("check");
-      passes.add("rm_cons");
-      passes.add("standardize");
-      passes.add("check");
-      passes.add("voidcalls");
-      passes.add("standardize");
-      passes.add("check");
-      passes.add("flatten");
-      passes.add("reorder");
-      passes.add("check");
-      passes.add("chalice-optimize");
-      passes.add("standardize");
-      passes.add("check");      
-      passes.add("chalice-preprocess");
-      passes.add("standardize");
-      passes.add("check");
-      if (chalice.get()){
-        passes.add("chalice");
-      } else {
-        passes.add("silicon-chalice");
-      }
     } else if (dafny.get()) {
-      passes=new ArrayList<String>();
+      passes=new LinkedBlockingDeque<String>();
       passes.add("java_resolve");
       passes.add("standardize");
       passes.add("check");
@@ -875,90 +763,91 @@ public class Main
       //passes.add("check");
       passes.add("dafny");
     } else if (verifast.get()) {
-      passes=new ArrayList<String>();
+      passes=new LinkedBlockingDeque<String>();
       passes.add("java_resolve");
       passes.add("standardize");
       passes.add("check");
       passes.add("verifast");
-    } else if (silver.used()) {
-      passes=new ArrayList<String>();
-//      passes.add("standardize");
-//      passes.add("check");
-      passes.add("filter_spec_ignore");
+    } else if (silver.used()||chalice.get()||chalice2sil.get()) {
+      passes=new LinkedBlockingDeque<String>();
       passes.add("java_resolve");
       if (sat_check.get()) passes.add("sat_check");
-      passes.add("lock-encode");
+      if (features.usesSpecial(ASTSpecial.Kind.Lock)
+         ||features.usesSpecial(ASTSpecial.Kind.Unlock)
+      ){
+        passes.add("lock-encode");
+      }
       passes.add("standardize");
-      passes.add("check");
+      passes.add("check");        
       if (features.usesOperator(StandardOperator.Wand)){
         passes.add("magicwand");
         passes.add("standardize");
         passes.add("check");
       }
-      if (features.usesSpecial(ASTSpecial.Kind.Fork)
+      if ((chalice.get()||chalice2sil.get()) && features.hasStaticItems()){
+        passes.add("standardize");
+        passes.add("check");
+        passes.add("globalize");
+        passes.add("standardize");
+        passes.add("check");
+      }
+      if ( silver.used() && // Chalice has its own built-ins, for now.
+          (features.usesSpecial(ASTSpecial.Kind.Fork)
          ||features.usesSpecial(ASTSpecial.Kind.Join)
          ||features.usesOperator(StandardOperator.PVLidleToken)
-         ||features.usesOperator(StandardOperator.PVLjoinToken)
+         ||features.usesOperator(StandardOperator.PVLjoinToken))
       ){
         passes.add("fork-join-encode");
         passes.add("standardize");
         passes.add("check");
       }
-      if (inline_predicates.get()){
-        passes.add("auto-inline");
-      } else {
-        passes.add("user-inline");
-      }
+      passes.add("user-inline");
       passes.add("standardize");
       passes.add("check");
-      if (features.usesPragma("omp")){
-        passes.add("openmp2pvl");
-        passes.add("standardize");
-        passes.add("check");
-      }
-      if (features.usesCSL()){
-        passes.add("csl-encode");
-        passes.add("standardize");
-        passes.add("check");
-      }
-      if (features.usesParallelBlocks()||features.usesCSL()||features.usesPragma("omp")){
-        passes.add("parallel_blocks");
-        passes.add("standardize");
-        passes.add("check");        
-      }
-      if (features.usesIterationContracts()){
-        //passes.add("recognize_multidim");
-        passes.add("recognize_loops");
-        passes.add("merge_loops");
-        passes.add("standardize");
-        passes.add("check");
-        passes.add("iter");
-      }// else {
-        passes.add("standardize");
-        passes.add("check");    
+
+      if (silver.used()) {
+        if (features.usesIterationContracts()||features.usesPragma("omp")){
+          passes.add("openmp2pvl");
+          passes.add("standardize");
+          passes.add("check");
+        }
+        if (features.usesCSL()){
+          passes.add("csl-encode");
+          passes.add("standardize");
+          passes.add("check");
+        }
+        if (features.usesIterationContracts()||features.usesParallelBlocks()||features.usesCSL()||features.usesPragma("omp")){
+          passes.add("parallel_blocks");
+          passes.add("standardize");
+          passes.add("check");        
+        }
         passes.add("recognize_multidim");
-      //}
-      passes.add("simplify_quant");
-      if (features.usesSummation()||features.usesIterationContracts()) passes.add("simplify_sums");
-      passes.add("standardize");
-      passes.add("check");
+        passes.add("simplify_quant");
+        if (features.usesSummation()||features.usesIterationContracts()) passes.add("simplify_sums");
+        passes.add("standardize");
+        passes.add("check");
+      }
+      
       if (features.usesKernels()){
         passes.add("kernel-split");
-        //passes.add("simplify_expr");
         passes.add("simplify_quant");
         passes.add("standardize");
         passes.add("check");       
       }
+            
       boolean has_type_adt=false;
-      if (  features.usesOperator(StandardOperator.Instance)
-        || features.usesInheritance()
-        || features.usesOperator(StandardOperator.TypeOf)
-      ){
-        passes.add("add-type-adt");
-        passes.add("standardize");
-        passes.add("check");
-        has_type_adt=true;   
+      if (silver.used()) {
+        if (  features.usesOperator(StandardOperator.Instance)
+          || features.usesInheritance()
+          || features.usesOperator(StandardOperator.TypeOf)
+        ){
+          passes.add("add-type-adt");
+          passes.add("standardize");
+          passes.add("check");
+          has_type_adt=true;   
+        }
       }
+
       if (features.usesInheritance()){
         passes.add("standardize");
         passes.add("check");       
@@ -966,80 +855,143 @@ public class Main
         passes.add("standardize");
         passes.add("check");       
       }
-      if (check_defined.get()){
-        passes.add("check-defined");
+        
+      if (silver.used()) {
+        // histories and futures
+        if (check_defined.get()){
+          passes.add("check-defined");
+          passes.add("standardize");
+          passes.add("check");
+        }
+        if (check_axioms.get()){
+          passes.add("check-axioms");
+          passes.add("standardize");
+          passes.add("check");
+        }
+        if (check_history.get()){
+          passes.add("access");
+          passes.add("standardize");
+          passes.add("check");
+          passes.add("check-history");
+          passes.add("standardize");
+          passes.add("check");
+        }
+        passes.add("current_thread");
+        passes.add("standardize");
+        passes.add("check");    
+        passes.add("flatten");
+        passes.add("assign");
+        passes.add("reorder");
         passes.add("standardize");
         passes.add("check");
-      }
-      if (check_axioms.get()){
-        passes.add("check-axioms");
-        passes.add("standardize");
-        passes.add("check");
-      }
-      if (check_history.get()){
-        passes.add("access");
-        passes.add("standardize");
-        passes.add("check");
-        passes.add("check-history");
-        passes.add("standardize");
-        passes.add("check");
-      }
-      passes.add("current_thread");
-      passes.add("standardize");
-      passes.add("check");    
-      passes.add("flatten");
-      passes.add("assign");
-      passes.add("reorder");
-      passes.add("standardize");
-      passes.add("check");
-      // Split into class-conversion + silver-class-reduction
-      // TODO: check if no other functionality destroyed.
-      //passes.add("silver_constructors");
-      //passes.add("standardize");
-      //passes.add("check");
-      //if (!check_csl.get()){
         passes.add("ref_array");
         passes.add("standardize");
         passes.add("check");
-      //}
-      passes.add("class-conversion");
-      passes.add("standardize");
-      passes.add("check");
-      passes.add("silver-class-reduction");
-      passes.add("standardize");
-      passes.add("check");
-      if (has_type_adt){
-        passes.add("voidcallsthrown");
+        passes.add("[globalize]");
+        passes.add("class-conversion");
+        passes.add("standardize");
+        passes.add("check");
+        passes.add("silver-class-reduction");
+        passes.add("standardize");
+        passes.add("check");
+        if (has_type_adt){
+          passes.add("voidcallsthrown");
+        } else {
+          passes.add("voidcalls");
+        }
+        passes.add("standardize");
+        passes.add("check");
+        passes.add("ghost-lift");
+        passes.add("standardize");
+        passes.add("check");
+        passes.add("flatten");
+        passes.add("reorder");
+        passes.add("flatten_before_after");
+        passes.add("silver-reorder");
+        passes.add("silver-identity");
+        passes.add("standardize");
+        passes.add("check"); 
+        passes.add("silver-optimize");
+        passes.add("quant-optimize");
+        passes.add("standardize-functions");
+        passes.add("standardize");
+        passes.add("check");      
+        passes.add("scale-always");
+        passes.add("standardize");
+        passes.add("check");
+        passes.add("silver");
       } else {
+        if (check_defined.get()){
+          passes.add("check-defined");
+          passes.add("standardize");
+          passes.add("check");
+        }
+        if (features.usesCSL()){
+          passes.add("csl-encode");
+          passes.add("standardize");
+          passes.add("check");
+        }
+        if (explicit_encoding.get()){
+          //passes.add("standardize");
+          //passes.add("check");       
+          passes.add("explicit_encoding");
+          passes.add("standardize");
+          passes.add("check");
+        } else {
+          passes.add("flatten_before_after");
+          passes.add("standardize");
+          passes.add("check");        
+        }
+        passes.add("rewrite_arrays");
+        passes.add("standardize");
+        passes.add("check");
+        passes.add("flatten");
+        passes.add("finalize_args");
+        passes.add("reorder");
+        passes.add("standardize");
+        passes.add("check");
+        if (features.usesDoubles()){
+          Warning("defining Double");
+          passes.add("define_double");
+          passes.add("standardize");
+          passes.add("check");
+        }
+        passes.add("assign");
+        passes.add("reorder");
+        passes.add("standardize");
+        passes.add("check");
+        passes.add("rm_cons");
+        passes.add("standardize");
+        passes.add("check");
         passes.add("voidcalls");
+        passes.add("standardize");
+        passes.add("check");
+        passes.add("flatten");
+        passes.add("reorder");
+        passes.add("check");
+        passes.add("chalice-optimize");
+        passes.add("standardize");
+        passes.add("check");      
+        passes.add("chalice-preprocess");
+        passes.add("standardize");
+        passes.add("check");
+        if (chalice.get()){
+          passes.add("chalice");
+        } else {
+          passes.add("silicon-chalice");
+        }
       }
-      passes.add("standardize");
-      passes.add("check");
-      passes.add("ghost-lift");
-      passes.add("standardize");
-      passes.add("check");
-      passes.add("flatten");
-      passes.add("reorder");
-      passes.add("flatten_before_after");
-      passes.add("silver-reorder");
-      passes.add("silver-identity");
-      passes.add("standardize");
-      passes.add("check"); 
-      passes.add("silver-optimize");
-      passes.add("quant-optimize");
-      passes.add("standardize-functions");
-      passes.add("standardize");
-      passes.add("check");      
-      passes.add("scale-always");
-      passes.add("standardize");
-      passes.add("check");
-      passes.add("silver");     
     } else {
     	Abort("no back-end or passes specified");
     }
     {
       CompositeReport res=new CompositeReport();
-      for(String pass:passes!=null?passes:pass_list){
+      if (passes==null){
+        passes=new LinkedBlockingDeque<String>();
+        for(String s:pass_list)passes.add(s);
+      }
+      while(!passes.isEmpty()){
+        String pass=passes.removeFirst();
         String[] pass_args=pass.split("=");
         pass=pass_args[0];
         if (pass_args.length==1){
@@ -1063,7 +1015,7 @@ public class Main
         if (task!=null){
           Progress("Applying %s ...",pass);
           startTime = System.currentTimeMillis();
-          program=task.apply(program,pass_args);
+          program=task.apply(passes,program,pass_args);
           Progress(" ... pass took %d ms",System.currentTimeMillis()-startTime);
           if (task.report!=null){
             res.addReport(task.report);

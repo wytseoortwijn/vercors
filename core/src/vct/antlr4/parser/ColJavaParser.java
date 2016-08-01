@@ -21,6 +21,7 @@ import vct.col.ast.ASTNode;
 import vct.col.ast.ProgramUnit;
 import vct.col.rewrite.AbstractRewriter;
 import vct.col.rewrite.AnnotationInterpreter;
+import vct.col.rewrite.FilterSpecIgnore;
 import vct.col.rewrite.FlattenVariableDeclarations;
 import vct.col.syntax.JavaDialect;
 import vct.col.syntax.JavaSyntax;
@@ -81,6 +82,9 @@ public class ColJavaParser implements vct.col.util.Parser {
         //pu=new JavaResolver(pu).rewriteAll();
         //Progress("resolving library calls took %dms",tk.show());        
         //vct.util.Configuration.getDiagSyntax().print(System.out,pu);
+        
+        pu=new FilterSpecIgnore(pu).rewriteAll();
+        Progress("filtering spec_ignore took %dms",tk.show()); 
 
         return pu;
       } catch (FileNotFoundException e) {

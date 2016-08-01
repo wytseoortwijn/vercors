@@ -16,6 +16,7 @@ import vct.antlr4.parser.OMPpragma;
 import vct.col.ast.*;
 import vct.col.ast.ASTSpecialDeclaration.Kind;
 import vct.col.ast.PrimitiveType.Sort;
+import vct.col.util.FeatureScanner;
 
 interface PPLProgram {
 
@@ -127,6 +128,89 @@ enum PPLOperator { Sequential, Fuse, Parallel }
 
 public class OpenMPtoPVL extends AbstractRewriter {
 
+  private DeclarationStatement tryIter(LoopStatement loop){
+    ASTNode tmp=loop.getInitBlock();
+    if (tmp instanceof BlockStatement){
+      BlockStatement block=(BlockStatement)tmp;
+      if (block.getLength()==1){
+        tmp=block.get(0);
+      }
+    }
+    if (tmp instanceof DeclarationStatement) {
+      Debug("declaration found");
+      DeclarationStatement decl=(DeclarationStatement)tmp;
+      tmp=loop.getUpdateBlock();
+      if (tmp instanceof BlockStatement){
+        BlockStatement block=(BlockStatement)tmp;
+        if (block.getLength()==1){
+          tmp=block.get(0);
+        }
+      }
+      if (tmp.isa(StandardOperator.PostIncr)||tmp.isa(StandardOperator.PreIncr)){
+        Debug("increment found");
+        tmp=((OperatorExpression)tmp).getArg(0);
+        if (tmp.isName(decl.name)){
+          Debug("match");
+          ASTNode upper=((OperatorExpression)loop.getEntryGuard()).getArg(1);
+          return create.field_decl(
+              decl.name,
+              rewrite(decl.getType()),
+              create.expression(StandardOperator.RangeSeq,
+                  rewrite(decl.getInit()),
+                  rewrite(upper)
+              )
+          );
+        }
+      }
+    }
+    return null;
+  }
+  
+  @Override
+  public void visit(LoopStatement loop){
+    int level=0;
+    ArrayList<DeclarationStatement> decls=new ArrayList();
+    LoopStatement tmp=loop;
+    for(;;){
+      DeclarationStatement d=tryIter(tmp);
+      if (d==null){
+        level=0;
+        break;
+      }
+      decls.add(d);
+      if(FeatureScanner.isIterationContract(tmp.getContract())){
+        level++;
+        break;
+      }
+      if (tmp.getContract()==null || tmp.getContract().isEmpty()){
+        if (tmp.getBody() instanceof BlockStatement){
+          BlockStatement block=(BlockStatement)tmp.getBody();
+          if (block.size()==1 && block.get(0) instanceof LoopStatement){
+            tmp=(LoopStatement)block.get(0);
+            level++;
+            continue;
+          }
+        }
+        if (tmp.getBody() instanceof LoopStatement){
+          tmp=(LoopStatement)tmp.getBody();
+          level++;
+          continue;
+        }
+      }
+      level=0;
+      break;
+    }
+    if (level>0){
+      ParallelBlock block=create.parallel_block(
+          "auto",tmp.getContract(),
+          decls.toArray(new DeclarationStatement[decls.size()]),
+          rewrite((BlockStatement)tmp.getBody()));
+      result=create.region(null,block);
+    } else {
+      super.visit(loop);
+    }
+  }
+  
   public OpenMPtoPVL(ProgramUnit source) {
     super(source);
   }
