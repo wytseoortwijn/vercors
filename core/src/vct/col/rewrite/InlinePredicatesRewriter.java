@@ -9,12 +9,9 @@ import vct.col.ast.ProgramUnit;
 import vct.col.ast.StandardOperator;
 
 public class InlinePredicatesRewriter extends AbstractRewriter {
-
-  public final boolean auto;
-  
-  public InlinePredicatesRewriter(ProgramUnit source,boolean auto) {
+ 
+  public InlinePredicatesRewriter(ProgramUnit source) {
     super(source);
-    this.auto=auto;
   }
   
   @Override
@@ -38,7 +35,7 @@ public class InlinePredicatesRewriter extends AbstractRewriter {
     if (def.isValidFlag(ASTFlags.INLINE)){
       inline=(def.kind==Method.Kind.Predicate || def.kind==Method.Kind.Pure) && def.getFlag(ASTFlags.INLINE);
     } else {
-      inline=auto && def.kind==Method.Kind.Predicate && !def.isRecursive();
+      inline=false;
     }
     return inline;
   }
