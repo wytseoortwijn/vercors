@@ -72,8 +72,6 @@ public interface ASTMapping1<R,A1> {
 
   public R map(ActionBlock actionBlock,A1 a);
 
-  public R map(ASTSpecialDeclaration s,A1 a);
-
   public R map(TypeExpression t,A1 a);
 
   public R map(ParallelAtomic pa, A1 a);

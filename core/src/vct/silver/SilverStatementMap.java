@@ -271,6 +271,9 @@ public class SilverStatementMap<T,E,S> implements ASTMapping<S>{
   @Override
   public S map(ASTSpecial special) {
     switch(special.kind){
+    case Comment:
+      valid_null=true;
+      return null;
     case Goto:
       return create.goto_(special.getOrigin(),special.args[0].toString());
     case Label:
@@ -320,17 +323,6 @@ public class SilverStatementMap<T,E,S> implements ASTMapping<S>{
   public S map(ActionBlock actionBlock) {
     // TODO Auto-generated method stub
     return null;
-  }
-
-  @Override
-  public S map(ASTSpecialDeclaration s) {
-    switch(s.kind){
-    case Comment:
-      valid_null=true;
-      return null;
-    default:
-      throw new HREError("cannot map special declaration %s",s.kind);
-    }
   }
 
   @Override

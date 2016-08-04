@@ -40,6 +40,10 @@
  */
 grammar Java;
 
+@header {
+package vct.parsers;
+}
+
 // starting point for parsing a java file
 compilationUnit
     :   packageDeclaration? importDeclaration* typeDeclaration* EOF
@@ -63,12 +67,15 @@ typeDeclaration
 
 modifier
     :   classOrInterfaceModifier
+    |   specificationModifier
     |   (   'native'
         |   'synchronized'
         |   'transient'
         |   'volatile'
         )
     ;
+
+specificationModifier : PLACEHOLDER ;
 
 classOrInterfaceModifier
     :   annotation       // class or interface
@@ -264,6 +271,11 @@ primitiveType
     |   'long'
     |   'float'
     |   'double'
+    |   specificationPrimitiveType
+    ;
+
+specificationPrimitiveType
+    : PLACEHOLDER
     ;
 
 typeArguments
@@ -419,6 +431,11 @@ statement
     |   ';'
     |   statementExpression ';'
     |   Identifier ':' statement
+    |   specificationStatement
+    ;
+
+specificationStatement
+    : PLACEHOLDER
     ;
 
 catchClause
@@ -546,6 +563,11 @@ primary
     |   type '.' 'class'
     |   'void' '.' 'class'
     |   nonWildcardTypeArguments (explicitGenericInvocationSuffix | 'this' arguments)
+	|   specificationPrimary
+    ;
+
+specificationPrimary
+    :  PLACEHOLDER
     ;
 
 creator
@@ -978,7 +1000,7 @@ Identifier
 fragment
 JavaLetter
     :   [a-zA-Z$_] // these are the "java letters" below 0x7F
-    |   // covers all characters above 0x7F which are not a surrogate
+    |   // covers all characters above 0xFF which are not a surrogate
         ~[\u0000-\u007F\uD800-\uDBFF]
         {Character.isJavaIdentifierStart(_input.LA(-1))}?
     |   // covers UTF-16 surrogate pairs encodings for U+10000 to U+10FFFF
@@ -989,7 +1011,7 @@ JavaLetter
 fragment
 JavaLetterOrDigit
     :   [a-zA-Z0-9$_] // these are the "java letters or digits" below 0x7F
-    |   // covers all characters above 0x7F which are not a surrogate
+    |   // covers all characters above 0xFF which are not a surrogate
         ~[\u0000-\u007F\uD800-\uDBFF]
         {Character.isJavaIdentifierPart(_input.LA(-1))}?
     |   // covers UTF-16 surrogate pairs encodings for U+10000 to U+10FFFF
@@ -1003,6 +1025,7 @@ JavaLetterOrDigit
 
 AT : '@';
 ELLIPSIS : '...';
+PLACEHOLDER : EOF EOF; // to be defined in an extension.
 
 //
 // Whitespace and comments
@@ -1011,10 +1034,21 @@ ELLIPSIS : '...';
 WS  :  [ \t\r\n\u000C]+ -> skip
     ;
 
+EmbeddedLatex
+    : '#' ~[\r\n]* '#' -> skip
+    ;
+
 COMMENT
-    :   '/*' .*? '*/' -> skip
+    :   '/*' .*? '*/' -> channel(COMMENT)
     ;
 
 LINE_COMMENT
-    :   '//' ~[\r\n]* -> skip
+    :   '//' ~[\r\n]* -> channel(COMMENT)
     ;
+
+FileName : '"' ~[\r\n"]* '"' ;
+
+LINEDIRECTION
+    :   '#' WS? IntegerLiteral WS? FileName ~[\r\n]* -> channel(LINEDIRECTION)
+    ;
+    

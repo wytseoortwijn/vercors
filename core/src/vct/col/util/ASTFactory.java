@@ -2,20 +2,16 @@
 package vct.col.util;
 
 import java.util.ArrayList;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.SortedMap;
 
 import vct.col.ast.*;
 import vct.col.ast.ASTClass.ClassKind;
-import vct.col.ast.ASTSpecialDeclaration.Kind;
 import vct.col.ast.BindingExpression.Binder;
 import vct.col.ast.PrimitiveType.Sort;
 import vct.col.rewrite.AbstractRewriter;
 import vct.util.ClassName;
-import vct.util.Configuration;
 import viper.api.Triple;
 import hre.ast.Origin;
 import hre.util.FrameControl;
@@ -55,7 +51,7 @@ public class ASTFactory<E> implements FrameControl {
    * Visitor to be called immediately after construction of a new node.
    * This variable may be null;
    */
-  private ASTVisitor post=null;
+  private ASTVisitor<?> post=null;
   
 
   private final AbstractRewriter copy_rw;
@@ -255,8 +251,8 @@ public BlockStatement block(Origin origin, ASTNode ... args) {
   public ClassType class_type(String name,ASTNode ... args){
     return class_type(origin_stack.get(),name,args);
   }
-  public ASTSpecialDeclaration comment(String text) {
-    return special_decl(vct.col.ast.ASTSpecialDeclaration.Kind.Comment,constant(text));
+  public ASTSpecial comment(String text) {
+    return special(vct.col.ast.ASTSpecial.Kind.Comment,constant(text));
   }
 
   public ConstantExpression constant(boolean b) {
@@ -884,7 +880,7 @@ public ReturnStatement return_statement(ASTNode ... value){
  * @param origin The new origin.
  * @return The AST factory.
  */
-public ASTFactory setOrigin(Origin origin) {
+public ASTFactory<E> setOrigin(Origin origin) {
   this.origin_stack.set(origin);
   return this;
 }
@@ -897,13 +893,13 @@ public ASTSpecial special(Origin origin, vct.col.ast.ASTSpecial.Kind kind, ASTNo
  public ASTSpecial special(vct.col.ast.ASTSpecial.Kind kind, ASTNode ... args) {
   return special(origin_stack.get(),kind,args);
 }
- public ASTSpecialDeclaration special_decl(Origin origin, vct.col.ast.ASTSpecialDeclaration.Kind kind, ASTNode ... args) {
-   ASTSpecialDeclaration res=new ASTSpecialDeclaration(kind,args);
+ public ASTSpecial special_decl(Origin origin, vct.col.ast.ASTSpecial.Kind kind, ASTNode ... args) {
+   ASTSpecial res=new ASTSpecial(kind,args);
    res.setOrigin(origin);
    res.accept_if(post);
    return res;
  }
-  public ASTSpecialDeclaration special_decl(vct.col.ast.ASTSpecialDeclaration.Kind kind, ASTNode ... args) {
+  public ASTSpecial special_decl(vct.col.ast.ASTSpecial.Kind kind, ASTNode ... args) {
    return special_decl(origin_stack.get(),kind,args);
  }
 
@@ -1241,9 +1237,9 @@ public Axiom axiom(String name,ASTNode exp){
     return class_type(name,toArray(args));
   }
 
-  private <E extends ASTNode> ASTNode[] toArray(Map<String, E> map){
-    ArrayList<ASTNode> list=new ArrayList();
-    for(Entry<String, E> e:map.entrySet()){
+  private <F extends ASTNode> ASTNode[] toArray(Map<String, F> map){
+    ArrayList<ASTNode> list=new ArrayList<ASTNode>();
+    for(Entry<String, F> e:map.entrySet()){
       ASTNode n=e.getValue();
       n.addLabel(label(e.getKey()));
       list.add(n);

@@ -136,9 +136,9 @@ public class BoogiePrinter extends AbstractBoogiePrinter {
         if (m.kind==Method.Kind.Constructor){
           continue;
         }
-      } else if (cl.getDynamic(i) instanceof ASTSpecialDeclaration){
-        ASTSpecialDeclaration s=(ASTSpecialDeclaration)cl.getDynamic(i);
-        if (s.kind==ASTSpecialDeclaration.Kind.Comment){
+      } else if (cl.getDynamic(i) instanceof ASTSpecial){
+        ASTSpecial s=(ASTSpecial)cl.getDynamic(i);
+        if (s.kind==ASTSpecial.Kind.Comment){
           continue;
         }
       }

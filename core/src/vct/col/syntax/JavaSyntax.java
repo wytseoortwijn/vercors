@@ -6,6 +6,7 @@ import hre.ast.TrackingOutput;
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTReserved;
 import vct.col.ast.ASTSpecial;
+import vct.col.ast.ASTSpecial.Kind;
 import vct.col.print.JavaPrinter;
 import vct.col.rewrite.Parenthesize;
 import hre.HREError;
@@ -81,8 +82,11 @@ public class JavaSyntax extends Syntax {
         syntax.addReserved(Pure,"pure");
         syntax.addReserved(CurrentThread,"\\current_thread");
 
-        syntax.addSpecial(ASTSpecial.Kind.DeclareAction,"action");
-        syntax.addSpecial(ASTSpecial.Kind.ChooseHistory,"choose");
+        syntax.add_annotation(ASTSpecial.Kind.DeclareAction,"action");
+        syntax.add_annotation(ASTSpecial.Kind.ChooseHistory,"choose");
+        syntax.add_annotation(ASTSpecial.Kind.CreateHistory,"create");
+        
+        syntax.add_annotation(Kind.Assert, "assert");
                
         JavaVerCorsSyntax=syntax;
         
@@ -135,7 +139,7 @@ public class JavaSyntax extends Syntax {
     syntax.addInfix(LTE,"<=",90);
     syntax.addInfix(GT,">",90);
     syntax.addInfix(GTE,">=",90);
-    syntax.addInfix(Instance," instanceof ",90);
+    syntax.addInfix(Instance,"instanceof",90);
     //  8 equality  == !=
     syntax.addInfix(EQ,"==",80);
     syntax.addInfix(NEQ,"!=",80);

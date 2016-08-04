@@ -142,9 +142,9 @@ public class CounterState {
     //@ with { inv = c_res ; }
     {
        val=val+1;
-       incr_call:c.incr/*@ v=i; req=inv; */();
+       c.incr/*@ v=i; req=inv; */() /*@ then { inv = ens; } @*/;
        //@ i = i + 1 ;
-       //@ inv = incr_call.ens ;
+       // this should have worked isntead of the then above ? @ inv = incr_call.ens ;
     }
     //@ fold ens:state(100,v+n);
   }

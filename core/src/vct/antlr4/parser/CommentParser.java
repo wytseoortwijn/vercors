@@ -35,6 +35,8 @@ public abstract class CommentParser<Parser extends org.antlr.v4.runtime.Parser,L
     this.ec=ec;
     parser.removeErrorListeners();
     parser.addErrorListener(ec);
+    lexer.removeErrorListeners();
+    lexer.addErrorListener(ec);
   }
 
   public Contract contract(ASTSequence<?> seq,InputStream fifo){

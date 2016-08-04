@@ -8,7 +8,7 @@ import java.util.ArrayList;
  * @author sccblom
  *
  */
-public class MessageOrigin implements Origin {
+public class MessageOrigin extends Origin {
 
     private String message;
     public MessageOrigin(String format,Object ... args){

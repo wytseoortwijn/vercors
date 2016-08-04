@@ -9,7 +9,7 @@ import vct.col.ast.*;
 import vct.col.ast.PrimitiveType.Sort;
 import vct.col.util.OriginWrapper;
 
-class IllegalThreadLocalOrigin implements WrappingOrigin {
+class IllegalThreadLocalOrigin extends WrappingOrigin {
 
   public final  Origin other;
   

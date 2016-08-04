@@ -5,7 +5,6 @@ import vct.col.ast.ASTDeclaration;
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTReserved;
 import vct.col.ast.ASTSpecial;
-import vct.col.ast.ASTSpecialDeclaration;
 import vct.col.ast.PrimitiveType.Sort;
 import vct.col.ast.ProgramUnit;
 import vct.col.ast.StandardOperator;
@@ -34,8 +33,9 @@ public class Syntax {
   /**
    * Map annotations to keywords.
    */
-  private Map<ASTSpecialDeclaration.Kind,String> annotation_print=
-    new EnumMap<ASTSpecialDeclaration.Kind,String>(ASTSpecialDeclaration.Kind.class);
+  private Map<ASTSpecial.Kind,String> annotation_print=
+    new EnumMap<ASTSpecial.Kind,String>(ASTSpecial.Kind.class);
+  
   /**
    * Map keywords to annotations.
    * If an annotation can have a variable number of
@@ -43,11 +43,10 @@ public class Syntax {
    * Annotations with different numbers of arguments can have
    * overloaded keywords.
    */
-  private Map<String,Map<Integer,ASTSpecialDeclaration.Kind>> annotation_parse=
-    new HashMap();
+  private Map<String,Map<Integer,ASTSpecial.Kind>> annotation_parse=new HashMap();
   
-  public void add_annotation(ASTSpecialDeclaration.Kind kind,String syntax){
-    Map<Integer,ASTSpecialDeclaration.Kind> parse=annotation_parse.get(syntax);
+  public void add_annotation(ASTSpecial.Kind kind,String syntax){
+    Map<Integer,ASTSpecial.Kind> parse=annotation_parse.get(syntax);
     int arity=kind.arity();
     if (parse==null){
       parse=new HashMap();
@@ -64,17 +63,18 @@ public class Syntax {
     annotation_print.put(kind, syntax);
   }
   
-  String get_annotation(ASTSpecialDeclaration.Kind kind){
+  public String get_annotation(ASTSpecial.Kind kind){
     return annotation_print.get(kind);
   }
   
-  boolean is_annotation(String string){
+  public boolean is_annotation(String string){
     return annotation_parse.get(string)!=null;
   }
   
-  ASTSpecialDeclaration.Kind get_annotation(String string,int argc){
-    Map<Integer,ASTSpecialDeclaration.Kind> parse=annotation_parse.get(string);
-    ASTSpecialDeclaration.Kind res=parse.get(-1);
+  public ASTSpecial.Kind get_annotation(String string,int argc){
+    Map<Integer,ASTSpecial.Kind> parse=annotation_parse.get(string);
+    if (parse==null) return null;
+    ASTSpecial.Kind res=parse.get(-1);
     if(res==null){
       res=parse.get(argc);
     }
@@ -99,9 +99,6 @@ public class Syntax {
   
   private Map<ASTReserved,String> reserved2syntax = new HashMap<ASTReserved, String>();
   private Map<String,ASTReserved> syntax2reserved = new HashMap<String, ASTReserved>();
-
-  private Map<ASTSpecial.Kind,String> special2syntax = new HashMap<ASTSpecial.Kind, String>();
-  private Map<String,ASTSpecial.Kind> syntax2special = new HashMap<String, ASTSpecial.Kind>();
   
   /**
    * Get a pattern that can be matched against an ANTLR 4.x parse tree.
@@ -256,25 +253,6 @@ public class Syntax {
     //System.err.printf("%n");
     pattern_map.put(op, pattern.toArray(full_syntax));
   }
-  
-  
-  public void addSpecial(ASTSpecial.Kind word,String string) {
-    special2syntax.put(word,string);
-    syntax2special.put(string,word);
-  }
-
-  public boolean is_special(String text) {
-    return syntax2special.containsKey(text);
-  }
-
-  public ASTSpecial.Kind special(String text) {
-    return syntax2special.get(text);
-  }
-
-  public String getSyntax(ASTSpecial.Kind word) {
-    return special2syntax.get(word);
-  }
-
   
   public void addReserved(ASTReserved word,String string) {
     reserved2syntax.put(word,string);

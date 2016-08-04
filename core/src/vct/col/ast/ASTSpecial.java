@@ -4,7 +4,7 @@ import java.util.Arrays;
 
 import vct.util.ClassName;
 
-public class ASTSpecial extends ASTNode {
+public class ASTSpecial extends ASTDeclaration {
 
   @Override
   public <R,A> R accept_simple(ASTMapping1<R,A> map,A arg){
@@ -12,20 +12,17 @@ public class ASTSpecial extends ASTNode {
   }
 
   public static enum Kind {
-    Assert,
+    Assert(-1),
     Expression,
-    // Invariant,
-//    Fold
     With,
     Then,
     Proof,
     Import,
     Throw,
     Label,
-    //Contract, Requires, Ensures, Given, Yields, Modifies,
     Exhale,
     Inhale,
-    DeclareAction,
+    DeclareAction(4),
     CreateHistory,
     DestroyHistory,
     CreateFuture,
@@ -45,7 +42,26 @@ public class ASTSpecial extends ASTNode {
     Wait,
     Notify,
     Fork,
-    Join
+    Join,
+    Comment,
+    Invariant,
+    Contract, Requires, Ensures, Given, Yields, Modifies, Pragma,
+    Accessible;
+
+    
+    
+    private final int arity;
+    
+    Kind(){
+      this.arity=1;
+    }
+    Kind(int arity){
+      this.arity=arity;
+    }
+    
+    public int arity(){ return arity; }
+
+
   };
 
   public final Kind kind;
@@ -53,6 +69,8 @@ public class ASTSpecial extends ASTNode {
   public final ASTNode[] args;
   
   public ASTSpecial(Kind kind,ASTNode ... args){
+    super("<<special>>");
+    if (kind == null) hre.System.Abort("kind cannot be null");
     this.kind=kind;
     this.args=Arrays.copyOf(args,args.length);
   }
@@ -84,9 +102,16 @@ public class ASTSpecial extends ASTNode {
     }
   }
  
-  
+  @Override
   public boolean isSpecial(Kind with) {
     return kind==with;
   }
+
+  @Override
+  public ClassName getDeclName() {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
 
 }

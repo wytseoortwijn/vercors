@@ -2,7 +2,9 @@ package vct.antlr4.parser;
 
 import hre.HREError;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Stack;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.antlr.v4.runtime.BufferedTokenStream;
@@ -10,17 +12,154 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.Parser;
 
+import com.sun.net.httpserver.Authenticator.Failure;
+
 import vct.col.ast.*;
+import vct.col.ast.ASTSpecial.Kind;
+import vct.col.ast.PrimitiveType.Sort;
 import vct.col.syntax.JavaDialect;
 import vct.col.syntax.JavaSyntax;
 import vct.col.syntax.Syntax;
 import vct.parsers.JavaJMLParser.*;
 import vct.parsers.*;
+import vct.parsers.JavaJMLParser.AdditionalBoundContext;
+import vct.parsers.JavaJMLParser.AdditiveExpressionContext;
+import vct.parsers.JavaJMLParser.AmbiguousNameContext;
+import vct.parsers.JavaJMLParser.AndExpressionContext;
+import vct.parsers.JavaJMLParser.AnnotationTypeElementModifierContext;
+import vct.parsers.JavaJMLParser.AnnotationTypeMemberDeclarationContext;
+import vct.parsers.JavaJMLParser.ArgumentListContext;
+import vct.parsers.JavaJMLParser.ArrayAccessContext;
+import vct.parsers.JavaJMLParser.ArrayAccess_lf_primaryContext;
+import vct.parsers.JavaJMLParser.ArrayAccess_lfno_primaryContext;
+import vct.parsers.JavaJMLParser.ArrayCreationExpressionContext;
+import vct.parsers.JavaJMLParser.ArrayTypeContext;
+import vct.parsers.JavaJMLParser.AssertStatementContext;
+import vct.parsers.JavaJMLParser.AssignmentContext;
+import vct.parsers.JavaJMLParser.AssignmentExpressionContext;
+import vct.parsers.JavaJMLParser.AssignmentOperatorContext;
 import vct.parsers.JavaJMLParser.AxiomDeclarationContext;
+import vct.parsers.JavaJMLParser.BasicForStatementContext;
+import vct.parsers.JavaJMLParser.BasicForStatementNoShortIfContext;
+import vct.parsers.JavaJMLParser.BlockStatementsContext;
+import vct.parsers.JavaJMLParser.BreakStatementContext;
+import vct.parsers.JavaJMLParser.CastExpressionContext;
+import vct.parsers.JavaJMLParser.CatchFormalParameterContext;
+import vct.parsers.JavaJMLParser.CatchesContext;
+import vct.parsers.JavaJMLParser.ClassInstanceCreationExpressionContext;
+import vct.parsers.JavaJMLParser.ClassInstanceCreationExpression_lf_primaryContext;
+import vct.parsers.JavaJMLParser.ClassInstanceCreationExpression_lfno_primaryContext;
+import vct.parsers.JavaJMLParser.ClassMemberDeclarationContext;
+import vct.parsers.JavaJMLParser.ClassModifierContext;
+import vct.parsers.JavaJMLParser.ClassTypeContext;
+import vct.parsers.JavaJMLParser.ClassType_lf_classOrInterfaceTypeContext;
+import vct.parsers.JavaJMLParser.ClassType_lfno_classOrInterfaceTypeContext;
+import vct.parsers.JavaJMLParser.ConditionalAndExpressionContext;
+import vct.parsers.JavaJMLParser.ConditionalExpressionContext;
+import vct.parsers.JavaJMLParser.ConditionalOrExpressionContext;
+import vct.parsers.JavaJMLParser.ConstantDeclarationContext;
+import vct.parsers.JavaJMLParser.ConstantModifierContext;
+import vct.parsers.JavaJMLParser.ConstructorDeclaratorContext;
+import vct.parsers.JavaJMLParser.ConstructorModifierContext;
+import vct.parsers.JavaJMLParser.ContinueStatementContext;
+import vct.parsers.JavaJMLParser.DimExprContext;
+import vct.parsers.JavaJMLParser.DimExprsContext;
+import vct.parsers.JavaJMLParser.DimsContext;
+import vct.parsers.JavaJMLParser.DoStatementContext;
+import vct.parsers.JavaJMLParser.ElementValueListContext;
+import vct.parsers.JavaJMLParser.ElementValuePairListContext;
+import vct.parsers.JavaJMLParser.EmptyStatementContext;
+import vct.parsers.JavaJMLParser.EnhancedForStatementContext;
+import vct.parsers.JavaJMLParser.EnhancedForStatementNoShortIfContext;
+import vct.parsers.JavaJMLParser.EnumBodyContext;
+import vct.parsers.JavaJMLParser.EnumConstantListContext;
+import vct.parsers.JavaJMLParser.EnumConstantModifierContext;
+import vct.parsers.JavaJMLParser.EqualityExpressionContext;
+import vct.parsers.JavaJMLParser.ExceptionTypeContext;
+import vct.parsers.JavaJMLParser.ExceptionTypeListContext;
+import vct.parsers.JavaJMLParser.ExclusiveOrExpressionContext;
+import vct.parsers.JavaJMLParser.ExplicitConstructorInvocationContext;
+import vct.parsers.JavaJMLParser.ExpressionNameContext;
+import vct.parsers.JavaJMLParser.ExpressionStatementContext;
+import vct.parsers.JavaJMLParser.ExtendsInterfacesContext;
+import vct.parsers.JavaJMLParser.FieldAccessContext;
+import vct.parsers.JavaJMLParser.FieldAccess_lf_primaryContext;
+import vct.parsers.JavaJMLParser.FieldAccess_lfno_primaryContext;
+import vct.parsers.JavaJMLParser.FieldDeclarationContext;
+import vct.parsers.JavaJMLParser.FieldModifierContext;
+import vct.parsers.JavaJMLParser.Finally_Context;
+import vct.parsers.JavaJMLParser.FloatingPointTypeContext;
+import vct.parsers.JavaJMLParser.ForStatementContext;
+import vct.parsers.JavaJMLParser.ForStatementNoShortIfContext;
 import vct.parsers.JavaJMLParser.FunctionDeclarationContext;
+import vct.parsers.JavaJMLParser.IfThenElseStatementContext;
+import vct.parsers.JavaJMLParser.IfThenElseStatementNoShortIfContext;
+import vct.parsers.JavaJMLParser.IfThenStatementContext;
+import vct.parsers.JavaJMLParser.InclusiveOrExpressionContext;
+import vct.parsers.JavaJMLParser.InferredFormalParameterListContext;
+import vct.parsers.JavaJMLParser.InstanceInitializerContext;
+import vct.parsers.JavaJMLParser.IntegralTypeContext;
+import vct.parsers.JavaJMLParser.InterfaceMethodModifierContext;
+import vct.parsers.JavaJMLParser.InterfaceModifierContext;
+import vct.parsers.JavaJMLParser.InterfaceTypeContext;
+import vct.parsers.JavaJMLParser.InterfaceTypeListContext;
+import vct.parsers.JavaJMLParser.InterfaceType_lf_classOrInterfaceTypeContext;
+import vct.parsers.JavaJMLParser.InterfaceType_lfno_classOrInterfaceTypeContext;
 import vct.parsers.JavaJMLParser.LabeledExpressionContext;
+import vct.parsers.JavaJMLParser.LabeledStatementContext;
+import vct.parsers.JavaJMLParser.LabeledStatementNoShortIfContext;
+import vct.parsers.JavaJMLParser.LambdaBodyContext;
+import vct.parsers.JavaJMLParser.LambdaExpressionContext;
+import vct.parsers.JavaJMLParser.LambdaParametersContext;
+import vct.parsers.JavaJMLParser.LeftHandSideContext;
+import vct.parsers.JavaJMLParser.MarkerAnnotationContext;
+import vct.parsers.JavaJMLParser.MethodDeclaratorContext;
+import vct.parsers.JavaJMLParser.MethodHeaderContext;
+import vct.parsers.JavaJMLParser.MethodInvocationContext;
+import vct.parsers.JavaJMLParser.MethodInvocation_lf_primaryContext;
+import vct.parsers.JavaJMLParser.MethodInvocation_lfno_primaryContext;
+import vct.parsers.JavaJMLParser.MethodModifierContext;
+import vct.parsers.JavaJMLParser.MethodNameContext;
+import vct.parsers.JavaJMLParser.MethodReferenceContext;
+import vct.parsers.JavaJMLParser.MethodReference_lf_primaryContext;
+import vct.parsers.JavaJMLParser.MethodReference_lfno_primaryContext;
+import vct.parsers.JavaJMLParser.MultiplicativeExpressionContext;
+import vct.parsers.JavaJMLParser.NormalAnnotationContext;
+import vct.parsers.JavaJMLParser.NormalClassDeclarationContext;
+import vct.parsers.JavaJMLParser.NormalInterfaceDeclarationContext;
+import vct.parsers.JavaJMLParser.NumericTypeContext;
+import vct.parsers.JavaJMLParser.PackageModifierContext;
+import vct.parsers.JavaJMLParser.PackageNameContext;
+import vct.parsers.JavaJMLParser.PackageOrTypeNameContext;
+import vct.parsers.JavaJMLParser.PostDecrementExpressionContext;
+import vct.parsers.JavaJMLParser.PostDecrementExpression_lf_postfixExpressionContext;
+import vct.parsers.JavaJMLParser.PostIncrementExpressionContext;
+import vct.parsers.JavaJMLParser.PostIncrementExpression_lf_postfixExpressionContext;
+import vct.parsers.JavaJMLParser.PostfixExpressionContext;
+import vct.parsers.JavaJMLParser.PreDecrementExpressionContext;
+import vct.parsers.JavaJMLParser.PreIncrementExpressionContext;
+import vct.parsers.JavaJMLParser.PrimaryNoNewArrayContext;
+import vct.parsers.JavaJMLParser.PrimaryNoNewArray_lf_arrayAccessContext;
+import vct.parsers.JavaJMLParser.PrimaryNoNewArray_lf_primaryContext;
+import vct.parsers.JavaJMLParser.PrimaryNoNewArray_lf_primary_lf_arrayAccess_lf_primaryContext;
+import vct.parsers.JavaJMLParser.PrimaryNoNewArray_lf_primary_lfno_arrayAccess_lf_primaryContext;
+import vct.parsers.JavaJMLParser.PrimaryNoNewArray_lfno_arrayAccessContext;
+import vct.parsers.JavaJMLParser.PrimaryNoNewArray_lfno_primaryContext;
+import vct.parsers.JavaJMLParser.PrimaryNoNewArray_lfno_primary_lf_arrayAccess_lfno_primaryContext;
+import vct.parsers.JavaJMLParser.PrimaryNoNewArray_lfno_primary_lfno_arrayAccess_lfno_primaryContext;
 import vct.parsers.JavaJMLParser.ProofScriptContext;
+import vct.parsers.JavaJMLParser.ReceiverParameterContext;
+import vct.parsers.JavaJMLParser.ReferenceTypeContext;
+import vct.parsers.JavaJMLParser.RelationalExpressionContext;
 import vct.parsers.JavaJMLParser.ResourceExpressionContext;
+import vct.parsers.JavaJMLParser.ResourceListContext;
+import vct.parsers.JavaJMLParser.ResultContext;
+import vct.parsers.JavaJMLParser.ReturnStatementContext;
+import vct.parsers.JavaJMLParser.ShiftExpressionContext;
+import vct.parsers.JavaJMLParser.SimpleTypeNameContext;
+import vct.parsers.JavaJMLParser.SingleElementAnnotationContext;
+import vct.parsers.JavaJMLParser.SingleStaticImportDeclarationContext;
+import vct.parsers.JavaJMLParser.SingleTypeImportDeclarationContext;
 import vct.parsers.JavaJMLParser.SpecificResourceExpressionContext;
 import vct.parsers.JavaJMLParser.SpecificationDeclarationContext;
 import vct.parsers.JavaJMLParser.SpecificationModifierContext;
@@ -28,6 +167,48 @@ import vct.parsers.JavaJMLParser.SpecificationPrimaryContext;
 import vct.parsers.JavaJMLParser.SpecificationPrimitiveTypeContext;
 import vct.parsers.JavaJMLParser.SpecificationSequenceContext;
 import vct.parsers.JavaJMLParser.SpecificationStatementContext;
+import vct.parsers.JavaJMLParser.StatementExpressionListContext;
+import vct.parsers.JavaJMLParser.StatementNoShortIfContext;
+import vct.parsers.JavaJMLParser.StatementWithoutTrailingSubstatementContext;
+import vct.parsers.JavaJMLParser.StaticImportOnDemandDeclarationContext;
+import vct.parsers.JavaJMLParser.StaticInitializerContext;
+import vct.parsers.JavaJMLParser.SuperclassContext;
+import vct.parsers.JavaJMLParser.SuperinterfacesContext;
+import vct.parsers.JavaJMLParser.SwitchBlockContext;
+import vct.parsers.JavaJMLParser.SwitchLabelsContext;
+import vct.parsers.JavaJMLParser.SwitchStatementContext;
+import vct.parsers.JavaJMLParser.SynchronizedStatementContext;
+import vct.parsers.JavaJMLParser.ThrowStatementContext;
+import vct.parsers.JavaJMLParser.Throws_Context;
+import vct.parsers.JavaJMLParser.TryStatementContext;
+import vct.parsers.JavaJMLParser.TryWithResourcesStatementContext;
+import vct.parsers.JavaJMLParser.TypeArgumentListContext;
+import vct.parsers.JavaJMLParser.TypeImportOnDemandDeclarationContext;
+import vct.parsers.JavaJMLParser.TypeNameContext;
+import vct.parsers.JavaJMLParser.TypeParameterListContext;
+import vct.parsers.JavaJMLParser.TypeParameterModifierContext;
+import vct.parsers.JavaJMLParser.TypeVariableContext;
+import vct.parsers.JavaJMLParser.UnannArrayTypeContext;
+import vct.parsers.JavaJMLParser.UnannClassOrInterfaceTypeContext;
+import vct.parsers.JavaJMLParser.UnannClassTypeContext;
+import vct.parsers.JavaJMLParser.UnannClassType_lf_unannClassOrInterfaceTypeContext;
+import vct.parsers.JavaJMLParser.UnannClassType_lfno_unannClassOrInterfaceTypeContext;
+import vct.parsers.JavaJMLParser.UnannInterfaceTypeContext;
+import vct.parsers.JavaJMLParser.UnannInterfaceType_lf_unannClassOrInterfaceTypeContext;
+import vct.parsers.JavaJMLParser.UnannInterfaceType_lfno_unannClassOrInterfaceTypeContext;
+import vct.parsers.JavaJMLParser.UnannPrimitiveTypeContext;
+import vct.parsers.JavaJMLParser.UnannReferenceTypeContext;
+import vct.parsers.JavaJMLParser.UnannTypeContext;
+import vct.parsers.JavaJMLParser.UnannTypeVariableContext;
+import vct.parsers.JavaJMLParser.UnaryExpressionContext;
+import vct.parsers.JavaJMLParser.UnaryExpressionNotPlusMinusContext;
+import vct.parsers.JavaJMLParser.VariableDeclaratorListContext;
+import vct.parsers.JavaJMLParser.VariableInitializerListContext;
+import vct.parsers.JavaJMLParser.WhileStatementContext;
+import vct.parsers.JavaJMLParser.WhileStatementNoShortIfContext;
+import vct.parsers.JavaJMLParser.WildcardBoundsContext;
+import vct.parsers.JavaJMLParser.WildcardContext;
+import vct.util.Configuration;
 
 /**
  * Convert JML parse trees to COL.
@@ -36,506 +217,39 @@ import vct.parsers.JavaJMLParser.SpecificationStatementContext;
 */
 public class JavaJMLtoCol extends AbstractJavaToCol implements JavaJMLVisitor<ASTNode> {
   
-  public static TempSequence convert(ParseTree tree, String file_name,BufferedTokenStream tokens,Parser parser) {
-    TempSequence unit=new TempSequence();
+  private static <E extends ASTSequence<?>> E convert(E unit,ParseTree tree, String file_name,BufferedTokenStream tokens,Parser parser){
     JavaJMLtoCol visitor=new JavaJMLtoCol(unit,JavaSyntax.getJava(JavaDialect.JavaVerCors),file_name,tokens,parser);
     visitor.scan_to(unit,tree);
     return unit;
+  }
+  
+  public static ProgramUnit convert(ParseTree tree, String file_name,BufferedTokenStream tokens,Parser parser) {
+    return convert(new ProgramUnit(),tree,file_name,tokens,parser);
+  }
+  
+  public static TempSequence convert_seq(ParseTree tree, String file_name,BufferedTokenStream tokens,Parser parser) {
+    return convert(new TempSequence(),tree,file_name,tokens,parser);
   }
 
   public JavaJMLtoCol(ASTSequence<?> unit,Syntax syntax, String filename, BufferedTokenStream tokens, Parser parser) {
     super(unit,syntax, filename, tokens, parser, JavaJMLLexer.Identifier, JavaJMLLexer.COMMENT,JavaJMLLexer.class);
   }
 
-  @Override
-  public ASTNode visitAnnotation(AnnotationContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitAnnotationConstantRest(AnnotationConstantRestContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitAnnotationMethodOrConstantRest(
-      AnnotationMethodOrConstantRestContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitAnnotationMethodRest(AnnotationMethodRestContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitAnnotationName(AnnotationNameContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitAnnotationTypeBody(AnnotationTypeBodyContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitAnnotationTypeDeclaration(
-      AnnotationTypeDeclarationContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitAnnotationTypeElementDeclaration(
-      AnnotationTypeElementDeclarationContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitAnnotationTypeElementRest(
-      AnnotationTypeElementRestContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitArguments(ArgumentsContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitArrayCreatorRest(ArrayCreatorRestContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitArrayInitializer(ArrayInitializerContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitBlock(BlockContext ctx) {
-    return getBlock(ctx);
-  }
-
-  @Override
-  public ASTNode visitBlockStatement(BlockStatementContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitCatchClause(CatchClauseContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitCatchType(CatchTypeContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitClassBody(ClassBodyContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitClassBodyDeclaration(ClassBodyDeclarationContext ctx) {
-    return getClassBodyDeclaration(ctx);
-  }
-
-  @Override
-  public ASTNode visitClassCreatorRest(ClassCreatorRestContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitClassDeclaration(ClassDeclarationContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitClassOrInterfaceModifier(
-      ClassOrInterfaceModifierContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitClassOrInterfaceType(ClassOrInterfaceTypeContext ctx) {
-    return getClassOrInterfaceType(ctx);
-  }
-
-  @Override
-  public ASTNode visitCompilationUnit(CompilationUnitContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitConstantDeclarator(ConstantDeclaratorContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitConstantExpression(ConstantExpressionContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitConstDeclaration(ConstDeclarationContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitConstructorBody(ConstructorBodyContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitConstructorDeclaration(ConstructorDeclarationContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitCreatedName(CreatedNameContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitCreator(CreatorContext ctx) {
-    return getCreator(ctx);
-  }
-
-  @Override
-  public ASTNode visitDefaultValue(DefaultValueContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitElementValue(ElementValueContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitElementValueArrayInitializer(
-      ElementValueArrayInitializerContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitElementValuePair(ElementValuePairContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitElementValuePairs(ElementValuePairsContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitEnhancedForControl(EnhancedForControlContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitEnumBodyDeclarations(EnumBodyDeclarationsContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitEnumConstant(EnumConstantContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitEnumConstantName(EnumConstantNameContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitEnumConstants(EnumConstantsContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitEnumDeclaration(EnumDeclarationContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitExplicitGenericInvocation(
-      ExplicitGenericInvocationContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitExplicitGenericInvocationSuffix(
-      ExplicitGenericInvocationSuffixContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitExpression(ExpressionContext ctx) {
-    return getExpression(ctx);
-  }
-
-  @Override
-  public ASTNode visitExpressionList(ExpressionListContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitFieldDeclaration(FieldDeclarationContext ctx) {
-    return getVariableDeclaration((ParserRuleContext)ctx.getChild(1),convert(ctx,0));
-  }
-
-  @Override
-  public ASTNode visitFinallyBlock(FinallyBlockContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitForControl(ForControlContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitForInit(ForInitContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitFormalParameter(FormalParameterContext ctx) {
-    return getFormalParameter(ctx);
-  }
-
-  @Override
-  public ASTNode visitFormalParameterList(FormalParameterListContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitFormalParameters(FormalParametersContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitForUpdate(ForUpdateContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitGenericConstructorDeclaration(
-      GenericConstructorDeclarationContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitGenericInterfaceMethodDeclaration(
-      GenericInterfaceMethodDeclarationContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitGenericMethodDeclaration(
-      GenericMethodDeclarationContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitImportDeclaration(ImportDeclarationContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitInnerCreator(InnerCreatorContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitInterfaceBody(InterfaceBodyContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitInterfaceBodyDeclaration(
-      InterfaceBodyDeclarationContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitInterfaceDeclaration(InterfaceDeclarationContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitInterfaceMemberDeclaration(
-      InterfaceMemberDeclarationContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitInterfaceMethodDeclaration(InterfaceMethodDeclarationContext ctx) {
-    return getMethodDeclaration(ctx);
-  }
-
-  @Override
-  public ASTNode visitLastFormalParameter(LastFormalParameterContext ctx) {
-    return getLastFormalParameter(ctx);
-  }
-
-  @Override
-  public ASTNode visitLiteral(LiteralContext ctx) {
-    return getLiteral(ctx);
-  }
-
-  @Override
-  public ASTNode visitLocalVariableDeclaration(
-      LocalVariableDeclarationContext ctx) {
-    return getLocalVariableDeclaration(ctx);
-  }
-
-  @Override
-  public ASTNode visitLocalVariableDeclarationStatement(
-      LocalVariableDeclarationStatementContext ctx) {
-    return convert(ctx,0);
-  }
-
-  @Override
-  public ASTNode visitMemberDeclaration(MemberDeclarationContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitMethodBody(MethodBodyContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitMethodDeclaration(MethodDeclarationContext ctx) {
-    return getMethodDeclaration(ctx);
-  }
-
-  @Override
-  public ASTNode visitModifier(ModifierContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitNonWildcardTypeArguments(
-      NonWildcardTypeArgumentsContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitNonWildcardTypeArgumentsOrDiamond(
-      NonWildcardTypeArgumentsOrDiamondContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitPackageDeclaration(PackageDeclarationContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitParExpression(ParExpressionContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitPrimary(PrimaryContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitPrimitiveType(PrimitiveTypeContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitQualifiedName(QualifiedNameContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitQualifiedNameList(QualifiedNameListContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitResource(ResourceContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitResourceExpression(ResourceExpressionContext ctx) {
-    return getResourceExpression(ctx);
-  }
   
+
+  private void add_proof_script(OperatorExpression res, ParseTree child) {
+    ParserRuleContext ctx=(ParserRuleContext)child;
+    for(int i=0;i<ctx.getChildCount();i+=2){
+      if (match(i,true,ctx,"label",null)){
+        res.addLabel(create.label(getIdentifier(ctx,i+1)));
+      } else if (match(i,true,ctx,"with",null)){
+        scan_body(res.get_before(),(ParserRuleContext)ctx.getChild(i+1));
+      } else if (match(i,true,ctx,"then",null)){
+        scan_body(res.get_after(),(ParserRuleContext)ctx.getChild(i+1));
+      } 
+    }
+  }
+
   public ASTNode getResourceExpression(ParserRuleContext ctx) {
     String label=null;
     int offset=0;
@@ -585,14 +299,1383 @@ public class JavaJMLtoCol extends AbstractJavaToCol implements JavaJMLVisitor<AS
     return super.getResourceExpression(ctx);
   }
 
+  private String[] to_name(ASTNode pkg) {
+    ArrayList<String> list=new ArrayList();
+    while(pkg instanceof Dereference){
+      Dereference d=(Dereference)pkg;
+      list.add(0,d.field);
+      pkg=d.object;
+    }
+    list.add(0,pkg.toString());
+    return list.toArray(new String[0]);
+  }
+
   @Override
-  public ASTNode visitResources(ResourcesContext ctx) {
+  public ASTNode visitAdditionalBound(AdditionalBoundContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitAdditiveExpression(AdditiveExpressionContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitAmbiguousName(AmbiguousNameContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitAndExpression(AndExpressionContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitAnnotation(AnnotationContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitAnnotationTypeBody(AnnotationTypeBodyContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitAnnotationTypeDeclaration(
+      AnnotationTypeDeclarationContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitAnnotationTypeElementDeclaration(
+      AnnotationTypeElementDeclarationContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitAnnotationTypeElementModifier(
+      AnnotationTypeElementModifierContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitAnnotationTypeMemberDeclaration(
+      AnnotationTypeMemberDeclarationContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitArgumentList(ArgumentListContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitArguments(ArgumentsContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitArrayAccess(ArrayAccessContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitArrayAccess_lf_primary(ArrayAccess_lf_primaryContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitArrayAccess_lfno_primary(
+      ArrayAccess_lfno_primaryContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitArrayCreationExpression(ArrayCreationExpressionContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitArrayInitializer(ArrayInitializerContext ctx) {
+    return getArrayInitializer(ctx);
+  }
+
+  @Override
+  public ASTNode visitArrayType(ArrayTypeContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitAssertStatement(AssertStatementContext ctx) {
+    return null;
+  }
+
+  @Override
+  public ASTNode visitAssignment(AssignmentContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitAssignmentExpression(AssignmentExpressionContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitAssignmentOperator(AssignmentOperatorContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+ 
+  @Override
+  public ASTNode visitAxiomDeclaration(AxiomDeclarationContext ctx) {
+    if (match(ctx,"axiom",null,"{",null,"==",null,"}")){
+      return create.axiom(getIdentifier(ctx,1),create.expression(StandardOperator.EQ,convert(ctx,3),convert(ctx,5)));
+    }
+    return null;
+  }
+
+  private ASTNode getBasicFor(ParserRuleContext ctx){
+    int ptr=2;
+    ASTNode init;
+    if (match(ptr,true,ctx,";")){
+      ptr+=1;
+      init=null;
+    } else {
+      init=convert(ctx,ptr);
+      // It is probably a bug that the following line is needed.
+      init=create.block(init.getOrigin(),init);
+      ptr+=2;
+    }
+    ASTNode test;
+    if (match(ptr,true,ctx,";")){
+      ptr+=1;
+      test=null;
+    } else {
+      test=convert(ctx,ptr);
+      ptr+=2;
+    }
+    ASTNode update;
+    if (match(ptr,true,ctx,")")){
+      update=null;
+      ptr+=1;
+    } else {
+      update=convert(ctx,ptr);
+      ptr+=2;
+    }    
+    ASTList lst=new ASTList();
+    scan_comments_before(lst,ctx.getChild(ptr));
+    ASTNode body=convert(ctx,ptr);
+    LoopStatement loop=create.for_loop(init, test, update, body);
+    for(ASTNode n:lst) loop.get_after().add(n);
+    return loop;
+  }
+  
+  @Override
+  public ASTNode visitBasicForStatement(BasicForStatementContext ctx) {
+    return getBasicFor(ctx);
+  }
+
+  
+  @Override
+  public ASTNode visitBasicForStatementNoShortIf(
+      BasicForStatementNoShortIfContext ctx) {
+    return getBasicFor(ctx);
+  }
+
+  @Override
+  public ASTNode visitBlock(BlockContext ctx) {
+    return getBlock(ctx);
+  }
+
+  @Override
+  public ASTNode visitBlockStatement(BlockStatementContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitBlockStatements(BlockStatementsContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitBreakStatement(BreakStatementContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitCastExpression(CastExpressionContext ctx) {
+    ASTNode t=convert(ctx,1);
+    ASTNode e=convert(ctx,3);
+    return create.expression(StandardOperator.Cast, t ,e);
+  }
+
+  @Override
+  public ASTNode visitCatchClause(CatchClauseContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitCatches(CatchesContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitCatchFormalParameter(CatchFormalParameterContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitCatchType(CatchTypeContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitClassBody(ClassBodyContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitClassBodyDeclaration(ClassBodyDeclarationContext ctx) {
+    return getClassBodyDeclaration(ctx);
+  }
+
+  @Override
+  public ASTNode visitClassDeclaration(ClassDeclarationContext ctx) {
+    return null;
+  }
+
+  @Override
+  public ASTNode visitClassInstanceCreationExpression(
+      ClassInstanceCreationExpressionContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitClassInstanceCreationExpression_lf_primary(
+      ClassInstanceCreationExpression_lf_primaryContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  ASTNode doNew(int ofs,ParserRuleContext ctx){
+    if (match(ofs,false,ctx,"new",null,"(",")")){
+      MethodInvokation res=create.new_object(create.class_type(getIdentifier(ctx,ofs+1)));
+      scan_comments_after(res.get_after(),ctx.getChild(ofs+3));
+      return res;
+    }
+    if (match(ofs,false,ctx,"new",null,"(",null,")")){
+      MethodInvokation res=create.new_object(create.class_type(getIdentifier(ctx,ofs+1)),
+          convert_list((ParserRuleContext)ctx.getChild(ofs+3),","));
+      scan_comments_after(res.get_after(),ctx.getChild(ofs+4));
+      return res;
+    }    
+    return null;
+  }
+  
+  @Override
+  public ASTNode visitClassInstanceCreationExpression_lfno_primary(
+      ClassInstanceCreationExpression_lfno_primaryContext ctx) {
+    if (match(0,true,ctx,"new")) {
+      return doNew(0,ctx);
+    }
+    return null;
+  }
+
+  @Override
+  public ASTNode visitClassMemberDeclaration(ClassMemberDeclarationContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitClassModifier(ClassModifierContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitClassOrInterfaceType(ClassOrInterfaceTypeContext ctx) {
+    return getClassOrInterfaceType(ctx);
+  }
+
+  @Override
+  public ASTNode visitClassType(ClassTypeContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitClassType_lf_classOrInterfaceType(
+      ClassType_lf_classOrInterfaceTypeContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitClassType_lfno_classOrInterfaceType(
+      ClassType_lfno_classOrInterfaceTypeContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitCompilationUnit(CompilationUnitContext ctx) {
+    NameSpace ns;
+    int ptr=0;
+    if (match(0,true,ctx,"PackageDeclaration")) {
+      hre.System.Debug("has package");
+      ASTNode pkg=convert((ParserRuleContext)ctx.getChild(0),1);
+      System.err.printf("pkg %s (%s)%n",Configuration.getDiagSyntax().print(pkg),pkg.getClass());
+      ptr++;
+      ns=create.namespace(to_name(pkg));
+    } else {
+      hre.System.Debug("does not have package");
+      ns=create.namespace(NameSpace.NONAME);
+    }
+    while(match(ptr,true,ctx,"ImportDeclaration")){
+      ParserRuleContext imp=(ParserRuleContext)ctx.getChild(ptr);
+      if (match(imp,"import",null,";")){
+        ASTNode name=convert(imp,1);
+        ns.add_import(false,false,to_name(name));
+      } else if (match(imp,"import",null,".","*",";")){
+        ASTNode name=convert(imp,1);
+        ns.add_import(false,true,to_name(name));
+      } else if (match(imp,"import","static",null,";")){
+        ASTNode name=convert(imp,2);
+        ns.add_import(true,false,to_name(name));
+      } else if (match(imp,"import","static",null,".","*",";")){
+        ASTNode name=convert(imp,2);
+        ns.add_import(true,true,to_name(name));
+      } else {
+        hre.System.Abort("unimplemented import type");
+      }
+      ptr++;
+    }
+    scan_to(ns, ctx, ptr, ctx.getChildCount());
+    return ns;
+  }
+
+  @Override
+  public ASTNode visitConditionalAndExpression(
+      ConditionalAndExpressionContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitConditionalExpression(ConditionalExpressionContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitConditionalOrExpression(ConditionalOrExpressionContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitConstantDeclaration(ConstantDeclarationContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitConstantExpression(ConstantExpressionContext ctx) {
+    return getExpression(ctx);
+  }
+
+  @Override
+  public ASTNode visitConstantModifier(ConstantModifierContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitConstructorBody(ConstructorBodyContext ctx) {
+    return getBlock(ctx);
+  }
+
+  @Override
+  public ASTNode visitConstructorDeclaration(ConstructorDeclarationContext ctx) {
+    int base=0;
+    int N=ctx.getChildCount();
+    while(!match(base,true,ctx,"ConstructorDeclarator")){
+      base++;
+    }
+    ParserRuleContext cons_ctx=(ParserRuleContext)ctx.getChild(base);
+    if (base!=N-2){
+      throw new Error("no exceptions yet");
+    }
+    String name=getIdentifier(cons_ctx,0);
+    DeclarationStatement[] args;
+    if (match(cons_ctx,null,"(",")")){
+      args=new DeclarationStatement[0];
+    } else {
+      args=getFormalParameters(cons_ctx.getChild(2),new AtomicBoolean());
+    }
+    ASTNode body=convert(ctx,N-1);
+    Type returns=create.primitive_type(Sort.Void);
+    Method res=create.method_kind(Method.Kind.Constructor, returns ,null, name, args, body);
+    for(int i=0;i<base;i++){
+      res.attach(convert(ctx,i));
+    }
+    return res;
+  }
+
+  @Override
+  public ASTNode visitConstructorDeclarator(ConstructorDeclaratorContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitConstructorModifier(ConstructorModifierContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitContinueStatement(ContinueStatementContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitDefaultValue(DefaultValueContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitDimExpr(DimExprContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitDimExprs(DimExprsContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitDims(DimsContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitDoStatement(DoStatementContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitElementValue(ElementValueContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitElementValueArrayInitializer(
+      ElementValueArrayInitializerContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitElementValueList(ElementValueListContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitElementValuePair(ElementValuePairContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+  
+  @Override
+  public ASTNode visitElementValuePairList(ElementValuePairListContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitEmptyStatement(EmptyStatementContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitEnhancedForStatement(EnhancedForStatementContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitEnhancedForStatementNoShortIf(
+      EnhancedForStatementNoShortIfContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitEnumBody(EnumBodyContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitEnumBodyDeclarations(EnumBodyDeclarationsContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitEnumConstant(EnumConstantContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitEnumConstantList(EnumConstantListContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitEnumConstantModifier(EnumConstantModifierContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitEnumConstantName(EnumConstantNameContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitEnumDeclaration(EnumDeclarationContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitEqualityExpression(EqualityExpressionContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitExceptionType(ExceptionTypeContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitExceptionTypeList(ExceptionTypeListContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitExclusiveOrExpression(ExclusiveOrExpressionContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitExplicitConstructorInvocation(
+      ExplicitConstructorInvocationContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitExpression(ExpressionContext ctx) {
+    return getExpression(ctx);
+  }
+
+  @Override
+  public ASTNode visitExpressionList(ExpressionListContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitExpressionName(ExpressionNameContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitExpressionStatement(ExpressionStatementContext ctx) {
+    return convert(ctx,0);
+  }
+
+  @Override
+  public ASTNode visitExtendsInterfaces(ExtendsInterfacesContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitFieldAccess(FieldAccessContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitFieldAccess_lf_primary(FieldAccess_lf_primaryContext ctx) {
+    return create.dereference(primarystack.pop(),getIdentifier(ctx,1));
+  }
+
+  @Override
+  public ASTNode visitFieldAccess_lfno_primary(
+      FieldAccess_lfno_primaryContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitFieldDeclaration(FieldDeclarationContext ctx) {
+    return getVariableDeclaration(ctx);
+  }
+
+  private ASTNode getVariableDeclaration(ParserRuleContext ctx) {
+    int base=0;
+    int N=ctx.getChildCount();
+    while(!match(base,true,ctx,"UnannType")){
+      base++;
+    }
+    Type t=checkType(convert(ctx,base));
+    ASTNode vars[]=convert_list((ParserRuleContext)ctx.getChild(base+1),",");
+    VariableDeclaration decl=create.variable_decl(t);
+    for(int i=0;i<vars.length;i++){
+      DeclarationStatement tmp;
+      if (vars[i] instanceof NameExpression){
+        String name=((NameExpression)vars[i]).getName();
+        tmp=create.field_decl(name,create.class_type(name));
+      } else if (vars[i] instanceof DeclarationStatement) {
+        DeclarationStatement d=(DeclarationStatement)vars[i];
+        tmp=create.field_decl(d.getName(),d.getType(),d.getInit());
+      } else {
+        throw new HREError("unexpected %s in variable list at %s",vars[i].getClass(),create.getOrigin());
+      }
+      decl.add(tmp);
+    }
+    for(int i=0;i<base;i++){
+      decl.attach(convert(ctx,i));
+    }
+    return decl;
+  }
+
+  @Override
+  public ASTNode visitFieldModifier(FieldModifierContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitFinally_(Finally_Context ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitFloatingPointType(FloatingPointTypeContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitForInit(ForInitContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitFormalParameter(FormalParameterContext ctx) {
+    return getFormalParameter(ctx);
+  }
+
+  @Override
+  public ASTNode visitFormalParameterList(FormalParameterListContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitFormalParameters(FormalParametersContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitForStatement(ForStatementContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitForStatementNoShortIf(ForStatementNoShortIfContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitForUpdate(ForUpdateContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  
+  @Override
+  public ASTNode visitFunctionDeclaration(FunctionDeclarationContext ctx) {
+    int N=ctx.getChildCount();
+    Method m=(Method)convert(ctx,N-4);
+    m.setBody(convert(ctx,N-2));
+    for(int i=0;i<N-4;i++){
+      m.attach(convert(ctx,i));
+    }
+    m.attach(create.reserved_name(ASTReserved.Pure));
+    return m;
+  }
+  
+  public ASTNode PreviousvisitFunctionDeclaration(FunctionDeclarationContext ctx) {
+    Contract contract=null;
+    int i=0;
+    if (match(0,true,ctx,"ContractContext")){
+      contract=(Contract)convert(ctx,0);
+      i=1;
+    }
+    int i0=i;
+    while(match(i,true,ctx,"ModifierContext")){
+      // skip now convert later.
+      i++;
+    }
+    Type returns=checkType(convert(ctx,i));
+    String name=getIdentifier(ctx,i+1);
+    hre.System.Debug("function %s, contract %s",name,contract);
+    AtomicBoolean varargs=new AtomicBoolean();
+    DeclarationStatement args[]=getFormalParameters(ctx.getChild(i+2),varargs);
+    if (varargs.get()){
+      hre.System.Fail("functions with varargs not supported yet.");
+    }
+    ASTNode body=null;
+    if (match(i+3,false,ctx,"=",null,";")){
+      body=convert(ctx,i+4);
+    }
+    Method res=create.function_decl(returns, contract, name, args, body);
+    hre.System.Debug("function %s, contract %s",res.name,res.getContract());
+    while(i0<i){
+      //add modifiers as annotations.
+      ASTNode mod=convert(ctx,i0);
+      //System.err.printf("<modifier! %s = %s%n",ctx.getChild(i0).toStringTree(parser),mod);
+      res.attach(mod);
+      i0++;
+    }
+    return res;
+  }
+
+  @Override
+  public ASTNode visitIfThenElseStatement(IfThenElseStatementContext ctx) {
+    return create.ifthenelse(convert(ctx,2),convert(ctx,4),convert(ctx,6));
+  }
+
+  @Override
+  public ASTNode visitIfThenElseStatementNoShortIf(
+      IfThenElseStatementNoShortIfContext ctx) {
+    return create.ifthenelse(convert(ctx,2),convert(ctx,4),convert(ctx,6));
+  }
+
+  @Override
+  public ASTNode visitIfThenStatement(IfThenStatementContext ctx) {
+    return create.ifthenelse(convert(ctx,2),convert(ctx,4));
+  }
+
+  @Override
+  public ASTNode visitImportDeclaration(ImportDeclarationContext ctx) {
+    return getImportDeclaration(ctx);
+  }
+
+  @Override
+  public ASTNode visitInclusiveOrExpression(InclusiveOrExpressionContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitInferredFormalParameterList(
+      InferredFormalParameterListContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitInstanceInitializer(InstanceInitializerContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitIntegralType(IntegralTypeContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitInterfaceBody(InterfaceBodyContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitInterfaceDeclaration(InterfaceDeclarationContext ctx) {
+    return getClassDeclaration(ctx);
+  }
+
+  @Override
+  public ASTNode visitInterfaceMemberDeclaration(
+      InterfaceMemberDeclarationContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitInterfaceMethodDeclaration(InterfaceMethodDeclarationContext ctx) {
+    return getMethodDeclaration(ctx);
+  }
+
+  @Override
+  public ASTNode visitInterfaceMethodModifier(InterfaceMethodModifierContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitInterfaceModifier(InterfaceModifierContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitInterfaceType(InterfaceTypeContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitInterfaceType_lf_classOrInterfaceType(
+      InterfaceType_lf_classOrInterfaceTypeContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitInterfaceType_lfno_classOrInterfaceType(
+      InterfaceType_lfno_classOrInterfaceTypeContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitInterfaceTypeList(InterfaceTypeListContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitLabeledExpression(LabeledExpressionContext ctx) {
+    return getExpression(ctx);
+  }
+
+  @Override
+  public ASTNode visitLabeledStatement(LabeledStatementContext ctx) {
+    ASTNode S=convert(ctx,2);
+    S.addLabel(create.label(getIdentifier(ctx, 0)));
+    return S;
+  }
+
+  @Override
+  public ASTNode visitLabeledStatementNoShortIf(
+      LabeledStatementNoShortIfContext ctx) {
+    ASTNode S=convert(ctx,2);
+    S.addLabel(create.label(getIdentifier(ctx, 0)));
+    return S;
+  }
+
+  @Override
+  public ASTNode visitLambdaBody(LambdaBodyContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitLambdaExpression(LambdaExpressionContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitLambdaParameters(LambdaParametersContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitLastFormalParameter(LastFormalParameterContext ctx) {
+    return getLastFormalParameter(ctx);
+  }
+
+  @Override
+  public ASTNode visitLeftHandSide(LeftHandSideContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitLiteral(LiteralContext ctx) {
+    return getLiteral(ctx);
+  }
+
+  @Override
+  public ASTNode visitLocalVariableDeclaration(LocalVariableDeclarationContext ctx) {
+    return getVariableDeclaration(ctx);
+  }
+
+  @Override
+  public ASTNode visitLocalVariableDeclarationStatement(
+      LocalVariableDeclarationStatementContext ctx) {
+    return convert(ctx,0);
+  }
+
+  @Override
+  public ASTNode visitMarkerAnnotation(MarkerAnnotationContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitMethodBody(MethodBodyContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitMethodDeclaration(MethodDeclarationContext ctx) {
+    return getMethodDeclaration(ctx);
+  }
+
+  @Override
+  public ASTNode visitMethodDeclarator(MethodDeclaratorContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitMethodHeader(MethodHeaderContext ctx) {
+    return getMethodHeader(ctx);
+  }
+
+  private ASTNode getMethodInvocation(ParserRuleContext ctx) {
+    if (match(0,true,ctx,"TypeName",".")||match(0,true,ctx,"Primary",".")){
+      if (match(2,true,ctx,"super",".")||match(2,true,ctx,"TypeArguments")){
+        throw new Error("missing case");
+      }
+      ASTNode object=convert(ctx,0);
+      String method=getIdentifier(ctx,2);
+      ASTNode args[];
+      int close;
+      if (match(4,true,ctx,"ArgumentList")){
+        args=convert_list((ParserRuleContext)ctx.getChild(4),",");
+        close=5;
+      } else {
+        args=new ASTNode[0];
+        close=4;
+      }
+      MethodInvokation res=create.invokation(object,null, method, args);
+      scan_comments_before(res.get_before(),ctx.getChild(3));
+      scan_comments_after(res.get_after(),ctx.getChild(close));
+      return res;
+    }
+    return getExpression(ctx);
+  }
+  
+  @Override
+  public ASTNode visitMethodInvocation(MethodInvocationContext ctx) {
+    return getMethodInvocation(ctx);
+  }
+
+  @Override
+  public ASTNode visitMethodInvocation_lf_primary(
+      MethodInvocation_lf_primaryContext ctx) {
+    int N=ctx.getChildCount();
+    String method=getIdentifier(ctx,1);
+    ASTNode args[];
+    if (match(3,true,ctx,"ArgumentList")){
+      args=convert_list((ParserRuleContext)ctx.getChild(3),",");
+    } else {
+      args=new ASTNode[0];
+    }
+    MethodInvokation res=create.invokation(primarystack.pop(), null, method, args);
+    scan_comments_before(res.get_before(),ctx.getChild(2));
+    scan_comments_after(res.get_after(),ctx.getChild(N-1));
+    return res;
+  }
+
+  @Override
+  public ASTNode visitMethodInvocation_lfno_primary(MethodInvocation_lfno_primaryContext ctx) {
+    return getMethodInvocation(ctx);
+  }
+
+  @Override
+  public ASTNode visitMethodModifier(MethodModifierContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitMethodName(MethodNameContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitMethodReference(MethodReferenceContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitMethodReference_lf_primary(
+      MethodReference_lf_primaryContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitMethodReference_lfno_primary(
+      MethodReference_lfno_primaryContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitMultiplicativeExpression(
+      MultiplicativeExpressionContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitNormalAnnotation(NormalAnnotationContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitNormalClassDeclaration(NormalClassDeclarationContext ctx) {
+    return getClassDeclaration(ctx);
+  }
+
+  @Override
+  public ASTNode visitNormalInterfaceDeclaration(
+      NormalInterfaceDeclarationContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitNumericType(NumericTypeContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitPackageDeclaration(PackageDeclarationContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitPackageModifier(PackageModifierContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitPackageName(PackageNameContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitPackageOrTypeName(PackageOrTypeNameContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitPostDecrementExpression(PostDecrementExpressionContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitPostDecrementExpression_lf_postfixExpression(
+      PostDecrementExpression_lf_postfixExpressionContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitPostfixExpression(PostfixExpressionContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitPostIncrementExpression(PostIncrementExpressionContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitPostIncrementExpression_lf_postfixExpression(
+      PostIncrementExpression_lf_postfixExpressionContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitPreDecrementExpression(PreDecrementExpressionContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitPreIncrementExpression(PreIncrementExpressionContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  
+  
+  private Stack<ASTNode> primarystack=new Stack();
+  
+  @Override
+  public ASTNode visitPrimary(PrimaryContext ctx) {
+    ASTNode res=convert(ctx,0);
+    int N=ctx.getChildCount();
+    for(int i=1;i<N;i++){
+      int chk=primarystack.size();
+      primarystack.push(res);
+      res=convert(ctx,i);
+      if (chk!=primarystack.size()){
+        throw new HREError("stack problem %d expected %d found",chk,primarystack.size());
+      }
+    }
+    return res;
+  }
+
+  @Override
+  public ASTNode visitPrimaryNoNewArray(PrimaryNoNewArrayContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitPrimaryNoNewArray_lf_arrayAccess(
+      PrimaryNoNewArray_lf_arrayAccessContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitPrimaryNoNewArray_lf_primary(
+      PrimaryNoNewArray_lf_primaryContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitPrimaryNoNewArray_lf_primary_lf_arrayAccess_lf_primary(
+      PrimaryNoNewArray_lf_primary_lf_arrayAccess_lf_primaryContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitPrimaryNoNewArray_lf_primary_lfno_arrayAccess_lf_primary(
+      PrimaryNoNewArray_lf_primary_lfno_arrayAccess_lf_primaryContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitPrimaryNoNewArray_lfno_arrayAccess(
+      PrimaryNoNewArray_lfno_arrayAccessContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitPrimaryNoNewArray_lfno_primary(
+      PrimaryNoNewArray_lfno_primaryContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitPrimaryNoNewArray_lfno_primary_lf_arrayAccess_lfno_primary(
+      PrimaryNoNewArray_lfno_primary_lf_arrayAccess_lfno_primaryContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitPrimaryNoNewArray_lfno_primary_lfno_arrayAccess_lfno_primary(
+      PrimaryNoNewArray_lfno_primary_lfno_arrayAccess_lfno_primaryContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitPrimitiveType(PrimitiveTypeContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitProofScript(ProofScriptContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitReceiverParameter(ReceiverParameterContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitReferenceType(ReferenceTypeContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitRelationalExpression(RelationalExpressionContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitResource(ResourceContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitResourceExpression(ResourceExpressionContext ctx) {
+    return getResourceExpression(ctx);
+  }
+
+  @Override
+  public ASTNode visitResourceList(ResourceListContext ctx) {
     // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public ASTNode visitResourceSpecification(ResourceSpecificationContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitResult(ResultContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitReturnStatement(ReturnStatementContext ctx) {
+    if (ctx.getChildCount()==3){
+      return create.return_statement(convert(ctx,1));
+    } else {
+      return create.return_statement();
+    }
+  }
+
+  @Override
+  public ASTNode visitShiftExpression(ShiftExpressionContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitSimpleTypeName(SimpleTypeNameContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitSingleElementAnnotation(SingleElementAnnotationContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitSingleStaticImportDeclaration(
+      SingleStaticImportDeclarationContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitSingleTypeImportDeclaration(
+      SingleTypeImportDeclarationContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitSpecificationDeclaration(
+      SpecificationDeclarationContext ctx) {
     // TODO Auto-generated method stub
     return null;
   }
@@ -609,115 +1692,19 @@ public class JavaJMLtoCol extends AbstractJavaToCol implements JavaJMLVisitor<AS
   }
 
   @Override
-  public ASTNode visitStatement(StatementContext ctx) {
-    ASTNode res=getStatement(ctx);
-    if (res!=null) res.setGhost(true);
-    return res;
-  }
-
-  @Override
-  public ASTNode visitStatementExpression(StatementExpressionContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitSuperSuffix(SuperSuffixContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitSwitchBlockStatementGroup(
-      SwitchBlockStatementGroupContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitSwitchLabel(SwitchLabelContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitType(TypeContext ctx) {
-    return getType(ctx);
-  }
-
-  @Override
-  public ASTNode visitTypeArgument(TypeArgumentContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitTypeArguments(TypeArgumentsContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitTypeArgumentsOrDiamond(TypeArgumentsOrDiamondContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitTypeBound(TypeBoundContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitTypeDeclaration(TypeDeclarationContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitTypeList(TypeListContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitTypeParameter(TypeParameterContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitTypeParameters(TypeParametersContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitVariableDeclarator(VariableDeclaratorContext ctx) {
-    return getVariableDeclarator(ctx);
-  }
-
-  @Override
-  public ASTNode visitVariableDeclaratorId(VariableDeclaratorIdContext ctx) {
-    return getVariableDeclaratorId(ctx);
-  }
-
-  @Override
-  public ASTNode visitVariableDeclarators(VariableDeclaratorsContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitVariableInitializer(VariableInitializerContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitVariableModifier(VariableModifierContext ctx) {
-    // TODO Auto-generated method stub
+  public ASTNode visitSpecificationPrimitiveType(SpecificationPrimitiveTypeContext ctx) {
+    if (match(ctx,"cell","<",null,">")){
+      return create.primitive_type(Sort.Cell, checkType(convert(ctx,2)));
+    }
+    if (match(ctx,"seq","<",null,">")){
+      return create.primitive_type(Sort.Sequence, checkType(convert(ctx,2)));
+    }
+    if (match(ctx,"bag","<",null,">")){
+      return create.primitive_type(Sort.Bag, checkType(convert(ctx,2)));
+    }
+    if (match(ctx,"set","<",null,">")){
+      return create.primitive_type(Sort.Set, checkType(convert(ctx,2)));
+    }
     return null;
   }
 
@@ -731,7 +1718,7 @@ public class JavaJMLtoCol extends AbstractJavaToCol implements JavaJMLVisitor<AS
   public ASTNode visitSpecificationStatement(SpecificationStatementContext ctx) {
     ASTNode res=null;
     if (match(ctx,"loop_invariant",null,";")){
-      res=create.special_decl(ASTSpecialDeclaration.Kind.Invariant,convert(ctx,1));
+      res=create.special_decl(ASTSpecial.Kind.Invariant,convert(ctx,1));
     } else if (match(ctx,"set",null,"=",null,";")){
       res=create.assignment(convert(ctx,1),convert(ctx,3));
     } else if (match(ctx,"fold",null,";")){
@@ -850,91 +1837,372 @@ public class JavaJMLtoCol extends AbstractJavaToCol implements JavaJMLVisitor<AS
     return res;
   }
 
-  private void add_proof_script(OperatorExpression res, ParseTree child) {
-    ParserRuleContext ctx=(ParserRuleContext)child;
-    for(int i=0;i<ctx.getChildCount();i+=2){
-      if (match(i,true,ctx,"label",null)){
-        res.addLabel(create.label(getIdentifier(ctx,i+1)));
-      } else if (match(i,true,ctx,"with",null)){
-        scan_body(res.get_before(),(ParserRuleContext)ctx.getChild(i+1));
-      } else if (match(i,true,ctx,"then",null)){
-        scan_body(res.get_after(),(ParserRuleContext)ctx.getChild(i+1));
-      } 
-    }
-  }
-
-  @Override
-  public ASTNode visitSpecificationDeclaration(
-      SpecificationDeclarationContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitFunctionDeclaration(FunctionDeclarationContext ctx) {
-    Contract contract=null;
-    int i=0;
-    if (match(0,true,ctx,"ContractContext")){
-      contract=(Contract)convert(ctx,0);
-      i=1;
-    }
-    int i0=i;
-    while(match(i,true,ctx,"ModifierContext")){
-      // skip now convert later.
-      i++;
-    }
-    Type returns=checkType(convert(ctx,i));
-    String name=getIdentifier(ctx,i+1);
-    hre.System.Debug("function %s, contract %s",name,contract);
-    AtomicBoolean varargs=new AtomicBoolean();
-    DeclarationStatement args[]=getFormalParameters(ctx.getChild(i+2),varargs);
-    if (varargs.get()){
-      hre.System.Fail("functions with varargs not supported yet.");
-    }
-    ASTNode body=null;
-    if (match(i+3,false,ctx,"=",null,";")){
-      body=convert(ctx,i+4);
-    }
-    Method res=create.function_decl(returns, contract, name, args, body);
-    hre.System.Debug("function %s, contract %s",res.name,res.getContract());
-    while(i0<i){
-      //add modifiers as annotations.
-      ASTNode mod=convert(ctx,i0);
-      //System.err.printf("<modifier! %s = %s%n",ctx.getChild(i0).toStringTree(parser),mod);
-      res.attach(mod);
-      i0++;
-    }
-    return res;
-  }
-
-  @Override
-  public ASTNode visitSpecificationPrimitiveType(
-      SpecificationPrimitiveTypeContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public ASTNode visitLabeledExpression(LabeledExpressionContext ctx) {
-    return getExpression(ctx);
-  }
-
-  @Override
-  public ASTNode visitProofScript(ProofScriptContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
   @Override
   public ASTNode visitSpecificResourceExpression(SpecificResourceExpressionContext ctx) {
      return getResourceExpression(ctx);
   }
 
   @Override
-  public ASTNode visitAxiomDeclaration(AxiomDeclarationContext ctx) {
-    if (match(ctx,"axiom",null,"{",null,"==",null,"}")){
-      return create.axiom(getIdentifier(ctx,1),create.expression(StandardOperator.EQ,convert(ctx,3),convert(ctx,5)));
+  public ASTNode visitStatement(StatementContext ctx) {
+    return getStatement(ctx);
+  }
+
+  @Override
+  public ASTNode visitStatementExpression(StatementExpressionContext ctx) {
+    return getExpression(ctx);
+  }
+
+  @Override
+  public ASTNode visitStatementExpressionList(StatementExpressionListContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitStatementNoShortIf(StatementNoShortIfContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitStatementWithoutTrailingSubstatement(
+      StatementWithoutTrailingSubstatementContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitStaticImportOnDemandDeclaration(
+      StaticImportOnDemandDeclarationContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitStaticInitializer(StaticInitializerContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitSuperclass(SuperclassContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitSuperinterfaces(SuperinterfacesContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitSwitchBlock(SwitchBlockContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitSwitchBlockStatementGroup(
+      SwitchBlockStatementGroupContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitSwitchLabel(SwitchLabelContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitSwitchLabels(SwitchLabelsContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitSwitchStatement(SwitchStatementContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitSynchronizedStatement(SynchronizedStatementContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitThrows_(Throws_Context ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitThrowStatement(ThrowStatementContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitTryStatement(TryStatementContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitTryWithResourcesStatement(
+      TryWithResourcesStatementContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitType(TypeContext ctx) {
+    return getType(ctx);
+  }
+
+  @Override
+  public ASTNode visitTypeArgument(TypeArgumentContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitTypeArgumentList(TypeArgumentListContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitTypeArguments(TypeArgumentsContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitTypeArgumentsOrDiamond(TypeArgumentsOrDiamondContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitTypeBound(TypeBoundContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitTypeDeclaration(TypeDeclarationContext ctx) {
+    return convert_annotated(ctx);
+  }
+
+  @Override
+  public ASTNode visitTypeImportOnDemandDeclaration(
+      TypeImportOnDemandDeclarationContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitTypeName(TypeNameContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitTypeParameter(TypeParameterContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitTypeParameterList(TypeParameterListContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitTypeParameterModifier(TypeParameterModifierContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitTypeParameters(TypeParametersContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitTypeVariable(TypeVariableContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitUnannArrayType(UnannArrayTypeContext ctx) {
+    Type t=checkType(convert(ctx,0));
+    ParserRuleContext dims=(ParserRuleContext)ctx.getChild(1);
+    int ofs=0;
+    int N=dims.getChildCount();
+    while(match(ofs,true,dims,"[","]")){
+      t=create.primitive_type(Sort.Array,t);
+      ofs+=2;
     }
+    if (ofs!=N){
+      hre.System.Fail("unimplemented array dim variant");
+    }
+    return t;
+  }
+
+  @Override
+  public ASTNode visitUnannClassOrInterfaceType(
+      UnannClassOrInterfaceTypeContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitUnannClassType(UnannClassTypeContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitUnannClassType_lf_unannClassOrInterfaceType(
+      UnannClassType_lf_unannClassOrInterfaceTypeContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitUnannClassType_lfno_unannClassOrInterfaceType(
+      UnannClassType_lfno_unannClassOrInterfaceTypeContext ctx) {
+    String name=getIdentifier(ctx,0);
+    ASTNode args[];
+    if (ctx.getChildCount()==1){
+      args=new ASTNode[0];
+    } else {
+      args=convert_list((ParserRuleContext)ctx.getChild(1),"<",",",">");
+    }
+    return create.class_type(name, args);
+  }
+
+  @Override
+  public ASTNode visitUnannInterfaceType(UnannInterfaceTypeContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitUnannInterfaceType_lf_unannClassOrInterfaceType(
+      UnannInterfaceType_lf_unannClassOrInterfaceTypeContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitUnannInterfaceType_lfno_unannClassOrInterfaceType(
+      UnannInterfaceType_lfno_unannClassOrInterfaceTypeContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitUnannPrimitiveType(UnannPrimitiveTypeContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitUnannReferenceType(UnannReferenceTypeContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitUnannType(UnannTypeContext ctx) {
+    return getType(ctx);
+  }
+
+  @Override
+  public ASTNode visitUnannTypeVariable(UnannTypeVariableContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitUnaryExpression(UnaryExpressionContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitUnaryExpressionNotPlusMinus(
+      UnaryExpressionNotPlusMinusContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitVariableDeclarator(VariableDeclaratorContext ctx) {
+    return getVariableDeclarator(ctx);
+  }
+
+  @Override
+  public ASTNode visitVariableDeclaratorId(VariableDeclaratorIdContext ctx) {
+    return getVariableDeclaratorId(ctx);
+  }
+
+  @Override
+  public ASTNode visitVariableDeclaratorList(VariableDeclaratorListContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitVariableInitializer(VariableInitializerContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitVariableInitializerList(VariableInitializerListContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitVariableModifier(VariableModifierContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitWhileStatement(WhileStatementContext ctx) {
+    assert match(ctx,"while","(",null,")",null);
+    LoopStatement res=create.while_loop(convert(ctx,2),convert(ctx,4));
+    scan_comments_after(res.get_after(), ctx.getChild(3));
+    return res;
+  }
+
+  @Override
+  public ASTNode visitWhileStatementNoShortIf(WhileStatementNoShortIfContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitWildcard(WildcardContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitWildcardBounds(WildcardBoundsContext ctx) {
+    // TODO Auto-generated method stub
     return null;
   }
 

@@ -19,9 +19,9 @@ import hre.ast.Origin;
 import vct.col.ast.ASTFlags;
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTReserved;
+import vct.col.ast.ASTSpecial;
 import vct.col.ast.ASTSpecial.Kind;
 import vct.col.ast.ASTClass;
-import vct.col.ast.ASTSpecialDeclaration;
 import vct.col.ast.Axiom;
 import vct.col.ast.AxiomaticDataType;
 import vct.col.ast.BindingExpression;
@@ -336,8 +336,8 @@ public class VerCorsProgramFactory implements
           pars.add(decl.getName());
         }
         api.prog.add_adt(program,adt.getOrigin(),adt.name,funcs,axioms,pars);
-      } else if(entry instanceof ASTSpecialDeclaration){
-        ASTSpecialDeclaration s=(ASTSpecialDeclaration)entry;
+      } else if(entry instanceof ASTSpecial){
+        ASTSpecial s=(ASTSpecial)entry;
         switch(s.kind){
           case Comment:
             // comments are not supported in silver.

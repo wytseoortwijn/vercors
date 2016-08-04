@@ -44,6 +44,7 @@ specificationPrimary
     | '*'
     | '\\current_thread' 
     | '\\owner' '(' expression ',' expression ',' expression ')'
+    | Identifier ':' expression 
     ;
 
 expressionList
@@ -54,13 +55,12 @@ labeledExpression
     : ( Identifier ':' )? expression
     ;
 
- specificationPrimitiveType
+specificationPrimitiveType
     : 'frac'
     | 'zfrac'
     | 'resource'
     | 'classtype'
     | 'process'
-    | 'void'
+    | Identifier '<' type '>'
     ;
- 
  

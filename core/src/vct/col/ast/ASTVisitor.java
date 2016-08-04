@@ -73,8 +73,6 @@ public interface ASTVisitor<T> {
 
   public void visit(ActionBlock actionBlock);
 
-  public void visit(ASTSpecialDeclaration s);
-
   public void visit(TypeExpression t);
 
   public void visit(ParallelAtomic parallelAtomic);

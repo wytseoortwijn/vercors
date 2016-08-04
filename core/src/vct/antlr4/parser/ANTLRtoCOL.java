@@ -14,35 +14,28 @@ import org.antlr.v4.runtime.BufferedTokenStream;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.Token;
-import org.antlr.v4.runtime.misc.Interval;
 import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeVisitor;
 import org.antlr.v4.runtime.tree.RuleNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
-import pv.parser.PVFullLexer;
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTReserved;
 import vct.col.ast.ASTSequence;
-import vct.col.ast.ASTSpecial;
-import vct.col.ast.ASTSpecialDeclaration;
 import vct.col.ast.BeforeAfterAnnotations;
+import vct.col.ast.ASTSpecial;
 import vct.col.ast.BlockStatement;
 import vct.col.ast.Contract;
 import vct.col.ast.ContractBuilder;
 import vct.col.ast.DeclarationStatement;
 import vct.col.ast.NameExpression;
 import vct.col.ast.PrimitiveType;
-import vct.col.ast.ProgramUnit;
 import vct.col.ast.StandardOperator;
 import vct.col.ast.Type;
 import vct.col.ast.VariableDeclaration;
 import vct.col.syntax.Syntax;
 import vct.col.util.ASTFactory;
-import vct.parsers.CLexer;
-import vct.parsers.CParser.AdditiveExpressionContext;
-import vct.parsers.JavaJMLParser.SpecificationPrimaryContext;
 import static hre.System.*;
 
 /**
@@ -88,12 +81,7 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
    * Keeps track of the (specification) comments that have already been attached to the AST. 
    */
   private HashSet<Integer> attached_comments=new HashSet<Integer>();
-  
-  /**
-   * Keeps track of the line directives that have been processed already.
-   */
-  private HashSet<Integer> interpreted_directions=new HashSet<Integer>();
-  
+ 
   /**
    * Even though ANTLR4 grammars can share large parts, their parsers
    * do not share their internal classes. Thus we need to use reflection
@@ -174,6 +162,7 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
   /** Get static field by reflection. */
   public static boolean hasStaticInt(Class<?> cl,String field){
     try {
+      @SuppressWarnings("unused")
       Field f=cl.getDeclaredField(field);
       return true;
     } catch (NoSuchFieldException e) {
@@ -249,7 +238,7 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
     try {
       scan_to_rec(unit,tree);
     } catch(MissingCase mc) {
-      Warning("in tree %s:",tree.toStringTree(parser));
+      Warning("in tree %s:%n%s",tree.toStringTree(parser),mc);
       throw mc;
     }
   }
@@ -264,7 +253,7 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
           unit.add(n);
         }
       } catch(MissingCase mc) {
-        Warning("in tree %s:",ctx.getChild(i).toStringTree(parser));
+        Warning("in tree %s:%n%s",ctx.getChild(i).toStringTree(parser),mc);
         throw mc;
       }
     }
@@ -463,32 +452,36 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
         return convert(ctx,1);
       } else if (match(ctx,"modifies",null,";")){
         ASTNode list[]=convert_list((ParserRuleContext) ctx.getChild(1), ",");
-        return create.special_decl(ASTSpecialDeclaration.Kind.Modifies,list);
+        return create.special_decl(ASTSpecial.Kind.Modifies,list);
       } else if (match(ctx,"accessible",null,";")){
         ASTNode list[]=convert_list((ParserRuleContext) ctx.getChild(1), ",");
-        return create.special_decl(ASTSpecialDeclaration.Kind.Accessible,list);
+        return create.special_decl(ASTSpecial.Kind.Accessible,list);
       } else if (match(ctx,"requires",null,";")){                     
-        return create.special_decl(ASTSpecialDeclaration.Kind.Requires,convert(ctx,1));
+        return create.special_decl(ASTSpecial.Kind.Requires,convert(ctx,1));
       } else if (match(ctx,"ensures",null,";")){
-        return create.special_decl(ASTSpecialDeclaration.Kind.Ensures,convert(ctx,1));
+        return create.special_decl(ASTSpecial.Kind.Ensures,convert(ctx,1));
       } else if (match(ctx,"given",null,";")){
-        return create.special_decl(ASTSpecialDeclaration.Kind.Given,create.block(convert(ctx,1)));
+        return create.special_decl(ASTSpecial.Kind.Given,create.block(convert(ctx,1)));
       } else if (match(ctx,"given",null,null,";")){
         DeclarationStatement decl=create.field_decl(getIdentifier(ctx,2),checkType(convert(ctx,1)));
-        return create.special_decl(ASTSpecialDeclaration.Kind.Given,create.block(decl));
+        return create.special_decl(ASTSpecial.Kind.Given,create.block(decl));
       } else if (match(ctx,"yields",null,";")){
-        return create.special_decl(ASTSpecialDeclaration.Kind.Yields,create.block(convert(ctx,1)));
+        return create.special_decl(ASTSpecial.Kind.Yields,create.block(convert(ctx,1)));
       }
       ParseTree tmp=ctx.getChild(0);
       int N=ctx.getChildCount();
       if(tmp instanceof TerminalNode){
         Token tok=((TerminalNode)tmp).getSymbol();
-        if (syntax.is_special(tok.getText())){
+        if (syntax.is_annotation(tok.getText())){
           if (!match(N-1,false,ctx,";")){
             throw new HREError("missing ; at end of special");
           }
           ASTNode list[]=convert_list(ctx, 1, N-1, ",");
-          return create.special(syntax.special(tok.getText()),list);
+          ASTSpecial.Kind kind=syntax.get_annotation(tok.getText(),list.length);
+          if (kind==null){
+            Abort("arity of special %s is not %d",tok.getText(),list.length);
+          }
+          return create.special(kind,list);
         }
       }
     } else if (arg0 instanceof TerminalNode){
@@ -538,7 +531,7 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
   }
   
   private void convert_linked(ArrayList<ASTNode> res,ParserRuleContext ctx,String sep){
-    if (match(ctx,null,",",null)){
+    if (match(ctx,null,sep,null)){
       convert_linked(res,(ParserRuleContext)ctx.getChild(0),sep);
       res.add(convert(ctx,2));
     } else {
@@ -546,8 +539,32 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
     }
   }
   protected ASTNode[] convert_linked_list(ParserRuleContext ctx,String sep){
-    ArrayList<ASTNode> res=new ArrayList();
+    ArrayList<ASTNode> res=new ArrayList<ASTNode>();
     convert_linked(res,ctx,sep);
+    return res.toArray(new ASTNode[0]);
+  }
+  
+  private void convert_smart(ArrayList<ASTNode> res,ParseTree tree,String sep){
+    if (tree instanceof ParserRuleContext){
+      ParserRuleContext ctx=(ParserRuleContext)tree;
+      if (match(0,true,ctx,null,sep,null)){
+        convert_smart(res,ctx.getChild(0),sep);
+        int N=ctx.getChildCount();
+        int ofs=1;
+        while(ofs+1 < N && match(ofs,true,ctx,sep,null)){
+          convert_smart(res,ctx.getChild(ofs+1),sep);
+          ofs+=2;
+        }
+      } else {
+        res.add(convert(tree));
+      }
+    } else {
+      res.add(convert(tree));
+    }
+  }
+  protected ASTNode[] convert_smart_list(ParserRuleContext ctx,String sep){
+    ArrayList<ASTNode> res=new ArrayList();
+    convert_smart(res,ctx,sep);
     return res.toArray(new ASTNode[0]);
   }
   
@@ -581,7 +598,7 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
   }
 
   protected boolean instance(Object item,String pattern){
-    Class cls=context.get(pattern);
+    Class<?> cls=context.get(pattern);
     if (cls==null){
       cls=context.get(pattern+"Context");
     }
@@ -638,7 +655,7 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
           if (tok.getType() == id) continue;
         }
       }
-      Class cls=context.get(pattern[i]);
+      Class<?> cls=context.get(pattern[i]);
       if (cls==null){
         cls=context.get(pattern[i]+"Context");
       }
@@ -759,6 +776,11 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
   }
   
   public ASTNode getSpecificationPrimary(ParserRuleContext ctx) {
+    if (match(ctx,null,":",null)){
+      ASTNode res=convert(ctx,2);
+      res.addLabel(create.label(getIdentifier(ctx,0)));
+      return res;
+    }
     if (match(ctx,"TypeContext","{","}")){
       return create.expression(StandardOperator.Build,convert(ctx,0));
     }

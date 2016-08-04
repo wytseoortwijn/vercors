@@ -70,9 +70,9 @@ public class JavaPostProcessor extends AbstractRewriter {
       case "bag":
         result=create.primitive_type(PrimitiveType.Sort.Bag,t.getArgs());
         return;
-        default:
-          super.visit(t);
-          return;
+      default:
+        super.visit(t);
+        return;
       }
     } else {
       super.visit(t);
@@ -152,6 +152,14 @@ public class JavaPostProcessor extends AbstractRewriter {
   public void visit(OperatorExpression e){
     Type deftype=create.class_type("Object");
     switch(e.getOperator()){
+      case StructSelect:
+        ASTNode arg=e.getArg(1);
+        if (arg instanceof NameExpression){
+          result=create.dereference(rewrite(e.getArg(0)), arg.toString());
+          return;
+        } else {
+          Abort("unexpected StructSelect expression");
+        }
       case SubType:
         deftype=(Type)rewrite(e.getArg(1));
       case SuperType:

@@ -1,7 +1,6 @@
 package vct.antlr4.parser;
 
 import static hre.System.*;
-import hre.ast.FileOrigin;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -11,15 +10,8 @@ import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 
-import pv.parser.PVFullLexer;
-import pv.parser.PVFullParser;
 import vct.parsers.*;
-import vct.util.Configuration;
-import vct.col.ast.ASTClass;
-import vct.col.ast.ASTClass.ClassKind;
-import vct.col.ast.ASTNode;
 import vct.col.ast.ProgramUnit;
-import vct.col.rewrite.AbstractRewriter;
 import vct.col.rewrite.AnnotationInterpreter;
 import vct.col.rewrite.FilterSpecIgnore;
 import vct.col.rewrite.FlattenVariableDeclarations;
@@ -38,17 +30,19 @@ public class ColJavaParser implements vct.col.util.Parser {
         TimeKeeper tk=new TimeKeeper();
         
         ANTLRInputStream input = new ANTLRInputStream(new FileInputStream(file));
-        JavaLexer lexer = new JavaLexer(input);
+        JavaJMLLexer lexer = new JavaJMLLexer(input);
         CommonTokenStream tokens = new CommonTokenStream(lexer);
-        JavaParser parser = new JavaParser(tokens);
+        JavaJMLParser parser = new JavaJMLParser(tokens);
         ErrorCounter ec=new ErrorCounter(file_name);
         parser.removeErrorListeners();
         parser.addErrorListener(ec);
+        lexer.removeErrorListeners();
+        lexer.addErrorListener(ec);
         ParseTree tree = parser.compilationUnit();
         ec.report();
         Progress("first parsing pass took %dms",tk.show());
         
-        ProgramUnit pu=JavaToCol.convert(tree,file_name,tokens,parser);
+        ProgramUnit pu=JavaJMLtoCol.convert(tree,file_name,tokens,parser);
         Progress("AST conversion took %dms",tk.show());
         
         Debug("program after Java parsing:%n%s",pu);
@@ -65,7 +59,7 @@ public class ColJavaParser implements vct.col.util.Parser {
         //vct.util.Configuration.getDiagSyntax().print(System.out,pu);
         Debug("program after flattening variables:%n%s",pu);
         
-        pu=new SpecificationCollector(pu).rewriteAll();
+        pu=new SpecificationCollector(JavaSyntax.getJava(JavaDialect.JavaVerCors),pu).rewriteAll();
         Progress("Shuffling specifications took %dms",tk.show());        
         //vct.util.Configuration.getDiagSyntax().print(System.out,pu);
         Debug("program after collecting specs:%n%s",pu);

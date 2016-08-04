@@ -1,7 +1,10 @@
 package vct.antlr4.parser;
 
+import hre.HREError;
+
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -18,11 +21,10 @@ import vct.col.ast.PrimitiveType.Sort;
 import vct.col.print.JavaPrinter;
 import vct.col.syntax.Syntax;
 import vct.parsers.JavaJMLLexer;
-import vct.parsers.JavaLexer;
-import vct.parsers.JavaParser.BlockContext;
-import vct.parsers.JavaParser.ClassBodyContext;
-import vct.parsers.JavaParser.ClassBodyDeclarationContext;
-import vct.parsers.JavaParser.LiteralContext;
+import vct.parsers.JavaJMLParser.BlockContext;
+import vct.parsers.JavaJMLParser.ClassBodyContext;
+import vct.parsers.JavaJMLParser.ClassBodyDeclarationContext;
+import vct.parsers.JavaJMLParser.LiteralContext;
 import static hre.System.*;
 
 import org.apache.commons.lang3.StringEscapeUtils;
@@ -43,13 +45,7 @@ public class AbstractJavaToCol extends ANTLRtoCOL {
     IntegerLiteral=getStaticInt(lexer_class,"IntegerLiteral");
     StringLiteral=getStaticInt(lexer_class,"StringLiteral");
   }
-  
-  public ASTNode getLocalVariableDeclaration(ParserRuleContext ctx) {
-    int N=ctx.getChildCount();
-    ASTNode list[]=convert_range(ctx,0,N-1);
-    return getVariableDeclaration((ParserRuleContext)ctx.getChild(N-1),list);
-  }
-  
+    
   public ASTNode getQualifiedName(ParserRuleContext ctx) {
     ASTNode n[]=convert_list(ctx,".");
     ASTNode res=n[0];
@@ -119,6 +115,16 @@ public class AbstractJavaToCol extends ANTLRtoCOL {
   }
 
   public ASTNode getType(ParserRuleContext ctx) {
+    if (match(ctx,"seq","<",null,">")){
+      return create.primitive_type(Sort.Sequence, checkType(convert(ctx,0)));
+    }
+    if (match(ctx,"bag","<",null,">")){
+      return create.primitive_type(Sort.Bag, checkType(convert(ctx,0)));
+    }
+    if (match(ctx,"set","<",null,">")){
+      return create.primitive_type(Sort.Set, checkType(convert(ctx,0)));
+    }
+
     if (match(ctx,null,"[","]")){
       return create.primitive_type(Sort.Array, checkType(convert(ctx,0)));
     }
@@ -196,23 +202,29 @@ public class AbstractJavaToCol extends ANTLRtoCOL {
     Debug("no class creator");
     return null;
   }
+  
   protected DeclarationStatement[] getFormalParameters(ParseTree tree,AtomicBoolean varargs){
     DeclarationStatement args[];
-    ParserRuleContext arg_ctx=(ParserRuleContext)tree;
-    if (match(arg_ctx,"(",")")) {
-      varargs.set(false);
-      args=new DeclarationStatement[0];
-    } else {
-      ParserRuleContext args_ctx=(ParserRuleContext)arg_ctx.getChild(1);
-      ASTNode tmp[]=convert_list(args_ctx,",");
-      varargs.set(match(tmp.length*2-2,true,args_ctx,"LastFormalParameter"));
-      args=new DeclarationStatement[tmp.length];
-      for(int i=0;i<tmp.length;i++){
-        args[i]=(DeclarationStatement)tmp[i];
-      }
+    ParserRuleContext args_ctx=(ParserRuleContext)tree;
+    ASTNode tmp[]=convert_smart_list(args_ctx,",");
+    int pos;
+    switch(tmp.length){
+    case 0:
+      break;
+    case 1:
+      varargs.set(!match((ParserRuleContext)args_ctx.getChild(0),"FormalParameter"));
+      break;
+    case 2:
+      varargs.set(!match((ParserRuleContext)args_ctx.getChild(2),"FormalParameter"));
+      break;
+    }
+    args=new DeclarationStatement[tmp.length];
+    for(int i=0;i<tmp.length;i++){
+      args[i]=(DeclarationStatement)tmp[i];
     }
     return args;
   }
+  
   public ClassType[] forceClassType(ASTNode convert[]) {
     ClassType[] res=new ClassType[convert.length];
     for(int i=0;i<convert.length;i++){
@@ -232,42 +244,73 @@ public class AbstractJavaToCol extends ANTLRtoCOL {
     }
     return null;
   }
-  public Method getConstructorDeclaration(ParserRuleContext ctx) {
-    String name=getIdentifier(ctx,0);
-    AtomicBoolean varargs=new AtomicBoolean();
-    DeclarationStatement args[]=getFormalParameters(ctx.getChild(1),varargs);
-    Type returns=create.primitive_type(Sort.Void);
-    if (ctx.getChildCount()==3){
-      ASTNode body=convert(ctx,2);
-      return create.method_kind(Method.Kind.Constructor, returns, null, name, args,varargs.get(),body);
-    } else {
-      return null;
-    }
-  }
-  public Method getMethodDeclaration(ParserRuleContext ctx) {
+  
+  public Method getMethodHeader(ParserRuleContext ctx) {
     int N=ctx.getChildCount();
+    if (match(N-1,false,ctx,"Throws_")){
+      Warning("exceptions are not supported yet.");
+      N=N-1;
+    }
     Type t;
-    if (match(0,true,ctx,"void")){
+    if (match(N-2,true,ctx,"void")){
       t=create.primitive_type(Sort.Void);
     } else {
-      t=checkType(convert(ctx,0));
+      t=checkType(convert(ctx,N-2));
     }
-    String name=getIdentifier(ctx,1);
-    AtomicBoolean varargs=new AtomicBoolean();
-    DeclarationStatement args[]=getFormalParameters(ctx.getChild(2),varargs);
+    ParserRuleContext temp_ctx=(ParserRuleContext)ctx.getChild(N-1);
+    String name=getIdentifier(temp_ctx,0);
+    AtomicBoolean varargs=new AtomicBoolean(false);
+    DeclarationStatement args[];
+    if (match(2,true,temp_ctx,"FormalParameterList")){
+      args=getFormalParameters(temp_ctx.getChild(2),varargs);
+    } else {
+      args=new DeclarationStatement[0];
+    }
+    Method res=create.method_kind(Method.Kind.Plain,t,null, name, args, varargs.get(), null);
+    for(int i=0;i<N-2;i++){
+      res.attach(convert(ctx,i));
+    }
+    return res;    
+  }
+  
+  public Method getMethodDeclaration(ParserRuleContext ctx) {
+    int N=ctx.getChildCount();
+    // get the header
+    Method header=(Method)convert(ctx,N-2);
     ASTNode body;
+    // add the body if it has one
     if (match(N-1,true,ctx,";")){
-      body=null;
+      body=null; 
     } else {
       body=convert(ctx,N-1);
     }
-    Method res=create.method_kind(Method.Kind.Plain,t,null, name, args, varargs.get(), body);
-    res.setStatic(false);
-    return res;
+    header.setBody(body);
+    // add modifiers and annotations
+    for(int i=0;i<N-2;i++){
+      ASTNode mod=convert(ctx,i);
+      header.attach(mod);
+      scan_comments_after(header.annotations(),ctx.getChild(i));
+    }
+    return header;
   }
   public BlockStatement getBlock(ParserRuleContext ctx) {
     BlockStatement res=create.block();
-    scan_body(res,ctx);
+    if (match(ctx,"{",null,"}")){
+      ParserRuleContext body_ctx=(ParserRuleContext)ctx.getChild(1);
+      int N=body_ctx.getChildCount();
+      for(int i=0;i<N;i++){
+        scan_comments_before(res,body_ctx.getChild(i));
+        if (match(i,true,body_ctx,";")) {
+          continue;
+        }
+        res.add(convert(body_ctx.getChild(i)));
+      }
+      scan_comments_before(res,ctx.getChild(2));
+    } else if (match (ctx,"{","}")) {
+      scan_comments_before(res,ctx.getChild(1));
+    } else {
+      throw Failure("unexpected kind of block");
+    }
     return res;
   }
 
@@ -334,11 +377,6 @@ public class AbstractJavaToCol extends ANTLRtoCOL {
     if (match(ctx,"StatementExpression",";")){
       return create.special(ASTSpecial.Kind.Expression,convert((ParserRuleContext)ctx.getChild(0),0)); 
     }
-    if (match(ctx,"while",null,null)){
-      LoopStatement res=create.while_loop(convert(ctx,1),convert(ctx,2));
-      scan_comments_after(res.get_after(), ctx.getChild(1));
-      return res;
-    }
     if (match(ctx,"for","(",null,")",null)){
       ParserRuleContext control=(ParserRuleContext)ctx.getChild(2);
       if (match(control,null,";",null,";",null)){
@@ -392,34 +430,27 @@ public class AbstractJavaToCol extends ANTLRtoCOL {
     return null;
   }
 
-  public ASTNode getVariableDeclaration(ParserRuleContext var_ctx,ASTNode ... list){
-    int N=list.length-1;
-    ASTNode vars[]=convert_list(var_ctx,",");
-    VariableDeclaration decl=create.variable_decl(checkType(list[N]));
-    for(int i=0;i<vars.length;i++){
-      DeclarationStatement tmp;
-      if (vars[i] instanceof NameExpression){
-        String name=((NameExpression)vars[i]).getName();
-        tmp=create.field_decl(name,create.class_type(name));
-      } else if (vars[i] instanceof DeclarationStatement) {
-        DeclarationStatement d=(DeclarationStatement)vars[i];
-        tmp=create.field_decl(d.getName(),d.getType(),d.getInit());
+  
+  public Type add_dims(Type t,ParseTree tree){
+    ParserRuleContext ctx=(ParserRuleContext)tree;
+    int N=ctx.getChildCount();
+    int ofs=0;
+    while(ofs<N){
+      if (match(ofs,true,ctx,"[","]")){
+        t=create.primitive_type(PrimitiveType.Sort.Array,t);
+        ofs+=2;
       } else {
-        throw hre.System.Failure("unexpected %s in variable list at %s",vars[i].getClass(),create.getOrigin());
+        throw Failure("unimplemented dims");
       }
-      decl.add(tmp);
     }
-    for(int i=0;i<N;i++){
-      decl.attach(list[i]);
-    }
-    return decl;
+    return t;
   }
   
   public DeclarationStatement getVariableDeclaratorId(ParserRuleContext ctx){
     String name=getIdentifier(ctx,0);
     Type t=create.class_type(name);
-    if (match(ctx,null,"[","]")){
-      t=create.primitive_type(PrimitiveType.Sort.Array,t);
+    if (match(ctx,null,"Dims")){
+      t=add_dims(t,ctx.getChild(1));
     }
     return create.field_decl(name, t);
   }
@@ -492,6 +523,39 @@ public class AbstractJavaToCol extends ANTLRtoCOL {
   }
   
   public ASTClass getClassDeclaration(ParserRuleContext ctx){
+    int base=0;
+    int N=ctx.getChildCount();
+    while(!match(base,true,ctx,"class")){
+      base++;
+    }
+    String name=getIdentifier(ctx, base+1);
+    int ptr=base+2;
+    ClassType bases[]=null;
+    while(ptr<N-1){
+      if (match(ptr,true,ctx,"Superclass")){
+        ParserRuleContext tmp=(ParserRuleContext)ctx.getChild(ptr);
+        ASTNode t=convert(tmp,1);
+        bases=new ClassType[]{forceClassType(t)};
+        ptr++;
+      } else {
+        System.err.printf("missing case ???%n");
+        throw new Error("missing case");
+      }
+    }
+    ASTClass cl=create.ast_class(name,ASTClass.ClassKind.Plain,null,bases,null);
+    try {
+      scan_body(cl, (ParserRuleContext)ctx.getChild(N-1));
+    } catch (Throwable t) {
+      System.err.printf("caught %s%n", t);
+      throw t;
+    }
+    for(int i=0;i<base;i++){
+      cl.attach(convert(ctx,i));
+    }
+    return cl;
+  }
+  
+  public ASTClass oldGetClassDeclaration(ParserRuleContext ctx){
     int N=ctx.getChildCount()-1;
     ClassType[]bases=null;
     ClassType[]supports=null;

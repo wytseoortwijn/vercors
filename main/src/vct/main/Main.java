@@ -358,18 +358,14 @@ public class Main
               out.println("import col.lang.*;");
               syntax.print(out, node);
               out.close();
-            } else if(node instanceof ASTSpecial){
+             } else if(node instanceof ASTSpecial){
               ASTSpecial S = (ASTSpecial)node;
-              fail("cannot deal with special %s yet",S.kind);
-              return arg;           
-            } else if(node instanceof ASTSpecialDeclaration){
-              ASTSpecialDeclaration S = (ASTSpecialDeclaration)node;
               switch(S.kind){
               case Comment:
                 // TODO keep comments.
                 break;
               default:
-                fail("cannot deal with special declaration %s yet",S.kind);
+                fail("cannot deal with special %s yet",S.kind);
                 return arg; 
               }  
             } else {

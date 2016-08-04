@@ -1,5 +1,6 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
-//:: cases ProdConsWitnesses
+//:: cases ProdConsOrigWitnesses
+//:: suite problem-fail
 //:: tools chalice
 //:: options --explicit
 /*
@@ -9,8 +10,6 @@
  Author: Afshin Amighi
  command: vct --chalice --explicit RBProdCons.java
  Status: Pass.
- 
- Renamed read => Read and write => Write to work around parsing bug.
 */
 
 
@@ -67,7 +66,7 @@ class ProdCons{
 	void produce(){
 	
 		//@ int role = 1, last = 0 , S = 0;
-		Write();
+		write();
 		
 		/*@
 		 witness tmp_allowed:allowed(*,*,*);
@@ -101,7 +100,7 @@ class ProdCons{
 	 requires Perm(data,100);
 	 ensures Perm(data,100);
 	 */
-	void Write();
+	void write();
 	
 
 	// do we have to call this methid when the buffer is in particular state? it can be in any state!
@@ -134,7 +133,7 @@ class ProdCons{
 		
 		//@ unfold tmp_assigned3: assigned(role,check);
 		
-		Read() ;
+		read() ;
 		
 		/*@
 		 witness tsrp:assigned(*,*);
@@ -155,7 +154,7 @@ class ProdCons{
 	 requires Perm(data,100);
 	 ensures Perm(data,100);
 	 */
-	void Read();
+	void read();
 	
 	
 }

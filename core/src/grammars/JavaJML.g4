@@ -8,8 +8,9 @@ specificResourceExpression
  : expression '->' Identifier '(' expressionList? ')'
  | ( expression . )? Identifier '@' Identifier '(' expressionList? ')'
  ;
- 
-type
+
+/*
+extraJMLtype
   : type '[' ']'
   | type ',' type
   | <assoc=right> type '->' type
@@ -17,6 +18,7 @@ type
   | primitiveType
   | '(' type ')'
   ;
+*/
 
 arguments
     :   '(' expressionList? ')'
@@ -31,6 +33,7 @@ specificationModifier
 specificationStatement
     : 'requires' resourceExpression ';'
     | 'ensures' resourceExpression ';'
+    | 'let' type Identifier ';'
     | 'modifies' expressionList ';'
     | 'accessible' expressionList ';'
     | 'given' localVariableDeclaration ';'
@@ -47,9 +50,9 @@ specificationStatement
     | 'exhale' resourceExpression ';'
     | 'inhale' resourceExpression ';'
     | 'assume' resourceExpression ';'
-    | 'create' resourceExpression block
-    | 'create' block resourceExpression ';'
-    | 'create' block
+ //   | 'create' resourceExpression block
+ //   | 'create' block resourceExpression ';'
+ //   | 'create' block
     | 'qed' resourceExpression ';'
     | 'apply' resourceExpression proofScript ';'
     | 'use' resourceExpression ';'
@@ -61,14 +64,13 @@ specificationStatement
     | 'transfer' resourceExpression ';' 
     | 'csl_subject' expression ';'
     | 'action' expression ',' expression ',' expression ',' expression ( ',' expression ',' expression )* ';'
-    | 'create' resourceExpression ';'
-    | 'create' resourceExpression ',' resourceExpression ';'
     | 'destroy' resourceExpression ';'
     | 'destroy' resourceExpression ',' resourceExpression ';'
     | 'split' resourceExpression ',' resourceExpression ',' resourceExpression ',' resourceExpression ',' resourceExpression ';'
     | 'merge' resourceExpression ',' resourceExpression ',' resourceExpression ',' resourceExpression ',' resourceExpression ';'
     | 'choose' resourceExpression ',' resourceExpression ',' resourceExpression ',' resourceExpression ';'
     | Identifier resourceExpression ( ( ',' | Identifier ) resourceExpression )* ( ';' | block )
+    | Identifier block
     | '}' 'spec_ignore'
     | 'spec_ignore' '{'
     | 'atomic' '(' expressionList ')' block
@@ -85,7 +87,9 @@ specificationDeclaration
     ;
     
 functionDeclaration
-    : modifier* type Identifier formalParameters '=' resourceExpression ';' 
+//    : modifier* type Identifier formalParameters '=' resourceExpression ';' 
+    : methodModifier* methodHeader '=' resourceExpression ';'
+//    | methodHeader ';'
     ;
 
 axiomDeclaration

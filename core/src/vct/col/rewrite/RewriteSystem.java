@@ -319,12 +319,6 @@ class MatchLinear implements ASTMapping1<Boolean,ASTNode> {
   }
 
   @Override
-  public Boolean map(ASTSpecialDeclaration s, ASTNode a) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
   public Boolean map(TypeExpression t, ASTNode a) {
     // TODO Auto-generated method stub
     return null;
@@ -550,11 +544,11 @@ public class RewriteSystem {
       if (d instanceof Method && ((Method)d).kind==Method.Kind.Constructor){
         continue;
       }
-      if (d instanceof ASTSpecialDeclaration &&
-         ((ASTSpecialDeclaration)d).kind==ASTSpecialDeclaration.Kind.Comment) {
+      if (d instanceof ASTSpecial &&
+         ((ASTSpecial)d).kind==ASTSpecial.Kind.Comment) {
         continue;
       }
-      d.getOrigin().report("fatal","unexpected item in rewrite system.");
+      d.getOrigin().report("fatal","unexpected item in rewrite system: %s",d);
       Fail("Fatal");
     }
 

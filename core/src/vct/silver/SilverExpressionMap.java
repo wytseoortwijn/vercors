@@ -454,11 +454,6 @@ public class SilverExpressionMap<T,E> implements ASTMapping<E>{
   }
 
   @Override
-  public E map(ASTSpecialDeclaration s) {
-    return null;
-  }
-
-  @Override
   public E map(ForEachLoop s) {
     return null;
   }

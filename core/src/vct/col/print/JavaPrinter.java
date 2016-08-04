@@ -189,7 +189,7 @@ public class JavaPrinter extends AbstractPrinter {
   }
   @Override
   public void visit(ASTSpecial s){
-    String syn=syntax.getSyntax(s.kind);
+    String syn=syntax.get_annotation(s.kind);
     if (syn!=null){
       out.print(syn);
       setExpr();

@@ -551,7 +551,7 @@ public class CMLtoCOL extends AbstractCtoCOL implements CMLVisitor<ASTNode> {
 	    ASTNode res=null;	    
 
 	  	if (match(ctx,"loop_invariant",null,";")){	      
-	      res= create.special_decl(ASTSpecialDeclaration.Kind.Invariant,convert(ctx,1));
+	      res= create.special_decl(ASTSpecial.Kind.Invariant,convert(ctx,1));
 	    }
 	    else if (match(ctx,"send",null,"to",null,",",null,";")){//DRB	    	
 		    res= create.expression(StandardOperator.Send,convert(ctx,1),convert(ctx,3),convert(ctx,5));		

@@ -13,7 +13,9 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 
 import vct.col.ast.*;
+import vct.col.ast.ASTSpecial.Kind;
 import vct.col.rewrite.AbstractRewriter;
+import vct.col.syntax.Syntax;
 import vct.parsers.CMLLexer;
 import vct.parsers.CMLParser;
 import static hre.System.*;
@@ -27,15 +29,22 @@ import org.antlr.v4.runtime.Lexer;
  */
 public class SpecificationCollector extends AbstractRewriter {
   
-  public SpecificationCollector(ProgramUnit source) {
+  private Syntax syntax;
+  
+  public SpecificationCollector(Syntax syntax,ProgramUnit source) {
     super(source);
+    this.syntax=syntax;
     currentContractBuilder=new ContractBuilder();
   }
-
   
+  public SpecificationCollector(ProgramUnit source) {
+    super(source);
+    this.syntax=new Syntax("EmptySyntax");
+    currentContractBuilder=new ContractBuilder();
+  }
   
   @Override
-  public void visit(ASTSpecialDeclaration s){
+  public void visit(ASTSpecial s){
     switch(s.kind){
     case Given:
     case Yields:
@@ -161,8 +170,8 @@ public class SpecificationCollector extends AbstractRewriter {
   private void filter_with_then(BlockStatement new_before,
       BlockStatement new_after, BlockStatement new_current, BlockStatement old_current) {
     for(ASTNode n:old_current){
-      if (n instanceof ASTSpecialDeclaration){
-        ASTSpecialDeclaration sp=(ASTSpecialDeclaration)n; 
+      if (n instanceof ASTSpecial){
+        ASTSpecial sp=(ASTSpecial)n; 
         switch(sp.kind){
         case Requires:{
           currentContractBuilder.requires(copy_rw.rewrite(sp.args[0]));
@@ -201,9 +210,9 @@ public class SpecificationCollector extends AbstractRewriter {
     
     int N=block.getLength();
     for(int i=0;i<N;i++){
-      if (block.get(i) instanceof ASTSpecialDeclaration && currentContractBuilder==null){
+      if (block.get(i) instanceof ASTSpecial && currentContractBuilder==null){
         int j;
-        for(j=i+1;j<N && (block.get(j) instanceof ASTSpecialDeclaration);j++){
+        for(j=i+1;j<N && (block.get(j) instanceof ASTSpecial);j++){
         }
         if (j<N && block.get(j) instanceof LoopStatement) {
           currentContractBuilder=new ContractBuilder();
@@ -222,6 +231,30 @@ public class SpecificationCollector extends AbstractRewriter {
     
     result=currentBlock;
     currentBlock=tmp;
+  }
+  
+  
+  @Override
+  public void visit(DeclarationStatement d){
+    /* We correct for the fact that for parsers the following two
+     * patterns are indistinguishable in many cases:
+      
+      special argument ;
+      type var ;
+      
+      TODO
+      
+      special a1 , a2 ;
+      type v1 , v2 ;
+      
+     */
+    Kind kind=syntax.get_annotation(d.getType().toString(),1);
+    if (kind==null){
+      super.visit(d);
+    } else {
+      Warning("fixing special %s",kind);
+      result=create.special(kind,create.unresolved_name(d.name));
+    }
   }
 }
 

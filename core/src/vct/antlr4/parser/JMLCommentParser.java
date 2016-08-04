@@ -23,14 +23,14 @@ public class JMLCommentParser extends CommentParser<JavaJMLParser,JavaJMLLexer> 
   public TempSequence parse_contract(ASTSequence<?> seq) {
     ParseTree tree=parser.specificationSequence();
     ec.report();
-    return JavaJMLtoCol.convert(tree, "embedded_comments", tokens, parser);
+    return JavaJMLtoCol.convert_seq(tree, "embedded_comments", tokens, parser);
   }
 
   @Override
   public TempSequence parse_annotations() {
 	ParseTree tree=parser.specificationModifier();
 	ec.report();
-	return JavaJMLtoCol.convert(tree, "embedded_comments", tokens, parser);
+	return JavaJMLtoCol.convert_seq(tree, "embedded_comments", tokens, parser);
   }
 
 }
