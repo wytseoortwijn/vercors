@@ -21,10 +21,6 @@ import vct.col.rewrite.AbstractRewriter;
 import vct.col.util.ASTFactory;
 import vct.col.util.ASTUtils;
 
-import static hre.System.Abort;
-import static hre.System.Fail;
-import static hre.System.Warning;
-
 /**
  * This class scans a given AST for assertions and checks each assertion as if it were
  * a First Order Logic formula using Boogie.
@@ -121,7 +117,7 @@ public class BoogieFOL {
    * @param formula The formula to be checked.
    */
   public static BoogieReport check_boogie(DeclarationStatement args[],ASTNode formula){
-    ASTFactory create=new ASTFactory();
+    ASTFactory<?> create=new ASTFactory<Object>();
     create.setOrigin(formula.getOrigin());
     
     AbstractRewriter copy_rw=new AbstractRewriter((ProgramUnit)null);

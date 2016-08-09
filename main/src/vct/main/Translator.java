@@ -1,7 +1,5 @@
 package vct.main;
 
-import static hre.System.Debug;
-import static hre.System.Fail;
 import hre.ast.FileOrigin;
 import hre.ast.Origin;
 import hre.io.PrefixPrintStream;
@@ -9,7 +7,6 @@ import hre.io.PrefixPrintStream;
 import java.lang.reflect.Field;
 import java.util.*;
 
-import vct.boogie.BoogieReport;
 import vct.col.ast.ASTClass;
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTWith;
@@ -35,8 +32,6 @@ import vct.col.ast.ReturnStatement;
 import vct.col.ast.StandardOperator;
 import vct.col.ast.StandardProcedure;
 import vct.col.ast.Type;
-import vct.col.rewrite.AbstractRewriter;
-import vct.col.rewrite.AssignmentRewriter;
 import vct.col.rewrite.Substitution;
 import vct.col.util.ASTFactory;
 
@@ -45,13 +40,15 @@ import vct.col.util.ASTFactory;
  * this class delivers the AST to the Brain of the Hoare Logic Checker in bite sized chunks.
  * bin\vct "--passes=assign,boogie-fol" remco\Test.java
  */
+@SuppressWarnings("all") // Because this code is not actively maintained.
 public class Translator {
 	
 	private ASTClass theTree;
 	private static Brain thisParent;
 	private List<String> variablelenLijst;
 	private List<String> hoareTriple;
-	private PrefixPrintStream outputToString;
+	
+  private PrefixPrintStream outputToString;
 	private int currentWorkingTriple;
 	public boolean abort=false;
 	private int currentSet = 0;
@@ -628,7 +625,7 @@ public class Translator {
 		}
 	}
 	
-	private static class StringPrinter extends AbstractVisitor{
+  private static class StringPrinter extends AbstractVisitor{
 		private int currentWorkingTriple;
 		private int treeDepth;
 		private List<String> variablelenLijst;
@@ -718,7 +715,6 @@ public class Translator {
 
 		@Override
 		public void visit(FunctionType t) {
-		    // TODO Auto-generated method stub
 		    throw new Error("missing case in Abstract Scanner: "+t.getClass());
 		}
 
@@ -730,7 +726,6 @@ public class Translator {
 
 		@Override
 		public void visit(RecordType t) {
-		    // TODO Auto-generated method stub
 			throw new Error("missing case in Abstract Scanner: "+t.getClass());
 		}
 
