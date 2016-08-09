@@ -30,7 +30,7 @@ object VControl {
   }
   
   def get_origin[O](info : viper.silver.ast.Info):O ={
-    if (info.isInstanceOf[OriginInfo[O]]){
+    if (info.isInstanceOf[OriginInfo[O]@unchecked]){
       info.asInstanceOf[OriginInfo[O]].loc;
     } else {
       null.asInstanceOf[O];
