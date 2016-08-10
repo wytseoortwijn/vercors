@@ -13,7 +13,7 @@
   <property name="bin"          value="${basedir}/bin"/>
   <property name="lib"          value="${basedir}/libs"/>
   <property name="dist"         value="${basedir}/dist"/>
-  <property name="libpath"      value="${basedir}/../hre/hre.jar:${basedir}/../core/vct-core.jar:${lib}/antlr-4.5-complete.jar:${basedir}/../libs/commons-lang3-3.1/commons-lang3-3.1.jar:${basedir}/../viper/viper-api/bin"/>
+  <property name="libpath"      value="${basedir}/../hre/hre.jar:${basedir}/../core/vct-core.jar:${lib}/antlr-4.5.3-complete.jar:${basedir}/../libs/commons-lang3-3.1/commons-lang3-3.1.jar:${basedir}/../viper/viper-api/bin"/>
   <property environment="env"/>
 
   <target name="clean">
@@ -32,7 +32,7 @@
     Running ANTLR v4 on omp.g4
     </echo>
   	<mkdir dir="${gen}/vct/parsers"/>
-    <java fork="yes" dir="${src}/grammars" classpath="${lib}" jar="${lib}/antlr-4.5-complete.jar">
+    <java fork="yes" dir="${src}/grammars" classpath="${lib}" jar="${lib}/antlr-4.5.3-complete.jar">
       <arg value="-o"/><arg value="${gen}/vct/parsers"/>
       <arg value="-visitor"/>
       <arg value="omp.g4"/>
@@ -50,7 +50,7 @@
     Running ANTLR v4 on C.g4
     </echo>
   	<mkdir dir="${gen}/vct/parsers"/>
-    <java fork="yes" dir="${src}/grammars" classpath="${lib}" jar="${lib}/antlr-4.5-complete.jar">
+    <java fork="yes" dir="${src}/grammars" classpath="${lib}" jar="${lib}/antlr-4.5.3-complete.jar">
       <arg value="-o"/><arg value="${gen}/vct/parsers"/>
       <arg value="-visitor"/>
       <arg value="C.g4"/>
@@ -68,7 +68,7 @@
     Running ANTLR v4 on CML.g4
     </echo>
   	<mkdir dir="${gen}/vct/parsers"/>
-    <java fork="yes" dir="${src}/grammars" classpath="${lib}" jar="${lib}/antlr-4.5-complete.jar">
+    <java fork="yes" dir="${src}/grammars" classpath="${lib}" jar="${lib}/antlr-4.5.3-complete.jar">
       <arg value="-o"/><arg value="${gen}/vct/parsers"/>
       <arg value="-visitor"/>
       <arg value="CML.g4"/>
@@ -86,7 +86,7 @@
     Running ANTLR v4 on JavaJML.g4
     </echo>
   	<mkdir dir="${gen}/vct/parsers"/>
-    <java fork="yes" dir="${src}/grammars" classpath="${lib}" jar="${lib}/antlr-4.5-complete.jar">
+    <java fork="yes" dir="${src}/grammars" classpath="${lib}" jar="${lib}/antlr-4.5.3-complete.jar">
       <arg value="-o"/><arg value="${gen}/vct/parsers"/>
       <arg value="-visitor"/>
       <arg value="JavaJML.g4"/>
@@ -104,7 +104,7 @@
     Running ANTLR v4 on PVFull.g4
     </echo>
   	<mkdir dir="${gen}/pv/parser"/>
-    <java fork="yes" dir="${src}/grammars" classpath="${lib}" jar="${lib}/antlr-4.5-complete.jar">
+    <java fork="yes" dir="${src}/grammars" classpath="${lib}" jar="${lib}/antlr-4.5.3-complete.jar">
       <arg value="-o"/><arg value="${gen}/pv/parser"/>
       <arg value="-visitor"/>
       <arg value="PVFull.g4"/>
