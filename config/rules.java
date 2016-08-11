@@ -1,11 +1,13 @@
 class silver_optimize {
 /*@
-  int e1,e2,e3,e4,e5,e6,e7,e8;
+  int e1,e2,e3;
   int i;
   
   axiom S1 { ( e1 \memberof [ e2 .. e3 )) ==  ( e2 <= e1 && e1 < e3 ) }
   
-  axiom head1 { head (e1) == e1[0] }
+  seq<int> xs;
+  
+  axiom head1 { head (xs) == xs[0] }
 
 //  axiom move_implication {
 //     (e1 ==> (\forall* int i; e2 ; e3 ))

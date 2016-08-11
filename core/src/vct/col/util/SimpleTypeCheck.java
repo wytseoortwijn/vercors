@@ -536,6 +536,11 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     
     
     switch(op){
+    case IndependentOf:
+    {
+      e.setType(t1);
+      break;
+    }
     case PVLidleToken:
     case PVLjoinToken:
     {
