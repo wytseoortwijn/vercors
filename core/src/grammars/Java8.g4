@@ -53,6 +53,10 @@ Total lexer+parser time 30844ms.
  */
 grammar Java8;
 
+@header {
+package vct.parsers;
+}
+
 /*
  * Productions from §3 (Lexical Structure)
  */
@@ -78,6 +82,7 @@ type
 primitiveType
 	:	annotation* numericType
 	|	annotation* 'boolean'
+	|   annotation* specificationPrimitiveType
 	;
 
 numericType
@@ -367,6 +372,7 @@ variableInitializer
 unannType
 	:	unannPrimitiveType
 	|	unannReferenceType
+	|   specificationPrimitiveType
 	;
 
 unannPrimitiveType
@@ -660,6 +666,7 @@ annotation
 	:	normalAnnotation
 	|	markerAnnotation
 	|	singleElementAnnotation
+	|   specificationModifier
 	;
 
 normalAnnotation
@@ -741,6 +748,7 @@ statement
 	|	ifThenElseStatement
 	|	whileStatement
 	|	forStatement
+	|   specificationStatement
 	;
 
 statementNoShortIf
@@ -1023,6 +1031,7 @@ primaryNoNewArray_lfno_primary
 	|	arrayAccess_lfno_primary
 	|	methodInvocation_lfno_primary
 	|	methodReference_lfno_primary
+	|   specificationPrimary
 	;
 
 primaryNoNewArray_lfno_primary_lf_arrayAccess_lfno_primary
@@ -1771,9 +1780,20 @@ WS  :  [ \t\r\n\u000C]+ -> skip
     ;
 
 COMMENT
-    :   '/*' .*? '*/' -> skip
+    :   '/*' .*? '*/' -> channel(COMMENT)
+    ;
+
+EmbeddedLatex
+    : '#' ~[\r\n]* '#' -> skip
     ;
 
 LINE_COMMENT
-    :   '//' ~[\r\n]* -> skip
+    :   '//' ~[\r\n]* -> channel(COMMENT)
     ;
+
+FileName : '"' ~[\r\n"]* '"' ;
+
+LINEDIRECTION
+    :   '#' WS? IntegerLiteral WS? FileName ~[\r\n]* -> channel(LINEDIRECTION)
+    ;
+   

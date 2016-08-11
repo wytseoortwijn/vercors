@@ -1,6 +1,6 @@
-grammar JavaJML;
+grammar Java8JML;
 
-import VerCorsML, Java;
+import VerCorsML, Java8;
 
 specificationSequence : ( specificationDeclaration | statement )* ;
 

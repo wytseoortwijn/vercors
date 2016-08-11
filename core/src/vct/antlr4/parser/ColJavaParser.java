@@ -30,9 +30,9 @@ public class ColJavaParser implements vct.col.util.Parser {
         TimeKeeper tk=new TimeKeeper();
         
         ANTLRInputStream input = new ANTLRInputStream(new FileInputStream(file));
-        JavaJMLLexer lexer = new JavaJMLLexer(input);
+        Java8JMLLexer lexer = new Java8JMLLexer(input);
         CommonTokenStream tokens = new CommonTokenStream(lexer);
-        JavaJMLParser parser = new JavaJMLParser(tokens);
+        Java8JMLParser parser = new Java8JMLParser(tokens);
         ErrorCounter ec=new ErrorCounter(file_name);
         parser.removeErrorListeners();
         parser.addErrorListener(ec);
@@ -42,14 +42,14 @@ public class ColJavaParser implements vct.col.util.Parser {
         ec.report();
         Progress("first parsing pass took %dms",tk.show());
         
-        ProgramUnit pu=JavaJMLtoCol.convert(tree,file_name,tokens,parser);
+        ProgramUnit pu=Java8JMLtoCol.convert(tree,file_name,tokens,parser);
         Progress("AST conversion took %dms",tk.show());
         
         Debug("program after Java parsing:%n%s",pu);
         //System.out.printf("parsing got %d entries%n",pu.size());
         //vct.util.Configuration.getDiagSyntax().print(System.out,pu);
         
-        pu=new CommentRewriter(pu,new JMLCommentParser(ec)).rewriteAll();
+        pu=new CommentRewriter(pu,new Java8JMLCommentParser(ec)).rewriteAll();
         Progress("Specification parsing took %dms",tk.show());
         ec.report();
         Debug("program after specification parsing:%n%s",pu);

@@ -6,17 +6,17 @@ import vct.col.ast.ASTNode;
 import vct.col.ast.ASTSequence;
 import vct.col.ast.ProgramUnit;
 import vct.col.ast.Contract;
-import vct.parsers.JavaJMLLexer;
-import vct.parsers.JavaJMLParser;
+import vct.parsers.Java8JMLLexer;
+import vct.parsers.Java8JMLParser;
 
 /**
  * Parser for JML comments.
  */
-public class JMLCommentParser extends CommentParser<JavaJMLParser,JavaJMLLexer> {
+public class Java8JMLCommentParser extends CommentParser<Java8JMLParser,Java8JMLLexer> {
 
   
-  public JMLCommentParser(ErrorCounter ec) {
-    super(ec,new JavaJMLParser(null), new JavaJMLLexer(null));
+  public Java8JMLCommentParser(ErrorCounter ec) {
+    super(ec,new Java8JMLParser(null), new Java8JMLLexer(null));
   }
 
   @Override
@@ -25,7 +25,7 @@ public class JMLCommentParser extends CommentParser<JavaJMLParser,JavaJMLLexer> 
     ParseTree tree=parser.specificationSequence();
     long middle=System.currentTimeMillis();
     ec.report();
-    TempSequence res=JavaJMLtoCol.convert_seq(tree, "embedded_comments", tokens, parser);
+    TempSequence res=Java8JMLtoCol.convert_seq(tree, "embedded_comments", tokens, parser);
     long end=System.currentTimeMillis();
     hre.System.Progress("comment parsing/conversion %d/%d",middle-begin,end-middle);
     return res;
@@ -35,7 +35,7 @@ public class JMLCommentParser extends CommentParser<JavaJMLParser,JavaJMLLexer> 
   public TempSequence parse_annotations() {
   	ParseTree tree=parser.specificationModifier();
   	ec.report();
-  	TempSequence res=JavaJMLtoCol.convert_seq(tree, "embedded_comments", tokens, parser);
+  	TempSequence res=Java8JMLtoCol.convert_seq(tree, "embedded_comments", tokens, parser);
   	return res;
   }
 

@@ -20,11 +20,11 @@ import vct.col.ast.ASTSpecial.Kind;
 import vct.col.ast.PrimitiveType.Sort;
 import vct.col.print.JavaPrinter;
 import vct.col.syntax.Syntax;
-import vct.parsers.JavaJMLLexer;
-import vct.parsers.JavaJMLParser.BlockContext;
-import vct.parsers.JavaJMLParser.ClassBodyContext;
-import vct.parsers.JavaJMLParser.ClassBodyDeclarationContext;
-import vct.parsers.JavaJMLParser.LiteralContext;
+import vct.parsers.Java8JMLLexer;
+import vct.parsers.Java8JMLParser.BlockContext;
+import vct.parsers.Java8JMLParser.ClassBodyContext;
+import vct.parsers.Java8JMLParser.ClassBodyDeclarationContext;
+import vct.parsers.Java8JMLParser.LiteralContext;
 import static hre.System.*;
 
 import org.apache.commons.lang3.StringEscapeUtils;
@@ -34,12 +34,12 @@ import org.apache.commons.lang3.StringEscapeUtils;
  *
  * @author <a href="mailto:s.c.c.blom@utwente.nl">Stefan Blom</a>
 */
-public class AbstractJavaToCol extends ANTLRtoCOL {
+public class AbstractJava8ToCol extends ANTLRtoCOL {
 
   private final int IntegerLiteral;
   private final int StringLiteral;
   
-  public AbstractJavaToCol(ASTSequence<?> unit,Syntax syntax, String filename,
+  public AbstractJava8ToCol(ASTSequence<?> unit,Syntax syntax, String filename,
       BufferedTokenStream tokens, Parser parser, int identifier, int comment, Class<?> lexer_class) {
     super(unit,syntax, filename, tokens, parser, identifier, lexer_class);
     IntegerLiteral=getStaticInt(lexer_class,"IntegerLiteral");
