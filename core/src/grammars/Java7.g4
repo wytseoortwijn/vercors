@@ -38,7 +38,7 @@
  *  $ javac *.java
  *  $ grun Java compilationUnit *.java
  */
-grammar Java;
+grammar Java7;
 
 @header {
 package vct.parsers;

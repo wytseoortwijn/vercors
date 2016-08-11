@@ -5,7 +5,8 @@ import java.util.HashMap;
 
 import vct.antlr4.parser.ColCParser;
 import vct.antlr4.parser.ColIParser;
-import vct.antlr4.parser.ColJavaParser;
+import vct.antlr4.parser.ColJava8Parser;
+import vct.antlr4.parser.ColJava7Parser;
 import vct.antlr4.parser.ColPVLParser;
 import vct.col.ast.ProgramUnit;
 import vct.col.util.Parser;
@@ -21,7 +22,7 @@ public class Parsers {
     case "c":
       return new ColCParser();
     case "i":return new ColIParser();
-    case "java":return new ColJavaParser();
+    case "java":return new ColJava7Parser();
     case "pvl":return new ColPVLParser();
     case "sil":return new ColSilverParser();
     }

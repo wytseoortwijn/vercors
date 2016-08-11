@@ -23,7 +23,7 @@
     <delete file="vct-core.jar"/>
   </target>
   
-	<target name="generate" depends="C,CML,Java8JML,PVFull,omp">
+	<target name="generate" depends="C,CML,Java7,Java7JML,Java8JML,PVFull,omp">
     <echo>Finished parser generation.</echo>
 	</target>
 
@@ -80,7 +80,45 @@
       <mapper type="regexp" from="VerCorsML.g4|CML.g4|C.g4" to="${gen}/vct/parsers/CML.tokens"/>
     </uptodate>
   </target>
- 
+
+  <target name="Java7" depends="check.Java7" unless="Java7.uptodate">
+    <echo>
+    Running ANTLR v4 on Java7.g4
+    </echo>
+  	<mkdir dir="${gen}/vct/parsers"/>
+    <java fork="yes" dir="${src}/grammars" classpath="${lib}" jar="${lib}/antlr-4.5.3-complete.jar">
+      <arg value="-o"/><arg value="${gen}/vct/parsers"/>
+      <arg value="-visitor"/>
+      <arg value="Java7.g4"/>
+    </java>
+  </target>
+  <target name="check.Java7">
+  	<uptodate property="Java7.uptodate">
+      <srcfiles dir="${src}/grammars"/>
+      <globmapper from="Java7.g4" to="${gen}/vct/parsers/Java7.tokens"/>
+    </uptodate>
+  </target>
+  
+  <target name="Java7JML" depends="check.Java7JML" unless="Java7JML.uptodate">
+    <echo>
+    Running ANTLR v4 on Java7JML.g4
+    </echo>
+  	<mkdir dir="${gen}/vct/parsers"/>
+    <java fork="yes" dir="${src}/grammars" classpath="${lib}" jar="${lib}/antlr-4.5.3-complete.jar">
+      <arg value="-o"/><arg value="${gen}/vct/parsers"/>
+      <arg value="-visitor"/>
+      <arg value="Java7JML.g4"/>
+    </java>
+  </target>
+  <target name="check.Java7JML">
+  	<uptodate property="Java7JML.uptodate">
+      <srcfiles dir="${src}/grammars"/>
+      <mapper type="regexp" from="VerCorsML.g4|Java7JML.g4|Java7.g4" to="${gen}/vct/parsers/Java7JML.tokens"/>
+    </uptodate>
+  </target>
+  
+
+
   <target name="Java8JML" depends="check.Java8JML" unless="Java8JML.uptodate">
     <echo>
     Running ANTLR v4 on Java8JML.g4

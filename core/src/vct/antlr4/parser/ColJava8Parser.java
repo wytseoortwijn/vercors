@@ -21,7 +21,7 @@ import vct.col.syntax.JavaSyntax;
 /**
  * Parse specified code and convert the contents to COL. 
  */
-public class ColJavaParser implements vct.col.util.Parser {
+public class ColJava8Parser implements vct.col.util.Parser {
 
   @Override
   public ProgramUnit parse(File file) {
