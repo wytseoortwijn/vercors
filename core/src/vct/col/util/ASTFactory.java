@@ -8,6 +8,7 @@ import java.util.Map.Entry;
 
 import vct.col.ast.*;
 import vct.col.ast.ASTClass.ClassKind;
+import vct.col.ast.ASTSpecial.Kind;
 import vct.col.ast.BindingExpression.Binder;
 import vct.col.ast.PrimitiveType.Sort;
 import vct.col.rewrite.AbstractRewriter;
@@ -1268,6 +1269,25 @@ public Axiom axiom(String name,ASTNode exp){
     res.setOrigin(o);
     res.accept_if(post);    
     return res;
+  }
+
+  public ASTNode special(Kind kind, ArrayList<ASTNode> args) {
+    return special(kind,args.toArray(new ASTNode[args.size()]));
+  }
+  
+  public StructValue struct_value(Origin o,Type type,Map<String, Integer> map, ASTNode ... values) {
+    StructValue res=new StructValue(type,map,values);
+    res.setOrigin(o);
+    res.accept_if(post);    
+    return res;
+  }
+
+  public StructValue struct_value(Type type,Map<String, Integer> map, ASTNode ... values) {
+    return struct_value(origin_stack.get(),type,map,values);
+  }
+  
+  public StructValue struct_value(Type type,Map<String, Integer> map, List<ASTNode> values) {
+    return struct_value(origin_stack.get(),type,map,values.toArray(new ASTNode[values.size()]));
   }
 
 }

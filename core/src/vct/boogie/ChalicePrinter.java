@@ -7,6 +7,7 @@ import hre.HREError;
 import hre.ast.Origin;
 import hre.ast.TrackingOutput;
 import vct.col.ast.*;
+import vct.col.ast.ASTSpecial.Kind;
 import vct.col.ast.PrimitiveType.Sort;
 import vct.col.util.ASTUtils;
 import vct.util.Configuration;
@@ -218,12 +219,7 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
         if (contract!=null) visit(contract,false);
         if (body !=null) {
           if (body instanceof BlockStatement){
-            out.lnprintf("{");
-            out.incrIndent();
-            print_function_body(m, (BlockStatement) body);
-            out.decrIndent();
-            out.lnprintf("");
-            out.lnprintf("}");
+            Fail("function bodies cannot be blocks");
           } else {
             out.lnprintf("{");
             out.incrIndent();
@@ -265,72 +261,6 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
         }
         break;
       }
-    }
-  }
-
-  private void print_function_body(Method m, BlockStatement block) {
-    int L=block.getLength()-1;
-    ASTNode tmp;
-    for(int i=0;i<L;i++){
-      int LL,j=0;
-      ASTNode main=block.getStatement(i);
-      if (main instanceof BlockStatement){
-        LL=((BlockStatement)main).getLength();
-        if (LL==0) continue;
-        tmp=((BlockStatement)main).getStatement(0);
-      } else {
-        LL=1;
-        tmp=main;
-      }
-      for(;;){
-        if (tmp instanceof OperatorExpression &&
-            ((OperatorExpression)tmp).getOperator()==StandardOperator.Unfold)
-        {
-          in_clause=true;
-          nextExpr();
-          current_precedence=0;
-          out.printf("unfolding ");
-          ((OperatorExpression)tmp).getArg(0).accept(this);
-          out.lnprintf(" in");
-          in_clause=false;
-        } else if (tmp instanceof OperatorExpression &&
-            ((OperatorExpression)tmp).getOperator()==StandardOperator.Assert)
-        {
-          Warning("Ignoring assert.");
-        } else {
-          Fail("statement (%s) that is not unfold in pure method at %s",tmp.getClass(),m.getOrigin());
-        }
-        j++;
-        if (j>=LL) break;
-        tmp=((BlockStatement)main).getStatement(j);
-      }
-    }
-    tmp=block.getStatement(L);
-    if (tmp instanceof ReturnStatement){
-      tmp=((ReturnStatement)tmp).getExpression();
-      nextExpr();
-      current_precedence=0;
-      tmp.accept(this);
-    } else if (tmp instanceof IfStatement) {
-      IfStatement cases=(IfStatement)tmp;
-      int C=cases.getCount()-1;
-      if (cases.getGuard(C)!=IfStatement.else_guard){
-        Abort("missing else branch");
-      }
-      setExpr();
-      for(int i=0;i<C;i++){
-        out.printf("(");
-        cases.getGuard(i).accept(this);
-        out.printf(")?(");
-        print_function_body(m,(BlockStatement)cases.getStatement(i));
-        out.printf("):(");
-      }
-      print_function_body(m,(BlockStatement)cases.getStatement(C));
-      for(int i=0;i<C;i++){
-        out.printf(")");
-      }
-    } else {
-      Fail("last statement of pure method is not a return or an if-expression");
     }
   }
   
@@ -376,67 +306,6 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
       out.print("]");
       break;
     }
-    case Refute:{
-      uses_refute=true;
-      refutes.add(e.getOrigin());
-      int no=refute_count++;
-      out.println("call b"+no+":=refute_random_bool()");
-      out.println("if (b"+no+"){");
-      out.incrIndent();
-      in_clause=true;
-      out.printf("assert ");
-      current_precedence=0;
-      setExpr();
-      ASTNode prop=e.getArg(0);
-      prop.accept(this);
-      out.lnprintf(";");
-      in_clause=false;    
-      out.decrIndent();
-      out.println("}");
-      break;
-    }
-    case Fold:{
-      if (in_expr) throw new Error("fold is a statement");
-      in_clause=true;
-      out.printf("fold ");
-      current_precedence=0;
-      setExpr();
-      ASTNode prop=e.getArg(0);
-      prop.accept(this);
-      out.lnprintf(";");
-      in_clause=false;
-      break;
-    }
-    case Unfold:{
-      if (in_expr) throw new Error("unfold is a statement");
-      in_clause=true;
-      out.printf("unfold ");
-      current_precedence=0;
-      setExpr();
-      ASTNode prop=e.getArg(0);
-      prop.accept(this);
-      out.lnprintf(";");
-      in_clause=false;
-      break;
-    }
-      case Assume:{
-        if (e.getArg(0) instanceof MethodInvokation) {
-          MethodInvokation i=(MethodInvokation)e.getArg(0);
-          Method m=i.getDefinition();
-          if (m!=null && m.kind==Method.Kind.Predicate && m.getBody()==null){
-            setExpr();
-            out.printf("assume ");
-            i.object.accept(this);
-            out.lnprintf(".%s_abstract();",i.method);
-            out.printf("fold ");
-            i.object.accept(this);
-            out.lnprintf(".%s ;",i.method);            
-            break;
-          }
-        }
-        super.visit(e);
-        break;
-      }
       case Perm:{
         assert in_expr;
         ASTNode a0=e.getArg(0);
@@ -507,32 +376,6 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
         out.print("[1..]");
         break;
       }
-      case Build:{
-        ASTNode args[]=e.getArguments();
-        if (args[0] instanceof PrimitiveType){
-          PrimitiveType t=(PrimitiveType)args[0];
-          if (t.sort==Sort.Sequence){
-            if (args.length==1){
-              out.print("nil<");
-              t.getArg(0).accept(this);
-              out.print(">");
-            } else {
-              String sep="[";
-              for(int i=1;i<args.length;i++){
-                out.print(sep);
-                sep=",";
-                args[i].accept(this);
-              }
-              out.print(" ]");
-            }
-          } else {
-            Abort("illegal build type %s",t);
-          }
-        } else {
-          Abort("illegal build type");
-        }
-        break;
-      }
       case Member:{
         if (e.getArg(1).isa(StandardOperator.RangeSeq)){
           OperatorExpression range=(OperatorExpression)e.getArg(1);
@@ -563,6 +406,32 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
     }
   }
 
+  @Override
+  public void visit(StructValue v){
+    if (v.type instanceof PrimitiveType){
+      PrimitiveType t=(PrimitiveType)v.type;
+      if (t.sort==Sort.Sequence){
+        if (v.values.length==0){
+          out.print("nil<");
+          t.getArg(0).accept(this);
+          out.print(">");
+        } else {
+          String sep="[";
+          for(int i=0;i<v.values.length;i++){
+            out.print(sep);
+            sep=",";
+            v.values[i].accept(this);
+          }
+          out.print(" ]");
+        }
+      } else {
+        Abort("illegal struct value type %s",t);
+      }
+    } else {
+      Abort("illegal struct value type");
+    }
+  }
+  
   /*
   public void visit(NameExpression e){
     String s=e.toString();
@@ -588,6 +457,67 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
   @Override
   public void visit(ASTSpecial s){
     switch(s.kind){
+    case Refute:{
+      uses_refute=true;
+      refutes.add(s.getOrigin());
+      int no=refute_count++;
+      out.println("call b"+no+":=refute_random_bool()");
+      out.println("if (b"+no+"){");
+      out.incrIndent();
+      in_clause=true;
+      out.printf("assert ");
+      current_precedence=0;
+      setExpr();
+      ASTNode prop=s.args[0];
+      prop.accept(this);
+      out.lnprintf(";");
+      in_clause=false;    
+      out.decrIndent();
+      out.println("}");
+      break;
+    }
+    case Fold:{
+      if (in_expr) throw new Error("fold is a statement");
+      in_clause=true;
+      out.printf("fold ");
+      current_precedence=0;
+      setExpr();
+      ASTNode prop=s.args[0];
+      prop.accept(this);
+      out.lnprintf(";");
+      in_clause=false;
+      break;
+    }
+    case Unfold:{
+      if (in_expr) throw new Error("unfold is a statement");
+      in_clause=true;
+      out.printf("unfold ");
+      current_precedence=0;
+      setExpr();
+      ASTNode prop=s.args[0];
+      prop.accept(this);
+      out.lnprintf(";");
+      in_clause=false;
+      break;
+    }
+      case Assume:{
+        if (s.args[0] instanceof MethodInvokation) {
+          MethodInvokation i=(MethodInvokation)s.args[0];
+          Method m=i.getDefinition();
+          if (m!=null && m.kind==Method.Kind.Predicate && m.getBody()==null){
+            setExpr();
+            out.printf("assume ");
+            i.object.accept(this);
+            out.lnprintf(".%s_abstract();",i.method);
+            out.printf("fold ");
+            i.object.accept(this);
+            out.lnprintf(".%s ;",i.method);            
+            break;
+          }
+        }
+        super.visit(s);
+        break;
+      }
     case Exhale:
       Abort("chalice cannot support exhale");
       break;

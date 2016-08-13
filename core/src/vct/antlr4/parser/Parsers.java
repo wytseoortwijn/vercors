@@ -1,13 +1,10 @@
-package vct.main;
+package vct.antlr4.parser;
+
+import hre.config.IntegerSetting;
 
 import java.io.File;
 import java.util.HashMap;
 
-import vct.antlr4.parser.ColCParser;
-import vct.antlr4.parser.ColIParser;
-import vct.antlr4.parser.ColJava8Parser;
-import vct.antlr4.parser.ColJava7Parser;
-import vct.antlr4.parser.ColPVLParser;
 import vct.col.ast.ProgramUnit;
 import vct.col.util.Parser;
 import vct.silver.ColSilverParser;
@@ -16,13 +13,17 @@ import static hre.System.Progress;
 
 public class Parsers {
   
+  public static IntegerSetting java_version=new IntegerSetting(7);
+  
   public static Parser getParser(String extension){
     switch(extension){
     case "cl":
     case "c":
       return new ColCParser();
     case "i":return new ColIParser();
-    case "java":return new ColJava7Parser();
+    case "java7":return new ColJavaParser(7,true);
+    case "java8":return new ColJavaParser(8,true);
+    case "java": return new ColJavaParser(java_version.get(),true);
     case "pvl":return new ColPVLParser();
     case "sil":return new ColSilverParser();
     }

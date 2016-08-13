@@ -50,7 +50,6 @@ public class JavaSyntax extends Syntax {
         syntax.addLeftFix(Exp,"^^",125);
         syntax.addLeftFix(StructSelect,".",-1);
         syntax.addLeftFix(LeftMerge,"||_",30);
-        syntax.addOperator(HoarePredicate,-1,"/*{","}*/");
 
         syntax.addOperator(Member,-1,"(","\\memberof",")");
         syntax.addFunction(TypeOf,"\\typeof");
@@ -81,12 +80,6 @@ public class JavaSyntax extends Syntax {
         syntax.addReserved(ThreadLocal,"thread_local");
         syntax.addReserved(Pure,"pure");
         syntax.addReserved(CurrentThread,"\\current_thread");
-
-        syntax.add_annotation(ASTSpecial.Kind.DeclareAction,"action");
-        syntax.add_annotation(ASTSpecial.Kind.ChooseHistory,"choose");
-        syntax.add_annotation(ASTSpecial.Kind.CreateHistory,"create");
-        
-        syntax.add_annotation(Kind.Assert, "assert");
                
         JavaVerCorsSyntax=syntax;
         
@@ -153,11 +146,6 @@ public class JavaSyntax extends Syntax {
     syntax.addLeftFix(And,"&&",40);
     //  3 logical OR  ||
     syntax.addLeftFix(Or,"||",30);
-    //Send annotation -- sending permission to verify parallel loops 
-    syntax.addOperator(Send,20,"send","to",",",""); //DRB
-    //Recv annotation -- receiving permission to verify parallel loops 
-    syntax.addOperator(Recv,20,"recv","to",",","");
-    
     //  2 ternary   ? :    
     syntax.addOperator(ITE,20,"","?",":","");
     //  1 assignment  = += -= *= /= %= &= ^= |= <<= >>= >>>=

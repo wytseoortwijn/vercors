@@ -15,15 +15,6 @@ class silver_optimize {
 //     (\forall* int i; e1 && e2 ; e3 )
 //  }
 
-
-  axiom implement_owner {
-    \owner(e1,e2,e3) == owner(e1,e2,e3)
-  }
-
-  requires 0 <= i && i < N && 0 < T;
-  ensures  0 <= \result && \result < T;
-  static pure int owner(int i, int T, int N);// = i % T;
-
 */
 }
 
@@ -364,13 +355,6 @@ class simplify_quant_pass1 {
         (\forall* int j;( j \memberof ([ (e4 + e1) * e3 .. (e4 + e2) * e3 )) ); r1 ))
         }
     
-    axiom nested_3 {
-      (\forall* int i;( i \memberof ([ 0 .. e2 )) );
-        (\forall* int j; b1 && \owner(j,e2,e5) == i ; r1 ))
-      ==
-        (\forall* int j; b1 ; r1 )  
-    }
-
     axiom lin1 {
         (\forall* int i;( i \memberof [ e1 * (e2!i) * (e3!i) .. e4 )) ; r1 )
            ==

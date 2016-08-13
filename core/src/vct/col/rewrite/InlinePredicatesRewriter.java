@@ -2,6 +2,7 @@ package vct.col.rewrite;
 
 import vct.col.ast.ASTFlags;
 import vct.col.ast.ASTNode;
+import vct.col.ast.ASTSpecial;
 import vct.col.ast.Method;
 import vct.col.ast.MethodInvokation;
 import vct.col.ast.OperatorExpression;
@@ -63,12 +64,20 @@ public class InlinePredicatesRewriter extends AbstractRewriter {
         }
         break;
       }
+      default:
+        super.visit(e);
+        break;
+    }
+  }
+  @Override
+  public void visit(ASTSpecial e){
+    switch(e.kind){
       case Unfold:
       case Fold:
       { 
         ASTNode arg=rewrite(e.getArg(0));
         if (arg instanceof MethodInvokation || arg.isa(StandardOperator.Scale)){
-          result=create.expression(e.getOperator(),arg);
+          result=create.special(e.kind,arg);
         } else {
           result=null; // returning null for a statement means already inserted or omit.
         }

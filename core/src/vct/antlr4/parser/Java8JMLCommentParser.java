@@ -33,7 +33,7 @@ public class Java8JMLCommentParser extends CommentParser<Java8JMLParser,Java8JML
 
   @Override
   public TempSequence parse_annotations() {
-  	ParseTree tree=parser.specificationModifier();
+  	ParseTree tree=parser.extraAnnotation();
   	ec.report();
   	TempSequence res=Java8JMLtoCol.convert_seq(tree, "embedded_comments", tokens, parser);
   	return res;

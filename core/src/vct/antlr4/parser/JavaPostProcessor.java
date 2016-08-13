@@ -38,7 +38,7 @@ public class JavaPostProcessor extends AbstractRewriter {
   @Override
   public void visit(ASTSpecial s){
     switch(s.kind){
-    case DeclareAction:
+    case ActionHeader:
       Fail("cannot create block around action",s.getOrigin());
       break;
     case Expression:
@@ -222,7 +222,7 @@ public class JavaPostProcessor extends AbstractRewriter {
   
   @Override
   public void visit(BlockStatement b){
-    if (b.size()>0 && b.get(0).isSpecial(Kind.DeclareAction)){
+    if (b.size()>0 && b.get(0).isSpecial(Kind.ActionHeader)){
       ASTSpecial decl=(ASTSpecial)b.get(0);
       ASTNode history=rewrite(decl.args[0]);
       ASTNode fraction=rewrite(decl.args[1]);

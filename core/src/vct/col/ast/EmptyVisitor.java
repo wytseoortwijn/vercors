@@ -268,5 +268,11 @@ public class EmptyVisitor<T> implements ASTVisitor<T> {
     // TODO Auto-generated method stub
     
   }
+
+  @Override
+  public void visit(StructValue v) {
+    // TODO Auto-generated method stub
+    
+  }
   
 }

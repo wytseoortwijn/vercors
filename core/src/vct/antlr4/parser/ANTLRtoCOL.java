@@ -23,13 +23,16 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTReserved;
 import vct.col.ast.ASTSequence;
+import vct.col.ast.ASTSpecial.Kind;
 import vct.col.ast.BeforeAfterAnnotations;
 import vct.col.ast.ASTSpecial;
 import vct.col.ast.BlockStatement;
+import vct.col.ast.ClassType;
 import vct.col.ast.Contract;
 import vct.col.ast.ContractBuilder;
 import vct.col.ast.DeclarationStatement;
 import vct.col.ast.NameExpression;
+import vct.col.ast.OperatorExpression;
 import vct.col.ast.PrimitiveType;
 import vct.col.ast.StandardOperator;
 import vct.col.ast.Type;
@@ -37,6 +40,8 @@ import vct.col.ast.VariableDeclaration;
 import vct.col.syntax.Syntax;
 import vct.col.util.ASTFactory;
 import static hre.System.*;
+import static vct.col.ast.ASTSpecial.Kind.*;
+import static vct.col.ast.StandardOperator.*;
 
 /**
  * Convert common parts of all ANTLR parse trees to COL.
@@ -47,6 +52,9 @@ import static hre.System.*;
 */
 public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
 
+  /** How to translate the atomic block. */
+  public final boolean csl_atomic;
+  
   /** Syntax of the language being parsed. */ 
   protected final Syntax syntax;
   /** Factory for COL AST nodes. */
@@ -104,8 +112,9 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
    * @param identifier The number of the token that represents identifiers.
    * @param lexer_class The class of the lexer for the language.
    */
-  public ANTLRtoCOL(ASTSequence<?>  unit,Syntax syntax,String filename,BufferedTokenStream tokens,
+  public ANTLRtoCOL(ASTSequence<?>  unit,boolean csl_atomic,Syntax syntax,String filename,BufferedTokenStream tokens,
       org.antlr.v4.runtime.Parser parser, int identifier, Class<?> lexer_class){
+    this.csl_atomic=csl_atomic;
     this.unit=unit;
     this.lexer_class=lexer_class;
     this.syntax=syntax;
@@ -568,7 +577,8 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
     return res.toArray(new ASTNode[0]);
   }
   
-  protected ASTNode[] convert_list(ParserRuleContext ctx,String open,String sep,String close){
+  protected ASTNode[] convert_list(ParseTree tree,String open,String sep,String close){
+    ParserRuleContext ctx=(ParserRuleContext)tree;
     int N=ctx.getChildCount();
     if (match(0,true,ctx,open)&&match(N-1,true,ctx,close)){
       return convert_list(ctx,1,N-1,sep);
@@ -712,9 +722,9 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
     }
     if (node instanceof TerminalNode){
       Token tok=((TerminalNode)node).getSymbol();
-      if ((!strict) || tok.getType()==id_token) {
+      //if ((!strict) || tok.getType()==id_token) {
         return tok.getText();
-      }
+      //}
     }
     Abort("child %d (%s) is not an identifier",i,node.toStringTree(parser));
     return null;
@@ -782,19 +792,19 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
       return res;
     }
     if (match(ctx,"TypeContext","{","}")){
-      return create.expression(StandardOperator.Build,convert(ctx,0));
+      return create.struct_value(checkType(convert(ctx,0)),null);
     }
     if (match(ctx,"TypeContext","{","ExpressionListContext","}")){
-      ASTNode tmp[]=convert_list((ParserRuleContext)ctx.getChild(2),",");
-      ASTNode args[]=new ASTNode[tmp.length+1];
-      args[0]=convert(ctx,0);
-      for(int i=0;i<tmp.length;i++){
-        args[i+1]=tmp[i];
-      }
-      return create.expression(StandardOperator.Build,args);
+      ASTNode args[]=convert_list((ParserRuleContext)ctx.getChild(2),",");
+      Type t=checkType(convert(ctx,0));
+      return create.struct_value(t,null,args);
     }
     if (match(ctx,"*")){
       return create.reserved_name(ASTReserved.Any);
+    }
+    if (match(ctx,"(","\\forall*",null,null,";",null,";",null,")")){
+      return create.starall(convert(ctx,5),convert(ctx,7),
+          create.field_decl(getIdentifier(ctx,3),checkType(convert(ctx,2))));
     }
     if (match(ctx,"(","\\forall",null,null,";",null,";",null,")")){
       return create.forall(convert(ctx,5),convert(ctx,7),
@@ -835,4 +845,178 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
     return null;
   }
 
+  public ASTNode getValStatement(ParserRuleContext ctx){
+    if (match(ctx,"assert",null,";")){
+      return create.special(Assert,convert(ctx,1));
+    }
+    if (match(ctx,"assume",null,";")){
+      return create.special(Assume,convert(ctx,1));
+    }
+    if (match(ctx,"refute",null,";")){
+      return create.special(Refute,convert(ctx,1));
+    }
+    if (match(ctx,"fold",null,";")){
+      return create.special(Fold,convert(ctx,1));
+    }
+    if (match(ctx,"unfold",null,";")){
+      return create.special(Unfold,convert(ctx,1));
+    }
+    if (match(ctx,"witness",null,";")){
+      return create.special(Witness,convert(ctx,1));
+    }
+    if (match(ctx,"create","BlockContext")){
+        BlockStatement block=checkBlock(convert(ctx,1));
+        return create.lemma(block);
+      }
+    if (match(ctx,"qed",null,";")){
+        return create.special(QED,convert(ctx,1));
+      }
+    if (match(ctx,"apply",null,";")){
+      return create.special(Apply,convert(ctx,1));
+    }
+    if (match(ctx,"use",null,";")){
+      return create.special(Use,convert(ctx,1));
+    }
+    if (match(ctx,"send",null,"to",null,",",null,";")){
+      return create.special(Send,convert(ctx,1),convert(ctx,3),convert(ctx,5));   
+    }
+    if (match(ctx,"recv",null,"from",null,",",null,";")){
+      return create.special(Recv,convert(ctx,1),convert(ctx,3),convert(ctx,5));
+    }
+
+    int N=ctx.getChildCount();
+    if (N>=3 && match(0,true,ctx,"atomic","(") && match(N-2,true,ctx,")", "Block")){
+      BlockStatement block=checkBlock(convert(ctx,N-1));
+      ASTNode args[]=convert_list(ctx,2,N-2,",");
+      if (csl_atomic){
+        return create.csl_atomic(block, args);
+      } else {
+        String strings[]=new String[args.length];
+        for(int i=0;i<args.length;i++){
+          strings[i]=args[i].toString();
+        }
+        return create.parallel_atomic(block, strings);
+      }
+    }
+    
+    String keyword=getIdentifier(ctx,0);
+    if (!syntax.is_annotation(keyword)){
+      throw new HREError("%s is not a specification command",keyword);
+    }    
+    ArrayList<ASTNode> args=new ArrayList();
+    for(int i=1;i<N;i++){
+      if(match(i,true,ctx,"Identifier")||match(i,true,ctx,"Expression")||match(i,true,ctx,"Block")){
+        args.add(convert(ctx,i));
+      }
+    }
+    int argc=args.size();
+    Kind kind=syntax.get_annotation(keyword, argc);
+    if (kind==null){
+      throw new HREError("Incorrect number of arguments for %s: %d",keyword,argc);
+    }
+    return create.special(kind, args);
+  }
+
+  
+  private BlockStatement checkBlock(ASTNode convert) {
+    if (convert instanceof BlockStatement){
+      return (BlockStatement) convert;
+    }
+    throw new HREError("found %s instead of block",convert.getClass());
+  }
+
+
+  public ASTNode getValPrimary(ParserRuleContext ctx){
+    int N=ctx.getChildCount();
+    if (N>=3 && match(1,true,ctx,"(") && match(N-1,true,ctx,")")){
+      StandardOperator op=syntax.parseFunction(getIdentifier(ctx,0));
+      if (op!=null){
+        ASTNode args[]=convert_list(ctx,2,N-1,",");
+        return create.expression(op, args);
+      }
+    }
+    if (N>=3 && match(0,true,ctx,"Type","{") && match(N-1,true,ctx,"}")){
+      Type t = checkType(convert(ctx,0));
+      ASTNode args[]=convert_list(ctx,2,N-1,",");
+      return create.struct_value(t,null,args);
+    }
+    if (match(ctx,"(","\\forall*",null,null,";",null,";",null,")")){
+      return create.starall(convert(ctx,5),convert(ctx,7),
+          create.field_decl(getIdentifier(ctx,3),checkType(convert(ctx,2))));
+    }
+    if (match(ctx,"(","\\forall",null,null,";",null,";",null,")")){
+      return create.forall(convert(ctx,5),convert(ctx,7),
+          create.field_decl(getIdentifier(ctx,3),checkType(convert(ctx,2))));
+    }
+    if (match(ctx,"(","\\exists",null,null,";",null,";",null,")")){
+      return create.exists(convert(ctx,5),convert(ctx,7),create.field_decl(getIdentifier(ctx,3),(Type)convert(ctx,2)));
+    }
+    if (match(ctx,"(","\\sum",null,null,";",null,";",null,")")){
+      return create.summation(convert(ctx,5),convert(ctx,7),create.field_decl(getIdentifier(ctx,3),(Type)convert(ctx,2)));
+    }
+    if (match(ctx,"(","\\let",null,null,"=",null,";",null,")")){
+      DeclarationStatement decl=create.field_decl(
+          getIdentifier(ctx,3),
+          checkType(convert(ctx,2)),
+          convert(ctx,5));
+      return create.let_expr(decl, convert(ctx,7));
+    }
+    if (match(ctx,"Reducible","(",null,",",null,")")){
+      String op=ctx.getChild(4).getText();
+      switch(op){
+      case "+":
+        return create.expression(StandardOperator.ReducibleSum,convert(ctx,2));
+      case "min":
+        return create.expression(StandardOperator.ReducibleMin,convert(ctx,2));
+      case "max":
+        return create.expression(StandardOperator.ReducibleMax,convert(ctx,2));
+      default:
+        throw new HREError("unknown reduction operator %s",op);
+      }
+    }
+    if (match(ctx,"[",null,"]",null)){
+      return create.expression(Scale,convert(ctx,1),convert(ctx,3));
+    }
+    if (match(ctx,"(",null,"\\memberof",null,")")){
+      return create.expression(Member,convert(ctx,1),convert(ctx,3));
+    }
+    if (match(ctx,"|",null,"|")){
+      return create.expression(Size,convert(ctx,1));
+    }
+    if (match(ctx,"(",null,"!",null,")")){
+      return create.expression(IndependentOf,convert(ctx,1),convert(ctx,3));
+    }
+    if (match(ctx,"[",null,"..",null,")")){
+      return create.expression(RangeSeq,convert(ctx,1),convert(ctx,3));
+    }
+    if (match(ctx,"\\unfolding",null,"\\in",null)){
+      return create.expression(Unfolding,convert(ctx,1),convert(ctx,3));
+    }
+    if (match(ctx,"spec_ignore","{")){
+      return create.special(SpecIgnoreStart);
+    }
+    if (match(ctx,"spec_ignore","}")){
+      return create.special(SpecIgnoreEnd);
+    }
+    if (match(ctx,"*")){
+      return create.reserved_name(ASTReserved.Any);
+    }
+    throw new HREError("missing case for VAL primary expression: %s",ctx.toStringTree(parser));
+  }
+
+
+  public ClassType forceClassType(ASTNode convert) {
+    if (convert instanceof ClassType) return (ClassType)convert;
+    if (convert instanceof NameExpression) return create.class_type(convert.toString());
+    throw hre.System.Failure("cannot convert %s to ClassType",convert.getClass());
+  }
+
+
+  public ClassType[] forceClassType(ASTNode convert[]) {
+    ClassType[] res=new ClassType[convert.length];
+    for(int i=0;i<convert.length;i++){
+      res[i]=forceClassType(convert[i]);
+    }
+    return res;
+  }
 }

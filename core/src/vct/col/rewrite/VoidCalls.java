@@ -7,6 +7,7 @@ import java.util.HashMap;
 import vct.col.ast.ASTFlags;
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTReserved;
+import vct.col.ast.ASTSpecial;
 import vct.col.ast.AssignmentStatement;
 import vct.col.ast.BlockStatement;
 import vct.col.ast.Contract;
@@ -77,9 +78,9 @@ public class VoidCalls extends AbstractRewriter {
         res.add(rewrite(n));
       }
       if (current_method().getContract()!=null){
-        res.add(create.expression(StandardOperator.Assert,rewrite(current_method().getContract().post_condition)));
+        res.add(create.special(ASTSpecial.Kind.Assert,rewrite(current_method().getContract().post_condition)));
       }
-      res.add(create.expression(StandardOperator.Assume,create.constant(false)));
+      res.add(create.special(ASTSpecial.Kind.Assume,create.constant(false)));
       result=res;
 //    } else {
 //      super.visit(s);

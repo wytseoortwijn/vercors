@@ -5,6 +5,7 @@ import vct.col.ast.Method;
 import vct.col.ast.OperatorExpression;
 import vct.col.ast.ProgramUnit;
 import vct.col.ast.StandardOperator;
+import vct.col.ast.ASTSpecial.Kind;
 
 public class LockEncoder extends AbstractRewriter {
 
@@ -19,22 +20,22 @@ public class LockEncoder extends AbstractRewriter {
     switch(s.kind){
     case Lock:
       currentBlock.add(create.special(ASTSpecial.Kind.Inhale,create.invokation(rewrite(s.args[0]),null,INV)));
-      currentBlock.add(create.expression(StandardOperator.Unfold,create.invokation(rewrite(s.args[0]),null,INV)));
+      currentBlock.add(create.special(Kind.Unfold,create.invokation(rewrite(s.args[0]),null,INV)));
       currentBlock.add(create.special(ASTSpecial.Kind.Inhale,create.invokation(rewrite(s.args[0]),null,HELD)));
       result=null;
       break;
     case Unlock:
       currentBlock.add(create.special(ASTSpecial.Kind.Exhale,create.invokation(rewrite(s.args[0]),null,HELD)));
-      currentBlock.add(create.expression(StandardOperator.Fold,create.invokation(rewrite(s.args[0]),null,INV)));
+      currentBlock.add(create.special(Kind.Fold,create.invokation(rewrite(s.args[0]),null,INV)));
       currentBlock.add(create.special(ASTSpecial.Kind.Exhale,create.invokation(rewrite(s.args[0]),null,INV)));
       result=null;
       break;
     case Wait:
-      currentBlock.add(create.expression(StandardOperator.Fold,create.invokation(rewrite(s.args[0]),null,INV)));
+      currentBlock.add(create.special(Kind.Fold,create.invokation(rewrite(s.args[0]),null,INV)));
       currentBlock.add(create.special(ASTSpecial.Kind.Exhale,create.invokation(rewrite(s.args[0]),null,INV)));
       currentBlock.add(create.special(ASTSpecial.Kind.Assert,create.invokation(rewrite(s.args[0]),null,HELD)));
       currentBlock.add(create.special(ASTSpecial.Kind.Inhale,create.invokation(rewrite(s.args[0]),null,INV)));
-      currentBlock.add(create.expression(StandardOperator.Unfold,create.invokation(rewrite(s.args[0]),null,INV)));
+      currentBlock.add(create.special(Kind.Unfold,create.invokation(rewrite(s.args[0]),null,INV)));
       result=null;
       break;
     case Notify:

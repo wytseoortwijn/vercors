@@ -53,7 +53,7 @@ public class CSLencoder extends AbstractRewriter {
       BlockStatement body;
       if (m.getBody()!=null){
         body=(BlockStatement)rewrite(m.getBody());
-        body.add_statement(create.expression(StandardOperator.Fold,
+        body.add_statement(create.special(ASTSpecial.Kind.Fold,
             create.invokation(null,null,"csl_invariant")
         ));   
       } else {

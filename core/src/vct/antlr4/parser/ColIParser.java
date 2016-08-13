@@ -17,6 +17,7 @@ import pv.parser.PVFullLexer;
 import pv.parser.PVFullParser;
 import vct.parsers.*;
 import vct.util.Configuration;
+import vct.clang.printer.CSyntax;
 import vct.col.ast.ASTClass;
 import vct.col.ast.ASTClass.ClassKind;
 import vct.col.ast.ASTNode;
@@ -43,10 +44,10 @@ public class ColIParser implements vct.col.util.Parser {
     TimeKeeper tk=new TimeKeeper();
 
     ANTLRInputStream input = new ANTLRInputStream(stream);
-    CLexer lexer = new CLexer(input);
+    CMLLexer lexer = new CMLLexer(input);
     CommonTokenStream tokens = new CommonTokenStream(lexer);
     ErrorCounter ec=new ErrorCounter(file_name);
-    CParser parser = new CParser(tokens);
+    CMLParser parser = new CMLParser(tokens);
     parser.removeErrorListeners();
     parser.addErrorListener(ec);
     ParseTree tree = parser.compilationUnit();
@@ -54,7 +55,7 @@ public class ColIParser implements vct.col.util.Parser {
     ec.report();
     Debug("parser got: %s",tree.toStringTree(parser));
 
-    ProgramUnit pu=CtoCOL.convert(tree,file_name,tokens,parser);
+    ProgramUnit pu=CMLtoCOL.convert_pu(tree,file_name,tokens,parser);
     Progress("AST conversion took %dms",tk.show());
     Debug("after conversion %s",pu);
     
@@ -67,7 +68,7 @@ public class ColIParser implements vct.col.util.Parser {
     Progress("Flattening variables took %dms",tk.show());
     Debug("after flattening variable decls %s",pu);
     
-    pu=new SpecificationCollector(pu).rewriteAll();
+    pu=new SpecificationCollector(CSyntax.getCML(),pu).rewriteAll();
     Progress("Shuffling specifications took %dms",tk.show());    
     Debug("after collecting specifications %s",pu);
 

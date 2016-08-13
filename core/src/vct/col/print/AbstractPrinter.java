@@ -226,22 +226,26 @@ public class AbstractPrinter extends AbstractVisitor<Object> {
       out.println("accessible ...");
       break;
     default:
-      setExpr();
-      out.printf("%s ",s.kind);
-      if (s.args[0]==null) {
-        out.print("null");
+      if (s.args.length==0){
+        out.printf("%s;%n",s.kind);
       } else {
-        s.args[0].accept(this);
-      }
-      for (int i=1; i<s.args.length;i++){
-        out.printf(", ");
-        if (s.args[i]==null) {
+        setExpr();
+        out.printf("%s ",s.kind);
+        if (s.args[0]==null) {
           out.print("null");
         } else {
-          s.args[i].accept(this);
+          s.args[0].accept(this);
         }
+        for (int i=1; i<s.args.length;i++){
+          out.printf(", ");
+          if (s.args[i]==null) {
+            out.print("null");
+          } else {
+            s.args[i].accept(this);
+          }
+        }
+        out.println(";");
       }
-      out.println(";");
       break;
     }
   }

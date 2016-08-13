@@ -69,19 +69,29 @@ public class SpecificationCollector extends AbstractRewriter {
     }
     case Given:
     {
-      BlockStatement block=(BlockStatement)s.args[0];
-      int N=block.getLength();
-      for(int i=0;i<N;i++){
-        currentContractBuilder.given((DeclarationStatement)rewrite(block.get(i)));
+      ASTNode input[];
+      if (s.args.length==1 && s.args[0] instanceof BlockStatement){
+        BlockStatement block=(BlockStatement)s.args[0];
+        input=block.getStatements();
+      } else {
+        input=s.args;
+      }
+      for(int i=0;i<input.length;i++){
+        currentContractBuilder.given((DeclarationStatement)rewrite(input[i]));
       }
       break;
     }
     case Yields:
     {
-      BlockStatement block=(BlockStatement)s.args[0];
-      int N=block.getLength();
-      for(int i=0;i<N;i++){
-        currentContractBuilder.yields((DeclarationStatement)rewrite(block.get(i)));
+      ASTNode input[];
+      if (s.args.length==1 && s.args[0] instanceof BlockStatement){
+        BlockStatement block=(BlockStatement)s.args[0];
+        input=block.getStatements();
+      } else {
+        input=s.args;
+      }
+      for(int i=0;i<input.length;i++){
+        currentContractBuilder.yields((DeclarationStatement)rewrite(input[i]));
       }
       break;
     }
@@ -174,11 +184,11 @@ public class SpecificationCollector extends AbstractRewriter {
         ASTSpecial sp=(ASTSpecial)n; 
         switch(sp.kind){
         case Requires:{
-          currentContractBuilder.requires(copy_rw.rewrite(sp.args[0]));
+          currentContractBuilder.requires(rewrite(sp.args[0]));
           continue;
         }
         case Ensures:{
-          currentContractBuilder.ensures(copy_rw.rewrite(sp.args[0]));
+          currentContractBuilder.ensures(rewrite(sp.args[0]));
           continue;
         }
         }
@@ -187,19 +197,19 @@ public class SpecificationCollector extends AbstractRewriter {
         switch(sp.kind){
         case With:{
           for(ASTNode s:(BlockStatement)sp.args[0]){
-            new_before.add_statement(copy_rw.rewrite(s));
+            new_before.add_statement(rewrite(s));
           }
           continue;
         }
         case Then:{
           for(ASTNode s:(BlockStatement)sp.args[0]){
-            new_after.add_statement(copy_rw.rewrite(s));
+            new_after.add_statement(rewrite(s));
           }
           continue;
         }
         }
       }
-      new_current.add_statement(copy_rw.rewrite(n));
+      new_current.add_statement(rewrite(n));
     }
   }
   
@@ -229,10 +239,23 @@ public class SpecificationCollector extends AbstractRewriter {
       //}
     }
     
-    result=currentBlock;
+    if (currentBlock.size()==0 && block.getParent()!=null){
+      result=null;
+    } else {
+      result=currentBlock;
+    }
     currentBlock=tmp;
   }
   
+  @Override
+  public void visit(MethodInvokation m){
+    StandardOperator op=syntax.parseFunction(m.method);
+    if (op!=null && op.arity()==m.getArity()){
+      result=create.expression(op,rewrite(m.getArgs()));
+    } else {
+      super.visit(m);
+    }
+  }
   
   @Override
   public void visit(DeclarationStatement d){

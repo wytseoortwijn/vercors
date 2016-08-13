@@ -39,7 +39,7 @@ package vct.parsers;
 }
 
 primaryExpression
-    :   Identifier
+    :   clangIdentifier
     |   Constant
     |   StringLiteral+
     |   '(' expression ')'
@@ -47,10 +47,8 @@ primaryExpression
     |   '__extension__'? '(' compoundStatement ')' // Blocks (GCC extension)
     |   '__builtin_va_arg' '(' unaryExpression ',' typeName ')'
     |   '__builtin_offsetof' '(' typeName ',' unaryExpression ')'
-    |   specificationPrimary
+    |   extraPrimary
     ;
-
-specificationPrimary : Placeholder ;
 
 genericSelection
     :   '_Generic' '(' assignmentExpression ',' genericAssocList ')'
@@ -70,8 +68,8 @@ postfixExpression
     :   primaryExpression
     |   postfixExpression '[' expression ']'
     |   postfixExpression '(' argumentExpressionList? ')'
-    |   postfixExpression '.' Identifier
-    |   postfixExpression '->' Identifier
+    |   postfixExpression '.' clangIdentifier
+    |   postfixExpression '->' clangIdentifier
     |   postfixExpression '++'
     |   postfixExpression '--'
     |   '(' typeName ')' '{' initializerList '}'
@@ -93,7 +91,7 @@ unaryExpression
     |   'sizeof' unaryExpression
     |   'sizeof' '(' typeName ')'
     |   '_Alignof' '(' typeName ')'
-    |   '&&' Identifier // GCC extension address of label
+    |   '&&'  clangIdentifier // GCC extension address of label
     ;
 
 unaryOperator
@@ -157,11 +155,14 @@ inclusiveOrExpression
 logicalAndExpression
     :   inclusiveOrExpression
     |   logicalAndExpression '&&' inclusiveOrExpression
+    |   logicalAndExpression '**' inclusiveOrExpression
     ;
 
 logicalOrExpression
     :   logicalAndExpression
     |   logicalOrExpression '||' logicalAndExpression
+    |   logicalOrExpression '==>' logicalAndExpression
+    |   logicalOrExpression '-*' logicalAndExpression
     ;
 
 conditionalExpression
@@ -247,11 +248,12 @@ typeSpecifier
     |   enumSpecifier
     |   typedefName
     |   '__typeof__' '(' constantExpression ')' // GCC extension
+    |   extraType
     ;
 
 structOrUnionSpecifier
-    :   structOrUnion Identifier? '{' structDeclarationList '}'
-    |   structOrUnion Identifier
+    :   structOrUnion  clangIdentifier? '{' structDeclarationList '}'
+    |   structOrUnion  clangIdentifier
     ;
 
 structOrUnion
@@ -285,9 +287,9 @@ structDeclarator
     ;
 
 enumSpecifier
-    :   'enum' Identifier? '{' enumeratorList '}'
-    |   'enum' Identifier? '{' enumeratorList ',' '}'
-    |   'enum' Identifier
+    :   'enum' clangIdentifier? '{' enumeratorList '}'
+    |   'enum' clangIdentifier? '{' enumeratorList ',' '}'
+    |   'enum' clangIdentifier
     ;
 
 enumeratorList
@@ -301,7 +303,7 @@ enumerator
     ;
 
 enumerationConstant
-    :   Identifier
+    :   clangIdentifier
     ;
 
 atomicTypeSpecifier
@@ -321,7 +323,7 @@ functionSpecifier
     |   '__inline__' // GCC extension
     |   '__stdcall')
     |   gccAttributeSpecifier
-    |   '__declspec' '(' Identifier ')'
+    |   '__declspec' '(' clangIdentifier ')'
     ;
 
 alignmentSpecifier
@@ -334,7 +336,7 @@ declarator
     ;
 
 directDeclarator
-    :   Identifier
+    :   clangIdentifier
     |   '(' declarator ')'
     |   directDeclarator '[' typeQualifierList? assignmentExpression? ']'
     |   directDeclarator '[' 'static' typeQualifierList? assignmentExpression ']'
@@ -398,8 +400,8 @@ parameterDeclaration
     ;
 
 identifierList
-    :   Identifier
-    |   identifierList ',' Identifier
+    :   clangIdentifier
+    |   identifierList ',' clangIdentifier
     ;
 
 typeName
@@ -426,7 +428,7 @@ directAbstractDeclarator
     ;
 
 typedefName
-    :   Identifier
+    :   clangIdentifier
     ;
 
 initializer
@@ -451,7 +453,7 @@ designatorList
 
 designator
     :   '[' constantExpression ']'
-    |   '.' Identifier
+    |   '.' clangIdentifier
     ;
 
 staticAssertDeclaration
@@ -465,14 +467,12 @@ statement
     |   selectionStatement
     |   iterationStatement
     |   jumpStatement
-    |   specificationStatement
+    |   extraStatement
     |   ('__asm' | '__asm__') ('volatile' | '__volatile__') '(' (logicalOrExpression (',' logicalOrExpression)*)? (':' (logicalOrExpression (',' logicalOrExpression)*)?)* ')' ';'
     ;
 
-specificationStatement : Placeholder ;
-
 labeledStatement
-    :   Identifier ':' statement
+    :   clangIdentifier ':' statement
     |   'case' constantExpression ':' statement
     |   'default' ':' statement
     ;
@@ -508,7 +508,7 @@ iterationStatement
     ;
 
 jumpStatement
-    :   'goto' Identifier ';'
+    :   'goto' clangIdentifier ';'
     |   'continue' ';'
     |   'break' ';'
     |   'return' expression? ';'
@@ -526,7 +526,7 @@ translationUnit
 
 externalDeclaration
     :   functionDefinition
-    |   specificationDeclaration
+    |   extraDeclaration
     |   declaration
     |   ';' // stray ;
     ;
@@ -646,9 +646,11 @@ Arrow : '->';
 Dot : '.';
 Ellipsis : '...';
 
+clangIdentifier : extraIdentifier | Identifier ;
+
 Identifier
-    :   IdentifierNondigit
-        (   IdentifierNondigit
+    :  IdentifierNondigit
+        (  IdentifierNondigit
         |   Digit
         )*
     ;

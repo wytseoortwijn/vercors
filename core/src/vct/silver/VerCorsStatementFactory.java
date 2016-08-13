@@ -8,6 +8,7 @@ import hre.ast.MessageOrigin;
 import hre.ast.Origin;
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTSpecial.Kind;
+import vct.col.ast.ASTSpecial;
 import vct.col.ast.BlockStatement;
 import vct.col.ast.DeclarationStatement;
 import vct.col.ast.StandardOperator;
@@ -27,7 +28,7 @@ public class VerCorsStatementFactory implements
   @Override
   public ASTNode assert_(Origin o, ASTNode expr) {
     enter(o);
-    ASTNode res=create.expression(StandardOperator.Assert, expr);
+    ASTNode res=create.special(ASTSpecial.Kind.Assert, expr);
     leave();
     return res;
   }
@@ -35,7 +36,7 @@ public class VerCorsStatementFactory implements
   @Override
   public ASTNode refute(Origin o, ASTNode expr) {
     enter(o);
-    ASTNode res=create.expression(StandardOperator.Refute, expr);
+    ASTNode res=create.special(ASTSpecial.Kind.Refute, expr);
     leave();
     return res;
   }
@@ -80,7 +81,7 @@ public class VerCorsStatementFactory implements
   @Override
   public ASTNode fold(Origin o, ASTNode expr) {
     enter(o);
-    ASTNode res=create.expression(StandardOperator.Fold,expr);
+    ASTNode res=create.special(Kind.Fold,expr);
     leave();
     return res;
   }
@@ -152,7 +153,7 @@ public class VerCorsStatementFactory implements
   @Override
   public ASTNode unfold(Origin o, ASTNode expr) {
     enter(o);
-    ASTNode res=create.expression(StandardOperator.Unfold,expr);
+    ASTNode res=create.special(ASTSpecial.Kind.Unfold,expr);
     leave();
     return res;
   }

@@ -1,41 +1,41 @@
 grammar CML;
 
-import VerCorsML, C;
+import val, C;
 
-specificationSequence : ( specificationDeclaration | statement )* contract? ;
+/* Define for use by C grammar */
 
-contract : contractClause+ ;
+extraIdentifier : valReserved ;
 
-contractClause
- : 'requires' resourceExpression ';'
- | 'ensures' resourceExpression ';'
- | 'given' type Identifier ';'
+extraPrimary : valPrimary ;
+
+extraStatement : valContractClause | valStatement ;
+
+extraType : 'resource' | 'process' | 'frac' | 'zfrac' | identifier typeArgs ;
+
+extraDeclaration
+ : pureFunctionDeclaration
  ;
 
+/* auxiliary defs */
 
-specificationStatement
-    : 'loop_invariant' resourceExpression ';'        
-    | 'send' resourceExpression 'to' Identifier ',' expression ';'
-    | 'recv' resourceExpression 'from' Identifier ',' expression ';'
-    | 'assert' resourceExpression ';'
-    | contractClause 
-    | 'spec_ignore' ( '{' | '}' )
-    ;
- 
-specificationDeclaration
-    : pureFunctionDeclaration
-    ;
+typeArgs : '<' ((expression | type) (',' (expression | type))*)? '>' ;
 
 pureFunctionDeclaration
     : declarationSpecifiers declarator '=' expression ';'
     ;
-    
-// For C there are no specific resource expressions:
-specificResourceExpression : EOF EOF ;
 
-// extend original type defininition with specification only types:
-type
-   : specificationPrimitiveType
-   | typeName
-   ;
- 
+/* Define for use by val grammar */
+
+type : typeSpecifier ;
+
+identifier : clangIdentifier ;
+
+block : compoundStatement ;
+
+// expression already defined by C grammar
+
+/* Define for use by comment parser */
+
+specificationSequence : ( externalDeclaration | statement )* ;
+
+    

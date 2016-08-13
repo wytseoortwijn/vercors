@@ -16,6 +16,7 @@ import vct.col.ast.NameExpression;
 import vct.col.ast.OperatorExpression;
 import vct.col.ast.ProgramUnit;
 import vct.col.ast.StandardOperator;
+import vct.col.ast.StructValue;
 import vct.col.ast.Type;
 import vct.util.ClassName;
 import static hre.System.Abort;
@@ -104,7 +105,12 @@ public abstract class GlobalizeStatics extends AbstractRewriter {
     }
   }
 
-  public void visit(OperatorExpression e){
+  @Override
+  public void visit(StructValue v){
+    if (v.type instanceof ClassType){
+      Abort("illegal use of struct value for constructor call");
+    }
+    /*
     switch(e.getOperator()){
     case Build:{
       if (e.getArg(0) instanceof ClassType){
@@ -120,8 +126,8 @@ public abstract class GlobalizeStatics extends AbstractRewriter {
         return;
       }
     }
-    }
-    super.visit(e);
+    }*/
+    super.visit(v);
   }
   
   public void visit(MethodInvokation e){

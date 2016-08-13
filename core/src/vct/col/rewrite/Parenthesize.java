@@ -55,7 +55,7 @@ public class Parenthesize extends AbstractRewriter {
               prio++;
             }
             if (prio<=syntax.getPrecedence(op)){
-              args[i]=create.expression(StandardOperator.Tuple,args[i]);
+              args[i]=create.expression(StandardOperator.Wrap,args[i]);
             }
           }
         }

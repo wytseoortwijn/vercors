@@ -30,6 +30,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingDeque;
 
 import vct.antlr4.parser.JavaResolver;
+import vct.antlr4.parser.Parsers;
 import vct.col.annotate.DeriveModifies;
 import vct.col.ast.*;
 import vct.col.rewrite.AbstractRewriter;
@@ -932,6 +933,7 @@ public class Main
           passes.add("silver");
         } else { //CHALICE    
           passes.add("chalice-optimize");
+          passes.add("standardize-functions");
           passes.add("standardize");
           passes.add("check");
           

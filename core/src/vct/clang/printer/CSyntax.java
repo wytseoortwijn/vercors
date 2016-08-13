@@ -87,6 +87,7 @@ public class CSyntax extends Syntax{
     //syntax.addPrimitiveType(Class,"classtype");
     syntax.addPrimitiveType(Char,"char");
     syntax.addPrimitiveType(Float,"float");
+    
   }
 
   public static Syntax getC() {

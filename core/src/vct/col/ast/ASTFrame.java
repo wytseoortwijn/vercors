@@ -238,20 +238,7 @@ public abstract class ASTFrame<T> {
     public void visit(OperatorExpression node){
       switch(action){
       case ENTER:
-        OperatorExpression expr=(OperatorExpression)node;
-        switch(expr.getOperator()){
-          case Witness:{
-            for(NameExpression name:expr.getArg(0).getLabels()){
-              variables.add(name.getName(),new VariableInfo(node,NameExpression.Kind.Label));
-            }
-            break;
-          }
-          case Apply:{
-            for(NameExpression name:expr.getLabels()){
-              variables.add(name.getName(),new VariableInfo(node,NameExpression.Kind.Label));
-            }
-            break;          
-          }
+        switch(((OperatorExpression)node).getOperator()){
           case BindOutput:{
             ASTNode e=((OperatorExpression) node).getArg(0);
             if (e instanceof NameExpression){
@@ -288,6 +275,18 @@ public abstract class ASTFrame<T> {
       switch(action){
       case ENTER:
         switch(((ASTSpecial)node).kind){
+        case Witness:{
+          for(NameExpression name:node.getArg(0).getLabels()){
+            variables.add(name.getName(),new VariableInfo(node,NameExpression.Kind.Label));
+          }
+          break;
+        }
+        case Apply:{
+          for(NameExpression name:node.getLabels()){
+            variables.add(name.getName(),new VariableInfo(node,NameExpression.Kind.Label));
+          }
+          break;          
+        }
         case CreateHistory:
            scan_labels(((ASTSpecial)node).args[0]);
         }

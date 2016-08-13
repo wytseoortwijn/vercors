@@ -16,6 +16,7 @@ import vct.col.ast.ASTNode;
 import vct.col.ast.ASTReserved;
 import vct.col.ast.ASTSequence;
 import vct.col.ast.ASTSpecial;
+import vct.col.ast.ASTSpecial.Kind;
 import vct.col.ast.ASTWith;
 import vct.col.ast.AbstractVisitor;
 import vct.col.ast.ActionBlock;
@@ -54,6 +55,7 @@ import vct.col.ast.RecordType;
 import vct.col.ast.ReturnStatement;
 import vct.col.ast.StandardOperator;
 import vct.col.ast.StandardProcedure;
+import vct.col.ast.StructValue;
 import vct.col.ast.TryCatchBlock;
 import vct.col.ast.Type;
 import vct.col.ast.TypeExpression;
@@ -172,7 +174,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
     create.enter();
     create.setOrigin(n.getOrigin());
     result=null;
-    if (n.isa(StandardOperator.Fold)||n.isa(StandardOperator.Unfold)){
+    if (n.isSpecial(Kind.Fold)||n.isSpecial(Kind.Unfold)){
       fold_unfold=true;
     }
   }
@@ -185,7 +187,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
     }    
   }
   public void post_visit(ASTNode n){
-    if (n.isa(StandardOperator.Fold)||n.isa(StandardOperator.Unfold)){
+    if (n.isSpecial(Kind.Fold)||n.isSpecial(Kind.Unfold)){
       fold_unfold=false;
     }
     if (result==n) Debug("rewriter linked instead of making a copy"); 
@@ -824,5 +826,10 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
       map.put(create.unresolved_name(def.getArgument(i)),rewrite(e.getArg(i)));
     }
     return sigma.rewrite(rewrite(def.getBody()));
+  }
+  
+  @Override
+  public void visit(StructValue v){
+    result=create.struct_value(rewrite(v.type),v.map,rewrite(v.values));
   }
 }

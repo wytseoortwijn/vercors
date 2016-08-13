@@ -64,56 +64,6 @@ public class BoogiePrinter extends AbstractBoogiePrinter {
     out.lnprintf("//end procedure %s",name);
     post_condition=null;
   }
-  public void visit(OperatorExpression e){
-    switch(e.getOperator()){
-/* this should be legacy code:
-      case Select:{
-        ASTNode a0=e.getArg(0);
-        ASTNode a1=e.getArg(1);
-        if (a0 instanceof NameExpression && a1 instanceof NameExpression){
-          String s0=((NameExpression)a0).toString();
-          String s1=((NameExpression)a1).toString();
-          if (s0.equals("model")){
-            if (s1.equals("old")){
-              out.print("old");
-              return;
-            }
-            throw new Error("unknown keyword "+s1);
-          }
-        }
-        // Let's hope this was a this. in case of Boogie!
-        a1.accept(this);
-        break;
-      }
-*/
-      case HoarePredicate:{
-          Fail("Hoare Logic is not supported in this release.");
-          /* TODO: solve at least two remaining problems:
-           *  1. havoc'ing all variables that must be havoc'ed.
-           *  2. the assume false after a return makes weakening
-           *     of the last result difficult.
-           */
-          if (in_expr) throw new Error("Hoare Cut is a statement");
-          in_clause=true;
-          out.printf("assert ");
-          current_precedence=0;
-          setExpr();
-          ASTNode prop=e.getArg(0);
-          prop.accept(this);
-          out.lnprintf(";");
-          out.printf("assume ");
-          current_precedence=0;
-          setExpr();
-          prop.accept(this);
-          out.lnprintf(";");          
-          in_clause=false;
-          break;
-      }
-      default:{
-        super.visit(e);
-      }
-    }
-  }
 
   public void visit(NameExpression e){
     String s=e.toString();

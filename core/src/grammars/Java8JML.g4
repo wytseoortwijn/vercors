@@ -1,97 +1,65 @@
 grammar Java8JML;
 
-import VerCorsML, Java8;
+import val, Java8;
 
-specificationSequence : ( specificationDeclaration | statement )* ;
+identifier : javaIdentifier ;
 
-specificResourceExpression
- : expression '->' Identifier '(' expressionList? ')'
- | ( expression . )? Identifier '@' Identifier '(' expressionList? ')'
- ;
+extraIdentifier : valReserved ;
 
-/*
-extraJMLtype
-  : type '[' ']'
-  | type ',' type
-  | <assoc=right> type '->' type
-  | classOrInterfaceType
-  | primitiveType
-  | '(' type ')'
-  ;
-*/
+extraType : 'resource' | 'process' | 'frac' | 'zfrac' | identifier typeArgs ;
 
-arguments
-    :   '(' expressionList? ')'
-    ;
-    
-specificationModifier
+typeArgs : '<' ((expression | type) (',' (expression | type))*)? '>' ;
+
+   
+extraAnnotation
     : 'pure'
     | 'inline'
     | 'thread_local'
     ;
 
-specificationStatement
-    : 'requires' resourceExpression ';'
-    | 'ensures' resourceExpression ';'
-    | 'let' type Identifier ';'
-    | 'modifies' expressionList ';'
-    | 'accessible' expressionList ';'
-    | 'given' localVariableDeclaration ';'
-    | 'yields' localVariableDeclaration ';'
-    | 'loop_invariant' resourceExpression ';'
-    | 'fold' resourceExpression ';'
-    | 'unfold' resourceExpression ';'
-    | 'label' Identifier
-    | 'with' block
-    | 'proof' block
-    | 'then' block
-    | 'refute' resourceExpression ';'
-    | 'assert' resourceExpression ';'
-    | 'exhale' resourceExpression ';'
-    | 'inhale' resourceExpression ';'
-    | 'assume' resourceExpression ';'
- //   | 'create' resourceExpression block
- //   | 'create' block resourceExpression ';'
- //   | 'create' block
-    | 'qed' resourceExpression ';'
-    | 'apply' resourceExpression proofScript ';'
-    | 'use' resourceExpression ';'
-    | 'witness' resourceExpression ';'
-    | 'open' resourceExpression block? ';'
-    | 'close' resourceExpression ';'
-//    | 'send' resourceExpression 'to' Identifier ',' expression ';'
-//    | 'recv' resourceExpression 'from' Identifier ',' expression ';'
-    | 'transfer' resourceExpression ';' 
-    | 'csl_subject' expression ';'
-    | 'action' expression ',' expression ',' expression ',' expression ( ',' expression ',' expression )* ';'
-    | 'destroy' resourceExpression ';'
-    | 'destroy' resourceExpression ',' resourceExpression ';'
-    | 'split' resourceExpression ',' resourceExpression ',' resourceExpression ',' resourceExpression ',' resourceExpression ';'
-    | 'merge' resourceExpression ',' resourceExpression ',' resourceExpression ',' resourceExpression ',' resourceExpression ';'
-    | 'choose' resourceExpression ',' resourceExpression ',' resourceExpression ',' resourceExpression ';'
-    | Identifier resourceExpression ( ( ',' | Identifier ) resourceExpression )* ( ';' | block )
-    | Identifier block
-    | '}' 'spec_ignore'
-    | 'spec_ignore' '{'
-    | 'atomic' '(' expressionList ')' block
+extraStatement
+    : 'with' block // not really a statement.
+    | 'then' block // not really a statement.
+    | 'given' localVariableDeclaration ';' // makes T x,y; possible
+    | 'yields' localVariableDeclaration ';' // makes T x,y; possible
+    | valContractClause
+    | valStatement
     ;
 
-proofScript :
-    ( 'label' Identifier | 'with' block | 'then' block )*
+extraPrimary
+    : Identifier ':' expression // used for witness labels
+    | valPrimary
+    ;
+    
+expressionList
+    :   labeledExpression (',' labeledExpression)*
     ;
 
-specificationDeclaration
-    : classBodyDeclaration
-    | functionDeclaration
+labeledExpression
+    : ( Identifier ':' )? expression
+    ;
+
+extraDeclaration
+    : functionDeclaration
     | axiomDeclaration
     ;
     
 functionDeclaration
-//    : modifier* type Identifier formalParameters '=' resourceExpression ';' 
-    : methodModifier* methodHeader '=' resourceExpression ';'
-//    | methodHeader ';'
+    : methodModifier* methodHeader '=' expression ';'
     ;
 
 axiomDeclaration
-    : 'axiom' Identifier '{' resourceExpression '==' resourceExpression '}'
+    : 'axiom' Identifier '{' expression '==' expression '}'
+    ;
+    
+specificationSequence : ( classBodyDeclaration | statement )* ;
+
+EmbeddedLatex
+    : '#' ~[\r\n]* '#' -> skip
+    ;
+    
+FileName : '"' ~[\r\n"]* '"' ;
+
+LINEDIRECTION
+    :   '#' WS? IntegerLiteral WS? FileName ~[\r\n]* -> channel(LINEDIRECTION)
     ;

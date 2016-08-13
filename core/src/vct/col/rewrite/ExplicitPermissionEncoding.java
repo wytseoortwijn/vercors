@@ -208,12 +208,15 @@ public class ExplicitPermissionEncoding extends AbstractRewriter {
   
   private AbstractRewriter clause_rw=new ClauseEncoding(source());
   
-  public void visit(OperatorExpression e){
-    switch (e.getOperator()){
-    case Assert:{
-      result=clause_rw.rewrite(e);
+  @Override
+  public void visit(ASTSpecial s){
+    ASTSpecial e=s;
+    switch(s.kind){
+    case Assert:
+    case Inhale:
+    case Exhale:
+      result=clause_rw.rewrite(s);
       break;
-    }
     case Witness:{
       ASTNode arg1=e.getArg(0);
       if (arg1.labels()!=1){
@@ -242,8 +245,8 @@ public class ExplicitPermissionEncoding extends AbstractRewriter {
       if (arg1.labels()==1){
         for(NameExpression lbl:arg1.getLabels()){
           result=create.block(
-              create.expression(StandardOperator.Assert,clause_rw.rewrite(arg1)),
-              create.expression(e.getOperator(),
+              create.special(ASTSpecial.Kind.Assert,clause_rw.rewrite(arg1)),
+              create.special(ASTSpecial.Kind.Unfold,
               create.invokation(create.local_name(lbl.getName()), null, "valid")
               )
           );
@@ -291,11 +294,11 @@ public class ExplicitPermissionEncoding extends AbstractRewriter {
           cons_args.add(rewrite(pred_args[i]));
         }
         block.add_statement(
-            create.expression(e.getOperator(),
+            create.special(e.kind,
                 create.invokation(create.local_name(lbl.getName()), null, "valid"))
         );
         block.add_statement(
-            create.expression(StandardOperator.Assert,
+            create.special(ASTSpecial.Kind.Assert,
                 create.invokation(create.local_name(lbl.getName()), null, "check",args.toArray(new ASTNode[0])))
         );
         if (Configuration.witness_constructors.get()){
@@ -310,20 +313,7 @@ public class ExplicitPermissionEncoding extends AbstractRewriter {
       }
       break;
     }
-    default:
-      super.visit(e);
-      break;
-    }
-  }
-  
-  @Override
-  public void visit(ASTSpecial s){
-    switch(s.kind){
-    case Assert:
-    case Inhale:
-    case Exhale:
-      result=clause_rw.rewrite(s);
-      break;
+
     default:
       super.visit(s);
     }
@@ -543,11 +533,11 @@ class PredicateClassGenerator extends AbstractRewriter {
         }
       }));
     } else {
-      cons_body.add_statement(create.expression(StandardOperator.Assume,
+      cons_body.add_statement(create.special(ASTSpecial.Kind.Assume,
           create.invokation(create.reserved_name(This),null, ("abstract_valid"), new ASTNode[0])));
     }
     cb.ensures(create.invokation(null,null, ("check"), check_args));
-    cons_body.add_statement(create.expression(StandardOperator.Fold,
+    cons_body.add_statement(create.special(ASTSpecial.Kind.Fold,
         create.invokation(create.reserved_name(This),null, ("valid"), new ASTNode[0])));
     for(String field_name:protected_fields){
       ASTNode getter_args[]=new ASTNode[N+1];

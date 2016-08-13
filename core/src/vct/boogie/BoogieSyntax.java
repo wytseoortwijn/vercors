@@ -59,7 +59,7 @@ public class BoogieSyntax extends Syntax {
     syntax.addOperator(Size,0,"|","|");
     
     syntax.addReserved(Result,"result");
-    syntax.addList(Tuple,"(",",",")");
+    syntax.addOperator(Wrap,0,"(",")");
   }
 
   public static synchronized Syntax getBoogie(){

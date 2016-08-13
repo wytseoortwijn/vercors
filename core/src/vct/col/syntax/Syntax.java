@@ -53,7 +53,7 @@ public class Syntax {
       annotation_parse.put(syntax,parse);
     } else {
       if (arity < 0) {
-        throw new HREError("keyword %s is already mapped");
+        throw new HREError("keyword %s is already mapped",syntax);
       }
     }
     if (arity < 0){

@@ -1,93 +1,60 @@
 grammar Java7JML;
 
-import VerCorsML, Java7;
+import val,Java7;
 
-specificationSequence : ( specificationDeclaration | statement )* ;
+identifier : javaIdentifier ;
 
-specificResourceExpression
- : expression '->' Identifier '(' expressionList? ')'
- | ( expression . )? Identifier '@' Identifier '(' expressionList? ')'
- ;
- 
-type
-  : type '[' ']'
-  | type ',' type
-  | <assoc=right> type '->' type
-  | classOrInterfaceType
-  | primitiveType
-  | '(' type ')'
-  ;
+extraIdentifier : valReserved ;
 
-arguments
-    :   '(' expressionList? ')'
-    ;
-    
-specificationModifier
+extraType : 'resource' | 'process' | 'frac' | 'zfrac' ;
+   
+extraAnnotation
     : 'pure'
     | 'inline'
     | 'thread_local'
     ;
 
-specificationStatement
-    : 'requires' resourceExpression ';'
-    | 'ensures' resourceExpression ';'
-    | 'modifies' expressionList ';'
-    | 'accessible' expressionList ';'
-    | 'given' localVariableDeclaration ';'
-    | 'yields' localVariableDeclaration ';'
-    | 'loop_invariant' resourceExpression ';'
-    | 'fold' resourceExpression ';'
-    | 'unfold' resourceExpression ';'
-    | 'label' Identifier
-    | 'with' block
-    | 'proof' block
-    | 'then' block
-    | 'refute' resourceExpression ';'
-    | 'assert' resourceExpression ';'
-    | 'exhale' resourceExpression ';'
-    | 'inhale' resourceExpression ';'
-    | 'assume' resourceExpression ';'
-    | 'create' resourceExpression block
-    | 'create' block resourceExpression ';'
-    | 'create' block
-    | 'qed' resourceExpression ';'
-    | 'apply' resourceExpression proofScript ';'
-    | 'use' resourceExpression ';'
-    | 'witness' resourceExpression ';'
-    | 'open' resourceExpression block? ';'
-    | 'close' resourceExpression ';'
-//    | 'send' resourceExpression 'to' Identifier ',' expression ';'
-//    | 'recv' resourceExpression 'from' Identifier ',' expression ';'
-    | 'transfer' resourceExpression ';' 
-    | 'csl_subject' expression ';'
-    | 'action' expression ',' expression ',' expression ',' expression ( ',' expression ',' expression )* ';'
-    | 'create' resourceExpression ';'
-    | 'create' resourceExpression ',' resourceExpression ';'
-    | 'destroy' resourceExpression ';'
-    | 'destroy' resourceExpression ',' resourceExpression ';'
-    | 'split' resourceExpression ',' resourceExpression ',' resourceExpression ',' resourceExpression ',' resourceExpression ';'
-    | 'merge' resourceExpression ',' resourceExpression ',' resourceExpression ',' resourceExpression ',' resourceExpression ';'
-    | 'choose' resourceExpression ',' resourceExpression ',' resourceExpression ',' resourceExpression ';'
-    | Identifier resourceExpression ( ( ',' | Identifier ) resourceExpression )* ( ';' | block )
-    | '}' 'spec_ignore'
-    | 'spec_ignore' '{'
-    | 'atomic' '(' expressionList ')' block
+extraStatement
+    : 'with' block // not really a statement.
+    | 'then' block // not really a statement.
+    | 'given' localVariableDeclaration ';' // makes T x,y; possible
+    | 'yields' localVariableDeclaration ';' // makes T x,y; possible
+    | valContractClause
+    | valStatement
     ;
 
-proofScript :
-    ( 'label' Identifier | 'with' block | 'then' block )*
+extraPrimary
+    : Identifier ':' expression // used for witness labels
+    | valPrimary
     ;
 
-specificationDeclaration
-    : classBodyDeclaration
-    | functionDeclaration
+
+extraDeclaration
+    : functionDeclaration
     | axiomDeclaration
     ;
-    
+
+/* We use the elements of the Java 7 grammar to define
+ function and axiom declarations.
+ */
+ 
 functionDeclaration
-    : modifier* type Identifier formalParameters '=' resourceExpression ';' 
+    : modifier* type Identifier formalParameters '=' expression ';' 
     ;
 
 axiomDeclaration
-    : 'axiom' Identifier '{' resourceExpression '==' resourceExpression '}'
+    : 'axiom' Identifier '{' expression '==' expression '}'
     ;
+
+
+/* The current API has only one category of specifications.
+ * This is the specification sequence
+ */
+specificationSequence : ( classBodyDeclaration | statement )* ;
+
+/* sequence of declarations only */
+javaDeclarations : classBodyDeclaration* ;
+
+/* sequence of statements only  */
+javaStatements : statement* ;
+

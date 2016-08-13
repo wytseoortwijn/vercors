@@ -220,7 +220,7 @@ public class VerCorsExpressionFactory implements
   public ASTNode explicit_bag(Origin o, Type t,  java.util.List<ASTNode> elems) {
     enter(o);
     t=create.primitive_type(Sort.Bag,t);
-    ASTNode res=create.expression(StandardOperator.Build, t , elems );
+    ASTNode res=create.struct_value(t , null , elems );
     res.setType(t);
     leave();
     return res;
@@ -230,7 +230,7 @@ public class VerCorsExpressionFactory implements
   public ASTNode explicit_seq(Origin o, Type t, java.util.List<ASTNode>  elems) {
     enter(o);
     t=create.primitive_type(Sort.Sequence,t);
-    ASTNode res=create.expression(StandardOperator.Build, t , elems );
+    ASTNode res=create.struct_value(t , null , elems );
     res.setType(t);
     leave();
     return res;
@@ -240,7 +240,7 @@ public class VerCorsExpressionFactory implements
   public ASTNode explicit_set(Origin o, Type t, java.util.List<ASTNode> elems) {
     enter(o);
     t=create.primitive_type(Sort.Set, t);
-    ASTNode res=create.expression(StandardOperator.Build, t , elems );
+    ASTNode res=create.struct_value(t , null , elems );
     res.setType(t);
     leave();
     return res;

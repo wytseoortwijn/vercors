@@ -67,15 +67,13 @@ typeDeclaration
 
 modifier
     :   classOrInterfaceModifier
-    |   specificationModifier
+    |   extraAnnotation
     |   (   'native'
         |   'synchronized'
         |   'transient'
         |   'volatile'
         )
     ;
-
-specificationModifier : PLACEHOLDER ;
 
 classOrInterfaceModifier
     :   annotation       // class or interface
@@ -95,7 +93,7 @@ variableModifier
     ;
 
 classDeclaration
-    :   'class' Identifier typeParameters?
+    :   'class' javaIdentifier typeParameters?
         ('extends' type)?
         ('implements' typeList)?
         classBody
@@ -106,7 +104,7 @@ typeParameters
     ;
 
 typeParameter
-    :   Identifier ('extends' typeBound)?
+    :   javaIdentifier ('extends' typeBound)?
     ;
 
 typeBound
@@ -114,7 +112,7 @@ typeBound
     ;
 
 enumDeclaration
-    :   ENUM Identifier ('implements' typeList)?
+    :   ENUM javaIdentifier ('implements' typeList)?
         '{' enumConstants? ','? enumBodyDeclarations? '}'
     ;
 
@@ -123,7 +121,7 @@ enumConstants
     ;
 
 enumConstant
-    :   annotation* Identifier arguments? classBody?
+    :   annotation* javaIdentifier arguments? classBody?
     ;
 
 enumBodyDeclarations
@@ -131,7 +129,7 @@ enumBodyDeclarations
     ;
 
 interfaceDeclaration
-    :   'interface' Identifier typeParameters? ('extends' typeList)? interfaceBody
+    :   'interface' javaIdentifier typeParameters? ('extends' typeList)? interfaceBody
     ;
 
 typeList
@@ -162,6 +160,7 @@ memberDeclaration
     |   annotationTypeDeclaration
     |   classDeclaration
     |   enumDeclaration
+    |   extraDeclaration
     ;
 
 /* We use rule this even for void methods which cannot have [] after parameters.
@@ -170,7 +169,7 @@ memberDeclaration
    for invalid return type after parsing.
  */
 methodDeclaration
-    :   (type|'void') Identifier formalParameters ('[' ']')*
+    :   (type|'void') javaIdentifier formalParameters ('[' ']')*
         ('throws' qualifiedNameList)?
         (   methodBody
         |   ';'
@@ -182,7 +181,7 @@ genericMethodDeclaration
     ;
 
 constructorDeclaration
-    :   Identifier formalParameters ('throws' qualifiedNameList)?
+    :   javaIdentifier formalParameters ('throws' qualifiedNameList)?
         constructorBody
     ;
 
@@ -214,12 +213,12 @@ constDeclaration
     ;
 
 constantDeclarator
-    :   Identifier ('[' ']')* '=' variableInitializer
+    :   javaIdentifier ('[' ']')* '=' variableInitializer
     ;
 
 // see matching of [] comment in methodDeclaratorRest
 interfaceMethodDeclaration
-    :   (type|'void') Identifier formalParameters ('[' ']')*
+    :   (type|'void') javaIdentifier formalParameters ('[' ']')*
         ('throws' qualifiedNameList)?
         ';'
     ;
@@ -237,7 +236,7 @@ variableDeclarator
     ;
 
 variableDeclaratorId
-    :   Identifier ('[' ']')*
+    :   javaIdentifier ('[' ']')*
     ;
 
 variableInitializer
@@ -250,16 +249,17 @@ arrayInitializer
     ;
 
 enumConstantName
-    :   Identifier
+    :   javaIdentifier
     ;
 
 type
     :   classOrInterfaceType ('[' ']')*
     |   primitiveType ('[' ']')*
+    |   extraType
     ;
 
 classOrInterfaceType
-    :   Identifier typeArguments? ('.' Identifier typeArguments? )*
+    :   javaIdentifier typeArguments? ('.' javaIdentifier typeArguments? )*
     ;
 
 primitiveType
@@ -271,11 +271,6 @@ primitiveType
     |   'long'
     |   'float'
     |   'double'
-    |   specificationPrimitiveType
-    ;
-
-specificationPrimitiveType
-    : PLACEHOLDER
     ;
 
 typeArguments
@@ -317,7 +312,7 @@ constructorBody
     ;
 
 qualifiedName
-    :   Identifier ('.' Identifier)*
+    :   javaIdentifier ('.' javaIdentifier)*
     ;
 
 literal
@@ -342,7 +337,7 @@ elementValuePairs
     ;
 
 elementValuePair
-    :   Identifier '=' elementValue
+    :   javaIdentifier '=' elementValue
     ;
 
 elementValue
@@ -356,7 +351,7 @@ elementValueArrayInitializer
     ;
 
 annotationTypeDeclaration
-    :   '@' 'interface' Identifier annotationTypeBody
+    :   '@' 'interface' javaIdentifier annotationTypeBody
     ;
 
 annotationTypeBody
@@ -382,7 +377,7 @@ annotationMethodOrConstantRest
     ;
 
 annotationMethodRest
-    :   Identifier '(' ')' defaultValue?
+    :   javaIdentifier '(' ')' defaultValue?
     ;
 
 annotationConstantRest
@@ -426,20 +421,16 @@ statement
     |   'synchronized' parExpression block
     |   'return' expression? ';'
     |   'throw' expression ';'
-    |   'break' Identifier? ';'
-    |   'continue' Identifier? ';'
+    |   'break' javaIdentifier? ';'
+    |   'continue' javaIdentifier? ';'
     |   ';'
     |   statementExpression ';'
-    |   Identifier ':' statement
-    |   specificationStatement
-    ;
-
-specificationStatement
-    : PLACEHOLDER
+    |   javaIdentifier ':' statement
+    |   extraStatement
     ;
 
 catchClause
-    :   'catch' '(' variableModifier* catchType Identifier ')' block
+    :   'catch' '(' variableModifier* catchType javaIdentifier ')' block
     ;
 
 catchType
@@ -513,13 +504,14 @@ constantExpression
 
 expression
     :   primary
-    |   expression '.' Identifier
+    |   expression '.' javaIdentifier
     |   expression '.' 'this'
     |   expression '.' 'new' nonWildcardTypeArguments? innerCreator
     |   expression '.' 'super' superSuffix
     |   expression '.' explicitGenericInvocation
     |   expression '[' expression ']'
-    |   expression '(' expressionList? ')'
+    |   expression '->' javaIdentifier arguments
+    |   expression ( '@' javaIdentifier )? arguments
     |   'new' creator
     |   '(' type ')' expression
     |   expression ('++' | '--')
@@ -534,8 +526,9 @@ expression
     |   expression '&' expression
     |   expression '^' expression
     |   expression '|' expression
-    |   expression '&&' expression
+    |   expression ('&&'|'**') expression
     |   expression '||' expression
+    |   expression ('==>'|'-*')  expression
     |   expression '?' expression ':' expression
     |   <assoc=right> expression
         (   '='
@@ -559,15 +552,11 @@ primary
     |   'this'
     |   'super'
     |   literal
-    |   Identifier
+    |   javaIdentifier
     |   type '.' 'class'
     |   'void' '.' 'class'
     |   nonWildcardTypeArguments (explicitGenericInvocationSuffix | 'this' arguments)
-	|   specificationPrimary
-    ;
-
-specificationPrimary
-    :  PLACEHOLDER
+	|   extraPrimary
     ;
 
 creator
@@ -576,12 +565,12 @@ creator
     ;
 
 createdName
-    :   Identifier typeArgumentsOrDiamond? ('.' Identifier typeArgumentsOrDiamond?)*
+    :   javaIdentifier typeArgumentsOrDiamond? ('.' javaIdentifier typeArgumentsOrDiamond?)*
     |   primitiveType
     ;
 
 innerCreator
-    :   Identifier nonWildcardTypeArgumentsOrDiamond? classCreatorRest
+    :   javaIdentifier nonWildcardTypeArgumentsOrDiamond? classCreatorRest
     ;
 
 arrayCreatorRest
@@ -615,16 +604,16 @@ nonWildcardTypeArgumentsOrDiamond
 
 superSuffix
     :   arguments
-    |   '.' Identifier arguments?
+    |   '.' javaIdentifier arguments?
     ;
 
 explicitGenericInvocationSuffix
     :   'super' superSuffix
-    |   Identifier arguments
+    |   javaIdentifier ('@' javaIdentifier )? arguments
     ;
 
 arguments
-    :   '(' expressionList? ')'
+    :   '(' ( expression ( ',' expression )* )? ')'
     ;
 
 // LEXER
@@ -993,6 +982,8 @@ URSHIFT_ASSIGN  : '>>>=';
 
 // §3.8 Identifiers (must appear after all keywords in the grammar)
 
+javaIdentifier : extraIdentifier | Identifier ;
+
 Identifier
     :   JavaLetter JavaLetterOrDigit*
     ;
@@ -1000,7 +991,7 @@ Identifier
 fragment
 JavaLetter
     :   [a-zA-Z$_] // these are the "java letters" below 0x7F
-    |   // covers all characters above 0xFF which are not a surrogate
+    |   // covers all characters above 0x7F which are not a surrogate
         ~[\u0000-\u007F\uD800-\uDBFF]
         {Character.isJavaIdentifierStart(_input.LA(-1))}?
     |   // covers UTF-16 surrogate pairs encodings for U+10000 to U+10FFFF
@@ -1011,7 +1002,7 @@ JavaLetter
 fragment
 JavaLetterOrDigit
     :   [a-zA-Z0-9$_] // these are the "java letters or digits" below 0x7F
-    |   // covers all characters above 0xFF which are not a surrogate
+    |   // covers all characters above 0x7F which are not a surrogate
         ~[\u0000-\u007F\uD800-\uDBFF]
         {Character.isJavaIdentifierPart(_input.LA(-1))}?
     |   // covers UTF-16 surrogate pairs encodings for U+10000 to U+10FFFF
@@ -1025,7 +1016,6 @@ JavaLetterOrDigit
 
 AT : '@';
 ELLIPSIS : '...';
-PLACEHOLDER : EOF EOF; // to be defined in an extension.
 
 //
 // Whitespace and comments

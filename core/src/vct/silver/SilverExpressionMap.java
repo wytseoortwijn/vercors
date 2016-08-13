@@ -79,24 +79,6 @@ public class SilverExpressionMap<T,E> implements ASTMapping<E>{
       e1=e.getArg(0).apply(this);
     }
     switch(e.getOperator()){
-    case Build:{
-      ASTNode args[]=e.getArguments();
-      ArrayList<E> elems=new ArrayList();
-      for(int i=1;i<args.length;i++){
-        elems.add(args[i].apply(this));
-      }
-      T t=((Type)((Type)e.getArg(0)).getArg(0)).apply(type);
-      switch(((PrimitiveType)args[0]).sort){
-      case Sequence:
-        return create.explicit_seq(o, t, elems);
-      case Bag:
-        return create.explicit_bag(o, t, elems);
-      case Set:
-        return create.explicit_set(o, t, elems);
-      default:
-        return null;
-      }
-    }
     case PointsTo:{
       return create.and(o,create.field_access(o,e1,e2),create.eq(o, e1, e3));
     }
@@ -493,8 +475,25 @@ public class SilverExpressionMap<T,E> implements ASTMapping<E>{
     // TODO Auto-generated method stub
     return null;
   }
-  
-  
-  
 
+  @Override
+  public E map(StructValue v) {
+    Origin o = v.getOrigin();
+    ArrayList<E> elems=new ArrayList();
+    for(int i=0;i<v.values.length;i++){
+      elems.add(v.values[i].apply(this));
+    }
+    T t=((Type)((Type)v.type).getArg(0)).apply(type);
+    switch(((PrimitiveType)v.type).sort){
+    case Sequence:
+      return create.explicit_seq(o, t, elems);
+    case Bag:
+      return create.explicit_bag(o, t, elems);
+    case Set:
+      return create.explicit_set(o, t, elems);
+    default:
+      return null;
+    }
+  }
+  
 }

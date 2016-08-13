@@ -9,6 +9,7 @@ import java.util.*;
 
 import vct.col.ast.ASTClass;
 import vct.col.ast.ASTNode;
+import vct.col.ast.ASTSpecial.Kind;
 import vct.col.ast.ASTWith;
 import vct.col.ast.AbstractVisitor;
 import vct.col.ast.AssignmentStatement;
@@ -34,6 +35,7 @@ import vct.col.ast.StandardProcedure;
 import vct.col.ast.Type;
 import vct.col.rewrite.Substitution;
 import vct.col.util.ASTFactory;
+import vct.col.ast.ASTSpecial;
 
 /**
  * @author Remco Swenker
@@ -246,7 +248,7 @@ public class Translator {
     		currentWorkingTriple++;
     		hoareTriple.add(currentWorkingTriple, "");
     	}
-    	if(!e.getOperator().equals(StandardOperator.HoarePredicate)){
+    	if(!e.isSpecial(ASTSpecial.Kind.HoarePredicate)){
 	    	hoareTriple.set(currentWorkingTriple, hoareTriple.get(currentWorkingTriple).concat(" ("));
 	    	hoareTriple.set(currentWorkingTriple, hoareTriple.get(currentWorkingTriple).concat(getCommand(e,"Z3")));
     	}
@@ -254,7 +256,7 @@ public class Translator {
 	    	ans = generateZ3Logic(null, e.getArg(i), null);
 	    }
     	//outputToString.leave();
-    	if(!e.getOperator().equals(StandardOperator.HoarePredicate)){
+    	if(!e.isSpecial(ASTSpecial.Kind.HoarePredicate)){
     		hoareTriple.set(currentWorkingTriple, hoareTriple.get(currentWorkingTriple).concat(")"));
     	}
     	if(post!=null){
@@ -384,7 +386,7 @@ public class Translator {
 		int N=s.getLength();
 	    for (int i=0;i<N && ans;i++){
 	    	//outputToString.printf("Found BlockStatement Item %s at %s %n",s.getStatement(i).toString(),i+1);
-	    	if(s.getStatement(i) instanceof OperatorExpression && ((OperatorExpression)s.getStatement(i)).getOperator().equals(StandardOperator.HoarePredicate)){
+	    	if(s.isSpecial(Kind.HoarePredicate)){
 	    		if(blockState == null){
 	    			ans = ans && checkSkipZ3(blockPre, s.getStatement(i));
 	    		}else{
@@ -609,7 +611,7 @@ public class Translator {
 			          if (block.getStatement(i) instanceof OperatorExpression){
 			              OperatorExpression e=(OperatorExpression)block.getStatement(i);
 			              out.printf("checking formula at %s%n",e.getOrigin());
-			              if (e.getOperator()==StandardOperator.Assert);
+			              if (e.isSpecial(Kind.Assert));
 			              DeclarationStatement args[]=m.getArgs();
 			              ASTNode formula=e.getArg(0);
 			              //BoogieReport res=check_boogie(args,formula);
@@ -671,7 +673,7 @@ public class Translator {
 		@Override
 		public void visit(OperatorExpression e) {
 			int N=e.getOperator().arity();
-			if(e.getOperator().equals(StandardOperator.HoarePredicate)){
+			if(e.isSpecial(ASTSpecial.Kind.HoarePredicate)){
 				ASTFactory astfactory = new ASTFactory();
 				OperatorExpression e2 = astfactory.expression(e.getOrigin(),StandardOperator.Not,e.getArg(0));
 				e2.accept(this);
@@ -685,7 +687,7 @@ public class Translator {
 	    		currentWorkingTriple++;
 	    		hoareTriple.add(currentWorkingTriple, "");
 	    	}
-	    	if(!e.getOperator().equals(StandardOperator.HoarePredicate)){
+	    	if(!e.isSpecial(ASTSpecial.Kind.HoarePredicate)){
 		    	hoareTriple.set(currentWorkingTriple, hoareTriple.get(currentWorkingTriple).concat(" ("));
 		    	hoareTriple.set(currentWorkingTriple, hoareTriple.get(currentWorkingTriple).concat(getCommand(e)));
 	    	}
@@ -694,7 +696,7 @@ public class Translator {
 		    }
 	    	outputToString.leave();
 	    	treeDepth--;
-	    	if(!e.getOperator().equals(StandardOperator.HoarePredicate)){
+	    	if(!e.isSpecial(ASTSpecial.Kind.HoarePredicate)){
 	    		hoareTriple.set(currentWorkingTriple, hoareTriple.get(currentWorkingTriple).concat(")"));
 	    	}
 		}

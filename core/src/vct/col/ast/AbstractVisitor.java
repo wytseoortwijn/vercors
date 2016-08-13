@@ -150,6 +150,8 @@ public class AbstractVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
   
   @Override public void visit(TypeVariable v) { visit_any(v); }
 
+  @Override public void visit(StructValue v) { visit_any(v); }
+
 }
 
 

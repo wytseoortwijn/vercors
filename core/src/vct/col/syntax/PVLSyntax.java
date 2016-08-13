@@ -28,8 +28,9 @@ public class PVLSyntax {
   public static Syntax get(){
     if(syntax==null){
       syntax=new Syntax("PVL");
-      syntax.addOperator(HoarePredicate,999,"{*","*}");
 
+      VerCorsSyntax.add(syntax);
+      
       //syntax.addInfix(SubType,"<:",90);
       //syntax.addInfix(SuperType,":>",90);
       syntax.addInfix(Implies,"==>",30);

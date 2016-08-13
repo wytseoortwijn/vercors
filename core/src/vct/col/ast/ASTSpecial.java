@@ -6,13 +6,16 @@ import vct.util.ClassName;
 
 public class ASTSpecial extends ASTDeclaration {
 
+  public ASTNode getArg(int i){
+    return args[i];
+  }
+  
   @Override
   public <R,A> R accept_simple(ASTMapping1<R,A> map,A arg){
     return map.map(this,arg);
   }
 
   public static enum Kind {
-    Assert(-1),
     Expression,
     With,
     Then,
@@ -22,13 +25,13 @@ public class ASTSpecial extends ASTDeclaration {
     Label,
     Exhale,
     Inhale,
-    DeclareAction(4),
+    ActionHeader(-1),
     CreateHistory,
-    DestroyHistory,
+    DestroyHistory(2),
     CreateFuture,
     DestroyFuture,
-    SplitHistory,
-    MergeHistory,
+    SplitHistory(5),
+    MergeHistory(5),
     ChooseHistory,
     /** Transfer resources into and out of atomic regions. */
     Transfer,
@@ -37,16 +40,56 @@ public class ASTSpecial extends ASTDeclaration {
     Goto,
     SpecIgnoreStart,
     SpecIgnoreEnd,
-    Lock,
-    Unlock,
     Wait,
     Notify,
     Fork,
     Join,
     Comment,
     Invariant,
-    Contract, Requires, Ensures, Given, Yields, Modifies, Pragma,
-    Accessible;
+    Contract, Requires, Ensures, Given(-1), Yields(-1), Modifies(-1), Pragma,
+    Accessible(-1),
+    StaticEntry(0),
+    InlineEntry(0),
+    /** Lock statement. */
+    Lock(1),
+    /** Unfold statement. */
+    Unlock(1),
+    /** Open a predicate family. */
+    Open(1),
+    /** Close a predicate family. */
+    Close(1),
+    /** Fold statement. */
+    Fold(1),
+    /** Unfold statement. */
+    Unfold(1),
+    /**
+     * Refute statement. Refute a fact at a point in the program.
+     */
+    Refute(1),
+    /** Assert Statement. */
+    Assert(-1),
+    /** Assume statement. */
+    Assume(1),
+    /** Use statement for magic wand proofs */
+    Use(1),
+    /** QED statement for magic wand proofs */
+    QED(1),
+    /** Apply statement for magic wands */
+    Apply(1),
+    /** Declare a witness variable, for use in witness proofs. */
+    Witness(1),
+    /** Havoc statement. */
+    Havoc(1),
+    /** Hoare Predicate statement. This is the main ingredient of a Hoare Logic proof. */
+    HoarePredicate(1),
+    /**
+     * Send permission statement for parallel loops.
+     */
+    Send(3),
+    /**
+     * Receive permission statement for parallel loops.
+     */
+    Recv(3);
 
     
     

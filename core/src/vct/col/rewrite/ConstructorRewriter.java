@@ -19,6 +19,11 @@ public class ConstructorRewriter extends AbstractRewriter {
   }
   
   public void visit(AssignmentStatement e){
+    if ((e.getExpression() instanceof StructValue)
+       && (((StructValue)e.getExpression()).type instanceof ClassType)){
+      Abort("illegal use of structvalue for constructor call");
+    }
+    /*
     if (e.getExpression().isa(StandardOperator.Build) && (((OperatorExpression)e.getExpression()).getArg(0) instanceof ClassType)){
       OperatorExpression i=(OperatorExpression)e.getExpression();
       ASTNode s1=create.assignment(rewrite(e.getLocation()),create.expression(StandardOperator.New,rewrite(i.getType())));
@@ -38,6 +43,7 @@ public class ConstructorRewriter extends AbstractRewriter {
       result=create.block(s1,s2);
       return;
     }
+    */
     if (e.getExpression() instanceof MethodInvokation){
       MethodInvokation i=(MethodInvokation)e.getExpression();
       if (i.getDefinition().kind==Method.Kind.Constructor) {

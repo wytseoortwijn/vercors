@@ -82,7 +82,7 @@ type
 primitiveType
 	:	annotation* numericType
 	|	annotation* 'boolean'
-	|   annotation* specificationPrimitiveType
+	|   annotation* extraType
 	;
 
 numericType
@@ -119,16 +119,16 @@ classOrInterfaceType
 	;
 
 classType
-	:	annotation* Identifier typeArguments?
-	|	classOrInterfaceType '.' annotation* Identifier typeArguments?
+	:	annotation* javaIdentifier typeArguments?
+	|	classOrInterfaceType '.' annotation* javaIdentifier typeArguments?
 	;
 
 classType_lf_classOrInterfaceType
-	:	'.' annotation* Identifier typeArguments?
+	:	'.' annotation* javaIdentifier typeArguments?
 	;
 
 classType_lfno_classOrInterfaceType
-	:	annotation* Identifier typeArguments?
+	:	annotation* javaIdentifier typeArguments?
 	;
 
 interfaceType
@@ -144,7 +144,7 @@ interfaceType_lfno_classOrInterfaceType
 	;
 
 typeVariable
-	:	annotation* Identifier
+	:	annotation* javaIdentifier
 	;
 
 arrayType
@@ -158,7 +158,7 @@ dims
 	;
 
 typeParameter
-	:	typeParameterModifier* Identifier typeBound?
+	:	typeParameterModifier* javaIdentifier typeBound?
 	;
 
 typeParameterModifier
@@ -201,32 +201,32 @@ wildcardBounds
  */
 
 packageName
-	:	Identifier
-	|	packageName '.' Identifier
+	:	javaIdentifier
+	|	packageName '.' javaIdentifier
 	;
 
 typeName
-	:	Identifier
-	|	packageOrTypeName '.' Identifier
+	:	javaIdentifier
+	|	packageOrTypeName '.' javaIdentifier
 	;
 
 packageOrTypeName
-	:	Identifier
-	|	packageOrTypeName '.' Identifier
+	:	javaIdentifier
+	|	packageOrTypeName '.' javaIdentifier
 	;
 
 expressionName
-	:	Identifier
-	|	ambiguousName '.' Identifier
+	:	javaIdentifier
+	|	ambiguousName '.' javaIdentifier
 	;
 
 methodName
-	:	Identifier
+	:	javaIdentifier
 	;
 
 ambiguousName
-	:	Identifier
-	|	ambiguousName '.' Identifier
+	:	javaIdentifier
+	|	ambiguousName '.' javaIdentifier
 	;
 
 /*
@@ -238,7 +238,7 @@ compilationUnit
 	;
 
 packageDeclaration
-	:	packageModifier* 'package' Identifier ('.' Identifier)* ';'
+	:	packageModifier* 'package' javaIdentifier ('.' javaIdentifier)* ';'
 	;
 
 packageModifier
@@ -261,7 +261,7 @@ typeImportOnDemandDeclaration
 	;
 
 singleStaticImportDeclaration
-	:	'import' 'static' typeName '.' Identifier ';'
+	:	'import' 'static' typeName '.' javaIdentifier ';'
 	;
 
 staticImportOnDemandDeclaration
@@ -284,7 +284,7 @@ classDeclaration
 	;
 
 normalClassDeclaration
-	:	classModifier* 'class' Identifier typeParameters? superclass? superinterfaces? classBody
+	:	classModifier* 'class' javaIdentifier typeParameters? superclass? superinterfaces? classBody
 	;
 
 classModifier
@@ -327,6 +327,7 @@ classBodyDeclaration
 	|	instanceInitializer
 	|	staticInitializer
 	|	constructorDeclaration
+	|   extraDeclaration
 	;
 
 classMemberDeclaration
@@ -361,7 +362,7 @@ variableDeclarator
 	;
 
 variableDeclaratorId
-	:	Identifier dims?
+	:	javaIdentifier dims?
 	;
 
 variableInitializer
@@ -372,7 +373,7 @@ variableInitializer
 unannType
 	:	unannPrimitiveType
 	|	unannReferenceType
-	|   specificationPrimitiveType
+	|   extraType
 	;
 
 unannPrimitiveType
@@ -396,16 +397,16 @@ unannClassOrInterfaceType
 	;
 
 unannClassType
-	:	Identifier typeArguments?
-	|	unannClassOrInterfaceType '.' annotation* Identifier typeArguments?
+	:	javaIdentifier typeArguments?
+	|	unannClassOrInterfaceType '.' annotation* javaIdentifier typeArguments?
 	;
 
 unannClassType_lf_unannClassOrInterfaceType
-	:	'.' annotation* Identifier typeArguments?
+	:	'.' annotation* javaIdentifier typeArguments?
 	;
 
 unannClassType_lfno_unannClassOrInterfaceType
-	:	Identifier typeArguments?
+	:	javaIdentifier typeArguments?
 	;
 
 unannInterfaceType
@@ -421,7 +422,7 @@ unannInterfaceType_lfno_unannClassOrInterfaceType
 	;
 
 unannTypeVariable
-	:	Identifier
+	:	javaIdentifier
 	;
 
 unannArrayType
@@ -458,7 +459,7 @@ result
 	;
 
 methodDeclarator
-	:	Identifier '(' formalParameterList? ')' dims?
+	:	javaIdentifier '(' formalParameterList? ')' dims?
 	;
 
 formalParameterList
@@ -531,7 +532,7 @@ constructorDeclarator
 	;
 
 simpleTypeName
-	:	Identifier
+	:	javaIdentifier
 	;
 
 constructorBody
@@ -546,7 +547,7 @@ explicitConstructorInvocation
 	;
 
 enumDeclaration
-	:	classModifier* 'enum' Identifier superinterfaces? enumBody
+	:	classModifier* 'enum' javaIdentifier superinterfaces? enumBody
 	;
 
 enumBody
@@ -558,7 +559,7 @@ enumConstantList
 	;
 
 enumConstant
-	:	enumConstantModifier* Identifier ('(' argumentList? ')')? classBody?
+	:	enumConstantModifier* javaIdentifier ('(' argumentList? ')')? classBody?
 	;
 
 enumConstantModifier
@@ -579,7 +580,7 @@ interfaceDeclaration
 	;
 
 normalInterfaceDeclaration
-	:	interfaceModifier* 'interface' Identifier typeParameters? extendsInterfaces? interfaceBody
+	:	interfaceModifier* 'interface' javaIdentifier typeParameters? extendsInterfaces? interfaceBody
 	;
 
 interfaceModifier
@@ -633,7 +634,7 @@ interfaceMethodModifier
 	;
 
 annotationTypeDeclaration
-	:	interfaceModifier* '@' 'interface' Identifier annotationTypeBody
+	:	interfaceModifier* '@' 'interface' javaIdentifier annotationTypeBody
 	;
 
 annotationTypeBody
@@ -649,7 +650,7 @@ annotationTypeMemberDeclaration
 	;
 
 annotationTypeElementDeclaration
-	:	annotationTypeElementModifier* unannType Identifier '(' ')' dims? defaultValue? ';'
+	:	annotationTypeElementModifier* unannType javaIdentifier '(' ')' dims? defaultValue? ';'
 	;
 
 annotationTypeElementModifier
@@ -666,7 +667,7 @@ annotation
 	:	normalAnnotation
 	|	markerAnnotation
 	|	singleElementAnnotation
-	|   specificationModifier
+	|   extraAnnotation
 	;
 
 normalAnnotation
@@ -678,7 +679,7 @@ elementValuePairList
 	;
 
 elementValuePair
-	:	Identifier '=' elementValue
+	:	javaIdentifier '=' elementValue
 	;
 
 elementValue
@@ -748,7 +749,7 @@ statement
 	|	ifThenElseStatement
 	|	whileStatement
 	|	forStatement
-	|   specificationStatement
+	|   extraStatement
 	;
 
 statementNoShortIf
@@ -779,11 +780,11 @@ emptyStatement
 	;
 
 labeledStatement
-	:	Identifier ':' statement
+	:	javaIdentifier ':' statement
 	;
 
 labeledStatementNoShortIf
-	:	Identifier ':' statementNoShortIf
+	:	javaIdentifier ':' statementNoShortIf
 	;
 
 expressionStatement
@@ -840,7 +841,7 @@ switchLabel
 	;
 
 enumConstantName
-	:	Identifier
+	:	javaIdentifier
 	;
 
 whileStatement
@@ -895,11 +896,11 @@ enhancedForStatementNoShortIf
 	;
 
 breakStatement
-	:	'break' Identifier? ';'
+	:	'break' javaIdentifier? ';'
 	;
 
 continueStatement
-	:	'continue' Identifier? ';'
+	:	'continue' javaIdentifier? ';'
 	;
 
 returnStatement
@@ -975,6 +976,7 @@ primaryNoNewArray
 	|	'this'
 	|	typeName '.' 'this'
 	|	'(' expression ')'
+	|   extraPrimary
 	|	classInstanceCreationExpression
 	|	fieldAccess
 	|	arrayAccess
@@ -993,6 +995,7 @@ primaryNoNewArray_lfno_arrayAccess
 	|	'this'
 	|	typeName '.' 'this'
 	|	'(' expression ')'
+	|   extraPrimary
 	|	classInstanceCreationExpression
 	|	fieldAccess
 	|	methodInvocation
@@ -1026,12 +1029,13 @@ primaryNoNewArray_lfno_primary
 	|	'this'
 	|	typeName '.' 'this'
 	|	'(' expression ')'
+	|   extraPrimary
 	|	classInstanceCreationExpression_lfno_primary
 	|	fieldAccess_lfno_primary
 	|	arrayAccess_lfno_primary
 	|	methodInvocation_lfno_primary
 	|	methodReference_lfno_primary
-	|   specificationPrimary
+	|   extraPrimary
 	;
 
 primaryNoNewArray_lfno_primary_lf_arrayAccess_lfno_primary
@@ -1046,6 +1050,7 @@ primaryNoNewArray_lfno_primary_lfno_arrayAccess_lfno_primary
 	|	'this'
 	|	typeName '.' 'this'
 	|	'(' expression ')'
+	|   extraPrimary
 	|	classInstanceCreationExpression_lfno_primary
 	|	fieldAccess_lfno_primary
 	|	methodInvocation_lfno_primary
@@ -1053,18 +1058,18 @@ primaryNoNewArray_lfno_primary_lfno_arrayAccess_lfno_primary
 	;
 
 classInstanceCreationExpression
-	:	'new' typeArguments? annotation* Identifier ('.' annotation* Identifier)* typeArgumentsOrDiamond? '(' argumentList? ')' classBody?
-	|	expressionName '.' 'new' typeArguments? annotation* Identifier typeArgumentsOrDiamond? '(' argumentList? ')' classBody?
-	|	primary '.' 'new' typeArguments? annotation* Identifier typeArgumentsOrDiamond? '(' argumentList? ')' classBody?
+	:	'new' typeArguments? annotation* javaIdentifier ('.' annotation* javaIdentifier)* typeArgumentsOrDiamond? '(' argumentList? ')' classBody?
+	|	expressionName '.' 'new' typeArguments? annotation* javaIdentifier typeArgumentsOrDiamond? '(' argumentList? ')' classBody?
+	|	primary '.' 'new' typeArguments? annotation* javaIdentifier typeArgumentsOrDiamond? '(' argumentList? ')' classBody?
 	;
 
 classInstanceCreationExpression_lf_primary
-	:	'.' 'new' typeArguments? annotation* Identifier typeArgumentsOrDiamond? '(' argumentList? ')' classBody?
+	:	'.' 'new' typeArguments? annotation* javaIdentifier typeArgumentsOrDiamond? '(' argumentList? ')' classBody?
 	;
 
 classInstanceCreationExpression_lfno_primary
-	:	'new' typeArguments? annotation* Identifier ('.' annotation* Identifier)* typeArgumentsOrDiamond? '(' argumentList? ')' classBody?
-	|	expressionName '.' 'new' typeArguments? annotation* Identifier typeArgumentsOrDiamond? '(' argumentList? ')' classBody?
+	:	'new' typeArguments? annotation* javaIdentifier ('.' annotation* javaIdentifier)* typeArgumentsOrDiamond? '(' argumentList? ')' classBody?
+	|	expressionName '.' 'new' typeArguments? annotation* javaIdentifier typeArgumentsOrDiamond? '(' argumentList? ')' classBody?
 	;
 
 typeArgumentsOrDiamond
@@ -1073,18 +1078,18 @@ typeArgumentsOrDiamond
 	;
 
 fieldAccess
-	:	primary '.' Identifier
-	|	'super' '.' Identifier
-	|	typeName '.' 'super' '.' Identifier
+	:	primary '.' javaIdentifier
+	|	'super' '.' javaIdentifier
+	|	typeName '.' 'super' '.' javaIdentifier
 	;
 
 fieldAccess_lf_primary
-	:	'.' Identifier
+	:	'.' javaIdentifier
 	;
 
 fieldAccess_lfno_primary
-	:	'super' '.' Identifier
-	|	typeName '.' 'super' '.' Identifier
+	:	'super' '.' javaIdentifier
+	|	typeName '.' 'super' '.' javaIdentifier
 	;
 
 arrayAccess
@@ -1112,23 +1117,23 @@ arrayAccess_lfno_primary
 
 methodInvocation
 	:	methodName '(' argumentList? ')'
-	|	typeName '.' typeArguments? Identifier '(' argumentList? ')'
-	|	expressionName '.' typeArguments? Identifier '(' argumentList? ')'
-	|	primary '.' typeArguments? Identifier '(' argumentList? ')'
-	|	'super' '.' typeArguments? Identifier '(' argumentList? ')'
-	|	typeName '.' 'super' '.' typeArguments? Identifier '(' argumentList? ')'
+	|	typeName '.' typeArguments? javaIdentifier '(' argumentList? ')'
+	|	expressionName '.' typeArguments? javaIdentifier '(' argumentList? ')'
+	|	primary '.' typeArguments? javaIdentifier '(' argumentList? ')'
+	|	'super' '.' typeArguments? javaIdentifier '(' argumentList? ')'
+	|	typeName '.' 'super' '.' typeArguments? javaIdentifier '(' argumentList? ')'
 	;
 
 methodInvocation_lf_primary
-	:	'.' typeArguments? Identifier '(' argumentList? ')'
+	:	'.' typeArguments? javaIdentifier '(' argumentList? ')'
 	;
 
 methodInvocation_lfno_primary
 	:	methodName '(' argumentList? ')'
-	|	typeName '.' typeArguments? Identifier '(' argumentList? ')'
-	|	expressionName '.' typeArguments? Identifier '(' argumentList? ')'
-	|	'super' '.' typeArguments? Identifier '(' argumentList? ')'
-	|	typeName '.' 'super' '.' typeArguments? Identifier '(' argumentList? ')'
+	|	typeName '.' typeArguments? javaIdentifier '(' argumentList? ')'
+	|	expressionName '.' typeArguments? javaIdentifier '(' argumentList? ')'
+	|	'super' '.' typeArguments? javaIdentifier '(' argumentList? ')'
+	|	typeName '.' 'super' '.' typeArguments? javaIdentifier '(' argumentList? ')'
 	;
 
 argumentList
@@ -1136,24 +1141,24 @@ argumentList
 	;
 
 methodReference
-	:	expressionName '::' typeArguments? Identifier
-	|	referenceType '::' typeArguments? Identifier
-	|	primary '::' typeArguments? Identifier
-	|	'super' '::' typeArguments? Identifier
-	|	typeName '.' 'super' '::' typeArguments? Identifier
+	:	expressionName '::' typeArguments? javaIdentifier
+	|	referenceType '::' typeArguments? javaIdentifier
+	|	primary '::' typeArguments? javaIdentifier
+	|	'super' '::' typeArguments? javaIdentifier
+	|	typeName '.' 'super' '::' typeArguments? javaIdentifier
 	|	classType '::' typeArguments? 'new'
 	|	arrayType '::' 'new'
 	;
 
 methodReference_lf_primary
-	:	'::' typeArguments? Identifier
+	:	'::' typeArguments? javaIdentifier
 	;
 
 methodReference_lfno_primary
-	:	expressionName '::' typeArguments? Identifier
-	|	referenceType '::' typeArguments? Identifier
-	|	'super' '::' typeArguments? Identifier
-	|	typeName '.' 'super' '::' typeArguments? Identifier
+	:	expressionName '::' typeArguments? javaIdentifier
+	|	referenceType '::' typeArguments? javaIdentifier
+	|	'super' '::' typeArguments? javaIdentifier
+	|	typeName '.' 'super' '::' typeArguments? javaIdentifier
 	|	classType '::' typeArguments? 'new'
 	|	arrayType '::' 'new'
 	;
@@ -1187,13 +1192,13 @@ lambdaExpression
 	;
 
 lambdaParameters
-	:	Identifier
+	:	javaIdentifier
 	|	'(' formalParameterList? ')'
 	|	'(' inferredFormalParameterList ')'
 	;
 
 inferredFormalParameterList
-	:	Identifier (',' Identifier)*
+	:	javaIdentifier (',' javaIdentifier)*
 	;
 
 lambdaBody
@@ -1238,12 +1243,15 @@ conditionalExpression
 
 conditionalOrExpression
 	:	conditionalAndExpression
-	|	conditionalOrExpression '||' conditionalAndExpression
+    |   conditionalOrExpression '||' conditionalAndExpression
+    |   conditionalOrExpression '==>' conditionalAndExpression
+    |   conditionalOrExpression '-*' conditionalAndExpression
 	;
 
 conditionalAndExpression
 	:	inclusiveOrExpression
-	|	conditionalAndExpression '&&' inclusiveOrExpression
+    |   conditionalAndExpression '&&' inclusiveOrExpression
+    |   conditionalAndExpression '**' inclusiveOrExpression
 	;
 
 inclusiveOrExpression
@@ -1737,7 +1745,12 @@ LSHIFT_ASSIGN : '<<=';
 RSHIFT_ASSIGN : '>>=';
 URSHIFT_ASSIGN : '>>>=';
 
-// §3.8 Identifiers (must appear after all keywords in the grammar)
+// §3.8 javaIdentifiers (must appear after all keywords in the grammar)
+
+javaIdentifier
+ : Identifier
+ | 'create'
+ ;
 
 Identifier
 	:	JavaLetter JavaLetterOrDigit*
@@ -1783,17 +1796,7 @@ COMMENT
     :   '/*' .*? '*/' -> channel(COMMENT)
     ;
 
-EmbeddedLatex
-    : '#' ~[\r\n]* '#' -> skip
-    ;
-
 LINE_COMMENT
     :   '//' ~[\r\n]* -> channel(COMMENT)
     ;
 
-FileName : '"' ~[\r\n"]* '"' ;
-
-LINEDIRECTION
-    :   '#' WS? IntegerLiteral WS? FileName ~[\r\n]* -> channel(LINEDIRECTION)
-    ;
-   

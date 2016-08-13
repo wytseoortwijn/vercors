@@ -8,6 +8,8 @@ public interface ASTMapping1<R,A1> {
   
   public R map(StandardProcedure p,A1 a);
   
+  public R map(StructValue v,A1 a);
+  
   public R map(ConstantExpression e,A1 a);
   
   public R map(OperatorExpression e,A1 a);
