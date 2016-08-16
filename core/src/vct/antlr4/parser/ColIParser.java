@@ -67,14 +67,14 @@ public class ColIParser implements vct.col.util.Parser {
     Progress("Flattening variables took %dms",tk.show());
     Debug("after flattening variable decls %s",pu);
     
-    pu=new ConvertTypeExpressions(pu).rewriteAll();
-    Progress("converting type expressions took %dms",tk.show());
-    Debug("after converting type expression %s",pu);
-        
     pu=new SpecificationCollector(pu).rewriteAll();
     Progress("Shuffling specifications took %dms",tk.show());    
     Debug("after collecting specifications %s",pu);
 
+    pu=new ConvertTypeExpressions(pu).rewriteAll();
+    Progress("converting type expressions took %dms",tk.show());
+    Debug("after converting type expression %s",pu);
+        
     pu=new VerCorsDesugar(pu).rewriteAll();
     Progress("Desugaring took %dms",tk.show());
     Debug("after desugaring",pu);

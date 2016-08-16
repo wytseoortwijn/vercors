@@ -706,6 +706,9 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   public ASTNode plus(ASTNode e1,ASTNode e2){
     return create.expression(StandardOperator.Plus,e1,e2);
   }
+  public ASTNode mult(ASTNode e1,ASTNode e2){
+    return create.expression(StandardOperator.Mult,e1,e2);
+  }
   public ASTNode less(ASTNode e1,ASTNode e2){
   	return create.expression(StandardOperator.LT,e1,e2);
   }

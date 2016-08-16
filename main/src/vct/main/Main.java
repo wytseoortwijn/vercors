@@ -57,7 +57,6 @@ import vct.col.rewrite.GlobalizeStaticsParameter;
 import vct.col.rewrite.InlinePredicatesRewriter;
 import vct.col.rewrite.KernelRewriter;
 import vct.col.rewrite.LockEncoder;
-import vct.col.rewrite.OpenCLtoPVL;
 import vct.col.rewrite.OpenMPtoPVL;
 import vct.col.rewrite.OptimizeQuantifiers;
 import vct.col.rewrite.PVLCompiler;
@@ -476,11 +475,6 @@ public class Main
         public ProgramUnit apply(ProgramUnit arg,String ... args){
           new DeriveModifies().annotate(arg);
           return arg;
-        }
-      });
-      defined_passes.put("opencl2pvl",new CompilerPass("Compile OpenMP pragmas to PVL"){
-        public ProgramUnit apply(ProgramUnit arg,String ... args){
-          return new OpenCLtoPVL(arg).rewriteAll();
         }
       });
       defined_passes.put("openmp2pvl",new CompilerPass("Compile OpenMP pragmas to PVL"){
@@ -1023,6 +1017,9 @@ public class Main
       }
     } catch (HREExitException e) {
       exit=e.exit;
+    } catch (Throwable e) {
+      e.printStackTrace();
+      throw e;
     } finally {
       Output("entire run took %d ms",System.currentTimeMillis()-globalStart);
       System.exit(exit);

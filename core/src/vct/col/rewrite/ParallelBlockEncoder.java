@@ -262,8 +262,13 @@ public class ParallelBlockEncoder extends AbstractRewriter {
     if (region.contract==null){
       for(ParallelBlock pb:region.blocks){
         Contract c=(Contract)rewrite((ASTNode)pb);
-        main_cb.requires(c.pre_condition);
-        main_cb.ensures(c.post_condition);
+        if (c!=null){
+          main_cb.requires(c.pre_condition);
+          main_cb.ensures(c.post_condition);
+        } else {
+          main_cb.requires(create.constant(true));
+          main_cb.ensures(create.constant(true));
+        }
       }
       body=null;
     } else {

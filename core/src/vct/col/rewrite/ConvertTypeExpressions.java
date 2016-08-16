@@ -8,6 +8,7 @@ public class ConvertTypeExpressions extends AbstractRewriter {
     super(source);
   }
   
+  private KernelBodyRewriter kbr=new KernelBodyRewriter(source());
   
   @Override
   public void visit(DeclarationStatement d){
@@ -54,8 +55,13 @@ public class ConvertTypeExpressions extends AbstractRewriter {
       }
     }
     System.err.printf("remaining type of %s is %s%n",m.getReturnType(),t);
-    result=create.method_decl(t,res.getContract(),res.name,res.getArgs(),res.getBody());
-    result.copyMissingFlags(res);
+    Method out=create.method_decl(t,res.getContract(),res.name,res.getArgs(),res.getBody());
+    out.copyMissingFlags(res);
+    if(kernel){
+      result=kbr.rewrite(out);
+    } else {
+      result=out;
+    }
   }
 
 }

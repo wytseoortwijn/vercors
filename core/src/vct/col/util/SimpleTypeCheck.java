@@ -1368,7 +1368,7 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       }
       init.apply(this);
     }
-    pb.contract.apply(this);
+    if (pb.contract!=null) pb.contract.apply(this);
     pb.block.apply(this);
   }
   
