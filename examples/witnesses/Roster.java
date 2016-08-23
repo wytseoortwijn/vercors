@@ -19,22 +19,22 @@ class Roster {
 
 /*@
   resource ids_and_links(frac p,frac q)=Perm(id,p)
-    ** Perm(next,q) ** idal:next->ids_and_links(p,q);
+    ** Perm(next,q) ** (next!=null ==> idal:next.ids_and_links(p,q));
    
   resource grades_and_links(frac p,frac q)=Perm(grade,p)
-    ** Perm(next,q) ** gral:next->grades_and_links(p,q);
+    ** Perm(next,q) ** (next!=null ==> gral:next.grades_and_links(p,q));
      
   resource state(frac p) =
-    idal:ids_and_links(p,p/2) ** gral:grades_and_links(p,p/2);
+    (idal:ids_and_links(p,p/2)) ** (gral:grades_and_links(p,p/2));
      
 */
 
   /*@
     given frac p, q, r;
-    requires gral1:grades_and_links(100,p)
-             ** idal1:ids_and_links(q,r);
-    ensures  gral2:grades_and_links(100,p)
-             ** idal2:ids_and_links(q,r);
+    requires gral1:grades_and_links(100,p);
+    requires idal1:ids_and_links(q,r);
+    ensures  gral2:grades_and_links(100,p);
+    ensures  idal2:ids_and_links(q,r);
    */
   void updateGrade(int id, int g) {
     //@ unfold gral1:grades_and_links(100,p);
@@ -81,7 +81,7 @@ class Roster {
     return b;
   }
     
-  //@ requires state_in:n->state(100);
+  //@ requires n!=null ==> state_in:n.state(100);
   //@ ensures  state_out:state(100);
   public Roster(int i,int g,Roster n){
     this.id = i;

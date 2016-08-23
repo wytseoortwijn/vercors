@@ -31,23 +31,23 @@ public class ReentLock{
 
     /*@
      given int r, l, max;
-     requires srh:handle(r,l) ** sra:trans(r,l,x) ** srp:inv(part(r,l,max)) ** srs:inv(part(0,x,max));
-     ensures seh:handle(r,x) ** sep:inv(part(r,x,max));
+     requires (srh:handle(r,l)) ** (sra:trans(r,l,x)) ** (srp:inv(part(r,l,max))) ** (srs:inv(part(0,x,max)));
+     ensures (seh:handle(r,x)) ** (sep:inv(part(r,x,max)));
      */
     void set(int x);
 
     /*@
      given int r,l,max;
-     requires grh:handle(r,l) ** grp:inv(part(r,l,max));
-     ensures geh:handle(r,\result) ** gep:inv(part(r,\result,max));
+     requires (grh:handle(r,l)) ** grp:inv(part(r,l,max));
+     ensures (geh:handle(r,\result)) ** gep:inv(part(r,\result,max));
      */
     int get();
 
     /*@
      given int r, l, max;
-     requires crh:handle(r,l) ** cra:trans(r,x,n) ** crp:inv(part(r,l,max)) ** crs:inv(part(0,n,max)-part(0,x,max));
-     ensures \result ==> cehp:handle(r,n) ** cepp:inv(part(r,n,max)) ** cesp:inv(part(0,x,max)-part(0,n,max));
-     ensures !\result ==> cehn:handle(r,l) ** cepn:inv(part(r,l,max)) ** cesn:inv(part(0,n,max)-part(0,x,max));
+     requires (crh:handle(r,l)) ** (cra:trans(r,x,n)) ** (crp:inv(part(r,l,max))) ** (crs:inv(part(0,n,max)-part(0,x,max)));
+     ensures \result ==> (cehp:handle(r,n)) ** (cepp:inv(part(r,n,max))) ** cesp:inv(part(0,x,max)-part(0,n,max));
+     ensures !\result ==> (cehn:handle(r,l)) ** (cepn:inv(part(r,l,max))) ** cesn:inv(part(0,n,max)-part(0,x,max));
      */
     boolean compareAndSet(int x,int n);
 
@@ -105,8 +105,8 @@ public class ReentLock{
             //@ witness tces:inv(*);
             //@ witness tcepp:inv(*);
             //@ fold tcrs:inv(part(S,tid,M)-part(S,0,M));
-            //@ loop_invariant  !succ    ==> invhn:handle(role,curr) ** invpn: inv(part(role,curr,M)) ** invsn: inv(part(S,tid,M)-part(S,0,M));
-            //@ loop_invariant  succ    ==>    invhp:handle(role,tid) ** invpp: inv(part(role,tid,M)) ** invsp: inv(part(S,0,M)-part(S,tid,M));            
+            //@ loop_invariant  !succ    ==> (invhn:handle(role,curr)) ** (invpn: inv(part(role,curr,M))) ** invsn: inv(part(S,tid,M)-part(S,0,M));
+            //@ loop_invariant  succ    ==>    (invhp:handle(role,tid)) ** (invpp: inv(part(role,tid,M))) ** invsp: inv(part(S,0,M)-part(S,tid,M));            
             while (!succ) /*@ with{ invhn = tgeh; invpn = tgep; invpp = tgep;  invsn = tcrs; }  
                            then { tces = invsp; tcepp = invpp; leh = invhp;   } @*/ {
 
@@ -130,7 +130,7 @@ public class ReentLock{
     //@ requires urh:handle(1,tid);
     //@ requires held > 0 ==> Perm(data,100);
     //@ ensures held == 1 ==> ueuh: handle(1,0);
-    //@ ensures held > 1 ==> uelh: handle(1,tid) ** Perm(data,100);
+    //@ ensures held > 1 ==> (uelh: handle(1,tid)) ** Perm(data,100);
     //@ ensures ues:state(tid,held-1);
     public void unlock(int tid){
         //@ int role = 1, S=0, M=1;
