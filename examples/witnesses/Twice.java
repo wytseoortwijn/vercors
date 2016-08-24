@@ -33,8 +33,8 @@ public class Twice {
     ensures out2:state(q);
   @*/
   void twice(){
-    m() /*@ label call1 with { p=q; in1=in2; } */;
-    m() /*@ label call2 with { p=q; in1=call1.out1; }*/;
+    m() /*@ label call1; with { p=q; in1=in2; } */;
+    m() /*@ label call2; with { p=q; in1=call1.out1; }*/;
     //@ out2=call2.out1;
   }
 
