@@ -166,6 +166,20 @@ to reason about the contents of a linked list. Note that because the tool
 cannot do type inference, we need to write the element type explicitly
 when writing list constants.
 
+
+\section{Working with arrays}\label{sec:arrays}
+
+In \listref{array copy}, we show the implementation of array copy complete with the full functional specification.
+Note that we do not use a function to compute the contents of an array. This is because
+there is a bug in Silicon that renders it unable to use the ensures clause of a function
+that requires a quantified permission.
+
+\begin{listing}
+\lstinputlisting{array-all.pvl}
+\caption{Full functional correctness of array copy}
+\label{array copy}
+\end{listing}
+
 \section{Parallel programs with fork/join}\label{sec:forkjoin}
 
 

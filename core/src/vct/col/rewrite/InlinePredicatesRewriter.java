@@ -20,11 +20,12 @@ public class InlinePredicatesRewriter extends AbstractRewriter {
   @Override
   public void visit(MethodInvokation e){
     Method def=e.getDefinition();
-    if (def==null){
-      Abort("invokation of undefined method.");
-    }
     boolean inline;
-    inline = inline(def);
+    if (def==null){
+      inline=false;
+    } else {
+      inline = inline(def);
+    }
     if (inline){
       result=inline_call(e, def);
     } else {

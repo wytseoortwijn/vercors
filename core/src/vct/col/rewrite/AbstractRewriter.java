@@ -641,14 +641,15 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
         pb.label,
         rewrite(pb.contract),
         rewrite(pb.iters),
-        rewrite(pb.block)
+        rewrite(pb.block),
+        rewrite(pb.deps)
     );
     result=res;
   }
   
   @Override
   public void visit(ParallelRegion region){
-    result=create.region(rewrite(region.blocks));
+    result=create.region(rewrite(region.contract),rewrite(region.blocks));
   }
   
   @Override

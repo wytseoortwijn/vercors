@@ -2,8 +2,11 @@ package vct.main;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PrintStream;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -18,7 +21,15 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorCompletionService;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
+import hre.config.BooleanSetting;
+import hre.config.IntegerSetting;
 import hre.config.Option;
 import hre.config.OptionParser;
 import hre.config.StringListSetting;
@@ -26,6 +37,8 @@ import hre.config.StringSetting;
 import hre.util.TestReport.Verdict;
 
 import java.io.BufferedInputStream;
+
+import vct.util.Configuration;
 
 
 public class CommandLineTesting {
@@ -100,10 +113,26 @@ public class CommandLineTesting {
       }
     }
     if (tv.delayed_fail) System.exit(1);
+    String testcmd_prefix="<test>";
+    PrintStream cmds=null;
+    if (command_file.used()){
+      testcmd_prefix="java -cp "+Configuration.getHome().toString()+"/vct-tool.jar vct.main.TestRun ";
+      try {
+        cmds=new PrintStream(new FileOutputStream(command_file.get()));
+      } catch (FileNotFoundException e) {
+        System.exit(1);
+      }
+    }
     HashMap<String,Integer> times=new HashMap();
     int successes=0;
     HashMap<String,Testcase> untested=new HashMap<String,Testcase>();
     HashMap<String,String> failures=new HashMap<String, String>();
+    
+    
+    ExecutorService pool = Executors.newFixedThreadPool(workers.get());
+    ExecutorCompletionService<TestResult> ecs=new ExecutorCompletionService(pool);
+    int submitted=0;
+    
     for(Entry<String,Testcase> item:tv.testsuite.entrySet()){
       String name=item.getKey();
       Testcase test=item.getValue();
@@ -158,25 +187,52 @@ public class CommandLineTesting {
         }
         for(String opt:test.options) cmd.add(opt);
         for(Path f:test.files) cmd.add(f.toAbsolutePath().toString());
-        System.err.printf("running %s/%s:%n",name,tool);
+        if (command_file.used()){
+          String testcmd=testcmd_prefix+test.verdict;
+          for(String s:cmd){
+            testcmd+=" "+s;
+          }
+          System.err.printf("test %s/%s : %s%n",name,tool,testcmd);
+          cmds.printf("test %s::%s << EOF%n", name,tool);
+          cmds.printf("%s%n",testcmd);
+          cmds.printf("EOF%n");
+          continue;
+        }
+        System.err.printf("submitting %s/%s:%n",name,tool);
         for(String s:cmd){
           System.err.printf(" %s",s);
         }
         System.err.printf("%n");
-        res=tt.run(cmd.toArray(new String[0]));
-        System.err.printf("finished %s/%s: %s/%s %n",name,tool,res.verdict,test.verdict);
-        times.put(name+"/"+tool,res.times.get("entire run"));
-        if (res.verdict==null){
-          res.verdict=Verdict.Error;
-        }
-        if (res.verdict.toString().equals(test.verdict)){
-          successes++;
-        } else {
-          failures.put(name+"/"+tool,String.format(
-              "verdict is %s instead of %s",res.verdict,test.verdict));
-        }
+        ecs.submit(new TestResult(cmd,tt,test,name,tool));
+        submitted++;
       }
     }
+    for(;submitted>0;submitted--){
+      try {
+        Future<TestResult> c=ecs.take();
+        TestResult tr=c.get();
+        times.put(tr.name+"/"+tr.tool,tr.res.times.get("entire run"));
+        if (tr.res.verdict==null){
+          tr.res.verdict=Verdict.Error;
+        }
+        if (tr.res.verdict.toString().equals(tr.test.verdict)){
+          System.err.printf("%4d %s/%s: Pass %n",submitted,tr.name,tr.tool);
+          successes++;
+        } else {
+          System.err.printf("%4d %s/%s: Fail (%s/%s) %n ",submitted,tr.name,tr.tool,tr.res.verdict,tr.test.verdict);
+          for(String s:tr.command){
+            System.err.printf(" %s",s);
+          }
+          System.err.println();
+          failures.put(tr.name+"/"+tr.tool,String.format(
+              "verdict is %s instead of %s",tr.res.verdict,tr.test.verdict));
+        }
+      } catch (Exception e) {
+        e.printStackTrace();
+        System.exit(1);
+      }
+    }
+    pool.shutdown();
     boolean pass=true;
     for (String file:tv.files_by_name.keySet()){
       Set<Path> items=tv.files_by_name.get(file);
@@ -267,6 +323,12 @@ public class CommandLineTesting {
   private static Option append_option;
   protected static StringSetting savedir=new StringSetting(null);
   
+  public static IntegerSetting workers=new IntegerSetting(1);
+  
+  public static StringSetting command_file=new StringSetting(null);
+  private static Option commandlines=
+      command_file.getAssign("output file with list of commands instead");
+  
   public static void add_options(OptionParser clops) {
     append_option=selftest.getAppendOption("execute test suites from the command line. "+
         "Each test suite is a folder which is scanned for valid test inputs");
@@ -276,6 +338,38 @@ public class CommandLineTesting {
     clops.add(savedir.getAssign("save intermediate files to given directory"),"save-intermediate");
     clops.add(include_option=includes.getAppendOption("include test suites"),"include-suite");
     clops.add(exclude_option=excludes.getAppendOption("exclude test suites"),"exclude-suite");
+    clops.add(commandlines,"commands");
+    clops.add(workers.getAssign("set the number of parallel tests"),"test-workers");
   }
 
+}
+
+class TestResult implements Callable<TestResult> {
+
+  public TestResult(ArrayList<String> cmd,ToolTest tt,Testcase test,String name,String tool){
+    command=cmd.toArray(new String[0]);
+    this.tt=tt;
+    this.test=test;
+    this.name=name;
+    this.tool=tool;
+  }
+  
+  String name;
+  
+  String tool;
+  
+  Testcase test;
+  
+  VCTResult res;
+  
+  String command[];
+  
+  ToolTest tt;
+  
+  @Override
+  public TestResult call() throws Exception {
+    res=tt.run(command);
+    return this;
+  }
+  
 }

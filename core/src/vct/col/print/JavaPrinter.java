@@ -1,5 +1,5 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
-package vct.java.printer;
+package vct.col.print;
 
 import hre.HREError;
 import hre.ast.TrackingOutput;
@@ -12,7 +12,7 @@ import org.apache.commons.lang3.StringEscapeUtils;
 
 import vct.col.ast.*;
 import vct.col.ast.PrimitiveType.Sort;
-import vct.col.print.AbstractPrinter;
+import vct.col.syntax.JavaDialect;
 import vct.col.syntax.JavaSyntax;
 import vct.col.util.ASTUtils;
 import vct.util.*;
@@ -663,6 +663,9 @@ public class JavaPrinter extends AbstractPrinter {
             break;
           case ASTFlags.THREAD_LOCAL:
             out.printf("/*@ thread_local @*/ ");
+            break;
+          case ASTFlags.EXTERN:
+            out.printf("/*@ extern @*/ ");
             break;
           default:
             throw new HREError("unknown flag %04x",i);
@@ -1315,10 +1318,18 @@ public class JavaPrinter extends AbstractPrinter {
 
   @Override
   public void visit(ParallelBlock pb){
-    out.printf("parallel(");
+    out.printf("parallel %s(",pb.label);
     for(int i=0;i<pb.iters.length;i++){
       pb.iters[i].accept(this);
       if(i>0) out.printf(",");
+    }
+    if (pb.deps.length > 0){
+      out.printf(";");
+      pb.deps[0].accept(this);
+      for(int i=1;i<pb.deps.length;i++){
+        out.printf(",");
+        pb.deps[i].accept(this);
+      }
     }
     out.println(")");
     if(pb.contract!=null){
@@ -1355,10 +1366,17 @@ public class JavaPrinter extends AbstractPrinter {
   }
   @Override
   public void visit(ParallelRegion region){
-    out.println("parallel {");
+    if (region.contract!=null){
+      out.println("parallel");
+      region.contract.accept(this);
+      out.println("{");
+    } else {
+      out.println("parallel {");
+    }
     for(ParallelBlock pb:region.blocks){
       out.incrIndent();
       pb.accept(this);
+      out.println("");
       out.decrIndent();
     }
     out.println("}");

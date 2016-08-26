@@ -12,6 +12,7 @@ import org.antlr.v4.runtime.tree.ParseTree;
 
 import vct.clang.printer.CSyntax;
 import vct.col.ast.*;
+import vct.col.ast.ASTSpecial.Kind;
 import vct.col.syntax.Syntax;
 import vct.parsers.*;
 import vct.parsers.CMLParser.AbstractDeclaratorContext;
@@ -569,6 +570,12 @@ public class CMLtoCOL extends AbstractCtoCOL implements CMLVisitor<ASTNode> {
   		} else if (match(ctx,"unfold",null,";")){//DRB
   			res=create.expression(StandardOperator.Unfold,convert(ctx,1));
   			res.setGhost(true);
+      } else if (match(ctx,"spec_ignore","{")) {
+        res=create.special(Kind.SpecIgnoreStart);
+        res.setGhost(true);       
+      } else if (match(ctx,"spec_ignore","}")) {
+        res=create.special(Kind.SpecIgnoreEnd);
+        res.setGhost(true);       
   		}
 	    return res;
   }

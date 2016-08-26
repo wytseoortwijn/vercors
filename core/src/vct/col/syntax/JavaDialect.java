@@ -1,4 +1,4 @@
-package vct.java.printer;
+package vct.col.syntax;
 
 /**
  * The class enumerates the various dialects of Java specification languages.

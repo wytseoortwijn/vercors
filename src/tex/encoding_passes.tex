@@ -1,5 +1,28 @@
 \chapter{The Compiler Passes}
 
+\section{Resolving Java classes.}
+
+class \lstinline+JavaResolve+
+
+This pass will use the class path of the vercors tool
+to find the classes used by the loaded java code.
+There is currently no library mechanism that can load
+specifications of these classes.
+
+
+\section{Satisfiability Check}
+
+Inserts \lstinline+refute false+ at the start of every non-abstract
+method, unless this method explicitly requires false.
+This will catch the very common mistake of requiring
+inconsistent pre-conditions leading to a method that
+can never be called.
+
+\section{Lock/Unlock statement Encoding}
+
+This pass performs encoding of lock/unlock statements for verification
+purposes.
+
 \section{Magic Wand Encoding}
 
 The magic wand encoding pass:
@@ -19,6 +42,147 @@ The magic wand pass create predicates that have multiple arguments.
 Thus, this pass has to be applied before applying the witness encoding.
 To enable the witness encodign afterwards, any witness label given to a
 magic wand is copied to the generated magic wand predicate.
+
+\section{Fork/Join statement Encoding}
+
+This pass performs encoding of fork/join statements for verification
+purposes.
+\todo[inline]{why not in the same pass as the lock/unlock encoding?}
+
+\section{Inlining of inline predicates}
+
+This pass inlines the predicates that are marked as requiring inlining.
+This pass has no built-in check for recursive predicate definitions,
+so it will crash if a recursive predicate is marked inline.
+
+\section{OpenMP processing}
+
+This pass searches for omp pragmas and translates them into
+PVL parallel statements. In the future atomic operations
+may be translated into PVL atomic statements.
+
+\todo[inline]{This pass also recognizes parallel loops based upon iteration contracts.}
+
+\subsection{ordering}
+
+This has to happen before the encoding of PVL parallel and atomic staments.
+
+\section{Encoding of atomic statements.}
+
+This pass will encode atomic statements that use the built-in CSL invariants.
+
+\section{Encoding of parallel statements.}
+
+This pass generates the proof obligations needed to show 
+the correctness of parallel programs written with the
+PVL parallel primitives.
+
+\section{Recognition of multi-dimensional arrays}
+
+Silicon cannot deal with multi-dimensional arrays.
+hence all multi-dimensional arrays are translated to single dimensional arrays.
+
+\section{Simplification of quatified formulas}
+
+\section{Detection and encoding of summations}
+
+\section{Encoding of Kernel verification.}
+
+This pass demonstrates how kernels can be verified.
+In PVL kernels can be verified by writing them with
+the parallel primitives. Thus, this pass should be replaced
+by an OpenCL to PVL translator.
+
+\section{Java class hierarchy encoding}
+
+The Java class hierarchy is encoded as an ADT, an abstract function yielding
+the type of an object is added and operations such as instanceof are
+translated??
+
+\todo[inline]{is instanceof really translated here?}
+
+\todo[inline]{where is casting translated?}
+
+\section{Inheritance Encoding}
+
+Translates classes that extends each other to separate classes
+that can be verified.
+
+\section{History and future encoding - check the contract of defined processes.}
+\todo[inline]{one pass please}
+
+\section{History and future encoding - check the lemma that prove the axioms.}
+\todo[inline]{one pass please}
+
+\section{History and future encoding - check the low level action encodings.}
+\todo[inline]{one pass please}
+
+
+\section{encode current thread as a parameter}
+
+
+\section{Flatten and Assign}
+
+The flatten pass should turn sub-expressions with side-effects
+into separate statements. It doesn't work too well,
+so the assignment pass takes care of nested assignments...
+
+
+\section{Encode arrays as sequences of cells.}
+
+This is right for some kinds of C arrays, but Java array should
+be an object containing a sequence of cells.
+
+\section{Class converion}
+
+Turn classes into records.
+
+\section{Silver Class Reduction}
+
+Turn multiple records into the single Ref
+
+\section{Void calls}
+
+Encode return arguments as out parameters.
+
+\section{Lift ghost code to real code}
+
+Remove the distinction between ghost code and real code.
+Overloading must be resolved before applying this pass
+because overloading is decided on the real arguments only.
+
+\section{Moving code from before and after blocks to the main level.}
+
+This moves the with and then blocks of statements in a block
+before and after the stament the block.
+
+This should be done in the flattening pass.
+
+\section{Silver Reordering}
+
+Silver doesn't allow variable declarations everywhere.
+Thus they need to be moved to the legal spots.
+
+\section{Silver identity}
+
+This pass implements the identity functionin Silver and wraps
+the identity functions around the variables used by quantified permissions.
+This is a workaround for insufficient triggers being generated by
+silicon.
+
+\todo[inline]{tests should be written to check if this work-around is still needed}
+
+\section{Standardize on function syntax}
+
+This pass translates all pure methods to function syntax.
+
+\todo[inline]{This probably should be done much earlier in the process.}
+
+\section{scale-always}
+
+In silver, every occurrence of a predicate invokation must be scaled.
+This pass rewrite every predicate p(...) call without a scaling operator
+to [1]p(...).
 
 
 \section{Witness Encoding}

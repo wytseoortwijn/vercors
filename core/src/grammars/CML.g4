@@ -19,8 +19,9 @@ specificationStatement
     | 'recv' resourceExpression 'from' Identifier ',' expression ';'
     | 'assert' resourceExpression ';'
     | contractClause 
+    | 'spec_ignore' ( '{' | '}' )
     ;
-    
+ 
 specificationDeclaration
     : pureFunctionDeclaration
     ;

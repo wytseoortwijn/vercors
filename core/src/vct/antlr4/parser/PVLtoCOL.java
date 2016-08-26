@@ -7,6 +7,7 @@ import hre.HREError;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
@@ -30,6 +31,8 @@ import pv.parser.PVFullParser.ExprContext;
 import pv.parser.PVFullParser.Fence_listContext;
 import pv.parser.PVFullParser.FieldContext;
 import pv.parser.PVFullParser.Gen_idContext;
+import pv.parser.PVFullParser.Id_argContext;
+import pv.parser.PVFullParser.Id_arg_listContext;
 import pv.parser.PVFullParser.Id_listContext;
 import pv.parser.PVFullParser.InvariantContext;
 import pv.parser.PVFullParser.IterContext;
@@ -46,6 +49,8 @@ import pv.parser.PVFullParser.TupleContext;
 import pv.parser.PVFullParser.TypeArgsContext;
 import pv.parser.PVFullParser.TypeContext;
 import pv.parser.PVFullParser.ValuesContext;
+import pv.parser.PVFullParser.Wait_forContext;
+import pv.parser.PVFullParser.Wait_listContext;
 import pv.parser.PVFullParser.With_thenContext;
 import pv.parser.PVFullVisitor;
 import vct.col.ast.ASTClass;
@@ -69,6 +74,7 @@ import vct.col.ast.ASTClass.ClassKind;
 import vct.col.ast.Method.Kind;
 import vct.col.ast.PrimitiveType.Sort;
 import vct.col.ast.VariableDeclaration;
+import vct.col.syntax.PVLSyntax;
 import vct.col.syntax.Syntax;
 import static vct.col.ast.ASTReserved.*;
 
@@ -279,6 +285,18 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
       return convert(ctx,1);
     }
     if (match(ctx,null,tuple)){
+      if (ctx.children.get(0) instanceof TerminalNode){
+        String name=ctx.children.get(0).toString();
+        StandardOperator op=syntax.parseFunction(name);
+        if (op!=null){
+          ASTNode args[]=getTuple((ParserRuleContext)ctx.getChild(1));
+          if (args.length==op.arity()){
+            return create.expression(op,args);
+          } else {
+            return create.invokation(null, null,name, args); 
+          }
+        }
+      }
       return get_invokation(ctx,0);
     }
     if (match(ctx,"new",null,tuple)){
@@ -483,6 +501,14 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
       BlockStatement block=(BlockStatement)convert(ctx, 5);
       return create.parallel_block(label, c, iters, block);
     }
+    if (match(ctx,null,"(",null,";",null,")",null,null)){
+      String label=getIdentifier(ctx, 0);
+      DeclarationStatement iters[]=checkDecls(convert_list((ParserRuleContext)ctx.getChild(2), ","));
+      ASTNode deps[]=convert_list((ParserRuleContext)ctx.getChild(4), ",");
+      Contract c=(Contract)convert(ctx, 6);
+      BlockStatement block=(BlockStatement)convert(ctx, 7);
+      return create.parallel_block(label, c, iters, block, deps);
+    }
     return null;
   }
 
@@ -491,8 +517,14 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
     if (match(ctx,null,"=",null,";")){
       return create.assignment(convert(ctx,0),convert(ctx,2));
     }
-    if (match(0,true,ctx,"par","Par_unit")){
-      int offset=0;
+    if (match(0,true,ctx,"Contract","par","Par_unit")){
+      Contract c;
+      if (((ContractContext)ctx.getChild(0)).getChildCount()>0){
+        c=(Contract)convert(ctx,0);
+      } else {
+        c=null;
+      }
+      int offset=1;
       ArrayList<ParallelBlock> res=new ArrayList();
       do {
         ParallelBlock blk=(ParallelBlock)convert(ctx,offset+1);
@@ -500,7 +532,7 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
         offset+=2;
       } while (match(offset,true,ctx,"and","Par_unit"));
       if (offset == ctx.getChildCount()){
-        return create.region(res);
+        return create.region(c,res);
       }
       Warning("incomplete match of parallel region");
     }
@@ -533,15 +565,36 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
     if (match(ctx,"if","(",null,")",null,"else",null)){
       return create.ifthenelse(convert(ctx,2),convert(ctx,4),convert(ctx,6));
     }
-    if (match(ctx,"action",null,",",null,null)){
-      ASTNode process=convert(ctx,1);
-      ASTNode action=convert(ctx,3);
-      ASTNode block=convert(ctx,4);
-      throw new HREError("action block is broken");
-      //return create.action_block(process,action,block);
+    if (match(ctx,"action",tuple,null)){
+      ASTNode args[] = getTuple((ParserRuleContext)ctx.getChild(1));
+      ASTNode block=convert(ctx,2);
+      HashMap<String,ASTNode> map=new HashMap();
+      if (args.length < 4){
+        throw new HREError("missing arguments in action");
+      }
+      for(int i=4;i<args.length;i+=2){
+        if(!(args[i] instanceof NameExpression)){
+          throw new HREError("argument %d of action is not a name",i);
+        }
+        String name=((NameExpression)args[i]).getName();
+        if (i+1==args.length){
+          throw new HREError("argument %d of action is missing",i+1);
+        }
+        map.put(name,args[i+1]);
+      }
+      return create.action_block(args[0],args[1],args[2],args[3], map, block);
     }
     if (match(ctx,"create",null,",",null,";")){
-      return create.special(ASTSpecial.Kind.CreateHistory,convert(ctx,1),convert(ctx,3));
+      return create.special(ASTSpecial.Kind.CreateFuture,convert(ctx,1),convert(ctx,3));
+    }
+    if (match(ctx,"destroy",null,";")){
+      return create.special(ASTSpecial.Kind.DestroyFuture,convert(ctx,1));
+    }
+    if (match(ctx,"create",null,";")){
+      return create.special(ASTSpecial.Kind.CreateHistory,convert(ctx,1));
+    }
+    if (match(ctx,"destroy",null,",",null,";")){
+      return create.special(ASTSpecial.Kind.DestroyHistory,convert(ctx,1),convert(ctx,3));
     }
     if (match(ctx,"refute",null,";")){
       return create.expression(StandardOperator.Refute,convert(ctx,1));
@@ -872,22 +925,41 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
   }
   @Override
   public ASTNode visitWith_then(With_thenContext ctx) {
-    // TODO Auto-generated method stub
     return null;
   }
   @Override
   public ASTNode visitId_list(Id_listContext ctx) {
-    // TODO Auto-generated method stub
     return null;
   }
   @Override
   public ASTNode visitGen_id(Gen_idContext ctx) {
-    // TODO Auto-generated method stub
     return null;
   }
   @Override
   public ASTNode visitModifiers(ModifiersContext ctx) {
-    // TODO Auto-generated method stub
+    return null;
+  }
+  @Override
+  public ASTNode visitWait_list(Wait_listContext ctx) {
+    return null;
+  }
+  @Override
+  public ASTNode visitWait_for(Wait_forContext ctx) {
+    if (match(ctx,null,"(",null,")")){
+      String name=getIdentifier(ctx,0);
+      ASTNode args[]=convert_list((ParserRuleContext)ctx.getChild(2), ",");
+      return create.invokation(null, null, name, args);
+    }
+    return null;
+  }
+
+  @Override
+  public ASTNode visitId_arg_list(Id_arg_listContext ctx) {
+    return null;
+  }
+  
+  @Override
+  public ASTNode visitId_arg(Id_argContext ctx) {
     return null;
   }
 

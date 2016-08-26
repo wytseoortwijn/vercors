@@ -13,7 +13,6 @@ import org.antlr.v4.runtime.tree.ParseTree;
 
 import pv.parser.PVFullLexer;
 import pv.parser.PVFullParser;
-import vct.java.printer.JavaDialect;
 import vct.parsers.*;
 import vct.util.Configuration;
 import vct.col.ast.ASTClass;
@@ -22,7 +21,9 @@ import vct.col.ast.ASTNode;
 import vct.col.ast.ProgramUnit;
 import vct.col.rewrite.AbstractRewriter;
 import vct.col.rewrite.AnnotationInterpreter;
+import vct.col.rewrite.FilterSpecIgnore;
 import vct.col.rewrite.FlattenVariableDeclarations;
+import vct.col.syntax.JavaDialect;
 import vct.col.syntax.JavaSyntax;
 
 /**
@@ -81,6 +82,9 @@ public class ColJavaParser implements vct.col.util.Parser {
         //pu=new JavaResolver(pu).rewriteAll();
         //Progress("resolving library calls took %dms",tk.show());        
         //vct.util.Configuration.getDiagSyntax().print(System.out,pu);
+        
+        pu=new FilterSpecIgnore(pu).rewriteAll();
+        Progress("filtering spec_ignore took %dms",tk.show()); 
 
         return pu;
       } catch (FileNotFoundException e) {

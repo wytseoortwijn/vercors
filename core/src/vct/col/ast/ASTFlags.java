@@ -18,4 +18,6 @@ public interface ASTFlags {
 
   public final int THREAD_LOCAL = 0x0080;
 
+  public final int EXTERN = 0x0100;
+
 }

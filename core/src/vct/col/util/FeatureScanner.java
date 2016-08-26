@@ -165,13 +165,15 @@ public class FeatureScanner extends RecursiveVisitor<Object> {
     has_iteration_contracts=true;
   }
   
+  public static boolean isIterationContract(Contract c){
+    if (c==null) return false;
+    return (c.pre_condition != c.default_true || c.post_condition != c.default_true);
+  }
+  
   public void visit(LoopStatement s){
     super.visit(s);
     if (has_iteration_contracts) return;
-    Contract c=s.getContract();
-    if (c!=null){
-      has_iteration_contracts=(c.pre_condition != c.default_true || c.post_condition != c.default_true);
-    }
+    has_iteration_contracts=isIterationContract(s.getContract());
   }
   
   public void visit(OperatorExpression e){

@@ -11,9 +11,9 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import vct.col.syntax.JavaDialect;
 import vct.col.syntax.JavaSyntax;
 import vct.col.syntax.Syntax;
-import vct.java.printer.JavaDialect;
 import hre.config.BooleanSetting;
 import hre.config.IntegerSetting;
 import hre.config.Option;

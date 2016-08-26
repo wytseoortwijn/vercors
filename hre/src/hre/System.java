@@ -45,7 +45,7 @@ public class System {
     String message=String.format(format,args);
     java.lang.System.err.printf("%s%n",message);
     Thread.dumpStack();
-    java.lang.System.exit(1);
+    throw new HREExitException(1);
   }
   
   /**
@@ -70,7 +70,7 @@ public class System {
     }
     String message=String.format(format,args);
     java.lang.System.err.printf("%s%s%n",prefix,message);
-    java.lang.System.exit(1);
+    throw new HREExitException(1);
   }
   
   public static void EnableDebug(String className,PrintStream out,String tag){

@@ -35,10 +35,12 @@ public class ParallelRegion extends ASTNode {
     }
   }
 
-  public ParallelBlock blocks[];
+  public final ParallelBlock blocks[];
+  public final Contract contract; 
   
-  public ParallelRegion(ParallelBlock ... blocks){
+  public ParallelRegion(Contract contract,ParallelBlock ... blocks){
     this.blocks=Arrays.copyOf(blocks,blocks.length);
+    this.contract=contract;
   }
 
 }

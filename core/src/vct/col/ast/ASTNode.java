@@ -80,6 +80,11 @@ public abstract class ASTNode implements ASTFlags {
     return (valid_flags&flag)==flag;
   }
   
+  public void clearFlag(int flag){
+    valid_flags &= ~flag;
+    flags &= ~flag;
+  }
+  
   public void setStatic(boolean val){
     setFlag(STATIC,val);
   }
