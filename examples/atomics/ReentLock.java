@@ -38,16 +38,16 @@ public class ReentLock{
 
 	/*@
 	 given int r, l;
-	 requires srh:handle(r,l) ** sra:allowed(r,l,x) ** srp:assigned(r,l) ** srs:assigned(0,x);
-	 ensures seh:handle(r,x) ** sep:assigned(r,x);
+	 requires (srh:handle(r,l)) ** (sra:allowed(r,l,x)) ** (srp:assigned(r,l)) ** (srs:assigned(0,x));
+	 ensures (seh:handle(r,x)) ** (sep:assigned(r,x));
 	 */
 	void set(int x);
 	
 	
 	/*@
 	 given int r,l;
-	 requires grh:handle(r,l) ** grp:assigned(r,l);
-	 ensures geh:handle(r,\result) ** gep:assigned(r,\result);
+	 requires (grh:handle(r,l)) ** grp:assigned(r,l);
+	 ensures (geh:handle(r,\result)) ** gep:assigned(r,\result);
 	 */
 	int get();
 	
@@ -55,9 +55,9 @@ public class ReentLock{
 	// the last ensures is temp just to solve the cas loop. ToDo: do we need it? if we remove it , how to preserve the loop invariant?
 	/*@
 	 given int r, l;
-	 requires crh:handle(r,l) ** cra:allowed(r,o,x) ** crp:assigned(r,l) ** crs:assigned(0,x);
-	 ensures \result ==> cehp:handle(r,x) ** cepp:assigned(r,x) ** cesp:assigned(0,o);
-	 ensures !\result ==> cehn:handle(r,l) ** cepn:assigned(r,l) ** cesn:assigned(0,x);
+	 requires (crh:handle(r,l)) ** (cra:allowed(r,o,x)) ** (crp:assigned(r,l)) ** (crs:assigned(0,x));
+	 ensures \result ==> (cehp:handle(r,x)) ** (cepp:assigned(r,x)) ** (cesp:assigned(0,o));
+	 ensures !\result ==> (cehn:handle(r,l)) ** (cepn:assigned(r,l)) ** (cesn:assigned(0,x));
 	 ensures !\result ==> cea:allowed(r,o,x);
 	 */
 	boolean compareAndSet(int o,int x);
@@ -132,9 +132,9 @@ public class ReentLock{
 			 witness tcepp:assigned(S,next);
 			 fold tcrs:assigned(S,next);
 			 */
-			//@ loop_invariant  !succ	==> invhn:handle(role,curr) ** invpn: assigned(role,curr) ** invsn: assigned(S,next);
+			//@ loop_invariant  !succ	==> (invhn:handle(role,curr)) ** (invpn: assigned(role,curr)) ** invsn: assigned(S,next);
 			//@ loop_invariant  !succ	==>	inva:allowed(role,0,next);
-			//@ loop_invariant  succ	==>	invhp:handle(role,next) ** invpp: assigned(role,next) ** invsp: assigned(S,0);			
+			//@ loop_invariant  succ	==>	(invhp:handle(role,next)) ** (invpp: assigned(role,next)) ** invsp: assigned(S,0);			
 			while (!succ) /*@ with{ invhn = tgeh; invpn = tgep; invpp = tgep;  invsn = tcrs; inva = tcra; }  
 						   then { tces = invsp; tcepp = invpp; leh = invhp;   } */ {
 							   
@@ -166,8 +166,8 @@ public class ReentLock{
 	 requires urh:handle(1,tid);
 	 requires held > 0 ==> Perm(data,100);
 	 
-	 ensures held == 1 ==> ueuh: handle(1,0);
-	 ensures held > 1 ==> uelh: handle(1,tid) ** Perm(data,100);
+	 ensures held == 1 ==> (ueuh: handle(1,0));
+	 ensures held > 1 ==> (uelh: handle(1,tid)) ** Perm(data,100);
 	 ensures ues:state(tid,held-1);
 	 */
 	public void unlock(int tid){

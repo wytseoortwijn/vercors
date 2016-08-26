@@ -14,7 +14,7 @@ import vct.antlr4.parser.OMPParser;
 import vct.antlr4.parser.OMPoption;
 import vct.antlr4.parser.OMPpragma;
 import vct.col.ast.*;
-import vct.col.ast.ASTSpecialDeclaration.Kind;
+import vct.col.ast.ASTSpecial.Kind;
 import vct.col.ast.PrimitiveType.Sort;
 import vct.col.util.FeatureScanner;
 
@@ -237,8 +237,8 @@ public class OpenMPtoPVL extends AbstractRewriter {
   public void do_block(ASTNode statements[],int from,int upto){
     for(int i=from;i<upto;i++){
       ASTNode s=statements[i];
-      if(s.isDeclaration(ASTSpecialDeclaration.Kind.Pragma)){
-        String pragma=((ASTSpecialDeclaration)s).args[0].toString();
+      if(s.isDeclaration(ASTSpecial.Kind.Pragma)){
+        String pragma=((ASTSpecial)s).args[0].toString();
         System.err.printf("pragma [%s]%n",pragma);
         if (pragma.startsWith("omp")){
           pragma=pragma.substring(3).trim();
@@ -253,8 +253,8 @@ public class OpenMPtoPVL extends AbstractRewriter {
               BlockStatement dst_block=create.block();
               ContractBuilder cb=new ContractBuilder();
               int lo=0;int hi=src_block.length;
-              while(lo<hi && (src_block[lo] instanceof ASTSpecialDeclaration)){
-                ASTSpecialDeclaration d=(ASTSpecialDeclaration)src_block[lo];
+              while(lo<hi && (src_block[lo] instanceof ASTSpecial)){
+                ASTSpecial d=(ASTSpecial)src_block[lo];
                 switch(d.kind){
                 case Requires:
                   cb.requires(rewrite(d.args[0]));
@@ -269,8 +269,8 @@ public class OpenMPtoPVL extends AbstractRewriter {
                 }
                 break;
               }
-              while(hi > lo && (src_block[hi-1] instanceof ASTSpecialDeclaration)){
-                ASTSpecialDeclaration d=(ASTSpecialDeclaration)src_block[hi-1];
+              while(hi > lo && (src_block[hi-1] instanceof ASTSpecial)){
+                ASTSpecial d=(ASTSpecial)src_block[hi-1];
                 switch(d.kind){
                 case Ensures:
                   cb.ensures(rewrite(d.args[0]));
@@ -342,8 +342,8 @@ public class OpenMPtoPVL extends AbstractRewriter {
   private PPLProgram do_ppl(ASTNode[] src_block, int lo, int hi) {
     ArrayList<PPLProgram> parts=new ArrayList();
     for(int i=lo;i<hi;i++){
-      if (src_block[i].isDeclaration(ASTSpecialDeclaration.Kind.Pragma)){
-        String pragma=((ASTSpecialDeclaration)src_block[i]).args[0].toString();
+      if (src_block[i].isDeclaration(ASTSpecial.Kind.Pragma)){
+        String pragma=((ASTSpecial)src_block[i]).args[0].toString();
         System.err.printf("pragma [%s]%n",pragma);
         if (!pragma.startsWith("omp")){
           Warning("ignoring statement %d",i);

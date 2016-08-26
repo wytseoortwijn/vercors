@@ -13,7 +13,7 @@
   <property name="bin"          value="${basedir}/bin"/>
   <property name="lib"          value="${basedir}/libs"/>
   <property name="dist"         value="${basedir}/dist"/>
-  <property name="libpath"      value="${basedir}/../hre/hre.jar:${basedir}/../core/vct-core.jar:${lib}/antlr-4.5-complete.jar:${basedir}/../libs/commons-lang3-3.1/commons-lang3-3.1.jar:${basedir}/../viper/viper-api/bin"/>
+  <property name="libpath"      value="${basedir}/../hre/hre.jar:${basedir}/../core/vct-core.jar:${lib}/antlr-4.5.3-complete.jar:${basedir}/../libs/commons-lang3-3.1/commons-lang3-3.1.jar:${basedir}/../viper/viper-api/bin"/>
   <property environment="env"/>
 
   <target name="clean">
@@ -23,7 +23,7 @@
     <delete file="vct-core.jar"/>
   </target>
   
-	<target name="generate" depends="C,CML,Java,JavaJML,PVFull,omp">
+	<target name="generate" depends="CML,Java7JML,Java8JML,PVFull,omp">
     <echo>Finished parser generation.</echo>
 	</target>
 
@@ -32,7 +32,7 @@
     Running ANTLR v4 on omp.g4
     </echo>
   	<mkdir dir="${gen}/vct/parsers"/>
-    <java fork="yes" dir="${src}/grammars" classpath="${lib}" jar="${lib}/antlr-4.5-complete.jar">
+    <java fork="yes" dir="${src}/grammars" classpath="${lib}" jar="${lib}/antlr-4.5.3-complete.jar">
       <arg value="-o"/><arg value="${gen}/vct/parsers"/>
       <arg value="-visitor"/>
       <arg value="omp.g4"/>
@@ -44,31 +44,13 @@
       <globmapper from="omp.g4" to="${gen}/vct/parsers/omp.tokens"/>
     </uptodate>
   </target>
-  
-  <target name="C" depends="check.C" unless="C.uptodate">
-    <echo>
-    Running ANTLR v4 on C.g4
-    </echo>
-  	<mkdir dir="${gen}/vct/parsers"/>
-    <java fork="yes" dir="${src}/grammars" classpath="${lib}" jar="${lib}/antlr-4.5-complete.jar">
-      <arg value="-o"/><arg value="${gen}/vct/parsers"/>
-      <arg value="-visitor"/>
-      <arg value="C.g4"/>
-    </java>
-  </target>
-  <target name="check.C">
-  	<uptodate property="C.uptodate">
-      <srcfiles dir="${src}/grammars"/>
-      <globmapper from="C.g4" to="${gen}/vct/parsers/C.tokens"/>
-    </uptodate>
-  </target>
-  
+    
   <target name="CML" depends="check.CML" unless="CML.uptodate">
     <echo>
     Running ANTLR v4 on CML.g4
     </echo>
   	<mkdir dir="${gen}/vct/parsers"/>
-    <java fork="yes" dir="${src}/grammars" classpath="${lib}" jar="${lib}/antlr-4.5-complete.jar">
+    <java fork="yes" dir="${src}/grammars" classpath="${lib}" jar="${lib}/antlr-4.5.3-complete.jar">
       <arg value="-o"/><arg value="${gen}/vct/parsers"/>
       <arg value="-visitor"/>
       <arg value="CML.g4"/>
@@ -77,54 +59,54 @@
   <target name="check.CML">
   	<uptodate property="CML.uptodate">
       <srcfiles dir="${src}/grammars"/>
-      <mapper type="regexp" from="VerCorsML.g4|CML.g4|C.g4" to="${gen}/vct/parsers/CML.tokens"/>
+      <mapper type="regexp" from="val.g4|CML.g4|C.g4" to="${gen}/vct/parsers/CML.tokens"/>
     </uptodate>
   </target>
 
-  <target name="Java" depends="check.Java" unless="Java.uptodate">
+  <target name="Java7JML" depends="check.Java7JML" unless="Java7JML.uptodate">
     <echo>
-    Running ANTLR v4 on Java.g4
+    Running ANTLR v4 on Java7JML.g4
     </echo>
   	<mkdir dir="${gen}/vct/parsers"/>
-    <java fork="yes" dir="${src}/grammars" classpath="${lib}" jar="${lib}/antlr-4.5-complete.jar">
+    <java fork="yes" dir="${src}/grammars" classpath="${lib}" jar="${lib}/antlr-4.5.3-complete.jar">
       <arg value="-o"/><arg value="${gen}/vct/parsers"/>
       <arg value="-visitor"/>
-      <arg value="Java.g4"/>
+      <arg value="Java7JML.g4"/>
     </java>
   </target>
-  <target name="check.Java">
-  	<uptodate property="Java.uptodate">
+  <target name="check.Java7JML">
+  	<uptodate property="Java7JML.uptodate">
       <srcfiles dir="${src}/grammars"/>
-      <globmapper from="Java.g4" to="${gen}/vct/parsers/Java.tokens"/>
-    </uptodate>
-  </target>
-  
-  <target name="JavaJML" depends="check.JavaJML" unless="JavaJML.uptodate">
-    <echo>
-    Running ANTLR v4 on JavaJML.g4
-    </echo>
-  	<mkdir dir="${gen}/vct/parsers"/>
-    <java fork="yes" dir="${src}/grammars" classpath="${lib}" jar="${lib}/antlr-4.5-complete.jar">
-      <arg value="-o"/><arg value="${gen}/vct/parsers"/>
-      <arg value="-visitor"/>
-      <arg value="JavaJML.g4"/>
-    </java>
-  </target>
-  <target name="check.JavaJML">
-  	<uptodate property="JavaJML.uptodate">
-      <srcfiles dir="${src}/grammars"/>
-      <mapper type="regexp" from="VerCorsML.g4|JavaJML.g4|Java.g4" to="${gen}/vct/parsers/JavaJML.tokens"/>
+      <mapper type="regexp" from="val.g4|Java7JML.g4|Java7.g4" to="${gen}/vct/parsers/Java7JML.tokens"/>
     </uptodate>
   </target>
   
 
+
+  <target name="Java8JML" depends="check.Java8JML" unless="Java8JML.uptodate">
+    <echo>
+    Running ANTLR v4 on Java8JML.g4
+    </echo>
+  	<mkdir dir="${gen}/vct/parsers"/>
+    <java fork="yes" dir="${src}/grammars" classpath="${lib}" jar="${lib}/antlr-4.5.3-complete.jar">
+      <arg value="-o"/><arg value="${gen}/vct/parsers"/>
+      <arg value="-visitor"/>
+      <arg value="Java8JML.g4"/>
+    </java>
+  </target>
+  <target name="check.Java8JML">
+  	<uptodate property="Java8JML.uptodate">
+      <srcfiles dir="${src}/grammars"/>
+      <mapper type="regexp" from="val.g4|Java8JML.g4|Java8.g4" to="${gen}/vct/parsers/Java8JML.tokens"/>
+    </uptodate>
+  </target>
 
   <target name="PVFull" depends="check.PVFull" unless="PVFull.uptodate">
     <echo>
     Running ANTLR v4 on PVFull.g4
     </echo>
   	<mkdir dir="${gen}/pv/parser"/>
-    <java fork="yes" dir="${src}/grammars" classpath="${lib}" jar="${lib}/antlr-4.5-complete.jar">
+    <java fork="yes" dir="${src}/grammars" classpath="${lib}" jar="${lib}/antlr-4.5.3-complete.jar">
       <arg value="-o"/><arg value="${gen}/pv/parser"/>
       <arg value="-visitor"/>
       <arg value="PVFull.g4"/>
@@ -133,7 +115,7 @@
   <target name="check.PVFull">
   	<uptodate property="PVFull.uptodate">
       <srcfiles dir="${src}/grammars"/>
-      <globmapper from="PVFull.g4" to="${gen}/pv/parser/PVFull.tokens"/>
+      <mapper type="regexp" from="PVFull.g4|val.g4" to="${gen}/pv/parser/PVFull.tokens"/>
     </uptodate>
   </target>
 	

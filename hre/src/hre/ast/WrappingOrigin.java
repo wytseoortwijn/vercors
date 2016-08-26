@@ -1,7 +1,7 @@
 package hre.ast;
 
-public interface WrappingOrigin extends Origin {
+public abstract class WrappingOrigin extends Origin {
 
-  public WrappingOrigin wrap(Origin other);
+  public abstract WrappingOrigin wrap(Origin other);
   
 }

@@ -155,6 +155,7 @@ public class System {
   
   public static Failure Failure(String format,Object...args){
     String message=String.format(format, args);
+    java.lang.System.err.printf("FAILURE: %s%n",message);    
     return new Failure(message);
   }
 

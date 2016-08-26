@@ -2,6 +2,7 @@ package vct.col.rewrite;
 
 import hre.ast.BranchOrigin;
 import vct.col.ast.ASTNode;
+import vct.col.ast.ASTSpecial;
 import vct.col.ast.BlockStatement;
 import vct.col.ast.Contract;
 import vct.col.ast.ContractBuilder;
@@ -39,7 +40,7 @@ public class SatCheckRewriter extends AbstractRewriter {
     if (body!=null && !intentional_false) switch(kind){
     case Plain:
     case Constructor:
-      ASTNode refute=create.expression(StandardOperator.Refute,create.constant(false));
+      ASTNode refute=create.special(ASTSpecial.Kind.Refute,create.constant(false));
     	BranchOrigin branch=new BranchOrigin("Contract Unsatisfiability Check",null);
       OriginWrapper.wrap(null,refute, branch);
 	    if (body instanceof BlockStatement){

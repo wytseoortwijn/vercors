@@ -2,6 +2,7 @@ package vct.col.rewrite;
 
 import vct.col.ast.ASTFlags;
 import vct.col.ast.ASTNode;
+import vct.col.ast.ASTSpecial;
 import vct.col.ast.Method;
 import vct.col.ast.MethodInvokation;
 import vct.col.ast.OperatorExpression;
@@ -9,12 +10,9 @@ import vct.col.ast.ProgramUnit;
 import vct.col.ast.StandardOperator;
 
 public class InlinePredicatesRewriter extends AbstractRewriter {
-
-  public final boolean auto;
-  
-  public InlinePredicatesRewriter(ProgramUnit source,boolean auto) {
+ 
+  public InlinePredicatesRewriter(ProgramUnit source) {
     super(source);
-    this.auto=auto;
   }
   
   @Override
@@ -38,7 +36,7 @@ public class InlinePredicatesRewriter extends AbstractRewriter {
     if (def.isValidFlag(ASTFlags.INLINE)){
       inline=(def.kind==Method.Kind.Predicate || def.kind==Method.Kind.Pure) && def.getFlag(ASTFlags.INLINE);
     } else {
-      inline=auto && def.kind==Method.Kind.Predicate && !def.isRecursive();
+      inline=false;
     }
     return inline;
   }
@@ -66,12 +64,20 @@ public class InlinePredicatesRewriter extends AbstractRewriter {
         }
         break;
       }
+      default:
+        super.visit(e);
+        break;
+    }
+  }
+  @Override
+  public void visit(ASTSpecial e){
+    switch(e.kind){
       case Unfold:
       case Fold:
       { 
         ASTNode arg=rewrite(e.getArg(0));
         if (arg instanceof MethodInvokation || arg.isa(StandardOperator.Scale)){
-          result=create.expression(e.getOperator(),arg);
+          result=create.special(e.kind,arg);
         } else {
           result=null; // returning null for a statement means already inserted or omit.
         }

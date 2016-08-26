@@ -23,7 +23,7 @@ import static hre.System.*;
  * @author sccblom
  *
  */
-public class AbstractPrinter extends AbstractVisitor {
+public class AbstractPrinter extends AbstractVisitor<Object> {
 
   protected Syntax syntax;
   protected int current_precedence;
@@ -209,25 +209,6 @@ public class AbstractPrinter extends AbstractVisitor {
   }
   
   public void visit(ASTSpecial s){
-    setExpr();
-    out.printf("%s ",s.kind);
-    if (s.args[0]==null) {
-      out.print("null");
-    } else {
-      s.args[0].accept(this);
-    }
-    for (int i=1; i<s.args.length;i++){
-      out.printf(", ");
-      if (s.args[i]==null) {
-        out.print("null");
-      } else {
-        s.args[i].accept(this);
-      }       
-    }
-    out.println(";");
-  }
-  
-  public void visit(ASTSpecialDeclaration s){
     switch(s.kind){
     case Comment:
       String lines[]=s.args[0].toString().split("\n");
@@ -245,22 +226,26 @@ public class AbstractPrinter extends AbstractVisitor {
       out.println("accessible ...");
       break;
     default:
-      setExpr();
-      out.printf("%s ",s.kind);
-      if (s.args[0]==null) {
-        out.print("null");
+      if (s.args.length==0){
+        out.printf("%s;%n",s.kind);
       } else {
-        s.args[0].accept(this);
-      }
-      for (int i=1; i<s.args.length;i++){
-        out.printf(", ");
-        if (s.args[i]==null) {
+        setExpr();
+        out.printf("%s ",s.kind);
+        if (s.args[0]==null) {
           out.print("null");
         } else {
-          s.args[i].accept(this);
+          s.args[0].accept(this);
         }
+        for (int i=1; i<s.args.length;i++){
+          out.printf(", ");
+          if (s.args[i]==null) {
+            out.print("null");
+          } else {
+            s.args[i].accept(this);
+          }
+        }
+        out.println(";");
       }
-      out.println(";");
       break;
     }
   }

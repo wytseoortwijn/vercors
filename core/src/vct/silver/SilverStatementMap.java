@@ -66,19 +66,7 @@ public class SilverStatementMap<T,E,S> implements ASTMapping<S>{
 
   @Override
   public S map(OperatorExpression e) {
-    switch(e.getOperator()){
-    case Assert: return create.assert_(e.getOrigin(),e.getArg(0).apply(expr));
-    case Refute: {
-      refuted.add(e.getOrigin());
-      return create.refute(e.getOrigin(),e.getArg(0).apply(expr));
-    }
-    case Assume: return create.inhale(e.getOrigin(),e.getArg(0).apply(expr));
-    case Fold: return create.fold(e.getOrigin(),e.getArg(0).apply(expr));
-    case Unfold: return create.unfold(e.getOrigin(),e.getArg(0).apply(expr));
-      
-      default:
-        throw new HREError("cannot map operator %s to statement",e.getOperator());
-    }
+    throw new HREError("cannot map operator %s to statement",e.getOperator());
   }
 
   @Override
@@ -271,6 +259,9 @@ public class SilverStatementMap<T,E,S> implements ASTMapping<S>{
   @Override
   public S map(ASTSpecial special) {
     switch(special.kind){
+    case Comment:
+      valid_null=true;
+      return null;
     case Goto:
       return create.goto_(special.getOrigin(),special.args[0].toString());
     case Label:
@@ -281,6 +272,13 @@ public class SilverStatementMap<T,E,S> implements ASTMapping<S>{
       return create.exhale(special.getOrigin(),special.args[0].apply(expr));
     case Assert:
       return create.assert_(special.getOrigin(),special.args[0].apply(expr));
+    case Refute: {
+      refuted.add(special.getOrigin());
+      return create.refute(special.getOrigin(),special.args[0].apply(expr));
+    }
+    case Assume: return create.inhale(special.getOrigin(),special.args[0].apply(expr));
+    case Fold: return create.fold(special.getOrigin(),special.args[0].apply(expr));
+    case Unfold: return create.unfold(special.getOrigin(),special.args[0].apply(expr));
     default:
       throw new HREError("cannot map special %s",special.kind);
     }
@@ -320,17 +318,6 @@ public class SilverStatementMap<T,E,S> implements ASTMapping<S>{
   public S map(ActionBlock actionBlock) {
     // TODO Auto-generated method stub
     return null;
-  }
-
-  @Override
-  public S map(ASTSpecialDeclaration s) {
-    switch(s.kind){
-    case Comment:
-      valid_null=true;
-      return null;
-    default:
-      throw new HREError("cannot map special declaration %s",s.kind);
-    }
   }
 
   @Override
@@ -385,6 +372,12 @@ public class SilverStatementMap<T,E,S> implements ASTMapping<S>{
 
   @Override
   public S map(TypeVariable v) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public S map(StructValue v) {
     // TODO Auto-generated method stub
     return null;
   }

@@ -11,6 +11,7 @@ import vct.col.ast.ASTClass;
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTReserved;
 import vct.col.ast.ASTSpecial;
+import vct.col.ast.ASTSpecial.Kind;
 import vct.col.ast.ASTVisitor;
 import vct.col.ast.BlockStatement;
 import vct.col.ast.Contract;
@@ -155,7 +156,7 @@ public class KernelRewriter extends AbstractRewriter {
         if (clause.getType().isPrimitive(Sort.Resource)){
           resource_stack.push(clause);
         } else {
-          currentBlock.add(create.expression(StandardOperator.Assert,rewrite(clause)));
+          currentBlock.add(create.special(Kind.Assert,rewrite(clause)));
         }
       }
       // exhale exported resources

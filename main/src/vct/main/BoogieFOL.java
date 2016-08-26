@@ -8,6 +8,7 @@ import vct.boogie.BoogieReport;
 import vct.col.ast.ASTClass;
 import vct.col.ast.ASTClass.ClassKind;
 import vct.col.ast.ASTNode;
+import vct.col.ast.ASTSpecial.Kind;
 import vct.col.ast.BlockStatement;
 import vct.col.ast.Contract;
 import vct.col.ast.DeclarationStatement;
@@ -20,10 +21,6 @@ import vct.col.ast.StandardOperator;
 import vct.col.rewrite.AbstractRewriter;
 import vct.col.util.ASTFactory;
 import vct.col.util.ASTUtils;
-
-import static hre.System.Abort;
-import static hre.System.Fail;
-import static hre.System.Warning;
 
 /**
  * This class scans a given AST for assertions and checks each assertion as if it were
@@ -74,7 +71,7 @@ public class BoogieFOL {
           out.printf("end block%n");
           if (block.getStatement(i) instanceof OperatorExpression){
             OperatorExpression e=(OperatorExpression)block.getStatement(i);
-            if (e.getOperator()!=StandardOperator.Assert) continue;
+            if (e.isSpecial(Kind.Assert)) continue;
             DeclarationStatement args[]=m.getArgs();
             ASTNode formula=e.getArg(0);
             System.err.printf("checking formula at %s%n",formula.getOrigin());
@@ -121,7 +118,7 @@ public class BoogieFOL {
    * @param formula The formula to be checked.
    */
   public static BoogieReport check_boogie(DeclarationStatement args[],ASTNode formula){
-    ASTFactory create=new ASTFactory();
+    ASTFactory<?> create=new ASTFactory<Object>();
     create.setOrigin(formula.getOrigin());
     
     AbstractRewriter copy_rw=new AbstractRewriter((ProgramUnit)null);
@@ -130,7 +127,7 @@ public class BoogieFOL {
     for (ASTNode n:args){
       program.add_static(n.apply(copy_rw));
     }
-    ASTNode assertion=create.expression(StandardOperator.Assert,formula.apply(copy_rw));
+    ASTNode assertion=create.special(Kind.Assert,formula.apply(copy_rw));
     BlockStatement body=create.block(assertion);
     program.add_static(create.method_decl(
         create.primitive_type(PrimitiveType.Sort.Void),

@@ -43,7 +43,7 @@ class WandDemo {
         unfold r:readonly();
         use    Perm(this.x,75);
         fold   w:writeonly();
-        qed    wand:(r:readonly()-*w:writeonly());
+        qed    wand:((r:readonly())-*(w:writeonly()));
       }
     @*/
   }
@@ -60,7 +60,7 @@ class WandDemo {
     {
         d.set(i) /*@ with { w = ww ; } then { r=r; wand=wand; } */;
         i=(d.get()/*@ with { r=r; } @*/)+(d.get()/*@ with { r=r; } @*/);
-        //@ apply wand:(r:d.readonly()-*ww:d.writeonly());
+        //@ apply wand:((r:d.readonly())-*(ww:d.writeonly()));
     }
   }
 }

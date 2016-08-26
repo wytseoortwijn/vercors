@@ -262,8 +262,13 @@ public class ParallelBlockEncoder extends AbstractRewriter {
     if (region.contract==null){
       for(ParallelBlock pb:region.blocks){
         Contract c=(Contract)rewrite((ASTNode)pb);
-        main_cb.requires(c.pre_condition);
-        main_cb.ensures(c.post_condition);
+        if (c!=null){
+          main_cb.requires(c.pre_condition);
+          main_cb.ensures(c.post_condition);
+        } else {
+          main_cb.requires(create.constant(true));
+          main_cb.ensures(create.constant(true));
+        }
       }
       body=null;
     } else {
@@ -462,7 +467,7 @@ public class ParallelBlockEncoder extends AbstractRewriter {
         list.add(sigma2.rewrite(clause));
       }      
     }
-    ASTNode body=create.expression(StandardOperator.Assert,create.fold(StandardOperator.Star, list));
+    ASTNode body=create.special(ASTSpecial.Kind.Assert,create.fold(StandardOperator.Star, list));
     if (guard) {
       body=create.ifthenelse(create.expression(StandardOperator.Not,
               create.invokation(null, null, "before_"+pb1.label+"_"+pb2.label , args)),
@@ -507,9 +512,9 @@ public class ParallelBlockEncoder extends AbstractRewriter {
           Fail("Could not find an invariant labeled %s",name);
         }
       }
-      block.prepend(create.expression(StandardOperator.Unfold,create.invokation(rewrite(node),null,"csl_invariant")));
+      block.prepend(create.special(ASTSpecial.Kind.Unfold,create.invokation(rewrite(node),null,"csl_invariant")));
       block.prepend(create.special(ASTSpecial.Kind.Inhale,create.invokation(rewrite(node),null,"csl_invariant")));
-      block.append(create.expression(StandardOperator.Fold,create.invokation(rewrite(node),null,"csl_invariant")));
+      block.append(create.special(ASTSpecial.Kind.Fold,create.invokation(rewrite(node),null,"csl_invariant")));
       block.append(create.special(ASTSpecial.Kind.Exhale,create.invokation(rewrite(node),null,"csl_invariant")));
     }
     result=block;
@@ -525,7 +530,7 @@ public class ParallelBlockEncoder extends AbstractRewriter {
     return ((IntegerValue)e.value).value;         
     
   }  
-  private boolean sidecondition_check(OperatorExpression e)  {
+  private boolean sidecondition_check(ASTSpecial e)  {
      ///1. check the distance of dependence constant expressions    
       if(e.getArg(2) instanceof ConstantExpression)
       {                                                           
@@ -567,15 +572,15 @@ public class ParallelBlockEncoder extends AbstractRewriter {
     super.leave(node);
   }
   
-  public void visit(OperatorExpression e)
-  { //DRB
+  public void visit(ASTSpecial e)
+  {
     
     int N=counter.incrementAndGet();    
     ContractBuilder cb = new ContractBuilder();   
     Hashtable<String,Type> vars=new Hashtable<String,Type>();
     BranchOrigin branch;
     
-    switch(e.getOperator())
+    switch(e.kind)
     {
     case Send:
       if (current_label==null){
@@ -927,14 +932,14 @@ public class ParallelBlockEncoder extends AbstractRewriter {
     BranchOrigin branch;
     for(String R:send_recv_map.keySet()){
       SendRecvInfo recv_entry=send_recv_map.get(R);
-      if (recv_entry.stat.isa(StandardOperator.Recv)){
-        OperatorExpression recv=(OperatorExpression)recv_entry.stat;
+      if (recv_entry.stat.isSpecial(Kind.Recv)){
+        ASTSpecial recv=(ASTSpecial)recv_entry.stat;
         String S=((NameExpression)recv.getArg(1)).getName();
         SendRecvInfo send_entry=send_recv_map.get(S);
-        if (send_entry==null || !send_entry.stat.isa(StandardOperator.Send)){
+        if (send_entry==null || !send_entry.stat.isSpecial(Kind.Send)){
           Fail("unmatched recv");
         }
-        OperatorExpression send=(OperatorExpression)send_entry.stat;
+        ASTSpecial send=(ASTSpecial)send_entry.stat;
         if (!R.equals(((NameExpression)send.getArg(1)).getName())){
           Fail("wrong label in send");
         }

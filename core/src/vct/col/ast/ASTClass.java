@@ -7,8 +7,6 @@ import hre.util.Function;
 
 import java.util.*;
 
-import javax.xml.transform.Source;
-
 import vct.col.ast.Method.Kind;
 import vct.col.ast.PrimitiveType.Sort;
 import vct.col.rewrite.MultiSubstitution;
@@ -17,7 +15,6 @@ import vct.col.util.MethodFilter;
 import vct.util.ClassName;
 import static hre.System.Abort;
 import static hre.System.Debug;
-import static hre.System.Warning;
 
 /** This class is the main container for declarations.
  *  For Java it contains both classes and packages.
@@ -63,7 +60,7 @@ public class ASTClass extends ASTDeclaration implements ASTSequence<ASTClass> {
     if (name!=null) fullname.add(name); 
   }
   public String[] getFullName(){
-    ArrayList<String> fullname=new ArrayList();
+    ArrayList<String> fullname=new ArrayList<String>();
     getFullName(fullname);
     return fullname.toArray(new String[0]);
   }

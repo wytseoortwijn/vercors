@@ -125,21 +125,17 @@ public class ClassConversion extends AbstractRewriter {
   }
   
   @Override
-  public void visit(OperatorExpression e){
-    if (e.isa(StandardOperator.Build) && (e.getArg(0) instanceof ClassType)){
+  public void visit(StructValue v){
+    if (v.type instanceof ClassType){
+      Abort("struct value used for constructor call");
       // If this is actually a constructor call.
-      String method=e.getArg(0)+SEP+e.getArg(0);
-      ASTNode args[]=e.getArguments();
-      ASTNode rw_args[]=new ASTNode[args.length-1];
-      for(int i=1;i<args.length;i++){
-        rw_args[i-1]=rewrite(args[i]);
-      }
-      MethodInvokation res=create.invokation(null, null, method, rw_args);
-      res.set_before(rewrite(e.get_before()));
-      res.set_after(rewrite(e.get_after()));
+      String method=v.type+SEP+v.type;
+      MethodInvokation res=create.invokation(null, null, method, rewrite(v.values));
+      res.set_before(rewrite(v.get_before()));
+      res.set_after(rewrite(v.get_after()));
       result=res;
     } else {
-      super.visit(e);
+      super.visit(v);
     }
   }
   

@@ -222,12 +222,6 @@ public class EmptyVisitor<T> implements ASTVisitor<T> {
   }
 
   @Override
-  public void visit(ASTSpecialDeclaration s) {
-    // TODO Auto-generated method stub
-    
-  }
-
-  @Override
   public void visit(TypeExpression t) {
     // TODO Auto-generated method stub
     
@@ -271,6 +265,12 @@ public class EmptyVisitor<T> implements ASTVisitor<T> {
 
   @Override
   public void visit(TypeVariable v) {
+    // TODO Auto-generated method stub
+    
+  }
+
+  @Override
+  public void visit(StructValue v) {
     // TODO Auto-generated method stub
     
   }

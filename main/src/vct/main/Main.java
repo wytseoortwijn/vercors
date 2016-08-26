@@ -30,14 +30,13 @@ import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingDeque;
 
 import vct.antlr4.parser.JavaResolver;
+import vct.antlr4.parser.Parsers;
 import vct.col.annotate.DeriveModifies;
 import vct.col.ast.*;
-import vct.col.rewrite.AbstractMethodResolver;
 import vct.col.rewrite.AbstractRewriter;
 import vct.col.rewrite.AccessIntroduce;
 import vct.col.rewrite.AddTypeADT;
 import vct.col.rewrite.AssignmentRewriter;
-import vct.col.rewrite.BoxingRewriter;
 import vct.col.rewrite.CSLencoder;
 import vct.col.rewrite.ChalicePreProcess;
 import vct.col.rewrite.CheckHistoryAlgebra;
@@ -59,7 +58,6 @@ import vct.col.rewrite.GlobalizeStaticsParameter;
 import vct.col.rewrite.InlinePredicatesRewriter;
 import vct.col.rewrite.KernelRewriter;
 import vct.col.rewrite.LockEncoder;
-import vct.col.rewrite.OpenCLtoPVL;
 import vct.col.rewrite.OpenMPtoPVL;
 import vct.col.rewrite.OptimizeQuantifiers;
 import vct.col.rewrite.PVLCompiler;
@@ -74,7 +72,6 @@ import vct.col.rewrite.SatCheckRewriter;
 import vct.col.rewrite.ScaleAlways;
 import vct.col.rewrite.SetGetIntroduce;
 import vct.col.rewrite.SilverClassReduction;
-import vct.col.rewrite.SilverConstructors;
 import vct.col.rewrite.SilverImplementIdentity;
 import vct.col.rewrite.SilverReorder;
 import vct.col.rewrite.SimplifyCalls;
@@ -238,12 +235,7 @@ public class Main
           return new AddTypeADT(arg).rewriteAll();
         }
       });   
-      defined_passes.put("abstract-resolve",new CompilerPass("convert abstract methods to assume false bodies"){
-        public ProgramUnit apply(ProgramUnit arg,String ... args){
-          return new AbstractMethodResolver(arg).rewriteAll();
-        }
-      });
-      compiler_pass(defined_passes,"access","convert access expressions",AccessIntroduce.class);
+      compiler_pass(defined_passes,"access","convert access expressions for histories/futures",AccessIntroduce.class);
       defined_passes.put("assign",new CompilerPass("change inline assignments to statements"){
         public ProgramUnit apply(ProgramUnit arg,String ... args){
           return new AssignmentRewriter(arg).rewriteAll();
@@ -269,11 +261,6 @@ public class Main
           return vct.silver.SilverBackend.TestSilicon(arg,silver.get());
         }
       });
-      defined_passes.put("box",new CompilerPass("box class types with parameters"){
-          public ProgramUnit apply(ProgramUnit arg,String ... args){
-            return new BoxingRewriter(arg).rewriteAll();
-          }
-        });
       defined_checks.put("chalice",new ValidationPass("verify with Chalice"){
         public TestReport apply(ProgramUnit arg,String ... args){
           if (separate_checks.get()) {
@@ -371,18 +358,14 @@ public class Main
               out.println("import col.lang.*;");
               syntax.print(out, node);
               out.close();
-            } else if(node instanceof ASTSpecial){
+             } else if(node instanceof ASTSpecial){
               ASTSpecial S = (ASTSpecial)node;
-              fail("cannot deal with special %s yet",S.kind);
-              return arg;           
-            } else if(node instanceof ASTSpecialDeclaration){
-              ASTSpecialDeclaration S = (ASTSpecialDeclaration)node;
               switch(S.kind){
               case Comment:
                 // TODO keep comments.
                 break;
               default:
-                fail("cannot deal with special declaration %s yet",S.kind);
+                fail("cannot deal with special %s yet",S.kind);
                 return arg; 
               }  
             } else {
@@ -469,14 +452,9 @@ public class Main
           return new FlattenBeforeAfter(arg).rewriteAll();
         }
       });
-      defined_passes.put("auto-inline",new CompilerPass("Inline all non-recursive predicates and inline methods"){
+      defined_passes.put("inline",new CompilerPass("Inline all methods marked as inline"){
         public ProgramUnit apply(ProgramUnit arg,String ... args){
-          return new InlinePredicatesRewriter(arg,true).rewriteAll();
-        }
-      });
-      defined_passes.put("user-inline",new CompilerPass("Inline all methods marked as inline"){
-        public ProgramUnit apply(ProgramUnit arg,String ... args){
-          return new InlinePredicatesRewriter(arg,false).rewriteAll();
+          return new InlinePredicatesRewriter(arg).rewriteAll();
         }
       });
       defined_passes.put("kernel-split",new CompilerPass("Split kernels into main, thread and barrier."){
@@ -498,11 +476,6 @@ public class Main
         public ProgramUnit apply(ProgramUnit arg,String ... args){
           new DeriveModifies().annotate(arg);
           return arg;
-        }
-      });
-      defined_passes.put("opencl2pvl",new CompilerPass("Compile OpenMP pragmas to PVL"){
-        public ProgramUnit apply(ProgramUnit arg,String ... args){
-          return new OpenCLtoPVL(arg).rewriteAll();
         }
       });
       defined_passes.put("openmp2pvl",new CompilerPass("Compile OpenMP pragmas to PVL"){
@@ -568,11 +541,6 @@ public class Main
       defined_passes.put("setget",new CompilerPass("insert set and get operators"){
         public ProgramUnit apply(ProgramUnit arg,String ... args){
           return new SetGetIntroduce(arg).rewriteAll();
-        }
-      });
-      defined_passes.put("silver_constructors",new CompilerPass("convert constructors to silver style"){
-        public ProgramUnit apply(ProgramUnit arg,String ... args){
-          return new SilverConstructors(arg).rewriteAll();
         }
       });
       defined_passes.put("silver-class-reduction",new CompilerPass("reduce classes to single Ref class"){
@@ -798,7 +766,7 @@ public class Main
           passes.add("standardize");
           passes.add("check");
         }
-        passes.add("user-inline");
+        passes.add("inline");
         passes.add("standardize");
         passes.add("check");
   
@@ -965,6 +933,7 @@ public class Main
           passes.add("silver");
         } else { //CHALICE    
           passes.add("chalice-optimize");
+          passes.add("standardize-functions");
           passes.add("standardize");
           passes.add("check");
           
@@ -1050,6 +1019,9 @@ public class Main
       }
     } catch (HREExitException e) {
       exit=e.exit;
+    } catch (Throwable e) {
+      e.printStackTrace();
+      throw e;
     } finally {
       Output("entire run took %d ms",System.currentTimeMillis()-globalStart);
       System.exit(exit);

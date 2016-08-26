@@ -38,7 +38,7 @@ public class JavaPostProcessor extends AbstractRewriter {
   @Override
   public void visit(ASTSpecial s){
     switch(s.kind){
-    case DeclareAction:
+    case ActionHeader:
       Fail("cannot create block around action",s.getOrigin());
       break;
     case Expression:
@@ -70,9 +70,9 @@ public class JavaPostProcessor extends AbstractRewriter {
       case "bag":
         result=create.primitive_type(PrimitiveType.Sort.Bag,t.getArgs());
         return;
-        default:
-          super.visit(t);
-          return;
+      default:
+        super.visit(t);
+        return;
       }
     } else {
       super.visit(t);
@@ -152,6 +152,14 @@ public class JavaPostProcessor extends AbstractRewriter {
   public void visit(OperatorExpression e){
     Type deftype=create.class_type("Object");
     switch(e.getOperator()){
+      case StructSelect:
+        ASTNode arg=e.getArg(1);
+        if (arg instanceof NameExpression){
+          result=create.dereference(rewrite(e.getArg(0)), arg.toString());
+          return;
+        } else {
+          Abort("unexpected StructSelect expression");
+        }
       case SubType:
         deftype=(Type)rewrite(e.getArg(1));
       case SuperType:
@@ -214,7 +222,7 @@ public class JavaPostProcessor extends AbstractRewriter {
   
   @Override
   public void visit(BlockStatement b){
-    if (b.size()>0 && b.get(0).isSpecial(Kind.DeclareAction)){
+    if (b.size()>0 && b.get(0).isSpecial(Kind.ActionHeader)){
       ASTSpecial decl=(ASTSpecial)b.get(0);
       ASTNode history=rewrite(decl.args[0]);
       ASTNode fraction=rewrite(decl.args[1]);

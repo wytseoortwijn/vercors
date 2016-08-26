@@ -1,6 +1,5 @@
 package vct.col.rewrite;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -8,20 +7,16 @@ import java.util.Hashtable;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import hre.HREError;
 import hre.ast.MessageOrigin;
 import hre.ast.Origin;
-import hre.util.FrameControl;
 import vct.col.ast.ASTClass;
 import vct.col.ast.ASTDeclaration;
-import vct.col.ast.ASTFlags;
 import vct.col.ast.ASTFrame;
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTReserved;
 import vct.col.ast.ASTSequence;
 import vct.col.ast.ASTSpecial;
-import vct.col.ast.ASTSpecialDeclaration;
-import vct.col.ast.ASTSpecialDeclaration.Kind;
+import vct.col.ast.ASTSpecial.Kind;
 import vct.col.ast.ASTWith;
 import vct.col.ast.AbstractVisitor;
 import vct.col.ast.ActionBlock;
@@ -60,16 +55,15 @@ import vct.col.ast.RecordType;
 import vct.col.ast.ReturnStatement;
 import vct.col.ast.StandardOperator;
 import vct.col.ast.StandardProcedure;
+import vct.col.ast.StructValue;
 import vct.col.ast.TryCatchBlock;
 import vct.col.ast.Type;
 import vct.col.ast.TypeExpression;
 import vct.col.ast.TypeVariable;
 import vct.col.ast.VariableDeclaration;
 import vct.col.util.ASTFactory;
-import vct.col.util.ASTPermission;
 import vct.col.util.ASTUtils;
 import vct.col.util.NameScanner;
-import static hre.System.*;
 
 /**
  * This abstract rewriter copies the AST it is applied to.
@@ -93,7 +87,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   
   private AbstractRewriter(Thread t){
     copy_rw=null;
-    create=new ASTFactory(null);    
+    create=new ASTFactory<Object>(null);    
   }
   
   public AbstractRewriter(ASTFrame<ASTNode> shared){
@@ -104,7 +98,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
       tl.set(tmp);
     }
     copy_rw=tmp;
-    create=new ASTFactory(copy_rw);
+    create=new ASTFactory<Object>(copy_rw);
   }
 
   public AbstractRewriter(ProgramUnit source,ProgramUnit target,boolean do_scope){
@@ -115,7 +109,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
       tl.set(tmp);
     }
     copy_rw=tmp;
-    create=new ASTFactory(copy_rw);    
+    create=new ASTFactory<Object>(copy_rw);    
   }
   public AbstractRewriter(ProgramUnit source,ProgramUnit target){
     this(source,target,false);
@@ -180,7 +174,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
     create.enter();
     create.setOrigin(n.getOrigin());
     result=null;
-    if (n.isa(StandardOperator.Fold)||n.isa(StandardOperator.Unfold)){
+    if (n.isSpecial(Kind.Fold)||n.isSpecial(Kind.Unfold)){
       fold_unfold=true;
     }
   }
@@ -193,7 +187,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
     }    
   }
   public void post_visit(ASTNode n){
-    if (n.isa(StandardOperator.Fold)||n.isa(StandardOperator.Unfold)){
+    if (n.isSpecial(Kind.Fold)||n.isSpecial(Kind.Unfold)){
       fold_unfold=false;
     }
     if (result==n) Debug("rewriter linked instead of making a copy"); 
@@ -260,6 +254,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
     return cb.getContract();
   }
 
+  @SuppressWarnings("unchecked")
   public <E extends ASTNode> E rewrite(E node){
     if (node==null) return null;
     ASTNode tmp=node.apply(this);
@@ -270,11 +265,11 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
     }
   }
   
+  @SafeVarargs
   private final <E extends ASTNode> E[] glue(E... args){
-    return args;
+    return Arrays.copyOf(args,args.length);
   }
   public <E extends ASTNode> E[] rewrite(E head,E[] tail){
-    // TODO: figure out how to do it if tail == null.
     E[] res;
     if (tail==null) {
       res=glue(head);
@@ -493,7 +488,6 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   public void visit(Method m) {
     //checkPermission(m);
     String name=m.getName();
-    int N=m.getArity();
     if (currentContractBuilder==null) currentContractBuilder=new ContractBuilder();
     DeclarationStatement args[]=rewrite(m.getArgs());
     Contract mc=m.getContract();
@@ -581,7 +575,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   private void rewriteOrdered(HashSet<ASTClass> done,ASTClass cl){
     if (!done.contains(cl)){
       done.add(cl);
-      for(ClassType parent:cl.implemented_classes){
+      if (cl.implemented_classes.length>0){
         Fail("interfaces are not supported");
       }
       for(ClassType parent:cl.super_classes){
@@ -596,7 +590,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   }
 
   public ProgramUnit rewriteOrdered() {
-    HashSet<ASTClass> done=new HashSet();
+    HashSet<ASTClass> done=new HashSet<ASTClass>();
     for(ASTNode n:source().get()){
         if (n instanceof ASTClass) {
           rewriteOrdered(done,(ASTClass)n);
@@ -661,12 +655,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   public void visit(ASTSpecial special) {
     result=create.special(special.kind,rewrite(special.args));
   }
-  
-  @Override
-  public void visit(ASTSpecialDeclaration special) {
-    result=create.special_decl(special.kind,rewrite(special.args));
-  }
-  
+    
   @Override
   public void visit(VariableDeclaration decl) {
     VariableDeclaration res=create.variable_decl(decl.basetype);
@@ -719,6 +708,9 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   public ASTNode plus(ASTNode e1,ASTNode e2){
     return create.expression(StandardOperator.Plus,e1,e2);
   }
+  public ASTNode mult(ASTNode e1,ASTNode e2){
+    return create.expression(StandardOperator.Mult,e1,e2);
+  }
   public ASTNode less(ASTNode e1,ASTNode e2){
   	return create.expression(StandardOperator.LT,e1,e2);
   }
@@ -737,7 +729,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
 
   @Override
   public void visit(ActionBlock ab) {
-    Map<String,ASTNode> map=new HashMap();
+    Map<String,ASTNode> map=new HashMap<String,ASTNode>();
     for(Entry<String, ASTNode> e:ab.map.entrySet()){
       map.put(e.getKey(),rewrite(e.getValue()));
     }
@@ -834,5 +826,10 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
       map.put(create.unresolved_name(def.getArgument(i)),rewrite(e.getArg(i)));
     }
     return sigma.rewrite(rewrite(def.getBody()));
+  }
+  
+  @Override
+  public void visit(StructValue v){
+    result=create.struct_value(rewrite(v.type),v.map,rewrite(v.values));
   }
 }

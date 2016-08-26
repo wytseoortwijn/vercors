@@ -12,7 +12,7 @@ import java.util.Hashtable;
  * @author sccblom
  *
  */
-public class FileOrigin implements Origin {
+public class FileOrigin extends Origin {
 
   public int linesBefore=2;
   public int linesAfter=2;

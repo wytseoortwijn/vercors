@@ -9,7 +9,7 @@ import java.util.Arrays;
  * @author sccblom
  *
  */
-public class CompositeOrigin implements Origin {
+public class CompositeOrigin extends Origin {
 
     private Origin origins[];
     public CompositeOrigin(Origin ... origins){

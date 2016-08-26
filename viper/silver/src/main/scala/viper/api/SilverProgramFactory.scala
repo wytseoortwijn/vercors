@@ -65,7 +65,7 @@ class SilverProgramFactory[O,Err] extends ProgramFactory[O,Err,Type,Exp,Stmt,
    
   private def get_info[OO](x:Info,y:Position,f:OriginFactory[OO]):OO={
     x match {
-      case in: OriginInfo[OO] => {
+      case in: OriginInfo[OO]@unchecked => {
         in.loc
       }
       case _ => y match {

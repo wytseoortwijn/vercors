@@ -49,8 +49,14 @@ public class ColPVLParser implements vct.col.util.Parser {
 
         ProgramUnit pu=PVLtoCOL.convert(tree,file_name,tokens,parser);      
         Progress("AST conversion pass took %dms",tk.show());
+        
         pu=new FlattenVariableDeclarations(pu).rewriteAll();
         Progress("Variable pass took %dms",tk.show());
+        
+        pu=new SpecificationCollector(pu).rewriteAll();
+        Progress("Shuffling specifications took %dms",tk.show());    
+        Debug("after collecting specifications %s",pu);
+        
         pu=new PVLPostProcessor(pu).rewriteAll();
         Progress("Post processing pass took %dms",tk.show());
         return pu;
@@ -59,6 +65,10 @@ public class ColPVLParser implements vct.col.util.Parser {
       } catch (Exception e) {
         e.printStackTrace();
         Abort("Exception %s while parsing %s",e.getClass(),file_name);
+      } catch (Throwable e) {
+        e.printStackTrace();
+        Warning("Exception %s while parsing %s",e.getClass(),file_name);
+        throw e;
       }
      return null;
   }

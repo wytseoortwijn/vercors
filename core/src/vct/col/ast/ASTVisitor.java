@@ -11,6 +11,8 @@ public interface ASTVisitor<T> {
   
   public void visit(StandardProcedure p);
   
+  public void visit(StructValue v);
+  
   public void visit(ConstantExpression e);
   
   public void visit(OperatorExpression e);
@@ -72,8 +74,6 @@ public interface ASTVisitor<T> {
   public void visit(Hole hole);
 
   public void visit(ActionBlock actionBlock);
-
-  public void visit(ASTSpecialDeclaration s);
 
   public void visit(TypeExpression t);
 

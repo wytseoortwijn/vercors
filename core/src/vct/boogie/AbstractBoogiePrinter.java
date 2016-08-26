@@ -314,24 +314,9 @@ public abstract class AbstractBoogiePrinter extends AbstractPrinter {
       s.get_after().accept(this);
     }
   }
-  public void visit(OperatorExpression e){
+  public void visit(ASTSpecial e){
     String keyword=null;
-    switch(e.getOperator()){
-      case DirectProof:{
-        if (e.getArg(0) instanceof ConstantExpression){
-          out.printf("%s",((StringValue)((ConstantExpression)e.getArg(0)).value).getStripped());
-          out.lnprintf(";");
-        } else if (e.getArg(0) instanceof BlockStatement) {
-          BlockStatement block=(BlockStatement)e.getArg(0);
-          int N=block.getLength();
-          for(int i=0;i<N;i++){
-            block.getStatement(i).accept(this);
-          }
-        } else {
-          Fail("unimplement kind of proof.");
-        }
-        break;
-      }
+    switch(e.kind){
       case Assume:
         if (keyword==null) keyword="assume";
       case Assert:
@@ -348,26 +333,6 @@ public abstract class AbstractBoogiePrinter extends AbstractPrinter {
         in_clause=false;
         break;
       }
-/* this should be legacy code by now...
-     case Select:{
-        ASTNode a0=e.getArg(0);
-        ASTNode a1=e.getArg(1);
-        if (a0 instanceof NameExpression && a1 instanceof NameExpression){
-          String s0=((NameExpression)a0).toString();
-          String s1=((NameExpression)a1).toString();
-          if (s0.equals("model")){
-            if (s1.equals("old")){
-              out.print("old");
-              return;
-            }
-            throw new Error("unknown keyword "+s1);
-          }
-        }
-        // Let's hope this was a this. in case of Boogie!
-        // a1.accept(this);
-        // break;
-      }
- */
       default:{
         super.visit(e);
       }

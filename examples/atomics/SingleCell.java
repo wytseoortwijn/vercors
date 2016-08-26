@@ -33,7 +33,7 @@ public class SingleCellMod{
 	public SingleCellMod(){ this.data = -1; }
 	
 	/*@
-	 requires set_rr:inv_resource(n) ** set_rv:inv_value(n);
+	 requires (set_rr:inv_resource(n)) ** set_rv:inv_value(n);
 	 ensures set_ev:inv_value(n); 
 	 */
 	void set(int n);
@@ -45,9 +45,9 @@ public class SingleCellMod{
 	boolean equal(int n);
 	
 	/*@
-	 requires	cas_rr:inv_resource(n) ** cas_rv:inv_value(n);
-	 ensures	(\result ==> cas_erp:inv_resource(o) ** cas_evp:inv_value(o) ) ** 
-				(!\result ==> cas_ern:inv_resource(n) ** cas_evn:inv_value(n));
+	 requires	(cas_rr:inv_resource(n)) ** cas_rv:inv_value(n);
+	 ensures	(\result ==> (cas_erp:inv_resource(o)) ** cas_evp:inv_value(o) ) ** 
+				(!\result ==> (cas_ern:inv_resource(n)) ** cas_evn:inv_value(n));
 	 */
 	boolean cas(int o, int n);	
 	
@@ -55,8 +55,8 @@ public class SingleCellMod{
 
 	/*@
 	 requires true ;
-	 ensures \result == 0 ==> fop_evp:inv_value(2) ** fop_ecp: contains(d);
-	 ensures \result == 1 ==> fop_evf:inv_value(2) ** fop_ecf: contains(d);
+	 ensures \result == 0 ==> (fop_evp:inv_value(2)) ** fop_ecp: contains(d);
+	 ensures \result == 1 ==> (fop_evf:inv_value(2)) ** fop_ecf: contains(d);
 	 */
 
 	public int find_or_put(int d){
