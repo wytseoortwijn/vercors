@@ -1,15 +1,8 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 
-//:: cases ArrayProblemFull
-//:: suite problem-fail
+//:: cases ArrayGetList
 //:: tools silicon
 //:: verdict Pass
-
-//:: cases ArrayProblemGood
-//:: suite problem-pass
-//:: tools silicon
-//:: verdict Pass
-//:: options --skip problem
 
 class Problem {
 
@@ -28,7 +21,7 @@ class Problem {
   ensures  (\forall int i; 0 <= i && i < ar.length ; ar[i]==\result[i]);
   static seq<int> vals_method(frac p,int[] ar);
 
-  void working(){
+  void asmethod(){
     int[] array=new int[2];
     array[0]=1;
     array[1]=2;
@@ -45,7 +38,7 @@ class Problem {
  
   }
 
-  void problem(){
+  void asfunction(){
     int[] array=new int[2];
     array[0]=1;
     array[1]=2;
