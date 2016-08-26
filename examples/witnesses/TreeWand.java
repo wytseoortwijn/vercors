@@ -1,8 +1,10 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 //:: cases TreeWand
-//:: tools chalice
+//:: tools
 //:: options --inline
 //:: suite slow
+
+// Example disabled because it must be rewritten.
 
 /*
     This file demonstrates how a magic wand can be used to prove

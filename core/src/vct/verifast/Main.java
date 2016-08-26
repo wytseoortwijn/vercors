@@ -7,9 +7,9 @@ import java.io.PrintStream;
 
 import vct.col.ast.ASTClass;
 import vct.col.ast.ProgramUnit;
+import vct.col.print.JavaPrinter;
+import vct.col.syntax.JavaDialect;
 import vct.col.syntax.JavaSyntax;
-import vct.java.printer.JavaDialect;
-import vct.java.printer.JavaPrinter;
 import vct.util.Configuration;
 import hre.ast.TrackingOutput;
 import hre.ast.TrackingTree;

@@ -54,7 +54,7 @@ expr
  | '?' ID
  | 'unfolding' expr 'in' expr 
  | lexpr '->' ID tuple
- | (lexpr | 'Value' | 'Perm' | 'PointsTo' | 'Hist' | '\\old' | '?' ) tuple
+ | ( ID | lexpr | 'Value' | 'HPerm' | 'Perm' | 'PointsTo' | 'Hist' | '\\old' | '?' ) tuple
  | '(' ('\\sum' | '\\exists' | '\\forall' | '\\forall*') type ID ';' expr (';' expr )? ')'
  | '(' expr ')'
  | '\\owner' '(' expr ',' expr ',' expr ')'
@@ -95,7 +95,7 @@ statement
  | 'witness' expr ';' 
  | 'if' '(' expr ')' block ( 'else' block )?
  | 'barrier' '(' ID ( ';' id_list )? ')' ( '{' contract '}' | contract block )
- | 'par' par_unit ( 'and' par_unit )* 
+ | contract 'par' par_unit ( 'and' par_unit )* 
  | 'invariant' ID '(' expr ')' block 
  | 'atomic' '(' id_list ')' block 
  | invariant 'while' '(' expr ')' block
@@ -104,18 +104,28 @@ statement
  | block
  | lexpr '=' expr ';'
  | '{*' expr '*}'
- | 'action' expr ',' expr block 
+ | 'action' tuple block 
+ | 'create' expr';'
  | 'create' expr ',' expr ';'
- | 'destroy' expr ',' expr ',' expr ';'
+ | 'destroy' expr ',' expr ';'
+ | 'destroy' expr ';'
  | 'goto' ID ';'
  | 'label' ID ';'
  | ID expr ( ( ',' | ID ) expr )* ( ';' | block )
  ;
 
 par_unit
- : ID? '(' iters ')' contract block
+ : ID? '(' iters ( ';' wait_list )? ')' contract block
  | contract block
  ;
+
+wait_list : wait_for ( ',' wait_for )* ;
+
+wait_for : ID ( '(' id_arg_list ')' ) ? ;
+
+id_arg_list : id_arg ( ',' id_arg )* ;
+
+id_arg : ID | '*' ;
 
 id_list : ( ID ( ',' ID )* )? ;
 

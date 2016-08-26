@@ -62,9 +62,9 @@ class Tree {
       loop_invariant left.left->state() ** left.right->state();
       loop_invariant cur_contents == (tolist(left.left) + seq<int>{left.data} + tolist(left.right))
                                       + seq<int>{cur.data} + tolist(cur.right);
-      loop_invariant wand:(cur.state_contains(tail(cur_contents)) -* top.state_contains(target_contents)); @*/
+      loop_invariant cur.state_contains(tail(cur_contents)) -* top.state_contains(target_contents); @*/
       while (left.left != null) /*@ with {
-        create {} wand:(top.state_contains(target_contents) -* top.state_contains(target_contents));#\label{proof 1}#
+        create {} top.state_contains(target_contents) -* top.state_contains(target_contents);#\label{proof 1}#
       } @*/
       { /*@ Tree prev = cur;
             seq<int> prev_contents = cur_contents; */
@@ -84,10 +84,11 @@ class Tree {
           use    Perm(prev.right,write)**prev.right->state();
           use    prev.left==cur;
           use    prev_contents == cur_contents + seq<int>{prev.data} + tolist(prev.right);
+          use    prev.state_contains(tail(prev_contents)) -* top.state_contains(target_contents);
           fold   prev.state();
           assert prev.state_contains(tail(prev_contents));
-          apply  wand:(prev.state_contains(tail(prev_contents)) -* top.state_contains(target_contents));
-          qed    wand:(cur.state_contains(tail(cur_contents)) -* top.state_contains(target_contents));
+          apply  prev.state_contains(tail(prev_contents)) -* top.state_contains(target_contents);
+          qed    cur.state_contains(tail(cur_contents)) -* top.state_contains(target_contents);
         } #\label{proof 2 end}#
         @*/
       }
@@ -96,7 +97,7 @@ class Tree {
       //@ assert tolist(cur)==tail(cur_contents);
       //@ assert cur.state_contains(tolist(cur));
       //@ assert cur.state_contains(tail(cur_contents));
-      //@ apply wand:(cur.state_contains(tail(cur_contents)) -* top.state_contains(target_contents));
+      //@ apply  cur.state_contains(tail(cur_contents)) -* top.state_contains(target_contents);
       return top;
     }
   }

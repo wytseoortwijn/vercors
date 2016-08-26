@@ -152,13 +152,13 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
    * This variable references an AST factory, whose Origin is set to
    * the origin of the current node being rewritten.
    */
-  public final ASTFactory create;
+  public final ASTFactory<?> create;
   
-  public final ASTFactory create(Origin origin){
+  public final ASTFactory<?> create(Origin origin){
     create.setOrigin(origin);
     return create;
   }
-  public final ASTFactory create(ASTNode node){
+  public final ASTFactory<?> create(ASTNode node){
     create.setOrigin(node.getOrigin());
     return create;
   }
@@ -641,14 +641,15 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
         pb.label,
         rewrite(pb.contract),
         rewrite(pb.iters),
-        rewrite(pb.block)
+        rewrite(pb.block),
+        rewrite(pb.deps)
     );
     result=res;
   }
   
   @Override
   public void visit(ParallelRegion region){
-    result=create.region(rewrite(region.blocks));
+    result=create.region(rewrite(region.contract),rewrite(region.blocks));
   }
   
   @Override

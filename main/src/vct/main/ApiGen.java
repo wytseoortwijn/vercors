@@ -1,8 +1,8 @@
 package vct.main;
 
 import vct.col.ast.ProgramUnit;
+import vct.col.syntax.JavaDialect;
 import vct.col.syntax.JavaSyntax;
-import vct.java.printer.JavaDialect;
 
 public class ApiGen {
 

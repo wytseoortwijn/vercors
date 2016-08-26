@@ -9,7 +9,7 @@
 public class Unsat {
 
 /*@
-  requires false;
+  requires 1==0;
 @*/
   public void bad(){
   }

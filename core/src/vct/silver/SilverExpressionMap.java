@@ -324,14 +324,16 @@ public class SilverExpressionMap<T,E> implements ASTMapping<E>{
         failure=true;
       } else {
         boolean good=false;
-        if (e.main.isa(StandardOperator.Perm)||e.main.isa(StandardOperator.Value)){
+        if (e.main.getType().isBoolean()){
+          good=true;
+        } else if (e.main.isa(StandardOperator.Perm)||e.main.isa(StandardOperator.Value)){
           ASTNode loc=((OperatorExpression)e.main).getArg(0);
-          if (loc instanceof Dereference){
+          while (loc instanceof Dereference){
             loc=((Dereference)loc).object;
-            if (loc.isa(StandardOperator.Subscript)){
-              loc=((OperatorExpression)loc).getArg(1);
-              good=loc instanceof NameExpression;
-            }
+          }
+          if (loc.isa(StandardOperator.Subscript)){
+            loc=((OperatorExpression)loc).getArg(1);
+            good=loc instanceof NameExpression;
           }
         }
         if(!good){

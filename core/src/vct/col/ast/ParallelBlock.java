@@ -40,17 +40,24 @@ public class ParallelBlock extends ASTNode {
   public final Contract contract;
   public final DeclarationStatement iters[];
   public final BlockStatement block; 
+  public final ASTNode deps[];
   
   public ParallelBlock(
       String label,
       Contract contract,
       DeclarationStatement iters[],
-      BlockStatement block)
+      BlockStatement block,
+      ASTNode deps[])
   {
     this.label=label;
     this.contract=contract;
     this.iters=Arrays.copyOf(iters,iters.length);
     this.block=block;
+    if (deps==null){
+      this.deps=new ASTNode[0]; 
+    } else {
+      this.deps=Arrays.copyOf(deps,deps.length);
+    }
   }
 
 }

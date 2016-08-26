@@ -21,7 +21,7 @@ public class ToolTest {
   private static Object sem=new Object(){};
   
   public static void fail(String msg){
-    System.err.printf("failure: %s%n",msg);
+    //System.err.printf("failure: %s%n",msg);
   }
   public VCTResult run(String ... args) {
     StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
@@ -31,10 +31,10 @@ public class ToolTest {
     }
     idx++;
     String test_name=stackTraceElements[idx].getMethodName();
-    System.err.printf("test name is %s%n", test_name);
+    //System.err.printf("test name is %s%n", test_name);
     VCTResult res=new VCTResult();
     Path f=Configuration.getHome();
-    System.err.printf("home is %s%n", f);
+    //System.err.printf("home is %s%n", f);
     String OS=System.getProperty("os.name");
     for(int i=1;i<args.length;i++){
       if (args[i].startsWith("//")){
@@ -150,10 +150,12 @@ public class ToolTest {
         }
       }
       res.log.add(msg);
+      /*
       synchronized(sem){
         System.err.printf(msg.getFormat(), msg.getArgs());
         System.err.println();
       }
+      */
       if (msg.getFormat().equals("exit %d")){
         int n=(Integer)msg.getArg(0);
         if (n>0){
@@ -171,12 +173,14 @@ public class ToolTest {
       }
     }
     if (res.verdict==null) fail("missing verdict");
+    /*
     synchronized(sem){
       System.err.printf("%s:%n",test_name);
       for (String key:res.times.keySet()){
         System.err.printf("  %s took %d %n",key,res.times.get(key));
       }
     }
+    */
     return res;
   }
 

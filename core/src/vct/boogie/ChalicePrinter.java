@@ -588,6 +588,12 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
   @Override
   public void visit(ASTSpecial s){
     switch(s.kind){
+    case Exhale:
+      Abort("chalice cannot support exhale");
+      break;
+    case Inhale:
+      Warning("chalice cannot support inhale");
+      break;
     case Expression:
       if (s.args[0] instanceof MethodInvokation){
         out.print("call ");

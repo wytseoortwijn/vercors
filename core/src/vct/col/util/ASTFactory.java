@@ -775,9 +775,18 @@ public BlockStatement block(Origin origin, ASTNode ... args) {
       String label,
       Contract c,
       DeclarationStatement iters[],
+      BlockStatement block,
+      ASTNode deps[]
+  ){
+    return parallel_block(origin_stack.get(),label,c, iters, block, deps);
+  }
+  public ParallelBlock parallel_block(
+      String label,
+      Contract c,
+      DeclarationStatement iters[],
       BlockStatement block
   ){
-    return parallel_block(origin_stack.get(),label,c, iters, block);
+    return parallel_block(origin_stack.get(),label,c, iters, block, null);
   }
 
   /**
@@ -788,9 +797,10 @@ public BlockStatement block(Origin origin, ASTNode ... args) {
     String label,
     Contract contract,
     DeclarationStatement iters[],
-    BlockStatement block
+    BlockStatement block,
+    ASTNode deps[]
   ){
-    ParallelBlock res=new ParallelBlock(label,contract, iters, block);
+    ParallelBlock res=new ParallelBlock(label,contract, iters, block, deps);
     res.setOrigin(origin);
     res.accept_if(post);
     return res;
@@ -1203,19 +1213,19 @@ public Axiom axiom(String name,ASTNode exp){
     return res;
   }
 
-  public ParallelRegion region(ParallelBlock ... blocks) {
-    return region(origin_stack.get(),blocks);
+  public ParallelRegion region(Contract c,ParallelBlock ... blocks) {
+    return region(origin_stack.get(),c,blocks);
   }
 
-  public ParallelRegion region(Origin origin,ParallelBlock ... blocks) {
-    ParallelRegion res=new ParallelRegion(blocks);
+  public ParallelRegion region(Origin origin,Contract c,ParallelBlock ... blocks) {
+    ParallelRegion res=new ParallelRegion(c,blocks);
     res.setOrigin(origin);
     res.accept_if(post);
     return res;
   }
 
-  public ASTNode region(ArrayList<ParallelBlock> res) {
-    return region(res.toArray(new ParallelBlock[res.size()]));
+  public ASTNode region(Contract c,ArrayList<ParallelBlock> res) {
+    return region(c,res.toArray(new ParallelBlock[res.size()]));
   }
 
   public Method function_decl(Type t, Contract contract, String name,

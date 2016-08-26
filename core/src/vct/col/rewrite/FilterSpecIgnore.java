@@ -37,4 +37,14 @@ public class FilterSpecIgnore extends AbstractRewriter {
     result=res;
   }
 
+  @Override
+  public void visit(Method m){
+    Contract c=m.getContract();
+    if (c!=null && (c.pre_condition.isConstant(false) || c.pre_condition.isName("false"))){
+      Warning("ignoring %s",m.name);
+      result=null;
+      return;
+    }
+    super.visit(m);
+  }
 }

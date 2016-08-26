@@ -13,10 +13,16 @@ import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.ParserRuleContext;
 
+import vct.antlr4.parser.OMPoption.Kind;
+import vct.antlr4.parser.OMPoption.Schedule;
 import vct.col.util.Parser;
 import vct.parsers.ompLexer;
 import vct.parsers.ompParser;
 import vct.parsers.ompParser.Omp_optionContext;
+import vct.parsers.ompParser.Omp_scheduleContext;
+import vct.parsers.ompParser.Omp_sectionContext;
+import vct.parsers.ompParser.Omp_sectionsContext;
+import vct.parsers.ompParser.Omp_singleContext;
 import vct.parsers.ompParser.*;
 import vct.parsers.ompVisitor;
 
@@ -47,25 +53,21 @@ class ConversionVisitor implements ompVisitor<OMPelement> {
 
   @Override
   public OMPelement visit(ParseTree arg0) {
-    // TODO Auto-generated method stub
-    return null;
+    throw new Error("Cannot visit parse tree");
   }
 
   @Override
   public OMPelement visitChildren(RuleNode arg0) {
-    // TODO Auto-generated method stub
-    return null;
+    throw new Error("Cannot visit children");
   }
 
   @Override
   public OMPelement visitErrorNode(ErrorNode arg0) {
-    // TODO Auto-generated method stub
-    return null;
+    throw new Error("parse error "+ arg0 +"detected");
   }
 
   @Override
   public OMPelement visitTerminal(TerminalNode arg0) {
-    // TODO Auto-generated method stub
     return null;
   }
 
@@ -77,8 +79,7 @@ class ConversionVisitor implements ompVisitor<OMPelement> {
 
   @Override
   public OMPelement visitId_list(Id_listContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
+    throw new Error("id_list cannot be converted to element");
   }
 
   @Override
@@ -122,7 +123,28 @@ class ConversionVisitor implements ompVisitor<OMPelement> {
     return ctx.getChild(0).accept(this);
   }
 
+  @Override
+  public OMPelement visitOmp_schedule(Omp_scheduleContext ctx) {
+    return new OMPoption(Kind.Schedule,Schedule.Static);
+  }
 
-  
+  @Override
+  public OMPelement visitOmp_single(Omp_singleContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public OMPelement visitOmp_sections(Omp_sectionsContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public OMPelement visitOmp_section(Omp_sectionContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
 }
 
