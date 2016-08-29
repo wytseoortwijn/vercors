@@ -21,6 +21,9 @@ libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % 
 
 libraryDependencies += "commons-io" % "commons-io" % "2.4"
 
+libraryDependencies += "com.lihaoyi" %% "fastparse" % "0.3.7"
+libraryDependencies +=  "com.google.guava" % "guava" % "17.0"
+
 scalacOptions += "-deprecation"
 
 scalacOptions += "-feature"
@@ -37,3 +40,4 @@ dependencyClasspath in Compile += new File("../viper-api/bin")
 // Other projects, e.g., Carbon or Silicon, can then depend on the Sil test artifact, which
 // allows them to access the Sil test suite.
 publishArtifact in (Test, packageBin) := true
+
