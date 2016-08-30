@@ -82,5 +82,6 @@ valPrimary
  
 valReserved
  : 'create' | 'action' | 'destroy' | 'send' | 'recv' | 'use' | 'open' | 'close'
+ | 'atomic' 
  | '\\result' | '\\current_thread'
  ;

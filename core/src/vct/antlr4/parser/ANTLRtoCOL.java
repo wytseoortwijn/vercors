@@ -846,6 +846,12 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
   }
 
   public ASTNode getValStatement(ParserRuleContext ctx){
+    if (match(ctx,"spec_ignore","{")){
+      return create.special(SpecIgnoreStart);
+    }
+    if (match(ctx,"spec_ignore","}")){
+      return create.special(SpecIgnoreEnd);
+    }
     if (match(ctx,"assert",null,";")){
       return create.special(Assert,convert(ctx,1));
     }
