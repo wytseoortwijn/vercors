@@ -743,7 +743,7 @@ public class Main
           passes.add("lock-encode");
         }
         passes.add("standardize");
-        passes.add("check");        
+        passes.add("check");      
         if (features.usesOperator(StandardOperator.Wand)){
           passes.add("magicwand");
           passes.add("standardize");
