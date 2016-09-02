@@ -498,16 +498,11 @@ public class Main
           return new RecognizeMultiDim(arg).rewriteAll();
         }
       });
-     defined_passes.put("ref_array",new CompilerPass("rewrite array as a sequence of Refs"){
+      defined_passes.put("reorder",new CompilerPass("reorder statements (e.g. all declarations at the start of a bock"){
         public ProgramUnit apply(ProgramUnit arg,String ... args){
-          return new RewriteArrayRef(arg,RewriteArrayRef.Target.Ref).rewriteAll();
+          return new ReorderAssignments(arg).rewriteAll();
         }
       });
-     defined_passes.put("reorder",new CompilerPass("reorder statements (e.g. all declarations at the start of a bock"){
-       public ProgramUnit apply(ProgramUnit arg,String ... args){
-         return new ReorderAssignments(arg).rewriteAll();
-       }
-     });
      defined_passes.put("standardize-functions",new CompilerPass("translate pure methods to function syntax."){
        public ProgramUnit apply(ProgramUnit arg,String ... args){
          return new PureMethodsAsFunctions(arg).rewriteAll();
@@ -525,7 +520,7 @@ public class Main
      });
      defined_passes.put("rewrite_arrays",new CompilerPass("rewrite arrays to sequences of cells"){
         public ProgramUnit apply(ProgramUnit arg,String ... args){
-          return new RewriteArrayRef(arg,RewriteArrayRef.Target.Cell).rewriteAll();
+          return new RewriteArrayRef(arg).rewriteAll();
         }
       });
       defined_passes.put("rm_cons",new CompilerPass("???"){
@@ -863,15 +858,9 @@ public class Main
         passes.add("standardize");
         passes.add("check");
         
-        if (silver.used()) { // array handling for Silver
-          passes.add("ref_array");
-          passes.add("standardize");
-          passes.add("check");
-        } else { // array handling for Chalice
-          passes.add("rewrite_arrays");
-          passes.add("standardize");
-          passes.add("check");
-        }
+        passes.add("rewrite_arrays");
+        passes.add("standardize");
+        passes.add("check");
           
         passes.add("[globalize]");
           

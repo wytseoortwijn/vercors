@@ -10,6 +10,7 @@
 class Exercise4 {
   
   /*@
+     requires a!=null && b != null && res != null;
      requires a.length==b.length && res.length==2*a.length;
      requires (\forall* int i ; 0 <= i && i < a.length ; Perm(a[i],1));
      requires (\forall* int i ; 0 <= i && i < b.length ; Perm(b[i],1));
@@ -24,6 +25,7 @@ class Exercise4 {
   void zip(int[] a, int[] b, int[] res) {
     int k = 0;
     /*@
+      loop_invariant a!=null && b != null && res != null;
       loop_invariant 0 <= k ** k%2 ==0 ** k <= res.length ** a.length==b.length ** res.length==2*a.length;
       loop_invariant (\forall* int i ; 0 <= i && i < a.length ; Perm(a[i],1));
       loop_invariant (\forall* int i ; 0 <= i && i < b.length ; Perm(b[i],1));

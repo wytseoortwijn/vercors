@@ -138,6 +138,7 @@ lexpr : ('this' | '\\result' | identifier ) ('.' gen_id | '[' expr ']' )* ;
 
 type
  : CONTAINER '<' type '>'
+ | 'option' '<' type '>'
  | ( 'string' | 'process' | 'int' | 'boolean' | 'zfrac' | 'frac' | 'resource' | 'void' | classType ) ('[' expr? ']')*
  ;
 

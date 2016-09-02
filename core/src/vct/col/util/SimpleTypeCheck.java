@@ -420,6 +420,11 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
           e.setType(new PrimitiveType(PrimitiveType.Sort.Integer));
           break;
         }
+        case OptionNone:{
+          e.setType(new PrimitiveType(PrimitiveType.Sort.Option,
+              new ClassType("<<null>>")));
+          break;
+        }
       case Result:{
           Method m=current_method();
           if (m==null){
@@ -812,6 +817,19 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
         Abort("Argument of negation must be boolean at "+e.getOrigin());
       }
       e.setType(t);
+      break;
+    }
+    case OptionSome:{
+      Type t=e.getArg(0).getType();
+      e.setType(new PrimitiveType(Sort.Option,t));
+      break;
+    }
+    case OptionGet:{
+      Type t=e.getArg(0).getType();
+      if (!t.isPrimitive(Sort.Option)){
+        Fail("argument of option get is %s rather than option<?>",t);
+      }
+      e.setType((Type)((PrimitiveType)t).getArg(0));
       break;
     }
     case Identity:

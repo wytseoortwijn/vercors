@@ -2,10 +2,19 @@ package vct.col.rewrite;
 
 import hre.ast.MessageOrigin;
 
+import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map.Entry;
 import java.util.Stack;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import vct.antlr4.parser.Parsers;
 import vct.col.ast.*;
+import vct.col.ast.PrimitiveType.Sort;
+import vct.util.ClassName;
+import vct.util.Configuration;
 
 /**
  * This rewriter converts a program with classes into
@@ -23,11 +32,16 @@ public class SilverClassReduction extends AbstractRewriter {
   
   private ASTClass ref_class;
   
+  private ClassType ref_type;
+  
+  private HashSet<Type> ref_items=new HashSet<Type>();
+  
   public SilverClassReduction(ProgramUnit source) {
     super(source);
     create.setOrigin(new MessageOrigin("collected class Ref"));
     ref_class=create.ast_class("Ref", ASTClass.ClassKind.Record,null, null, null);
     target().add(ref_class);
+    ref_type=create.class_type("Ref");
   }
 
   @Override
@@ -43,6 +57,38 @@ public class SilverClassReduction extends AbstractRewriter {
           null
       ));
       ref_class.add(create.field_decl(ILLEGAL_CAST,create.class_type("Ref")));
+    }
+  }
+  
+  @Override
+  public void visit(NameExpression e){
+    if (e.isReserved(ASTReserved.OptionNone)){
+      Type t=rewrite(create.primitive_type(Sort.Option,
+          create.primitive_type(Sort.Sequence,
+              create.class_type("Ref"))));
+      result=create.invokation(t, null, "VCTNone");
+    } else {
+      super.visit(e);
+    }
+  }
+  
+  private boolean options=false;
+  
+  private AtomicInteger option_count=new AtomicInteger();
+  private HashMap<Type,String> option_get=new HashMap();
+  
+  @Override
+  public void visit(PrimitiveType t){
+    if (t.isPrimitive(Sort.Cell)){
+      ref_items.add((Type)rewrite(t.getArg(0)));
+      result=ref_type;
+    } else if (t.isPrimitive(Sort.Option)){
+      options=true;
+      ASTNode args[]=rewrite(((PrimitiveType)t).getArgs());
+      args[0].addLabel(create.label("T"));
+      result=create.class_type("VCTOption",args);
+    } else {
+      super.visit(t);
     }
   }
   
@@ -73,16 +119,38 @@ public class SilverClassReduction extends AbstractRewriter {
   @Override
   public void visit(Dereference e){
     if (e.object.getType()==null){
-      Warning("untyped object %s",e.object.getOrigin());
+      Fail("untyped object %s at %s",e.object,e.object.getOrigin());
       result=create.dereference(rewrite(e.object),"????"+SEP+e.field);
       return;
     }
-    result=create.dereference(rewrite(e.object),((ClassType)e.object.getType()).getName()+SEP+e.field);
+    Type t=e.object.getType();
+    if (t.isPrimitive(Sort.Cell)){
+      PrimitiveType tt=(PrimitiveType)t;
+      Type type=(Type)rewrite(tt.getArg(0));
+      String name=type.toString();
+      ref_items.add(type);
+      result=create.dereference(rewrite(e.object),name+SEP+e.field);
+    } else {
+      result=create.dereference(rewrite(e.object),((ClassType)t).getName()+SEP+e.field);
+    }
   }
   
   @Override
   public void visit(OperatorExpression e){
     switch(e.getOperator()){
+    case OptionSome:{
+      options=true;
+      Type t=rewrite(e.getType());
+      result=create.invokation(t, null,"VCTSome",rewrite(e.getArguments()));
+      break;
+    }
+    case OptionGet:{
+      options=true;
+      Type t=rewrite(e.getArg(0).getType());
+      String method=optionGet(t);
+      result=create.invokation(null, null,method,rewrite(e.getArguments()));
+      break;
+    }
     case New:{
       ClassType t=(ClassType)e.getArg(0);
       ASTClass cl=source().find(t);
@@ -114,5 +182,50 @@ public class SilverClassReduction extends AbstractRewriter {
     default:
       super.visit(e);
     }
+  }
+  
+  private String optionGet(Type t) {
+    String method=option_get.get(t);
+    if (method==null){
+      method="getVCTOption"+option_count.incrementAndGet();
+      option_get.put(t, method);
+    }
+    return method;
+  }
+
+  @Override
+  public ProgramUnit rewriteAll(){
+    ProgramUnit res=super.rewriteAll();
+    for(Type t:ref_items){
+      String s=t.toString();
+      ref_class.add_dynamic(create.field_decl(s+SEP+"item",t));
+    }
+    if (options){
+      File file=new File(new File(Configuration.getHome().toFile(),"config"),"prelude.sil");
+      ProgramUnit prelude=Parsers.getParser("sil").parse(file);
+      for(ASTNode n:prelude){
+        if (n instanceof ASTClass) continue;
+        res.add(n);
+      }
+      for(Entry<Type,String> entry:option_get.entrySet()){
+        create.enter();
+        create.setOrigin(new MessageOrigin("Generated OptionGet code"));
+        Type t=rewrite(entry.getKey());
+        Type returns=(Type)((ClassType)t).getArg(0);
+        String name=entry.getValue();
+        ContractBuilder cb=new ContractBuilder();
+        cb.requires(neq(create.local_name("x"),create.invokation(t,null,"VCTNone")));
+        DeclarationStatement args[]=new DeclarationStatement[]{
+          create.field_decl("x",t)
+        };
+        ASTNode body=create.invokation(t,null,"getVCTOption",create.local_name("x"));
+        Contract contract=cb.getContract();
+        Method method=create.function_decl(returns, contract, name, args, body);
+        method.setStatic(true);
+        res.add(method);
+        create.leave();
+      }
+    }
+    return res;
   }
 }

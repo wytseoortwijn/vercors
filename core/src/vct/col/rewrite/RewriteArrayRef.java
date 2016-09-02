@@ -30,13 +30,8 @@ import vct.util.Configuration;
 
 public class RewriteArrayRef extends AbstractRewriter {
 
-  public enum Target { Cell, Ref };
-  
-  public final Target target;
-  
-	public RewriteArrayRef(ProgramUnit source,Target target) {
+	public RewriteArrayRef(ProgramUnit source) {
 	  super(source);
-	  this.target=target;
   }
 	
   private HashSet<Type> new_array;
@@ -45,6 +40,7 @@ public class RewriteArrayRef extends AbstractRewriter {
 	@Override
 	public void visit(OperatorExpression e){
 		switch (e.getOperator()){
+		  case EQ:
 		  case NEQ:
 		  {
         ASTNode e0=e.getArg(0);
@@ -59,6 +55,10 @@ public class RewriteArrayRef extends AbstractRewriter {
         if(array==null){
           super.visit(e);
         } else {
+          result=create.expression(e.getOperator(),
+              create.reserved_name(ASTReserved.OptionNone),
+              rewrite(array));
+          /* TODO: this is old code that inserts information about the encoding.
           ASTNode base;
           Type t=array.getType();
           array=rewrite(array);
@@ -77,54 +77,44 @@ public class RewriteArrayRef extends AbstractRewriter {
           DeclarationStatement decl=create.field_decl("i_481",create.primitive_type(Sort.Integer));
           result=create.expression(StandardOperator.Star,
               base, create.starall(guard, claim, decl));
+           */
         }
 		    break;
 		  }
 		  case Subscript:
-		  	super.visit(e);
 			  if (e.getArg(0).getType().isPrimitive(Sort.Array)){
-			    switch(target){
-			    case Ref:{
-  			  	ASTNode res=result;
-  			  	Type t=(Type)e.getArg(0).getType().getArg(0);
-  			  	String field=t.toString()+"_value";
-  			  	ref_array.add(t);
-  			  	result=create.dereference(res,field);
-  			  	break;
-			    }
-			    case Cell:{
-            ASTNode res=result;
-            result=create.dereference(res,"item");
-            break;
-          }}
+			    
+          ASTNode res=create.expression(StandardOperator.OptionGet,rewrite(e.getArg(0)));
+          res=create.expression(StandardOperator.Subscript,res,rewrite(e.getArg(1)));
+          result=create.dereference(res,"item");
+			  } else {
+			    super.visit(e);
 			  }
 			  break;
-		  case Length:
-		    result=create.expression(StandardOperator.Size,rewrite(e.getArguments()));
+		  case Length:{
+		    ASTNode res=create.expression(StandardOperator.OptionGet,rewrite(e.getArg(0)));
+		    result=create.expression(StandardOperator.Size,res);
 		    break;
-		  case NewArray:
+		  }
+		  case NewArray:{
         Type t=(Type)e.getArg(0);
         new_array.add(t);
-		    switch(target){
-        case Ref:{
-  		    result=create.invokation(null,null,"new_array_"+t,rewrite(e.getArg(1)));
-	  	    break;
-        }
-        case Cell:{
-          result=create.invokation(null,null,"new_array_"+t,rewrite(e.getArg(1)));
-          break;
-          
-        }}
+        result=create.invokation(null,null,"new_array_some_"+t,rewrite(e.getArg(1)));
 		    break;
+		  }
 			default:
 				super.visit(e);
 		}
 	}
 	
-	@Override
+  @Override
 	public void visit(Dereference e){
 	  if (e.field.equals("length")){
-	    result=create.expression(StandardOperator.Size,rewrite(e.object));
+	    ASTNode res=rewrite(e.object);
+	    if (e.object.getType().isPrimitive(Sort.Array)){
+  	    res=create.expression(StandardOperator.OptionGet,res);
+	    }
+      result=create.expression(StandardOperator.Size,res);
 	  } else {
 	    super.visit(e);
 	  }
@@ -134,16 +124,11 @@ public class RewriteArrayRef extends AbstractRewriter {
 	public void visit(PrimitiveType t){
 		switch(t.sort){
 		case Array:
-		  switch(target){
-		  case Ref:
-		    Type tt=(Type)t.getArg(0);
-		    ref_array.add(tt);
-		    result=create.primitive_type(Sort.Sequence,create.class_type("Ref"));
-		    break;
-		  case Cell:
-  			result=create.primitive_type(Sort.Sequence,create.primitive_type(Sort.Cell,rewrite(t.getArg(0))));
-  			break;
-		  }
+			result=
+			  create.primitive_type(Sort.Option,
+			    create.primitive_type(Sort.Sequence,
+		          create.primitive_type(Sort.Cell,
+			        rewrite(t.getArg(0)))));
 			break;
 		  default:
 		  	super.visit(t);
@@ -153,19 +138,7 @@ public class RewriteArrayRef extends AbstractRewriter {
   @Override
   public ProgramUnit rewriteAll(){
     ProgramUnit res=super.rewriteAll();
-    if (target==Target.Ref){
-      ASTClass ref=res.find("Ref");
-      create.setOrigin(new MessageOrigin("Rewrite arrays to sequences"));
-      if (ref==null){
-        ref=create.ast_class("Ref",ASTClass.ClassKind.Plain,null,null,null);
-        res.add(ref);
-      }
-      for(Type t:ref_array){
-        String s=t.toString();
-        ref.add_dynamic(create.field_decl(s+"_value",t));
-      }
-      ref.add_dynamic(create.field_decl("array_dummy",create.primitive_type(Sort.Integer)));
-    }
+    // TODO: move newarray generation here.
     return res;
   }
 
@@ -176,11 +149,7 @@ public class RewriteArrayRef extends AbstractRewriter {
     ASTClass res=(ASTClass)result;
     for(Type t:new_array){
       Type result_type;
-      if (target==Target.Ref){
-        result_type=create.primitive_type(Sort.Sequence,create.class_type("Ref"));
-      } else {
-        result_type=create.primitive_type(Sort.Sequence,create.primitive_type(Sort.Cell,rewrite(t)));
-      }
+      result_type=create.primitive_type(Sort.Sequence,create.primitive_type(Sort.Cell,rewrite(t)));
       ContractBuilder cb=new ContractBuilder();
       
       cb.ensures(create.expression(StandardOperator.EQ,
@@ -191,21 +160,38 @@ public class RewriteArrayRef extends AbstractRewriter {
           less(create.local_name("i"),create.expression(StandardOperator.Size,create.reserved_name(ASTReserved.Result))));
       ASTNode base=create.expression(StandardOperator.Subscript,create.reserved_name(ASTReserved.Result),create.local_name("i"));
       ASTNode claim;
-      if (target==Target.Ref){
-        claim=create.expression(StandardOperator.Perm,
-            create.dereference(base,t+"_value")
-            ,create.reserved_name(ASTReserved.FullPerm));
-      } else {
-        claim=create.expression(StandardOperator.Perm,
+      claim=create.expression(StandardOperator.Perm,
             create.dereference(base,"item")
             ,create.reserved_name(ASTReserved.FullPerm));
-      }
       cb.ensures(create.starall(guard, claim, decl));
       DeclarationStatement args[]=new DeclarationStatement[]{create.field_decl("len",create.primitive_type(Sort.Integer))};
       res.add_dynamic(create.method_decl(result_type,cb.getContract(), "new_array_"+t, args,null));
     }
-    if (target==Target.Ref){
-      ref_array.addAll(new_array);
+    for(Type t:new_array){
+      Type result_type;
+      result_type=create.primitive_type(Sort.Option,
+          create.primitive_type(Sort.Sequence,
+              create.primitive_type(Sort.Cell,rewrite(t))));
+      ContractBuilder cb=new ContractBuilder();
+      cb.ensures(create.expression(StandardOperator.NEQ,
+          create.reserved_name(ASTReserved.Result),
+          create.reserved_name(ASTReserved.OptionNone)
+          ));
+      ASTNode Result=create.expression(StandardOperator.OptionGet,create.reserved_name(ASTReserved.Result));
+      cb.ensures(create.expression(StandardOperator.EQ,
+          create.expression(StandardOperator.Size,Result),
+          create.local_name("len")));
+      DeclarationStatement decl=create.field_decl("i",create.primitive_type(Sort.Integer));
+      ASTNode guard=and(lte(constant(0),create.local_name("i")),
+          less(create.local_name("i"),create.expression(StandardOperator.Size,Result)));
+      ASTNode base=create.expression(StandardOperator.Subscript,Result,create.local_name("i"));
+      ASTNode claim;
+      claim=create.expression(StandardOperator.Perm,
+            create.dereference(base,"item")
+            ,create.reserved_name(ASTReserved.FullPerm));
+      cb.ensures(create.starall(guard, claim, decl));
+      DeclarationStatement args[]=new DeclarationStatement[]{create.field_decl("len",create.primitive_type(Sort.Integer))};
+      res.add_dynamic(create.method_decl(result_type,cb.getContract(), "new_array_some_"+t, args,null));
     }
     new_array=null;
     result=res;

@@ -1,27 +1,24 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 //:: cases ZeroArrayLoop
-//:: tools silicon chalice
+//:: tools silicon
 //:: verdict Pass
 
 /**
-  vct --chalice ZeroArray.java
-  vct --silver=silicon_qp ZeroArray.java
-  should say:
-  PASS
+  This example can in principle work with Chalice, but
+  Chalice doe snto support the option<?> type yet.
 */
 
 public class ZeroArray {
     /*@ 
-        //requires Perm(ar[*],1);
-        //ensures  Perm(ar[*],1) **
+        requires ar!=null;
         requires (\forall* int k ; 0 <= k && k < ar.length ; Perm(ar[k],1));
-        ensures  (\forall* int k ; 0 <= k && k < ar.length ; Perm(ar[k],1));
+        ensures (\forall* int k ; 0 <= k && k < ar.length ; Perm(ar[k],1));
         ensures (\forall int k ; 0 <= k && k < ar.length ; ar[k]==0 ) ;
      */
     public void zero_array(int ar[]){
         int i=0;
         int N=ar.length;
-        //@ loop_invariant 0<= i && i<=N && N==ar.length;
+        //@ loop_invariant 0<= i && i<=N && ar!=null && N==ar.length ;
         //@ loop_invariant (\forall* int k ; 0 <= k && k < ar.length ; Perm(ar[k],1));
         //@ loop_invariant (\forall int k ; 0 <= k && k < i ; ar[k]==0 ) ;
         while(i<N){

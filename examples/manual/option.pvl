@@ -1,0 +1,12 @@
+
+
+class optiontest {
+  void test(){
+    option<int> x=None;
+    option<int> y=Some(37);
+    
+    assert x != y;
+  }
+}
+
+

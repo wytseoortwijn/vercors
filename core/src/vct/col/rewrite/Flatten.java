@@ -300,6 +300,7 @@ public class Flatten extends AbstractRewriter {
         current_block=create.block();
         declaration_block=current_block;
         visit_body(body);
+        declaration_block=null;
         res.setBody(current_block);
         current_block=block_stack.pop();
       } else {
