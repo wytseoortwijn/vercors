@@ -37,15 +37,21 @@ public class PropagateInvariants extends AbstractRewriter {
     result=res;
   }
   
-  /*
+  
   @Override
   public void visit(ParallelRegion region){
-    ContractBuilder cb=new ContractBuilder();
-    for(ASTNode inv:invariants) { cb.prependInvariant(inv); }
-    rewrite(region.contract,cb);
-    result=create.region(cb.getContract(),rewrite(region.blocks));
+    if (region.contract !=null && !region.contract.isEmpty()){
+      ContractBuilder cb=new ContractBuilder();
+      for(ASTNode inv:invariants) { cb.prependInvariant(inv); }
+      rewrite(region.contract,cb);
+      invariants.push(region.contract.invariant);
+      ParallelBlock blocks[]=rewrite(region.blocks);
+      invariants.pop();
+      result=create.region(cb.getContract(),blocks);
+    } else {
+      super.visit(region);
+    }
   }
-  */
   
   @Override
   public void visit(ParallelBarrier pb){

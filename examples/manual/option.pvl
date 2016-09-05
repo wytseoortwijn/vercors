@@ -1,4 +1,12 @@
+// -*- tab-width:2 ; indent-tabs-mode:nil -*-
+//:: case OptionTypeManual
+//:: suite problem-fail
+//:: tools silicon
 
+/*
+  The problem is that None cannot be type checked.
+  We need (restricted) type inference to get this done.
+*/
 
 class optiontest {
   void test(){

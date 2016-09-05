@@ -24,8 +24,7 @@ valContractClause
  ;
 
 valStatement
- : 'invariant' expression ';'
- | 'loop_invariant' expression ';'
+ : 'loop_invariant' expression ';'
  | 'create' block               // create a magic wand
  | 'qed' expression ';'
  | 'apply' expression ';'

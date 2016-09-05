@@ -61,7 +61,10 @@ class KernelBodyRewriter extends AbstractRewriter {
     for(DeclarationStatement d:m.getArgs()){
       decls.add(rewrite(d));
     }
-    rewrite(m.getContract(),icb);
+    Contract c=m.getContract();
+    rewrite(c,icb);
+    gcb.appendInvariant(rewrite(c.invariant));
+    kcb.appendInvariant(rewrite(c.invariant));
     Contract ic=rewrite(m.getContract());
     for(ASTNode clause:ASTUtils.conjuncts(ic.pre_condition, StandardOperator.Star)){
       ASTNode group=create.starall(

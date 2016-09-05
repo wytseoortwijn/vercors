@@ -427,6 +427,9 @@ public class ParallelBlockEncoder extends AbstractRewriter {
     HashMap<NameExpression, ASTNode> map2=new HashMap();
     Substitution sigma2=new Substitution(source(),map2);
     ContractBuilder cb=new ContractBuilder();
+    if (region.contract!=null){
+      cb.requires(region.contract.invariant);
+    }
     cb.requires(pre_condition);
     Hashtable<String,Type> main_vars=free_vars(pre_condition);
     ArrayList<ASTNode> list=new ArrayList();
