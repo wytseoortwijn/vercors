@@ -77,6 +77,7 @@ public class VerCorsSyntax {
     syntax.add_annotation(ASTSpecial.Kind.Assume, "assume");
     
     syntax.add_annotation(ASTSpecial.Kind.Invariant, "loop_invariant");
+    syntax.add_annotation(ASTSpecial.Kind.Invariant, "invariant");
     syntax.add_annotation(ASTSpecial.Kind.Label, "label");
     syntax.add_annotation(ASTSpecial.Kind.CSLSubject, "csl_subject");
 

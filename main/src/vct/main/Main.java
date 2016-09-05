@@ -62,6 +62,7 @@ import vct.col.rewrite.OpenMPtoPVL;
 import vct.col.rewrite.OptimizeQuantifiers;
 import vct.col.rewrite.PVLCompiler;
 import vct.col.rewrite.ParallelBlockEncoder;
+import vct.col.rewrite.PropagateInvariants;
 import vct.col.rewrite.PureMethodsAsFunctions;
 import vct.col.rewrite.RandomizedIf;
 import vct.col.rewrite.RecognizeMultiDim;
@@ -513,6 +514,11 @@ public class Main
          return new JavaResolver(arg).rewriteAll();
        }
      });
+     defined_passes.put("propagate-invariants",new CompilerPass("propagate invariants"){
+       public ProgramUnit apply(ProgramUnit arg,String ... args){
+         return new PropagateInvariants(arg).rewriteAll();
+       }
+     });
      defined_passes.put("quant-optimize",new CompilerPass("insert satisfyability checks for all methods"){
        public ProgramUnit apply(ProgramUnit arg,String ... args){
          return new OptimizeQuantifiers(arg).rewriteAll();
@@ -732,6 +738,7 @@ public class Main
         passes=new LinkedBlockingDeque<String>();
         passes.add("java_resolve");
         if (sat_check.get()) passes.add("sat_check");
+        passes.add("propagate-invariants");
         if (features.usesSpecial(ASTSpecial.Kind.Lock)
            ||features.usesSpecial(ASTSpecial.Kind.Unlock)
         ){

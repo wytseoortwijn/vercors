@@ -181,6 +181,7 @@ public class ParallelBlockEncoder extends AbstractRewriter {
           check_cb.ensures(create.starall(iters_guard, clause,iters_decl));
         }
       }
+      check_cb.appendInvariant(pb.contract.invariant);
       count++;
       String main_name="barrier_main_"+count;
       String check_name="barrier_check_"+count;
@@ -263,6 +264,7 @@ public class ParallelBlockEncoder extends AbstractRewriter {
       for(ParallelBlock pb:region.blocks){
         Contract c=(Contract)rewrite((ASTNode)pb);
         if (c!=null){
+          main_cb.requires(c.invariant);
           main_cb.requires(c.pre_condition);
           main_cb.ensures(c.post_condition);
         } else {
@@ -544,6 +546,8 @@ public class ParallelBlockEncoder extends AbstractRewriter {
   
   private Stack<ASTNode> guard_stack=new Stack();
   
+  private ASTNode loop_invariant;
+  
   private class SendRecvInfo {
     final String label=current_label;
     final ArrayList<ASTNode> guards=new ArrayList(guard_stack);
@@ -602,7 +606,11 @@ public class ParallelBlockEncoder extends AbstractRewriter {
         ArrayList<ASTNode> send_args=new ArrayList();// the arguments to the host_check method
         
         vars=new Hashtable<String,Type>();
-        e.accept(new NameScanner(vars));
+        {
+        NameScanner scanner=new NameScanner(vars);
+        e.accept(scanner);
+        loop_invariant.accept(scanner);
+        }
         
         for(String var:vars.keySet())  
         {
@@ -610,7 +618,10 @@ public class ParallelBlockEncoder extends AbstractRewriter {
             send_args.add(create.unresolved_name(var));
         }
       
-        cb = new ContractBuilder();          
+        cb = new ContractBuilder();
+        cb.requires(copy_rw.rewrite(loop_invariant));
+        cb.ensures(copy_rw.rewrite(loop_invariant));
+         
       cb.requires(copy_rw.rewrite(e.getArg(0))); //update new contract
   
       Method send_body=create.method_decl(
@@ -655,7 +666,11 @@ public class ParallelBlockEncoder extends AbstractRewriter {
         ArrayList<ASTNode> recv_args=new ArrayList();// the arguments to the host_check method
         
         vars=new Hashtable<String,Type>();
-        e.accept(new NameScanner(vars));
+        {
+        NameScanner scanner=new NameScanner(vars);
+        e.accept(scanner);
+        loop_invariant.accept(scanner);
+        }
         
         for(String var:vars.keySet())  
         {
@@ -663,7 +678,10 @@ public class ParallelBlockEncoder extends AbstractRewriter {
             recv_args.add(create.unresolved_name(var));
         }
       
-        cb = new ContractBuilder();          
+        cb = new ContractBuilder();
+        cb.requires(copy_rw.rewrite(loop_invariant));
+        cb.ensures(copy_rw.rewrite(loop_invariant));
+         
       cb.ensures(copy_rw.rewrite(e.getArg(0))); //update new contract
       
       Method recv_body=create.method_decl(
@@ -710,6 +728,7 @@ public class ParallelBlockEncoder extends AbstractRewriter {
     
   private ASTNode do_block(ForEachLoop s,final boolean contract){
     Contract c=s.getContract();
+    loop_invariant=c.invariant;
     ASTNode res=null;
     Hashtable<String,Type> body_vars=free_vars(s.body,c,s.guard);
     //System.out.printf("free in %s are %s%n",s.body,body_vars);
@@ -912,7 +931,7 @@ public class ParallelBlockEncoder extends AbstractRewriter {
     if (!contract) {
       res=gen_call(main_name,main_vars);
     }
-    
+    loop_invariant=null;
     return res;
   }
   
@@ -955,6 +974,8 @@ public class ParallelBlockEncoder extends AbstractRewriter {
         Substitution shift=new Substitution(null,shift_map);
         // create guard check.
         cb=new ContractBuilder();
+        cb.requires(loop_invariant);
+        cb.ensures(loop_invariant);
         cb.requires(guard);
         for(ASTNode g:recv_entry.guards){
           cb.requires(g);
@@ -977,6 +998,9 @@ public class ParallelBlockEncoder extends AbstractRewriter {
         currentTargetClass.add_dynamic(guard_method);
         //create resource check
         cb=new ContractBuilder();
+        cb.requires(loop_invariant);
+        cb.ensures(loop_invariant);
+
         cb.requires(guard);
         // lower bound is already guaranteed by guard check.
         //cb.requires(create.expression(StandardOperator.LTE,

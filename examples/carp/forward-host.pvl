@@ -7,7 +7,7 @@
 
 class Ref {
 
-    requires N>0;
+    invariant N>0 && a != null && b != null && c != null;
 
     requires (\forall* int i ; 0 <= i && i < N ; Perm(a[i],write));
     requires (\forall* int i ; 0 <= i && i < N ; Perm(b[i],1/2));
@@ -55,7 +55,7 @@ class Ref {
   }
 
  
-   requires N>10;
+   invariant N>10 && a != null && b != null && c != null;
    requires (\forall* int i ; 0 <= i && i < N ; Perm(a[i],write));
    requires (\forall* int i ; 0 <= i && i < N ; Perm(b[i],write));
    requires (\forall* int i ; 0 <= i && i < N ; Perm(c[i],write));

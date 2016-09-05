@@ -513,17 +513,18 @@ class summation {
   requires hi <= |ar|;
   static int sum_list(int i,int hi,seq<int> ar) = (i < hi ? (ar[i] + sum_list(i+1,hi,ar)) : 0 );
 
-  requires 0 <= lo && lo <= i && i <= hi;
+
+  requires 0 <= lo && lo <= i && i <= hi && ar !=null;
   requires (\forall* int k ; lo <= k && k < hi ; Value(ar[k]));
   static int sum_array(int i,int lo,int hi,int ar[]) = (i < hi ? (ar[i] + sum_array(i+1,lo,hi,ar)) : 0 );
 
-  requires 0 <= lo && lo <= hi && hi <= step && step > 0;
+  requires 0 <= lo && lo <= hi && hi <= step && step > 0 && ar !=null;
   requires 0 <= min && min <= i && i <= max;
   requires (\forall* int k ; min <= k && k < max && lo <= (k % step) && (k % step) < hi ; Value(ar[k]));
   static int sum_square(int i,int lo,int hi,int step,int min,int max,int ar[])=
     (i < max ?  ( lo <= (i % step) && (i% step) < hi ? ar[i] : 0 ) + sum_square(i+1,lo,hi,step,min,max,ar) : 0 );
 
-  requires 0 <= lo && lo <= hi && hi <= step && step > 0;
+  requires 0 <= lo && lo <= hi && hi <= step && step > 0 && ar !=null;
   requires 0 <= min && min <= i && i <= max;
   requires (\forall* int k ; min <= k && k < max && lo <= (k % step) && (k % step) < hi ; Value(ar[k]));
   static int count_square(int i,int lo,int hi,int step,int min,int max,int ar[],int v)=
@@ -533,7 +534,7 @@ class summation {
   requires hi <= |ar|;
   static int count_list(int i,int hi,seq<int> ar,int v) = (i < hi ? ((ar[i]==v?1:0) + count_list(i+1,hi,ar,v)) : 0 );
   
-  requires 0 <= i && i <= hi;
+  requires 0 <= i && i <= hi && ar !=null;
   requires (\forall* int k ; 0 <= k && k < hi ; Value(ar[k]));
   static int count_array(int i,int hi,int ar[],int v) = (i < hi ? ((ar[i]==v?1:0) + count_array(i+1,hi,ar,v)) : 0 );
 

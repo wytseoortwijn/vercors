@@ -1,8 +1,10 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 //:: cases ZeroKernel
-//:: tools silicon
+//:: tools
+
+// disabled due to refactoring of kernel support.
+
 //:: verdict Pass
-// vct --silver=silicon_qp zero-kernel.pvl
 
 kernel zero {
 

@@ -13,6 +13,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import vct.antlr4.parser.Parsers;
 import vct.col.ast.*;
 import vct.col.ast.PrimitiveType.Sort;
+import vct.col.util.ASTUtils;
 import vct.util.ClassName;
 import vct.util.Configuration;
 
@@ -193,6 +194,46 @@ public class SilverClassReduction extends AbstractRewriter {
     return method;
   }
 
+  @Override
+  public void visit(Method m){
+    String name=m.getName();
+    ContractBuilder cb=new ContractBuilder();
+    DeclarationStatement args[]=rewrite(m.getArgs());
+    Contract c=m.getContract();
+    if (c!=null){
+      cb.given(rewrite(c.given));
+      cb.yields(rewrite(c.yields));
+      if (c.modifies!=null) cb.modifies(rewrite(c.modifies)); 
+      if (c.accesses!=null) cb.accesses(rewrite(c.accesses)); 
+      in_requires=true;
+      for(ASTNode clause:ASTUtils.conjuncts(c.invariant,StandardOperator.Star)){
+        cb.requires(rewrite(clause));
+      }
+      for(ASTNode clause:ASTUtils.conjuncts(c.pre_condition,StandardOperator.Star)){
+        cb.requires(rewrite(clause));
+      }
+      in_requires=false;
+      in_ensures=true;
+      for(ASTNode clause:ASTUtils.conjuncts(c.invariant,StandardOperator.Star)){
+        cb.ensures(rewrite(clause));
+      }
+      for(ASTNode clause:ASTUtils.conjuncts(c.post_condition,StandardOperator.Star)){
+        cb.ensures(rewrite(clause));
+      }
+      in_ensures=false;
+      if (c.signals!=null) for(DeclarationStatement decl:c.signals){
+        cb.signals((ClassType)rewrite(decl.getType()),decl.getName(),rewrite(decl.getInit()));      
+      }
+    }
+    Method.Kind kind=m.kind;
+    Type rt=rewrite(m.getReturnType());
+    c=cb.getContract();
+    currentContractBuilder=null;
+    ASTNode body=rewrite(m.getBody());
+    result=create.method_kind(kind, rt, c, name, args, m.usesVarArgs(), body);
+
+  }
+  
   @Override
   public ProgramUnit rewriteAll(){
     ProgramUnit res=super.rewriteAll();

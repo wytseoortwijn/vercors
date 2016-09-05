@@ -20,6 +20,7 @@ valContractClause
  | 'ensures' expression ';'
  | 'given' type identifier ';'
  | 'yields' type identifier ';'
+ | 'invariant' expression ';'
  ;
 
 valStatement

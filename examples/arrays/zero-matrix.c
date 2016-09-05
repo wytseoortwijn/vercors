@@ -3,6 +3,7 @@
 //:: tools silicon
 
 /*@
+  invariant matrix != NULL;
   requires M>0 && N > 0 ;
   requires (\forall* int i1 ; 0 <= i1 && i1 < M ;
              (\forall* int j1 ; 0 <= j1 && j1 < N ;

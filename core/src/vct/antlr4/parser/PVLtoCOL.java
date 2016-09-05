@@ -110,6 +110,10 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
         cb.ensures(convert(ctx2,1));
         continue;
       }
+      if (match(ctx2,"invariant",null,";")){
+        cb.appendInvariant(convert(ctx2,1));
+        continue;
+      }
       if (match(ctx2,"given",null,null,";")){
         cb.given(create.field_decl(getIdentifier(ctx2, 2),checkType(convert(ctx2,1))));
         continue;
