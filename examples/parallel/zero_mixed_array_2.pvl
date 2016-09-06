@@ -1,7 +1,6 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
-//:: cases ZeroMixedArray2
-//:: tools silicon
-class Ref {
+//:: cases ZeroMultiple
+class ZeroMixedArray {
   invariant ar != null;
   requires N>0 && M > 0 ;
   requires (\forall* int i;0 <= i && i < M*N ; Perm(ar[i],write));

@@ -1,7 +1,7 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
-//:: cases ZeroArrayIC-PVL
-//:: tools silicon
-class Ref {
+//:: cases ZeroMultiple
+
+class ZeroArrayIC {
   invariant ar != null;
   requires N>0;
   requires (\forall* int i;0 <= i && i < N ; Perm(ar[i],write));

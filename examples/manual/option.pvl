@@ -1,7 +1,7 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 //:: case OptionTypeManual
 //:: tools silicon
-//:: verdict pass
+//:: verdict Pass
 
 /*
   Note that None cannot be type checked. Type inference is needed

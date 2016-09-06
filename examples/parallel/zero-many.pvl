@@ -1,7 +1,8 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
-//:: cases ZeroMany
+//:: cases ZeroMultiple
 //:: tools silicon
-class Ref {
+//:: verdict Pass
+class ZeroMany {
   int x;
 
   invariant ar != null && matrix != null;
