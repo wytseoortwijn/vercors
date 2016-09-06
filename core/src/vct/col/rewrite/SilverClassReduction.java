@@ -64,9 +64,7 @@ public class SilverClassReduction extends AbstractRewriter {
   @Override
   public void visit(NameExpression e){
     if (e.isReserved(ASTReserved.OptionNone)){
-      Type t=rewrite(create.primitive_type(Sort.Option,
-          create.primitive_type(Sort.Sequence,
-              create.class_type("Ref"))));
+      Type t=rewrite(e.getType());
       result=create.invokation(t, null, "VCTNone");
     } else {
       super.visit(e);
@@ -76,7 +74,7 @@ public class SilverClassReduction extends AbstractRewriter {
   private boolean options=false;
   
   private AtomicInteger option_count=new AtomicInteger();
-  private HashMap<Type,String> option_get=new HashMap();
+  private HashMap<Type,String> option_get=new HashMap<Type,String>();
   
   @Override
   public void visit(PrimitiveType t){
@@ -155,7 +153,7 @@ public class SilverClassReduction extends AbstractRewriter {
     case New:{
       ClassType t=(ClassType)e.getArg(0);
       ASTClass cl=source().find(t);
-      ArrayList<ASTNode>args=new ArrayList();
+      ArrayList<ASTNode>args=new ArrayList<ASTNode>();
       //NameExpression f=create.field_name("A__x");
       //f.setSite(ref_class);
       for(DeclarationStatement field:cl.dynamicFields()){
