@@ -52,7 +52,7 @@ class DefaultVerifier(val config: Config)
   protected implicit val manifestH: Manifest[H] = manifest[H]
 
   val bookkeeper = new Bookkeeper(config)
-  val stateFormatter = new DefaultStateFormatter[ST, H, S](config)
+  val stateFormatter = new DefaultStateFormatter[ST,H,S](config)
   val symbolConverter = new DefaultSymbolConvert()
   val domainTranslator = new DefaultDomainsTranslator(symbolConverter)
   val stateFactory = new DefaultStateFactory()
@@ -94,6 +94,8 @@ class DefaultVerifier(val config: Config)
   
   def verify(program: ast.Program): List[VerificationResult] = {
     emitPreamble(program)
+    SymbExLogger.resetMemberList()
+    SymbExLogger.setConfig(config)
 
     //    ev.predicateSupporter.handlePredicates(program)
 
@@ -147,6 +149,11 @@ class DefaultVerifier(val config: Config)
             List()
           }
         })
+        
+    /** Write JavaScript-Representation of the log if the SymbExLogger is enabled */
+    SymbExLogger.writeJSFile()
+    /** Write DOT-Representation of the log if the SymbExLogger is enabled */
+    SymbExLogger.writeDotFile()
 
     (functionVerificationResults
       ++ predicateVerificationResults
