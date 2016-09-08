@@ -251,7 +251,15 @@ public enum StandardOperator {
   /**
    * The built-in join token of PVL.
    */
-  PVLjoinToken(1)
+  PVLjoinToken(1),
+  /**
+   * The Some case for the option type.
+   */
+  OptionSome(1),
+  /**
+   * The get operator for the options type.
+   */
+  OptionGet(1)
   ;
 
   private final int arity;

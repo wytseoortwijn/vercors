@@ -186,8 +186,10 @@ public class VerCorsExpressionFactory implements
 
   @Override
   public ASTNode drop(Origin o, ASTNode e1, ASTNode e2) {
-    // TODO Auto-generated method stub
-    throw new HREError("missing case");
+    enter(o);
+    ASTNode res=create.expression(StandardOperator.Drop, e1,e2);
+    leave();
+    return res;
   }
 
   private void enter(Origin o){
@@ -329,8 +331,10 @@ public class VerCorsExpressionFactory implements
 
   @Override
   public ASTNode index(Origin o, ASTNode e1, ASTNode e2) {
-    // TODO Auto-generated method stub
-    throw new HREError("missing case");
+    enter(o);
+    ASTNode res=create.expression(StandardOperator.Subscript, e1,e2);
+    leave();
+    return res;
   }
 
   private void leave(){
@@ -501,8 +505,10 @@ public class VerCorsExpressionFactory implements
 
   @Override
   public ASTNode take(Origin o, ASTNode e1, ASTNode e2) {
-    // TODO Auto-generated method stub
-    throw new HREError("missing case");
+    enter(o);
+    ASTNode res=create.expression(StandardOperator.Take, e1,e2);
+    leave();
+    return res;
   }
 
   @Override

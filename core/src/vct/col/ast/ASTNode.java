@@ -131,8 +131,8 @@ public abstract class ASTNode implements ASTFlags {
     if (this.origin!=null) throw new Error("origin already set");
     if (origin==null) {
       this.origin=new MessageOrigin("NULL ORIGIN");
-      System.err.printf("Illegal null origin for %s%n",Configuration.getDiagSyntax().print(this));
-      throw new Error("illegal null origin");
+      //System.err.printf("Illegal null origin for %s%n",Configuration.getDiagSyntax().print(this));
+      //throw new Error("illegal null origin");
     }
     this.origin=origin;
   }

@@ -3,6 +3,7 @@
 //:: tools silicon
 //:: verdict Pass
 /*@
+  invariant a != NULL;
   requires \length(a)==len ** (\forall* int i ; 0 <= i && i < len ; Perm(a[i],write));
   ensures  \length(a)==len ** (\forall* int i ; 0 <= i && i < len ; Perm(a[i],write));
   ensures  (\forall int i ; 0 <= i && i < len ; a[i]==\old(a[i]));

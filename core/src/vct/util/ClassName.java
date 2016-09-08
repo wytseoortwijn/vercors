@@ -37,7 +37,11 @@ public class ClassName {
   public String toString() {
     return toString(".");
   }
-  public String toString(String separator) {
+  public String toString(String separator){
+    return toString(name,separator); 
+  }
+  
+  public static String toString(String[] name,String separator) {
     StringBuilder builder=new StringBuilder();
     builder.append(name[0]);
     for(int i=1;i<name.length;i++){

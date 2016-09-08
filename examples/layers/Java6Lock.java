@@ -60,7 +60,8 @@ class Thread {
     
     inline thread_local resource common()= Value(T) **
       Value(L) ** L > 0 ** 0 <= \current_thread < T **
-      Value(locks) ** (\forall* int l ; 0 <= l < L ;
+      Value(locks) ** locks != null **
+      (\forall* int l ; 0 <= l < L ;
         Value(locks[l]) ** Value(locks[l].count) **
         Value(locks[l].owner) ** Value(locks[l].subject)
         ** Value(locks[l].T) ** locks[l].T==T);
@@ -68,7 +69,7 @@ class Thread {
 // begin(lockset)
 thread_local resource lockset(bag<int> S)=
   Value(T) ** 0 <= \current_thread < T **
-  Value(L) ** L > 0 ** Value(locks) **
+  Value(L) ** L > 0 ** Value(locks) ** locks != null **
   (\forall* int l ; 0 <= l < L ;
      Value(locks[l]) ** Value(locks[l].subject) **
      Value(locks[l].T) ** locks[l].T==T **
@@ -130,7 +131,7 @@ class Lock {
     inline resource common()=
       Value(count) ** Value(owner) **
       Value(T) ** 0 <= \current_thread < T **
-      Value(held) **
+      Value(held) ** held != null **
       Value(subject);
       
     inline resource APerm(loc<AtomicInteger> ref,frac p)=
@@ -142,7 +143,7 @@ class Lock {
 /*@
 // begin(invariant)
 resource csl_invariant()= Value(T) ** T > 0 **
-   Value(held) ** Value(subject) **
+   Value(held) ** held != null ** Value(subject) **
    APerm(count,1/2) ** APerm(owner,1/2) **
    (count.val == 0 ==> subject.inv() **
            APerm(count,1/2) ** APerm(owner,1/2)) **
@@ -158,7 +159,7 @@ resource csl_invariant()= Value(T) ** T > 0 **
   /*@
     inline thread_local
 // begin(invariant)
-    resource lockset_part()=
+    resource lockset_part()= held!=null **
        Perm(held[\current_thread],1/2) **
        (held[\current_thread] > 0 ==>
           APointsTo(count,1/2,held[\current_thread]) **

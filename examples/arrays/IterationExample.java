@@ -4,6 +4,7 @@
 //:: verdict Pass
 class Ref {
   /*@
+    invariant a != null;
     requires (\forall* int i ; 0 <= i && i < a.length ; Perm(a[i],write));
     ensures  (\forall* int i ; 0 <= i && i < a.length ; Perm(a[i],write));
   @*/

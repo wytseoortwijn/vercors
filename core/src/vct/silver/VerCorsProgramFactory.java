@@ -253,6 +253,10 @@ public class VerCorsProgramFactory implements
           ArrayList<E> posts=new ArrayList<E>();
           Contract c=m.getContract();
           if (c!=null){
+            for(ASTNode n:ASTUtils.conjuncts(c.invariant,StandardOperator.Star)){
+              pres.add(n.apply(expr));
+              posts.add(n.apply(expr));
+            }
             for(ASTNode n:ASTUtils.conjuncts(c.pre_condition,StandardOperator.Star)){
               pres.add(n.apply(expr));
             }

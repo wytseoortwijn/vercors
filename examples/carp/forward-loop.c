@@ -3,9 +3,8 @@
 //:: tools silicon
 //:: verdict Pass
 
-// vct --silver=silicon_qp forward-dep.c 
-
 /*@
+  invariant a != NULL && b != NULL && c != NULL;
   requires \length(a)==len ** (\forall* int i ; 0 <= i && i < len ; Perm(a[i],write));
   requires \length(b)==len ** (\forall* int i ; 0 <= i && i < len ; Perm(b[i],1/2));
   requires \length(c)==len ** (\forall* int i ; 0 <= i && i < len ; Perm(c[i],write));

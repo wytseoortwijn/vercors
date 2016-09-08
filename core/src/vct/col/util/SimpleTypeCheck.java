@@ -3,6 +3,7 @@ package vct.col.util;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import vct.col.ast.*;
 import vct.col.ast.NameExpression.Kind;
@@ -14,7 +15,7 @@ import vct.silver.SilverTypeMap;
 import vct.util.Configuration;
 
 public class SimpleTypeCheck extends RecursiveVisitor<Type> {
-
+  
   public void check(){
     for(ASTDeclaration entry:source().get()){
       entry.accept(this);
@@ -271,6 +272,9 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     if (loc_type.isPrimitive(Sort.Fraction)||loc_type.isPrimitive(Sort.ZFraction)){
       force_frac(val);
     }
+    if (loc_type.isPrimitive(Sort.Option)){
+      val.setType(loc_type);
+    }
   }
   public void visit(AssignmentStatement s){
     ASTNode val=s.getExpression();
@@ -418,6 +422,11 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
         }
         case CurrentThread:{
           e.setType(new PrimitiveType(PrimitiveType.Sort.Integer));
+          break;
+        }
+        case OptionNone:{
+          e.setType(new PrimitiveType(PrimitiveType.Sort.Option,
+              new ClassType("<<null>>")));
           break;
         }
       case Result:{
@@ -775,6 +784,17 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       if (t2.isPrimitive(Sort.ZFraction) || t2.isPrimitive(Sort.Fraction)){
         force_frac(e.getArg(0));
       }
+      if (t1.isPrimitive(Sort.Option)) {
+        // TODO: use type inference instead of this quick fix
+        Type tt1=(Type)t1.getArg(0);
+        Type tt2=(Type)t2.getArg(0);
+        if (tt1.toString().equals("<<null>>")) {
+          e.getArg(0).setType(t2);
+        }
+        if (tt2.toString().equals("<<null>>")){
+          e.getArg(1).setType(t1);
+        }
+      }
       break;
     }
     case ITE:
@@ -812,6 +832,19 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
         Abort("Argument of negation must be boolean at "+e.getOrigin());
       }
       e.setType(t);
+      break;
+    }
+    case OptionSome:{
+      Type t=e.getArg(0).getType();
+      e.setType(new PrimitiveType(Sort.Option,t));
+      break;
+    }
+    case OptionGet:{
+      Type t=e.getArg(0).getType();
+      if (!t.isPrimitive(Sort.Option)){
+        Fail("argument of option get is %s rather than option<?>",t);
+      }
+      e.setType((Type)((PrimitiveType)t).getArg(0));
       break;
     }
     case Identity:

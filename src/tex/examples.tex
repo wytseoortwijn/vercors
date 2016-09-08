@@ -170,9 +170,13 @@ when writing list constants.
 \section{Working with arrays}\label{sec:arrays}
 
 In \listref{array copy}, we show the implementation of array copy complete with the full functional specification.
-Note that we do not use a function to compute the contents of an array. This is because
-there is a bug in Silicon that renders it unable to use the ensures clause of a function
-that requires a quantified permission.
+We have chosen to use the style of pure separation logic in which
+the program variables and values are kept strictly separate.
+Instead, we could have used a function that computes the contents of an array.
+Note that, just as in Java, arrays in PVL can be null. Thus it is
+necessary to state that an array is not equal to null before 
+you access it.
+
 
 \begin{listing}
 \lstinputlisting{array-all.pvl}

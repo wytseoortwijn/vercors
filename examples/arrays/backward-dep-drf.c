@@ -3,13 +3,16 @@
 //:: tools silicon
 
 /*@
-  requires \length(a)==N ** (\forall* int i ; 0 <= i && i < N ; Perm(a[i],write));
-  requires \length(b)==N ** (\forall* int i ; 0 <= i && i < N ; Perm(b[i],1/2));
-  requires \length(c)==N ** (\forall* int i ; 0 <= i && i < N ; Perm(c[i],write));
+  invariant  a!=NULL && b !=NULL && c!=NULL;
+  invariant \length(a)==N && \length(b)==N && \length(c)==N;
 
-  ensures  \length(a)==N ** (\forall* int i ; 0 <= i && i < N ; Perm(a[i],write));
-  ensures  \length(b)==N ** (\forall* int i ; 0 <= i && i < N ; Perm(b[i],1/2));
-  ensures  \length(c)==N ** (\forall* int i ; 0 <= i && i < N ; Perm(c[i],write));
+  requires (\forall* int i ; 0 <= i && i < N ; Perm(a[i],write));
+  requires (\forall* int i ; 0 <= i && i < N ; Perm(b[i],1/2));
+  requires (\forall* int i ; 0 <= i && i < N ; Perm(c[i],write));
+
+  ensures  (\forall* int i ; 0 <= i && i < N ; Perm(a[i],write));
+  ensures  (\forall* int i ; 0 <= i && i < N ; Perm(b[i],1/2));
+  ensures  (\forall* int i ; 0 <= i && i < N ; Perm(c[i],write));
   @*/
 void example(int a[],int b[],int c[],int N){  
   for(int i=0;i < N;i++)

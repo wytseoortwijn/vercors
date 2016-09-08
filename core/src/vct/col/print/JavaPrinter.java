@@ -1220,6 +1220,14 @@ public class JavaPrinter extends AbstractPrinter {
         t.getArg(0).accept(this);
         out.printf(">");
         break;
+      case Option:
+        if (t.getArgCount()!=1){
+          Fail("Option type constructor with %d arguments instead of 1",t.getArgCount());
+        }
+        out.printf("option<");
+        t.getArg(0).accept(this);
+        out.printf(">");
+        break;
       case Sequence:
         if (t.getArgCount()!=1){
           Fail("Sequence type constructor with %d arguments instead of 1",t.getArgCount());

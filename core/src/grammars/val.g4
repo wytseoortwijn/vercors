@@ -20,11 +20,11 @@ valContractClause
  | 'ensures' expression ';'
  | 'given' type identifier ';'
  | 'yields' type identifier ';'
+ | 'invariant' expression ';'
  ;
 
 valStatement
- : 'invariant' expression ';'
- | 'loop_invariant' expression ';'
+ : 'loop_invariant' expression ';'
  | 'create' block               // create a magic wand
  | 'qed' expression ';'
  | 'apply' expression ';'
@@ -82,5 +82,6 @@ valPrimary
  
 valReserved
  : 'create' | 'action' | 'destroy' | 'send' | 'recv' | 'use' | 'open' | 'close'
+ | 'atomic' 
  | '\\result' | '\\current_thread'
  ;

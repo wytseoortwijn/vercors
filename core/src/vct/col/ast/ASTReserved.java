@@ -75,6 +75,10 @@ public enum ASTReserved {
   /**
    * The current thread.
    */
-  CurrentThread
+  CurrentThread,
+  /**
+   * No value case for the option type.
+   */
+  OptionNone
 }
 

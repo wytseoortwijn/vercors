@@ -80,6 +80,7 @@ public class JavaSyntax extends Syntax {
         syntax.addReserved(ThreadLocal,"thread_local");
         syntax.addReserved(Pure,"pure");
         syntax.addReserved(CurrentThread,"\\current_thread");
+        syntax.addFunction(OptionGet,"getOption");
                
         JavaVerCorsSyntax=syntax;
         

@@ -62,6 +62,7 @@ import vct.col.rewrite.OpenMPtoPVL;
 import vct.col.rewrite.OptimizeQuantifiers;
 import vct.col.rewrite.PVLCompiler;
 import vct.col.rewrite.ParallelBlockEncoder;
+import vct.col.rewrite.PropagateInvariants;
 import vct.col.rewrite.PureMethodsAsFunctions;
 import vct.col.rewrite.RandomizedIf;
 import vct.col.rewrite.RecognizeMultiDim;
@@ -498,16 +499,11 @@ public class Main
           return new RecognizeMultiDim(arg).rewriteAll();
         }
       });
-     defined_passes.put("ref_array",new CompilerPass("rewrite array as a sequence of Refs"){
+      defined_passes.put("reorder",new CompilerPass("reorder statements (e.g. all declarations at the start of a bock"){
         public ProgramUnit apply(ProgramUnit arg,String ... args){
-          return new RewriteArrayRef(arg,RewriteArrayRef.Target.Ref).rewriteAll();
+          return new ReorderAssignments(arg).rewriteAll();
         }
       });
-     defined_passes.put("reorder",new CompilerPass("reorder statements (e.g. all declarations at the start of a bock"){
-       public ProgramUnit apply(ProgramUnit arg,String ... args){
-         return new ReorderAssignments(arg).rewriteAll();
-       }
-     });
      defined_passes.put("standardize-functions",new CompilerPass("translate pure methods to function syntax."){
        public ProgramUnit apply(ProgramUnit arg,String ... args){
          return new PureMethodsAsFunctions(arg).rewriteAll();
@@ -518,6 +514,11 @@ public class Main
          return new JavaResolver(arg).rewriteAll();
        }
      });
+     defined_passes.put("propagate-invariants",new CompilerPass("propagate invariants"){
+       public ProgramUnit apply(ProgramUnit arg,String ... args){
+         return new PropagateInvariants(arg).rewriteAll();
+       }
+     });
      defined_passes.put("quant-optimize",new CompilerPass("insert satisfyability checks for all methods"){
        public ProgramUnit apply(ProgramUnit arg,String ... args){
          return new OptimizeQuantifiers(arg).rewriteAll();
@@ -525,7 +526,7 @@ public class Main
      });
      defined_passes.put("rewrite_arrays",new CompilerPass("rewrite arrays to sequences of cells"){
         public ProgramUnit apply(ProgramUnit arg,String ... args){
-          return new RewriteArrayRef(arg,RewriteArrayRef.Target.Cell).rewriteAll();
+          return new RewriteArrayRef(arg).rewriteAll();
         }
       });
       defined_passes.put("rm_cons",new CompilerPass("???"){
@@ -737,13 +738,14 @@ public class Main
         passes=new LinkedBlockingDeque<String>();
         passes.add("java_resolve");
         if (sat_check.get()) passes.add("sat_check");
+        passes.add("propagate-invariants");
         if (features.usesSpecial(ASTSpecial.Kind.Lock)
            ||features.usesSpecial(ASTSpecial.Kind.Unlock)
         ){
           passes.add("lock-encode");
         }
         passes.add("standardize");
-        passes.add("check");        
+        passes.add("check");      
         if (features.usesOperator(StandardOperator.Wand)){
           passes.add("magicwand");
           passes.add("standardize");
@@ -863,15 +865,9 @@ public class Main
         passes.add("standardize");
         passes.add("check");
         
-        if (silver.used()) { // array handling for Silver
-          passes.add("ref_array");
-          passes.add("standardize");
-          passes.add("check");
-        } else { // array handling for Chalice
-          passes.add("rewrite_arrays");
-          passes.add("standardize");
-          passes.add("check");
-        }
+        passes.add("rewrite_arrays");
+        passes.add("standardize");
+        passes.add("check");
           
         passes.add("[globalize]");
           

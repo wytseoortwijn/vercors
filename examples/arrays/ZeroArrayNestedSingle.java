@@ -13,6 +13,7 @@ public class Ref {
 
 
     /*@ 
+        invariant ar != null;
         requires M>0 ** N > 0 ** M * N == ar.length;
         requires (\forall* int k ; 0 <= k && k < ar.length ; Perm(ar[k],write));
         ensures  (\forall* int k ; 0 <= k && k < ar.length ; Perm(ar[k],write));

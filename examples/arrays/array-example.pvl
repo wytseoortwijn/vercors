@@ -7,12 +7,14 @@
 class Problem {
 
   requires p!=none;
+  requires ar != null;
   requires (\forall* int i; 0 <= i && i < ar.length ; Perm(ar[i],p));
   ensures  |\result|==ar.length;
   ensures  (\forall int i; 0 <= i && i < ar.length ; ar[i]==\result[i]);
   static pure seq<int> vals_function(frac p,int[] ar);
 
   requires p!=none;
+  requires ar != null;
   requires (\forall* int i; 0 <= i && i < ar.length ; Perm(ar[i],p));
   ensures  p!= none;
   ensures  (\forall* int i; 0 <= i && i < ar.length ; Perm(ar[i],p));
