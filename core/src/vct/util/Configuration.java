@@ -145,8 +145,6 @@ public class Configuration {
  
   private static Path tool_home;
   
-  private static boolean windows;
- 
   static {
     String tmp=System.getenv("VCT_HOME");
     if (tmp==null){

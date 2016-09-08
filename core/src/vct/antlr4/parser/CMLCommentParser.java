@@ -2,14 +2,9 @@ package vct.antlr4.parser;
 
 import hre.HREError;
 
-import org.antlr.v4.runtime.Lexer;
-import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.tree.ParseTree;
 
-import vct.col.ast.ASTNode;
 import vct.col.ast.ASTSequence;
-import vct.col.ast.Contract;
-import vct.col.ast.ProgramUnit;
 import vct.parsers.CMLLexer;
 import vct.parsers.CMLParser;
 

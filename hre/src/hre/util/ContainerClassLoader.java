@@ -2,12 +2,9 @@ package hre.util;
 
 import hre.io.Container;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
 import static hre.System.*;
 
 public class ContainerClassLoader extends ClassLoader {
@@ -18,8 +15,8 @@ public class ContainerClassLoader extends ClassLoader {
         this.source=source;
     }
     
-    protected synchronized Class loadClass(String className, boolean resolve) throws ClassNotFoundException {
-      Class cls = findLoadedClass(className);
+    protected synchronized Class<?> loadClass(String className, boolean resolve) throws ClassNotFoundException {
+      Class<?> cls = findLoadedClass(className);
       if (cls != null) {
         return cls;
       }

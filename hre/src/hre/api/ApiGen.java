@@ -1,6 +1,5 @@
 package hre.api;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.reflect.Method;
@@ -10,33 +9,38 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Comparator;
 
+/**
+ * This program generates code for a wrapper that assumes that
+ * a class is an implementation of the given interface except
+ * that it is not a sub-class because it has not been declared
+ * or it has been class loaded, or it was compiled against
+ * a diferent version... 
+ *  
+ * @author Stefan Blom
+ *
+ */
 public class ApiGen {
 
   public static void main(String args[]) throws IOException{
     Path currentRelativePath = Paths.get("");
     String s = currentRelativePath.toAbsolutePath().toString();
     System.out.println("Current relative path is: " + s);
-    //api_gen(I1.class);
-    //api_gen(I2.class);
     
-    for (String name : args){
-      Class c;
-      try {
-        c = Class.forName(args[0]);
-        PrintStream out;
-        if (args.length>1){
-          out=new PrintStream(args[1]);
-        } else {
-          out=System.out;
-        }
-        api_gen(out,c);
-        if (args.length>1){
-          out.close();
-        }
-      } catch (ClassNotFoundException e) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
+    Class<?> c;
+    try {
+      c = Class.forName(args[0]);
+      PrintStream out;
+      if (args.length>1){
+        out=new PrintStream(args[1]);
+      } else {
+        out=System.out;
       }
+      api_gen(out,c);
+      if (args.length>1){
+        out.close();
+      }
+    } catch (ClassNotFoundException e) {
+      e.printStackTrace();
     }
   }
   
@@ -60,7 +64,7 @@ public class ApiGen {
     return res;
   }
 
-  private static void api_gen(PrintStream out,Class cl) throws IOException {
+  private static void api_gen(PrintStream out,Class<?> cl) throws IOException {
     //PrintStream out=new PrintStream(String.format("src/test/Wrapped%s.java",cl.getSimpleName()));
     out.printf("%s;%n", cl.getPackage());
     out.println("import java.lang.reflect.*;");
@@ -69,7 +73,7 @@ public class ApiGen {
     out.println(" *  Thus it can wrap both older and newer versions without linker errors.");
     out.println(" *  This class is generated code! Do not modify!");
     out.println(" */");
-    TypeVariable pars[]=cl.getTypeParameters();
+    TypeVariable<?> pars[]=cl.getTypeParameters();
     Method methods[]=cl.getMethods();
     java.util.Arrays.sort(methods,new Comparator<Method>(){
       @Override

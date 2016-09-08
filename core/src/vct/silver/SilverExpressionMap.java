@@ -3,8 +3,6 @@ package vct.silver;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.TreeMap;
-
 import hre.HREError;
 import hre.ast.Origin;
 import vct.col.ast.*;
@@ -218,7 +216,7 @@ public class SilverExpressionMap<T,E> implements ASTMapping<E>{
     case Pure:{
       T rt=e.getType().apply(type);
       if(m.getParent() instanceof AxiomaticDataType){
-        ArrayList<Triple<Origin,String,T>> pars=new ArrayList();
+        ArrayList<Triple<Origin,String,T>> pars=new ArrayList<Triple<Origin,String,T>> ();
         for(DeclarationStatement decl:m.getArgs()){
           Type t=e.getArg(pars.size()).getType();
           T t2;
@@ -227,7 +225,7 @@ public class SilverExpressionMap<T,E> implements ASTMapping<E>{
           } else {
             t2=t.apply(type);
           }
-          pars.add(new Triple(decl.getOrigin(),decl.getName(),t2));
+          pars.add(new Triple<Origin, String, T>(decl.getOrigin(),decl.getName(),t2));
         }
         AxiomaticDataType adt=(AxiomaticDataType)m.getParent();
         HashMap<String, T> dpars=new HashMap<String, T>();
@@ -236,9 +234,9 @@ public class SilverExpressionMap<T,E> implements ASTMapping<E>{
         return create.domain_call(o, name, args, dpars, rt, pars, adt.name);
       } else {
         
-        ArrayList<Triple<Origin,String,T>> pars=new ArrayList();
+        ArrayList<Triple<Origin,String,T>> pars=new ArrayList<Triple<Origin,String,T>>();
         for(DeclarationStatement decl:m.getArgs()){
-          pars.add(new Triple(decl.getOrigin(),decl.getName(),decl.getType().apply(type)));
+          pars.add(new Triple<Origin,String,T>(decl.getOrigin(),decl.getName(),decl.getType().apply(type)));
         }
         return create.function_call(o, name, args, rt, pars);
       }
@@ -288,11 +286,6 @@ public class SilverExpressionMap<T,E> implements ASTMapping<E>{
 
   @Override
   public E map(ASTClass c) {
-    return null;
-  }
-
-  @Override
-  public E map(ASTWith astWith) {
     return null;
   }
 
@@ -363,9 +356,9 @@ public class SilverExpressionMap<T,E> implements ASTMapping<E>{
   }
 
   private List<Triple<Origin,String,T>> convert(DeclarationStatement[] declarations) {
-    ArrayList<Triple<Origin,String,T>> res=new ArrayList();
+    ArrayList<Triple<Origin,String,T>> res=new ArrayList<Triple<Origin,String,T>>();
     for(DeclarationStatement d:declarations){
-      res.add(new Triple(d.getOrigin(),d.getName(),d.getType().apply(type)));
+      res.add(new Triple<Origin,String,T>(d.getOrigin(),d.getName(),d.getType().apply(type)));
     }
     return res;
   }
@@ -479,7 +472,7 @@ public class SilverExpressionMap<T,E> implements ASTMapping<E>{
   @Override
   public E map(StructValue v) {
     Origin o = v.getOrigin();
-    ArrayList<E> elems=new ArrayList();
+    ArrayList<E> elems=new ArrayList<E>();
     for(int i=0;i<v.values.length;i++){
       elems.add(v.values[i].apply(this));
     }

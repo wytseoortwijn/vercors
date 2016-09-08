@@ -1,7 +1,5 @@
 package hre.config;
 
-import static hre.System.*;
-
 public class IntegerSetting {
 
   private int value;

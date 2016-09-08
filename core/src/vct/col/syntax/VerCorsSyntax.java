@@ -14,7 +14,6 @@ import static vct.col.ast.PrimitiveType.Sort.Location;
 import static vct.col.ast.StandardOperator.*;
 import vct.col.ast.ASTReserved;
 import vct.col.ast.ASTSpecial;
-import vct.col.ast.ASTSpecial.Kind;
 import vct.col.ast.StandardOperator;
 
 public class VerCorsSyntax {

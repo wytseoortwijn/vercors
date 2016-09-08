@@ -1,7 +1,6 @@
 package vct.col.rewrite;
 
 import vct.col.ast.*;
-import vct.col.ast.ASTSpecial.Kind;
 import static vct.col.ast.ASTSpecial.Kind.*;
 
 public class FilterSpecIgnore extends AbstractRewriter {

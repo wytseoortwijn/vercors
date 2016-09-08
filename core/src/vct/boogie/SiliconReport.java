@@ -8,9 +8,6 @@ import hre.io.ModuleShell;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -21,14 +18,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-import java.io.*;
-import java.util.*;
-
-import vct.col.ast.*;
-import vct.util.*;
-import static hre.System.Abort;
 import static hre.System.Progress;
-import static hre.System.Warning;
 
 /**
  * Create a test report for a Boogie run from the output file.

@@ -233,11 +233,6 @@ public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
   }
 
   @Override
-  public void visit(ASTWith astWith) {
-    astWith.body.accept(this);
-  }
-
-  @Override
   public void visit(BindingExpression e) {
     int N=e.getDeclCount();
     for(int i=0;i<N;i++){

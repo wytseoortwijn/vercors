@@ -1,26 +1,14 @@
 package vct.col.rewrite;
 
-import hre.ast.MessageOrigin;
 import vct.col.ast.ASTClass;
-import vct.col.ast.ASTClass.ClassKind;
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTReserved;
-import vct.col.ast.ClassType;
-import vct.col.ast.Contract;
 import vct.col.ast.ContractBuilder;
 import vct.col.ast.DeclarationStatement;
-import vct.col.ast.LoopStatement;
 import vct.col.ast.Method;
 import vct.col.ast.MethodInvokation;
-import vct.col.ast.NameExpression;
-import vct.col.ast.OperatorExpression;
 import vct.col.ast.ProgramUnit;
 import vct.col.ast.StandardOperator;
-import vct.util.ClassName;
-import static hre.System.Abort;
-import static hre.System.Debug;
-import static hre.System.Fail;
-import static hre.System.Warning;
 
 /**
  * Use a parameter global to refer to static entries.
@@ -75,7 +63,6 @@ public class GlobalizeStaticsParameter extends GlobalizeStatics {
   public void visit(MethodInvokation e){
     Method m=e.getDefinition();
     if (m==null) Abort("cannot globalize method invokaiton without method definition");
-    ASTClass cl=(ASTClass)m.getParent();
     if (m.isStatic() && !e.isInstantiation()){
       super.visit(e);
     } else {

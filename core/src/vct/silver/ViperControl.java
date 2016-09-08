@@ -2,8 +2,6 @@ package vct.silver;
 
 import java.util.HashSet;
 import java.util.Hashtable;
-import java.util.Set;
-import java.util.TimerTask;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -23,7 +21,7 @@ public class ViperControl implements VerificationControl<Origin> {
   private String current_task;
   private Origin current_origin;
   
-  private ScheduledFuture future;
+  private ScheduledFuture<?> future;
   private Runnable task=new Runnable(){
     public void run(){
       if (old_task==current_task && old_origin==current_origin){
@@ -41,10 +39,10 @@ public class ViperControl implements VerificationControl<Origin> {
     }
   };
 
-  public HashSet<String> verified_methods=new HashSet();
-  public HashSet<String> failed_methods=new HashSet();
+  public HashSet<String> verified_methods=new HashSet<String>();
+  public HashSet<String> failed_methods=new HashSet<String>();
   
-  private Hashtable<Origin,String> origin2method=new Hashtable();
+  private Hashtable<Origin,String> origin2method=new Hashtable<Origin, String>();
   
   public ViperControl(){
     if (Configuration.profiling_option.used()){

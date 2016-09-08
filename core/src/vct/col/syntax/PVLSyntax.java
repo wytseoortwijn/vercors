@@ -1,9 +1,6 @@
 package vct.col.syntax;
 
 
-import hre.ast.TrackingOutput;
-import vct.col.ast.ASTNode;
-import vct.col.ast.StandardOperator;
 import vct.col.syntax.Syntax;
 import vct.col.ast.ASTReserved;
 import static vct.col.ast.StandardOperator.*;
@@ -50,24 +47,7 @@ public class PVLSyntax {
 
       syntax.addOperator(Size,-1,"|","|");
       syntax.addOperator(Member,45,"","in","");
-/*
-      syntax.addOperator(Nil,999,"nil<",">");
-      syntax.addOperator(Subscript,145,"","[","]"); // TODO: check if relative order to Select is OK!
-      syntax.addOperator(Cast,145,"((",")",")");
-      syntax.addLeftFix(Append,"+++",110);
 
-      // Java Operators  Precedence
-      // 14 postfix  expr++ expr--
-      syntax.addPostfix(PostIncr,"++",140);
-      syntax.addPostfix(PostDecr,"--",140);
-      // 13 unary   ++expr --expr +expr -expr ~ !
-      syntax.addPrefix(BitNot, "~", 130);
-      syntax.addPrefix(Not, "!", 130);
-      syntax.addPrefix(UMinus, "-", 130);
-      syntax.addPrefix(UPlus, "+", 130);
-      syntax.addPrefix(PreIncr, "++", 130);
-      syntax.addPrefix(PreIncr, "--", 130);
-*/
       syntax.addPrefix(Not, "!", 130);
       syntax.addPrefix(UMinus, "-", 130);
  

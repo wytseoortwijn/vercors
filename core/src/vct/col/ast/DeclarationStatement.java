@@ -1,8 +1,6 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 package vct.col.ast;
 
-import java.util.*;
-
 import vct.util.ClassName;
 
 public class DeclarationStatement extends ASTDeclaration {

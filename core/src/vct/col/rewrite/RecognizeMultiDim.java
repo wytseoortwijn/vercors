@@ -1,7 +1,5 @@
 package vct.col.rewrite;
 
-import hre.lang.Ref;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -24,7 +22,7 @@ public class RecognizeMultiDim extends AbstractRewriter {
   }
 
   private static ASTNode[] get_dimensions(Type t){
-    ArrayList<ASTNode> list=new ArrayList();
+    ArrayList<ASTNode> list=new ArrayList<ASTNode>();
     while(t.isPrimitive(Sort.Array)){
       PrimitiveType tt=(PrimitiveType)t;
       if (tt.getArgCount()==2){
@@ -42,7 +40,7 @@ public class RecognizeMultiDim extends AbstractRewriter {
     }
   }
   
-  private HashMap<String,ASTNode[]> dimension=new HashMap();
+  private HashMap<String,ASTNode[]> dimension=new HashMap<String,ASTNode[]>();
   
   @Override
   public void visit(Method m){
@@ -82,7 +80,7 @@ public class RecognizeMultiDim extends AbstractRewriter {
   @Override
   public void visit(OperatorExpression e){
     if (e.isa(StandardOperator.Subscript)){
-      ArrayList<ASTNode> args=new ArrayList();
+      ArrayList<ASTNode> args=new ArrayList<ASTNode>();
       ASTNode tmp=try_multidim(e,args);
       if(tmp!=null){
         result=tmp;
@@ -95,7 +93,7 @@ public class RecognizeMultiDim extends AbstractRewriter {
   
   @Override
   public void visit(ASTClass cl){
-    multidimset=new HashSet();
+    multidimset=new HashSet<Integer>();
     super.visit(cl);
     ASTClass res=(ASTClass)result;
     for(int N:multidimset){

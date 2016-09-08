@@ -3,8 +3,6 @@ package vct.silver;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.xml.transform.Source;
-
 import hre.HREError;
 import hre.ast.MessageOrigin;
 import hre.ast.Origin;
@@ -73,7 +71,7 @@ public class SilverTypeMap<T> implements TypeMapping<T> {
     if (t.getName().equals("Ref")){
       return create.Ref();
     } else {
-      HashMap<String,T> map=new HashMap();
+      HashMap<String,T> map=new HashMap<String, T>();
       return domain_type(map,t);
     }
   }

@@ -4,7 +4,6 @@ import vct.col.ast.ASTSpecial;
 import vct.col.ast.Method;
 import vct.col.ast.OperatorExpression;
 import vct.col.ast.ProgramUnit;
-import vct.col.ast.StandardOperator;
 import vct.col.ast.ASTSpecial.Kind;
 
 public class LockEncoder extends AbstractRewriter {

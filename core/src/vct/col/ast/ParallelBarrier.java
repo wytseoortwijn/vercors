@@ -1,7 +1,6 @@
 package vct.col.ast;
 
 import java.util.ArrayList;
-import java.util.EnumSet;
 
 public class ParallelBarrier extends ASTNode {
 
@@ -47,7 +46,7 @@ public class ParallelBarrier extends ASTNode {
   public ParallelBarrier(String label,Contract contract, ArrayList<String> fences, BlockStatement body){
     this.label=label;
     this.contract=contract;
-    this.invs=new ArrayList(fences);
+    this.invs=new ArrayList<String>(fences);
     this.body=body;
   }
 

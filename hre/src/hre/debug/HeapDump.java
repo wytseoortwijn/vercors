@@ -4,7 +4,6 @@ package hre.debug;
 
 import hre.io.PrefixPrintStream;
 
-import java.io.PrintStream;
 import java.lang.reflect.Field;
 import java.nio.file.Path;
 import java.util.Collection;
@@ -20,17 +19,16 @@ import java.util.Set;
  */
 public class HeapDump {
 
-  public static boolean is_instance(Object o,Class ... base_classes){
-    Class o_class=o.getClass();
-    for(Class base:base_classes){
+  public static boolean is_instance(Object o,Class<?> ... base_classes){
+    for(Class<?> base:base_classes){
       if (base.isInstance(o)) return true; 
     }
     return false;
   }
   
-  public static boolean subtype(Class c,Class ... base_classes){
-    for(Class base:base_classes){
-      for(Class i=c;i!=null;i=i.getSuperclass()){
+  public static boolean subtype(Class<?> c,Class<?> ... base_classes){
+    for(Class<?> base:base_classes){
+      for(Class<?> i=c;i!=null;i=i.getSuperclass()){
         if (i==base) return true;
       }
     }
@@ -43,13 +41,13 @@ public class HeapDump {
    * @param tree The root of the tree that is to be printed.
    * @param base_classes A set of classes that are part of the tree and must be recursively explored.
    */
-  public static void tree_dump(PrefixPrintStream out,Object tree,Class ... base_classes){
+  public static void tree_dump(PrefixPrintStream out,Object tree,Class<?> ... base_classes){
     tree_dump(out,new HashSet<Object>(),tree,base_classes);
   }
-  private static void tree_dump(PrefixPrintStream out,Set<Object> visited,Object tree,Class ... base_classes){
+  private static void tree_dump(PrefixPrintStream out,Set<Object> visited,Object tree,Class<?> ... base_classes){
     if (visited.contains(tree)) return;
     visited.add(tree);
-    Class tree_class=tree.getClass();
+    Class<? extends Object> tree_class=tree.getClass();
     out.printf("<%s>\n",tree_class.getName());
     out.enter();
     out.prefixAdd("  ");
@@ -73,7 +71,7 @@ public class HeapDump {
         } else if (val instanceof String || val instanceof Path){
           out.printf(" %s = %s%n",field.getName(),val);
         } else if (val!=null && val instanceof Collection) {
-          for(Object i:(Collection)val){
+          for(Object i:(Collection<?>)val){
             if (i!=null && is_instance(i,base_classes)){
               tree_dump(out,visited,i,base_classes);
             }
@@ -81,8 +79,8 @@ public class HeapDump {
         } else if (val!=null && val instanceof Map) {
           out.printf("<map %s>\n",field.getName());
           out.enter();
-          for(Object tmp :((Map)val).entrySet()){
-            Entry e=(Entry)tmp;
+          for(Object tmp :((Map<?, ?>)val).entrySet()){
+            Entry<?, ?> e=(Entry<?, ?>)tmp;
             out.printf("<entry>%n");
             out.printf("<key>%n");
             tree_dump(out,visited,e.getKey(),base_classes);

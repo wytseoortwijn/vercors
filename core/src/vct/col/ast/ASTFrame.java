@@ -5,10 +5,6 @@ import hre.util.SingleNameSpace;
 import java.util.Stack;
 import java.util.concurrent.atomic.AtomicReference;
 
-import vct.col.ast.ASTSpecial.Kind;
-
-import static hre.System.Debug;
-
 /**
  * Utility class that provides common functionality for exploring abstract syntax trees.
  * 
@@ -199,6 +195,8 @@ public abstract class ASTFrame<T> {
       case LEAVE:
         variables.leave();
         break;
+      default:
+        break;
       }
     }
  
@@ -249,9 +247,13 @@ public abstract class ASTFrame<T> {
             }
             break;
           }
+        default:
+          break;
         }
         break;
       case LEAVE:
+        break;
+      default:
         break;
       }
     }
@@ -266,6 +268,8 @@ public abstract class ASTFrame<T> {
         }
         break;
       case LEAVE:
+        break;
+      default:
         break;
       }
     }
@@ -289,9 +293,13 @@ public abstract class ASTFrame<T> {
         }
         case CreateHistory:
            scan_labels(((ASTSpecial)node).args[0]);
+        default:
+          break;
         }
         break;
       case LEAVE:
+        break;
+      default:
         break;
       }
     }
@@ -315,6 +323,8 @@ public abstract class ASTFrame<T> {
         variables.leave();
         class_stack.pop(); 
         break;
+      default:
+        break;
       }
     }
 
@@ -332,6 +342,8 @@ public abstract class ASTFrame<T> {
       case LEAVE:
         method_stack.pop();
         variables.leave();
+        break;
+      default:
         break;
       }
     }
@@ -358,6 +370,8 @@ public abstract class ASTFrame<T> {
       case LEAVE:
        variables.leave();
        break;
+      default:
+        break;
       }
     }
 
@@ -387,6 +401,8 @@ public abstract class ASTFrame<T> {
       case LEAVE:
         variables.leave();
         break;
+      default:
+        break;
       }
     }
 
@@ -403,6 +419,8 @@ public abstract class ASTFrame<T> {
       case LEAVE:
         variables.leave();
         break;
+      default:
+        break;
       }
     }
 
@@ -418,6 +436,8 @@ public abstract class ASTFrame<T> {
       case LEAVE:
         variables.leave();
         break;
+      default:
+        break;
       }
     }
 
@@ -432,6 +452,8 @@ public abstract class ASTFrame<T> {
         break;
       case LEAVE:
         variables.leave();
+        break;
+      default:
         break;
       }
     }

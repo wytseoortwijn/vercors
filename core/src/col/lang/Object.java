@@ -14,7 +14,7 @@ public class Object implements Runnable {
   public Object (){
     lock=new ReentrantLock();
     cond=lock.newCondition();
-    locked=new ThreadLocal();
+    locked=new ThreadLocal<Boolean>();
   }
     
   public void lock(){

@@ -53,7 +53,7 @@ class RMRF extends Thread {
 }
 public class ModuleShell {
 
-  private boolean module_enabled;
+  public final boolean module_enabled;
   
   private MessageProcess shell;
   public Path shell_dir;
@@ -63,6 +63,10 @@ public class ModuleShell {
   }
   
   public ModuleShell() throws IOException{
+    this(false);
+  }
+  
+  private ModuleShell(boolean enable) throws IOException{
     shell_dir=Files.createTempDirectory("modsh").toRealPath();
     Runtime.getRuntime().addShutdownHook(new RMRF(shell_dir));
     String OS=System.getProperty("os.name");
@@ -72,11 +76,11 @@ public class ModuleShell {
     } else {
       shell=new MessageProcess(shell_dir,"/bin/bash");
     }
-    module_enabled=false;
+    module_enabled=enable;
   }
   
   public ModuleShell(Path modules_home,Path ... modules_path) throws IOException{
-    this();
+    this(true);
     String OS=System.getProperty("os.name");
     Progress("starting shell on %s in %s",OS,shell_dir);
     Debug("initializing modules from %s",modules_home);
@@ -92,7 +96,6 @@ public class ModuleShell {
       Debug("using modules in %s",p);
       shell.send("module use %s",p.toString().replace('\\','/'));
     }
-    module_enabled=true;
   }
   
   public void send(String format,Object ... args){

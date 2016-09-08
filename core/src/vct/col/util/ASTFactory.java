@@ -387,16 +387,23 @@ public BlockStatement block(Origin origin, ASTNode ... args) {
    * @param init The optional initial value of the variable.
    * @return An AST node containing the variable declaration.
    */
-  public DeclarationStatement field_decl(String name, Type type,ASTNode ... init) {
+  public DeclarationStatement field_decl(String name, Type type,ASTNode init) {
     return field_decl(origin_stack.get(),name,type,init);
   }
   
-  public DeclarationStatement field_decl(Origin o,String name, Type type,ASTNode ... init) {
+  public DeclarationStatement field_decl(String name, Type type) {
+    return field_decl(origin_stack.get(),name,type,null);
+  }
+  
+  public DeclarationStatement field_decl(Origin o,String name, Type type){
+    return field_decl(o,name,type,null);
+  }
+
+  public DeclarationStatement field_decl(Origin o,String name, Type type,ASTNode init) {
     if (type.isNull()){
       Abort("cannot declare variable %s of <<null>> type.",name);
     }
-    if (init !=null && init.length>1) Abort("cannot have more than one initial value.");
-    DeclarationStatement res=new DeclarationStatement(name,type,init==null?null:init.length==0?null:init[0]);
+    DeclarationStatement res=new DeclarationStatement(name,type,init);
     res.setOrigin(o);
     res.accept_if(post);
     return res;    
@@ -1038,17 +1045,6 @@ public LoopStatement while_loop(ASTNode test,ASTNode body,Contract contract){
   res.setContract(contract);
   res.accept_if(post);
   return res;    
-}
-
-/**
- * Create a new auxiliary with node.
- */
-public ASTNode with(String[] from, ASTWith.Kind kind, boolean all, ASTNode body) {
-  // types are irrelevant for a with node.
-  ASTNode res=new ASTWith(from,kind,all,body);
-  res.setOrigin(origin_stack.get());
-  res.accept_if(post);
-  return res;
 }
 
 public Type arrow_type(Type src, Type tgt) {

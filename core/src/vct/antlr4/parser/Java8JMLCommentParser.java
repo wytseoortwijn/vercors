@@ -2,10 +2,7 @@ package vct.antlr4.parser;
 
 import org.antlr.v4.runtime.tree.ParseTree;
 
-import vct.col.ast.ASTNode;
 import vct.col.ast.ASTSequence;
-import vct.col.ast.ProgramUnit;
-import vct.col.ast.Contract;
 import vct.parsers.Java8JMLLexer;
 import vct.parsers.Java8JMLParser;
 

@@ -2,7 +2,6 @@ package vct.col.ast;
 
 import static hre.System.Abort;
 import static hre.System.Fail;
-import static hre.System.Warning;
 
 public final class PrimitiveType extends Type {
 
@@ -153,6 +152,7 @@ public final class PrimitiveType extends Type {
     return res;
   }
   
+  @SuppressWarnings("incomplete-switch")
   public boolean supertypeof(ProgramUnit context, Type t){
     
     switch(this.sort){

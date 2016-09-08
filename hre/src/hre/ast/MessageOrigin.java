@@ -1,8 +1,6 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 package hre.ast;
 
-import java.util.ArrayList;
-
 /**
  * Origin that consists of a single text message.
  * @author sccblom

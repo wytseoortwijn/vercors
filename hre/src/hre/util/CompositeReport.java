@@ -41,6 +41,8 @@ public class CompositeReport extends TestReport {
         break;
     }
     break;
+    default:
+      break;
     }
   }
 }

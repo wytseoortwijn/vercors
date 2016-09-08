@@ -1,8 +1,6 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 package vct.col.ast;
 
-import java.util.*;
-
 public class BooleanValue implements Value {
   public final boolean value;
   public BooleanValue(boolean value){

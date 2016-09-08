@@ -1,16 +1,11 @@
 package vct.antlr4.parser;
 
-import static hre.System.Abort;
 import static hre.System.Debug;
 import static hre.System.Fail;
 import static hre.System.Warning;
 import hre.HREError;
 
 import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
 
 import org.antlr.v4.runtime.BufferedTokenStream;
 import org.antlr.v4.runtime.ParserRuleContext;
@@ -147,13 +142,13 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
 
   @Override
   public ASTNode visitTuple(TupleContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public ASTNode visitFence_list(Fence_listContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
@@ -163,7 +158,6 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
     int N=ctx.children.size()-1;
     for(int i=1;i<N;i++){
       block.add_statement(convert(ctx.children.get(i)));
-      ParseTree tmp=ctx.children.get(i);
     }
     return block;
   }
@@ -543,7 +537,7 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
         c=null;
       }
       int offset=1;
-      ArrayList<ParallelBlock> res=new ArrayList();
+      ArrayList<ParallelBlock> res=new ArrayList<ParallelBlock>();
       do {
         ParallelBlock blk=(ParallelBlock)convert(ctx,offset+1);
         res.add(blk);
@@ -618,7 +612,7 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
     }
     if (match(0,true,ctx,"barrier","(",null)){
       String name=getIdentifier(ctx, 2);
-      ArrayList<String> invs=new ArrayList();
+      ArrayList<String> invs=new ArrayList<String>();
       int offset;
       if (match(0,true,ctx,"barrier","(",null,";",null,")")){
         ASTNode tags[]=convert_list((ParserRuleContext)ctx.children.get(4),",");
@@ -644,20 +638,6 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
     return visit(ctx);
   }
 
-  private void add_with_then(BeforeAfterAnnotations res, ParserRuleContext child) {
-    if (match(child,"with",null)){
-      res.set_before((BlockStatement)convert(child,1));
-    } else if (match(child,"with",null,"then",null)){
-      res.set_before((BlockStatement)convert(child,1));
-      res.set_after((BlockStatement)convert(child,3));
-    } else if (match(child,"then",null)){
-      res.set_after((BlockStatement)convert(child,1));
-    } else if (match(child)){
-      // no annotation is OK!
-    } else {
-      Fail("bad with then annotation");
-    }
-  }
   private DeclarationStatement[] checkDecls(ASTNode[] list) {
     DeclarationStatement res[]=new DeclarationStatement[list.length];
     for(int i=0;i<list.length;i++){
@@ -668,19 +648,7 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
     }
     return res;
   }
-  private ASTNode convert_iters(DeclarationStatement[] decls, ASTNode[] iters) {
-    ArrayList<ASTNode> list=new ArrayList();
-    for(int i=0;i<decls.length;i++){
-      create.enter();
-      create.setOrigin(iters[i].getOrigin());
-      DeclarationStatement d=(DeclarationStatement)iters[i];
-      decls[i]=create.field_decl(d.name,d.getType());
-      list.add(create.expression(StandardOperator.Member,
-          create.local_name(d.name),d.getInit()));
-      create.leave();
-    }
-    return create.fold(StandardOperator.And, list);
-  }
+
   @Override
   public ASTNode visitKernel_field(Kernel_fieldContext ctx) {
     ASTNode res;
@@ -730,7 +698,7 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
 
   @Override
   public ASTNode visitInvariant(InvariantContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
@@ -829,7 +797,7 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
   
   @Override
   public ASTNode visitTypeArgs(TypeArgsContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
   @Override
@@ -855,7 +823,7 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
 
   @Override
   public ASTNode visitIters(ItersContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
   @Override
@@ -865,7 +833,7 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
   }
   @Override
   public ASTNode visitDecls(DeclsContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
   @Override
@@ -934,13 +902,13 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
   }
   @Override
   public ASTNode visitIdentifier(IdentifierContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
  
   @Override
   public ASTNode visitValReserved(ValReservedContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
   @Override
@@ -1009,7 +977,7 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
   }
   @Override
   public ASTNode visitExpression(ExpressionContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
   @Override

@@ -1,13 +1,10 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 package vct.col.ast;
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 import vct.col.ast.ASTSpecial.Kind;
-import vct.util.Configuration;
 
 import hre.ast.MessageOrigin;
 import hre.ast.Origin;
@@ -50,12 +47,6 @@ public abstract class ASTNode implements ASTFlags {
    */
   private int valid_flags=0;
   
-  /**
-   * This variable works around the problem that PVL and Java have different
-   * constructor definitions.
-   */
-  public static boolean pvl_mode=false;
-
   /**
    * Auxiliary variable to help assign unique sequence numbers for AST nodes.
    */
@@ -266,7 +257,7 @@ public abstract class ASTNode implements ASTFlags {
     this.parent=parent;
   }
   
-  public final void accept_if(ASTVisitor v){
+  public final void accept_if(ASTVisitor<?> v){
     if (v!=null) accept(v);
   }
   
@@ -385,6 +376,8 @@ public abstract class ASTNode implements ASTFlags {
             case Public:
               Debug("ignoring public");
               continue;
+          default:
+            break;
           }
         }
       }
@@ -430,7 +423,7 @@ public abstract class ASTNode implements ASTFlags {
     return false;
   }
   
-  protected static ThreadLocal<Throwable> thrown=new ThreadLocal();
+  protected static ThreadLocal<Throwable> thrown=new ThreadLocal<Throwable>();
 
   public boolean isDeclaration(ASTSpecial.Kind kind) {
     return (this instanceof ASTSpecial) && ((ASTSpecial)this).kind==kind;

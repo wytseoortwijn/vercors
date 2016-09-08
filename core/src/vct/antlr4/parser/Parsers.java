@@ -3,7 +3,6 @@ package vct.antlr4.parser;
 import hre.config.IntegerSetting;
 
 import java.io.File;
-import java.util.HashMap;
 
 import vct.col.ast.ProgramUnit;
 import vct.col.util.Parser;
@@ -38,10 +37,6 @@ public class Parsers {
       Fail("cannot deduce language of %s",name);
     }
     String lang=name.substring(dot+1);
-    if (lang.equals("pvl")){
-      //TODO: fix this kludge.
-      vct.col.ast.ASTNode.pvl_mode=true;
-    }
     Progress("Parsing %s file %s",lang,name);
     ProgramUnit unit=Parsers.getParser(lang).parse(new File(name));
     Progress("Read %s succesfully",name);

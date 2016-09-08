@@ -9,6 +9,7 @@ import hre.io.MessageProcess;
  * @author Remco Swenker
  * this class controls the interaction towards the SMTsolver. at the moment only Z3 tool is supported.
  */
+@SuppressWarnings("all")
 public class SMTinter {
 	public SMTinter(){
 		/*String[] string1 = new String[1];

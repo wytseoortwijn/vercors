@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import vct.col.ast.ASTFlags;
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTReserved;
-import vct.col.ast.ASTSpecial;
 import vct.col.ast.ContractBuilder;
 import vct.col.ast.DeclarationStatement;
 import vct.col.ast.Method;
@@ -24,7 +23,7 @@ public class AnnotationInterpreter extends AbstractRewriter {
   @Override
   public void visit(Method m){
     Method.Kind kind=m.kind;
-    ArrayList<ASTNode> ann=new ArrayList();
+    ArrayList<ASTNode> ann=new ArrayList<ASTNode>();
     Type returns=rewrite(m.getReturnType());
     ContractBuilder cb=new ContractBuilder();
     rewrite(m.getContract(),cb);

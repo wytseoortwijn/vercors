@@ -1,38 +1,24 @@
 package vct.silver;
 
-import java.io.PrintWriter;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.SortedMap;
-import java.util.Map.Entry;
-import java.util.Properties;
-import java.util.TreeMap;
-
 import hre.HREError;
 import hre.ast.MessageOrigin;
 import hre.ast.Origin;
 import vct.col.ast.ASTFlags;
 import vct.col.ast.ASTNode;
-import vct.col.ast.ASTReserved;
 import vct.col.ast.ASTSpecial;
-import vct.col.ast.ASTSpecial.Kind;
 import vct.col.ast.ASTClass;
 import vct.col.ast.Axiom;
 import vct.col.ast.AxiomaticDataType;
-import vct.col.ast.BindingExpression;
 import vct.col.ast.BlockStatement;
-import vct.col.ast.ClassType;
 import vct.col.ast.Contract;
 import vct.col.ast.ContractBuilder;
 import vct.col.ast.DeclarationStatement;
 import vct.col.ast.Method;
-import vct.col.ast.MethodInvokation;
-import vct.col.ast.NameExpression;
 import vct.col.ast.PrimitiveType;
 import vct.col.ast.PrimitiveType.Sort;
 import vct.col.ast.ProgramUnit;
@@ -42,30 +28,26 @@ import vct.col.util.ASTFactory;
 import vct.col.util.ASTUtils;
 import vct.error.VerificationError;
 import vct.util.Configuration;
-import viper.api.OriginFactory;
 import viper.api.ProgramFactory;
-import viper.api.VerificationControl;
 import viper.api.ViperAPI;
-import viper.api.ViperError;
 import viper.api.Triple;
 
 public class VerCorsProgramFactory implements
     ProgramFactory<Origin, VerificationError, Type, ASTNode, ASTNode,
     Method, Axiom, ProgramUnit> {
   
-  public VerCorsProgramFactory(ASTFactory create){
+  public VerCorsProgramFactory(ASTFactory<?> create){
     this.create=create;
   }
   
   public Hashtable<String,Set<Origin>> refuted;
   
-  private ASTFactory create;
+  private ASTFactory<?> create;
    
   @Override
   public void add_adt(ProgramUnit p, Origin o, String name,
       java.util.List<Method> funs, java.util.List<Axiom> axioms,
       java.util.List<String> pars) {
-    // TODO Auto-generated method stub
     enter(o);
     DeclarationStatement decls[]=new DeclarationStatement[pars.size()];
     for(int i=0;i<decls.length;i++){
@@ -117,7 +99,7 @@ public class VerCorsProgramFactory implements
     for(ASTNode c:posts){
       cb.ensures(c);
     }
-    ArrayList<DeclarationStatement> args=new ArrayList();
+    ArrayList<DeclarationStatement> args=new ArrayList<DeclarationStatement>();
     for(DeclarationStatement d:create.to_decls(in)){
       d.setFlag(ASTFlags.IN_ARG,true);
       args.add(d);
@@ -158,7 +140,6 @@ public class VerCorsProgramFactory implements
   
   @Override
   public Axiom daxiom(Origin o, String name, ASTNode expr, String domain) {
-    // TODO Auto-generated method stub
     enter(o);
     Axiom res=create.axiom(name, expr);
     leave();
@@ -168,22 +149,12 @@ public class VerCorsProgramFactory implements
   @Override
   public Method dfunc(Origin o, String name,
       List<Triple<Origin,String,Type>> args, Type t, String domain) {
-    // TODO Auto-generated method stub
     enter(o);
     Method res=create.function_decl(t,null, name,create.to_decls(args),null);
     leave();
     return res;
   }
 
-  private ASTNode[][] toAofA(java.util.List<java.util.List<ASTNode>> lofl){
-    ASTNode[][] aofa=new ASTNode[lofl.size()][];
-    for(int i=0;i<aofa.length;i++){
-      java.util.List<ASTNode> l=lofl.get(i);
-      aofa[i]=l.toArray(new ASTNode[l.size()]);
-    }
-    return aofa;
-  }
-  
   private void enter(Origin o){
     create.enter();
     if (o==null){
@@ -229,12 +200,12 @@ public class VerCorsProgramFactory implements
           for(DeclarationStatement decl:m.getArgs()){
             T t=decl.getType().apply(type);
             if (decl.isValidFlag(ASTFlags.OUT_ARG) && decl.getFlag(ASTFlags.OUT_ARG)){
-              out.add(new Triple(decl.getOrigin(),decl.name,t));
+              out.add(new Triple<Origin,String,T>(decl.getOrigin(),decl.name,t));
             } else {
-              in.add(new Triple(decl.getOrigin(),decl.name,t));
+              in.add(new Triple<Origin,String,T>(decl.getOrigin(),decl.name,t));
             }
           }
-          ArrayList<Triple<Origin,String,T>> locals=new ArrayList();
+          ArrayList<Triple<Origin,String,T>> locals=new ArrayList<Triple<Origin,String,T>>();
           S body;
           if (m.getBody() instanceof BlockStatement){
             BlockStatement block=(BlockStatement)m.getBody();
@@ -271,9 +242,9 @@ public class VerCorsProgramFactory implements
           break;
         }
         case Pure:{
-          ArrayList<Triple<Origin,String,T>> args=new ArrayList();
+          ArrayList<Triple<Origin,String,T>> args=new ArrayList<Triple<Origin,String,T>>();
           for(DeclarationStatement decl:m.getArgs()){
-            args.add(new Triple(decl.getOrigin(),decl.getName(),decl.getType().apply(type)));
+            args.add(new Triple<Origin,String,T>(decl.getOrigin(),decl.getName(),decl.getType().apply(type)));
           }
           T t=m.getReturnType().apply(type);
           ArrayList<E> pres=new ArrayList<E>();
@@ -295,9 +266,9 @@ public class VerCorsProgramFactory implements
         case Predicate:{
           ASTNode b=m.getBody();
           E body=(b==null?null:b.apply(expr));
-          ArrayList<Triple<Origin,String,T>> args=new ArrayList();
+          ArrayList<Triple<Origin,String,T>> args=new ArrayList<Triple<Origin,String,T>>();
           for(DeclarationStatement decl:m.getArgs()){
-            args.add(new Triple(decl.getOrigin(),decl.getName(),decl.getType().apply(type)));
+            args.add(new Triple<Origin,String,T>(decl.getOrigin(),decl.getName(),decl.getType().apply(type)));
           }
           api.prog.add_predicate(program,m.getOrigin(),m.name,args,body);
           break;
@@ -318,16 +289,16 @@ public class VerCorsProgramFactory implements
         AxiomaticDataType adt=(AxiomaticDataType)entry;
         ArrayList<DFunc> funcs=new ArrayList<DFunc>();
         for(Method m:adt.constructors()){
-          List<Triple<Origin,String,T>> args=new ArrayList();
+          List<Triple<Origin,String,T>> args=new ArrayList<Triple<Origin,String,T>>();
           for(DeclarationStatement decl:m.getArgs()){
-            args.add(new Triple(decl.getOrigin(),decl.getName(),decl.getType().apply(type)));
+            args.add(new Triple<Origin,String,T>(decl.getOrigin(),decl.getName(),decl.getType().apply(type)));
           }
           funcs.add(api.prog.dfunc(m.getOrigin(),m.name, args,m.getReturnType().apply(type),adt.name));
         }
         for(Method m:adt.mappings()){
-          List<Triple<Origin,String,T>> args=new ArrayList();
+          List<Triple<Origin,String,T>> args=new ArrayList<Triple<Origin,String,T>>();
           for(DeclarationStatement decl:m.getArgs()){
-            args.add(new Triple(decl.getOrigin(),decl.getName(),decl.getType().apply(type)));
+            args.add(new Triple<Origin,String,T>(decl.getOrigin(),decl.getName(),decl.getType().apply(type)));
           }
           funcs.add(api.prog.dfunc(m.getOrigin(),m.name, args,m.getReturnType().apply(type),adt.name));
         }

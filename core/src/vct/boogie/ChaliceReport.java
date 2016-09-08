@@ -1,17 +1,13 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 package vct.boogie;
 
-import hre.ast.FileOrigin;
 import hre.ast.Origin;
 import hre.ast.TrackingTree;
 import hre.io.Message;
 import hre.io.ModuleShell;
 
-import java.io.*;
 import java.util.*;
 
-import vct.col.ast.*;
-import vct.util.*;
 import static hre.System.Debug;
 import static hre.System.Warning;
 
@@ -22,9 +18,6 @@ import static hre.System.Warning;
  *
  */
 public class ChaliceReport extends hre.util.TestReport {
-
-  private boolean boogie_started;
-  private boolean boogie_completed;
   
   public ChaliceReport(ModuleShell shell,HashSet<Origin> must_refute, TrackingTree tree){
     HashSet<Origin> has_refuted=new HashSet<Origin>();
@@ -35,8 +28,6 @@ public class ChaliceReport extends hre.util.TestReport {
         Message msg=shell.recv();
         Debug(msg.getFormat(),msg.getArgs());
         if (msg.getFormat().equals("exit %d")) break;
-        //System.err.printf(msg.getFormat(),msg.getArgs());
-        //System.err.println();
         if (msg.getFormat().equals("stderr: %s") || msg.getFormat().equals("stdout: %s")){
           line=(String)msg.getArg(0);
         } else {
@@ -106,7 +97,6 @@ public class ChaliceReport extends hre.util.TestReport {
           continue;
         }
         if (line.startsWith("Boogie program verifier version")){
-          boogie_started=true;
           continue;
         }
         if (line.startsWith("Boogie program verifier finished")){
@@ -117,9 +107,10 @@ public class ChaliceReport extends hre.util.TestReport {
               real_errors++;
             }
           }
-          boogie_completed=true;
           String words[]=line.split(" ");
+          @SuppressWarnings("unused")
           int verified_count=-1;
+          @SuppressWarnings("unused")
           int error_count=-1;
           int timeout_count=0;
           for(int i=1;i<words.length;i++){
@@ -127,7 +118,6 @@ public class ChaliceReport extends hre.util.TestReport {
             if (words[i].matches("error.*")) error_count=Integer.parseInt(words[i-1]);
             if (words[i].equals("time")) timeout_count=Integer.parseInt(words[i-1]);
           }
-          //if (error_count==0 && timeout_count==0){
           if (real_errors==0 && timeout_count==0){
             setVerdict(Verdict.Pass);
           } else if (timeout_count>0) {

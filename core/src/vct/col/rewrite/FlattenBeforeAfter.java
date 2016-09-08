@@ -1,7 +1,6 @@
 package vct.col.rewrite;
 
 import vct.col.ast.ASTNode;
-import vct.col.ast.ASTSpecial;
 import vct.col.ast.BeforeAfterAnnotations;
 import vct.col.ast.BlockStatement;
 import vct.col.ast.MethodInvokation;

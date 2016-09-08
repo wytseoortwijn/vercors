@@ -1,6 +1,5 @@
 package vct.col.rewrite;
 
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -18,12 +17,9 @@ import vct.col.ast.DeclarationStatement;
 import vct.col.ast.Method;
 import vct.col.ast.MethodInvokation;
 import vct.col.ast.NameExpression;
-import vct.col.ast.OperatorExpression;
 import vct.col.ast.PrimitiveType.Sort;
 import vct.col.ast.ProgramUnit;
-import vct.col.ast.StandardOperator;
 import vct.col.ast.Type;
-import vct.util.ClassName;
 import static vct.col.ast.ASTReserved.*;
 
 /**
@@ -207,7 +203,7 @@ public class DynamicStaticInheritance extends AbstractRewriter {
     }
   };
   
-  private Set<ClassType> super_classes=new HashSet();
+  private Set<ClassType> super_classes=new HashSet<ClassType>();
   
   public DynamicStaticInheritance(ProgramUnit source) {
     super(source);

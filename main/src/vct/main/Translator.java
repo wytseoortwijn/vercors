@@ -10,7 +10,6 @@ import java.util.*;
 import vct.col.ast.ASTClass;
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTSpecial.Kind;
-import vct.col.ast.ASTWith;
 import vct.col.ast.AbstractVisitor;
 import vct.col.ast.AssignmentStatement;
 import vct.col.ast.BindingExpression;
@@ -957,12 +956,6 @@ public class Translator {
 		    for(int i=0;i<M;i++){
 		    	c.getDynamic(i).accept(this);
 		    }
-		}
-
-		@Override
-		public void visit(ASTWith w) {
-			outputToString.printf("Found ASTWith %s %n",w.toString());
-			w.body.accept(this);
 		}
 		  
 		public void visit(BindingExpression e){

@@ -3,9 +3,6 @@ package vct.col.ast;
 
 import hre.ast.MessageOrigin;
 
-import java.util.*;
-
-
 public class AssignmentStatement extends ASTNode {
 
   @Override
@@ -28,8 +25,6 @@ public class AssignmentStatement extends ASTNode {
   }
 
   public ASTNode getExpression() { return expression; }
-
-//  public String getName() { return name; }
 
   public ASTNode getLocation() { return location; }
 

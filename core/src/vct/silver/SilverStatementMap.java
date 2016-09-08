@@ -2,21 +2,18 @@ package vct.silver;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.TreeMap;
-
 import hre.HREError;
 import hre.ast.Origin;
 import vct.col.ast.*;
 import vct.col.util.ASTUtils;
-import vct.util.Configuration;
 import static hre.System.Abort;
 import viper.api.*;
 
 public class SilverStatementMap<T,E,S> implements ASTMapping<S>{
 
-  private StatementFactory<Origin,T,E,S> create;
-  private ExpressionFactory<Origin,T,E> ef;
-  private TypeFactory<T> tf;
+  public final StatementFactory<Origin,T,E,S> create;
+  public final ExpressionFactory<Origin,T,E> ef;
+  public final TypeFactory<T> tf;
   
   private SilverTypeMap<T> type;
   private SilverExpressionMap<T,E> expr;
@@ -54,13 +51,13 @@ public class SilverStatementMap<T,E,S> implements ASTMapping<S>{
 
   @Override
   public S map(StandardProcedure p) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public S map(ConstantExpression e) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
@@ -78,25 +75,25 @@ public class SilverStatementMap<T,E,S> implements ASTMapping<S>{
 
   @Override
   public S map(ClassType t) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public S map(FunctionType t) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public S map(PrimitiveType t) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public S map(RecordType t) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
@@ -105,19 +102,19 @@ public class SilverStatementMap<T,E,S> implements ASTMapping<S>{
     Origin o=e.getOrigin();
     Method m=e.getDefinition();
     String name=m.name;
-    ArrayList<E> args=new ArrayList();
-    ArrayList<E> outs=new ArrayList();
-    ArrayList<Triple<Origin,String,T>> pars=new ArrayList();
-    ArrayList<Triple<Origin,String,T>> rets=new ArrayList();
+    ArrayList<E> args=new ArrayList<E>();
+    ArrayList<E> outs=new ArrayList<E>();
+    ArrayList<Triple<Origin,String,T>> pars=new ArrayList<Triple<Origin,String,T>>();
+    ArrayList<Triple<Origin,String,T>> rets=new ArrayList<Triple<Origin,String,T>>();
     int N=e.getArity();
     DeclarationStatement decl[]=m.getArgs();
     for(int i=0;i<N;i++){
       if (decl[i].isValidFlag(ASTFlags.OUT_ARG) && decl[i].getFlag(ASTFlags.OUT_ARG)){
         outs.add(e.getArg(i).apply(expr));
-        rets.add(new Triple(decl[i].getOrigin(),decl[i].name, decl[i].getType().apply(type)));
+        rets.add(new Triple<Origin,String,T>(decl[i].getOrigin(),decl[i].name, decl[i].getType().apply(type)));
       } else {
         args.add(e.getArg(i).apply(expr));
-        pars.add(new Triple(decl[i].getOrigin(),decl[i].name, decl[i].getType().apply(type)));
+        pars.add(new Triple<Origin,String,T>(decl[i].getOrigin(),decl[i].name, decl[i].getType().apply(type)));
       }
     }
     return create.method_call(o, name, args, outs, pars, rets);
@@ -125,7 +122,7 @@ public class SilverStatementMap<T,E,S> implements ASTMapping<S>{
 
   @Override
   public S map(BlockStatement s) {
-    ArrayList<S> stats=new ArrayList();
+    ArrayList<S> stats=new ArrayList<S>();
     for(ASTNode n:s){
       S res=n.apply(this);
       if (res!=null) stats.add(res);
@@ -152,7 +149,7 @@ public class SilverStatementMap<T,E,S> implements ASTMapping<S>{
 
   @Override
   public S map(ReturnStatement s) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
@@ -167,8 +164,8 @@ public class SilverStatementMap<T,E,S> implements ASTMapping<S>{
   public S assignment(Origin origin, ASTNode location, ASTNode expression) {
     if (expression.isa(StandardOperator.NewSilver)){
       //Configuration.getDiagSyntax().print(System.err, s);
-      ArrayList<String> names=new ArrayList();
-      ArrayList<T> types=new ArrayList();
+      ArrayList<String> names=new ArrayList<String>();
+      ArrayList<T> types=new ArrayList<T>();
       ASTNode args[]=((OperatorExpression)expression).getArguments();
       for(int i=0;i<args.length;i++){
         Dereference d=(Dereference)args[i];
@@ -183,7 +180,7 @@ public class SilverStatementMap<T,E,S> implements ASTMapping<S>{
 
   @Override
   public S map(DeclarationStatement s) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
@@ -192,10 +189,10 @@ public class SilverStatementMap<T,E,S> implements ASTMapping<S>{
     Origin o=s.getOrigin();
     if (s.getInitBlock()!=null) Abort("not a while loop");
     if (s.getExitGuard()!=null) Abort("not a while loop");
-    ArrayList<Triple<Origin,String,T>> locals=new ArrayList();
-    ArrayList<S> stats=new ArrayList();
+    ArrayList<Triple<Origin,String,T>> locals=new ArrayList<Triple<Origin,String,T>>();
+    ArrayList<S> stats=new ArrayList<S>();
     SilverBackend.split_block(ef, type, this, locals,(BlockStatement) s.getBody(), stats);
-    ArrayList<E> invs=new ArrayList();
+    ArrayList<E> invs=new ArrayList<E>();
     for(ASTNode inv:ASTUtils.conjuncts(s.getContract().invariant,StandardOperator.Star)){
       invs.add(inv.apply(expr));
     }
@@ -204,55 +201,49 @@ public class SilverStatementMap<T,E,S> implements ASTMapping<S>{
 
   @Override
   public S map(Method m) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public S map(ASTClass c) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public S map(ASTWith astWith) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public S map(BindingExpression e) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public S map(Dereference e) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public S map(Lemma lemma) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public S map(ParallelBarrier parallelBarrier) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public S map(ParallelBlock parallelBlock) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public S map(Contract contract) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
@@ -286,55 +277,55 @@ public class SilverStatementMap<T,E,S> implements ASTMapping<S>{
 
   @Override
   public S map(VariableDeclaration variableDeclaration) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public S map(TupleType tupleType) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public S map(AxiomaticDataType adt) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public S map(Axiom axiom) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public S map(Hole hole) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public S map(ActionBlock actionBlock) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public S map(TypeExpression t) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public S map(ForEachLoop s) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public S map(ParallelAtomic parallelAtomic) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
@@ -345,7 +336,7 @@ public class SilverStatementMap<T,E,S> implements ASTMapping<S>{
 
   @Override
   public S map(NameSpace nameSpace) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
@@ -372,13 +363,13 @@ public class SilverStatementMap<T,E,S> implements ASTMapping<S>{
 
   @Override
   public S map(TypeVariable v) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public S map(StructValue v) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 

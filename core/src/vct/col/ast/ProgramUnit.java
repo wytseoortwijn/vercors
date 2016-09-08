@@ -8,9 +8,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 import vct.col.ast.ASTClass.ClassKind;
-import vct.col.rewrite.AbstractRewriter;
 import vct.col.util.ASTFactory;
-import vct.col.util.FeatureScanner;
 import vct.util.ClassName;
 import vct.util.Configuration;
 import static hre.System.*;
@@ -40,7 +38,7 @@ public class ProgramUnit implements ASTSequence<ProgramUnit> {
   private static HashMap<ClassName,ASTClass> library=new HashMap<ClassName, ASTClass>();
   
   static {
-    ASTFactory create=new ASTFactory();
+    ASTFactory<?> create=new ASTFactory<Object>();
     create.setOrigin(new MessageOrigin("<<ProgramUnit>>"));
     ASTClass seq=create.ast_class("seq", ClassKind.Plain, null,null, null);
     Method len=create.function_decl(create.primitive_type(PrimitiveType.Sort.Integer), null, "length", new DeclarationStatement[0], null);
@@ -240,6 +238,7 @@ public class ProgramUnit implements ASTSequence<ProgramUnit> {
     return proc_map.get(class_name);
   }
 
+  @SuppressWarnings({ "rawtypes", "unchecked" })
   @Override
   public Iterator<ASTNode> iterator() {
     return (Iterator)program.iterator();
@@ -265,7 +264,7 @@ public class ProgramUnit implements ASTSequence<ProgramUnit> {
     }
   }
 
-  public void index_classes(ASTSequence seq){
+  public void index_classes(ASTSequence<?> seq){
     for(Object n:seq){
       if(n instanceof ASTClass){
         ASTClass cl=(ASTClass)n;

@@ -15,12 +15,12 @@ public class GhostLifter extends AbstractRewriter {
   @Override
   public void visit(Method m){
     ContractBuilder cb=new ContractBuilder();
-    ArrayList<DeclarationStatement> args=new ArrayList();
+    ArrayList<DeclarationStatement> args=new ArrayList<DeclarationStatement>();
     Contract c=m.getContract();
     for(DeclarationStatement arg:m.getArgs()){
       args.add(rewrite(arg));
     }
-    Hashtable<String,ASTNode> yielded=new Hashtable();
+    Hashtable<String,ASTNode> yielded=new Hashtable<String, ASTNode>();
     if (c!=null){
       for(DeclarationStatement arg:c.given){
         args.add(rewrite(arg));
@@ -59,7 +59,7 @@ public class GhostLifter extends AbstractRewriter {
   
   @Override
   public void visit(MethodInvokation m){
-    ArrayList<ASTNode> args=new ArrayList();
+    ArrayList<ASTNode> args=new ArrayList<ASTNode>();
     BlockStatement before=create.block();
     BlockStatement after=create.block();
     for(ASTNode n:m.getArgs()){

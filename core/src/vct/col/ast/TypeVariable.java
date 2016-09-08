@@ -1,7 +1,5 @@
 package vct.col.ast;
 
-import java.util.Arrays;
-
 public class TypeVariable extends Type {
 
   @Override

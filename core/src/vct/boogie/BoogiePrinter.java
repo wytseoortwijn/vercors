@@ -3,9 +3,6 @@ package vct.boogie;
 
 import hre.ast.TrackingOutput;
 import vct.col.ast.*;
-import static hre.System.Abort;
-import static hre.System.Debug;
-import static hre.System.Fail;
 
 /**
  * This class contains a pretty printer for Boogie programs.
@@ -29,10 +26,6 @@ public class BoogiePrinter extends AbstractBoogiePrinter {
     Type result_type=m.getReturnType();
     if (!result_type.equals(PrimitiveType.Sort.Void)) Fail("illegal return type %s",result_type);
     String name=m.getName();
-    //TODO:
-    //if (result_type.equals("pred")){
-    //  throw new Error("Boogie does not allow predicates");
-    //}
     out.printf("procedure %s(",name);
     String next="";
     for(int i=0;i<N;i++){

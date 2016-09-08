@@ -9,58 +9,8 @@ import java.util.Map.Entry;
 
 import hre.ast.MessageOrigin;
 import hre.ast.Origin;
-import vct.col.ast.ASTClass;
-import vct.col.ast.ASTDeclaration;
-import vct.col.ast.ASTFrame;
-import vct.col.ast.ASTNode;
-import vct.col.ast.ASTReserved;
-import vct.col.ast.ASTSequence;
-import vct.col.ast.ASTSpecial;
+import vct.col.ast.*;
 import vct.col.ast.ASTSpecial.Kind;
-import vct.col.ast.ASTWith;
-import vct.col.ast.AbstractVisitor;
-import vct.col.ast.ActionBlock;
-import vct.col.ast.Axiom;
-import vct.col.ast.AxiomaticDataType;
-import vct.col.ast.BindingExpression;
-import vct.col.ast.CatchClause;
-import vct.col.ast.ContractBuilder;
-import vct.col.ast.Dereference;
-import vct.col.ast.FieldAccess;
-import vct.col.ast.ForEachLoop;
-import vct.col.ast.Hole;
-import vct.col.ast.Lemma;
-import vct.col.ast.MethodInvokation;
-import vct.col.ast.AssignmentStatement;
-import vct.col.ast.BlockStatement;
-import vct.col.ast.ClassType;
-import vct.col.ast.ConstantExpression;
-import vct.col.ast.Contract;
-import vct.col.ast.DeclarationStatement;
-import vct.col.ast.FunctionType;
-import vct.col.ast.IfStatement;
-import vct.col.ast.LoopStatement;
-import vct.col.ast.Method;
-import vct.col.ast.NameExpression;
-import vct.col.ast.NameSpace;
-import vct.col.ast.OperatorExpression;
-import vct.col.ast.ParallelAtomic;
-import vct.col.ast.ParallelBarrier;
-import vct.col.ast.ParallelBlock;
-import vct.col.ast.ParallelInvariant;
-import vct.col.ast.ParallelRegion;
-import vct.col.ast.PrimitiveType;
-import vct.col.ast.ProgramUnit;
-import vct.col.ast.RecordType;
-import vct.col.ast.ReturnStatement;
-import vct.col.ast.StandardOperator;
-import vct.col.ast.StandardProcedure;
-import vct.col.ast.StructValue;
-import vct.col.ast.TryCatchBlock;
-import vct.col.ast.Type;
-import vct.col.ast.TypeExpression;
-import vct.col.ast.TypeVariable;
-import vct.col.ast.VariableDeclaration;
 import vct.col.util.ASTFactory;
 import vct.col.util.ASTUtils;
 import vct.col.util.NameScanner;
@@ -358,12 +308,6 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
     }
   }
 
-  @Override
-  public void visit(ASTWith t){
-    ASTNode body=t.body.apply(this);
-    result=create.with(t.from,t.kind,t.all,body);
-  }
-  
   @Override
   public void visit(BlockStatement s) {
     //checkPermission(s);

@@ -5,11 +5,6 @@ import hre.ast.MessageOrigin;
 import java.util.Stack;
 
 import vct.col.ast.*;
-import vct.col.ast.PrimitiveType.Sort;
-import static hre.System.Abort;
-import static hre.System.Debug;
-import static hre.System.Fail;
-import static hre.System.Warning;
 
 public class Flatten extends AbstractRewriter {
 
@@ -30,7 +25,6 @@ public class Flatten extends AbstractRewriter {
     result=copy_pure.rewrite(s);
   }
   public void visit(BlockStatement s){
-    int N=s.getLength();
     block_stack.push(current_block);
     current_block=create.block();
     visit_body(s);
@@ -283,7 +277,6 @@ public class Flatten extends AbstractRewriter {
       break;
     }
     String name=m.getName();
-    int N=m.getArity();
     DeclarationStatement args[]=copy_pure.rewrite(m.getArgs());
     Contract mc=m.getContract();
     Contract c=null;

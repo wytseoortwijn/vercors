@@ -207,6 +207,10 @@ class SilverProgramFactory[O,Err] extends ProgramFactory[O,Err,Type,Exp,Stmt,
          }
          api.stat.new_object(o,map_expr(api,v),names.asJava,types.asJava)
        }
+       case Apply(_) =>
+         throw new Error("apply not implemented");
+       case Package(_) =>
+         throw new Error("package not implemented");
      }
   }
 

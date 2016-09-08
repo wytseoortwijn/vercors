@@ -5,16 +5,18 @@ import javax.swing.text.*;
 
 import java.awt.*; //for layout managers and more
 import java.awt.event.*; //for action events
-import java.net.URL;
-import java.io.IOException;
 
 public class FileSwingContext extends JPanel implements ActionListener {
 
+  
+  /**
+   * serial version
+   */
+  private static final long serialVersionUID = -8488962903581879604L;
+  
   protected JTextPane textPane;
   protected JScrollPane paneScrollPane;
   protected StyledDocument doc;
-
-  private String newline = "\n";
 
   public FileSwingContext() {
     setLayout(new BorderLayout());

@@ -2,8 +2,6 @@ package vct.col.ast;
 
 import static hre.System.Abort;
 import static hre.System.Debug;
-import static hre.System.Warning;
-
 import java.util.Arrays;
 
 public class ClassType extends Type {

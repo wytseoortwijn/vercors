@@ -1,7 +1,5 @@
 package vct.col.ast;
 
-import static hre.System.Abort;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -33,7 +31,7 @@ public class NameSpace extends ASTDeclaration implements ASTSequence<NameSpace> 
     return name[name.length-1];
   }
   
-  public final ArrayList<Import> imports=new ArrayList();
+  public final ArrayList<Import> imports=new ArrayList<Import>();
   
   private ClassName full_name;
   
@@ -101,6 +99,7 @@ public class NameSpace extends ASTDeclaration implements ASTSequence<NameSpace> 
     return space.get(i);
   }
 
+  @SuppressWarnings({ "unchecked", "rawtypes" })
   @Override
   public Iterator<ASTNode> iterator() {
     return (Iterator)space.iterator();

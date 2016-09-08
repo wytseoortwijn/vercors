@@ -3,7 +3,6 @@ package vct.antlr4.parser;
 import java.util.ArrayList;
 
 import hre.Failure;
-import hre.ast.MessageOrigin;
 
 import org.antlr.v4.runtime.BufferedTokenStream;
 import org.antlr.v4.runtime.Parser;
@@ -48,7 +47,7 @@ public class CMLtoCOL extends ANTLRtoCOL implements CMLVisitor<ASTNode> {
     return convert(new TempSequence(),tree,file_name,tokens,parser);
   }
 
-  protected java.lang.Class expect;
+  protected java.lang.Class<? extends ASTNode> expect;
 
   private int struct_no=0;
 
@@ -107,76 +106,56 @@ public class CMLtoCOL extends ANTLRtoCOL implements CMLVisitor<ASTNode> {
 
   @Override
   public ASTNode visitAbstractDeclarator(AbstractDeclaratorContext ctx) {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public ASTNode visitAdditiveExpression(AdditiveExpressionContext ctx) {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public ASTNode visitAlignmentSpecifier(AlignmentSpecifierContext ctx) {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public ASTNode visitAndExpression(AndExpressionContext ctx) {
-    // TODO Auto-generated method stub
     return null;
   }
   
   @Override
   public ASTNode visitArgumentExpressionList(ArgumentExpressionListContext ctx) {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public ASTNode visitAssignmentExpression(AssignmentExpressionContext ctx) {
-    if (false && match(ctx,null,"AssignmentOperatorContext",null)){
-      ASTNode loc=convert(ctx,0);
-      ASTNode val=convert(ctx,2);
-      StandardOperator op=null;
-      AssignmentOperatorContext op_ctx=(AssignmentOperatorContext)ctx.getChild(1);
-      if (match(op_ctx,"=")){
-        op=StandardOperator.Assign;
-      }
-      if(op!=null) return create.expression(op,loc,val);
-    }
     return null;
   }
 
   @Override
   public ASTNode visitAssignmentOperator(AssignmentOperatorContext ctx) {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public ASTNode visitAtomicTypeSpecifier(AtomicTypeSpecifierContext ctx) {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public ASTNode visitBlock(BlockContext ctx) {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public ASTNode visitBlockItem(BlockItemContext ctx) {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public ASTNode visitBlockItemList(BlockItemListContext ctx) {
-    // TODO Auto-generated method stub
     return null;
   }
   
@@ -192,13 +171,11 @@ public class CMLtoCOL extends ANTLRtoCOL implements CMLVisitor<ASTNode> {
 
   @Override
   public ASTNode visitClangIdentifier(ClangIdentifierContext ctx) {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public ASTNode visitCompilationUnit(CompilationUnitContext ctx) {
-    // TODO Auto-generated method stub
     return null;
   }
 
@@ -216,13 +193,11 @@ public class CMLtoCOL extends ANTLRtoCOL implements CMLVisitor<ASTNode> {
 
   @Override
   public ASTNode visitConditionalExpression(ConditionalExpressionContext ctx) {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public ASTNode visitConstantExpression(ConstantExpressionContext ctx) {
-    // TODO Auto-generated method stub
     return null;
   }
 
@@ -256,13 +231,11 @@ public class CMLtoCOL extends ANTLRtoCOL implements CMLVisitor<ASTNode> {
 
   @Override
   public ASTNode visitDeclarationList(DeclarationListContext ctx) {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public ASTNode visitDeclarationSpecifier(DeclarationSpecifierContext ctx) {
-    // TODO Auto-generated method stub
     return null;
   }
 
@@ -386,31 +359,16 @@ public class CMLtoCOL extends ANTLRtoCOL implements CMLVisitor<ASTNode> {
     } else {
       return create.field_decl(name,type);
     }
-    /*
-    if (match(ctx,null,null)){
-      ASTNode t=convert(ctx,0);
-      ASTNode v=convert(ctx,1);
-      if (t instanceof Type && v instanceof NameExpression){
-        return create.field_decl(((NameExpression)v).getName(), (Type)t);
-      }
-      if (v instanceof Type) {
-        Warning("ignoring modifier...");
-        return v;
-      }
-    }
-    */
   }
 
   @Override
   public ASTNode visitDeclarationSpecifiers2(DeclarationSpecifiers2Context ctx) {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public ASTNode visitDeclarator(DeclaratorContext ctx) {
     if (match(ctx,"Pointer",null)){
-      //hre.System.Warning("pointer declarator %s",ctx.toStringTree(parser));
       DeclarationStatement d=(DeclarationStatement)convert(ctx,1);
       Type t=getPointer(d.getType(),(ParserRuleContext)ctx.getChild(0));
       return create.field_decl(d.name, t);//create.primitive_type(Sort.Pointer,d.getType()));
@@ -420,32 +378,27 @@ public class CMLtoCOL extends ANTLRtoCOL implements CMLVisitor<ASTNode> {
 
   @Override
   public ASTNode visitDesignation(DesignationContext ctx) {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public ASTNode visitDesignator(DesignatorContext ctx) {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public ASTNode visitDesignatorList(DesignatorListContext ctx) {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public ASTNode visitDirectAbstractDeclarator(
       DirectAbstractDeclaratorContext ctx) {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public ASTNode visitDirectDeclarator(DirectDeclaratorContext ctx) {
-    //hre.System.Warning("direct declarator %s",ctx.toStringTree(parser));
     if (match(ctx,(String)null)){
       String name=getIdentifier(ctx,0);
       return create.field_decl(name, VariableDeclaration.common_type);
@@ -453,7 +406,7 @@ public class CMLtoCOL extends ANTLRtoCOL implements CMLVisitor<ASTNode> {
     boolean pars=false;
     if (match(ctx,null,"(",")")||(pars=match(ctx,null,"(","ParameterTypeList",")"))){
       String name=getIdentifier(ctx, 0);
-      ArrayList<DeclarationStatement> args=new ArrayList();
+      ArrayList<DeclarationStatement> args=new ArrayList<DeclarationStatement>();
       if (pars){  
         convert_parameters(args,(ParserRuleContext)ctx.getChild(2));
       }
@@ -485,45 +438,38 @@ public class CMLtoCOL extends ANTLRtoCOL implements CMLVisitor<ASTNode> {
 
   @Override
   public ASTNode visitEnumerationConstant(EnumerationConstantContext ctx) {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public ASTNode visitEnumerator(EnumeratorContext ctx) {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public ASTNode visitEnumeratorList(EnumeratorListContext ctx) {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public ASTNode visitEnumSpecifier(EnumSpecifierContext ctx) {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public ASTNode visitEqualityExpression(EqualityExpressionContext ctx) {
-    // TODO Auto-generated method stub
     return null;
-  }//
+  }
 
   @Override
   public ASTNode visitExclusiveOrExpression(ExclusiveOrExpressionContext ctx) {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public ASTNode visitExpression(ExpressionContext ctx) {
-    // TODO Auto-generated method stub
     return null;
-  }// //
+  }
 
   @Override
   public ASTNode visitExpressionStatement(ExpressionStatementContext ctx) {
@@ -538,25 +484,21 @@ public class CMLtoCOL extends ANTLRtoCOL implements CMLVisitor<ASTNode> {
 
   @Override
   public ASTNode visitExternalDeclaration(ExternalDeclarationContext ctx) {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public ASTNode visitExtraDeclaration(ExtraDeclarationContext ctx) {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public ASTNode visitExtraIdentifier(ExtraIdentifierContext ctx) {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public ASTNode visitExtraPrimary(ExtraPrimaryContext ctx) {
-    // TODO Auto-generated method stub
     return null;
   }
 
@@ -573,7 +515,6 @@ public class CMLtoCOL extends ANTLRtoCOL implements CMLVisitor<ASTNode> {
 
   @Override
   public ASTNode visitExtraType(ExtraTypeContext ctx) {
-    // TODO Auto-generated method stub
     return null;
   }
 
@@ -581,13 +522,6 @@ public class CMLtoCOL extends ANTLRtoCOL implements CMLVisitor<ASTNode> {
   public ASTNode visitFunctionDefinition(FunctionDefinitionContext ctx) {
     int ofs;
     Type t;
-    /*
-    if (match(0,true,ctx,"DeclarationSpecifierContext")){
-      System.err.printf("TYPE... %s%n",ctx.getChild(1).toStringTree(parser));
-      ofs=1;
-      t=(Type)convert(ctx,1);
-    } else
-      */
     if (match(0,true,ctx,"DeclaratorContext")) {
       t=create.primitive_type(Sort.Integer);
       ofs=0;
@@ -620,86 +554,72 @@ public class CMLtoCOL extends ANTLRtoCOL implements CMLVisitor<ASTNode> {
       body=convert(ctx,ofs);
     } else {
       return null;
-      //body=convert(ctx,ofs+1);
     }
     return create.method_decl(t, null, name, args.toArray(new DeclarationStatement[0]), body);
   }
 
   @Override
   public ASTNode visitFunctionSpecifier(FunctionSpecifierContext ctx) {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public ASTNode visitGccAttribute(GccAttributeContext ctx) {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public ASTNode visitGccAttributeList(GccAttributeListContext ctx) {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public ASTNode visitGccAttributeSpecifier(GccAttributeSpecifierContext ctx) {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public ASTNode visitGccDeclaratorExtension(GccDeclaratorExtensionContext ctx) {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public ASTNode visitGenericAssociation(GenericAssociationContext ctx) {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public ASTNode visitGenericAssocList(GenericAssocListContext ctx) {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public ASTNode visitGenericSelection(GenericSelectionContext ctx) {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public ASTNode visitIdentifier(IdentifierContext ctx) {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public ASTNode visitIdentifierList(IdentifierListContext ctx) {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public ASTNode visitInclusiveOrExpression(InclusiveOrExpressionContext ctx) {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public ASTNode visitInitDeclarator(InitDeclaratorContext ctx) {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public ASTNode visitInitDeclaratorList(InitDeclaratorListContext ctx) {
-    // TODO Auto-generated method stub
     return null;
   }
 
@@ -715,7 +635,6 @@ public class CMLtoCOL extends ANTLRtoCOL implements CMLVisitor<ASTNode> {
 
   @Override
   public ASTNode visitInitializerList(InitializerListContext ctx) {
-    // TODO Auto-generated method stub
     return null;
   }
   
@@ -799,26 +718,22 @@ public class CMLtoCOL extends ANTLRtoCOL implements CMLVisitor<ASTNode> {
 
   @Override
   public ASTNode visitLogicalAndExpression(LogicalAndExpressionContext ctx) {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public ASTNode visitLogicalOrExpression(LogicalOrExpressionContext ctx) {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public ASTNode visitMultiplicativeExpression(
       MultiplicativeExpressionContext ctx) {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public ASTNode visitNestedParenthesesBlock(NestedParenthesesBlockContext ctx) {
-    // TODO Auto-generated method stub
     return null;
   }
 
@@ -848,19 +763,16 @@ public class CMLtoCOL extends ANTLRtoCOL implements CMLVisitor<ASTNode> {
 
   @Override
   public ASTNode visitParameterList(ParameterListContext ctx) {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public ASTNode visitParameterTypeList(ParameterTypeListContext ctx) {
-    // TODO Auto-generated method stub
     return null;
   }
   
   @Override
   public ASTNode visitPointer(PointerContext ctx) {
-    // TODO Auto-generated method stub
     return null;
   }
 
@@ -953,13 +865,11 @@ public class CMLtoCOL extends ANTLRtoCOL implements CMLVisitor<ASTNode> {
 
   @Override
   public ASTNode visitRelationalExpression(RelationalExpressionContext ctx) {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public ASTNode visitSelectionStatement(SelectionStatementContext ctx) {
-    // TODO Auto-generated method stub    
     if (match(ctx,"if","(","ExpressionContext",")",null)){  //DRB --Added  
         return create.ifthenelse(convert(ctx,2),convert(ctx,4));
     }
@@ -971,14 +881,12 @@ public class CMLtoCOL extends ANTLRtoCOL implements CMLVisitor<ASTNode> {
 
   @Override
   public ASTNode visitShiftExpression(ShiftExpressionContext ctx) {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public ASTNode visitSpecificationDeclaration(
       SpecificationDeclarationContext ctx) {
-    // TODO Auto-generated method stub
     return null;
   }
 
@@ -1017,19 +925,16 @@ public class CMLtoCOL extends ANTLRtoCOL implements CMLVisitor<ASTNode> {
 
   @Override
   public ASTNode visitStatement(StatementContext ctx) {
-    // TODO Auto-generated method stub
 	  return null;
   }
 
   @Override
   public ASTNode visitStaticAssertDeclaration(StaticAssertDeclarationContext ctx) {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public ASTNode visitStorageClassSpecifier(StorageClassSpecifierContext ctx) {
-    // TODO Auto-generated method stub
     return null;
   }
 
@@ -1050,25 +955,22 @@ public class CMLtoCOL extends ANTLRtoCOL implements CMLVisitor<ASTNode> {
 
   @Override
   public ASTNode visitStructDeclarationList(StructDeclarationListContext ctx) {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public ASTNode visitStructDeclarator(StructDeclaratorContext ctx) {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public ASTNode visitStructDeclaratorList(StructDeclaratorListContext ctx) {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public ASTNode visitStructOrUnion(StructOrUnionContext ctx) {
-    // TODO Auto-generated method stub
+
     return null;
   }
 
@@ -1111,19 +1013,19 @@ public class CMLtoCOL extends ANTLRtoCOL implements CMLVisitor<ASTNode> {
 
   @Override
   public ASTNode visitTranslationUnit(TranslationUnitContext ctx) {
-    // TODO Auto-generated method stub
+
     return null;
   }
 
   @Override
   public ASTNode visitType(TypeContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public ASTNode visitTypeArgs(TypeArgsContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
@@ -1144,7 +1046,7 @@ public class CMLtoCOL extends ANTLRtoCOL implements CMLVisitor<ASTNode> {
 
   @Override
   public ASTNode visitTypeQualifier(TypeQualifierContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
@@ -1174,13 +1076,13 @@ public class CMLtoCOL extends ANTLRtoCOL implements CMLVisitor<ASTNode> {
 
   @Override
   public ASTNode visitUnaryOperator(UnaryOperatorContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public ASTNode visitValContractClause(ValContractClauseContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
@@ -1191,7 +1093,7 @@ public class CMLtoCOL extends ANTLRtoCOL implements CMLVisitor<ASTNode> {
 
   @Override
   public ASTNode visitValReserved(ValReservedContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 

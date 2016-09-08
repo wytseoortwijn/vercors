@@ -1,27 +1,22 @@
 package vct.main;
 
+import hre.HREError;
 import hre.io.Message;
 import hre.io.MessageProcess;
 import hre.io.ModuleShell;
 import hre.util.TestReport.Verdict;
 
 import java.io.File;
-import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.EnumSet;
-import java.util.concurrent.Semaphore;
 
 import vct.silver.SilverBackend;
 import vct.util.Configuration;
-import static hre.System.Debug;
 
 public class ToolTest {
 
-  private static Object sem=new Object(){};
-  
   public static void fail(String msg){
-    //System.err.printf("failure: %s%n",msg);
+    throw new HREError("failure: %s%n",msg);
   }
   public VCTResult run(String ... args) {
     StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();

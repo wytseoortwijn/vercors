@@ -66,7 +66,7 @@ public class CurrentThreadRewriter extends AbstractRewriter {
     if (affected(m)){
         Type returns=rewrite(m.getReturnType());
         ContractBuilder cb=new ContractBuilder();
-        ArrayList<DeclarationStatement> args=new ArrayList();
+        ArrayList<DeclarationStatement> args=new ArrayList<DeclarationStatement>();
         args.add(create.field_decl(ctname, create.primitive_type(PrimitiveType.Sort.Integer)));
         for(DeclarationStatement d:m.getArgs()){
           args.add(rewrite(d));

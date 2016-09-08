@@ -44,8 +44,6 @@ public interface ASTMapping1<R,A1> {
 
   public R map(ASTClass c,A1 a);
 
-  public R map(ASTWith astWith,A1 a);
-
   public R map(BindingExpression e,A1 a);
 
   public R map(Dereference e,A1 a);

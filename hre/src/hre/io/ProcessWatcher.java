@@ -12,7 +12,7 @@ import static hre.System.*;
 public class ProcessWatcher extends Thread {
 
   private Process process;
-  private Queue queue;
+  private Queue<Message> queue;
   private Thread threads[];
   
   /**

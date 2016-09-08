@@ -24,7 +24,7 @@ public class TrackingOutput {
       this.tree=new TrackingTree(origin);
     }
   }
-  private Stack<Frame> stack=new Stack();
+  private Stack<Frame> stack=new Stack<Frame>();
   private Frame frame;
   private int line=1;
   private int col=1;

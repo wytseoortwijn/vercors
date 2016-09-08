@@ -2,14 +2,10 @@ package vct.col.rewrite;
 
 import static hre.System.Debug;
 import static hre.System.Fail;
-import static hre.System.Warning;
 import hre.HREError;
-import hre.ast.MessageOrigin;
 import hre.ast.Origin;
 import hre.lang.Ref;
 
-import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -18,7 +14,6 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import vct.col.ast.*;
-import vct.col.util.ASTFactory;
 import vct.col.util.ASTUtils;
 import vct.util.Configuration;
 
@@ -47,7 +42,7 @@ class MatchLinear implements ASTMapping1<Boolean,ASTNode> {
 
   @Override
   public void pre_map(ASTNode n, ASTNode a) {
-    // TODO Auto-generated method stub
+    
   }
 
   @Override
@@ -58,7 +53,7 @@ class MatchLinear implements ASTMapping1<Boolean,ASTNode> {
 
   @Override
   public Boolean map(StandardProcedure p, ASTNode a) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
@@ -115,25 +110,25 @@ class MatchLinear implements ASTMapping1<Boolean,ASTNode> {
 
   @Override
   public Boolean map(ClassType t, ASTNode a) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public Boolean map(FunctionType t, ASTNode a) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public Boolean map(PrimitiveType t, ASTNode a) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public Boolean map(RecordType t, ASTNode a) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
@@ -155,55 +150,49 @@ class MatchLinear implements ASTMapping1<Boolean,ASTNode> {
 
   @Override
   public Boolean map(BlockStatement s, ASTNode a) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public Boolean map(IfStatement s, ASTNode a) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public Boolean map(ReturnStatement s, ASTNode a) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public Boolean map(AssignmentStatement s, ASTNode a) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public Boolean map(DeclarationStatement s, ASTNode a) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public Boolean map(LoopStatement s, ASTNode a) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public Boolean map(Method m, ASTNode a) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public Boolean map(ASTClass c, ASTNode a) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public Boolean map(ASTWith astWith, ASTNode a) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
@@ -242,127 +231,127 @@ class MatchLinear implements ASTMapping1<Boolean,ASTNode> {
 
   @Override
   public Boolean map(Lemma lemma, ASTNode a) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public Boolean map(ParallelAtomic pa, ASTNode a) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public Boolean map(ParallelBarrier parallelBarrier, ASTNode a) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public Boolean map(ParallelBlock parallelBlock, ASTNode a) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public Boolean map(ParallelRegion region, ASTNode a) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public Boolean map(Contract contract, ASTNode a) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public Boolean map(ASTSpecial special, ASTNode a) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public Boolean map(VariableDeclaration variableDeclaration, ASTNode a) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public Boolean map(TupleType tupleType, ASTNode a) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public Boolean map(AxiomaticDataType adt, ASTNode a) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public Boolean map(Axiom axiom, ASTNode a) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public Boolean map(Hole hole, ASTNode a) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public Boolean map(ActionBlock actionBlock, ASTNode a) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public Boolean map(TypeExpression t, ASTNode a) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public Boolean map(ForEachLoop s, ASTNode a) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public Boolean map(NameSpace ns, ASTNode a) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public Boolean map(TryCatchBlock tcb, ASTNode a) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public Boolean map(FieldAccess s, ASTNode a) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public Boolean map(ParallelInvariant inv, ASTNode a) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public Boolean map(TypeVariable v, ASTNode a) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public Boolean map(StructValue v, ASTNode a) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
   
@@ -507,7 +496,6 @@ public class RewriteSystem {
   }
   
   public RewriteSystem(ProgramUnit pu,String sys){
-    Origin o=new MessageOrigin("rewrite system "+sys);
     normalize=new AbstractRewriter(pu){
       @Override
       public void post_visit(ASTNode node){

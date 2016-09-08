@@ -1,7 +1,6 @@
 package vct.col.rewrite;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -95,7 +94,7 @@ public class CSLencoder extends AbstractRewriter {
       int no=count.incrementAndGet();
       String result_name="csl_result_"+no;
       String return_label="csl_return_"+no;
-      ArrayList<ASTNode> subjects=new ArrayList();
+      ArrayList<ASTNode> subjects=new ArrayList<ASTNode>();
       for(ASTNode node:e.get_before()){
         if (node.isSpecial(ASTSpecial.Kind.CSLSubject)){
           subjects.add(((ASTSpecial)node).args[0]);
@@ -127,7 +126,7 @@ public class CSLencoder extends AbstractRewriter {
       InlineMethod inline=new InlineMethod(source());
       inline.inline(block,result_name,return_label,m,e.object,e.getArgs(),e.getOrigin());    
       block.add(create.special(ASTSpecial.Kind.Label,create.label(return_label)));
-      Hashtable map=new Hashtable();
+      Hashtable<NameExpression, ASTNode> map=new Hashtable<NameExpression, ASTNode>();
       Substitution sigma=new Substitution(source(),map);
       map.put(create.reserved_name(ASTReserved.Result),create.local_name(result_name));
       for(ASTNode s:e.get_after()){

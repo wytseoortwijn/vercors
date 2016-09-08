@@ -5,9 +5,9 @@ import java.util.ArrayList;
 import java.util.HashSet;
 
 class Testcase {
-  public HashSet<String> tools=new HashSet();
-  public ArrayList<String> options=new ArrayList();
-  public HashSet<Path> files=new HashSet();
+  public HashSet<String> tools=new HashSet<String>();
+  public ArrayList<String> options=new ArrayList<String>();
+  public HashSet<Path> files=new HashSet<Path>();
   public String verdict="Pass";
-  public HashSet<String> suites=new HashSet();
+  public HashSet<String> suites=new HashSet<String>();
 }

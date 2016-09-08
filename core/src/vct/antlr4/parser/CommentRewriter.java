@@ -3,25 +3,15 @@ package vct.antlr4.parser;
 import hre.ast.FileOrigin;
 import hre.io.FifoStream;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
 
-import org.antlr.v4.runtime.ANTLRInputStream;
-import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.tree.ParseTree;
-
 import vct.col.ast.*;
 import vct.col.ast.ASTSpecial.Kind;
 import vct.col.rewrite.AbstractRewriter;
-import vct.parsers.CMLLexer;
-import vct.parsers.CMLParser;
 import static hre.System.*;
 import static vct.col.ast.ASTSpecial.Kind.Comment;
-
-import org.antlr.v4.runtime.Parser;
-import org.antlr.v4.runtime.Lexer;
 
 /**
  * Rewrite an AST with specifications in the form of comments
@@ -29,9 +19,9 @@ import org.antlr.v4.runtime.Lexer;
  */
 public class CommentRewriter extends AbstractRewriter {
 
-  private CommentParser parser;
+  private CommentParser<?,?> parser;
   
-  public CommentRewriter(ProgramUnit source, CommentParser parser) {
+  public CommentRewriter(ProgramUnit source, CommentParser<?, ?> parser) {
     super(source);
     this.parser=parser;
   }

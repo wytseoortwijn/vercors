@@ -1,8 +1,6 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 package vct.col.ast;
 
-import java.util.*;
-
 /**
  * Common interface for values, such as integer and boolean constants.
  * 

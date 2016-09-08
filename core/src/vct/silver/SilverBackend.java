@@ -8,12 +8,8 @@ import java.io.PrintWriter;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Hashtable;
 import java.util.List;
 import java.util.Properties;
-import java.util.Set;
-import java.util.TreeMap;
-
 import hre.HREError;
 import hre.ast.Origin;
 import hre.config.IntegerSetting;
@@ -26,7 +22,6 @@ import hre.util.ContainerClassLoader;
 import hre.util.TestReport;
 import hre.util.TestReport.Verdict;
 import vct.col.ast.*;
-import vct.col.util.ASTUtils;
 import vct.error.VerificationError;
 import vct.util.Configuration;
 
@@ -87,7 +82,7 @@ public class SilverBackend {
       } else {
         throw new HREError("cannot guess the main class of %s",tool);
       }
-      Constructor[] constructors = v_class.getConstructors();
+      Constructor<?>[] constructors = v_class.getConstructors();
       if (constructors.length!=1) {
         throw new HREError("class had %d constructors instead of 1",constructors.length);
       }
@@ -136,7 +131,7 @@ public class SilverBackend {
     start_time=System.currentTimeMillis();
     ViperControl control=new ViperControl();
     try {
-      HashSet<Origin> reachable=new HashSet();
+      HashSet<Origin> reachable=new HashSet<Origin>();
       List<? extends ViperError<Origin>> errs=verifier.verify(
           Configuration.getToolHome(),settings,program,reachable,control);
       if (errs.size()>0){
@@ -156,7 +151,7 @@ public class SilverBackend {
       } else {
         report.setVerdict(Verdict.Pass);
       }
-      HashSet<Origin> accounted=new HashSet();
+      HashSet<Origin> accounted=new HashSet<Origin>();
       //System.err.printf("verified methods: %n");
       for(String method:control.verified_methods){
         //System.err.printf("  %s%n",method);
@@ -210,7 +205,7 @@ public class SilverBackend {
     int N=block.getLength();
     while(i<N && (block.get(i) instanceof DeclarationStatement)){
       DeclarationStatement decl=(DeclarationStatement)block.get(i);
-      locals.add(new Triple(decl.getOrigin(),decl.getName(),decl.getType().apply(type)));
+      locals.add(new Triple<Origin, String, T>(decl.getOrigin(),decl.getName(),decl.getType().apply(type)));
       i=i+1;
     }
     for(;i<N;i++){

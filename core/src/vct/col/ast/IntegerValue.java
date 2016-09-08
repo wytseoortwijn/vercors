@@ -1,8 +1,6 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 package vct.col.ast;
 
-import java.util.*;
-
 public class IntegerValue implements Value {
   public final int value;
   public IntegerValue(int value){

@@ -1,33 +1,15 @@
 package vct.antlr4.parser;
 
 import static hre.System.*;
-import hre.ast.FileOrigin;
 
-import java.io.BufferedInputStream;
-import java.io.DataInputStream;
+import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
+import java.io.InputStreamReader;
 
-import org.antlr.v4.runtime.ANTLRInputStream;
-import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.tree.ParseTree;
-
-import pv.parser.PVFullLexer;
-import pv.parser.PVFullParser;
-import vct.parsers.*;
 import vct.util.Configuration;
-import vct.col.ast.ASTClass;
-import vct.col.ast.ASTClass.ClassKind;
-import vct.col.ast.ASTNode;
 import vct.col.ast.ProgramUnit;
-import vct.col.rewrite.AbstractRewriter;
-import vct.col.rewrite.AnnotationInterpreter;
-import vct.col.rewrite.FlattenVariableDeclarations;
-import vct.col.syntax.JavaDialect;
-import vct.col.syntax.JavaSyntax;
 
 /**
  * Parse specified code and convert the contents to COL. 
@@ -56,7 +38,7 @@ public class ColCParser extends ColIParser {
       	final Process process=runtime.exec(command);
         Thread t=new Thread(){
           public void run(){
-            DataInputStream err=new DataInputStream(process.getErrorStream());
+            BufferedReader err=new BufferedReader(new InputStreamReader(process.getErrorStream()));
             boolean err_found=false;
             String s;
             try {

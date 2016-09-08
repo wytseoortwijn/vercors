@@ -2,10 +2,8 @@ package vct.antlr4.parser;
 
 import static hre.System.Abort;
 import static hre.System.Debug;
-import hre.HREError;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.antlr.v4.runtime.BufferedTokenStream;
@@ -316,7 +314,7 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
       }
     }
     if (match(ctx,null,",",null)){
-      ArrayList<Type> types=new ArrayList();
+      ArrayList<Type> types=new ArrayList<Type>();
       getTuple(types,ctx);
       return create.tuple_type(types.toArray(new Type[0]));
     }
@@ -370,7 +368,7 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
   }
 
   private String[] to_name(ASTNode pkg) {
-    ArrayList<String> list=new ArrayList();
+    ArrayList<String> list=new ArrayList<String>();
     while(pkg instanceof Dereference){
       Dereference d=(Dereference)pkg;
       list.add(0,d.field);
@@ -382,71 +380,71 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
 
   @Override
   public ASTNode visitAnnotation(AnnotationContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public ASTNode visitAnnotationConstantRest(AnnotationConstantRestContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public ASTNode visitAnnotationMethodOrConstantRest(
       AnnotationMethodOrConstantRestContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public ASTNode visitAnnotationMethodRest(AnnotationMethodRestContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public ASTNode visitAnnotationName(AnnotationNameContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public ASTNode visitAnnotationTypeBody(AnnotationTypeBodyContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public ASTNode visitAnnotationTypeDeclaration(
       AnnotationTypeDeclarationContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public ASTNode visitAnnotationTypeElementDeclaration(
       AnnotationTypeElementDeclarationContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public ASTNode visitAnnotationTypeElementRest(
       AnnotationTypeElementRestContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public ASTNode visitArguments(ArgumentsContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public ASTNode visitArrayCreatorRest(ArrayCreatorRestContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
@@ -471,25 +469,25 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
 
   @Override
   public ASTNode visitBlockStatement(BlockStatementContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public ASTNode visitCatchClause(CatchClauseContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public ASTNode visitCatchType(CatchTypeContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public ASTNode visitClassBody(ClassBodyContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
@@ -500,7 +498,7 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
 
   @Override
   public ASTNode visitClassCreatorRest(ClassCreatorRestContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
@@ -512,7 +510,7 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
   @Override
   public ASTNode visitClassOrInterfaceModifier(
       ClassOrInterfaceModifierContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
@@ -580,7 +578,7 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
 
   @Override
   public ASTNode visitConstantDeclarator(ConstantDeclaratorContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
@@ -591,13 +589,13 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
 
   @Override
   public ASTNode visitConstDeclaration(ConstDeclarationContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public ASTNode visitConstructorBody(ConstructorBodyContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
@@ -661,82 +659,82 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
 
   @Override
   public ASTNode visitDefaultValue(DefaultValueContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public ASTNode visitElementValue(ElementValueContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public ASTNode visitElementValueArrayInitializer(
       ElementValueArrayInitializerContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public ASTNode visitElementValuePair(ElementValuePairContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public ASTNode visitElementValuePairs(ElementValuePairsContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public ASTNode visitEnhancedForControl(EnhancedForControlContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public ASTNode visitEnumBodyDeclarations(EnumBodyDeclarationsContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public ASTNode visitEnumConstant(EnumConstantContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public ASTNode visitEnumConstantName(EnumConstantNameContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public ASTNode visitEnumConstants(EnumConstantsContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public ASTNode visitEnumDeclaration(EnumDeclarationContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public ASTNode visitExplicitGenericInvocation(
       ExplicitGenericInvocationContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public ASTNode visitExplicitGenericInvocationSuffix(
       ExplicitGenericInvocationSuffixContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
@@ -747,25 +745,25 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
 
   @Override
   public ASTNode visitExpressionList(ExpressionListContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public ASTNode visitExtraAnnotation(ExtraAnnotationContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public ASTNode visitExtraDeclaration(ExtraDeclarationContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public ASTNode visitExtraIdentifier(ExtraIdentifierContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
@@ -881,7 +879,7 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
 
   @Override
   public ASTNode visitExtraType(ExtraTypeContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
@@ -892,19 +890,19 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
 
   @Override
   public ASTNode visitFinallyBlock(FinallyBlockContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public ASTNode visitForControl(ForControlContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public ASTNode visitForInit(ForInitContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
@@ -922,19 +920,19 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
 
   @Override
   public ASTNode visitFormalParameterList(FormalParameterListContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public ASTNode visitFormalParameters(FormalParametersContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public ASTNode visitForUpdate(ForUpdateContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
@@ -978,27 +976,27 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
   @Override
   public ASTNode visitGenericConstructorDeclaration(
       GenericConstructorDeclarationContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public ASTNode visitGenericInterfaceMethodDeclaration(
       GenericInterfaceMethodDeclarationContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
   
   @Override
   public ASTNode visitGenericMethodDeclaration(
       GenericMethodDeclarationContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public ASTNode visitIdentifier(IdentifierContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
@@ -1012,13 +1010,13 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
 
   @Override
   public ASTNode visitInnerCreator(InnerCreatorContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public ASTNode visitInterfaceBody(InterfaceBodyContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
@@ -1036,7 +1034,7 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
   @Override
   public ASTNode visitInterfaceMemberDeclaration(
       InterfaceMemberDeclarationContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
@@ -1047,7 +1045,7 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
 
   @Override
   public ASTNode visitJavaDeclarations(JavaDeclarationsContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
@@ -1063,7 +1061,7 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
 
   @Override
   public ASTNode visitJavaStatements(JavaStatementsContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
@@ -1111,13 +1109,13 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
 
   @Override
   public ASTNode visitMemberDeclaration(MemberDeclarationContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public ASTNode visitMethodBody(MethodBodyContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
@@ -1128,27 +1126,27 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
 
   @Override
   public ASTNode visitModifier(ModifierContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public ASTNode visitNonWildcardTypeArguments(
       NonWildcardTypeArgumentsContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public ASTNode visitNonWildcardTypeArgumentsOrDiamond(
       NonWildcardTypeArgumentsOrDiamondContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public ASTNode visitPackageDeclaration(PackageDeclarationContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
@@ -1159,13 +1157,13 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
 
   @Override
   public ASTNode visitPrimary(PrimaryContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public ASTNode visitPrimitiveType(PrimitiveTypeContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
@@ -1183,31 +1181,31 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
 
   @Override
   public ASTNode visitQualifiedNameList(QualifiedNameListContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public ASTNode visitResource(ResourceContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public ASTNode visitResources(ResourcesContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public ASTNode visitResourceSpecification(ResourceSpecificationContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public ASTNode visitSpecificationSequence(SpecificationSequenceContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
@@ -1298,20 +1296,20 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
 
   @Override
   public ASTNode visitSuperSuffix(SuperSuffixContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public ASTNode visitSwitchBlockStatementGroup(
       SwitchBlockStatementGroupContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public ASTNode visitSwitchLabel(SwitchLabelContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
@@ -1322,55 +1320,55 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
 
   @Override
   public ASTNode visitTypeArgument(TypeArgumentContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public ASTNode visitTypeArguments(TypeArgumentsContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public ASTNode visitTypeArgumentsOrDiamond(TypeArgumentsOrDiamondContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public ASTNode visitTypeBound(TypeBoundContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public ASTNode visitTypeDeclaration(TypeDeclarationContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public ASTNode visitTypeList(TypeListContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public ASTNode visitTypeParameter(TypeParameterContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public ASTNode visitTypeParameters(TypeParametersContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public ASTNode visitValContractClause(ValContractClauseContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
@@ -1381,7 +1379,7 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
 
   @Override
   public ASTNode visitValReserved(ValReservedContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
@@ -1407,19 +1405,19 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
 
   @Override
   public ASTNode visitVariableDeclarators(VariableDeclaratorsContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public ASTNode visitVariableInitializer(VariableInitializerContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 
   @Override
   public ASTNode visitVariableModifier(VariableModifierContext ctx) {
-    // TODO Auto-generated method stub
+    
     return null;
   }
 

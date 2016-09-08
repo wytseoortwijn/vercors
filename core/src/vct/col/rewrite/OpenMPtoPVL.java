@@ -7,9 +7,6 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.Stack;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import org.antlr.v4.runtime.tree.ParseTree;
-
 import vct.antlr4.parser.OMPParser;
 import vct.antlr4.parser.OMPoption;
 import vct.antlr4.parser.OMPpragma;
@@ -73,7 +70,7 @@ class PPLCompose implements PPLProgram {
     }
     if (P instanceof PPLParallel){
       PPLParallel par=(PPLParallel)P;
-      Set<Integer> res=new HashSet();
+      Set<Integer> res=new HashSet<Integer>();
       res.add(par.number);
       return res;
     }
@@ -102,7 +99,7 @@ class PPLParallel implements PPLProgram {
   public final int number;
   
   public int fused=0;
-  public Set<Integer> preds=new HashSet();
+  public Set<Integer> preds=new HashSet<Integer>();
   
   public PPLParallel(OMPoption[] options,Contract contract,BlockStatement body,DeclarationStatement ... decls){
     this.options=options;
@@ -169,7 +166,7 @@ public class OpenMPtoPVL extends AbstractRewriter {
   @Override
   public void visit(LoopStatement loop){
     int level=0;
-    ArrayList<DeclarationStatement> decls=new ArrayList();
+    ArrayList<DeclarationStatement> decls=new ArrayList<DeclarationStatement>();
     LoopStatement tmp=loop;
     for(;;){
       DeclarationStatement d=tryIter(tmp);
@@ -244,13 +241,11 @@ public class OpenMPtoPVL extends AbstractRewriter {
           pragma=pragma.substring(3).trim();
           OMPpragma command=OMPParser.parse(pragma);
           System.err.printf("type is %s%n",command.kind);
-          boolean parallel=false;
           switch(command.kind){
           case Parallel:
             if (statements[i+1] instanceof BlockStatement){
               ASTNode src_block[]=((BlockStatement)statements[i+1]).getStatements();
               i=i+1;
-              BlockStatement dst_block=create.block();
               ContractBuilder cb=new ContractBuilder();
               int lo=0;int hi=src_block.length;
               while(lo<hi && (src_block[lo] instanceof ASTSpecial)){
@@ -340,7 +335,7 @@ public class OpenMPtoPVL extends AbstractRewriter {
   }
 
   private PPLProgram do_ppl(ASTNode[] src_block, int lo, int hi) {
-    ArrayList<PPLProgram> parts=new ArrayList();
+    ArrayList<PPLProgram> parts=new ArrayList<PPLProgram>();
     for(int i=lo;i<hi;i++){
       if (src_block[i].isDeclaration(ASTSpecial.Kind.Pragma)){
         String pragma=((ASTSpecial)src_block[i]).args[0].toString();
@@ -417,7 +412,7 @@ public class OpenMPtoPVL extends AbstractRewriter {
   }
 
   private ParallelBlock[] ppl_to_ordered(PPLProgram ppl_program) {
-    ArrayList<ParallelBlock> blocks=new ArrayList();
+    ArrayList<ParallelBlock> blocks=new ArrayList<ParallelBlock>();
     scan(blocks,ppl_program);
     return blocks.toArray(new ParallelBlock[0]);
   }
@@ -425,7 +420,7 @@ public class OpenMPtoPVL extends AbstractRewriter {
   private void scan(ArrayList<ParallelBlock> blocks, PPLProgram ppl_program) {
     if (ppl_program instanceof PPLParallel){
       PPLParallel par=(PPLParallel)ppl_program;
-      ArrayList<ASTNode> dep_list=new ArrayList();
+      ArrayList<ASTNode> dep_list=new ArrayList<ASTNode>();
       if(par.fused>0){
         dep_list.add(create.invokation(null,null,"omp_"+par.fused,
             create.unresolved_name(par.decls[0].name)));
@@ -447,7 +442,7 @@ public class OpenMPtoPVL extends AbstractRewriter {
     throw new HREError("missing case %s",ppl_program.getClass());
   }
 
-  private Stack<BlockStatement> currentBlockStack=new Stack();
+  private Stack<BlockStatement> currentBlockStack=new Stack<BlockStatement>();
   
   private BlockStatement leaveCurrentBlock() {
     BlockStatement res=currentBlock;
