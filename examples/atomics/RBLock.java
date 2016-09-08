@@ -47,16 +47,16 @@ class SESLock{
 	
 	/*@
 	 given int r, l;
-	 requires srh:handle(r,l) ** sra:allowed(r,l,x) ** srp:assigned(r,l) ** srs:assigned(0,x);
-	 ensures seh:handle(r,x) ** sep:assigned(r,x);
+	 requires (srh:handle(r,l)) ** (sra:allowed(r,l,x)) ** (srp:assigned(r,l)) ** (srs:assigned(0,x));
+	 ensures (seh:handle(r,x)) ** (sep:assigned(r,x));
 	 */
 	void set(int x);
 	
 	
 	/*@
 	 given int r,l;
-	 requires grh:handle(r,l) ** grp:assigned(r,l);
-	 ensures geh:handle(r,\result) ** gep:assigned(r,\result);
+	 requires (grh:handle(r,l)) ** (grp:assigned(r,l));
+	 ensures (geh:handle(r,\result)) ** (gep:assigned(r,\result));
 	 */
 	int get();
 	
@@ -64,10 +64,10 @@ class SESLock{
 	// the last ensures is temp just to solve the cas loop. ToDo: do we need it? if we remove it , how to preserve the loop invariant?
 	/*@
 	 given int r, l;
-	 requires crh:handle(r,l) ** cra:allowed(r,o,x) ** crp:assigned(r,l) ** crs:assigned(0,x);
-	 ensures \result ==> cehp:handle(r,x) ** cepp:assigned(r,x) ** cesp:assigned(0,o);
-	 ensures !\result ==> cehn:handle(r,l) ** cepn:assigned(r,l) ** cesn:assigned(0,x);
-	 ensures !\result ==> cea:allowed(r,o,x);
+	 requires (crh:handle(r,l)) ** (cra:allowed(r,o,x)) ** (crp:assigned(r,l)) ** (crs:assigned(0,x));
+	 ensures \result ==> (cehp:handle(r,x)) ** (cepp:assigned(r,x)) ** (cesp:assigned(0,o));
+	 ensures !\result ==> (cehn:handle(r,l)) ** (cepn:assigned(r,l)) ** (cesn:assigned(0,x));
+	 ensures !\result ==> (cea:allowed(r,o,x));
 	 */
 	boolean cas(int o,int x);
 	
@@ -104,9 +104,9 @@ class SESLock{
 		//@ witness tcepp:assigned(*,*);
 		//@ fold tcrs:assigned(S,1);
 		
-  	//@ loop_invariant succ ==> invhp: handle(role,1) ** invpp: assigned(role,1) ** invsp: assigned(S,0);
-		//@ loop_invariant !succ ==> invhn: handle(role,curr) ** invpn: assigned(role,curr) ** invsn: assigned(S,1);
-		//@ loop_invariant !succ ==> inva:allowed(role,0,1);
+  	//@ loop_invariant succ ==> (invhp: handle(role,1)) ** (invpp: assigned(role,1)) ** (invsp: assigned(S,0));
+		//@ loop_invariant !succ ==> (invhn: handle(role,curr)) ** (invpn: assigned(role,curr)) ** (invsn: assigned(S,1));
+		//@ loop_invariant !succ ==> (inva:allowed(role,0,1));
 		while (!succ) /*@ with{ invhn = tgeh; invpn = tgep; invpp = tgep;  invsn = tcrs; inva = tcra; }  then { tces = invsp; tcepp = invpp; leh = invhp; } */ {
 			succ = cas(0,1) /*@ with{ r = role; l = curr; crh = invhn; crp = invpn; cra = inva; crs = invsn; } 
 							 then{ invhn = cehn; invpn = cepn; invsn = cesn; invhp = cehp; invpp = cepp; invsp = cesp;  inva = cea; } */ ;
@@ -116,7 +116,7 @@ class SESLock{
 	}
 	
 	/*@
-	 requires urh:handle(1,1) ** Perm(data,100);
+	 requires (urh:handle(1,1)) ** Perm(data,100);
 	 ensures ueh: handle(1,0);
 	 */
 	void dounlock(){

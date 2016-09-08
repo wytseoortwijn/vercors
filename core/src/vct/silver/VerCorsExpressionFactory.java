@@ -186,8 +186,10 @@ public class VerCorsExpressionFactory implements
 
   @Override
   public ASTNode drop(Origin o, ASTNode e1, ASTNode e2) {
-    // TODO Auto-generated method stub
-    throw new HREError("missing case");
+    enter(o);
+    ASTNode res=create.expression(StandardOperator.Drop, e1,e2);
+    leave();
+    return res;
   }
 
   private void enter(Origin o){
@@ -220,7 +222,7 @@ public class VerCorsExpressionFactory implements
   public ASTNode explicit_bag(Origin o, Type t,  java.util.List<ASTNode> elems) {
     enter(o);
     t=create.primitive_type(Sort.Bag,t);
-    ASTNode res=create.expression(StandardOperator.Build, t , elems );
+    ASTNode res=create.struct_value(t , null , elems );
     res.setType(t);
     leave();
     return res;
@@ -230,7 +232,7 @@ public class VerCorsExpressionFactory implements
   public ASTNode explicit_seq(Origin o, Type t, java.util.List<ASTNode>  elems) {
     enter(o);
     t=create.primitive_type(Sort.Sequence,t);
-    ASTNode res=create.expression(StandardOperator.Build, t , elems );
+    ASTNode res=create.struct_value(t , null , elems );
     res.setType(t);
     leave();
     return res;
@@ -240,7 +242,7 @@ public class VerCorsExpressionFactory implements
   public ASTNode explicit_set(Origin o, Type t, java.util.List<ASTNode> elems) {
     enter(o);
     t=create.primitive_type(Sort.Set, t);
-    ASTNode res=create.expression(StandardOperator.Build, t , elems );
+    ASTNode res=create.struct_value(t , null , elems );
     res.setType(t);
     leave();
     return res;
@@ -329,8 +331,10 @@ public class VerCorsExpressionFactory implements
 
   @Override
   public ASTNode index(Origin o, ASTNode e1, ASTNode e2) {
-    // TODO Auto-generated method stub
-    throw new HREError("missing case");
+    enter(o);
+    ASTNode res=create.expression(StandardOperator.Subscript, e1,e2);
+    leave();
+    return res;
   }
 
   private void leave(){
@@ -501,8 +505,10 @@ public class VerCorsExpressionFactory implements
 
   @Override
   public ASTNode take(Origin o, ASTNode e1, ASTNode e2) {
-    // TODO Auto-generated method stub
-    throw new HREError("missing case");
+    enter(o);
+    ASTNode res=create.expression(StandardOperator.Take, e1,e2);
+    leave();
+    return res;
   }
 
   @Override

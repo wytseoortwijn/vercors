@@ -1,0 +1,1426 @@
+package vct.antlr4.parser;
+
+import static hre.System.Abort;
+import static hre.System.Debug;
+import hre.HREError;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import org.antlr.v4.runtime.BufferedTokenStream;
+import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.tree.ParseTree;
+import org.antlr.v4.runtime.tree.TerminalNode;
+import org.antlr.v4.runtime.Parser;
+import org.apache.commons.lang3.StringEscapeUtils;
+
+import vct.col.ast.*;
+import vct.col.ast.ASTSpecial.Kind;
+import vct.col.ast.PrimitiveType.Sort;
+import vct.col.syntax.JavaDialect;
+import vct.col.syntax.JavaSyntax;
+import vct.col.syntax.Syntax;
+import vct.parsers.Java7JMLParser.*;
+import vct.parsers.*;
+import vct.parsers.Java7JMLParser.ExtraDeclarationContext;
+import vct.parsers.Java7JMLParser.ExtraIdentifierContext;
+import vct.parsers.Java7JMLParser.ExtraPrimaryContext;
+import vct.parsers.Java7JMLParser.ExtraTypeContext;
+import vct.parsers.Java7JMLParser.IdentifierContext;
+import vct.parsers.Java7JMLParser.JavaDeclarationsContext;
+import vct.parsers.Java7JMLParser.JavaIdentifierContext;
+import vct.parsers.Java7JMLParser.JavaStatementsContext;
+import vct.parsers.Java7JMLParser.ValContractClauseContext;
+import vct.parsers.Java7JMLParser.ValPrimaryContext;
+import vct.parsers.Java7JMLParser.ValReservedContext;
+import vct.parsers.Java7JMLParser.ValStatementContext;
+import vct.util.Configuration;
+
+/**
+ * Convert JML parse trees to COL.
+ *
+ * @author <a href="mailto:s.c.c.blom@utwente.nl">Stefan Blom</a>
+*/
+public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode> {
+
+  private static <E extends ASTSequence<?>> E convert(E unit,ParseTree tree, String file_name,BufferedTokenStream tokens,Parser parser){
+    Java7JMLtoCol visitor=new Java7JMLtoCol(unit,JavaSyntax.getJava(JavaDialect.JavaVerCors),file_name,tokens,parser);
+    visitor.scan_to(unit,tree);
+    return unit;
+  }
+  public static TempSequence convert_seq(ParseTree tree, String file_name,BufferedTokenStream tokens,Parser parser) {
+    return convert(new TempSequence(),tree,file_name,tokens,parser);
+  }
+
+  
+  public static ProgramUnit convert_tree(ParseTree tree, String file_name,BufferedTokenStream tokens,Parser parser) {
+    return convert(new ProgramUnit(),tree,file_name,tokens,parser);
+  }
+  
+  private final int IntegerLiteral;
+  
+  private final int StringLiteral;
+
+  public Java7JMLtoCol(ASTSequence<?> unit,Syntax syntax, String filename, BufferedTokenStream tokens, Parser parser) {
+    super(unit,true,syntax, filename, tokens, parser, Java7JMLLexer.Identifier,Java7JMLLexer.class);
+    IntegerLiteral=getStaticInt(lexer_class,"IntegerLiteral");
+    StringLiteral=getStaticInt(lexer_class,"StringLiteral");
+  }
+
+  protected ASTNode convert_annotated(ParserRuleContext ctx) {
+    ASTList list=new ASTList();
+    int N=ctx.children.size()-1;
+    for(int i=0;i<N;i++){
+      list.add(convert(ctx,i));
+      scan_comments_after(list, ctx.getChild(i));
+    }
+    ASTNode res=convert(ctx,N);
+    res.attach();
+    for (ASTNode n:list){
+      Debug("adding %s annotation",n.getClass());
+      res.attach(n);
+    }
+    return res;
+  }
+
+  private DeclarationStatement doParameter(ContractBuilder cb, ParseTree tree) {
+    DeclarationStatement decl=null;
+    enter(tree);
+    Debug("converting type parameter %s",tree.toStringTree(parser));
+    if (tree instanceof ParserRuleContext) {
+      ParserRuleContext ctx=(ParserRuleContext)tree;
+      if (instance(ctx,"TypeParameter")){
+        decl=create.field_decl(getIdentifier(ctx,0),create.primitive_type(Sort.Class));
+        decl.setGhost(false);
+      //} else if (match(ctx,"")){
+        
+      } else {
+        Abort("missing case %s",ctx.toStringTree(parser));
+      }
+    } else {
+      Abort("missing case");
+    }
+    leave(tree,null);
+    return decl;
+  }
+
+  public BlockStatement getBlock(ParserRuleContext ctx) {
+    BlockStatement res=create.block();
+    scan_body(res,ctx);
+    return res;
+  }
+
+  public ASTNode getClassOrInterfaceBodyDeclaration(ParserRuleContext ctx) {
+    if (match(ctx,"static","BlockContext")){
+      ASTNode res=convert(ctx,1);
+      res.setStatic(true);
+      return res;
+    }
+    if (match(ctx,"BlockContext")){
+      return convert(ctx,0);
+    }
+    return convert_annotated(ctx);
+  }
+
+  public ASTClass getClassOrIntefaceDeclaration(ParserRuleContext ctx) {
+    int N=ctx.getChildCount()-1;
+    ClassType[]bases=null;
+    ClassType[]supports=null;
+    ContractBuilder cb=new ContractBuilder();
+    DeclarationStatement parameters[]=null;
+    //Warning("class decl %s",ctx.toStringTree(parser));
+    for(int i=2;i<N;i++){
+      //Warning("i==%d",i);
+      if (match(i,true,ctx,"extends",null)){
+        if (match(i+1,true,ctx,"TypeList")){
+          ASTNode[] convert = convert_list(((ParserRuleContext)ctx.getChild(i+1)), ",");
+          ClassType[] res=new ClassType[convert.length];
+          for(int i1=0;i1<convert.length;i1++){
+            res[i1]=forceClassType(convert[i1]);
+          }
+          bases=res;
+        } else {
+          bases=new ClassType[]{forceClassType(convert(ctx,i+1))};
+        }
+        i+=1;
+      } else if (match(i,true,ctx,"implements",null)){
+        ASTNode[] convert = convert_list(((ParserRuleContext)ctx.getChild(i+1)), ",");
+        ClassType[] res=new ClassType[convert.length];
+        for(int i1=0;i1<convert.length;i1++){
+          res[i1]=forceClassType(convert[i1]);
+        }
+        supports=res;
+        i+=1;
+      } else if (match(i,true,ctx,"TypeParametersContext")){
+        ParserRuleContext pars=(ParserRuleContext)ctx.getChild(i);
+        int K=pars.getChildCount();
+        parameters=new DeclarationStatement[K/2];
+        for(int k=1;k<K;k+=2){
+          parameters[k/2]=doParameter(cb,pars.getChild(k));
+        }
+      } else {
+        return null;
+      }
+    }
+    ASTClass.ClassKind kind;
+    if (match(0,true,ctx,"class")){
+      kind=ASTClass.ClassKind.Plain;
+    } else if(match(0,true,ctx,"interface")){
+      kind=ASTClass.ClassKind.Interface;
+    } else {
+      return null;
+    }
+    ASTClass cl=create.ast_class(getIdentifier(ctx,1), kind ,parameters, bases , supports );
+    scan_body(cl,(ParserRuleContext)ctx.getChild(N));
+    cl.setContract(cb.getContract());
+    return cl;
+  }
+
+  public ASTNode getExpression(ParserRuleContext ctx) {
+    if (match(ctx,null,":",null)){
+      String label=getIdentifier(ctx,0);
+      ASTNode res=convert(ctx,2);
+      res.labeled(label);
+      return res;
+    }
+    if (match(ctx,null,".",null)){
+      return create.dereference(convert(ctx,0),getIdentifier(ctx,2));
+    }
+    if (match(ctx,null,"->",null,"Arguments")){
+      ASTNode object=convert(ctx,0);
+      String method=getIdentifier(ctx,2);
+      ASTNode args[]=convert_list(ctx.getChild(3),"(",",",")");
+      return create.expression(StandardOperator.Implies,
+          create.expression(StandardOperator.NEQ,object,create.reserved_name(ASTReserved.Null)),
+          create.invokation(object, null, method, args)
+      );
+    }
+    boolean static_dispatch=false;
+    if (match(ctx,null,"Arguments")||(static_dispatch=match(ctx,null,"@",null,"Arguments"))){
+      ASTList before=new ASTList();
+      if (static_dispatch){
+        scan_comments_before(before,ctx.getChild(3));
+      } else {
+        scan_comments_before(before,ctx.getChild(1));
+      }
+      ASTList after=new ASTList();
+      scan_comments_after(after,ctx);
+      ASTNode om=convert(ctx,0);
+      ASTNode args[]=convert_list(ctx.getChild(static_dispatch?3:1),"(",",",")");
+      ASTNode object=null;
+      String method;
+      if (om instanceof NameExpression){
+        object=null;
+        NameExpression name=((NameExpression)om);
+        if (name.getKind()==NameExpression.Kind.Reserved){
+          method=syntax.getSyntax(name.reserved());
+        } else {
+          method=((NameExpression)om).getName();
+        }
+      } else if (om instanceof Dereference){
+        object=((Dereference)om).object;
+        method=((Dereference)om).field;
+      } else {
+        throw hre.System.Failure("could not convert %s to object/method at %s",om.getClass(),om.getOrigin());
+      }
+      ClassType dispatch=null;
+      if (static_dispatch){
+        dispatch=create.class_type(getIdentifier(ctx,2));
+      }
+      MethodInvokation res= create.invokation(object, dispatch, method, args);
+      for(ASTNode n:before){
+        res.get_before().add(n);
+      }
+      for(ASTNode n:after){
+        res.get_after().add(n);
+      }
+      return res;
+    }
+    if (match(ctx,"new",null)){
+      return convert(ctx,1); 
+    }
+    if (match(ctx,null,"?",null,":",null)){
+      return create.expression(StandardOperator.ITE,convert(ctx,0),convert(ctx,2),convert(ctx,4));
+    }
+    if (match(ctx,null,"instanceof",null)){
+      return create.expression(StandardOperator.Instance,convert(ctx,0),convert(ctx,2));
+    }
+    if (match(ctx,"(",null,")",null)) {
+      return create.expression(StandardOperator.Cast,convert(ctx,1),convert(ctx,3));
+    }
+    return null;    
+  }
+
+  protected DeclarationStatement[] getFormalParameters(ParseTree tree, AtomicBoolean varargs) {
+    DeclarationStatement args[];
+    ParserRuleContext arg_ctx=(ParserRuleContext)tree;
+    if (match(arg_ctx,"(",")")) {
+      varargs.set(false);
+      args=new DeclarationStatement[0];
+    } else {
+      ParserRuleContext args_ctx=(ParserRuleContext)arg_ctx.getChild(1);
+      ASTNode tmp[]=convert_list(args_ctx,",");
+      varargs.set(match(tmp.length*2-2,true,args_ctx,"LastFormalParameter"));
+      args=new DeclarationStatement[tmp.length];
+      for(int i=0;i<tmp.length;i++){
+        args[i]=(DeclarationStatement)tmp[i];
+      }
+    }
+    return args;
+  }
+
+  public Method getMethodDeclaration(ParserRuleContext ctx) {
+    int N=ctx.getChildCount();
+    Type t;
+    if (match(0,true,ctx,"void")){
+      t=create.primitive_type(Sort.Void);
+    } else {
+      t=checkType(convert(ctx,0));
+    }
+    String name=getIdentifier(ctx,1);
+    AtomicBoolean varargs=new AtomicBoolean();
+    DeclarationStatement args[]=getFormalParameters(ctx.getChild(2),varargs);
+    ASTNode body;
+    if (match(N-1,true,ctx,";")){
+      body=null;
+    } else {
+      body=convert(ctx,N-1);
+    }
+    Method res=create.method_kind(Method.Kind.Plain,t,null, name, args, varargs.get(), body);
+    res.setStatic(false);
+    return res;
+  }
+
+  private void getTuple(ArrayList<Type> types, ParserRuleContext ctx) {
+    ParseTree left=ctx.getChild(0);
+    if (left instanceof ParserRuleContext && match((ParserRuleContext)left,null,",",null)){
+      getTuple(types,(ParserRuleContext)left);
+    } else {
+      types.add(checkType(convert(ctx,0)));
+    }
+    types.add(checkType(convert(ctx,2)));
+  }
+
+  public ASTNode getType(ParserRuleContext ctx) {
+    if (match(ctx,null,"[","]")){
+      return create.primitive_type(Sort.Array, checkType(convert(ctx,0)));
+    }
+    if (match(ctx,null,"->",null)){
+      Type left=checkType(convert(ctx,0));
+      if(left instanceof TupleType){
+        return create.arrow_type(((TupleType)left).types,checkType(convert(ctx,2)));
+      } else {
+        return create.arrow_type(left,checkType(convert(ctx,2)));
+      }
+    }
+    if (match(ctx,null,",",null)){
+      ArrayList<Type> types=new ArrayList();
+      getTuple(types,ctx);
+      return create.tuple_type(types.toArray(new Type[0]));
+    }
+    return null;
+  }
+
+  public ASTNode getVariableDeclaration(ParserRuleContext var_ctx, ASTNode ... list) {
+    int N=list.length-1;
+    ASTNode vars[]=convert_list(var_ctx,",");
+    VariableDeclaration decl=create.variable_decl(checkType(list[N]));
+    for(int i=0;i<vars.length;i++){
+      DeclarationStatement tmp;
+      if (vars[i] instanceof NameExpression){
+        String name=((NameExpression)vars[i]).getName();
+        tmp=create.field_decl(name,create.class_type(name));
+      } else if (vars[i] instanceof DeclarationStatement) {
+        DeclarationStatement d=(DeclarationStatement)vars[i];
+        tmp=create.field_decl(d.getName(),d.getType(),d.getInit());
+      } else {
+        throw hre.System.Failure("unexpected %s in variable list at %s",vars[i].getClass(),create.getOrigin());
+      }
+      decl.add(tmp);
+    }
+    for(int i=0;i<N;i++){
+      decl.attach(list[i]);
+    }
+    return decl;
+  }
+
+  public DeclarationStatement getVariableDeclaratorId(ParserRuleContext ctx) {
+    String name=getIdentifier(ctx,0);
+    Type t=create.class_type(name);
+    if (match(ctx,null,"[","]")){
+      t=create.primitive_type(PrimitiveType.Sort.Array,t);
+    }
+    return create.field_decl(name, t);
+  }
+
+  public void scan_body(ASTSequence<?> cl, ParserRuleContext ctx) {
+    int N=ctx.getChildCount()-1;
+    for(int i=1;i<N;i++){
+      if (match(i,true,ctx,";")) {
+        scan_comments_before(cl,ctx.getChild(i));
+        continue;
+      }
+      ASTNode tmp=convert(ctx,i);
+      scan_comments_before(cl,ctx.getChild(i));
+      cl.add(tmp);
+    }
+    scan_comments_before(cl,ctx.getChild(N));
+  }
+
+  private String[] to_name(ASTNode pkg) {
+    ArrayList<String> list=new ArrayList();
+    while(pkg instanceof Dereference){
+      Dereference d=(Dereference)pkg;
+      list.add(0,d.field);
+      pkg=d.object;
+    }
+    list.add(0,pkg.toString());
+    return list.toArray(new String[0]);
+  }
+
+  @Override
+  public ASTNode visitAnnotation(AnnotationContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitAnnotationConstantRest(AnnotationConstantRestContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitAnnotationMethodOrConstantRest(
+      AnnotationMethodOrConstantRestContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitAnnotationMethodRest(AnnotationMethodRestContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitAnnotationName(AnnotationNameContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitAnnotationTypeBody(AnnotationTypeBodyContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitAnnotationTypeDeclaration(
+      AnnotationTypeDeclarationContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitAnnotationTypeElementDeclaration(
+      AnnotationTypeElementDeclarationContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitAnnotationTypeElementRest(
+      AnnotationTypeElementRestContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitArguments(ArgumentsContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitArrayCreatorRest(ArrayCreatorRestContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitArrayInitializer(ArrayInitializerContext ctx) {
+    ASTNode n[]=convert_list(ctx,"{",",","}");
+    return create.struct_value(null,null,n);
+  }
+
+  @Override
+  public ASTNode visitAxiomDeclaration(AxiomDeclarationContext ctx) {
+    if (match(ctx,"axiom",null,"{",null,"==",null,"}")){
+      return create.axiom(getIdentifier(ctx,1),create.expression(StandardOperator.EQ,convert(ctx,3),convert(ctx,5)));
+    }
+    return null;
+  }
+
+  @Override
+  public ASTNode visitBlock(BlockContext ctx) {
+    return getBlock(ctx);
+  }
+
+  @Override
+  public ASTNode visitBlockStatement(BlockStatementContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitCatchClause(CatchClauseContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitCatchType(CatchTypeContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitClassBody(ClassBodyContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitClassBodyDeclaration(ClassBodyDeclarationContext ctx) {
+    return getClassOrInterfaceBodyDeclaration(ctx);
+  }
+
+  @Override
+  public ASTNode visitClassCreatorRest(ClassCreatorRestContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitClassDeclaration(ClassDeclarationContext ctx) {
+    return getClassOrIntefaceDeclaration(ctx);
+  }
+
+  @Override
+  public ASTNode visitClassOrInterfaceModifier(
+      ClassOrInterfaceModifierContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitClassOrInterfaceType(ClassOrInterfaceTypeContext ctx) {
+    if (match(ctx,null,".",null)){
+      String name[]=new String[2];
+      name[0]=getIdentifier(ctx,0);
+      name[1]=getIdentifier(ctx,2);
+      return create.class_type(name);
+    }
+    if (match(ctx,null,"TypeArgumentsContext")){
+      String name=getIdentifier(ctx,0);
+      ParserRuleContext arg_ctx=(ParserRuleContext)ctx.getChild(1);
+      ASTNode args[]=convert_list(arg_ctx,1,arg_ctx.getChildCount()-1,",");
+      return create.class_type(name, args);
+    }
+    ASTNode names[]=convert_list(ctx, ".");
+    if (names!=null){
+      String name[]=new String[names.length];
+      for(int i=0;i<name.length;i++){
+        name[i]=names[i].toString();
+      }
+      return create.class_type(name);
+    }
+    return null;
+  }
+
+  @Override
+  public ASTNode visitCompilationUnit(CompilationUnitContext ctx) {
+    NameSpace ns;
+    int ptr=0;
+    if (match(0,true,ctx,"PackageDeclaration")) {
+      hre.System.Debug("has package");
+      ASTNode pkg=convert((ParserRuleContext)ctx.getChild(0),1);
+      System.err.printf("pkg %s (%s)%n",Configuration.getDiagSyntax().print(pkg),pkg.getClass());
+      ptr++;
+      ns=create.namespace(to_name(pkg));
+    } else {
+      hre.System.Debug("does not have package");
+      ns=create.namespace(NameSpace.NONAME);
+    }
+    while(match(ptr,true,ctx,"ImportDeclaration")){
+      ParserRuleContext imp=(ParserRuleContext)ctx.getChild(ptr);
+      if (match(imp,"import",null,";")){
+        ASTNode name=convert(imp,1);
+        ns.add_import(false,false,to_name(name));
+      } else if (match(imp,"import",null,".","*",";")){
+        ASTNode name=convert(imp,1);
+        ns.add_import(false,true,to_name(name));
+      } else if (match(imp,"import","static",null,";")){
+        ASTNode name=convert(imp,2);
+        ns.add_import(true,false,to_name(name));
+      } else if (match(imp,"import","static",null,".","*",";")){
+        ASTNode name=convert(imp,2);
+        ns.add_import(true,true,to_name(name));
+      } else {
+        hre.System.Abort("unimplemented import type");
+      }
+      ptr++;
+    }
+    scan_to(ns, ctx, ptr, ctx.getChildCount());
+    return ns;
+  }
+
+  @Override
+  public ASTNode visitConstantDeclarator(ConstantDeclaratorContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitConstantExpression(ConstantExpressionContext ctx) {
+    return getExpression(ctx);
+  }
+
+  @Override
+  public ASTNode visitConstDeclaration(ConstDeclarationContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitConstructorBody(ConstructorBodyContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitConstructorDeclaration(ConstructorDeclarationContext ctx) {
+    String name=getIdentifier(ctx,0);
+    AtomicBoolean varargs=new AtomicBoolean();
+    DeclarationStatement args[]=getFormalParameters(ctx.getChild(1),varargs);
+    Type returns=create.primitive_type(Sort.Void);
+    if (ctx.getChildCount()==3){
+      ASTNode body=convert(ctx,2);
+      return create.method_kind(Method.Kind.Constructor, returns, null, name, args,varargs.get(),body);
+    } else {
+      return null;
+    }
+  }
+
+  @Override
+  public ASTNode visitCreatedName(CreatedNameContext ctx) {
+    if (match(ctx,(String)null)){
+      String name=getIdentifier(ctx,0);
+      return create.class_type(name);
+    } else if (match(ctx,(String)null,"TypeArgumentsOrDiamond")) {
+      String name=getIdentifier(ctx,0);
+      ASTNode args[]=convert_list((ParserRuleContext)(((ParserRuleContext)ctx.getChild(1)).getChild(0)), "<", ",", ">");
+      return create.class_type(name, args);
+    } else {
+      throw MissingCase(ctx);
+    }
+  }
+
+  @Override
+  public ASTNode visitCreator(CreatorContext ctx) {
+    if (match(ctx,null,"ClassCreatorRestContext")){
+      ParserRuleContext rest_ctx=(ParserRuleContext)ctx.getChild(1);
+      Type type=checkType(convert(ctx,0));
+      //String name=getIdentifier(ctx,0);
+      if (match(rest_ctx,"ArgumentsContext")){
+        ASTNode args[]=convert_list(rest_ctx.getChild(0),"(",",",")");
+        BeforeAfterAnnotations res=create.new_object((ClassType)type/*create.class_type(name)*/, args);
+        scan_comments_after(res.get_before(),ctx.getChild(0));
+        scan_comments_after(res.get_after(),ctx);
+        return (ASTNode)res;
+      }
+      Debug("no arguments");
+    }
+    if (match(ctx,null,"ArrayCreatorRest")){
+      Type basetype=checkType(convert(ctx,0));
+      ParserRuleContext rest_ctx=(ParserRuleContext)ctx.getChild(1);
+      if (match(rest_ctx,"[",null,"]")){
+        return create.expression(StandardOperator.NewArray,basetype,convert(rest_ctx,1));
+      }
+      if (match(rest_ctx,"[","]","ArrayInitializer")){
+        ASTNode vals[]=convert_list((ParserRuleContext)rest_ctx.getChild(2), "{", ",", "}");
+        return create.struct_value(create.primitive_type(Sort.Array,basetype),null,vals);
+      }
+    }
+    Debug("no class creator");
+    return null;
+  }
+
+  @Override
+  public ASTNode visitDefaultValue(DefaultValueContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitElementValue(ElementValueContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitElementValueArrayInitializer(
+      ElementValueArrayInitializerContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitElementValuePair(ElementValuePairContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitElementValuePairs(ElementValuePairsContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitEnhancedForControl(EnhancedForControlContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitEnumBodyDeclarations(EnumBodyDeclarationsContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitEnumConstant(EnumConstantContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitEnumConstantName(EnumConstantNameContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitEnumConstants(EnumConstantsContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitEnumDeclaration(EnumDeclarationContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitExplicitGenericInvocation(
+      ExplicitGenericInvocationContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitExplicitGenericInvocationSuffix(
+      ExplicitGenericInvocationSuffixContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitExpression(ExpressionContext ctx) {
+    return getExpression(ctx);
+  }
+
+  @Override
+  public ASTNode visitExpressionList(ExpressionListContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitExtraAnnotation(ExtraAnnotationContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitExtraDeclaration(ExtraDeclarationContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitExtraIdentifier(ExtraIdentifierContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitExtraPrimary(ExtraPrimaryContext ctx) {
+    return getSpecificationPrimary(ctx);
+  }
+
+  @Override
+  public ASTNode visitExtraStatement(ExtraStatementContext ctx) {
+    ASTNode res=null;
+    if (match(ctx,"loop_invariant",null,";")){
+      res=create.special_decl(ASTSpecial.Kind.Invariant,convert(ctx,1));
+    } else if (match(ctx,"set",null,"=",null,";")){
+      res=create.assignment(convert(ctx,1),convert(ctx,3));
+    } else if (match(ctx,"fold",null,";")){
+      res=create.special(ASTSpecial.Kind.Fold,convert(ctx,1));
+    } else if (match(ctx,"unfold",null,";")){
+      res=create.special(ASTSpecial.Kind.Unfold,convert(ctx,1));
+    } else if (match(ctx,"refute",null,";")){
+      res=create.special(ASTSpecial.Kind.Refute,convert(ctx,1));    
+    } else if (match(ctx,"assert",null,";")){
+      res=create.special(ASTSpecial.Kind.Assert,convert(ctx,1));
+    } else if (match(ctx,"check",null,";")){
+      res=create.special(ASTSpecial.Kind.Assert,convert(ctx,1));
+    } else if (match(ctx,"spec_ignore","{")){
+      res=create.special(ASTSpecial.Kind.SpecIgnoreStart);
+    } else if (match(ctx,"}","spec_ignore")){
+      res=create.special(ASTSpecial.Kind.SpecIgnoreEnd);
+    } else if (match(ctx,"inhale",null,";")){
+      res=create.special(ASTSpecial.Kind.Inhale,convert(ctx,1));
+    } else if (match(ctx,"exhale",null,";")){
+      res=create.special(ASTSpecial.Kind.Exhale,convert(ctx,1));
+    } else if (match(ctx,"send",null,"to",null,",",null,";")){//DRB       
+      res=create.special(ASTSpecial.Kind.Send,convert(ctx,1),convert(ctx,3),convert(ctx,5));   
+      res.setGhost(true);
+    } else if (match(ctx,"recv",null,"from",null,",",null,";")){//DRB
+      res=create.special(ASTSpecial.Kind.Recv,convert(ctx,1),convert(ctx,3),convert(ctx,5));   
+      res.setGhost(true);
+    } else if (match(ctx,"assume",null,";")){
+      res=create.special(ASTSpecial.Kind.Assume,convert(ctx,1));
+    }
+    if (match(ctx,"create",null,";")){
+      return create.special(ASTSpecial.Kind.CreateHistory,convert(ctx,1));
+    }
+    if (match(ctx,"create", null , "," , null , ";")){
+      return create.special(ASTSpecial.Kind.CreateFuture,convert(ctx,1),convert(ctx,3));
+    }
+    if (match(ctx,"destroy",null,",",null,";")){
+      return create.special(ASTSpecial.Kind.DestroyHistory,convert(ctx,1),convert(ctx,3));
+    }
+    if (match(ctx,"destroy",null,";")){
+      return create.special(ASTSpecial.Kind.DestroyFuture,convert(ctx,1));
+    }
+    if (match(ctx,"split",null,",",null,",",null,",",null,",",null,";")){
+      return create.special(ASTSpecial.Kind.SplitHistory,
+          convert(ctx,1),convert(ctx,3),convert(ctx,5),convert(ctx,7),convert(ctx,9));
+    }
+    if (match(ctx,"merge",null,",",null,",",null,",",null,",",null,";")){
+      return create.special(ASTSpecial.Kind.MergeHistory,
+          convert(ctx,1),convert(ctx,3),convert(ctx,5),convert(ctx,7),convert(ctx,9));
+    }
+    if (match(ctx,"open",null,";")){
+      return create.special(ASTSpecial.Kind.Open,convert(ctx,1));
+    }
+    if (match(ctx,"close",null,";")){
+      return create.special(ASTSpecial.Kind.Close,convert(ctx,1));
+    }
+    if (match(ctx,"transfer",null,";")){
+      return create.special(ASTSpecial.Kind.Transfer,convert(ctx,1));
+    }
+    if (match(ctx,"csl_subject",null,";")){
+      return create.special(ASTSpecial.Kind.CSLSubject,convert(ctx,1));
+    }
+    if (match(ctx,"with",null)){
+        return create.special(ASTSpecial.Kind.With,convert(ctx,1));
+      }
+    if (match(ctx,"label",null)){
+        return create.special(ASTSpecial.Kind.Label,convert(ctx,1));
+      }
+    if (match(ctx,"then",null)){
+      return create.special(ASTSpecial.Kind.Then,convert(ctx,1));
+    }
+    if (match(ctx,"proof",null)){
+      return create.special(ASTSpecial.Kind.Proof,convert(ctx,1));
+    }
+    if (match(ctx,"create","BlockContext")){
+        BlockStatement block=getBlock((ParserRuleContext)ctx.getChild(1));
+        return create.lemma(block);
+      }
+    if (match(ctx,"qed",null,";")){
+        return create.special(ASTSpecial.Kind.QED,convert(ctx,1));
+      }
+    if (match(ctx,"apply",null,";")){
+      return create.special(ASTSpecial.Kind.Apply,convert(ctx,1));
+    }
+    if (match(ctx,"use",null,";")){
+      return create.special(ASTSpecial.Kind.Use,convert(ctx,1));
+    }
+    if (match(ctx,"witness",null,";")){
+      res=create.special(ASTSpecial.Kind.Witness,convert(ctx,1));
+    }
+    if (match(ctx,"atomic","(",null,")",null)){
+      ASTNode args[]=convert_list((ParserRuleContext)ctx.getChild(2),",");
+      BlockStatement block=(BlockStatement)convert(ctx,4);
+      res=create.csl_atomic(block,args);
+    }
+    if (res!=null){
+      res.setGhost(true);
+    }
+    return res;
+  }
+
+  @Override
+  public ASTNode visitExtraType(ExtraTypeContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitFieldDeclaration(FieldDeclarationContext ctx) {
+    return getVariableDeclaration((ParserRuleContext)ctx.getChild(1),convert(ctx,0));
+  }
+
+  @Override
+  public ASTNode visitFinallyBlock(FinallyBlockContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitForControl(ForControlContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitForInit(ForInitContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitFormalParameter(FormalParameterContext ctx) {
+    if (match(ctx,null,null)){
+      VariableDeclaration decl=create.variable_decl(checkType(convert(ctx,0)));
+      DeclarationStatement var=getVariableDeclaratorId((ParserRuleContext)ctx.getChild(1));
+      decl.add(var);
+      DeclarationStatement vars[]=decl.flatten();
+      if (vars.length==1) return vars[0];
+    }
+    return null;
+  }
+
+  @Override
+  public ASTNode visitFormalParameterList(FormalParameterListContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitFormalParameters(FormalParametersContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitForUpdate(ForUpdateContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitFunctionDeclaration(FunctionDeclarationContext ctx) {
+    Contract contract=null;
+    int i=0;
+    if (match(0,true,ctx,"ContractContext")){
+      contract=(Contract)convert(ctx,0);
+      i=1;
+    }
+    int i0=i;
+    while(match(i,true,ctx,"ModifierContext")){
+      // skip now convert later.
+      i++;
+    }
+    Type returns=checkType(convert(ctx,i));
+    String name=getIdentifier(ctx,i+1);
+    hre.System.Debug("function %s, contract %s",name,contract);
+    AtomicBoolean varargs=new AtomicBoolean();
+    DeclarationStatement args[]=getFormalParameters(ctx.getChild(i+2),varargs);
+    if (varargs.get()){
+      hre.System.Fail("functions with varargs not supported yet.");
+    }
+    ASTNode body=null;
+    if (match(i+3,false,ctx,"=",null,";")){
+      body=convert(ctx,i+4);
+    }
+    Method res=create.function_decl(returns, contract, name, args, body);
+    hre.System.Debug("function %s, contract %s",res.name,res.getContract());
+    while(i0<i){
+      //add modifiers as annotations.
+      ASTNode mod=convert(ctx,i0);
+      //System.err.printf("<modifier! %s = %s%n",ctx.getChild(i0).toStringTree(parser),mod);
+      res.attach(mod);
+      i0++;
+    }
+    return res;
+  }
+
+  @Override
+  public ASTNode visitGenericConstructorDeclaration(
+      GenericConstructorDeclarationContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitGenericInterfaceMethodDeclaration(
+      GenericInterfaceMethodDeclarationContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+  
+  @Override
+  public ASTNode visitGenericMethodDeclaration(
+      GenericMethodDeclarationContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitIdentifier(IdentifierContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitImportDeclaration(ImportDeclarationContext ctx) {
+    if (match(ctx,"import",null,";")){
+      return create.special(Kind.Import,convert(ctx,1));
+    }
+    return null;
+  }
+
+  @Override
+  public ASTNode visitInnerCreator(InnerCreatorContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitInterfaceBody(InterfaceBodyContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitInterfaceBodyDeclaration(
+      InterfaceBodyDeclarationContext ctx) {
+    return getClassOrInterfaceBodyDeclaration(ctx);
+  }
+
+  @Override
+  public ASTNode visitInterfaceDeclaration(InterfaceDeclarationContext ctx) {
+    return getClassOrIntefaceDeclaration(ctx);
+  }
+
+  @Override
+  public ASTNode visitInterfaceMemberDeclaration(
+      InterfaceMemberDeclarationContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitInterfaceMethodDeclaration(InterfaceMethodDeclarationContext ctx) {
+    return getMethodDeclaration(ctx);
+  }
+
+  @Override
+  public ASTNode visitJavaDeclarations(JavaDeclarationsContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitJavaIdentifier(JavaIdentifierContext ctx) {
+    String ident=getGeneralizedIdentifier(ctx, 0);
+    if (syntax.is_reserved(ident)){
+      return create.reserved_name(syntax.reserved(ident));
+    } else {
+      return create.unresolved_name(ident);
+    }
+  }
+
+  @Override
+  public ASTNode visitJavaStatements(JavaStatementsContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitLastFormalParameter(LastFormalParameterContext ctx) {
+    if (match(ctx,null,"...",null)){
+      VariableDeclaration decl=create.variable_decl(checkType(convert(ctx,0)));
+      DeclarationStatement var=getVariableDeclaratorId((ParserRuleContext)ctx.getChild(2));
+      decl.add(var);
+      DeclarationStatement vars[]=decl.flatten();
+      if (vars.length==1) return vars[0];
+    }
+    return null;
+  }
+
+  @Override
+  public ASTNode visitLiteral(LiteralContext ctx) {
+    Token tok=((TerminalNode)ctx.getChild(0)).getSymbol();
+    int t=tok.getType();
+    if (t==IntegerLiteral){
+      return create.constant(Integer.parseInt(tok.getText()));
+    }
+    if (t==StringLiteral){
+      String text=tok.getText();
+      return create.constant(StringEscapeUtils.unescapeJava(text.substring(1,text.length()-1)));
+    }
+    if (match(ctx,"true")) return create.constant(true);
+    if (match(ctx,"false")) return create.constant(false);
+    return null;
+  }
+
+  @Override
+  public ASTNode visitLocalVariableDeclaration(
+      LocalVariableDeclarationContext ctx) {
+    int N=ctx.getChildCount();
+    ASTNode list[]=convert_range(ctx,0,N-1);
+    return getVariableDeclaration((ParserRuleContext)ctx.getChild(N-1),list);
+  }
+
+  @Override
+  public ASTNode visitLocalVariableDeclarationStatement(
+      LocalVariableDeclarationStatementContext ctx) {
+    return convert(ctx,0);
+  }
+
+  @Override
+  public ASTNode visitMemberDeclaration(MemberDeclarationContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitMethodBody(MethodBodyContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitMethodDeclaration(MethodDeclarationContext ctx) {
+    return getMethodDeclaration(ctx);
+  }
+
+  @Override
+  public ASTNode visitModifier(ModifierContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitNonWildcardTypeArguments(
+      NonWildcardTypeArgumentsContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitNonWildcardTypeArgumentsOrDiamond(
+      NonWildcardTypeArgumentsOrDiamondContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitPackageDeclaration(PackageDeclarationContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitParExpression(ParExpressionContext ctx) {
+    return convert(ctx,1);
+  }
+
+  @Override
+  public ASTNode visitPrimary(PrimaryContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitPrimitiveType(PrimitiveTypeContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitQualifiedName(QualifiedNameContext ctx) {
+    ASTNode n[]=convert_list(ctx,".");
+    ASTNode res=n[0];
+    for(int i=1;i<n.length;i++){
+      if (!(n[i] instanceof NameExpression)) return null;
+      String field=((NameExpression)n[i]).getName();
+      res=create.dereference(res, field);
+    }
+    return res;
+  }
+
+  @Override
+  public ASTNode visitQualifiedNameList(QualifiedNameListContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitResource(ResourceContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitResources(ResourcesContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitResourceSpecification(ResourceSpecificationContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitSpecificationSequence(SpecificationSequenceContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitStatement(StatementContext ctx) {
+    if (match(ctx,"if",null,null)){
+      return create.ifthenelse(convert(ctx,1),convert(ctx,2));
+    }
+    if (match(ctx,"if",null,null,"else",null)){
+      return create.ifthenelse(convert(ctx,1),convert(ctx,2),convert(ctx,4));
+    }
+    if (match(ctx,"return",";")){
+      return create.return_statement();
+    }
+    if (match(ctx,"return",null,";")){
+      ReturnStatement res=create.return_statement(convert(ctx,1));
+      scan_comments_after(res.get_after(),ctx.getChild(1));
+      return res;
+    }
+    if (match(ctx,"Expression",";")){
+      return create.special(ASTSpecial.Kind.Expression,convert(ctx,0)); 
+    }
+    if (match(ctx,"StatementExpression",";")){
+      return create.special(ASTSpecial.Kind.Expression,convert((ParserRuleContext)ctx.getChild(0),0)); 
+    }
+    if (match(ctx,"while",null,null)){
+      LoopStatement res=create.while_loop(convert(ctx,1),convert(ctx,2));
+      scan_comments_after(res.get_after(), ctx.getChild(1));
+      return res;
+    }
+    if (match(ctx,"for","(",null,")",null)){
+      ParserRuleContext control=(ParserRuleContext)ctx.getChild(2);
+      if (match(control,null,";",null,";",null)){
+        ASTNode init=convert(control,0);
+        init=create.block(init.getOrigin(),init);
+        ASTNode test=convert(control,2);
+        ASTNode update=convert(control,4);
+        ASTNode body=convert(ctx,4);
+        LoopStatement res=create.for_loop(init, test, update, body);
+        scan_comments_after(res.get_after(), ctx.getChild(3));
+        return res;
+      }
+    }
+    if (match(ctx,"assert",null,";")){
+      return create.special(ASTSpecial.Kind.Assert,convert(ctx,1));
+    }
+    if (match(ctx,"throw",null,";")){
+      return create.special(ASTSpecial.Kind.Throw,convert(ctx,1));
+    }
+    if (match(0,true,ctx,"try","Block")){
+      BlockStatement main=(BlockStatement)convert(ctx,1);
+      int N=ctx.getChildCount();
+      BlockStatement after;
+      if (match(N-1,true,ctx,"FinallyBlock")){
+        after=(BlockStatement)convert((ParserRuleContext)ctx.getChild(N-1),1);
+        N--;
+      } else {
+        after=null;
+      }
+      TryCatchBlock res=create.try_catch(main,after);
+      for(int i=2;i<N;i++){
+        ParserRuleContext clause=(ParserRuleContext)ctx.getChild(i);
+        if (match(clause,"catch","(",null,null,")","Block")){
+          Type type=checkType(convert(clause,2));
+          String name=getIdentifier(clause, 3);
+          BlockStatement block=(BlockStatement)convert(clause,5);
+          DeclarationStatement decl=create.field_decl(name, type);
+          res.catch_clause(decl,block);
+        } else {
+          return null;
+        }
+      }
+      return res;
+    }
+    if (match(ctx,null,":",null)){
+      ASTNode res=convert(ctx,2);
+      String label=getIdentifier(ctx,0);
+      res.labeled(label);
+      return res;
+    }
+    return null;
+  }
+
+  @Override
+  public ASTNode visitStatementExpression(StatementExpressionContext ctx) {
+    return getExpression(ctx);
+  }
+
+  @Override
+  public ASTNode visitSuperSuffix(SuperSuffixContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitSwitchBlockStatementGroup(
+      SwitchBlockStatementGroupContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitSwitchLabel(SwitchLabelContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitType(TypeContext ctx) {
+    return getType(ctx);
+  }
+
+  @Override
+  public ASTNode visitTypeArgument(TypeArgumentContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitTypeArguments(TypeArgumentsContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitTypeArgumentsOrDiamond(TypeArgumentsOrDiamondContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitTypeBound(TypeBoundContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitTypeDeclaration(TypeDeclarationContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitTypeList(TypeListContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitTypeParameter(TypeParameterContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitTypeParameters(TypeParametersContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitValContractClause(ValContractClauseContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitValPrimary(ValPrimaryContext ctx) {
+    return getValPrimary(ctx);
+  }
+
+  @Override
+  public ASTNode visitValReserved(ValReservedContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitValStatement(ValStatementContext ctx) {
+    return getValStatement(ctx);
+  }
+
+  @Override
+  public ASTNode visitVariableDeclarator(VariableDeclaratorContext ctx) {
+    if (match(ctx,null,"=",null)){
+      DeclarationStatement decl=(DeclarationStatement)convert(ctx,0);
+      ASTNode expr=convert(ctx,2);
+      return create.field_decl(decl.name,decl.getType(),expr);
+    }
+    return null;
+  }
+
+  @Override
+  public ASTNode visitVariableDeclaratorId(VariableDeclaratorIdContext ctx) {
+    return getVariableDeclaratorId(ctx);
+  }
+
+  @Override
+  public ASTNode visitVariableDeclarators(VariableDeclaratorsContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitVariableInitializer(VariableInitializerContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ASTNode visitVariableModifier(VariableModifierContext ctx) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+}

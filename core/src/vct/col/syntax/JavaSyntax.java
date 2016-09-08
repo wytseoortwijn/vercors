@@ -6,6 +6,7 @@ import hre.ast.TrackingOutput;
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTReserved;
 import vct.col.ast.ASTSpecial;
+import vct.col.ast.ASTSpecial.Kind;
 import vct.col.print.JavaPrinter;
 import vct.col.rewrite.Parenthesize;
 import hre.HREError;
@@ -49,7 +50,6 @@ public class JavaSyntax extends Syntax {
         syntax.addLeftFix(Exp,"^^",125);
         syntax.addLeftFix(StructSelect,".",-1);
         syntax.addLeftFix(LeftMerge,"||_",30);
-        syntax.addOperator(HoarePredicate,-1,"/*{","}*/");
 
         syntax.addOperator(Member,-1,"(","\\memberof",")");
         syntax.addFunction(TypeOf,"\\typeof");
@@ -80,9 +80,7 @@ public class JavaSyntax extends Syntax {
         syntax.addReserved(ThreadLocal,"thread_local");
         syntax.addReserved(Pure,"pure");
         syntax.addReserved(CurrentThread,"\\current_thread");
-
-        syntax.addSpecial(ASTSpecial.Kind.DeclareAction,"action");
-        syntax.addSpecial(ASTSpecial.Kind.ChooseHistory,"choose");
+        syntax.addFunction(OptionGet,"getOption");
                
         JavaVerCorsSyntax=syntax;
         
@@ -135,7 +133,7 @@ public class JavaSyntax extends Syntax {
     syntax.addInfix(LTE,"<=",90);
     syntax.addInfix(GT,">",90);
     syntax.addInfix(GTE,">=",90);
-    syntax.addInfix(Instance," instanceof ",90);
+    syntax.addInfix(Instance,"instanceof",90);
     //  8 equality  == !=
     syntax.addInfix(EQ,"==",80);
     syntax.addInfix(NEQ,"!=",80);
@@ -149,11 +147,6 @@ public class JavaSyntax extends Syntax {
     syntax.addLeftFix(And,"&&",40);
     //  3 logical OR  ||
     syntax.addLeftFix(Or,"||",30);
-    //Send annotation -- sending permission to verify parallel loops 
-    syntax.addOperator(Send,20,"send","to",",",""); //DRB
-    //Recv annotation -- receiving permission to verify parallel loops 
-    syntax.addOperator(Recv,20,"recv","to",",","");
-    
     //  2 ternary   ? :    
     syntax.addOperator(ITE,20,"","?",":","");
     //  1 assignment  = += -= *= /= %= &= ^= |= <<= >>= >>>=

@@ -4,20 +4,19 @@
 //:: verdict Fail
 
 /*@
-  
-  requires \length(a)==len ** (\forall* int i ; 0 <= i && i < len ; Perm(a[i],write));
-  requires \length(b)==len ** (\forall* int i ; 0 <= i && i < len ; Perm(b[i],1/2));
-  requires \length(c)==len ** (\forall* int i ; 0 <= i && i < len ; Perm(c[i],write));
+  invariant  a!=NULL && b !=NULL && c!=NULL;
+  invariant \length(a)==len && \length(b)==len && \length(c)==len;
+ 
+  requires (\forall* int i ; 0 <= i && i < len ; Perm(a[i],write));
+  requires (\forall* int i ; 0 <= i && i < len ; Perm(b[i],1/2));
+  requires (\forall* int i ; 0 <= i && i < len ; Perm(c[i],write));
 
-  ensures  \length(a)==len ** (\forall* int i ; 0 <= i && i < len ; Perm(a[i],write));
-  ensures  \length(b)==len ** (\forall* int i ; 0 <= i && i < len ; Perm(b[i],1/2));
-  ensures  \length(c)==len ** (\forall* int i ; 0 <= i && i < len ; Perm(c[i],write));
+  ensures  (\forall* int i ; 0 <= i && i < len ; Perm(a[i],write));
+  ensures  (\forall* int i ; 0 <= i && i < len ; Perm(b[i],1/2));
+  ensures  (\forall* int i ; 0 <= i && i < len ; Perm(c[i],write));
   @*/
 
 void example(int a[],int b[],int c[],int len){  
-  //@ assert \length(a)==len;
-  //@ assert \length(b)==len;
-  //@ assert \length(c)==len;
   for(int i=0;i < len;i++)
    /*@
     requires \length(a)==len ** Perm(a[i],1/2);

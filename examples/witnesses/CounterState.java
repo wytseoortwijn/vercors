@@ -38,7 +38,7 @@ public class CounterState {
 
   /*@
     given int v;
-    requires req:state(100,v) ** n>=0;
+    requires (req:state(100,v)) ** n>=0;
     ensures  ens:state(100,v+n);
   @*/
   public void incr_loop(int n){
@@ -54,7 +54,7 @@ public class CounterState {
 
   /*@
     given int v;
-    requires req:state(100,v) ** n>=0;
+    requires (req:state(100,v)) ** n>=0;
     ensures  ens:state(100,v+n);
   @*/
   public void incr_loop_fold(int n){
@@ -73,7 +73,7 @@ public class CounterState {
 
   /*@
     given int v;
-    requires req:state(100,v) ** n>=0;
+    requires (req:state(100,v)) ** n>=0;
     ensures  ens:state(100,v+n);
   @*/
   public void incr_loop_call(int n){
@@ -124,7 +124,7 @@ public class CounterState {
   
   /*@
     given int v;
-    requires req:state(100,v) ** n>=0;
+    requires (req:state(100,v)) ** n>=0;
     ensures  ens:state(100,v+n);
   @*/
   public void incr_loop_get(int n){
@@ -142,9 +142,9 @@ public class CounterState {
     //@ with { inv = c_res ; }
     {
        val=val+1;
-       incr_call:c.incr/*@ v=i; req=inv; */();
+       c.incr/*@ v=i; req=inv; */() /*@ then { inv = ens; } @*/;
        //@ i = i + 1 ;
-       //@ inv = incr_call.ens ;
+       // this should have worked isntead of the then above ? @ inv = incr_call.ens ;
     }
     //@ fold ens:state(100,v+n);
   }

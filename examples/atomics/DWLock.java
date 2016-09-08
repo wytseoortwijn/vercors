@@ -38,7 +38,7 @@ class DWLock{
     private int data;
 
     /*@
-     requires set_rr:resource_pred(n) ** set_rv:value(n);
+     requires (set_rr:resource_pred(n)) ** set_rv:value(n);
      ensures set_ev:value(n); 
      */
     void set(int n);
@@ -50,9 +50,9 @@ class DWLock{
     boolean equal(int n);
     
     /*@
-     requires    cas_rr:resource_pred(n) ** cas_rv:value(n);
-     ensures    (\result ==> cas_erp:resource_pred(o) ** cas_evp:value(o) ) ** 
-     (!\result ==> cas_ern:resource_pred(n) ** cas_evn:value(n));
+     requires    (cas_rr:resource_pred(n)) ** cas_rv:value(n);
+     ensures    (\result ==> (cas_erp:resource_pred(o)) ** cas_evp:value(o) ) ** 
+     (!\result ==> (cas_ern:resource_pred(n)) ** cas_evn:value(n));
      */
     boolean cas(int o, int n);    
 
@@ -76,8 +76,8 @@ class DWLock{
             fold vtmp1:value(1);
             fold rtmp1:resource_pred(1);
          */
-        //@ loop_invariant !succ ==> (invv:value(1) ** invr:resource_pred(1)) ;
-        //@ loop_invariant succ ==> (vtmp2:value(0) ** rtmp2:resource_pred(0)) ;
+        //@ loop_invariant !succ ==> ((invv:value(1)) ** invr:resource_pred(1)) ;
+        //@ loop_invariant succ ==> ((vtmp2:value(0)) ** rtmp2:resource_pred(0)) ;
         while (!succ) /*@ with { invv = vtmp1; invr = rtmp1; } then { unfold vtmp2:value(0); } */ {
             succ = (cas(0,1) /*@ with { cas_rr = invr; cas_rv = invv; } then { invv = cas_evn; invr = cas_ern; rtmp2 = cas_erp; vtmp2 = cas_evp; } */);
         }

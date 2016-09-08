@@ -8,6 +8,8 @@ public interface ASTMapping<R> {
   
   public R map(StandardProcedure p);
   
+  public R map(StructValue v);
+  
   public R map(ConstantExpression e);
   
   public R map(OperatorExpression e);
@@ -69,8 +71,6 @@ public interface ASTMapping<R> {
   public R map(Hole hole);
 
   public R map(ActionBlock actionBlock);
-
-  public R map(ASTSpecialDeclaration s);
 
   public R map(TypeExpression t);
 

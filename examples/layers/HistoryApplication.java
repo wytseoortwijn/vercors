@@ -100,7 +100,7 @@ class Sender extends Thread {
     resource preFork(frac p)=p==write
       ** Value(this.queue) ** queue!=null ** Value(queue.hist)
       ** Value(this.input) ** PointsTo(queue.hist_active,1/4,true)
-      ** Value(this.vals)
+      ** Value(this.vals) ** input != null
       ** input.length==|vals|
       ** (\forall* int i; 0 <= i && i < |vals| ; Perm(input[i],1))
       ** (\forall  int i; 0 <= i && i < |vals| ; input[i]==vals[i])
@@ -110,7 +110,7 @@ class Sender extends Thread {
     resource postJoin(frac p)=p==write
       ** Value(this.queue) ** queue!=null ** Value(queue.hist)
       ** Value(this.input) ** PointsTo(queue.hist_active,1/4,true)
-      ** Value(this.vals)
+      ** Value(this.vals) ** input != null
       ** input.length==|vals|
       ** (\forall* int i; 0 <= i && i < |vals| ; Perm(input[i],1))
       ** (\forall  int i; 0 <= i && i < |vals| ; input[i]==vals[i])
@@ -120,7 +120,7 @@ class Sender extends Thread {
   
   /*@
     given    seq<int>vals;
-    requires input.length==|vals| ** queue!=null
+    requires input!=null ** input.length==|vals| ** queue!=null
       ** Value(queue.hist) ** Hist(queue.hist,1/2,empty)
       ** PointsTo(queue.hist_active,1/4,true)
       ** (\forall* int i; 0 <= i && i < |vals| ; Perm(input[i],1))
@@ -151,7 +151,7 @@ class Sender extends Thread {
       loop_invariant 0 <= i ** i <= N 
       ** Value(this.queue) ** queue!=null ** Value(queue.hist)
       ** Value(this.input) ** PointsTo(queue.hist_active,1/4,true)
-      ** Value(this.vals)
+      ** Value(this.vals) ** input != null
       ** N==input.length ** N==|vals|
       ** (\forall* int k; 0 <= k < |vals| ; Perm(input[k],1))
       ** (\forall  int k; 0 <= k < |vals| ; input[k]==vals[k])
@@ -187,7 +187,7 @@ class Receiver extends Thread {
     resource preFork(frac p)=p==write
       ** Value(this.queue) ** queue!=null ** Value(queue.hist)
       ** Value(this.output) ** PointsTo(queue.hist_active,1/4,true)
-      ** Perm(this.vals,1)
+      ** Perm(this.vals,1) ** output != null
       ** (\forall* int i; 0 <= i && i < output.length ; Perm(output[i],1))
       ** Hist(queue.hist,1/2,empty)
       ** true;
@@ -195,7 +195,7 @@ class Receiver extends Thread {
     resource postJoin(frac p)=p==write
       ** Value(this.queue) ** queue!=null ** Value(queue.hist)
       ** Value(this.output) ** PointsTo(queue.hist_active,1/4,true)
-      ** Perm(this.vals,1)
+      ** Perm(this.vals,1) ** output != null
       ** output.length==|vals|
       ** (\forall* int i; 0 <= i < |vals| ; Perm(output[i],1))
       ** (\forall  int i; 0 <= i < |vals| ; output[i]==vals[i])
@@ -205,7 +205,7 @@ class Receiver extends Thread {
   
   /*@
     requires queue!=null ** Value(queue.hist)
-      ** Hist(queue.hist,1/2,empty)
+      ** Hist(queue.hist,1/2,empty) ** output != null
       ** PointsTo(queue.hist_active,1/4,true)
       ** (\forall* int i; 0 <= i < output.length ; Perm(output[i],1));
     ensures  Value(this.queue) ** queue!=null
@@ -225,7 +225,7 @@ class Receiver extends Thread {
     int i=0;
     //@ vals=seq<int>{};
     /*@ loop_invariant Value(queue) ** Value(queue.hist)
-    ** Value(output) ** Perm(vals,1) ** 0 <= i <= N
+    ** Value(output) ** output != null ** Perm(vals,1) ** 0 <= i <= N
     ** i==|vals| ** N==output.length
     ** PointsTo(queue.hist_active,1/4,true) 
     ** (\forall* int k; 0 <= k < N ; Perm(output[k],1))
@@ -286,8 +286,8 @@ public class Main {
 
   /*@
     given seq<int> contents;
-    requires input.length==|contents|;
-    requires output.length==|contents|;
+    requires input!=null ** input.length==|contents|;
+    requires output!=null ** output.length==|contents|;
     requires (\forall* int i; 0 <= i && i < |contents|;Perm(input[i],1));
     requires (\forall  int i; 0 <= i && i < |contents|;input[i]==contents[i]);
     requires (\forall* int i; 0 <= i && i < |contents|;Perm(output[i],1));

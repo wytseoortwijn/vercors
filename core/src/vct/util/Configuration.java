@@ -11,6 +11,7 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import vct.antlr4.parser.Parsers;
 import vct.col.syntax.JavaDialect;
 import vct.col.syntax.JavaSyntax;
 import vct.col.syntax.Syntax;
@@ -129,6 +130,7 @@ public class Configuration {
     clops.add(cpp_defines.getAppendOption("add to the CPP defined variables"),'D');
     clops.add(profiling_option, "profile");
     clops.add(skip.getAppendOption("comma separated list of methods that may be skipped during verification"),"skip");
+    clops.add(Parsers.java_version.getAssign("set the version of java used for parsing"),"java");
   }
 
   public static IntegerSetting profiling=new IntegerSetting(1000);

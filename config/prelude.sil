@@ -1,0 +1,25 @@
+// -*- tab-width:2 ; indent-tabs-mode:nil -*-
+
+domain VCTOption[T] {
+  function VCTNone(): VCTOption[T]
+  function VCTSome(t: T): VCTOption[T]
+  function getVCTOption(o:VCTOption[T]) : T
+    
+  axiom not_equal_vct {
+    forall x: T :: VCTNone() != VCTSome(x)
+  }
+  
+  axiom get_axiom_vct {
+    forall x: T :: getVCTOption(VCTSome(x)) == x
+  }
+}
+
+/*
+function get_Integer(o:Option[Int]) : Int
+  requires  o != None()
+{
+  get(o)
+}
+*/
+
+

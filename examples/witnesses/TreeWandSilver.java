@@ -64,7 +64,7 @@ class Tree {
                                       + seq<int>{cur.data} + tolist(cur.right);
       loop_invariant cur.state_contains(tail(cur_contents)) -* top.state_contains(target_contents); @*/
       while (left.left != null) /*@ with {
-        create {} top.state_contains(target_contents) -* top.state_contains(target_contents);#\label{proof 1}#
+        create { qed top.state_contains(target_contents) -* top.state_contains(target_contents); }#\label{proof 1}#
       } @*/
       { /*@ Tree prev = cur;
             seq<int> prev_contents = cur_contents; */

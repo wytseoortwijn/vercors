@@ -65,7 +65,7 @@ class SilverProgramFactory[O,Err] extends ProgramFactory[O,Err,Type,Exp,Stmt,
    
   private def get_info[OO](x:Info,y:Position,f:OriginFactory[OO]):OO={
     x match {
-      case in: OriginInfo[OO] => {
+      case in: OriginInfo[OO]@unchecked => {
         in.loc
       }
       case _ => y match {
@@ -302,6 +302,13 @@ class SilverProgramFactory[O,Err] extends ProgramFactory[O,Err,Type,Exp,Stmt,
          ve.explicit_set(o,map_type(v,xs.head.typ),map_expr(v,xs))
        case SeqAppend(xs,ys) =>
          ve.append(o, map_expr(v,xs),map_expr(v,ys))
+       case SeqLength(xs) =>
+         ve.size(o,map_expr(v,xs))
+       case SeqDrop(xs,n) =>
+         ve.drop(o,m(xs),m(n))
+       case SeqTake(xs,n) =>
+         ve.take(o,m(xs),m(n))
+       case SeqIndex(xs,n) => ve.index(o,m(xs),m(n))
        case x => throw new Error("missing case in map expr "+x.getClass())
      }
   }

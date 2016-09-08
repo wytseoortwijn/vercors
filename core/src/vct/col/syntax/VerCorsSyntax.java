@@ -12,6 +12,10 @@ import static vct.col.ast.PrimitiveType.Sort.Resource;
 import static vct.col.ast.PrimitiveType.Sort.ZFraction;
 import static vct.col.ast.PrimitiveType.Sort.Location;
 import static vct.col.ast.StandardOperator.*;
+import vct.col.ast.ASTReserved;
+import vct.col.ast.ASTSpecial;
+import vct.col.ast.ASTSpecial.Kind;
+import vct.col.ast.StandardOperator;
 
 public class VerCorsSyntax {
 
@@ -53,6 +57,30 @@ public class VerCorsSyntax {
     syntax.addReserved(FullPerm,"write");
     syntax.addReserved(ReadPerm,"read");
     syntax.addReserved(NoPerm,"none");
+    syntax.addReserved(ASTReserved.OptionNone,"None");
+    syntax.addFunction(StandardOperator.OptionSome,"Some");
+    
+    syntax.add_annotation(ASTSpecial.Kind.ActionHeader, "action");
+    syntax.add_annotation(ASTSpecial.Kind.ChooseHistory, "choose");
+    syntax.add_annotation(ASTSpecial.Kind.CreateHistory, "create");
+    syntax.add_annotation(ASTSpecial.Kind.SplitHistory, "split");
+    syntax.add_annotation(ASTSpecial.Kind.MergeHistory, "merge");
+    syntax.add_annotation(ASTSpecial.Kind.DestroyHistory, "destroy");
+    
+    syntax.add_annotation(ASTSpecial.Kind.Fold, "fold");
+    syntax.add_annotation(ASTSpecial.Kind.Unfold, "unfold");
+    syntax.add_annotation(ASTSpecial.Kind.Open, "open");
+    syntax.add_annotation(ASTSpecial.Kind.Close, "close");
+    
+    syntax.add_annotation(ASTSpecial.Kind.Assert, "assert");
+    syntax.add_annotation(ASTSpecial.Kind.Refute, "refute");
+    syntax.add_annotation(ASTSpecial.Kind.Assume, "assume");
+    
+    syntax.add_annotation(ASTSpecial.Kind.Invariant, "loop_invariant");
+    syntax.add_annotation(ASTSpecial.Kind.Invariant, "invariant");
+    syntax.add_annotation(ASTSpecial.Kind.Label, "label");
+    syntax.add_annotation(ASTSpecial.Kind.CSLSubject, "csl_subject");
+
   }
 
 }

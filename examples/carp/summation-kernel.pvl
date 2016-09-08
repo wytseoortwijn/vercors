@@ -7,6 +7,7 @@ class Ref {
 
   int res;
 
+  invariant ar != null;
   requires N>0;
   requires Perm(res,write);
   requires (\forall* int i;0 <= i && i < N ; Perm(ar[i],1/2));
@@ -19,6 +20,7 @@ class Ref {
   void do_sum(int N, int[N] ar){
     int[N] contrib=new int[N];
     par (int i=0..N)
+      invariant contrib!=null;
       requires Perm(contrib[i],1);
       ensures Perm(contrib[i],1) ** contrib[i]==0;
     {
@@ -28,11 +30,12 @@ class Ref {
     assert (\forall int k;0 <= k && k < N ; contrib[k]==0);
     assume (\sum int k;0 <= k && k < N ; contrib[k])==0;
 
-    invariant main(
+    invariant main( contrib!=null **
       N>0 ** Perm(res,write)**(\forall* int k;0 <= k && k < N ; Perm(contrib[k],1/2))
       ** res==(\sum int k;0 <= k && k < N ; contrib[k])
     ){
       par (int i = 0 .. N)
+        invariant contrib != null;
         requires N>0;
         requires Perm(ar[i],1/4);
         requires Perm(contrib[i],1/2);

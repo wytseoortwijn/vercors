@@ -125,18 +125,6 @@ public class Flatten extends AbstractRewriter {
       result=create.local_name(name);
       return;
     }
-    case Use:
-    case Apply:
-    case QED:
-    case Assert:
-    case Assume:
-    case Fold:
-    case HoarePredicate:
-    case Unfold:
-    {
-      result=e.apply(copy_pure);
-      return;      
-    }
     default:
       super.visit(e);
       return;
@@ -312,6 +300,7 @@ public class Flatten extends AbstractRewriter {
         current_block=create.block();
         declaration_block=current_block;
         visit_body(body);
+        declaration_block=null;
         res.setBody(current_block);
         current_block=block_stack.pop();
       } else {

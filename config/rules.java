@@ -1,26 +1,19 @@
 class silver_optimize {
 /*@
-  int e1,e2,e3,e4,e5,e6,e7,e8;
+  int e1,e2,e3;
   int i;
   
   axiom S1 { ( e1 \memberof [ e2 .. e3 )) ==  ( e2 <= e1 && e1 < e3 ) }
   
-  axiom head1 { head (e1) == e1[0] }
+  seq<int> xs;
+  
+  axiom head1 { head (xs) == xs[0] }
 
 //  axiom move_implication {
 //     (e1 ==> (\forall* int i; e2 ; e3 ))
 //     ==
 //     (\forall* int i; e1 && e2 ; e3 )
 //  }
-
-
-  axiom implement_owner {
-    \owner(e1,e2,e3) == owner(e1,e2,e3)
-  }
-
-  requires 0 <= i && i < N && 0 < T;
-  ensures  0 <= \result && \result < T;
-  static pure int owner(int i, int T, int N);// = i % T;
 
 */
 }
@@ -362,13 +355,6 @@ class simplify_quant_pass1 {
         (\forall* int j;( j \memberof ([ (e4 + e1) * e3 .. (e4 + e2) * e3 )) ); r1 ))
         }
     
-    axiom nested_3 {
-      (\forall* int i;( i \memberof ([ 0 .. e2 )) );
-        (\forall* int j; b1 && \owner(j,e2,e5) == i ; r1 ))
-      ==
-        (\forall* int j; b1 ; r1 )  
-    }
-
     axiom lin1 {
         (\forall* int i;( i \memberof [ e1 * (e2!i) * (e3!i) .. e4 )) ; r1 )
            ==
@@ -527,17 +513,18 @@ class summation {
   requires hi <= |ar|;
   static int sum_list(int i,int hi,seq<int> ar) = (i < hi ? (ar[i] + sum_list(i+1,hi,ar)) : 0 );
 
-  requires 0 <= lo && lo <= i && i <= hi;
+
+  requires 0 <= lo && lo <= i && i <= hi && ar !=null;
   requires (\forall* int k ; lo <= k && k < hi ; Value(ar[k]));
   static int sum_array(int i,int lo,int hi,int ar[]) = (i < hi ? (ar[i] + sum_array(i+1,lo,hi,ar)) : 0 );
 
-  requires 0 <= lo && lo <= hi && hi <= step && step > 0;
+  requires 0 <= lo && lo <= hi && hi <= step && step > 0 && ar !=null;
   requires 0 <= min && min <= i && i <= max;
   requires (\forall* int k ; min <= k && k < max && lo <= (k % step) && (k % step) < hi ; Value(ar[k]));
   static int sum_square(int i,int lo,int hi,int step,int min,int max,int ar[])=
     (i < max ?  ( lo <= (i % step) && (i% step) < hi ? ar[i] : 0 ) + sum_square(i+1,lo,hi,step,min,max,ar) : 0 );
 
-  requires 0 <= lo && lo <= hi && hi <= step && step > 0;
+  requires 0 <= lo && lo <= hi && hi <= step && step > 0 && ar !=null;
   requires 0 <= min && min <= i && i <= max;
   requires (\forall* int k ; min <= k && k < max && lo <= (k % step) && (k % step) < hi ; Value(ar[k]));
   static int count_square(int i,int lo,int hi,int step,int min,int max,int ar[],int v)=
@@ -547,7 +534,7 @@ class summation {
   requires hi <= |ar|;
   static int count_list(int i,int hi,seq<int> ar,int v) = (i < hi ? ((ar[i]==v?1:0) + count_list(i+1,hi,ar,v)) : 0 );
   
-  requires 0 <= i && i <= hi;
+  requires 0 <= i && i <= hi && ar !=null;
   requires (\forall* int k ; 0 <= k && k < hi ; Value(ar[k]));
   static int count_array(int i,int hi,int ar[],int v) = (i < hi ? ((ar[i]==v?1:0) + count_array(i+1,hi,ar,v)) : 0 );
 

@@ -84,7 +84,7 @@ class List {
     //@ loop_invariant cursor.list(suffix+L2) -* this.list(L1+L2);
     while(cursor.get_next()/*@ with { L = suffix; } */ !=null)
     /*@ with {
-        create this.list(L1+L2) -* this.list(L1+L2) {}
+        create { qed this.list(L1+L2) -* this.list(L1+L2); }
     } @*/
     {
         //@ List tmp=cursor;
@@ -94,7 +94,7 @@ class List {
         //@ suffix=tail(suffix);
         cursor=cursor.next;
         /*@
-            create cursor.list(suffix+L2) -* this.list(L1+L2) {
+            create {
                 use    Perm(tmp.val,1);
                 use    Perm(tmp.next,1);
                 use    tmp.next==cursor;
@@ -103,6 +103,7 @@ class List {
                 use    tmp.list(tmp_suffix+L2) -* this.list(L1+L2);
                 fold   tmp.list(tmp_suffix+L2);
                 apply  tmp.list(tmp_suffix+L2) -* this.list(L1+L2);
+                qed    cursor.list(suffix+L2) -* this.list(L1+L2);
             }
         @*/
     }

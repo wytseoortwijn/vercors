@@ -4,6 +4,7 @@
 //:: verdict Fail
 
 /*@
+  invariant ar != NULL;
   requires \length(ar)==len ** (\forall* int i;0<=i && i < len;Perm(ar[i],write));
   ensures  \length(ar)==len ** (\forall* int i;0<=i && i < len;Perm(ar[i],write));
   ensures  (\forall int k ; 0 <= k && k < len ; ar[k]==0 );

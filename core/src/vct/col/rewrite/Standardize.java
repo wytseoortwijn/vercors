@@ -8,6 +8,7 @@ import vct.col.ast.BlockStatement;
 import vct.col.ast.Method;
 import vct.col.ast.MethodInvokation;
 import vct.col.ast.NameExpression;
+import vct.col.ast.PrimitiveType;
 import vct.col.ast.NameExpression.Kind;
 import vct.col.ast.OperatorExpression;
 import vct.col.ast.ProgramUnit;
@@ -33,6 +34,16 @@ public class Standardize extends AbstractRewriter {
     super(source,true);
   }
 
+  @Override
+  public void visit(Method m){
+    if (m.kind == Method.Kind.Pure && m.getReturnType().isPrimitive(PrimitiveType.Sort.Resource)){
+      result=create.predicate(m.getName(), rewrite(m.getBody()), rewrite(m.getArgs()));
+    } else {
+      super.visit(m);
+    }
+  }
+  
+  
   /*
   public void visit(BlockStatement s) {
     Debug("rewriting block");

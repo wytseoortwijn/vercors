@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import vct.col.ast.*;
+import vct.col.ast.ASTSpecial.Kind;
 import vct.col.util.OriginWrapper;
 
 public class InlineMethod extends Substitution {
@@ -47,7 +48,7 @@ public class InlineMethod extends Substitution {
     this.return_label=return_label;
     BlockStatement body=(BlockStatement)m.getBody();
     for(ASTNode s:body){
-      if (s.isa(StandardOperator.Refute)) continue;
+      if (s.isSpecial(Kind.Refute)) continue;
       tmp=rewrite(s);
       OriginWrapper.wrap(null, tmp,branch);
       block.add(tmp);            

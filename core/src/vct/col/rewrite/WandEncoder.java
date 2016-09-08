@@ -1,6 +1,7 @@
 package vct.col.rewrite;
 
 import hre.ast.MessageOrigin;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -9,6 +10,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import vct.col.ast.ASTClass;
 import vct.col.ast.ASTClass.ClassKind;
 import vct.col.ast.ASTNode;
+import vct.col.ast.ASTSpecial;
 import vct.col.ast.ASTSpecial.Kind;
 import vct.col.ast.BlockStatement;
 import vct.col.ast.ContractBuilder;
@@ -128,9 +130,9 @@ public class WandEncoder extends AbstractRewriter {
       int N=block.size()-1;
       for(int i=0;i<N;i++){
         ASTNode S=block.get(i);
-        if (S.isa(StandardOperator.Use)){
-          uses.add(rewrite(((OperatorExpression)S).getArg(0)));
-          cb.requires(rewrite(((OperatorExpression)S).getArg(0)));
+        if (S.isSpecial(Kind.Use)){
+          uses.add(rewrite(((ASTSpecial)S).getArg(0)));
+          cb.requires(rewrite(((ASTSpecial)S).getArg(0)));
         } else {
           body.add(rewrite(S));
         }
@@ -157,20 +159,28 @@ public class WandEncoder extends AbstractRewriter {
 	}
 	
 	
-	  public void visit(OperatorExpression e){
-		  	
-		    switch (e.getOperator()){
-	      case Apply:{
-		      ASTNode arg=e.getArg(0);
-		      if (!arg.isa(StandardOperator.Wand)){
-		        Fail("illegal argument to apply.");
-		      }
-		      WandUtil wand=new WandUtil((OperatorExpression)arg);
-          currentBlock.add(create.special(Kind.Exhale,wand.wand(true)));
-          currentBlock.add(create.special(Kind.Exhale,wand.pre()));
-          currentBlock.add(create.special(Kind.Inhale,wand.post()));
-		      break;
-		    }
+	@Override
+	public void visit(ASTSpecial e){
+    switch (e.kind){
+    case Apply:{
+      ASTNode arg=e.getArg(0);
+      if (!arg.isa(StandardOperator.Wand)){
+        Fail("illegal argument to apply.");
+      }
+      WandUtil wand=new WandUtil((OperatorExpression)arg);
+      currentBlock.add(create.special(Kind.Exhale,wand.wand(true)));
+      currentBlock.add(create.special(Kind.Exhale,wand.pre()));
+      currentBlock.add(create.special(Kind.Inhale,wand.post()));
+      break;
+    }
+    default:
+      super.visit(e);
+    }  
+	}
+	
+	@Override
+	public void visit(OperatorExpression e){
+    switch (e.getOperator()){
 		    case Wand:{
 		      WandUtil wand=new WandUtil(e);
 		      result=wand.wand(false);
@@ -186,8 +196,8 @@ public class WandEncoder extends AbstractRewriter {
 	public void visit(Lemma l){
 	  int N=l.block.size();
 	  WandUtil wand=null;
-	  if (l.block.get(N-1).isa(StandardOperator.QED)){
-	    ASTNode tmp=((OperatorExpression)l.block.get(N-1)).getArg(0);
+	  if (l.block.get(N-1).isSpecial(Kind.QED)){
+	    ASTNode tmp=((ASTSpecial)l.block.get(N-1)).getArg(0);
 	    if (tmp.isa(StandardOperator.Wand)){
 	      wand=new WandUtil((OperatorExpression)tmp);
 	    } else {

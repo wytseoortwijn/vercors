@@ -13,7 +13,7 @@
 class C {
 //begin(all)
   static inline resource ArrayPointsTo(int[] ar,frac p,seq<int> xs)=
-    p!=none ** ar.length==|xs|
+    p!=none ** ar !=null ** ar.length==|xs|
     ** (\forall* int k ; 0 <= k && k < ar.length; Perm(ar[k],p))
     ** (\forall int k ; 0 <= k && k < ar.length; ar[k]==xs[k]);
 

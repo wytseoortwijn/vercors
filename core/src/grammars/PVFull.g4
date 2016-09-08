@@ -1,76 +1,78 @@
 grammar PVFull;
 
+import val;
+
 @header {
 package pv.parser;
 }
 
 @lexer::members{
-  public final static int COMMENT=ML_COMMENT;
+//  public final static int COMMENT=ML_COMMENT;
   public final static int LINEDIRECTION=Integer.MAX_VALUE;
 }
 
+expression : expr ;
+
 program  : (claz|kernel|block|field|method_decl)* (block)? ;
 
-claz : contract 'class' ID '{'( field | method_decl | constructor )* '}' ;
+claz : contract 'class' identifier '{'( field | method_decl | constructor )* '}' ;
 
-kernel : 'kernel' ID '{' ( kernel_field | method_decl )* '}' ;
+kernel : 'kernel' identifier '{' ( kernel_field | method_decl )* '}' ;
 
-kernel_field : ('global' | 'local') type ID ( ',' ID )* ';' ;
+kernel_field : ('global' | 'local') type identifier ( ',' identifier )* ';' ;
 
-field : type ID ( ',' ID )* ';' ;
+field : type identifier ( ',' identifier )* ';' ;
 
 modifiers : ( 'static' | 'thread_local' | 'inline' | 'pure' )*;
 
-method_decl : contract modifiers type ID '(' args ')' ( '=' expr ';' | ';' | block ) ;
+method_decl : contract modifiers type identifier '(' args ')' ( '=' expr ';' | ';' | block ) ;
 
-constructor : contract ID '(' args ')' ( block | ';' ) ;
+constructor : contract identifier '(' args ')' ( block | ';' ) ;
 
-contract :
- ( 'modifies' expr ';'
- | 'requires' expr ';'
- | 'ensures' expr ';'
- | 'given' type ID ';'
- | 'yields' type ID ';'
- )*;
+contract : valContractClause* ;
 
-args : type ID ( ',' type ID )* | ;
+args : type identifier ( ',' type identifier )* | ;
 
-expr
+atomExpression
  : lexpr
- | ID ':' expr
- | expr 'with' block 
- | expr 'then' block 
+ | identifier ':' atomExpression
+ | atomExpression 'with' block 
+ | atomExpression 'then' block 
  | CONTAINER '<' type '>' values  
- | ('!'|'-') expr
- | expr '^^' expr
- | expr ('*'|'/'|'%') expr
- | expr ( '+' | '-' ) expr
- | expr ( '<' | '<=' | '>=' | '>') expr
- | expr ( '==' | '!=' ) expr
- | expr ('&&' | '**') expr
- | expr ('||' | '==>') expr
- | expr 'in' expr
- | expr '?' expr ':' expr
- | '?' ID
- | 'unfolding' expr 'in' expr 
- | lexpr '->' ID tuple
- | ( ID | lexpr | 'Value' | 'HPerm' | 'Perm' | 'PointsTo' | 'Hist' | '\\old' | '?' ) tuple
- | '(' ('\\sum' | '\\exists' | '\\forall' | '\\forall*') type ID ';' expr (';' expr )? ')'
+ | ('!'|'-') atomExpression
+ | atomExpression '^^' atomExpression
+ | atomExpression ('*'|'/'|'%') atomExpression
+ | atomExpression ( '+' | '-' ) atomExpression
+ | atomExpression ( '<' | '<=' | '>=' | '>') atomExpression
+ | atomExpression ( '==' | '!=' ) atomExpression
+ | atomExpression 'in' atomExpression
+ | '?' identifier
+ | lexpr '->' identifier tuple
+ | ( identifier | lexpr | 'Value' | 'HPerm' | 'Perm' | 'PointsTo' | 'Hist' | '\\old' | '?' ) tuple
  | '(' expr ')'
  | '\\owner' '(' expr ',' expr ',' expr ')'
  | 'id' '(' expr ')'
- | 'new' ID tuple
+ | 'new' identifier tuple
  | 'new' type '[' expr ']'
  | 'null'
  | 'true'
  | 'false'
  | '\\result'
  | 'current_thread'
- | ID
+ | identifier
  | NUMBER
- | '[' expr ']' expr
  | '|' expr '|'
  | values
+ | 'unfolding' expr 'in' expr
+ | valPrimary
+ ;
+
+expr
+ : atomExpression
+ | expr ('&&'|'**') expr
+ | expr '||' expr
+ | expr ('==>'|'-*') expr
+ | expr '?' expr ':' expr
  ;
 
 values : '{' ( | expr (',' expr)*) '}';
@@ -87,83 +89,75 @@ statement
  | 'notify' expr ';'
  | 'fork' expr ';'
  | 'join' expr ';'
- | 'fold' expr ';'
- | 'unfold' expr ';'
- | 'assert' expr ';' 
- | 'assume' expr ';' 
- | 'refute' expr ';' 
- | 'witness' expr ';' 
+ | valStatement 
  | 'if' '(' expr ')' block ( 'else' block )?
- | 'barrier' '(' ID ( ';' id_list )? ')' ( '{' contract '}' | contract block )
+ | 'barrier' '(' identifier ( ';' id_list )? ')' ( '{' contract '}' | contract block )
  | contract 'par' par_unit ( 'and' par_unit )* 
- | 'invariant' ID '(' expr ')' block 
+ | 'invariant' identifier '(' expr ')' block 
  | 'atomic' '(' id_list ')' block 
  | invariant 'while' '(' expr ')' block
- | type ID ('=' expr | (',' ID)* ) ';'
+ | type identifier ('=' expr | (',' identifier)* ) ';'
  | expr ';'
  | block
  | lexpr '=' expr ';'
  | '{*' expr '*}'
- | 'action' tuple block 
- | 'create' expr';'
- | 'create' expr ',' expr ';'
- | 'destroy' expr ',' expr ';'
- | 'destroy' expr ';'
- | 'goto' ID ';'
- | 'label' ID ';'
- | ID expr ( ( ',' | ID ) expr )* ( ';' | block )
+ | 'goto' identifier ';'
+ | 'label' identifier ';'
  ;
 
 par_unit
- : ID? '(' iters ( ';' wait_list )? ')' contract block
+ : identifier? '(' iters ( ';' wait_list )? ')' contract block
  | contract block
  ;
 
 wait_list : wait_for ( ',' wait_for )* ;
 
-wait_for : ID ( '(' id_arg_list ')' ) ? ;
+wait_for : identifier ( '(' id_arg_list ')' ) ? ;
 
 id_arg_list : id_arg ( ',' id_arg )* ;
 
-id_arg : ID | '*' ;
+id_arg : identifier | '*' ;
 
-id_list : ( ID ( ',' ID )* )? ;
+id_list : ( identifier ( ',' identifier )* )? ;
 
 with_then : ( 'with' block )? ('then' block)? ;
 
 iters : ( iter ( ',' iter )* )? ;
 
-iter : type ID '=' expr '..' expr ;
+iter : type identifier '=' expr '..' expr ;
 
 decls  : ( decl ( ',' decl )* )? ;
 
-decl : type ID ( '=' expr )? ;
+decl : type identifier ( '=' expr )? ;
 
 fence_list : ( 'local' | 'global' )* ;
 
 invariant : ( 'loop_invariant' expr ';' )* ;
 
-lexpr : ('this' | '\\result' | ID ) ('.' gen_id | '[' expr ']' )* ; 
+lexpr : ('this' | '\\result' | identifier ) ('.' gen_id | '[' expr ']' )* ; 
 
 type
  : CONTAINER '<' type '>'
- | ( 'string' | 'process' | 'int' | 'boolean' | 'zfrac' | 'frac' | 'resource' | 'void' | ID | classType ) ('[' expr? ']')*
+ | 'option' '<' type '>'
+ | ( 'string' | 'process' | 'int' | 'boolean' | 'zfrac' | 'frac' | 'resource' | 'void' | classType ) ('[' expr? ']')*
  ;
 
-gen_id : ID | CONTAINER ; 
+gen_id : identifier | CONTAINER ; 
 
-classType : ID typeArgs?;
+classType : identifier typeArgs?;
 
 typeArgs : '<' expr (',' expr)* '>';
 
 
 CONTAINER : 'seq' | 'set' | 'bag' ;
 
+identifier : ID | valReserved ;
+
 ID  : ('a'..'z'|'A'..'Z') ('a'..'z'|'A'..'Z'|'0'..'9'|'_')*;
 NUMBER : ('0'..'9')+;
 
-ML_COMMENT : '/*' .*? '*/' -> channel(ML_COMMENT) ;
-SL_COMMENT : '//' .*? '\n' -> channel(ML_COMMENT) ;
+COMMENT : '/*' .*? '*/' -> channel(COMMENT) ;
+LINE_COMMENT : '//' .*? '\n' -> channel(COMMENT) ;
 
 WS  :   (   ' '
         |   '\t'

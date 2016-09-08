@@ -47,25 +47,25 @@ class SingleCell{
 	// methods set and get for the AtomicInteger
 	/*@
 	 given int r, l;
-	 requires srh:handle(r,l) ** sra:allowed(r,l,x) ** srp:assigned(r,l) ** srs:assigned(0,x);
-	 ensures seh:handle(r,x) ** sep:assigned(r,x);
+	 requires (srh:handle(r,l)) ** (sra:allowed(r,l,x)) ** (srp:assigned(r,l)) ** (srs:assigned(0,x));
+	 ensures (seh:handle(r,x)) ** (sep:assigned(r,x));
 	 */
 	void set(int x);
 	
 	
 	/*@
 	 given int r,l;
-	 requires grh:handle(r,l) ** grp:assigned(r,l);
-	 ensures geh:handle(r,\result) ** gep:assigned(r,\result);
+	 requires (grh:handle(r,l)) ** (grp:assigned(r,l));
+	 ensures (geh:handle(r,\result)) ** (gep:assigned(r,\result));
 	 */
 	int get();
 
 	
 	/*@
 	 given int r, l;
-	 requires crh:handle(r,l) ** cra:allowed(r,o,x) ** crp:assigned(r,l) ** crs:assigned(0,x);
-	 ensures \result ==> cehp:handle(r,x) ** cepp:assigned(r,x) ** cesp:assigned(0,o);
-	 ensures !\result ==> cehn:handle(r,l) ** cepn:assigned(r,l) ** cesn:assigned(0,x);
+	 requires (crh:handle(r,l)) ** (cra:allowed(r,o,x)) ** (crp:assigned(r,l)) ** (crs:assigned(0,x));
+	 ensures \result ==> (cehp:handle(r,x)) ** (cepp:assigned(r,x)) ** (cesp:assigned(0,o));
+	 ensures !\result ==> (cehn:handle(r,l)) ** (cepn:assigned(r,l)) ** (cesn:assigned(0,x));
 	 */
 	boolean cas(int o,int x);
 	

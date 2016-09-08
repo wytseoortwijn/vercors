@@ -126,8 +126,6 @@ public class AbstractVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
 
   @Override public void visit(ASTSpecial s){ visit_any(s); }
   
-  @Override public void visit(ASTSpecialDeclaration s){ visit_any(s); }
-
   @Override public void visit(VariableDeclaration s) { visit_any(s); }
   
   @Override public void visit(TupleType t) { visit_any(t); }
@@ -151,6 +149,8 @@ public class AbstractVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
   @Override public void visit(FieldAccess a) { visit_any(a); }
   
   @Override public void visit(TypeVariable v) { visit_any(v); }
+
+  @Override public void visit(StructValue v) { visit_any(v); }
 
 }
 

@@ -39,7 +39,8 @@ public final class PrimitiveType extends Type {
     Location,
     Process,
     Pointer,
-    CVarArgs};
+    CVarArgs,
+    Option};
 
   public final Sort sort;
   public PrimitiveType(Sort sort,ASTNode ... args){
@@ -52,6 +53,7 @@ public final class PrimitiveType extends Type {
       case Cell:
       case Pointer:
       case Location:
+      case Option:
         if (N!=1) Abort("illegal argument count");
         break;
       case Array:
@@ -154,7 +156,9 @@ public final class PrimitiveType extends Type {
   public boolean supertypeof(ProgramUnit context, Type t){
     
     switch(this.sort){
-    case CVarArgs: return true;
+    case Option:
+    case CVarArgs:
+      return true;
     case Array:
       if (t.isPrimitive(this.sort)){
         return args[0].equals(((PrimitiveType)t).args[0]);
@@ -286,7 +290,11 @@ public final class PrimitiveType extends Type {
     case Double:
       return new ConstantExpression((double)0);
     case Sequence:
-      return new OperatorExpression(StandardOperator.Build,this);
+    case Set:
+    case Bag:
+      return new StructValue(this,null);
+    case Option:
+      return new NameExpression(ASTReserved.OptionNone);
     default:
       return super.zero();
     }

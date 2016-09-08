@@ -9,6 +9,7 @@
  Author: Afshin Amighi
  command: vct --chalice --explicit RBProdCons.java
  Status: Pass.
+ 
 */
 
 
@@ -41,16 +42,16 @@ class ProdCons{
 	// methods set and get for the AtomicInteger
 	/*@
 	 given int r, l;
-	 requires srh:handle(r,l) ** sra:allowed(r,l,x) ** srp:assigned(r,l) ** srs:assigned(0,x);
-	 ensures seh:handle(r,x) ** sep:assigned(r,x);
+	 requires (srh:handle(r,l)) ** (sra:allowed(r,l,x)) ** (srp:assigned(r,l)) ** (srs:assigned(0,x));
+	 ensures (seh:handle(r,x)) ** (sep:assigned(r,x));
 	 */
 	void set(int x);
 	
 	
 	/*@
 	 given int r,l;
-	 requires grh:handle(r,l) ** grp:assigned(r,l);
-	 ensures geh:handle(r,\result) ** gep:assigned(r,\result);
+	 requires (grh:handle(r,l)) ** (grp:assigned(r,l));
+	 ensures (geh:handle(r,\result)) ** (gep:assigned(r,\result));
 	 */
 	int get();
 	

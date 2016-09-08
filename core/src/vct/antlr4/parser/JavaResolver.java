@@ -1,14 +1,23 @@
 package vct.antlr4.parser;
 
+import java.io.File;
 import java.lang.reflect.Modifier;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.LinkedList;
+import java.util.Queue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import hre.HREError;
+import hre.ast.FileOrigin;
 import hre.ast.MessageOrigin;
+import hre.ast.Origin;
 import vct.col.ast.*;
 import vct.col.ast.ASTClass.ClassKind;
 import vct.col.ast.Method.Kind;
 import vct.col.ast.NameSpace.Import;
 import vct.col.rewrite.AbstractRewriter;
+import vct.col.util.Parser;
 import vct.util.ClassName;
 import vct.util.Configuration;
 
@@ -31,7 +40,13 @@ public class JavaResolver extends AbstractRewriter {
     if (name.length==1 && variables.containsKey(name[0])){
       return true;
     }
-    if (target().find(name)!=null){
+    if (target().find(ClassName.toString(name,FQN_SEP))!=null){
+      return true;
+    }
+    if(base_path!=null && tryFileBase(base_path.toFile(),name)){
+      return true;
+    }
+    if(tryFileBase(new File("."),name)){
       return true;
     }
     try {
@@ -41,8 +56,9 @@ public class JavaResolver extends AbstractRewriter {
       System.err.printf("loading %s%n",cl_name);
       create.enter();
       create.setOrigin(new MessageOrigin("library class %s",cl_name));
-      ASTClass res=create.new_class(name[name.length-1],null,null);
+      ASTClass res=create.new_class(ClassName.toString(name,FQN_SEP),null,null);
       target().library_add(cln,res);
+      target().library_add(new ClassName(cln.toString(FQN_SEP)),res);
       for(java.lang.reflect.Method m:cl.getMethods()){
         Class c=m.getReturnType();
         Type returns = convert_type(c);
@@ -77,6 +93,34 @@ public class JavaResolver extends AbstractRewriter {
       create.leave();
       return true;
     } catch (ClassNotFoundException e) {
+    }
+    Debug("class %s not found",ClassName.toString(name,".."));
+    return false;
+  }
+
+  private boolean tryFileBase(File base,String... name) {
+    File file=base;
+    for(int i=0;i<name.length-1;i++){
+      file= new File(file,name[i]);
+    }
+    file=new File(file,name[name.length-1]+".java");
+    if (file.exists()){
+      Parser parser=Parsers.getParser("java");
+      ProgramUnit pu=parser.parse(file);
+      ASTClass cls=pu.find(name);
+      if (cls!=null){
+        // correct file, so remove bodies.
+        pu=new RemoveBodies(pu).rewriteAll();
+        // insert in source and processing queue.
+        for(ASTDeclaration n:pu.get()){
+          queue.add(n);
+          source().add(n);
+        }
+        return true;
+      } else {
+        // wrong file.
+        return false;
+      }
     }
     return false;
   }
@@ -121,7 +165,7 @@ public class JavaResolver extends AbstractRewriter {
     } else {
       String name[]=c.getName().split("\\.");
       if (ensures_loaded(name)){
-        returns=create.class_type(name);
+        returns=create.class_type(ClassName.toString(name,FQN_SEP));
       } else {
         Fail("could not load %s",c);
       }
@@ -169,7 +213,7 @@ public class JavaResolver extends AbstractRewriter {
   public void visit(ClassType t){
     String name[]=t.getNameFull();
     if (ensures_loaded(name)){
-      result=create.class_type(name,rewrite(t.getArgs()));
+      result=create.class_type(ClassName.toString(name,FQN_SEP),rewrite(t.getArgs()));
       return;
     }
     ClassName tmp;
@@ -177,7 +221,7 @@ public class JavaResolver extends AbstractRewriter {
       tmp=new ClassName(name);
       tmp=tmp.prepend(current_space.getDeclName().name);
       if (ensures_loaded(tmp.name)){
-        result=create.class_type(tmp.name,rewrite(t.getArgs()));
+        result=create.class_type(tmp.toString(FQN_SEP),rewrite(t.getArgs()));
         return;
       }
       for(int i=current_space.imports.size()-1;i>=0;i--){
@@ -187,14 +231,14 @@ public class JavaResolver extends AbstractRewriter {
           tmp=new ClassName(name);
           tmp=tmp.prepend(imp.name);
           if (ensures_loaded(tmp.name)){
-            result=create.class_type(tmp.name,rewrite(t.getArgs()));
+            result=create.class_type(tmp.toString(FQN_SEP),rewrite(t.getArgs()));
             return;
           }
         } else {
           String imp_name=imp.name[imp.name.length-1];
           if (name.length==1 && name[0].equals(imp_name)) {
             if (ensures_loaded(imp.name)){
-              result=create.class_type(imp.name,rewrite(t.getArgs()));
+              result=create.class_type(ClassName.toString(imp.name,FQN_SEP),rewrite(t.getArgs()));
               return;
             }            
           }
@@ -204,44 +248,73 @@ public class JavaResolver extends AbstractRewriter {
     Fail("cannot resolve %s",new ClassName(name));
   }
   
+  public static final String FQN_SEP="_DOT_";
+  
   private NameSpace current_space=null;
+  
+  private String prefix="";
+  
+  private Path base_path=null;
   
   @Override
   public void visit(NameSpace ns){
+    Origin o=ns.getOrigin();
+    if (o instanceof FileOrigin){
+      FileOrigin fo=(FileOrigin)o;
+      base_path=Paths.get(fo.getName()).toAbsolutePath().getParent();
+    }
     if (current_space!=null){
       throw new HREError("nested name spaces are future work");
     }
     current_space=ns;
     ns.imports.add(0,new NameSpace.Import(false,true,"java","lang"));
-    ASTSequence seq=target();
+    prefix="";
     for(String part:ns.getDeclName().name){
       if (part==NameSpace.NONAME) continue;
-      ASTClass cl=create.ast_class(part,ClassKind.Plain,null,null,null);
-      cl.setFlag(ASTFlags.STATIC,true);
-      seq.add(cl);
-      seq=cl;
+      prefix+=part+FQN_SEP;
+      if(base_path!=null){
+        base_path=base_path.getParent();
+      }
     }
     for(ASTNode item:ns){
       item=rewrite(item);
       item.setFlag(ASTFlags.STATIC,true);
-      seq.add(item);
+      target().add(item);
     }
     current_space=null;
+    prefix="";
+    base_path=null;
     result=null;
   }
 
+  @Override
+  public void visit(ASTClass cl){
+    ASTClass tmp=currentTargetClass;
+    currentTargetClass=create.ast_class(
+        prefix+cl.name,
+        cl.kind,
+        rewrite(cl.parameters),
+        rewrite(cl.super_classes),
+        rewrite(cl.implemented_classes)
+    );
+    for(ASTNode node:cl){
+      currentTargetClass.add(rewrite(node));
+    }
+    result=currentTargetClass;
+    currentTargetClass=tmp;
+  }
   @Override
   public void visit(NameExpression e){
     if (e.getKind()==NameExpression.Kind.Unresolved){
       String name=e.getName();
       VariableInfo info=variables.lookup(name);
       if (info!=null) {
-        Debug("unresolved %s name %s found during standardize",info.kind,name);
+        Debug("unresolved %s name %s found during java resolv",info.kind,name);
         e.setKind(info.kind);
       } else {
         String cname[]=full_name(name);
         if (cname!=null){
-          result=create.class_type(cname);
+          result=create.class_type(ClassName.toString(cname,FQN_SEP));
           return;
         }
       }
@@ -249,4 +322,22 @@ public class JavaResolver extends AbstractRewriter {
     super.visit(e);
   }
   
+  private Queue<ASTDeclaration> queue=new LinkedList<ASTDeclaration>();
+  
+  @Override
+  public ProgramUnit rewriteAll(){
+    for(ASTDeclaration n:source().get()){
+      queue.add(n);
+    }
+    while(!queue.isEmpty()){
+      ASTDeclaration n=queue.remove();
+      ASTNode tmp=rewrite(n);
+      if (tmp!=null){
+        target().add(tmp);
+      }
+    }
+    target().index_classes();
+    return target();
+  }
+
 }

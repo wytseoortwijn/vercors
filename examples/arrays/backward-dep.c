@@ -3,16 +3,19 @@
 //:: tools silicon
 
 /*@
-  requires \length(a)==len ** (\forall* int i ; 0 <= i && i < len ; Perm(a[i],write));
-  requires \length(b)==len ** (\forall* int i ; 0 <= i && i < len ; Perm(b[i],1/2));
-  requires \length(c)==len ** (\forall* int i ; 0 <= i && i < len ; Perm(c[i],write));
+  invariant  a!=NULL && b !=NULL && c!=NULL;
+  invariant \length(a)==len && \length(b)==len && \length(c)==len;
+  
+  requires (\forall* int i ; 0 <= i && i < len ; Perm(a[i],write));
+  requires (\forall* int i ; 0 <= i && i < len ; Perm(b[i],1/2));
+  requires (\forall* int i ; 0 <= i && i < len ; Perm(c[i],write));
 
   requires (\forall int tid; 0 <= tid && tid < len ; a [ tid ] == 0);
   requires (\forall int tid; 0 <= tid && tid < len ; b [ tid ] == tid);
 
-  ensures  \length(a)==len ** (\forall* int i ; 0 <= i && i < len ; Perm(a[i],write));
-  ensures  \length(b)==len ** (\forall* int i ; 0 <= i && i < len ; Perm(b[i],1/2));
-  ensures  \length(c)==len ** (\forall* int i ; 0 <= i && i < len ; Perm(c[i],write));
+  ensures  (\forall* int i ; 0 <= i && i < len ; Perm(a[i],write));
+  ensures  (\forall* int i ; 0 <= i && i < len ; Perm(b[i],1/2));
+  ensures  (\forall* int i ; 0 <= i && i < len ; Perm(c[i],write));
   
   ensures  (\forall int i; 0 <= i && i < len ;  a[i] == i+1);
   ensures  (\forall int i; 0 <= i && i < len ;  b[i] == i  );
@@ -21,8 +24,6 @@
 void example(int a[],int b[],int c[],int len){  
   for(int i=0;i < len;i++)
    /*@
-    loop_invariant \length(a)==len && \length(b)==len && \length(c)==len;
-    
     requires Perm(a[i],1/2);
     requires i==0 ==> Perm(a[i],1/2);
     requires i < len-1 ==> Perm(a[i+1],1/2);

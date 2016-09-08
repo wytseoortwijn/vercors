@@ -28,9 +28,9 @@ public class CountDownLatch{
     /*@
      given int r, l, max;
      requires max >0 && x <=max && n<=max && 100%max==0;
-     requires crp:inv(part(r,l,max)) ** crs:inv(part(0,n,max)-part(0,x,max));
-     ensures \result ==> cepp:inv(part(r,n,max)) ** cesp:inv(part(0,x,max)-part(0,n,max));
-     ensures !\result ==> cepn:inv(part(r,l,max)) ** cesn:inv(part(0,n,max)-part(0,x,max));
+     requires (crp:inv(part(r,l,max))) ** crs:inv(part(0,n,max)-part(0,x,max));
+     ensures \result ==> (cepp:inv(part(r,n,max))) ** cesp:inv(part(0,x,max)-part(0,n,max));
+     ensures !\result ==> (cepn:inv(part(r,l,max))) ** cesn:inv(part(0,n,max)-part(0,x,max));
      */
     boolean compareAndSet(int x,int n);
 /* -------------- CoundDownLatch --------------*/

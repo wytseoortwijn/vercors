@@ -189,7 +189,7 @@ public class JavaPrinter extends AbstractPrinter {
   }
   @Override
   public void visit(ASTSpecial s){
-    String syn=syntax.getSyntax(s.kind);
+    String syn=syntax.get_annotation(s.kind);
     if (syn!=null){
       out.print(syn);
       setExpr();
@@ -202,7 +202,97 @@ public class JavaPrinter extends AbstractPrinter {
       out.println(";");
       return;
     }
+    ASTSpecial e=s;
     switch(s.kind){
+    case Refute:{
+      out.printf("refute ");
+      current_precedence=0;
+      setExpr();
+      ASTNode prop=e.getArg(0);
+      prop.accept(this);
+      break;
+    }
+    case Assume:{
+      out.printf("assume ");
+      current_precedence=0;
+      setExpr();
+      ASTNode prop=e.getArg(0);
+      prop.accept(this);
+      break;
+    }
+    case HoarePredicate:{
+        out.printf("/*{ ");
+        current_precedence=0;
+        setExpr();
+        ASTNode prop=e.getArg(0);
+        prop.accept(this);
+        out.lnprintf(" }*/");
+        break;        
+    }
+    case Unfold:{
+      out.printf("//@ unfold ");
+      current_precedence=0;
+      setExpr();
+      ASTNode prop=e.getArg(0);
+      prop.accept(this);
+      break;
+    }
+    case Fold:{
+        out.printf("//@ fold ");
+        current_precedence=0;
+        setExpr();
+        ASTNode prop=e.getArg(0);
+        prop.accept(this);
+        break;
+      }
+    case Use:{
+      out.printf("//@ use ");
+      current_precedence=0;
+      setExpr();
+      ASTNode prop=e.getArg(0);
+      prop.accept(this);
+      break;
+    }
+    case Witness:{
+      out.printf("//@ witness ");
+      current_precedence=0;
+      setExpr();
+      ASTNode prop=e.getArg(0);
+      prop.accept(this);
+      break;        
+    }
+    case Apply:{
+        out.printf("//@ apply ");
+        current_precedence=0;
+        setExpr();
+        ASTNode prop=e.getArg(0);
+        prop.accept(this);
+        break;
+      }
+    case QED:{
+        out.printf("//@ qed ");
+        current_precedence=0;
+        setExpr();
+        ASTNode prop=e.getArg(0);
+        prop.accept(this);
+        break;
+      }
+    case Open:{
+      out.printf("//@ open ");
+      current_precedence=0;
+      setExpr();
+      ASTNode prop=e.getArg(0);
+      prop.accept(this);
+      break;
+    }
+    case Close:{
+      out.printf("//@ close ");
+      current_precedence=0;
+      setExpr();
+      ASTNode prop=e.getArg(0);
+      prop.accept(this);
+      break;
+    }
     case Fork:{
       out.printf("fork ");
       current_precedence=0;
@@ -883,7 +973,7 @@ public class JavaPrinter extends AbstractPrinter {
         out.print("new ");
         // no break on purpose!
       }
-      case Tuple:{
+      case Wrap:{
         out.print("(");
         String sep="";
         for(ASTNode arg:e.getArguments()){
@@ -892,22 +982,6 @@ public class JavaPrinter extends AbstractPrinter {
           arg.accept(this);
         }
         out.print(")");
-        break;
-      }
-      case Assert:{
-        out.printf("assert ");
-        current_precedence=0;
-        setExpr();
-        ASTNode prop=e.getArg(0);
-        prop.accept(this);
-        break;
-      }
-      case Refute:{
-        out.printf("refute ");
-        current_precedence=0;
-        setExpr();
-        ASTNode prop=e.getArg(0);
-        prop.accept(this);
         break;
       }
       case Continue:{
@@ -920,152 +994,10 @@ public class JavaPrinter extends AbstractPrinter {
         }
         break;
       }
-      case Assume:{
-        out.printf("assume ");
-        current_precedence=0;
-        setExpr();
-        ASTNode prop=e.getArg(0);
-        prop.accept(this);
-        break;
-      }
-      case HoarePredicate:{
-          out.printf("/*{ ");
-          current_precedence=0;
-          setExpr();
-          ASTNode prop=e.getArg(0);
-          prop.accept(this);
-          out.lnprintf(" }*/");
-          break;    	  
-      }
-      case Lock:{
-        ASTNode lock=e.getArg(0);
-        setExpr();
-        lock.accept(this);
-        out.lnprintf(".lock()");
-        break;        
-      }
-      case Unlock:{
-        ASTNode lock=e.getArg(0);
-        setExpr();
-        lock.accept(this);
-        out.lnprintf(".unlock()");
-        break;        
-      }
-      case DirectProof:{
-        out.printf("//@ proof ");
-        current_precedence=0;
-        setExpr();
-        ASTNode string=e.getArg(0);
-        string.accept(this);
-        break;
-      }
-      case Unfold:{
-        out.printf("//@ unfold ");
-        current_precedence=0;
-        setExpr();
-        ASTNode prop=e.getArg(0);
-        prop.accept(this);
-        break;
-      }
-      case Fold:{
-          out.printf("//@ fold ");
-          current_precedence=0;
-          setExpr();
-          ASTNode prop=e.getArg(0);
-          prop.accept(this);
-          break;
-        }
-      case Use:{
-        out.printf("//@ use ");
-        current_precedence=0;
-        setExpr();
-        ASTNode prop=e.getArg(0);
-        prop.accept(this);
-        break;
-      }
-      case Witness:{
-        out.printf("//@ witness ");
-        current_precedence=0;
-        setExpr();
-        ASTNode prop=e.getArg(0);
-        prop.accept(this);
-        break;        
-      }
-      case Access:{
-        out.printf("//@ access ");
-        current_precedence=0;
-        setExpr();
-        ASTNode prop=e.getArg(0);
-        prop.accept(this);
-        break;
-      }
-      case Apply:{
-          out.printf("//@ apply ");
-          current_precedence=0;
-          setExpr();
-          ASTNode prop=e.getArg(0);
-          prop.accept(this);
-          break;
-        }
-      case QED:{
-          out.printf("//@ qed ");
-          current_precedence=0;
-          setExpr();
-          ASTNode prop=e.getArg(0);
-          prop.accept(this);
-          break;
-        }
-      case Open:{
-        out.printf("//@ open ");
-        current_precedence=0;
-        setExpr();
-        ASTNode prop=e.getArg(0);
-        prop.accept(this);
-        if (e.get_before()!=null){
-          out.printf(" where ");
-          e.get_before().accept(this);
-          if (e.get_after()!=null){
-            out.printf(" then ");
-            e.get_after().accept(this);
-          }
-        }
-        break;
-      }
-      case Close:{
-        out.printf("//@ close ");
-        current_precedence=0;
-        setExpr();
-        ASTNode prop=e.getArg(0);
-        prop.accept(this);
-        break;
-      }
       case New:{
         out.printf("new ");
         e.getArg(0).accept(this);
         out.printf("()");
-        break;
-      }
-      case Build:{
-        ASTNode args[]=e.getArguments();
-        setExpr();
-        out.printf("new ");
-        args[0].accept(this);
-        if (args[0] instanceof ClassType){
-          out.printf("(");
-        } else {
-          out.printf("{");
-        }
-        String sep="";
-        for(int i=1;i<args.length;i++){
-          out.printf("%s",sep);
-          sep=",";
-          args[i].accept(this);
-        }
-        if (args[0] instanceof ClassType){
-          out.printf(")");
-        } else {
-          out.printf("}");
-        }
         break;
       }
       default:{
@@ -1073,6 +1005,24 @@ public class JavaPrinter extends AbstractPrinter {
       }
     }
   }
+  
+  
+  @Override
+  public void visit(StructValue v){
+    setExpr();
+    if (v.type!=null){
+      v.type.accept(this);
+    }
+    out.print("{");
+    String sep="";
+    for(int i=0;i<v.values.length;i++){
+      out.print(sep);
+      sep=",";
+      v.values[i].accept(this);
+    }
+    out.print("}");
+  }
+  
   public void visit(ForEachLoop s){
     visit(s.getContract());
     out.printf("for(");
@@ -1267,6 +1217,14 @@ public class JavaPrinter extends AbstractPrinter {
           Fail("Cell type constructor with %d arguments instead of 1",t.getArgCount());
         }
         out.printf("cell<");
+        t.getArg(0).accept(this);
+        out.printf(">");
+        break;
+      case Option:
+        if (t.getArgCount()!=1){
+          Fail("Option type constructor with %d arguments instead of 1",t.getArgCount());
+        }
+        out.printf("option<");
         t.getArg(0).accept(this);
         out.printf(">");
         break;

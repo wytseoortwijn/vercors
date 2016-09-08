@@ -34,7 +34,7 @@ public abstract class ASTNode implements ASTFlags {
   /**
    * list of annotations.
    */
-  private ArrayList<ASTNode> annotations;
+  private ASTList annotations;
   
   /**
    * Contains the labels used to mark this node.
@@ -131,8 +131,8 @@ public abstract class ASTNode implements ASTFlags {
     if (this.origin!=null) throw new Error("origin already set");
     if (origin==null) {
       this.origin=new MessageOrigin("NULL ORIGIN");
-      System.err.printf("Illegal null origin for %s%n",Configuration.getDiagSyntax().print(this));
-      throw new Error("illegal null origin");
+      //System.err.printf("Illegal null origin for %s%n",Configuration.getDiagSyntax().print(this));
+      //throw new Error("illegal null origin");
     }
     this.origin=origin;
   }
@@ -372,7 +372,7 @@ public abstract class ASTNode implements ASTFlags {
 
   public void attach(ASTNode ... annotation_list) {
     if (annotations==null){
-      annotations=new ArrayList<ASTNode>();
+      annotations=new ASTList();
     }
     for (ASTNode annotation : annotation_list){
       if (annotation instanceof NameExpression){
@@ -392,12 +392,15 @@ public abstract class ASTNode implements ASTFlags {
     }
   }
 
-  public Iterable<ASTNode> annotations(){
+  public ASTList annotations(){
+    if (annotations==null){
+      annotations=new ASTList();
+    }
     return annotations;
   }
   
   public boolean annotated(){
-    return annotations!=null; 
+    return annotations!=null && annotations.size()>0; 
   }
 
   public boolean isReserved(ASTReserved any) {
@@ -429,8 +432,8 @@ public abstract class ASTNode implements ASTFlags {
   
   protected static ThreadLocal<Throwable> thrown=new ThreadLocal();
 
-  public boolean isDeclaration(ASTSpecialDeclaration.Kind kind) {
-    return (this instanceof ASTSpecialDeclaration) && ((ASTSpecialDeclaration)this).kind==kind;
+  public boolean isDeclaration(ASTSpecial.Kind kind) {
+    return (this instanceof ASTSpecial) && ((ASTSpecial)this).kind==kind;
   }
 
 }

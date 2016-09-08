@@ -3,13 +3,10 @@
 //:: tools silicon
 //:: verdict Pass
 
-/*
-  vct --silver=silicon_qp summation-loop.c
-*/
-
 int res;
 
 /*@
+  invariant ar != NULL;
   requires N>0;
   requires Perm(res,write);
   requires (\forall* int k ; 0 <= k && k < N ; Perm(ar[k],1/2));

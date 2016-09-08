@@ -25,7 +25,7 @@ public class Getters {
     
     /*@
         requires req:state(100);
-        ensures  ens:state(100) ** get(req:ens,p:100)==v;
+        ensures  (ens:state(100)) ** get(req:ens,p:100)==v;
     @*/
     public void set(int v){
         //@ unfold req:state(100);
@@ -43,7 +43,7 @@ public class Getters {
     }
     
     /*@
-        ensures ens:state(100) ** get(req:ens,p:100)==v;
+        ensures (ens:state(100)) ** get(req:ens,p:100)==v;
     @*/
     public Getters(int v){
         this.val=v;
@@ -52,7 +52,7 @@ public class Getters {
 
     /*@
         requires req:state(100);
-        ensures  ens:state(100) ** get(req:ens,p:100)==\old(get(req:req,p:100))+1;
+        ensures  (ens:state(100)) ** get(req:ens,p:100)==\old(get(req:req,p:100))+1;
     @*/
     public void incr(){
         //@ unfold req:state(100);
@@ -63,7 +63,7 @@ public class Getters {
     /*@
         given    int p;
         given    int q;
-        requires req:state(p) ** o != null ** req2:o.state(q);
+        requires (req:state(p)) ** o != null ** (req2:o.state(q));
         ensures  \result==(get(req:req,p:p)==o.get(req:req2,p:q));
     */
     public /*@ pure @*/ boolean compare(Getters o){

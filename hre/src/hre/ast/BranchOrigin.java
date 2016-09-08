@@ -2,7 +2,7 @@ package hre.ast;
 
 import java.util.ArrayList;
 
-public class BranchOrigin implements WrappingOrigin {
+public class BranchOrigin extends WrappingOrigin {
 
   public final String branch;
   public final Origin base;

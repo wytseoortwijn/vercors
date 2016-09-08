@@ -3,6 +3,9 @@
 //:: tools silicon
 //:: verdict Pass
 /*@
+  invariant  a!=NULL && b !=NULL && c!=NULL;
+  invariant \length(a)==len && \length(b)==len && \length(c)==len;
+
   requires \length(a)==len ** (\forall* int i ; 0 <= i && i < len ; Perm(a[i],write));
   requires \length(b)==len ** (\forall* int i ; 0 <= i && i < len ; Perm(b[i],1/2));
   requires \length(c)==len ** (\forall* int i ; 0 <= i && i < len ; Perm(c[i],1/2));

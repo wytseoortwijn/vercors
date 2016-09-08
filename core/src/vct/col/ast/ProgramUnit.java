@@ -130,7 +130,7 @@ public class ProgramUnit implements ASTSequence<ProgramUnit> {
   public void add(String prefix[],ASTDeclaration n){
     ClassName n1=n.getDeclName();
     if (n1==null){
-      if (n instanceof ASTSpecialDeclaration){
+      if (n instanceof ASTSpecial){
         
       } else {
         System.err.printf("null named declaration %n%s%n",Configuration.getDiagSyntax().print(n));

@@ -99,6 +99,9 @@ public class ClassType extends Type {
     // java.lang.Object is supertype of everything.
     if (name.length==3 && name[0].equals("java") &&
         name[1].equals("lang") && name[2].equals("Object")) return true;
+    if (name.length==1 && name[0].equals("java_DOT_lang_DOT_Object")){
+      return true;
+    }
     if (t instanceof ClassType) {
       ClassType ct=(ClassType)t;
       // no longer needed?? if (name.length==1 && name[0].equals("Object")) return true;

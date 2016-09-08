@@ -87,6 +87,9 @@ public class CSyntax extends Syntax{
     //syntax.addPrimitiveType(Class,"classtype");
     syntax.addPrimitiveType(Char,"char");
     syntax.addPrimitiveType(Float,"float");
+    
+    syntax.addReserved(ASTReserved.Null, "NULL");
+    
   }
 
   public static Syntax getC() {

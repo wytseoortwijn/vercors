@@ -13,7 +13,9 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 
 import vct.col.ast.*;
+import vct.col.ast.ASTSpecial.Kind;
 import vct.col.rewrite.AbstractRewriter;
+import vct.col.syntax.Syntax;
 import vct.parsers.CMLLexer;
 import vct.parsers.CMLParser;
 import static hre.System.*;
@@ -27,15 +29,22 @@ import org.antlr.v4.runtime.Lexer;
  */
 public class SpecificationCollector extends AbstractRewriter {
   
-  public SpecificationCollector(ProgramUnit source) {
+  private Syntax syntax;
+  
+  public SpecificationCollector(Syntax syntax,ProgramUnit source) {
     super(source);
+    this.syntax=syntax;
     currentContractBuilder=new ContractBuilder();
   }
-
   
+  public SpecificationCollector(ProgramUnit source) {
+    super(source);
+    this.syntax=new Syntax("EmptySyntax");
+    currentContractBuilder=new ContractBuilder();
+  }
   
   @Override
-  public void visit(ASTSpecialDeclaration s){
+  public void visit(ASTSpecial s){
     switch(s.kind){
     case Given:
     case Yields:
@@ -60,19 +69,29 @@ public class SpecificationCollector extends AbstractRewriter {
     }
     case Given:
     {
-      BlockStatement block=(BlockStatement)s.args[0];
-      int N=block.getLength();
-      for(int i=0;i<N;i++){
-        currentContractBuilder.given((DeclarationStatement)rewrite(block.get(i)));
+      ASTNode input[];
+      if (s.args.length==1 && s.args[0] instanceof BlockStatement){
+        BlockStatement block=(BlockStatement)s.args[0];
+        input=block.getStatements();
+      } else {
+        input=s.args;
+      }
+      for(int i=0;i<input.length;i++){
+        currentContractBuilder.given((DeclarationStatement)rewrite(input[i]));
       }
       break;
     }
     case Yields:
     {
-      BlockStatement block=(BlockStatement)s.args[0];
-      int N=block.getLength();
-      for(int i=0;i<N;i++){
-        currentContractBuilder.yields((DeclarationStatement)rewrite(block.get(i)));
+      ASTNode input[];
+      if (s.args.length==1 && s.args[0] instanceof BlockStatement){
+        BlockStatement block=(BlockStatement)s.args[0];
+        input=block.getStatements();
+      } else {
+        input=s.args;
+      }
+      for(int i=0;i<input.length;i++){
+        currentContractBuilder.yields((DeclarationStatement)rewrite(input[i]));
       }
       break;
     }
@@ -161,15 +180,15 @@ public class SpecificationCollector extends AbstractRewriter {
   private void filter_with_then(BlockStatement new_before,
       BlockStatement new_after, BlockStatement new_current, BlockStatement old_current) {
     for(ASTNode n:old_current){
-      if (n instanceof ASTSpecialDeclaration){
-        ASTSpecialDeclaration sp=(ASTSpecialDeclaration)n; 
+      if (n instanceof ASTSpecial){
+        ASTSpecial sp=(ASTSpecial)n; 
         switch(sp.kind){
         case Requires:{
-          currentContractBuilder.requires(copy_rw.rewrite(sp.args[0]));
+          currentContractBuilder.requires(rewrite(sp.args[0]));
           continue;
         }
         case Ensures:{
-          currentContractBuilder.ensures(copy_rw.rewrite(sp.args[0]));
+          currentContractBuilder.ensures(rewrite(sp.args[0]));
           continue;
         }
         }
@@ -178,19 +197,19 @@ public class SpecificationCollector extends AbstractRewriter {
         switch(sp.kind){
         case With:{
           for(ASTNode s:(BlockStatement)sp.args[0]){
-            new_before.add_statement(copy_rw.rewrite(s));
+            new_before.add_statement(rewrite(s));
           }
           continue;
         }
         case Then:{
           for(ASTNode s:(BlockStatement)sp.args[0]){
-            new_after.add_statement(copy_rw.rewrite(s));
+            new_after.add_statement(rewrite(s));
           }
           continue;
         }
         }
       }
-      new_current.add_statement(copy_rw.rewrite(n));
+      new_current.add_statement(rewrite(n));
     }
   }
   
@@ -201,9 +220,9 @@ public class SpecificationCollector extends AbstractRewriter {
     
     int N=block.getLength();
     for(int i=0;i<N;i++){
-      if (block.get(i) instanceof ASTSpecialDeclaration && currentContractBuilder==null){
+      if (block.get(i) instanceof ASTSpecial && currentContractBuilder==null){
         int j;
-        for(j=i+1;j<N && (block.get(j) instanceof ASTSpecialDeclaration);j++){
+        for(j=i+1;j<N && (block.get(j) instanceof ASTSpecial);j++){
         }
         if (j<N && block.get(j) instanceof LoopStatement) {
           currentContractBuilder=new ContractBuilder();
@@ -220,8 +239,45 @@ public class SpecificationCollector extends AbstractRewriter {
       //}
     }
     
-    result=currentBlock;
+    if (currentBlock.size()==0 && block.getParent()!=null){
+      result=null;
+    } else {
+      result=currentBlock;
+    }
     currentBlock=tmp;
+  }
+  
+  @Override
+  public void visit(MethodInvokation m){
+    StandardOperator op=syntax.parseFunction(m.method);
+    if (op!=null && op.arity()==m.getArity()){
+      result=create.expression(op,rewrite(m.getArgs()));
+    } else {
+      super.visit(m);
+    }
+  }
+  
+  @Override
+  public void visit(DeclarationStatement d){
+    /* We correct for the fact that for parsers the following two
+     * patterns are indistinguishable in many cases:
+      
+      special argument ;
+      type var ;
+      
+      TODO
+      
+      special a1 , a2 ;
+      type v1 , v2 ;
+      
+     */
+    Kind kind=syntax.get_annotation(d.getType().toString(),1);
+    if (kind==null){
+      super.visit(d);
+    } else {
+      Warning("fixing special %s",kind);
+      result=create.special(kind,create.unresolved_name(d.name));
+    }
   }
 }
 

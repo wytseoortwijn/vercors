@@ -19,7 +19,7 @@ class AtomicReadWrite {
   
   /*@
     given int id,i;
-    requires req_ls:lastseen(id,i) ** req_st:state();
+    requires (req_ls:lastseen(id,i)) ** req_st:state();
     ensures  ens_ls:lastseen(id,v);
   @*/
   public void set(int v);
@@ -27,7 +27,7 @@ class AtomicReadWrite {
   /*@
     given int id,i;
     requires req_ls:lastseen(id,i);
-    ensures  ens_ls:lastseen(id,\result) ** ((\result!=i && \result==id) ==> ens_st:state());
+    ensures  (ens_ls:lastseen(id,\result)) ** ((\result!=i && \result==id) ==> ens_st:state());
   @*/
   int get();
   

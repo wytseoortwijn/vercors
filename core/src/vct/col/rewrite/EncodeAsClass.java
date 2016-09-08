@@ -1,7 +1,11 @@
 package vct.col.rewrite;
 
+import java.util.ArrayList;
+
 import hre.ast.MessageOrigin;
 import vct.col.ast.*;
+import vct.col.ast.PrimitiveType.Sort;
+import vct.col.util.ASTUtils;
 
 public class EncodeAsClass extends AbstractRewriter {
 
@@ -13,7 +17,6 @@ public class EncodeAsClass extends AbstractRewriter {
 
   private ASTClass cl;
 
-  
   public ProgramUnit rewriteAll() {
     for(ASTDeclaration n:source().get()){
         ASTNode tmp=rewrite(n);
