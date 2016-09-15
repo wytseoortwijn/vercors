@@ -1,7 +1,13 @@
 package vct.main;
 
 import vct.col.ast.ProgramUnit;
+import vct.logging.ExceptionMessage;
+import vct.logging.PassAddVisitor;
+import vct.logging.PassReport;
+import hre.HREError;
+import hre.HREException;
 import hre.util.TestReport;
+import hre.util.TestReport.Verdict;
 
 public abstract class ValidationPass {
   
@@ -15,6 +21,21 @@ public abstract class ValidationPass {
     this.description=description;
   }
   
-  public abstract TestReport apply(ProgramUnit arg,String ... args);
+  public PassReport apply_pass(PassReport report,String ... args){
+    ProgramUnit arg=report.getOutput();
+    PassReport result=new PassReport(arg);
+    result.setOutput(arg);
+    result.add(new PassAddVisitor(report));
+    
+    TestReport tr=apply(arg,args);
+    if (tr.getVerdict() != Verdict.Pass){
+      result.add(new ExceptionMessage(new HREException("pass %s yielded %s",description,tr.getVerdict())));
+    }
+    return result;
+  }
+  
+  protected TestReport apply(ProgramUnit arg,String ... args){
+    throw new HREError("Incorrectly implemented validation pass %s",this.getClass());
+  }
 
 }

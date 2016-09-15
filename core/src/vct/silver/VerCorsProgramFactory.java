@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Set;
+
 import hre.HREError;
 import hre.ast.MessageOrigin;
 import hre.ast.Origin;
@@ -28,6 +29,7 @@ import vct.col.util.ASTFactory;
 import vct.col.util.ASTUtils;
 import vct.error.VerificationError;
 import vct.util.Configuration;
+import viper.api.ExpressionFactory;
 import viper.api.ProgramFactory;
 import viper.api.ViperAPI;
 import viper.api.Triple;
@@ -210,7 +212,7 @@ public class VerCorsProgramFactory implements
           if (m.getBody() instanceof BlockStatement){
             BlockStatement block=(BlockStatement)m.getBody();
             ArrayList<S> stats=new ArrayList<S>();
-            SilverBackend.split_block(api.expr, type, stat, locals, block, stats);
+            VerCorsProgramFactory.split_block(api.expr, type, stat, locals, block, stats);
             body=api.stat.block(block.getOrigin(),stats);
           } else if (m.getBody()==null){
             Origin o=m.getOrigin();
@@ -328,6 +330,29 @@ public class VerCorsProgramFactory implements
 
     
     return program;
+  }
+
+  protected static <T, E, S, Program> void split_block(
+      ExpressionFactory<Origin,T, E> verifier,
+      SilverTypeMap<T> type, SilverStatementMap<T, E, S> stat,
+      List<Triple<Origin,String,T>> locals, BlockStatement block, ArrayList<S> stats)
+      throws HREError {
+    int i=0;
+    int N=block.getLength();
+    while(i<N && (block.get(i) instanceof DeclarationStatement)){
+      DeclarationStatement decl=(DeclarationStatement)block.get(i);
+      locals.add(new Triple<Origin, String, T>(decl.getOrigin(),decl.getName(),decl.getType().apply(type)));
+      i=i+1;
+    }
+    for(;i<N;i++){
+      if (block.get(i) instanceof DeclarationStatement) {
+        throw new HREError("illegal declaration");
+      }
+      S s=block.get(i).apply(stat);
+      if (s!=null){
+        stats.add(s);
+      }
+    }
   }
 
 }

@@ -121,7 +121,7 @@ class Queue {
     inline static resource final_link(Node n)=
       Value(n.next)**Value(n.next.ref)**n.next.ref!=null;
     
-    static resource reachable(Node n1,Node n2)=
+    resource reachable(Node n1,Node n2)=
       (n1!=n2 ==> final_link(n1) ** reachable(n1.next.ref,n2));
   @*/
 

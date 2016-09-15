@@ -121,6 +121,8 @@ class DefaultVerifier(val config: Config)
         val l = predicateSupporter.verify(predicate, createInitialContext(predicate, program))
         val ok=l match {
           case Seq(viper.silicon.interfaces.Success()) => true
+          // TODO: why can we ignore unreachable?
+          case Seq(Unreachable()) => true
           case _ => false
         }
         viper.api.VControl.report(predicate,ok)

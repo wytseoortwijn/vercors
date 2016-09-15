@@ -5,10 +5,11 @@ import java.util.Hashtable;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import vct.col.ast.*;
+import vct.logging.ErrorMapping;
 
 public class CSLencoder extends AbstractRewriter {
-
-  public CSLencoder(ProgramUnit source) {
+ 
+  public CSLencoder(ProgramUnit source, ErrorMapping map) {
     super(source);
   }
   

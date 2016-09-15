@@ -16,11 +16,22 @@ import vct.col.ast.PrimitiveType.Sort;
 import vct.col.util.ASTUtils;
 import vct.col.util.NameScanner;
 import vct.col.util.OriginWrapper;
+import vct.logging.ErrorMapping;
+import vct.logging.VerCorsError.ErrorCode;
 
 public class ParallelBlockEncoder extends AbstractRewriter {
 
-  public ParallelBlockEncoder(ProgramUnit source) {
+  public static final String ENTER_INVARIANT="enter_inv";
+  public static final String LEAVE_ATOMIC="leave_atomic";
+  
+  public ParallelBlockEncoder(ProgramUnit source, ErrorMapping map) {
     super(source);
+    map.add(ENTER_INVARIANT,
+        ErrorCode.ExhaleFailed,
+        ErrorCode.InvariantNotEstablished);
+    map.add(LEAVE_ATOMIC,
+        ErrorCode.ExhaleFailed,
+        ErrorCode.InvariantBroken);
   }
 
   private int count=0;
@@ -31,7 +42,9 @@ public class ParallelBlockEncoder extends AbstractRewriter {
   public void visit(ParallelInvariant inv){
     inv_blocks.push(inv);
     BlockStatement block=rewrite(inv.block);
-    block.prepend(create.special(ASTSpecial.Kind.Exhale,rewrite(inv.inv)));
+    ASTNode exhale=create.special(ASTSpecial.Kind.Exhale,rewrite(inv.inv));
+    exhale.set_branch(ENTER_INVARIANT);
+    block.prepend(exhale);
     block.append(create.special(ASTSpecial.Kind.Inhale,rewrite(inv.inv)));
     result=block;
     inv_blocks.pop();
@@ -458,7 +471,7 @@ public class ParallelBlockEncoder extends AbstractRewriter {
               ParallelInvariant inv=(ParallelInvariant)ib;
               if (inv.label.equals(name.toString())){
                 block.prepend(create.special(ASTSpecial.Kind.Inhale,inv.inv));
-                block.append(create.special(ASTSpecial.Kind.Exhale,inv.inv));
+                block.append(create.special(ASTSpecial.Kind.Exhale,inv.inv).set_branch(LEAVE_ATOMIC));
                 found=true;
               }
             }

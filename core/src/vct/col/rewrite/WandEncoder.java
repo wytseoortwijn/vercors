@@ -24,6 +24,8 @@ import vct.col.ast.ProgramUnit;
 import vct.col.ast.StandardOperator;
 import vct.col.ast.Type;
 import vct.col.util.ASTUtils;
+import vct.logging.ErrorMapping;
+import vct.logging.VerCorsError.ErrorCode;
 
 public class WandEncoder extends AbstractRewriter {
   
@@ -153,9 +155,17 @@ public class WandEncoder extends AbstractRewriter {
       return intro;
     }
   }
-    
-	public WandEncoder(ProgramUnit source) {
+  
+  
+  private static String WAND_FORMULA="magic wand";
+  private static String WAND_REQUIRED="magic wand requirement";
+  
+  
+	public WandEncoder(ProgramUnit source,ErrorMapping map) {
 		super(source);
+    map.add(WAND_FORMULA,ErrorCode.ExhaleFailed,ErrorCode.MagicWandUnproven);
+    map.add(WAND_REQUIRED,ErrorCode.ExhaleFailed,ErrorCode.MagicWandPreCondition);
+		
 	}
 	
 	
@@ -168,8 +178,8 @@ public class WandEncoder extends AbstractRewriter {
         Fail("illegal argument to apply.");
       }
       WandUtil wand=new WandUtil((OperatorExpression)arg);
-      currentBlock.add(create.special(Kind.Exhale,wand.wand(true)));
-      currentBlock.add(create.special(Kind.Exhale,wand.pre()));
+      currentBlock.add(create.special(Kind.Exhale,wand.wand(true)).set_branch(WAND_FORMULA));
+      currentBlock.add(create.special(Kind.Exhale,wand.pre()).set_branch(WAND_REQUIRED));
       currentBlock.add(create.special(Kind.Inhale,wand.post()));
       break;
     }

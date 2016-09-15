@@ -265,4 +265,6 @@ public class Configuration {
   public static Syntax getDiagSyntax(){
     return JavaSyntax.getJava(JavaDialect.JavaVerCors);
   }
+
+  public static BooleanSetting progress = new BooleanSetting(false);
 }

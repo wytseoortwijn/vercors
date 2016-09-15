@@ -1,6 +1,7 @@
 package vct.col.rewrite;
 
 import java.util.HashMap;
+
 import vct.col.ast.ASTFlags;
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTReserved;
@@ -14,11 +15,16 @@ import vct.col.ast.NameExpression;
 import vct.col.ast.PrimitiveType;
 import vct.col.ast.ProgramUnit;
 import vct.col.ast.ReturnStatement;
+import vct.logging.ErrorMapping;
+import vct.logging.VerCorsError.ErrorCode;
 
 public class VoidCalls extends AbstractRewriter {
 
-  public VoidCalls(ProgramUnit source) {
+  private static final String RETURN_BRANCH = "return branch";
+
+  public VoidCalls(ProgramUnit source, ErrorMapping map) {
     super(source);
+    map.add(RETURN_BRANCH,ErrorCode.AssertFailed,ErrorCode.PostConditionFailed);
   }
   
   public void visit(NameExpression e){
@@ -68,8 +74,9 @@ public class VoidCalls extends AbstractRewriter {
       for(ASTNode n : s.get_after()){
         res.add(rewrite(n));
       }
+      ASTNode post=rewrite(current_method().getContract().post_condition);
       if (current_method().getContract()!=null){
-        res.add(create.special(ASTSpecial.Kind.Assert,rewrite(current_method().getContract().post_condition)));
+        res.add(create.special(ASTSpecial.Kind.Assert,post).set_branch(RETURN_BRANCH));
       }
       res.add(create.special(ASTSpecial.Kind.Assume,create.constant(false)));
       result=res;
