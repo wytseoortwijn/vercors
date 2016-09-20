@@ -1,5 +1,6 @@
  // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 //:: cases ReentLockWitnesses
+//:: suite medium
 //:: tools chalice
 //:: options --explicit
 

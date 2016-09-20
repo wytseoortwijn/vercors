@@ -8,6 +8,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import hre.ast.Origin;
+import vct.logging.MessageFactory;
 import vct.util.Configuration;
 import viper.api.VerificationControl;
 
@@ -44,7 +45,10 @@ public class ViperControl implements VerificationControl<Origin> {
   
   private Hashtable<Origin,String> origin2method=new Hashtable<Origin, String>();
   
-  public ViperControl(){
+  private MessageFactory report;
+  
+  public ViperControl(MessageFactory report){
+    this.report=report;
     if (Configuration.profiling_option.used()){
       scheduler = Executors.newScheduledThreadPool(1);
       int N=Configuration.profiling.get();
@@ -56,11 +60,13 @@ public class ViperControl implements VerificationControl<Origin> {
   
   @Override
   public boolean function(Origin origin, String name) {
+    // TODO log this event
     return true;
   }
 
   @Override
   public boolean predicate(Origin origin, String name) {
+    // TODO log this event
     return true;
   }
 
@@ -70,12 +76,14 @@ public class ViperControl implements VerificationControl<Origin> {
     for(String suffix:Configuration.skip){
       if (name.endsWith(suffix)) return false;
     }
+    // TODO log this event
     return true;
   }
 
   @Override
   public void pass(Origin origin) {
     origin.report("result", "pass");
+    report.result(true,origin);
     String m=origin2method.get(origin);
     if (m!=null){
       verified_methods.add(m);
@@ -87,6 +95,7 @@ public class ViperControl implements VerificationControl<Origin> {
   @Override
   public void fail(Origin origin) {
     origin.report("result", "fail");
+    report.result(false,origin);
     String m=origin2method.get(origin);
     if (m!=null){
       failed_methods.add(m);

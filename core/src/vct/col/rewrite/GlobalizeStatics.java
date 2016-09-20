@@ -3,6 +3,7 @@ package vct.col.rewrite;
 import hre.ast.MessageOrigin;
 import vct.col.ast.ASTClass;
 import vct.col.ast.ASTClass.ClassKind;
+import vct.col.ast.AxiomaticDataType;
 import vct.col.ast.ClassType;
 import vct.col.ast.DeclarationStatement;
 import vct.col.ast.Dereference;
@@ -61,7 +62,11 @@ public abstract class GlobalizeStatics extends AbstractRewriter {
       result=res;
       break;      
     }
-    default: Abort("missing case");
+    case Record:{
+      super.visit(cl);
+      return;
+    }
+    default: Abort("missing case: %s",cl.kind);
     }
   }
   public void visit(DeclarationStatement s){
@@ -121,7 +126,17 @@ public abstract class GlobalizeStatics extends AbstractRewriter {
   public void visit(MethodInvokation e){
     Method m=e.getDefinition();
     if (m==null) Abort("cannot globalize method invokaiton without method definition");
+    if (m.getParent() instanceof AxiomaticDataType){
+      super.visit(e);
+      return;
+    }
     ASTClass cl=(ASTClass)m.getParent();
+    if (cl==null){
+      //System.err.printf("no parent for %s%n",m.getName());
+      // FIXME: it works, but not for the right reason!
+      super.visit(e);
+      return;
+    }
     if (m.isStatic() && !e.isInstantiation()){
       MethodInvokation res;
       String prefix=new ClassName(cl.getFullName()).toString("_");
@@ -155,11 +170,21 @@ public abstract class GlobalizeStatics extends AbstractRewriter {
       super.visit(e);
       return;
     }
+    if (e.field.equals("item")){
+      super.visit(e);
+      return;
+    }
     ClassType t;
     if (e.object instanceof ClassType){
       t=(ClassType)e.object;
     } else {
       t=(ClassType)e.object.getType();
+    }
+    String s=t.toString();
+    if (s.equals("<<label>>")){
+      // witness encoding?
+      super.visit(e);
+      return;
     }
     ASTClass cl=source().find(t);
     DeclarationStatement decl=cl.find_field(e.field);

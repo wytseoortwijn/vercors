@@ -769,7 +769,10 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
     for(int i=0;i<N;i++){
       map.put(create.unresolved_name(def.getArgument(i)),rewrite(e.getArg(i)));
     }
-    return sigma.rewrite(rewrite(def.getBody()));
+    ASTNode body=rewrite(def.getBody());
+    InlineMarking marker=new InlineMarking(source(),e.getOrigin());
+    body.accept(marker);
+    return sigma.rewrite(body);
   }
   
   @Override

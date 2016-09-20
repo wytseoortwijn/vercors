@@ -5,7 +5,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import vct.col.ast.ASTSpecial.Kind;
-
+import hre.ast.BranchOrigin;
 import hre.ast.MessageOrigin;
 import hre.ast.Origin;
 import static hre.System.Abort;
@@ -427,6 +427,11 @@ public abstract class ASTNode implements ASTFlags {
 
   public boolean isDeclaration(ASTSpecial.Kind kind) {
     return (this instanceof ASTSpecial) && ((ASTSpecial)this).kind==kind;
+  }
+
+  public ASTNode set_branch(String branch) {
+    origin=new BranchOrigin(branch,origin);
+    return this;
   }
 
 }
