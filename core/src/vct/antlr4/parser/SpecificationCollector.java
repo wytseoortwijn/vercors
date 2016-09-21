@@ -33,6 +33,7 @@ public class SpecificationCollector extends AbstractRewriter {
     case Yields:
     case Requires:
     case Ensures:
+    case RequiresAndEnsures:
     case Invariant:
     case Modifies:
     case Accessible:
@@ -82,6 +83,10 @@ public class SpecificationCollector extends AbstractRewriter {
       currentContractBuilder.requires(rewrite(s.args[0]));
       break;
     case Ensures:
+      currentContractBuilder.ensures(rewrite(s.args[0]));
+      break;
+    case RequiresAndEnsures:
+      currentContractBuilder.requires(rewrite(s.args[0]));
       currentContractBuilder.ensures(rewrite(s.args[0]));
       break;
     case Invariant:
