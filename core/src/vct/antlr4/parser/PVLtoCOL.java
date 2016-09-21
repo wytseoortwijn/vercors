@@ -97,6 +97,12 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
         cb.modifies(convert(ctx2,1));
         continue;
       }
+      if (match(ctx2,"context",null,";")){
+        ASTNode expr=convert(ctx2,1);
+        cb.requires(expr);
+        cb.ensures(expr);
+        continue;
+      }
       if (match(ctx2,"requires",null,";")){
         cb.requires(convert(ctx2,1));
         continue;

@@ -82,7 +82,6 @@ public class ViperControl implements VerificationControl<Origin> {
 
   @Override
   public void pass(Origin origin) {
-    origin.report("result", "pass");
     report.result(true,origin);
     String m=origin2method.get(origin);
     if (m!=null){
@@ -94,7 +93,6 @@ public class ViperControl implements VerificationControl<Origin> {
 
   @Override
   public void fail(Origin origin) {
-    origin.report("result", "fail");
     report.result(false,origin);
     String m=origin2method.get(origin);
     if (m!=null){

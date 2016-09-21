@@ -82,6 +82,9 @@ public class VerCorsError extends AbstractMessage {
     case "insufficient.permission":
       sub=InsufficientPermission;
       break;
+    case "receiver.not.injective":
+      sub=InsufficientPermission;
+      break;
     default:
       throw new HREError("unspecified cause %s%n",err[1]);
       //sub=UnspecifiedCause;

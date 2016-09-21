@@ -21,6 +21,7 @@ valContractClause
  | 'given' type identifier ';'
  | 'yields' type identifier ';'
  | 'invariant' expression ';'
+ | 'context' expression ';'
  ;
 
 valStatement

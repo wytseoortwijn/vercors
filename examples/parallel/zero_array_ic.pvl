@@ -2,15 +2,13 @@
 //:: cases ZeroMultiple
 
 class ZeroArrayIC {
-  invariant ar != null;
-  requires N>0;
-  requires (\forall* int i;0 <= i && i < N ; Perm(ar[i],write));
-  ensures  (\forall* int i;0 <= i && i < N ; Perm(ar[i],write));
-  ensures  (\forall int i;0 <= i && i < N ; ar[i]==0);
+  invariant ar != null ** N>0;
+  context (\forall* int i;0 <= i && i < N ; Perm(ar[i],write));
+  ensures (\forall int i;0 <= i && i < N ; ar[i]==0);
   void vector(int N, int[N] ar){
     par main(int i = 0 .. N)
-      requires Perm(ar[i],write);
-      ensures  Perm(ar[i],write) ** ar[i]==0;
+      context Perm(ar[i],write);
+      ensures ar[i]==0;
     {
       ar[i]=0;
     }
