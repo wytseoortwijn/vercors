@@ -85,4 +85,6 @@ public interface ASTMapping1<R,A1> {
   public R map(FieldAccess s,A1 a);
   
   public R map(TypeVariable v,A1 a);
+  
+  public R map(VectorBlock vb,A1 a);
 }

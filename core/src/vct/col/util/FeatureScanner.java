@@ -19,6 +19,7 @@ import vct.col.ast.PrimitiveType.Sort;
 import vct.col.ast.RecursiveVisitor;
 import vct.col.ast.StandardOperator;
 import vct.col.ast.Type;
+import vct.col.ast.VectorBlock;
 
 public class FeatureScanner extends RecursiveVisitor<Object> {
 
@@ -38,6 +39,12 @@ public class FeatureScanner extends RecursiveVisitor<Object> {
   private EnumSet<StandardOperator> ops_used=EnumSet.noneOf(StandardOperator.class);
   private EnumSet<ASTSpecial.Kind> specials_used=EnumSet.noneOf(ASTSpecial.Kind.class);
   private EnumSet<BindingExpression.Binder> binders_used=EnumSet.noneOf(BindingExpression.Binder.class);
+  
+  private HashSet<Class<? extends ASTNode>> nodes=new HashSet<Class<? extends ASTNode>>();
+  
+  public boolean hasVectorBlocks(){
+    return nodes.contains(VectorBlock.class);
+  }
   
   public boolean usesCSL(){
     return uses_csl;
@@ -93,6 +100,7 @@ public class FeatureScanner extends RecursiveVisitor<Object> {
       if (t.isDouble()) has_doubles=true;
       if (t.isPrimitive(Sort.Long)) has_longs=true;
     }
+    nodes.add(node.getClass());
   }
 
   private HashSet<String> pragmas=new HashSet<String>();

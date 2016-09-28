@@ -2,6 +2,7 @@ package vct.silver;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+
 import hre.HREError;
 import hre.ast.Origin;
 import vct.col.ast.*;
@@ -370,6 +371,11 @@ public class SilverStatementMap<T,E,S> implements ASTMapping<S>{
   @Override
   public S map(StructValue v) {
     
+    return null;
+  }
+
+  @Override
+  public S map(VectorBlock vb) {
     return null;
   }
 

@@ -457,6 +457,20 @@ public abstract class ASTFrame<T> {
         break;
       }
     }
+    @Override
+    public void visit(VectorBlock pb){
+      switch(action){
+      case ENTER:
+        variables.enter();
+        variables.add(pb.iter.getName(),new VariableInfo(pb.iter,NameExpression.Kind.Local));
+        break;
+      case LEAVE:
+        variables.leave();
+        break;
+      default:
+        break;
+      }
+    }
 
   };
   

@@ -78,6 +78,7 @@ import vct.col.rewrite.SilverReorder;
 import vct.col.rewrite.SimplifyCalls;
 import vct.col.rewrite.Standardize;
 import vct.col.rewrite.StripConstructors;
+import vct.col.rewrite.VectorEncode;
 import vct.col.rewrite.VoidCalls;
 import vct.col.rewrite.VoidCallsThrown;
 import vct.col.rewrite.WandEncoder;
@@ -363,6 +364,8 @@ public class Main
             passes.add("standardize");
             passes.add("check");
           }
+          features=new FeatureScanner();
+          program.accept(features);
         }
         
         if (features.usesCSL()){
@@ -370,7 +373,13 @@ public class Main
           passes.add("standardize");
           passes.add("check");
         }
-          
+        
+        if(features.hasVectorBlocks()){
+          passes.add("vector-encode");
+          passes.add("standardize");
+          passes.add("check");
+        }
+        
         if (silver.used()) {
           if (features.usesIterationContracts()||features.usesParallelBlocks()||features.usesCSL()||features.usesPragma("omp")){
             passes.add("parallel_blocks");
@@ -1015,6 +1024,7 @@ public class Main
         return new VoidCallsThrown(arg).rewriteAll();
       }
     });
+    compiler_pass(defined_passes,"vector-encode","Encode vector blocks using the vector library",VectorEncode.class);
     defined_passes.put("chalice-preprocess",new CompilerPass("Pre processing for chalice"){
       public ProgramUnit apply(ProgramUnit arg,String ... args){
         return new ChalicePreProcess(arg).rewriteAll();

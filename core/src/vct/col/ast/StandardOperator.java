@@ -259,7 +259,11 @@ public enum StandardOperator {
   /**
    * The get operator for the options type.
    */
-  OptionGet(1)
+  OptionGet(1),
+  /*
+   * Get the values from an array as a sequence form a start upto an end
+   */
+  Values(3)
   ;
 
   private final int arity;

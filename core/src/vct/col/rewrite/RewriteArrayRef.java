@@ -1,5 +1,6 @@
 package vct.col.rewrite;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 
 import vct.col.ast.ASTClass;
@@ -22,6 +23,7 @@ public class RewriteArrayRef extends AbstractRewriter {
   }
 	
   private HashSet<Type> new_array;
+  private HashSet<Type> array_values;
 
   @Override
 	public void visit(OperatorExpression e){
@@ -61,6 +63,12 @@ public class RewriteArrayRef extends AbstractRewriter {
 		    ASTNode res=create.expression(StandardOperator.OptionGet,rewrite(e.getArg(0)));
 		    result=create.expression(StandardOperator.Size,res);
 		    break;
+		  }
+		  case Values:{
+        Type t=(Type)((PrimitiveType)e.getType()).getArg(0);
+        array_values.add(t);
+        result=create.invokation(null,null,"array_values_"+t,rewrite(e.getArguments()));
+        break;
 		  }
 		  case NewArray:{
         Type t=(Type)e.getArg(0);
@@ -111,6 +119,7 @@ public class RewriteArrayRef extends AbstractRewriter {
   @Override
   public void visit(ASTClass cl){
     new_array=new HashSet<Type>();
+    array_values=new HashSet<Type>();
     super.visit(cl);
     ASTClass res=(ASTClass)result;
     for(Type t:new_array){
@@ -159,7 +168,56 @@ public class RewriteArrayRef extends AbstractRewriter {
       DeclarationStatement args[]=new DeclarationStatement[]{create.field_decl("len",create.primitive_type(Sort.Integer))};
       res.add_dynamic(create.method_decl(result_type,cb.getContract(), "new_array_some_"+t, args,null));
     }
+    for(Type t:array_values){
+      Type result_type=create.primitive_type(Sort.Sequence,t);
+      Type type0=create.primitive_type(Sort.Option,
+          create.primitive_type(Sort.Sequence,
+              create.primitive_type(Sort.Cell,rewrite(t))));
+      ContractBuilder cb=new ContractBuilder();
+      ArrayList<DeclarationStatement> args=new ArrayList<DeclarationStatement>();
+      args.add(create.field_decl("ar", type0));
+      args.add(create.field_decl("from",create.primitive_type(Sort.Integer)));
+      args.add(create.field_decl("upto",create.primitive_type(Sort.Integer)));
+      cb.requires(neq(create.local_name("ar"),create.reserved_name(ASTReserved.OptionNone)));
+      ASTNode deref=create.expression(StandardOperator.OptionGet,create.local_name("ar"));
+      
+      cb.requires(create.expression(StandardOperator.LTE,create.constant(0),create.local_name("from")));
+      cb.requires(create.expression(StandardOperator.LTE,create.local_name("from"),create.local_name("upto")));
+      cb.requires(create.expression(StandardOperator.LTE,create.local_name("upto"),
+          create.expression(StandardOperator.Size,deref)));
+      ASTNode range=create.expression(StandardOperator.And,
+          create.expression(StandardOperator.LTE,create.local_name("from"),create.local_name("i")),
+          create.expression(StandardOperator.LT,create.local_name("i"),create.local_name("upto"))
+      );
+      DeclarationStatement decl=create.field_decl("i",create.primitive_type(Sort.Integer));
+      ASTNode ari=create.dereference(create.expression(StandardOperator.Subscript,
+          deref,create.local_name("i")),"item");
+      // TODO: use ASTNode perm=create.reserved_name(ASTReserved.ReadPerm);
+      ASTNode perm=create.expression(StandardOperator.Div,create.constant(1),create.constant(100));
+      cb.requires(create.starall(range,create.expression(StandardOperator.Perm,ari,perm), decl));
+      ASTNode Resi=create.expression(StandardOperator.Subscript,create.reserved_name(ASTReserved.Result),
+          create.expression(StandardOperator.Minus,create.local_name("i"),create.local_name("from")));
+      cb.ensures(create.expression(StandardOperator.EQ,
+          create.expression(StandardOperator.Size,create.reserved_name(ASTReserved.Result)),
+          create.expression(StandardOperator.Minus,create.local_name("upto"),create.local_name("from"))
+      ));
+      cb.ensures(create.forall(range,create.expression(StandardOperator.EQ,ari,Resi),decl));
+      
+      
+      ASTNode len=create.expression(StandardOperator.Minus,create.local_name("upto"),create.local_name("from"));
+      range=create.expression(StandardOperator.And,
+          create.expression(StandardOperator.LTE,create.constant(0),create.local_name("i")),
+          create.expression(StandardOperator.LT,create.local_name("i"),len));
+      ari=create.dereference(create.expression(StandardOperator.Subscript,
+          deref,create.expression(StandardOperator.Plus,create.local_name("i"),create.local_name("from"))),"item");
+      Resi=create.expression(StandardOperator.Subscript,create.reserved_name(ASTReserved.Result),
+          create.local_name("i"));
+      cb.ensures(create.forall(range,create.expression(StandardOperator.EQ,ari,Resi),decl));
+      
+      res.add_static(create.function_decl(result_type,cb.getContract(),"array_values_"+t, args, null));
+    }
     new_array=null;
+    array_values=null;
     result=res;
   }
 
