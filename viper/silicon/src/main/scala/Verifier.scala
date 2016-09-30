@@ -52,7 +52,7 @@ class DefaultVerifier(val config: Config)
   protected implicit val manifestH: Manifest[H] = manifest[H]
 
   val bookkeeper = new Bookkeeper(config)
-  val stateFormatter = new DefaultStateFormatter[ST,H,S](config)
+  val stateFormatter = new DefaultStateFormatter[ST, H, S](config)
   val symbolConverter = new DefaultSymbolConvert()
   val domainTranslator = new DefaultDomainsTranslator(symbolConverter)
   val stateFactory = new DefaultStateFactory()
@@ -110,6 +110,7 @@ class DefaultVerifier(val config: Config)
           case Seq(viper.silicon.interfaces.Success()) => true
           case _ => false
         }
+        bookkeeper.functionVerified(function.name)
         viper.api.VControl.report(function,ok)
         l
       } else {
@@ -125,6 +126,7 @@ class DefaultVerifier(val config: Config)
           case Seq(Unreachable()) => true
           case _ => false
         }
+        bookkeeper.predicateVerified(predicate.name)
         viper.api.VControl.report(predicate,ok)
         l
       } else {
@@ -138,13 +140,13 @@ class DefaultVerifier(val config: Config)
           if (viper.api.VControl.gonogo(method)) {
             val c = createInitialContext(method, program)
             //      ev.quantifiedChunkSupporter.initLastFVF(c.qpFields) /* TODO: Implement properly */
-
             val l = methodSupporter.verify(method, c)
             val ok=l match {
               case Seq(viper.silicon.interfaces.Success()) => true
               case Seq(viper.silicon.interfaces.Unreachable()) => true
               case _ => false
             }
+            bookkeeper.methodVerified(method.name)
             viper.api.VControl.report(method,ok)
             l
           } else {
@@ -268,7 +270,7 @@ class DefaultVerifier(val config: Config)
     preambleEmitter.emitPreamble("/z3config.smt2")
 
     val smt2ConfigOptions =
-      config.z3ConfigArgs().map{case (k, v) => s"(set-option :$k $v)"}
+      config.z3ConfigArgs().map { case (k, v) => s"(set-option :$k $v)" }
 
     if (smt2ConfigOptions.nonEmpty) {
       log.info(s"Additional Z3 configuration options are '${config.z3ConfigArgs()}'")
