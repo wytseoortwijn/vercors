@@ -1,6 +1,5 @@
 package vct.col.util;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Hashtable;
 
@@ -20,7 +19,7 @@ public class NameScanner extends RecursiveVisitor<Object> {
 
   private Hashtable<String,Type> vars;
   
-  private HashSet<DeclarationStatement> safe_decls=new HashSet();
+  private HashSet<DeclarationStatement> safe_decls=new HashSet<DeclarationStatement>();
   
   public NameScanner(Hashtable<String,Type> vars) {
     super(null, null);
@@ -139,8 +138,8 @@ public class NameScanner extends RecursiveVisitor<Object> {
   @Override
   public void visit(BlockStatement b){
     int N=b.size();
-    Hashtable<String,Type> saved_vars=new Hashtable();
-    HashSet<String> saved_names=new HashSet();
+    Hashtable<String,Type> saved_vars=new Hashtable<String, Type>();
+    HashSet<String> saved_names=new HashSet<String>();
     for(int i=0;i<N;i++){
       ASTNode s=b.get(i);
       if (s instanceof DeclarationStatement){

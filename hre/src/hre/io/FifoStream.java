@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
-import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class FifoStream {
@@ -14,7 +13,7 @@ public class FifoStream {
   private LinkedBlockingQueue<byte[]> queue;
   
   public FifoStream(int buf){
-    queue=new LinkedBlockingQueue();
+    queue=new LinkedBlockingQueue<byte[]>();
     in=new Input(queue);
     out=new Output(queue,buf);
   }
@@ -47,10 +46,7 @@ public class FifoStream {
       if (buffer==null){
         try {
           buffer=queue.take();
-        } catch (InterruptedException e) {
-          // TODO Auto-generated catch block
-          e.printStackTrace();
-        }
+        } catch (InterruptedException e) {}
         len=buffer.length;
         if (len==0){
           eof=true;
@@ -86,10 +82,7 @@ public class FifoStream {
       if(used==len){
         try {
           queue.put(buffer);
-        } catch (InterruptedException e) {
-          // TODO Auto-generated catch block
-          e.printStackTrace();
-        }
+        } catch (InterruptedException e) {}
         buffer=null;
       }
     }
@@ -98,10 +91,7 @@ public class FifoStream {
       if (buffer!=null && used!=0){
         try {
           queue.put(Arrays.copyOf(buffer,used));
-        } catch (InterruptedException e) {
-          // TODO Auto-generated catch block
-          e.printStackTrace();
-        }
+        } catch (InterruptedException e) {}
         used=0;
       }
     }
@@ -111,10 +101,7 @@ public class FifoStream {
       flush();
       try {
         queue.put(new byte[0]);
-      } catch (InterruptedException e) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
-      }
+      } catch (InterruptedException e) {}
       queue=null;
     }
   }

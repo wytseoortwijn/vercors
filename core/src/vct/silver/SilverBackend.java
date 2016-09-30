@@ -6,15 +6,12 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.lang.reflect.Constructor;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Hashtable;
 import java.util.List;
 import java.util.Properties;
-import java.util.Set;
-import java.util.TreeMap;
 
 import hre.HREError;
+import hre.HREException;
 import hre.ast.Origin;
 import hre.config.IntegerSetting;
 import hre.config.StringSetting;
@@ -23,11 +20,12 @@ import hre.io.DirContainer;
 import hre.io.JarContainer;
 import hre.io.UnionContainer;
 import hre.util.ContainerClassLoader;
-import hre.util.TestReport;
-import hre.util.TestReport.Verdict;
 import vct.col.ast.*;
-import vct.col.util.ASTUtils;
 import vct.error.VerificationError;
+import vct.logging.MessageFactory;
+import vct.logging.PassAddVisitor;
+import vct.logging.PassReport;
+import vct.logging.TaskBegin;
 import vct.util.Configuration;
 
 public class SilverBackend {
@@ -87,7 +85,7 @@ public class SilverBackend {
       } else {
         throw new HREError("cannot guess the main class of %s",tool);
       }
-      Constructor[] constructors = v_class.getConstructors();
+      Constructor<?>[] constructors = v_class.getConstructors();
       if (constructors.length!=1) {
         throw new HREError("class had %d constructors instead of 1",constructors.length);
       }
@@ -106,15 +104,18 @@ public class SilverBackend {
   }
   
   public static <T,E,S,Decl,DFunc,DAxiom,Program>
-  TestReport TestSilicon(ProgramUnit arg, String tool) {
+  PassReport TestSilicon(PassReport given, String tool) {
     //hre.System.Output("verifying with %s backend",silver_module.get());
-    long start_time=System.currentTimeMillis();
+    ProgramUnit arg=given.getOutput();
+    PassReport report=new PassReport(arg);
+    report.add(new PassAddVisitor(given));
+    MessageFactory log=new MessageFactory(new PassAddVisitor(report));
+    TaskBegin verification=log.begin("Viper verification");
     ViperAPI<Origin,VerificationError,T,E,S,DFunc,DAxiom,Program> verifier=getVerifier(tool);
     //verifier.set_detail(Configuration.detailed_errors.get());
     VerCorsViperAPI vercors=VerCorsViperAPI.get();
     Program program=vercors.prog.convert(verifier,arg);
-    long end_time=System.currentTimeMillis();
-    System.err.printf("Backend AST conversion took %d ms%n", end_time-start_time);
+    log.phase(verification,"Backend AST conversion");
     String fname=vct.util.Configuration.backend_file.get();
     if (fname!=null){
       PrintWriter pw=null;
@@ -132,38 +133,23 @@ public class SilverBackend {
     if (tool.startsWith("silicon")){
       //settings.setProperty("smt.soft_timeout",silicon_z3_timeout.get()+"");
     }
-    TestReport report=new TestReport();
-    start_time=System.currentTimeMillis();
-    ViperControl control=new ViperControl();
+    ViperControl control=new ViperControl(log);
     try {
-      HashSet<Origin> reachable=new HashSet();
+      HashSet<Origin> reachable=new HashSet<Origin>();
       List<? extends ViperError<Origin>> errs=verifier.verify(
           Configuration.getToolHome(),settings,program,reachable,control);
       if (errs.size()>0){
         for(ViperError<Origin> e:errs){
-          int N=e.getExtraCount();
-          for(int i=0;i<N;i++){
-            Origin o=(Origin)e.getOrigin(i);
-            String msg=e.getError(i);
-            if (o==null){
-              System.err.printf("unknown location: %s%n", msg);
-            } else {
-              o.report("error",msg);
-            }
-          }
+          log.error(e);
         }
-        report.setVerdict(Verdict.Fail);
-      } else {
-        report.setVerdict(Verdict.Pass);
       }
-      HashSet<Origin> accounted=new HashSet();
+      HashSet<Origin> accounted=new HashSet<Origin>();
       //System.err.printf("verified methods: %n");
       for(String method:control.verified_methods){
         //System.err.printf("  %s%n",method);
         for(Origin o:vercors.refuted.get(method)){
           if(!reachable.contains(o)){
-            o.report("error","statement is not reachable");
-            report.setVerdict(Verdict.Fail);
+            log.exception(new HREException("%s: unreachable",o));
           } else {
             accounted.add(o);
           }
@@ -191,37 +177,12 @@ public class SilverBackend {
         }
       }
     } catch (Exception e){
-      e.printStackTrace();
-      report.setVerdict(Verdict.Error);
+      log.exception(e);
     } finally {
       control.done();
     }
-    end_time=System.currentTimeMillis();
-    System.err.printf("verification took %d ms%n", end_time-start_time);
+    log.end(verification);
     return report;
-  }
-
-  protected static <T, E, S, Program> void split_block(
-      ExpressionFactory<Origin,T, E> verifier,
-      SilverTypeMap<T> type, SilverStatementMap<T, E, S> stat,
-      List<Triple<Origin,String,T>> locals, BlockStatement block, ArrayList<S> stats)
-      throws HREError {
-    int i=0;
-    int N=block.getLength();
-    while(i<N && (block.get(i) instanceof DeclarationStatement)){
-      DeclarationStatement decl=(DeclarationStatement)block.get(i);
-      locals.add(new Triple(decl.getOrigin(),decl.getName(),decl.getType().apply(type)));
-      i=i+1;
-    }
-    for(;i<N;i++){
-      if (block.get(i) instanceof DeclarationStatement) {
-        throw new HREError("illegal declaration");
-      }
-      S s=block.get(i).apply(stat);
-      if (s!=null){
-        stats.add(s);
-      }
-    }
   }
 
 }

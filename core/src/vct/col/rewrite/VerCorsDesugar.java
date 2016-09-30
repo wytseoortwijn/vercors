@@ -17,8 +17,8 @@ public class VerCorsDesugar extends AbstractRewriter {
   public void visit(OperatorExpression e){
     switch(e.getOperator()){
     case Perm:{
-      ArrayList<String> vars=new ArrayList();
-      ArrayList<ASTNode> range=new ArrayList();
+      ArrayList<String> vars=new ArrayList<String>();
+      ArrayList<ASTNode> range=new ArrayList<ASTNode>();
       ASTNode loc=desugar_loc(vars,range,e.getArg(0));
       ASTNode frac=rewrite(e.getArg(1));
       ASTNode res=create.expression(StandardOperator.Perm,loc,frac);

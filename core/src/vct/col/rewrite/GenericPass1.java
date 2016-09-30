@@ -2,9 +2,6 @@ package vct.col.rewrite;
 
 import hre.util.SingleNameSpace;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import vct.col.ast.*;
 import vct.col.ast.PrimitiveType.Sort;
 

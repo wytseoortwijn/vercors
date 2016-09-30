@@ -4,7 +4,7 @@ import vct.col.ast.OperatorExpression;
 import vct.col.ast.ProgramUnit;
 import vct.col.ast.RecursiveVisitor;
 
-public class WandScanner extends RecursiveVisitor {
+public class WandScanner extends RecursiveVisitor<Object> {
 
 	public WandScanner(ProgramUnit source) {
 		super(source);

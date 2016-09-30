@@ -5,6 +5,7 @@ import vct.col.ast.ASTDeclaration;
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTReserved;
 import vct.col.ast.ASTSpecial;
+import vct.col.ast.ASTSpecial.Kind;
 import vct.col.ast.PrimitiveType.Sort;
 import vct.col.ast.ProgramUnit;
 import vct.col.ast.StandardOperator;
@@ -43,13 +44,13 @@ public class Syntax {
    * Annotations with different numbers of arguments can have
    * overloaded keywords.
    */
-  private Map<String,Map<Integer,ASTSpecial.Kind>> annotation_parse=new HashMap();
+  private Map<String,Map<Integer,ASTSpecial.Kind>> annotation_parse=new HashMap<String, Map<Integer,ASTSpecial.Kind>>();
   
   public void add_annotation(ASTSpecial.Kind kind,String syntax){
     Map<Integer,ASTSpecial.Kind> parse=annotation_parse.get(syntax);
     int arity=kind.arity();
     if (parse==null){
-      parse=new HashMap();
+      parse=new HashMap<Integer, Kind>();
       annotation_parse.put(syntax,parse);
     } else {
       if (arity < 0) {

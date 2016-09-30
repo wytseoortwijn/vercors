@@ -17,13 +17,10 @@ import vct.col.ast.BlockStatement;
 import vct.col.ast.Contract;
 import vct.col.ast.ContractBuilder;
 import vct.col.ast.DeclarationStatement;
-import vct.col.ast.Dereference;
 import vct.col.ast.LoopStatement;
 import vct.col.ast.Method;
 import vct.col.ast.NameExpression;
-import vct.col.ast.OperatorExpression;
 import vct.col.ast.ParallelBarrier;
-import vct.col.ast.ParallelBlock;
 import vct.col.ast.PrimitiveType.Sort;
 import vct.col.ast.ProgramUnit;
 import vct.col.ast.RecursiveVisitor;
@@ -99,7 +96,7 @@ public class KernelRewriter extends AbstractRewriter {
   }
   
   private void find_predecessors(Set<Integer> barriers, ASTNode node) {
-    find_predecessors(barriers,new HashSet(),node);
+    find_predecessors(barriers,new HashSet<ASTNode>(),node);
   }
   private ASTNode create_barrier_call(int no) {
     ArrayList<ASTNode> args=new ArrayList<ASTNode>();
@@ -150,7 +147,7 @@ public class KernelRewriter extends AbstractRewriter {
       //  }
       //}
     } else {
-      Stack<ASTNode> resource_stack=new Stack();
+      Stack<ASTNode> resource_stack=new Stack<ASTNode>();
       // check and keep resources.
       for(ASTNode clause:ASTUtils.conjuncts(pb.contract.pre_condition,StandardOperator.Star)){
         if (clause.getType().isPrimitive(Sort.Resource)){
@@ -204,7 +201,7 @@ public class KernelRewriter extends AbstractRewriter {
 
   private BarrierScan barrier_scan=new BarrierScan(source());
   
-  private ASTVisitor cfa=new ControlFlowAnalyzer(source());
+  private ASTVisitor<?> cfa=new ControlFlowAnalyzer(source());
   
   private String base_name;
 
@@ -288,11 +285,9 @@ public class KernelRewriter extends AbstractRewriter {
             create.expression(StandardOperator.Old,create.field_name(local.getName()))));
         res.add_dynamic(create.field_decl(local.getName(), t));
       }
-      ASTNode global_constraint=create.constant(true);
       for (Method m:cl.dynamicMethods()){
         if (m.getKind()==Method.Kind.Predicate){
           if (m.getName().equals("kernel_invariant")){
-            global_constraint=m.getBody();
             base_inv.add(copy_rw.rewrite(m.getBody()));
             kernel_main_invariant.add(copy_rw.rewrite(m.getBody()));
           }
@@ -308,17 +303,6 @@ public class KernelRewriter extends AbstractRewriter {
         if (m.getKind()==Method.Kind.Pure){
           res.add_dynamic(copy_rw.rewrite(m));
           continue;
-          /* if constraints should be added to every method.... use this:
-          ContractBuilder cb=new ContractBuilder();
-          cb.requires(copy_rw.rewrite(global_constraint));
-          copy_rw.rewrite(m.getContract(),cb);
-          Type returns=copy_rw.rewrite(m.getReturnType());
-          String name=m.getName();
-          DeclarationStatement args[]=copy_rw.rewrite(m.getArgs());
-          ASTNode body=copy_rw.rewrite(m.getBody());
-          res.add_dynamic(create(m).function_decl(returns, cb.getContract(), name, args, body));
-          continue;
-          */
         }
         group_inv=new ArrayList<ASTNode>(base_inv);
         if (m.getArity()!=0) Fail("TODO: kernel argument support");
@@ -354,8 +338,8 @@ public class KernelRewriter extends AbstractRewriter {
             create.field_decl("gid", create.primitive_type(Sort.Integer)),
             create.field_decl("lid", create.primitive_type(Sort.Integer))            
         };
-        private_decls = new ArrayList();
-        private_args = new ArrayList();
+        private_decls = new ArrayList<DeclarationStatement>();
+        private_args = new ArrayList<ASTNode>();
         BlockStatement orig_block=(BlockStatement)m.getBody();
         BlockStatement block=create.block();
         int K=orig_block.getLength();
@@ -380,49 +364,14 @@ public class KernelRewriter extends AbstractRewriter {
         res.add_dynamic(create(m).method_decl(returns,tc,base_name+"_main", args, block));
         
         /* dumping kernel contract */
-        AbstractRewriter filter_resource=new FilterClause(this,true);
-        AbstractRewriter filter_booleans=new FilterClause(this,false);
-        AbstractRewriter simplify=new Simplify(this);
-        /*
-        System.err.printf("kernel %s%n", base_name);
-        System.err.printf("// resources%n");
-        for(ASTNode clause:ASTUtils.conjuncts(filter_resource.rewrite(contract.pre_condition),StandardOperator.Star)){
-          System.err.printf("requires (\\forall* int tid; 0 <= tid && tid < tcount ;%n            ");
-          vct.util.Configuration.getDiagSyntax().print(System.err,simplify.rewrite(clause));
-          System.err.printf(");%n");
-        }
-        System.err.printf("// required properties%n");
-        for(ASTNode clause:ASTUtils.conjuncts(filter_booleans.rewrite(contract.pre_condition),StandardOperator.Star)){
-          System.err.printf("requires (\\forall int tid; 0 <= tid && tid < tcount ;%n            ");
-          vct.util.Configuration.getDiagSyntax().print(System.err,simplify.rewrite(clause));
-          System.err.printf(");%n");
-        }
-        System.err.printf("// ensured properties%n");
-        for(ASTNode clause:ASTUtils.conjuncts(filter_booleans.rewrite(contract.post_condition),StandardOperator.Star)){
-          System.err.printf("ensures  (\\forall int tid; 0 <= tid && tid < tcount ;%n            ");
-          vct.util.Configuration.getDiagSyntax().print(System.err,simplify.rewrite(clause));
-          System.err.printf(");%n");
-        }        
-        */
-        
-        /* end kernel contract */
-        /*
-        System.err.printf("kernel %s%n", base_name);
-        System.err.printf("thread level contract:%n");
-        for(ASTNode clause:ASTUtils.conjuncts(tc.pre_condition)){
-          System.err.printf("requires ");
-          vct.java.printer.JavaPrinter.dump(System.out,clause);
-        }
-        */
+
         barrier_cb.requires(create_resources(create.local_name("last_barrier")),false);
         barrier_cb.requires(create.fold(StandardOperator.Star, kernel_main_invariant),false);
         for(ParallelBarrier barrier : barrier_map.keySet()){
-//          Warning("computing possible predecessors of barrier %d:",barrier_map.get(barrier));
           Set<Integer> preds=new HashSet<Integer>();
           ASTNode tmp=create.constant(false);
           find_predecessors(preds,barrier);
           for(Integer i : preds){
-//            Warning("    %d",i);
             tmp=create.expression(StandardOperator.Or,tmp,
                   create.expression(StandardOperator.EQ,
                       create.local_name("last_barrier"),
@@ -584,7 +533,7 @@ public class KernelRewriter extends AbstractRewriter {
             post_check_decls.add(copy_rw.rewrite(d));
           }
 
-          Hashtable<NameExpression,ASTNode> map=new Hashtable();
+          Hashtable<NameExpression,ASTNode> map=new Hashtable<NameExpression, ASTNode>();
           map.put(create.local_name("tid"),create.local_name("_x_tid"));
           map.put(create.local_name("lid"),create.local_name("_x_lid"));
           Substitution sigma=new Substitution(source(),map);

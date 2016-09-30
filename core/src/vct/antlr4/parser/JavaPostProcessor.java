@@ -194,6 +194,8 @@ public class JavaPostProcessor extends AbstractRewriter {
         result=process_with_then(res,e);
         return;
       }
+    default:
+      break;
     }
     super.visit(e);
     OperatorExpression res=(OperatorExpression) result;
@@ -207,8 +209,9 @@ public class JavaPostProcessor extends AbstractRewriter {
     case LT:
     case LTE:
       return true;
+    default:
+      return false;
     }
-    return false;
   }
 
   @Override
@@ -228,7 +231,7 @@ public class JavaPostProcessor extends AbstractRewriter {
       ASTNode fraction=rewrite(decl.args[1]);
       ASTNode process=rewrite(decl.args[2]);
       ASTNode action=rewrite(decl.args[3]);
-      HashMap<String,ASTNode> map=new HashMap();
+      HashMap<String,ASTNode> map=new HashMap<String,ASTNode>();
       for(int i=4;i<decl.args.length;i+=2){
         String field=decl.args[i].toString();
         ASTNode frac=rewrite(decl.args[i+1]);

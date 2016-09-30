@@ -1,7 +1,6 @@
 package vct.col.rewrite;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Stack;
 
 import vct.col.ast.*;
@@ -23,7 +22,7 @@ public class ClassConversion extends AbstractRewriter {
     super(source);
   }
 
-  private Stack<Boolean> constructor_this=new Stack();
+  private Stack<Boolean> constructor_this=new Stack<Boolean>();
   {
     constructor_this.push(false);
   }
@@ -73,7 +72,7 @@ public class ClassConversion extends AbstractRewriter {
       }
       ContractBuilder cb=new ContractBuilder();
       String name=cl.name+SEP+m.name;
-      ArrayList<DeclarationStatement> args=new ArrayList();
+      ArrayList<DeclarationStatement> args=new ArrayList<DeclarationStatement>();
       ASTNode body=m.getBody();
       if (m.kind!=Method.Kind.Constructor && !m.isStatic()){
         args.add(create.field_decl(THIS,create.class_type(cl.name)));
@@ -142,9 +141,8 @@ public class ClassConversion extends AbstractRewriter {
   @Override
   public void visit(MethodInvokation s){
     String method;
-    ArrayList<ASTNode> args=new ArrayList();
+    ArrayList<ASTNode> args=new ArrayList<ASTNode>();
     Method def=s.getDefinition();
-    ASTNode extra=null;
     ClassType dispatch=s.dispatch;
     ASTNode object=null;
     if (def.getParent()==null){
@@ -186,10 +184,6 @@ public class ClassConversion extends AbstractRewriter {
     MethodInvokation res=create.invokation(object, dispatch, method, args.toArray(new ASTNode[0]));
     res.set_before(rewrite(s.get_before()));
     res.set_after(rewrite(s.get_after()));
-    if (extra!=null){
-      result=create.expression(StandardOperator.Star,extra,res);
-    } else {
-      result=res;
-    }
+    result=res;
   }
 }

@@ -6,22 +6,17 @@ import hre.io.ModuleShell;
 import hre.util.TestReport.Verdict;
 
 import java.io.File;
-import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.EnumSet;
-import java.util.concurrent.Semaphore;
 
 import vct.silver.SilverBackend;
 import vct.util.Configuration;
-import static hre.System.Debug;
 
 public class ToolTest {
 
-  private static Object sem=new Object(){};
-  
-  public static void fail(String msg){
-    //System.err.printf("failure: %s%n",msg);
+  public static void fail(VCTResult res,String msg){
+    System.err.printf("failure: %s%n",msg);
+    res.verdict=Verdict.Error;
   }
   public VCTResult run(String ... args) {
     StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
@@ -125,7 +120,7 @@ public class ToolTest {
       }
       break;
     default:
-      fail("unknown executable: "+args[0]);
+      fail(res,"unknown executable: "+args[0]);
       return res;
     }
     if (sh!=null){
@@ -140,7 +135,7 @@ public class ToolTest {
     for(;;){
       Message msg=p.recv();
       if (msg==null){
-        fail("unexpected null message");
+        fail(res,"unexpected null message");
       }
       if (msg.getFormat().equals("stderr: %s")||msg.getFormat().equals("stdout: %s")){
         String line=msg.getArgs()[0].toString();
@@ -164,15 +159,15 @@ public class ToolTest {
         break;
       }
       if (((String)msg.getArg(0)).contains("The final verdict is Pass")){
-        if (res.verdict!=null && res.verdict != Verdict.Pass) fail("inconsistent repeated verdict ("+res.verdict+")");
-        res.verdict=Verdict.Pass;
+        if (res.verdict!=null && res.verdict != Verdict.Pass) fail(res,"inconsistent repeated verdict ("+res.verdict+")");
+        else res.verdict=Verdict.Pass;
       }
       if (((String)msg.getArg(0)).contains("The final verdict is Fail")){
-        if (res.verdict!=null && res.verdict != Verdict.Fail) fail("inconsistent repeated verdict ("+res.verdict+")");
-        res.verdict=Verdict.Fail;
+        if (res.verdict!=null && res.verdict != Verdict.Fail) fail(res,"inconsistent repeated verdict ("+res.verdict+")");
+        else res.verdict=Verdict.Fail;
       }
     }
-    if (res.verdict==null) fail("missing verdict");
+    if (res.verdict==null) fail(res,"missing verdict");
     /*
     synchronized(sem){
       System.err.printf("%s:%n",test_name);

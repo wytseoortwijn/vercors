@@ -1,7 +1,6 @@
 package vct.col.rewrite;
 
 import vct.col.ast.*;
-import static hre.System.*;
 
 public class ConstructorRewriter extends AbstractRewriter {
 
@@ -23,27 +22,6 @@ public class ConstructorRewriter extends AbstractRewriter {
        && (((StructValue)e.getExpression()).type instanceof ClassType)){
       Abort("illegal use of structvalue for constructor call");
     }
-    /*
-    if (e.getExpression().isa(StandardOperator.Build) && (((OperatorExpression)e.getExpression()).getArg(0) instanceof ClassType)){
-      OperatorExpression i=(OperatorExpression)e.getExpression();
-      ASTNode s1=create.assignment(rewrite(e.getLocation()),create.expression(StandardOperator.New,rewrite(i.getType())));
-      ASTNode args[]=i.getArguments();
-      ASTNode rw_args[]=new ASTNode[args.length-1];
-      for(int j=0;j<rw_args.length;j++){
-        rw_args[j]=rewrite(args[j+1]);
-      }
-      MethodInvokation s2=create.invokation(rewrite(e.getLocation()),null,args[0].toString()+"_init",rw_args);
-      if (i.get_before().size()>0) {
-        s2.set_before(rewrite(i.get_before()));
-      }
-      if (i.get_after().size()>0) {
-        s2.set_after(rewrite(i.get_after()));
-      }
-      copy_labels(s2,e.getExpression());
-      result=create.block(s1,s2);
-      return;
-    }
-    */
     if (e.getExpression() instanceof MethodInvokation){
       MethodInvokation i=(MethodInvokation)e.getExpression();
       if (i.getDefinition().kind==Method.Kind.Constructor) {

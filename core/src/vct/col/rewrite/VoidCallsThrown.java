@@ -1,10 +1,6 @@
 package vct.col.rewrite;
 
-import static hre.System.*;
-
-import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicInteger;
-
 import vct.col.ast.ASTFlags;
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTReserved;
@@ -12,7 +8,6 @@ import vct.col.ast.ASTSpecial;
 import vct.col.ast.AssignmentStatement;
 import vct.col.ast.BlockStatement;
 import vct.col.ast.CatchClause;
-import vct.col.ast.Contract;
 import vct.col.ast.ContractBuilder;
 import vct.col.ast.DeclarationStatement;
 import vct.col.ast.IfStatement;
@@ -32,9 +27,6 @@ public class VoidCallsThrown extends AbstractRewriter {
     super(source);
   }
   
-  /* TODO: we have a serious order bug, where
-   * statements about result are made before result is assigned.
-   */
   public void visit(NameExpression e){
     if (e.isReserved(ASTReserved.Result)){
       result=create.unresolved_name("sys__result");
@@ -167,7 +159,7 @@ public class VoidCallsThrown extends AbstractRewriter {
     if (s.getExpression() instanceof MethodInvokation){
       MethodInvokation e=(MethodInvokation)s.getExpression();
       Method m=e.getDefinition();
-      if (e==null) Abort("cannot process invokation of %s without definition",e.method);
+      if (m==null) Abort("cannot process invokation of %s without definition",e.method);
       if (m.kind==Method.Kind.Plain){
         int N=e.getArity();
         ASTNode args[]=new ASTNode[N+2];

@@ -1,13 +1,9 @@
 package vct.col.rewrite;
 
-import vct.col.ast.ASTNode;
 import vct.col.ast.ASTSpecial;
-import vct.col.ast.AssignmentStatement;
-import vct.col.ast.BlockStatement;
 import vct.col.ast.OperatorExpression;
 import vct.col.ast.ProgramUnit;
 import vct.col.ast.StandardOperator;
-import static hre.System.Debug;
 
 /**
  * This rewriter changes assignment expressions to assignment statements.

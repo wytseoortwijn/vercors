@@ -3,7 +3,6 @@ package hre.util;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Stack;
 
 /**
  * A name space with frame control and multiple definitions per name.
@@ -33,7 +32,7 @@ public class MultiNameSpace <Key,Data> implements FrameControl {
 
     KeyIterator(Key k){
       this.k=k;
-      next=new List(map,stack);
+      next=new List<Map<Key, List<Data>>>(map,stack);
     }
     public boolean hasNext(){
       for(;;){
@@ -54,7 +53,7 @@ public class MultiNameSpace <Key,Data> implements FrameControl {
   }
  
   public void enter(){
-    stack=new List(map,stack);
+    stack=new List<Map<Key, List<Data>>>(map,stack);
     map=new HashMap<Key,List<Data>>();
   }
   
@@ -62,8 +61,8 @@ public class MultiNameSpace <Key,Data> implements FrameControl {
     return new KeyIterator(k);
   }
   public void add(Key k,Data d){
-    List l=map.get(k);
-    l=new List(d,l);
+    List<Data> l=map.get(k);
+    l=new List<Data>(d,l);
     map.put(k, l);
   }
   public void leave(){

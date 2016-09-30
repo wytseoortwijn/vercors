@@ -1,51 +1,29 @@
 package vct.silver;
 
-import java.io.PrintWriter;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Map;
-import java.util.SortedMap;
-import java.util.TreeMap;
 import java.util.Map.Entry;
-import java.util.Properties;
-
 import hre.HREError;
 import hre.ast.MessageOrigin;
 import hre.ast.Origin;
-import vct.col.ast.ASTFlags;
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTReserved;
-import vct.col.ast.ASTSpecial.Kind;
-import vct.col.ast.Axiom;
-import vct.col.ast.AxiomaticDataType;
-import vct.col.ast.BindingExpression;
-import vct.col.ast.BlockStatement;
-import vct.col.ast.ClassType;
-import vct.col.ast.ContractBuilder;
 import vct.col.ast.DeclarationStatement;
-import vct.col.ast.Method;
 import vct.col.ast.MethodInvokation;
-import vct.col.ast.NameExpression;
-import vct.col.ast.PrimitiveType;
 import vct.col.ast.PrimitiveType.Sort;
-import vct.col.ast.ProgramUnit;
 import vct.col.ast.StandardOperator;
 import vct.col.ast.Type;
 import vct.col.util.ASTFactory;
-import vct.error.VerificationError;
 import viper.api.ExpressionFactory;
-import viper.api.OriginFactory;
-import viper.api.VerificationControl;
-import viper.api.ViperError;
 
 public class VerCorsExpressionFactory implements
     ExpressionFactory<Origin, Type, ASTNode> {
 
-  public VerCorsExpressionFactory(ASTFactory create){
+  public VerCorsExpressionFactory(ASTFactory<?> create){
     this.create=create;
   }
   
-  private ASTFactory create;
+  private ASTFactory<?> create;
   
   @Override
   public ASTNode add(Origin o, ASTNode e1, ASTNode e2) {
@@ -161,7 +139,7 @@ public class VerCorsExpressionFactory implements
   }
 
   private <E extends ASTNode> ASTNode[] toArray(Map<String, E> map){
-    ArrayList<ASTNode> list=new ArrayList();
+    ArrayList<ASTNode> list=new ArrayList<ASTNode>();
     for(Entry<String, E> e:map.entrySet()){
       ASTNode n=e.getValue();
       n.addLabel(create.label(e.getKey()));
@@ -449,7 +427,6 @@ public class VerCorsExpressionFactory implements
 
   @Override
   public ASTNode range(Origin o, ASTNode e1, ASTNode e2) {
-    // TODO Auto-generated method stub
     throw new HREError("missing case");
   }
 
@@ -521,7 +498,6 @@ public class VerCorsExpressionFactory implements
 
   @Override
   public ASTNode union(Origin o, ASTNode e1, ASTNode e2) {
-    // TODO Auto-generated method stub
     throw new HREError("missing case");
   }
 

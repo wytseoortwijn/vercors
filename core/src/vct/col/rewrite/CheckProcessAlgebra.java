@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Hashtable;
 
-import vct.col.ast.BindingExpression.Binder;
 import vct.col.ast.PrimitiveType.Sort;
 import vct.col.ast.*;
 import vct.col.util.ASTUtils;
@@ -138,17 +137,6 @@ public class CheckProcessAlgebra extends AbstractRewriter {
         for(int i=0;i<N;i++){
           arg_names[i]=create.local_name(m.getArgument(i));
         }
-        ASTNode eq=create.binder(
-            Binder.FORALL,
-            create.primitive_type(Sort.Boolean),
-            copy_rw.rewrite(m.getArgs()),
-            new ASTNode[0][],
-            create.constant(true),
-            create.expression(StandardOperator.EQ,
-                rewrite(m.getBody()),
-                create.invokation(null, null,"p_"+m.name , arg_names)
-            )
-        );
       }
       result=create.method_decl(create.primitive_type(Sort.Void), cb.getContract(), m.name, args, body);
     } else {
@@ -178,6 +166,7 @@ public class CheckProcessAlgebra extends AbstractRewriter {
     }
   }
 
+  @SuppressWarnings("incomplete-switch")
   private ASTNode expand_unguarded(ASTNode m_body) {
     if (m_body instanceof MethodInvokation){
       MethodInvokation p=(MethodInvokation)m_body;
@@ -185,7 +174,7 @@ public class CheckProcessAlgebra extends AbstractRewriter {
       if (def.getBody()==null){
         return m_body;
       } else {
-        Hashtable<NameExpression,ASTNode> map=new Hashtable();
+        Hashtable<NameExpression,ASTNode> map=new Hashtable<NameExpression, ASTNode>();
         int N=def.getArity();
         for(int i=0;i<N;i++){
           map.put(create.unresolved_name(def.getArgument(i)),copy_rw.rewrite(p.getArg(i)));
@@ -259,7 +248,7 @@ public class CheckProcessAlgebra extends AbstractRewriter {
         MethodInvokation m0=(MethodInvokation)p1;
         if (!(other instanceof MethodInvokation)) break;
         MethodInvokation m1=(MethodInvokation)other;
-        ArrayList<ASTNode> args=new ArrayList();
+        ArrayList<ASTNode> args=new ArrayList<ASTNode>();
         String key=":"+m0.method+":"+m1.method+":";
         String merged=composite_map.get(key);
         if (merged==null){
@@ -278,6 +267,8 @@ public class CheckProcessAlgebra extends AbstractRewriter {
         ASTNode g1=left_merge(p1,other);
         return create.expression(StandardOperator.ITE,b,g0,g1);
       }
+      default:
+        break;
       }
     }
     Fail("illegal process expression in left_merge");

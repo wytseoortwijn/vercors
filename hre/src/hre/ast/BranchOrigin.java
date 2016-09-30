@@ -19,7 +19,7 @@ public class BranchOrigin extends WrappingOrigin {
   
   @Override
   public void report(String level, Iterable<String> message) {
-    ArrayList<String> tmp=new ArrayList();
+    ArrayList<String> tmp=new ArrayList<String>();
     tmp.add(String.format("in branch %s:", branch));
     for(String line:message){
       tmp.add(line);
@@ -29,7 +29,7 @@ public class BranchOrigin extends WrappingOrigin {
 
   @Override
   public void report(String level, String... message) {
-    ArrayList<String> tmp=new ArrayList();
+    ArrayList<String> tmp=new ArrayList<String>();
     tmp.add(String.format("in branch %s:", branch));
     for(String line:message){
       tmp.add(line);

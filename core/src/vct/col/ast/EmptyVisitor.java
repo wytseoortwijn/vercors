@@ -138,12 +138,6 @@ public class EmptyVisitor<T> implements ASTVisitor<T> {
   }
 
   @Override
-  public void visit(ASTWith astWith) {
-    // TODO Auto-generated method stub
-    
-  }
-
-  @Override
   public void visit(BindingExpression e) {
     // TODO Auto-generated method stub
     

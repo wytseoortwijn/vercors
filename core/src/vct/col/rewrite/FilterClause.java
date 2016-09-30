@@ -26,8 +26,10 @@ public class FilterClause extends AbstractRewriter {
       case PointsTo:
         result=create.expression(StandardOperator.Perm,copy_rw.rewrite(e.getArg(0)),copy_rw.rewrite(e.getArg(1)));
         return;
+      default:
+        result=create.constant(true);
+        return;
       }
-      result=create.constant(true);
     } else {
       switch(e.getOperator()){
       case Perm:
@@ -36,8 +38,10 @@ public class FilterClause extends AbstractRewriter {
       case PointsTo:
         result=create.expression(StandardOperator.EQ,copy_rw.rewrite(e.getArg(0)),copy_rw.rewrite(e.getArg(2)));
         return;
+      default:
+        super.visit(e);
+        return;
       }
-      super.visit(e);
     }
   }
   

@@ -5,21 +5,12 @@ import hre.ast.MessageOrigin;
 import hre.ast.Origin;
 
 import java.io.File;
-import java.util.List;
-import java.util.Properties;
-
 import vct.col.ast.ASTClass;
-import vct.col.ast.ASTDeclaration;
 import vct.col.ast.ASTNode;
-import vct.col.ast.Axiom;
-import vct.col.ast.AxiomaticDataType;
 import vct.col.ast.DeclarationStatement;
-import vct.col.ast.Method;
 import vct.col.ast.ProgramUnit;
-import vct.col.ast.Type;
 import vct.error.VerificationError;
 import viper.api.ViperAPI;
-import viper.api.ViperError;
 
 public class ColSilverParser implements vct.col.util.Parser {
 

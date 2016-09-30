@@ -1,6 +1,5 @@
 package vct.col.util;
 
-import hre.HREError;
 import hre.ast.MessageOrigin;
 import hre.ast.Origin;
 import hre.ast.WrappingOrigin;

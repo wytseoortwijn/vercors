@@ -3,7 +3,6 @@ package vct.clang.printer;
 import hre.ast.TrackingOutput;
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTReserved;
-import vct.col.ast.StandardOperator;
 import vct.col.syntax.Syntax;
 import vct.col.syntax.VerCorsSyntax;
 import static vct.col.ast.StandardOperator.*;

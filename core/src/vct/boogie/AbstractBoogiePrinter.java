@@ -8,9 +8,6 @@ import vct.col.ast.*;
 import vct.col.print.AbstractPrinter;
 import vct.col.syntax.Syntax;
 import vct.col.util.ASTUtils;
-import vct.util.*;
-import static hre.System.Fail;
-
 
 /**
  * This class contains a pretty printer for the common part of Boogie and Chalice.
@@ -58,7 +55,7 @@ public abstract class AbstractBoogiePrinter extends AbstractPrinter {
     }
     Contract c=e.getDefinition().getContract();
     if (c!=null){
-      HashMap<String,ASTNode> yield_map=new HashMap();
+      HashMap<String,ASTNode> yield_map=new HashMap<String,ASTNode>();
       BlockStatement block=e.get_after();
       if (block!=null){
         int N=block.getLength();
@@ -96,7 +93,7 @@ public abstract class AbstractBoogiePrinter extends AbstractPrinter {
     }
     out.printf("%s(",e.method);
     next="";
-    HashMap<String,ASTNode> map=new HashMap();
+    HashMap<String,ASTNode> map=new HashMap<String,ASTNode>();
     for(int i=0;i<args.length;i++){
       if (args[i].labels()>0) {
         if (i>=types.length || types[i].getInit()!=null){
@@ -160,7 +157,6 @@ public abstract class AbstractBoogiePrinter extends AbstractPrinter {
   }
   public void visit(AssignmentStatement s){
     if (in_expr) throw new Error("assignment is a statement in chalice");
-    ASTNode expr=s.getExpression();
     nextExpr();
     s.getLocation().accept(this);
     out.printf(" := ");

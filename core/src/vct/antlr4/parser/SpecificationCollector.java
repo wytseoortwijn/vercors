@@ -1,27 +1,10 @@
 package vct.antlr4.parser;
 
-import hre.ast.FileOrigin;
-import hre.io.FifoStream;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.PrintStream;
-import java.util.ArrayList;
-
-import org.antlr.v4.runtime.ANTLRInputStream;
-import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.tree.ParseTree;
 
 import vct.col.ast.*;
 import vct.col.ast.ASTSpecial.Kind;
 import vct.col.rewrite.AbstractRewriter;
 import vct.col.syntax.Syntax;
-import vct.parsers.CMLLexer;
-import vct.parsers.CMLParser;
-import static hre.System.*;
-
-import org.antlr.v4.runtime.Parser;
-import org.antlr.v4.runtime.Lexer;
 
 /**
  * Rewrite an AST with specifications in the form of comments
@@ -50,6 +33,7 @@ public class SpecificationCollector extends AbstractRewriter {
     case Yields:
     case Requires:
     case Ensures:
+    case RequiresAndEnsures:
     case Invariant:
     case Modifies:
     case Accessible:
@@ -99,6 +83,10 @@ public class SpecificationCollector extends AbstractRewriter {
       currentContractBuilder.requires(rewrite(s.args[0]));
       break;
     case Ensures:
+      currentContractBuilder.ensures(rewrite(s.args[0]));
+      break;
+    case RequiresAndEnsures:
+      currentContractBuilder.requires(rewrite(s.args[0]));
       currentContractBuilder.ensures(rewrite(s.args[0]));
       break;
     case Invariant:
@@ -191,6 +179,8 @@ public class SpecificationCollector extends AbstractRewriter {
           currentContractBuilder.ensures(rewrite(sp.args[0]));
           continue;
         }
+        default:
+          break;
         }
       } else if (n instanceof ASTSpecial){
         ASTSpecial sp=(ASTSpecial)n; 
@@ -207,6 +197,8 @@ public class SpecificationCollector extends AbstractRewriter {
           }
           continue;
         }
+        default:
+          break;
         }
       }
       new_current.add_statement(rewrite(n));

@@ -6,20 +6,17 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.Queue;
-import java.util.concurrent.LinkedBlockingQueue;
 
 import hre.HREError;
 import hre.ast.FileOrigin;
 import hre.ast.MessageOrigin;
 import hre.ast.Origin;
 import vct.col.ast.*;
-import vct.col.ast.ASTClass.ClassKind;
 import vct.col.ast.Method.Kind;
 import vct.col.ast.NameSpace.Import;
 import vct.col.rewrite.AbstractRewriter;
 import vct.col.util.Parser;
 import vct.util.ClassName;
-import vct.util.Configuration;
 
 public class JavaResolver extends AbstractRewriter {
 
@@ -52,7 +49,7 @@ public class JavaResolver extends AbstractRewriter {
     try {
       ClassName cln=new ClassName(name);
       String cl_name=cln.toString();
-      Class cl=path.loadClass(cl_name);
+      Class<?> cl=path.loadClass(cl_name);
       System.err.printf("loading %s%n",cl_name);
       create.enter();
       create.setOrigin(new MessageOrigin("library class %s",cl_name));
@@ -60,9 +57,9 @@ public class JavaResolver extends AbstractRewriter {
       target().library_add(cln,res);
       target().library_add(new ClassName(cln.toString(FQN_SEP)),res);
       for(java.lang.reflect.Method m:cl.getMethods()){
-        Class c=m.getReturnType();
+        Class<?> c=m.getReturnType();
         Type returns = convert_type(c);
-        Class pars[]=m.getParameterTypes();
+        Class<?> pars[]=m.getParameterTypes();
         DeclarationStatement args[]=new DeclarationStatement[pars.length];
         for(int i=0;i<pars.length;i++){
           args[i]=create.field_decl("x"+i, convert_type(pars[i]));
@@ -76,7 +73,7 @@ public class JavaResolver extends AbstractRewriter {
         res.add(ast);
       }
       for (java.lang.reflect.Constructor<?> m : cl.getConstructors()) {
-    	  Class pars[]=m.getParameterTypes();
+    	  Class<?> pars[]=m.getParameterTypes();
     	  DeclarationStatement args[]=new DeclarationStatement[pars.length];
     	  for(int i=0;i<pars.length;i++){
     		  args[i]=create.field_decl("x"+i, convert_type(pars[i]));
@@ -85,7 +82,7 @@ public class JavaResolver extends AbstractRewriter {
     	  res.add(ast);
       }
       for(java.lang.reflect.Field field:cl.getFields()){
-        Class type=field.getType();
+        Class<?> type=field.getType();
         DeclarationStatement decl=create.field_decl(field.getName(),convert_type(type));
         decl.setFlag(ASTFlags.STATIC,Modifier.isStatic(field.getModifiers()));
         res.add(decl);
@@ -125,7 +122,7 @@ public class JavaResolver extends AbstractRewriter {
     return false;
   }
 
-  protected Type convert_type(Class c) {
+  protected Type convert_type(Class<?> c) {
     Type returns=null;
     if (c.isPrimitive()){
       switch(c.toString()){

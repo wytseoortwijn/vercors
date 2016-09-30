@@ -11,7 +11,7 @@ public class PropagateInvariants extends AbstractRewriter {
     super(source);
   }
   
-  private Stack<ASTNode> invariants=new Stack();
+  private Stack<ASTNode> invariants=new Stack<ASTNode>();
   
   @Override
   public void visit(Method m){
@@ -63,7 +63,7 @@ public class PropagateInvariants extends AbstractRewriter {
   
   @Override
   public void visit(ParallelInvariant inv){
-    ArrayList <ASTNode> invs=new ArrayList();
+    ArrayList <ASTNode> invs=new ArrayList<ASTNode>();
     for(ASTNode n:invariants) { invs.add(rewrite(n)); }
     invs.add(rewrite(inv.inv));
     result=create.invariant_block(inv.label,create.fold(StandardOperator.Star,invs),rewrite(inv.block));

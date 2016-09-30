@@ -16,30 +16,35 @@ import vct.col.ast.PrimitiveType.Sort;
 import vct.col.util.ASTUtils;
 import vct.col.util.NameScanner;
 import vct.col.util.OriginWrapper;
-import vct.util.Configuration;
-
+import vct.logging.ErrorMapping;
+import vct.logging.VerCorsError.ErrorCode;
 
 public class ParallelBlockEncoder extends AbstractRewriter {
 
-  public ParallelBlockEncoder(ProgramUnit source) {
+  public static final String ENTER_INVARIANT="enter_inv";
+  public static final String LEAVE_ATOMIC="leave_atomic";
+  
+  public ParallelBlockEncoder(ProgramUnit source, ErrorMapping map) {
     super(source);
+    map.add(ENTER_INVARIANT,
+        ErrorCode.ExhaleFailed,
+        ErrorCode.InvariantNotEstablished);
+    map.add(LEAVE_ATOMIC,
+        ErrorCode.ExhaleFailed,
+        ErrorCode.InvariantBroken);
   }
 
   private int count=0;
-  private Stack<ASTNode> inv_blocks=new Stack();
-  private Stack<ParallelBlock> blocks=new Stack();
-  //private DeclarationStatement iter_decls[];
-  //private ASTNode iters_guard;
-  private DeclarationStatement iter_decls_prime[];
-  private ASTNode iters_guard_prime_before;
-  private ASTNode iters_guard_prime_after;
-  private Substitution sigma_prime;
+  private Stack<ASTNode> inv_blocks=new Stack<ASTNode>();
+  private Stack<ParallelBlock> blocks=new Stack<ParallelBlock>();
   
   @Override
   public void visit(ParallelInvariant inv){
     inv_blocks.push(inv);
     BlockStatement block=rewrite(inv.block);
-    block.prepend(create.special(ASTSpecial.Kind.Exhale,rewrite(inv.inv)));
+    ASTNode exhale=create.special(ASTSpecial.Kind.Exhale,rewrite(inv.inv));
+    exhale.set_branch(ENTER_INVARIANT);
+    block.prepend(exhale);
     block.append(create.special(ASTSpecial.Kind.Inhale,rewrite(inv.inv)));
     result=block;
     inv_blocks.pop();
@@ -68,7 +73,7 @@ public class ParallelBlockEncoder extends AbstractRewriter {
     */
     DeclarationStatement iter_decls[] = new DeclarationStatement[pb.iters.length];
     //iter_decls_prime = new DeclarationStatement[pb.iters.length];
-    ArrayList<ASTNode> guard_list=new ArrayList();
+    ArrayList<ASTNode> guard_list=new ArrayList<ASTNode>();
     /*
     ArrayList<ASTNode> guard_prime_list_before=new ArrayList();
     ArrayList<ASTNode> guard_prime_list_after=new ArrayList();
@@ -139,118 +144,78 @@ public class ParallelBlockEncoder extends AbstractRewriter {
       Fail("barrier outside of parallel block");
     }
     BlockStatement res=rewrite(pb.body);
-    //if (res==null){
-      ContractBuilder main_cb=new ContractBuilder();
-      ContractBuilder check_cb=new ContractBuilder();
-      Hashtable<String,Type> main_vars=free_vars(pb);
-      Hashtable<String,Type> check_vars=new Hashtable(main_vars);
-      ParallelBlock blk=null;
-      for(ParallelBlock b:blocks){
-        if(b.label.equals(pb.label)){
-          blk=b;
-        }
+    ContractBuilder main_cb=new ContractBuilder();
+    ContractBuilder check_cb=new ContractBuilder();
+    Hashtable<String,Type> main_vars=free_vars(pb);
+    Hashtable<String,Type> check_vars=new Hashtable<String, Type>(main_vars);
+    ParallelBlock blk=null;
+    for(ParallelBlock b:blocks){
+      if(b.label.equals(pb.label)){
+        blk=b;
       }
-      if(blk==null){
-        Fail("Block %s not found on block stack",pb.label);
-      }
-      ArrayList<ASTNode> guard_list=new ArrayList();
-      ArrayList<DeclarationStatement> guard_decls=new ArrayList();
-      for(DeclarationStatement decl:blk.iters){
-        ASTNode tmp=create.expression(StandardOperator.Member,create.unresolved_name(decl.name),decl.getInit());
-        guard_list.add(tmp);
-        tmp=create.expression(StandardOperator.Size,decl.getInit());
-        tmp=create.expression(StandardOperator.GT,tmp,create.constant(0));
-        check_cb.requires(tmp);
-        check_cb.ensures(tmp);
-        guard_decls.add(create.field_decl(decl.name, decl.getType()));
-        check_vars.remove(decl.name);
-      }
-      ASTNode iters_guard=create.fold(StandardOperator.And,guard_list);
-      DeclarationStatement iters_decl[]=guard_decls.toArray(new DeclarationStatement[0]);
-      for(ASTNode clause:ASTUtils.conjuncts(pb.contract.pre_condition, StandardOperator.Star)){
-        if (clause.getType().isBoolean()){
-          check_cb.requires(create.forall(iters_guard, clause,iters_decl));
-        } else {
-          check_cb.requires(create.starall(iters_guard, clause,iters_decl));
-        }
-      }
-      for(ASTNode clause:ASTUtils.conjuncts(pb.contract.post_condition, StandardOperator.Star)){
-        if (clause.getType().isBoolean()){
-          check_cb.ensures(create.forall(iters_guard, clause,iters_decl));
-        } else {
-          check_cb.ensures(create.starall(iters_guard, clause,iters_decl));
-        }
-      }
-      check_cb.appendInvariant(pb.contract.invariant);
-      count++;
-      String main_name="barrier_main_"+count;
-      String check_name="barrier_check_"+count;
-      rewrite(pb.contract,main_cb);
-      for(ASTNode ib:inv_blocks){
-        if (ib instanceof ParallelInvariant){
-          ParallelInvariant inv=(ParallelInvariant)ib;
-          if (pb.invs.contains(inv.label)){
-            check_cb.requires(inv.inv);
-            check_cb.ensures(inv.inv);
-          }
-        } else {
-          Abort("unexpected kind of invariant: %s",ib.getClass());
-        }
-      }
-      currentTargetClass.add(create.method_decl(
-          create.primitive_type(Sort.Void),
-          check_cb.getContract(),
-          check_name,
-          gen_pars(check_vars),
-          res
-      ));
-      currentTargetClass.add(create.method_decl(
-          create.primitive_type(Sort.Void),
-          main_cb.getContract(),
-          main_name,
-          gen_pars(main_vars),
-          null
-      ));
-      result=gen_call(main_name,main_vars);
-    //} else {
-      
-    if (false){
-      Abort("Cannot encode barrier with statements");
-      //res.prepend(create.special(ASTSpecial.Kind.Inhale,blocks.peek().inv));
-      for(ASTNode clause:ASTUtils.reverse(ASTUtils.conjuncts(pb.contract.pre_condition, StandardOperator.Star))){
-        ASTNode cl;
-        if (clause.getType().isBoolean()){
-          cl=create.forall(copy_rw.rewrite(iters_guard_prime_before), sigma_prime.rewrite(clause) , iter_decls_prime);
-        } else {
-          cl=create.starall(copy_rw.rewrite(iters_guard_prime_before), sigma_prime.rewrite(clause) , iter_decls_prime);
-        }
-        res.prepend(create.special(ASTSpecial.Kind.Inhale,cl));
-        if (clause.getType().isBoolean()){
-          cl=create.forall(copy_rw.rewrite(iters_guard_prime_after), sigma_prime.rewrite(clause) , iter_decls_prime);
-        } else {
-          cl=create.starall(copy_rw.rewrite(iters_guard_prime_after), sigma_prime.rewrite(clause) , iter_decls_prime);
-        }
-        res.prepend(create.special(ASTSpecial.Kind.Inhale,cl));
-      }
-      
-      //res.append(create.special(ASTSpecial.Kind.Exhale,blocks.peek().inv));
-      for(ASTNode clause:ASTUtils.reverse(ASTUtils.conjuncts(pb.contract.post_condition, StandardOperator.Star))){
-        ASTNode cl;
-        if (clause.getType().isBoolean()){
-          cl=create.forall(copy_rw.rewrite(iters_guard_prime_before), sigma_prime.rewrite(clause) , iter_decls_prime);
-        } else {
-          cl=create.starall(copy_rw.rewrite(iters_guard_prime_before), sigma_prime.rewrite(clause) , iter_decls_prime);
-        }
-        res.append(create.special(ASTSpecial.Kind.Exhale,cl));
-        if (clause.getType().isBoolean()){
-          cl=create.forall(copy_rw.rewrite(iters_guard_prime_after), sigma_prime.rewrite(clause) , iter_decls_prime);
-        } else {
-          cl=create.starall(copy_rw.rewrite(iters_guard_prime_after), sigma_prime.rewrite(clause) , iter_decls_prime);
-        }
-        res.append(create.special(ASTSpecial.Kind.Exhale,cl));
-      }
-      result=res;
     }
+    if(blk==null){
+      Fail("Block %s not found on block stack",pb.label);
+    }
+    ArrayList<ASTNode> guard_list=new ArrayList<ASTNode>();
+    ArrayList<DeclarationStatement> guard_decls=new ArrayList<DeclarationStatement>();
+    for(DeclarationStatement decl:blk.iters){
+      ASTNode tmp=create.expression(StandardOperator.Member,create.unresolved_name(decl.name),decl.getInit());
+      guard_list.add(tmp);
+      tmp=create.expression(StandardOperator.Size,decl.getInit());
+      tmp=create.expression(StandardOperator.GT,tmp,create.constant(0));
+      check_cb.requires(tmp);
+      check_cb.ensures(tmp);
+      guard_decls.add(create.field_decl(decl.name, decl.getType()));
+      check_vars.remove(decl.name);
+    }
+    ASTNode iters_guard=create.fold(StandardOperator.And,guard_list);
+    DeclarationStatement iters_decl[]=guard_decls.toArray(new DeclarationStatement[0]);
+    for(ASTNode clause:ASTUtils.conjuncts(pb.contract.pre_condition, StandardOperator.Star)){
+      if (clause.getType().isBoolean()){
+        check_cb.requires(create.forall(iters_guard, clause,iters_decl));
+      } else {
+        check_cb.requires(create.starall(iters_guard, clause,iters_decl));
+      }
+    }
+    for(ASTNode clause:ASTUtils.conjuncts(pb.contract.post_condition, StandardOperator.Star)){
+      if (clause.getType().isBoolean()){
+        check_cb.ensures(create.forall(iters_guard, clause,iters_decl));
+      } else {
+        check_cb.ensures(create.starall(iters_guard, clause,iters_decl));
+      }
+    }
+    check_cb.appendInvariant(pb.contract.invariant);
+    count++;
+    String main_name="barrier_main_"+count;
+    String check_name="barrier_check_"+count;
+    rewrite(pb.contract,main_cb);
+    for(ASTNode ib:inv_blocks){
+      if (ib instanceof ParallelInvariant){
+        ParallelInvariant inv=(ParallelInvariant)ib;
+        if (pb.invs.contains(inv.label)){
+          check_cb.requires(inv.inv);
+          check_cb.ensures(inv.inv);
+        }
+      } else {
+        Abort("unexpected kind of invariant: %s",ib.getClass());
+      }
+    }
+    currentTargetClass.add(create.method_decl(
+        create.primitive_type(Sort.Void),
+        check_cb.getContract(),
+        check_name,
+        gen_pars(check_vars),
+        res
+    ));
+    currentTargetClass.add(create.method_decl(
+        create.primitive_type(Sort.Void),
+        main_cb.getContract(),
+        main_name,
+        gen_pars(main_vars),
+        null
+    ));
+    result=gen_call(main_name,main_vars);
   }
 
   @Override
@@ -290,16 +255,16 @@ public class ParallelBlockEncoder extends AbstractRewriter {
         ));
         body.add(gen_call(block_name,block_vars));
       }
-      HashMap<String,ParallelBlock> blocks=new HashMap();
-      HashMap<String,HashSet<String>> may_deps=new HashMap();
-      HashMap<String,HashSet<String>> must_deps=new HashMap();
+      HashMap<String,ParallelBlock> blocks=new HashMap<String, ParallelBlock>();
+      HashMap<String,HashSet<String>> may_deps=new HashMap<String, HashSet<String>>();
+      HashMap<String,HashSet<String>> must_deps=new HashMap<String, HashSet<String>>();
       for(ParallelBlock pb:region.blocks){
         /* before is a set of blocks that are guaranteed
          * not to run concurrently with the current block.
          */
-        HashSet<String> may=new HashSet();
+        HashSet<String> may=new HashSet<String>();
         may.add(pb.label);
-        HashSet<String> must=new HashSet();
+        HashSet<String> must=new HashSet<String>();
         must.add(pb.label);
         for(int i=0;i<pb.deps.length;i++){
           ASTNode d=pb.deps[i];
@@ -344,12 +309,12 @@ public class ParallelBlockEncoder extends AbstractRewriter {
             gen_consistent(region,blocks.get(d),pb,may.contains(d));
             if (may.contains(d)){
               ParallelBlock pb2=blocks.get(d);
-              ArrayList<ASTNode> conds=new ArrayList();
-              ArrayList<DeclarationStatement> decls=new ArrayList();
+              ArrayList<ASTNode> conds=new ArrayList<ASTNode>();
+              ArrayList<DeclarationStatement> decls=new ArrayList<DeclarationStatement>();
               for(DeclarationStatement decl:pb2.iters){
                 decls.add(create.field_decl("x_"+decl.name, decl.getType()));
               }
-              HashMap<NameExpression, ASTNode> map=new HashMap();
+              HashMap<NameExpression, ASTNode> map=new HashMap<NameExpression, ASTNode>();
               Substitution sigma=new Substitution(source(),map);
               for(DeclarationStatement decl:pb.iters){
                 decls.add(create.field_decl("y_"+decl.name, decl.getType()));
@@ -359,7 +324,7 @@ public class ParallelBlockEncoder extends AbstractRewriter {
                 MethodInvokation dep=(MethodInvokation)dep_tmp;
                 String dname=dep.method;
                 if (pb2.label.equals(dname)){
-                  ArrayList<ASTNode> parts=new ArrayList();
+                  ArrayList<ASTNode> parts=new ArrayList<ASTNode>();
                   for(int i=0;i<pb2.iters.length;i++){
                     if (!dep.getArg(i).isReserved(ASTReserved.Any)){
                       parts.add(create.expression(StandardOperator.EQ,
@@ -375,7 +340,7 @@ public class ParallelBlockEncoder extends AbstractRewriter {
                     conds.add(create.constant(true));
                     break;
                   }
-                  ArrayList<DeclarationStatement> exists=new ArrayList();
+                  ArrayList<DeclarationStatement> exists=new ArrayList<DeclarationStatement>();
                   ASTNode args[]=new ASTNode[pb2.iters.length+pb1.iters.length];
                   for(int i=0;i<pb2.iters.length;i++){
                     args[i]=create.argument_name("x_"+pb2.iters[i].name);
@@ -422,9 +387,9 @@ public class ParallelBlockEncoder extends AbstractRewriter {
   
   private void gen_consistent(ParallelRegion region, ParallelBlock pb1, ParallelBlock pb2, boolean guard) {
     ASTNode pre_condition=region.contract.pre_condition;
-    HashMap<NameExpression, ASTNode> map1=new HashMap();
+    HashMap<NameExpression, ASTNode> map1=new HashMap<NameExpression, ASTNode>();
     Substitution sigma1=new Substitution(source(),map1);
-    HashMap<NameExpression, ASTNode> map2=new HashMap();
+    HashMap<NameExpression, ASTNode> map2=new HashMap<NameExpression, ASTNode>();
     Substitution sigma2=new Substitution(source(),map2);
     ContractBuilder cb=new ContractBuilder();
     if (region.contract!=null){
@@ -432,7 +397,7 @@ public class ParallelBlockEncoder extends AbstractRewriter {
     }
     cb.requires(pre_condition);
     Hashtable<String,Type> main_vars=free_vars(pre_condition);
-    ArrayList<ASTNode> list=new ArrayList();
+    ArrayList<ASTNode> list=new ArrayList<ASTNode>();
     int N=0;
     for(DeclarationStatement decl:pb1.iters){
       String name="x"+(++N);
@@ -506,7 +471,7 @@ public class ParallelBlockEncoder extends AbstractRewriter {
               ParallelInvariant inv=(ParallelInvariant)ib;
               if (inv.label.equals(name.toString())){
                 block.prepend(create.special(ASTSpecial.Kind.Inhale,inv.inv));
-                block.append(create.special(ASTSpecial.Kind.Exhale,inv.inv));
+                block.append(create.special(ASTSpecial.Kind.Exhale,inv.inv).set_branch(LEAVE_ATOMIC));
                 found=true;
               }
             }
@@ -547,20 +512,19 @@ public class ParallelBlockEncoder extends AbstractRewriter {
   
   private String current_label;
   
-  private Stack<ASTNode> guard_stack=new Stack();
+  private Stack<ASTNode> guard_stack=new Stack<ASTNode>();
   
   private ASTNode loop_invariant;
   
   private class SendRecvInfo {
-    final String label=current_label;
-    final ArrayList<ASTNode> guards=new ArrayList(guard_stack);
+    final ArrayList<ASTNode> guards=new ArrayList<ASTNode>(guard_stack);
     final ASTNode stat;
     public SendRecvInfo(ASTNode stat){
       this.stat=stat;
     }
   }
   
-  private HashMap<String,SendRecvInfo> send_recv_map=new HashMap();
+  private HashMap<String,SendRecvInfo> send_recv_map=new HashMap<String, SendRecvInfo>();
   
   @Override
   public void enter(ASTNode node){
@@ -605,8 +569,8 @@ public class ParallelBlockEncoder extends AbstractRewriter {
         
       String send_name="send_body_"+N;
       
-        ArrayList<DeclarationStatement> send_decl=new ArrayList();// declaration of parameters for send_check
-        ArrayList<ASTNode> send_args=new ArrayList();// the arguments to the host_check method
+        ArrayList<DeclarationStatement> send_decl=new ArrayList<DeclarationStatement>();// declaration of parameters for send_check
+        ArrayList<ASTNode> send_args=new ArrayList<ASTNode>();// the arguments to the host_check method
         
         vars=new Hashtable<String,Type>();
         {
@@ -665,8 +629,8 @@ public class ParallelBlockEncoder extends AbstractRewriter {
       send_recv_map.put(current_label,new SendRecvInfo(e));
       
       String recv_name="recv_body_"+N;              
-        ArrayList<DeclarationStatement> recv_decl=new ArrayList();// declaration of parameters for send_check
-        ArrayList<ASTNode> recv_args=new ArrayList();// the arguments to the host_check method
+        ArrayList<DeclarationStatement> recv_decl=new ArrayList<DeclarationStatement>();// declaration of parameters for send_check
+        ArrayList<ASTNode> recv_args=new ArrayList<ASTNode>();// the arguments to the host_check method
         
         vars=new Hashtable<String,Type>();
         {
@@ -736,7 +700,7 @@ public class ParallelBlockEncoder extends AbstractRewriter {
     Hashtable<String,Type> body_vars=free_vars(s.body,c,s.guard);
     //System.out.printf("free in %s are %s%n",s.body,body_vars);
     //Hashtable<String,Type> iters=new Hashtable<String,Type>();
-    Hashtable<String,Type> main_vars=new Hashtable(body_vars);
+    Hashtable<String,Type> main_vars=new Hashtable<String, Type>(body_vars);
     for(DeclarationStatement decl:s.decls){
       //iters.put(decl.name,decl.getType());
       main_vars.remove(decl.name);
@@ -766,15 +730,9 @@ public class ParallelBlockEncoder extends AbstractRewriter {
     }
     
     DeclarationStatement iter_decls[] = s.decls;
-    outer:for(ASTNode clause:ASTUtils.conjuncts(c.pre_condition, StandardOperator.Star)){
+    for(ASTNode clause:ASTUtils.conjuncts(c.pre_condition, StandardOperator.Star)){
       if (clause.getType().isBoolean()){
-        //for(DeclarationStatement decl:iter_decls){
-          //if (ASTUtils.find_name(clause,decl.name)){
-            main_cb.requires(create.forall(copy_rw.rewrite(s.guard), rewrite(clause) , iter_decls));
-            //continue outer;
-          //}
-        //}
-        //main_cb.requires(rewrite(clause));
+        main_cb.requires(create.forall(copy_rw.rewrite(s.guard), rewrite(clause) , iter_decls));
       } else if (clause.isa(StandardOperator.ReducibleSum)){
         OperatorExpression expr=(OperatorExpression) clause;
         main_cb.requires(create.expression(StandardOperator.Perm,
@@ -796,15 +754,9 @@ public class ParallelBlockEncoder extends AbstractRewriter {
         main_cb.requires(create.starall(copy_rw.rewrite(s.guard), rewrite(clause) , iter_decls));
       }
     }
-    outer:for(ASTNode clause:ASTUtils.conjuncts(c.post_condition, StandardOperator.Star)){
+    for(ASTNode clause:ASTUtils.conjuncts(c.post_condition, StandardOperator.Star)){
       if (clause.getType().isBoolean()){
-        //for(DeclarationStatement decl:iter_decls){
-          //if (ASTUtils.find_name(clause,decl.name)){
-            main_cb.ensures(create.forall(copy_rw.rewrite(s.guard), rewrite(clause) , iter_decls));
-            //continue outer;
-          //}
-        //}
-        //main_cb.ensures(rewrite(clause));
+        main_cb.ensures(create.forall(copy_rw.rewrite(s.guard), rewrite(clause) , iter_decls));
       } else if (clause.isa(StandardOperator.Contribution)){
         OperatorExpression expr=(OperatorExpression) clause;
         main_cb.ensures(create.expression(StandardOperator.Perm,
@@ -971,7 +923,7 @@ public class ParallelBlockEncoder extends AbstractRewriter {
           Fail("distances of send(%d) and recv(%d) are different",ds,dr);
         }
         // create shift substitution.
-        HashMap<NameExpression,ASTNode> shift_map=new HashMap();
+        HashMap<NameExpression,ASTNode> shift_map=new HashMap<NameExpression, ASTNode>();
         NameExpression name=create.argument_name(var_name);
         shift_map.put(name,create.expression(StandardOperator.Minus,name,create.constant(dr)));
         Substitution shift=new Substitution(null,shift_map);

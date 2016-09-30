@@ -1,6 +1,7 @@
 package hre;
 
 import java.io.PrintStream;
+import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -58,7 +59,6 @@ public class System {
     String prefix="";
     if (where){
       StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
-      int N=stackTraceElements.length;
       int idx=2;
       while(stackTraceElements[idx].getMethodName().equals("Fail")){
         idx++;
@@ -97,7 +97,6 @@ public class System {
   public static boolean Debug(String format,Object...args){
     if (debug_map==null) return false;
     StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
-    int N=stackTraceElements.length;
     int idx=2;
     while(stackTraceElements[idx].getMethodName().equals("Debug")){
       idx++;
@@ -159,4 +158,20 @@ public class System {
     return new Failure(message);
   }
 
+  static {
+    //java.lang.System.err.printf("HRE System loaded%n");
+    final UncaughtExceptionHandler parent=Thread.getDefaultUncaughtExceptionHandler();
+    UncaughtExceptionHandler eh=new UncaughtExceptionHandler(){
+
+      @Override
+      public void uncaughtException(Thread t, Throwable e) {
+        if (e instanceof HREExitException){
+          java.lang.System.exit(((HREExitException) e).exit);
+        }
+        parent.uncaughtException(t,e);
+      }
+      
+    };
+    Thread.setDefaultUncaughtExceptionHandler(eh);
+  }
 }

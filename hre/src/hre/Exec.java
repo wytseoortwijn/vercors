@@ -1,11 +1,7 @@
 package hre;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import static hre.System.*;
 
 /**
  * Provides methods that can execute an external program.
@@ -57,11 +53,11 @@ public class Exec {
       if (stdin_copy!=null) stdin_copy.join();
       stdout_copy.join();
       if (stdout_copy.getError()!=null) {
-        hre.System.Abort("stdout error: %s%n",stdout_copy.getError());
+        throw new HREError("stdout error: %s%n",stdout_copy.getError());
       }
       stderr_copy.join();
       if (stderr_copy.getError()!=null) {
-        hre.System.Abort("stderr error: %s%n",stderr_copy.getError());
+        throw new HREError("stderr error: %s%n",stderr_copy.getError());
       }
       return exitcode;
     } catch (InterruptedException e){

@@ -1,14 +1,11 @@
 package vct.main;
 
-import java.util.Deque;
-
-import hre.util.TestReport;
 import vct.col.ast.ProgramUnit;
+import vct.logging.PassAddVisitor;
+import vct.logging.PassReport;
 
 public abstract class CompilerPass {
 
-  public TestReport report=new TestReport();
-  
   private String description;
   
   public String getDescripion(){
@@ -19,17 +16,21 @@ public abstract class CompilerPass {
     this.description=description;
   }
   
-  public ProgramUnit apply(ProgramUnit arg, String ... args){
-    throw new hre.HREError("Class %s failed to override both apply method.",getClass());
+  
+  public PassReport apply_pass(PassReport inrep, String ... args){
+    ProgramUnit arg=inrep.getOutput();
+    PassReport report=new PassReport(arg);
+    report.add(new PassAddVisitor(inrep));
+    report.setOutput(apply(report,arg,args));
+    return report;
   }
-
-  public ProgramUnit apply(Deque<String> remainder,ProgramUnit arg, String ... args){
+  
+  protected ProgramUnit apply(PassReport report,ProgramUnit arg, String ... args){
     return apply(arg,args);
   }
   
-  public void fail(String format,Object ... args){
-    report.fail(format,(Object[])args);
+  protected ProgramUnit apply(ProgramUnit arg, String ... args){
+    throw new hre.HREError("Class %s failed to override both apply method.",getClass());
   }
-  
-  
+
 }

@@ -2,7 +2,6 @@ package vct.col.util;
 
 import vct.col.ast.ASTClass;
 import vct.col.ast.ASTNode;
-import vct.col.ast.ASTWith;
 import vct.col.ast.AssignmentStatement;
 import vct.col.ast.Contract;
 import vct.col.ast.DeclarationStatement;

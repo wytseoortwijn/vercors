@@ -6,6 +6,7 @@ import java.util.HashSet;
 import vct.col.ast.ASTClass;
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTSpecial;
+import vct.col.ast.ASTSpecial.Kind;
 import vct.col.ast.BindingExpression;
 import vct.col.ast.Contract;
 import vct.col.ast.ForEachLoop;
@@ -94,16 +95,14 @@ public class FeatureScanner extends RecursiveVisitor<Object> {
     }
   }
 
-  private HashSet<String> pragmas=new HashSet();
+  private HashSet<String> pragmas=new HashSet<String>();
   
   @Override
   public void visit(ASTSpecial s){
-    switch(s.kind){
-    case Pragma:{
+    if(s.kind==Kind.Pragma){
       String pragma=((ASTSpecial)s).args[0].toString().split(" ")[0];
       pragmas.add(pragma);
-      //System.err.printf("added %s to pragmas%n",pragma);
-    }}
+    }
     specials_used.add(s.kind);
     super.visit(s);
   }
@@ -160,7 +159,7 @@ public class FeatureScanner extends RecursiveVisitor<Object> {
   
   public static boolean isIterationContract(Contract c){
     if (c==null) return false;
-    return (c.pre_condition != c.default_true || c.post_condition != c.default_true);
+    return (c.pre_condition != Contract.default_true || c.post_condition != Contract.default_true);
   }
   
   public void visit(LoopStatement s){

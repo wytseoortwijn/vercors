@@ -5,14 +5,11 @@ import hre.ast.MessageOrigin;
 
 import java.util.*;
 
-import vct.col.ast.Method.Kind;
 import vct.col.ast.PrimitiveType.Sort;
 import vct.col.rewrite.MultiSubstitution;
-import vct.col.rewrite.Substitution;
 import vct.util.ClassName;
 import static hre.System.Abort;
 import static hre.System.Debug;
-import static hre.System.Warning;
 
 /**
  * Method Declaration.
@@ -39,7 +36,7 @@ public class Method extends ASTDeclaration {
   private final Type return_type;
   private final DeclarationStatement args [];
   private final boolean var_args;
-  private Hashtable <String,Contract> spec=new Hashtable();
+  private Hashtable<String,Contract> spec=new Hashtable<String,Contract>();
   private ASTNode body;
   public final Kind kind;
   
@@ -219,7 +216,7 @@ public class Method extends ASTDeclaration {
 
   public boolean isRecursive() {
     if (this.body==null) return true;
-    HashSet<Method> scanned=new HashSet();
+    HashSet<Method> scanned=new HashSet<Method>();
     boolean res=find(this,scanned,body);
     if (res){
       Debug("function %s is recursive",name);

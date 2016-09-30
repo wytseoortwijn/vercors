@@ -13,7 +13,7 @@ public class TryCatchBlock extends ASTNode {
   public TryCatchBlock(BlockStatement main,BlockStatement after){
    this.main=main;
    this.after=after;
-   catches=new ArrayList();
+   catches=new ArrayList<CatchClause>();
   }
   
 

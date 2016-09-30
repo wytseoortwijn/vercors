@@ -42,7 +42,7 @@ class KernelBodyRewriter extends AbstractRewriter {
   
   @Override
   public void visit(Method m){
-    ArrayList<DeclarationStatement> decls=new ArrayList();
+    ArrayList<DeclarationStatement> decls=new ArrayList<DeclarationStatement>();
     DeclarationStatement inner_decl=create.field_decl(
         "opencl_lid",create.primitive_type(Sort.Integer),
         create.expression(StandardOperator.RangeSeq,

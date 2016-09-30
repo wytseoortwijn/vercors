@@ -7,9 +7,6 @@ import hre.io.ModuleShell;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -20,13 +17,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-import java.io.*;
-import java.util.*;
-
-import vct.col.ast.*;
-import vct.util.*;
-
-import static hre.System.Abort;
+import vct.util.Configuration;
 import static hre.System.Progress;
 import static hre.System.Warning;
 
@@ -116,7 +107,7 @@ public class BoogieReport extends hre.util.TestReport {
 		for(int i = 0 ; i < method_list.getLength();i++) {	
 			Element method = (Element)method_list.item(i);
 			NodeList error_list = method.getElementsByTagName("error");
-			if (/*!store.isDetailedErrorsSet()*/true) {
+			if (!Configuration.detailed_errors.get()) {
 			  if (error_list.getLength()>0){
 			    Element error = (Element)error_list.item(0);
           String message=error.getAttribute("message");
@@ -147,7 +138,6 @@ public class BoogieReport extends hre.util.TestReport {
   		    if (trace_list.getLength()>1) throw new Error("more than one trace");
   		    if (trace_list.getLength()==0) throw new Error("missing trace");
   		    System.err.printf("    trace is:\n");
-  		    Element trace=(Element)trace_list.item(0);
   		    NodeList step_list = error.getElementsByTagName("traceNode");
   		    for(int k=0;k<step_list.getLength();k++){
   		      Element step = (Element)step_list.item(k);

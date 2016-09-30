@@ -1,11 +1,8 @@
 package vct.col.rewrite;
 
-import hre.ast.MessageOrigin;
 import vct.col.ast.*;
 
 public class PVLCompiler extends AbstractRewriter {
-
-  private static String INV="lock_invariant";
 
   public PVLCompiler(ProgramUnit source) {
     super(source);

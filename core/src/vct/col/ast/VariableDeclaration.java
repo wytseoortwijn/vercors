@@ -8,7 +8,6 @@ import java.util.Map;
 
 import vct.col.rewrite.AbstractRewriter;
 import vct.col.rewrite.MultiSubstitution;
-import vct.util.ClassName;
 
 /**
  * This class represents the usual shorthand for the declaration of multiple variables.
@@ -115,8 +114,8 @@ public class VariableDeclaration extends ASTNode {
   }
     
   private ArrayList<ASTDeclaration> flatten_list(){
-    ArrayList<ASTDeclaration> list=new ArrayList();
-    Map<String,Type> map=new HashMap();
+    ArrayList<ASTDeclaration> list=new ArrayList<ASTDeclaration>();
+    Map<String,Type> map=new HashMap<String, Type>();
     AbstractRewriter rw=new MultiSubstitution(null,map);
     rw.create.setOrigin(getOrigin());
     map.put(COMMON_NAME,basetype);

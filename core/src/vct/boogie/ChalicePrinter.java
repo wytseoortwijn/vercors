@@ -3,18 +3,11 @@ package vct.boogie;
 
 import java.util.HashSet;
 
-import hre.HREError;
 import hre.ast.Origin;
 import hre.ast.TrackingOutput;
 import vct.col.ast.*;
-import vct.col.ast.ASTSpecial.Kind;
 import vct.col.ast.PrimitiveType.Sort;
 import vct.col.util.ASTUtils;
-import vct.util.Configuration;
-import static hre.System.Abort;
-import static hre.System.Debug;
-import static hre.System.Fail;
-import static hre.System.Warning;
 
 /**
  * This class contains the pretty printer for Chalice code, which is
@@ -31,7 +24,7 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
   
   public HashSet<Origin> refutes=new HashSet<Origin>();
   
-  HashSet<String> classParameters=new HashSet();
+  HashSet<String> classParameters=new HashSet<String>();
   
   public ChalicePrinter(TrackingOutput out){
     super(BoogieSyntax.getChalice(),out,false);
@@ -44,6 +37,8 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
         case FullPerm:
           out.print("100");
           return;
+      default:
+        break;
       }
     }
     super.visit(n);

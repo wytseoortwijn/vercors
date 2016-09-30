@@ -2,19 +2,16 @@ package vct.col.rewrite;
 
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTReserved;
-import vct.col.ast.AssignmentStatement;
 import vct.col.ast.AxiomaticDataType;
 import vct.col.ast.BlockStatement;
 import vct.col.ast.Method;
 import vct.col.ast.MethodInvokation;
 import vct.col.ast.NameExpression;
 import vct.col.ast.PrimitiveType;
-import vct.col.ast.NameExpression.Kind;
 import vct.col.ast.OperatorExpression;
 import vct.col.ast.ProgramUnit;
 import vct.col.ast.StandardOperator;
 import vct.util.ClassName;
-import static hre.System.Debug;
 
 /**
  * Standardize the representation of programs.

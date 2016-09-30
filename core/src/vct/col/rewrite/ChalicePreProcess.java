@@ -12,7 +12,6 @@ import vct.col.ast.IfStatement;
 import vct.col.ast.IntegerValue;
 import vct.col.ast.Method;
 import vct.col.ast.MethodInvokation;
-import vct.col.ast.NameExpression;
 import vct.col.ast.NameExpression.Kind;
 import vct.col.ast.OperatorExpression;
 import vct.col.ast.PrimitiveType;
@@ -28,7 +27,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class ChalicePreProcess extends AbstractRewriter {
 
-  private Hashtable<Type,String>cell_types=new Hashtable();
+  private Hashtable<Type,String>cell_types=new Hashtable<Type, String>();
   
   public ChalicePreProcess(ProgramUnit source) {
     super(source);

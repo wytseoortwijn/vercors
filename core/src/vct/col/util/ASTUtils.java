@@ -2,9 +2,7 @@ package vct.col.util;
 
 import java.util.EnumSet;
 import java.util.ArrayList;
-import java.util.Stack;
 import java.util.concurrent.atomic.AtomicBoolean;
-
 import vct.col.ast.ASTNode;
 import vct.col.ast.BooleanValue;
 import vct.col.ast.ConstantExpression;
@@ -16,19 +14,11 @@ import vct.col.ast.StandardOperator;
 
 public class ASTUtils {
 
-  //public static Iterable<ASTNode> conjuncts(ASTNode e){
-  //  ArrayList<ASTNode> res=new ArrayList<ASTNode>();
-  //  EnumSet<StandardOperator> ops=EnumSet.of(StandardOperator.And,StandardOperator.Star);
-  //  scan_ops(res,ops,e);
-  //  return res;
-  //}
-  
   public static Iterable<ASTNode> conjuncts(ASTNode e,StandardOperator op,StandardOperator ... ops){
     ArrayList<ASTNode> res=new ArrayList<ASTNode>();
     EnumSet<StandardOperator> allops=EnumSet.of(op,ops);
     scan_ops(res,allops,e);
     return res;
-    
   }
 
   private static void scan_ops(ArrayList<ASTNode> res, EnumSet<StandardOperator> ops,ASTNode n) {
@@ -68,7 +58,7 @@ public class ASTUtils {
   }
 
   public static Iterable<ASTNode> reverse(Iterable<ASTNode> conjuncts) {
-    ArrayList<ASTNode> res=new ArrayList();
+    ArrayList<ASTNode> res=new ArrayList<ASTNode>();
     for(ASTNode n:conjuncts){
       res.add(0,n);
     }

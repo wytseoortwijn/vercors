@@ -3,12 +3,9 @@ package vct.col.ast;
 
 import hre.ast.CompositeOrigin;
 import hre.ast.FileOrigin;
-import hre.ast.MessageOrigin;
-import hre.ast.Origin;
 
 import java.util.*;
 
-import static vct.col.ast.StandardOperator.And;
 import static vct.col.ast.Contract.default_true;
 
 public class ContractBuilder {

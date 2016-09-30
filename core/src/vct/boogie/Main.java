@@ -1,21 +1,14 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 package vct.boogie;
 
-import hre.ast.MessageOrigin;
-import hre.ast.Origin;
 import hre.ast.TrackingOutput;
 import hre.ast.TrackingTree;
-import hre.config.BooleanSetting;
 import hre.config.IntegerSetting;
 import hre.config.StringSetting;
-import hre.io.Message;
 import hre.io.ModuleShell;
 import hre.io.SplittingOutputStream;
-import hre.util.CompositeReport;
-import hre.util.TestReport.Verdict;
 
 import java.io.*;
-import java.util.*;
 
 import vct.col.ast.*;
 import vct.util.*;

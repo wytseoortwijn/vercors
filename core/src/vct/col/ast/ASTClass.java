@@ -151,9 +151,6 @@ public class ASTClass extends ASTDeclaration implements ASTSequence<ASTClass> {
     entries.add(n);
     n.setParent(this);
     n.setStatic(true);
-    while (n instanceof ASTWith){
-      n=((ASTWith)n).body;
-    }
     if (n instanceof ASTClass) {
       ((ASTClass)n).setParentClass(this);
     }
@@ -163,9 +160,6 @@ public class ASTClass extends ASTDeclaration implements ASTSequence<ASTClass> {
     n.setParent(this);
     n.setStatic(false);
     entries.add(n);
-    while (n instanceof ASTWith){
-      n=((ASTWith)n).body;
-    }
     if (n instanceof ASTClass) {
       ((ASTClass)n).setParentClass(this);
     }
@@ -356,10 +350,7 @@ public class ASTClass extends ASTDeclaration implements ASTSequence<ASTClass> {
 
   /**
    * Search for a field in the current class.
-   * 
-   * @deprecated Use find_field(name,false) instead.
    */
-  @Deprecated
   public DeclarationStatement find_field(String name) {
     return find_field(name,false);    
   }
@@ -473,9 +464,6 @@ public class ASTClass extends ASTDeclaration implements ASTSequence<ASTClass> {
       n.setStatic(false);
     }
     n.setParent(this);
-    while (n instanceof ASTWith){
-      n=((ASTWith)n).body;
-    }
     if (n instanceof ASTClass) {
       ((ASTClass)n).setParentClass(this);
     }

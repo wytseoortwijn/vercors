@@ -1,6 +1,5 @@
 package vct.demo;
 
-import hre.ast.FileContext;
 import hre.ast.FileOrigin;
 /**
  * This class demonstrates how to use the context class.

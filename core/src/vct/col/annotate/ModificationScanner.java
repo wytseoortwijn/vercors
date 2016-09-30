@@ -1,7 +1,5 @@
 package vct.col.annotate;
 
-import java.util.Hashtable;
-
 import vct.col.ast.ASTClass;
 import vct.col.ast.ASTNode;
 import vct.col.ast.AssignmentStatement;
@@ -13,18 +11,13 @@ import vct.col.ast.MethodInvokation;
 import vct.col.ast.NameExpression;
 import vct.col.ast.OperatorExpression;
 import vct.col.ast.RecursiveVisitor;
-import vct.col.ast.Type;
-import static hre.System.Abort;
-import static hre.System.Fail;
 
 public class ModificationScanner extends RecursiveVisitor<Object> {
 
   private ContractBuilder builder;
-  private Hashtable<String, Contract> cache;
-  public ModificationScanner(Hashtable<String, Contract> cache, ContractBuilder builder) {
+  public ModificationScanner(ContractBuilder builder) {
     super(null,null);
     this.builder=builder;
-    this.cache=cache;
   }
 
   private void modifies_loc(ASTNode n){
@@ -62,6 +55,8 @@ public class ModificationScanner extends RecursiveVisitor<Object> {
     case PreDecr:
     case PostDecr:
       modifies_loc(e.getArg(0));
+    default:
+      break;
     }
   }
   

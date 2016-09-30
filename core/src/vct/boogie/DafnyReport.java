@@ -1,17 +1,10 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 package vct.boogie;
 
-import hre.ast.FileOrigin;
 import hre.ast.Origin;
 import hre.ast.TrackingTree;
 import hre.io.Message;
 import hre.io.ModuleShell;
-
-import java.io.*;
-import java.util.*;
-
-import vct.col.ast.*;
-import vct.util.*;
 import static hre.System.Debug;
 import static hre.System.Warning;
 
@@ -22,9 +15,6 @@ import static hre.System.Warning;
  *
  */
 public class DafnyReport extends hre.util.TestReport {
-
-  private boolean boogie_started;
-  private boolean boogie_completed;
   
   public DafnyReport(ModuleShell shell,TrackingTree tree){
     try {
@@ -33,8 +23,6 @@ public class DafnyReport extends hre.util.TestReport {
         Message msg=shell.recv();
         Debug(msg.getFormat(),msg.getArgs());
         if (msg.getFormat().equals("exit %d")) break;
-        //System.err.printf(msg.getFormat(),msg.getArgs());
-        //System.err.println();
         if (msg.getFormat().equals("stderr: %s") || msg.getFormat().equals("stdout: %s")){
           line=(String)msg.getArg(0);
         } else {
@@ -59,12 +47,11 @@ public class DafnyReport extends hre.util.TestReport {
           continue;
         }
         if (line.startsWith("Dafny program verifier version")){
-          boogie_started=true;
           continue;
         }
         if (line.startsWith("Dafny program verifier finished")){
-          boogie_completed=true;
           String words[]=line.split(" ");
+          @SuppressWarnings("unused")
           int verified_count=-1;
           int error_count=-1;
           int timeout_count=0;

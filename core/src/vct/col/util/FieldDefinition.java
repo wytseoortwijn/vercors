@@ -1,7 +1,5 @@
 package vct.col.util;
 
-import vct.col.ast.ASTClass;
-
 public class FieldDefinition extends AnyDefinition{
 
   private ClassDefinition parent;

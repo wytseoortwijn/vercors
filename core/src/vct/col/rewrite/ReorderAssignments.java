@@ -5,7 +5,6 @@ import java.util.HashSet;
 import vct.col.ast.BlockStatement;
 import vct.col.ast.DeclarationStatement;
 import vct.col.ast.ProgramUnit;
-import static hre.System.Abort;
 
 public class ReorderAssignments extends AbstractRewriter {
   public ReorderAssignments(ProgramUnit source) {

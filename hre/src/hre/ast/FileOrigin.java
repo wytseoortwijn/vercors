@@ -4,7 +4,6 @@ package hre.ast;
 import hre.HREError;
 
 import java.io.PrintStream;
-import java.util.ArrayList;
 import java.util.Hashtable;
 
 /**
@@ -36,7 +35,6 @@ public class FileOrigin extends Origin {
     } else {
       out.printf("=== %-30s ===%n",file);
       fc.printContext(out,this,before,after);
-      int N=8+file.length();
       System.out.println("-----------------------------------------");
     }
   }

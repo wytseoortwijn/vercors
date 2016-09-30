@@ -3,8 +3,6 @@ package vct.col.ast;
 
 import hre.ast.Origin;
 
-import java.util.*;
-
 import vct.col.ast.PrimitiveType.Sort;
 
 /**

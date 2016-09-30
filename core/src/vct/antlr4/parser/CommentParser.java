@@ -4,20 +4,14 @@ import static hre.System.Failure;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTSequence;
 import vct.col.ast.Contract;
 import vct.col.ast.Method;
-import vct.col.ast.ProgramUnit;
-import vct.parsers.CMLLexer;
-import vct.parsers.CMLParser;
-import hre.io.FifoStream;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.tree.ParseTree;
 
 /**
  * Common setup for parsing specification comments.

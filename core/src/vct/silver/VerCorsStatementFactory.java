@@ -1,16 +1,12 @@
 package vct.silver;
 
 import java.util.ArrayList;
-import java.util.Map.Entry;
-import java.util.SortedMap;
-
 import hre.ast.MessageOrigin;
 import hre.ast.Origin;
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTSpecial.Kind;
 import vct.col.ast.ASTSpecial;
 import vct.col.ast.BlockStatement;
-import vct.col.ast.DeclarationStatement;
 import vct.col.ast.StandardOperator;
 import vct.col.ast.Type;
 import vct.col.util.ASTFactory;

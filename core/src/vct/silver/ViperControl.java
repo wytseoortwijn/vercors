@@ -2,14 +2,13 @@ package vct.silver;
 
 import java.util.HashSet;
 import java.util.Hashtable;
-import java.util.Set;
-import java.util.TimerTask;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import hre.ast.Origin;
+import vct.logging.MessageFactory;
 import vct.util.Configuration;
 import viper.api.VerificationControl;
 
@@ -23,7 +22,7 @@ public class ViperControl implements VerificationControl<Origin> {
   private String current_task;
   private Origin current_origin;
   
-  private ScheduledFuture future;
+  private ScheduledFuture<?> future;
   private Runnable task=new Runnable(){
     public void run(){
       if (old_task==current_task && old_origin==current_origin){
@@ -41,12 +40,15 @@ public class ViperControl implements VerificationControl<Origin> {
     }
   };
 
-  public HashSet<String> verified_methods=new HashSet();
-  public HashSet<String> failed_methods=new HashSet();
+  public HashSet<String> verified_methods=new HashSet<String>();
+  public HashSet<String> failed_methods=new HashSet<String>();
   
-  private Hashtable<Origin,String> origin2method=new Hashtable();
+  private Hashtable<Origin,String> origin2method=new Hashtable<Origin, String>();
   
-  public ViperControl(){
+  private MessageFactory report;
+  
+  public ViperControl(MessageFactory report){
+    this.report=report;
     if (Configuration.profiling_option.used()){
       scheduler = Executors.newScheduledThreadPool(1);
       int N=Configuration.profiling.get();
@@ -58,11 +60,13 @@ public class ViperControl implements VerificationControl<Origin> {
   
   @Override
   public boolean function(Origin origin, String name) {
+    // TODO log this event
     return true;
   }
 
   @Override
   public boolean predicate(Origin origin, String name) {
+    // TODO log this event
     return true;
   }
 
@@ -72,12 +76,13 @@ public class ViperControl implements VerificationControl<Origin> {
     for(String suffix:Configuration.skip){
       if (name.endsWith(suffix)) return false;
     }
+    // TODO log this event
     return true;
   }
 
   @Override
   public void pass(Origin origin) {
-    origin.report("result", "pass");
+    report.result(true,origin);
     String m=origin2method.get(origin);
     if (m!=null){
       verified_methods.add(m);
@@ -88,7 +93,7 @@ public class ViperControl implements VerificationControl<Origin> {
 
   @Override
   public void fail(Origin origin) {
-    origin.report("result", "fail");
+    report.result(false,origin);
     String m=origin2method.get(origin);
     if (m!=null){
       failed_methods.add(m);

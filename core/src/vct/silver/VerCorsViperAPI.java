@@ -12,7 +12,6 @@ import java.util.Set;
 
 import vct.col.ast.ASTNode;
 import vct.col.ast.Axiom;
-import vct.col.ast.DeclarationStatement;
 import vct.col.ast.Method;
 import vct.col.ast.ProgramUnit;
 import vct.col.ast.Type;
@@ -26,7 +25,7 @@ public class VerCorsViperAPI extends ViperAPI<
     Origin, VerificationError, Type, ASTNode, ASTNode,
     Method, Axiom, ProgramUnit> {
 
-  public Hashtable<String,Set<Origin>> refuted=new Hashtable();
+  public Hashtable<String,Set<Origin>> refuted=new Hashtable<String,Set<Origin>>();
   
   private VerCorsViperAPI(HREOrigins origin, VerCorsTypeFactory type,
       VerCorsExpressionFactory expr, VerCorsStatementFactory stat,

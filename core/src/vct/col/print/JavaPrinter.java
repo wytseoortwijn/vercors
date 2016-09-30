@@ -16,9 +16,6 @@ import vct.col.syntax.JavaDialect;
 import vct.col.syntax.JavaSyntax;
 import vct.col.util.ASTUtils;
 import vct.util.*;
-import static hre.System.Abort;
-import static hre.System.Debug;
-import static hre.System.Warning;
 
 /** 
  * This class contains a pretty printer for Java code.
@@ -135,26 +132,7 @@ public class JavaPrinter extends AbstractPrinter {
     }
     super.post_visit(node);
   }
-  /* TODO: copy to appropriate places
-  public void post_visit(ASTNode node){
-    if (node.get_before()!=null || node.get_after()!=null){
-      out.printf("/*@ ");
-      ASTNode tmp=node.get_before();
-      if (tmp!=null) {
-        out.printf("with ");
-        tmp.accept(this);
-      }
-      tmp=node.get_after();
-      if (tmp!=null) {
-        out.printf("then ");
-        tmp.accept(this);      
-      }
-      out.printf(" \*\/");
-    }
-    super.post_visit(node);
-  }
-  */
-  
+   
   @Override 
   public void visit(Axiom ax){
     out.printf("axioms %s: ", ax.name);

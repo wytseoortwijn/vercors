@@ -1,7 +1,6 @@
 package vct.col.rewrite;
 
 import vct.col.ast.OperatorExpression;
-import vct.col.ast.ProgramUnit;
 import vct.col.ast.StandardOperator;
 
 public class ApplyOld extends AbstractRewriter {

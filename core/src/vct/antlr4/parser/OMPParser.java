@@ -3,7 +3,6 @@ package vct.antlr4.parser;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 
 import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.ParseTree;
@@ -15,7 +14,6 @@ import org.antlr.v4.runtime.ParserRuleContext;
 
 import vct.antlr4.parser.OMPoption.Kind;
 import vct.antlr4.parser.OMPoption.Schedule;
-import vct.col.util.Parser;
 import vct.parsers.ompLexer;
 import vct.parsers.ompParser;
 import vct.parsers.ompParser.Omp_optionContext;

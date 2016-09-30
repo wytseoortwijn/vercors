@@ -7,14 +7,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map.Entry;
-import java.util.Stack;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import vct.antlr4.parser.Parsers;
 import vct.col.ast.*;
 import vct.col.ast.PrimitiveType.Sort;
 import vct.col.util.ASTUtils;
-import vct.util.ClassName;
 import vct.util.Configuration;
 
 /**

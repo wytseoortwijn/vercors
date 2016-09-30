@@ -9,7 +9,6 @@ import vct.col.ast.ContractBuilder;
 import vct.col.ast.DeclarationStatement;
 import vct.col.ast.Method;
 import vct.col.ast.ProgramUnit;
-import vct.col.ast.StandardOperator;
 import vct.col.ast.Type;
 import vct.col.util.OriginWrapper;
 
@@ -23,7 +22,6 @@ public class SatCheckRewriter extends AbstractRewriter {
   public void visit(Method m) {
     //checkPermission(m);
     String name=m.getName();
-    int N=m.getArity();
     if (currentContractBuilder==null) currentContractBuilder=new ContractBuilder();
     DeclarationStatement args[]=rewrite(m.getArgs());
     Contract mc=m.getContract();
@@ -48,6 +46,8 @@ public class SatCheckRewriter extends AbstractRewriter {
 	    } else {
 	    	body=create.block(refute,body);
 	    }
+    default:
+      break;
     }
     result=create.method_kind(kind, rt, c, name, args, m.usesVarArgs(), body);
   }

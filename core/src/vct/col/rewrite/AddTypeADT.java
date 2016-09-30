@@ -13,8 +13,9 @@ public class AddTypeADT extends AbstractRewriter {
 
   private AxiomaticDataType adt;
   
-  private HashSet<String> rootclasses=new HashSet();
-  private HashMap<String,Set<String>> subclasses=new HashMap();
+  private HashSet<String> rootclasses=new HashSet<String>();
+  @SuppressWarnings("unused")
+  private HashMap<String,Set<String>> subclasses=new HashMap<String, Set<String>>();
   
   public AddTypeADT(ProgramUnit source) {
     super(source);

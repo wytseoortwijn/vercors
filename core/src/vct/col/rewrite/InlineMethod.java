@@ -4,7 +4,6 @@ import hre.ast.BranchOrigin;
 import hre.ast.Origin;
 
 import java.util.Hashtable;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import vct.col.ast.*;

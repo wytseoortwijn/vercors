@@ -5,6 +5,7 @@ import java.util.*;
 import vct.col.ast.ASTClass;
 import vct.col.ast.ASTNode;
 
+@SuppressWarnings("all")
 public class Brain {
 	private boolean keepChecking;
 	private String sourceTriple;

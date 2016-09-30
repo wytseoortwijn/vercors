@@ -1,43 +1,31 @@
 package vct.main;
 
-import java.io.BufferedReader;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.PrintStream;
-import java.nio.file.FileVisitResult;
+import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.Callable;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-import hre.config.BooleanSetting;
 import hre.config.IntegerSetting;
 import hre.config.Option;
 import hre.config.OptionParser;
 import hre.config.StringListSetting;
 import hre.config.StringSetting;
 import hre.util.TestReport.Verdict;
-
-import java.io.BufferedInputStream;
-
 import vct.util.Configuration;
 
 
@@ -107,7 +95,8 @@ public class CommandLineTesting {
         continue;
       }
       try {
-        Files.walkFileTree(Paths.get(dir),tv);
+        EnumSet<FileVisitOption> opts = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
+        Files.walkFileTree(Paths.get(dir),opts,10,tv);
       } catch (IOException e) {
         e.printStackTrace();
       }
@@ -123,14 +112,14 @@ public class CommandLineTesting {
         System.exit(1);
       }
     }
-    HashMap<String,Integer> times=new HashMap();
+    HashMap<String,Integer> times=new HashMap<String, Integer>();
     int successes=0;
     HashMap<String,Testcase> untested=new HashMap<String,Testcase>();
     HashMap<String,String> failures=new HashMap<String, String>();
     
     
     ExecutorService pool = Executors.newFixedThreadPool(workers.get());
-    ExecutorCompletionService<TestResult> ecs=new ExecutorCompletionService(pool);
+    ExecutorCompletionService<TestResult> ecs=new ExecutorCompletionService<TestResult>(pool);
     int submitted=0;
     
     for(Entry<String,Testcase> item:tv.testsuite.entrySet()){
@@ -259,7 +248,7 @@ public class CommandLineTesting {
       }
     }
     System.err.printf("verification times (ms):%n");
-    ArrayList<String> list = new ArrayList(times.keySet());
+    ArrayList<String> list = new ArrayList<String>(times.keySet());
     Collections.sort(list);
     for(String t:list){
       System.err.printf("%35s: %10d%n",t,times.get(t));

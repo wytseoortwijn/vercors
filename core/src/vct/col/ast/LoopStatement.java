@@ -3,10 +3,6 @@ package vct.col.ast;
 
 import hre.HREError;
 import hre.ast.MessageOrigin;
-
-import java.util.ArrayList;
-import java.util.Collection;
-
 import vct.col.util.ASTUtils;
 
 public class LoopStatement extends ASTNode implements BeforeAfterAnnotations {

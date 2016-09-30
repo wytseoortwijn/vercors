@@ -3,17 +3,16 @@ package vct.col.util;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import vct.col.ast.*;
 import vct.col.ast.NameExpression.Kind;
 import vct.col.ast.PrimitiveType.Sort;
 import vct.col.rewrite.MultiSubstitution;
-import vct.col.rewrite.Substitution;
 import vct.col.rewrite.TypeVarSubstitution;
 import vct.silver.SilverTypeMap;
 import vct.util.Configuration;
 
+@SuppressWarnings("incomplete-switch")
 public class SimpleTypeCheck extends RecursiveVisitor<Type> {
   
   public void check(){
@@ -106,7 +105,7 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       //Warning("skipping ADT method");
       e.setDefinition(m);
       Type t=m.getReturnType();
-      Map<String,Type> map=new HashMap();
+      Map<String,Type> map=new HashMap<String, Type>();
       TypeVarSubstitution sigma=new TypeVarSubstitution(source(),map);
       if (!(e.object instanceof ClassType)){
         Fail("%s is not an ADT in %s",e.object,e);
@@ -290,7 +289,6 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
   
   public void visit(DeclarationStatement s){
     super.visit(s);
-    String name=s.getName();
     Type t=s.getType();
     ASTNode e=s.getInit();
     if (e!=null) {
@@ -1148,6 +1146,7 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     }
   }
   
+  
   private void force_frac(ASTNode arg) {
     if (arg.getType().isPrimitive(Sort.ZFraction)||
         arg.getType().isPrimitive(Sort.Fraction)) {
@@ -1347,7 +1346,7 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
         Abort("untyped argument to %s: %s",s.kind,Configuration.getDiagSyntax().print(n));
       }
     }
-    Type t1,t2;
+    Type t1;
     switch(s.kind){
     case Send:{
       t1=s.args[0].getType();

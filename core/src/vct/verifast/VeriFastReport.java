@@ -3,14 +3,8 @@ package vct.verifast;
 import hre.ast.TrackingTree;
 import hre.io.ModuleShell;
 
-import hre.ast.FileOrigin;
 import hre.ast.Origin;
 import hre.io.Message;
-import java.io.*;
-import java.util.*;
-
-import vct.col.ast.*;
-import vct.util.*;
 import static hre.System.Debug;
 import static hre.System.Warning;
 

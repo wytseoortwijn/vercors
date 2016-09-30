@@ -17,9 +17,9 @@ public final class ErrorCounter implements ANTLRErrorListener {
   public  final AtomicInteger count =new AtomicInteger();
 
   
-  private final ArrayList<Integer> ofs=new ArrayList();
-  private final ArrayList<String> file=new ArrayList();
-  private final ArrayList<Integer> src=new ArrayList();
+  private final ArrayList<Integer> ofs=new ArrayList<Integer>();
+  private final ArrayList<String> file=new ArrayList<String>();
+  private final ArrayList<Integer> src=new ArrayList<Integer>();
   
   public final String main_file;
   public ErrorCounter(String main){
@@ -38,7 +38,6 @@ public final class ErrorCounter implements ANTLRErrorListener {
   @Override
   public void syntaxError(Recognizer<?, ?> arg0, Object arg1, int arg2,
       int arg3, String arg4, RecognitionException arg5) {
-    // TODO Auto-generated method stub
     int i=ofs.size()-1;
     while(arg2<ofs.get(i)){
       i--;
@@ -52,22 +51,16 @@ public final class ErrorCounter implements ANTLRErrorListener {
   @Override
   public void reportContextSensitivity(Parser arg0, DFA arg1, int arg2,
       int arg3, int arg4, ATNConfigSet arg5) {
-    // TODO Auto-generated method stub
-    
   }
 
   @Override
   public void reportAttemptingFullContext(Parser arg0, DFA arg1, int arg2,
       int arg3, BitSet arg4, ATNConfigSet arg5) {
-    // TODO Auto-generated method stub
-    
   }
 
   @Override
   public void reportAmbiguity(Parser arg0, DFA arg1, int arg2, int arg3,
       boolean arg4, BitSet arg5, ATNConfigSet arg6) {
-    // TODO Auto-generated method stub
-    
   }
 
   public void report() {

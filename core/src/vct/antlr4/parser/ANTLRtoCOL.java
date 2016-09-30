@@ -24,7 +24,6 @@ import vct.col.ast.ASTNode;
 import vct.col.ast.ASTReserved;
 import vct.col.ast.ASTSequence;
 import vct.col.ast.ASTSpecial.Kind;
-import vct.col.ast.BeforeAfterAnnotations;
 import vct.col.ast.ASTSpecial;
 import vct.col.ast.BlockStatement;
 import vct.col.ast.ClassType;
@@ -32,7 +31,6 @@ import vct.col.ast.Contract;
 import vct.col.ast.ContractBuilder;
 import vct.col.ast.DeclarationStatement;
 import vct.col.ast.NameExpression;
-import vct.col.ast.OperatorExpression;
 import vct.col.ast.PrimitiveType;
 import vct.col.ast.StandardOperator;
 import vct.col.ast.Type;
@@ -572,7 +570,7 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
     }
   }
   protected ASTNode[] convert_smart_list(ParserRuleContext ctx,String sep){
-    ArrayList<ASTNode> res=new ArrayList();
+    ArrayList<ASTNode> res=new ArrayList<ASTNode>();
     convert_smart(res,ctx,sep);
     return res.toArray(new ASTNode[0]);
   }
@@ -909,7 +907,7 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
     if (!syntax.is_annotation(keyword)){
       throw new HREError("%s is not a specification command",keyword);
     }    
-    ArrayList<ASTNode> args=new ArrayList();
+    ArrayList<ASTNode> args=new ArrayList<ASTNode>();
     for(int i=1;i<N;i++){
       if(match(i,true,ctx,"Identifier")||match(i,true,ctx,"Expression")||match(i,true,ctx,"Block")){
         args.add(convert(ctx,i));

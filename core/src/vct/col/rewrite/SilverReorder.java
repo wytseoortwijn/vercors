@@ -13,7 +13,7 @@ public class SilverReorder extends AbstractRewriter {
   
   private int count=0;
   
-  MultiNameSpace <String,String> locals=new MultiNameSpace();
+  MultiNameSpace <String,String> locals=new MultiNameSpace<String, String>();
 
   private BlockStatement main_block=null;
   

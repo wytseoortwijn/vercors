@@ -31,7 +31,7 @@ public class IfStatement extends ASTNode {
     public ASTNode  statement;
   }
   
-  private ArrayList<Case> cases=new ArrayList();
+  private ArrayList<Case> cases=new ArrayList<Case>();
   
   public void addClause(ASTNode guard,ASTNode s){
     Case clause=new Case();

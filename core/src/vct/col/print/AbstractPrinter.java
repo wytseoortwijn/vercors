@@ -6,11 +6,9 @@ import hre.ast.MessageOrigin;
 import hre.ast.Origin;
 import hre.ast.TrackingOutput;
 
-import java.util.*;
 
 import vct.col.ast.*;
 import vct.col.syntax.Syntax;
-import vct.col.syntax.Syntax.Associativity;
 import static hre.System.*;
 
 /**
@@ -169,9 +167,6 @@ public class AbstractPrinter extends AbstractVisitor<Object> {
       current_precedence=precedence;
     }
     out.print(")");
-    //if (statement) {
-    //  out.lnprintf(";/*abs invoke*/");
-    //}
   }
 
   public void visit(OperatorExpression e){

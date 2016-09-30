@@ -1,7 +1,5 @@
 package vct.col.ast;
 
-import java.util.ArrayList;
-
 import vct.util.ClassName;
 
 public class Axiom extends ASTDeclaration {

@@ -2,7 +2,6 @@ package vct.col.rewrite;
 
 import java.util.HashMap;
 
-import vct.col.ast.ASTClass;
 import vct.col.ast.ASTFlags;
 import vct.col.ast.ASTNode;
 import vct.col.ast.BlockStatement;

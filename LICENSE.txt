@@ -10,6 +10,8 @@ For the licenses of the files in deps and viper see those sub-directories.
 files found in examples (and its sub-directories) are licensed under Public Domain
 (see http://creativecommons.org/publicdomain/zero/1.0/).
 
+The included jar files also fall under the licences determined by their owners.
+
 Mozilla Public License Version 2.0
 ==================================
 

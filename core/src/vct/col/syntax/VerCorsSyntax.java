@@ -14,7 +14,6 @@ import static vct.col.ast.PrimitiveType.Sort.Location;
 import static vct.col.ast.StandardOperator.*;
 import vct.col.ast.ASTReserved;
 import vct.col.ast.ASTSpecial;
-import vct.col.ast.ASTSpecial.Kind;
 import vct.col.ast.StandardOperator;
 
 public class VerCorsSyntax {
@@ -78,6 +77,7 @@ public class VerCorsSyntax {
     
     syntax.add_annotation(ASTSpecial.Kind.Invariant, "loop_invariant");
     syntax.add_annotation(ASTSpecial.Kind.Invariant, "invariant");
+    syntax.add_annotation(ASTSpecial.Kind.RequiresAndEnsures, "context");
     syntax.add_annotation(ASTSpecial.Kind.Label, "label");
     syntax.add_annotation(ASTSpecial.Kind.CSLSubject, "csl_subject");
 

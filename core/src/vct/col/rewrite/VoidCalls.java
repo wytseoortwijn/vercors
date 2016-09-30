@@ -1,7 +1,5 @@
 package vct.col.rewrite;
 
-import static hre.System.*;
-
 import java.util.HashMap;
 
 import vct.col.ast.ASTFlags;
@@ -10,8 +8,6 @@ import vct.col.ast.ASTReserved;
 import vct.col.ast.ASTSpecial;
 import vct.col.ast.AssignmentStatement;
 import vct.col.ast.BlockStatement;
-import vct.col.ast.Contract;
-import vct.col.ast.ContractBuilder;
 import vct.col.ast.DeclarationStatement;
 import vct.col.ast.Method;
 import vct.col.ast.MethodInvokation;
@@ -19,17 +15,18 @@ import vct.col.ast.NameExpression;
 import vct.col.ast.PrimitiveType;
 import vct.col.ast.ProgramUnit;
 import vct.col.ast.ReturnStatement;
-import vct.col.ast.StandardOperator;
+import vct.logging.ErrorMapping;
+import vct.logging.VerCorsError.ErrorCode;
 
 public class VoidCalls extends AbstractRewriter {
 
-  public VoidCalls(ProgramUnit source) {
+  private static final String RETURN_BRANCH = "return branch";
+
+  public VoidCalls(ProgramUnit source, ErrorMapping map) {
     super(source);
+    map.add(RETURN_BRANCH,ErrorCode.AssertFailed,ErrorCode.PostConditionFailed);
   }
   
-  /* TODO: we have a serious order bug, where
-   * statements about result are made before result is assigned.
-   */
   public void visit(NameExpression e){
     if (e.isReserved(ASTReserved.Result)){
       result=create.unresolved_name("sys__result");
@@ -77,8 +74,9 @@ public class VoidCalls extends AbstractRewriter {
       for(ASTNode n : s.get_after()){
         res.add(rewrite(n));
       }
+      ASTNode post=rewrite(current_method().getContract().post_condition);
       if (current_method().getContract()!=null){
-        res.add(create.special(ASTSpecial.Kind.Assert,rewrite(current_method().getContract().post_condition)));
+        res.add(create.special(ASTSpecial.Kind.Assert,post).set_branch(RETURN_BRANCH));
       }
       res.add(create.special(ASTSpecial.Kind.Assume,create.constant(false)));
       result=res;
@@ -108,7 +106,7 @@ public class VoidCalls extends AbstractRewriter {
     if (s.getExpression() instanceof MethodInvokation){
       MethodInvokation e=(MethodInvokation)s.getExpression();
       Method m=e.getDefinition();
-      if (e==null) Abort("cannot process invokation of %s without definition",e.method);
+      if (m==null) Abort("cannot process invokation of %s without definition",e.method);
       if (m.kind==Method.Kind.Plain){
         int N=e.getArity();
         ASTNode args[]=new ASTNode[N+1];

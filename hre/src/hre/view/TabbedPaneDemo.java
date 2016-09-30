@@ -50,6 +50,11 @@ import java.awt.GridLayout;
 import java.awt.event.KeyEvent;
  
 public class TabbedPaneDemo extends JPanel {
+    /**
+   * 
+   */
+  private static final long serialVersionUID = 5064147210231601229L;
+
     public TabbedPaneDemo() {
         super(new GridLayout(1, 1));
          

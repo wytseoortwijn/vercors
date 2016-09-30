@@ -11,7 +11,7 @@ public class BlockStatement extends ASTNode implements ASTSequence<BlockStatemen
     return map.map(this,arg);
   }
 
-  private ArrayList<ASTNode> block=new ArrayList();
+  private ArrayList<ASTNode> block=new ArrayList<ASTNode>();
   
   public void add_statement(ASTNode s){
     add(s);
@@ -29,7 +29,7 @@ public class BlockStatement extends ASTNode implements ASTSequence<BlockStatemen
   }
 
   @Override
-  public Iterator iterator() {
+  public Iterator<ASTNode> iterator() {
     return block.iterator();
   }
 

@@ -4,15 +4,11 @@ import hre.HREError;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Hashtable;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import vct.col.ast.BindingExpression.Binder;
-import vct.col.ast.Method.Kind;
 import vct.col.ast.PrimitiveType.Sort;
 import vct.col.ast.*;
-import vct.col.util.ASTUtils;
 import vct.util.Configuration;
 import static vct.col.ast.StandardOperator.Value;
 import static vct.col.ast.StandardOperator.Perm;
@@ -32,9 +28,6 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
     super(source);
     this.mode=mode;
   }
-
-  private Hashtable<String,String> composite_map;
-  private Hashtable<String,Method> process_map;
   
   private Type adt_type;
   private AxiomaticDataType adt;
@@ -48,8 +41,6 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
     }
     if (is_algebra){
       boolean is_history=cl.name.equals("History");
-      composite_map=new Hashtable<String,String>();
-      process_map=new Hashtable<String,Method>();
       adt=create.adt("Process");
       adt_type=create.class_type("Process");
       DeclarationStatement proc_p1=create.field_decl("p1", adt_type);
@@ -235,134 +226,6 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
     } else {
       super.visit(cl);
     }
-    /* skip generating program checking class 
-    HashSet<NameExpression> hist_set=new HashSet<NameExpression>();
-    for(Method m:cl.dynamicMethods()){
-      if (!m.getReturnType().isPrimitive(Sort.Process)) continue;
-      ASTNode body=m.getBody();
-      process_map.put(m.name, m);
-      for(ASTNode n:m.getContract().modifies){
-        if (n instanceof NameExpression){
-          hist_set.add((NameExpression)n);
-        } else if (n instanceof Dereference) {
-          Dereference d=(Dereference)n;
-          hist_set.add(create.field_name(d.field));
-        } else {
-          Fail("unexpected entry in modifies clause");
-        }
-      }
-      if (body==null) continue;
-      if(body.isa(StandardOperator.Or)){
-        String composite=":";
-        for(ASTNode p:ASTUtils.conjuncts(body, StandardOperator.Or)){
-          if (p instanceof MethodInvokation){
-            composite+=((MethodInvokation)p).method+":";
-          } else {
-            Fail("misformed parallel composition");
-          }
-        }
-        // TODO: check if arguments are passed in-order.
-        // That is p(a,b)=q(a)||q(b) is allowed
-        // p(a,b)=q(b)||q(a) is forbidden.
-        composite_map.put(composite,m.name);
-        Warning("mapping %s to %s",composite,m.name);
-      }
-    }
-    super.visit(cl);
-    ASTClass res=(ASTClass)result;
-    for(NameExpression n:hist_set){
-      String name=n.getName();
-      VariableInfo info=variables.lookup(name);
-      Type t=((DeclarationStatement)info.reference).getType();
-      res.add(create.field_decl(n.getName()+"_old",copy_rw.rewrite(t)));
-    }
-    Type ref_t=create.class_type("Ref");
-    
-    res.add(create.predicate("hist_idle", create.constant(true),
-        new DeclarationStatement[]{
-          create.field_decl("ref",ref_t),
-          create.field_decl("p",adt_type)}));
-    for(Method m:cl.dynamicMethods()){
-      if (!m.getReturnType().isPrimitive(Sort.Process)) continue;
-      if (m.getBody()!=null) continue;
-      // m defines an action.
-      create.enter();
-      create.setOrigin(m.getOrigin());
-      ContractBuilder begin_cb=new ContractBuilder();
-      ArrayList<DeclarationStatement> begin_args=new ArrayList();
-      ContractBuilder commit_cb=new ContractBuilder();
-      ArrayList<DeclarationStatement> commit_args=new ArrayList();
-      HashSet<NameExpression> mod_set=new HashSet<NameExpression>();
-      Contract c=m.getContract();
-      begin_args.add(create.field_decl("ref", ref_t));
-      begin_args.add(create.field_decl("p", adt_type));
-      begin_cb.requires(create.invokation(null,null,"hist_idle",create.local_name("ref"),create.local_name("p")));
-      begin_cb.ensures(create.invokation(null,null,"hist_"+m.name,create.local_name("ref"),create.local_name("p")));
-      commit_args.add(create.field_decl("ref", ref_t));
-      commit_args.add(create.field_decl("p", adt_type));
-      commit_cb.requires(create.invokation(null,null,"hist_"+m.name,create.local_name("ref"),create.local_name("p")));
-      commit_cb.ensures(create.invokation(null,null,"hist_idle",
-          create.local_name("ref"),
-          create.invokation(null,null,"p_seq",create.local_name("p"),
-              create.invokation(null,null,"p_"+m.name))));
-      HashMap<NameExpression,ASTNode> old_map=new HashMap();
-      HashMap<NameExpression,ASTNode> new_map=new HashMap();
-      for(ASTNode n:c.modifies){
-        NameExpression name;
-        if (n instanceof NameExpression){
-          name=((NameExpression)n);
-        } else if (n instanceof Dereference) {
-          Dereference d=(Dereference)n;
-          name=(create.field_name(d.field));
-        } else {
-          Fail("unexpected entry in modifies clause");
-          name=null;
-        }
-        ASTNode var=create.dereference(create.local_name("ref"),name.getName());
-        NameExpression name_old=create.field_name(name.getName()+"_old");
-        mod_set.add(name);
-        old_map.put(name,name_old);
-        new_map.put(name,var);
-        ASTNode half=create.expression(StandardOperator.Div,create.constant(1),create.constant(2));
-        ASTNode full=create.reserved_name(ASTReserved.FullPerm);
-        begin_cb.requires(create.expression(Perm,var,full));
-        begin_cb.ensures(create.expression(Perm,var,full));
-        begin_cb.ensures(create.expression(StandardOperator.EQ,var,create.expression(StandardOperator.Old,var)));
-        begin_cb.ensures(create.expression(Perm,name_old,half));
-        begin_cb.ensures(create.expression(StandardOperator.EQ,var,name_old));
-        commit_cb.requires(create.expression(Perm,var,full));
-        commit_cb.ensures(create.expression(Perm,var,full));
-        commit_cb.ensures(create.expression(StandardOperator.EQ,var,create.expression(StandardOperator.Old,var)));
-        commit_cb.requires(create.expression(Perm,name_old,half));
-      }
-      // TODO rewrite based on the set of modified variables, rather than trusting simp!
-      Simplify simp=new Simplify(this);
-      Substitution sigma=new Substitution(source(),old_map);
-      ApplyOld rw_old=new ApplyOld(sigma);
-      Substitution rw_new=new Substitution(source(),new_map);
-      commit_cb.requires(rw_new.rewrite(rw_old.rewrite(simp.rewrite(c.post_condition))));
-      res.add(create.method_decl(
-          create.primitive_type(Sort.Void),
-          begin_cb.getContract(),
-          m.name+"_begin",
-          begin_args.toArray(new DeclarationStatement[0]),
-          null
-      ));
-      res.add(create.method_decl(
-          create.primitive_type(Sort.Void),
-          commit_cb.getContract(),
-          m.name+"_commit",
-          commit_args.toArray(new DeclarationStatement[0]),
-          null
-      ));
-      res.add(create.predicate("hist_"+m.name, create.constant(true),
-          new DeclarationStatement[]{
-            create.field_decl("ref",ref_t),
-            create.field_decl("p",adt_type)}));
-      create.leave();
-    }
-    result=res;
-    */
   }
 
   private void add_setters_and_getter(ASTClass cl, String name, Type type) {
@@ -517,7 +380,6 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
   }
     
   private void add_begin_and_commit_to_class(Method m,boolean is_history) {
-    // TODO Auto-generated method stub
     Type returns=create.primitive_type(Sort.Void);
     Contract c=m.getContract();
     int N=m.getArity();
@@ -553,8 +415,8 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
     begin_cb.ensures(create.invokation(null, null,"hist_do_"+m.name,do_args));
     commit_cb.requires(create.invokation(null, null,"hist_do_"+m.name,do_args));
     commit_cb.ensures(create.invokation(null, null,"hist_idle",create.local_name("frac"),is_history?proc_action:proc));
-    HashMap<NameExpression,ASTNode> old_map=new HashMap();
-    HashMap<NameExpression,ASTNode> new_map=new HashMap();
+    HashMap<NameExpression,ASTNode> old_map=new HashMap<NameExpression, ASTNode>();
+    HashMap<NameExpression,ASTNode> new_map=new HashMap<NameExpression, ASTNode>();
     if (c.modifies!=null) for(ASTNode n:c.modifies){
       String name=((FieldAccess)n).name;
       ASTNode mode=create.dereference(((FieldAccess)n).object, name+"_hist_mode");
@@ -579,7 +441,6 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
     }
     if (c.accesses!=null) for(ASTNode n:c.accesses){
       String name=((FieldAccess)n).name;
-      ASTNode mode=create.dereference(((FieldAccess)n).object, name+"_hist_mode");
       n=create.dereference(((FieldAccess)n).object, name+"_hist_value");
       old_map.put(create.field_name(name),create.unresolved_name(name+"_hist_act"));
       new_map.put(create.field_name(name),create.unresolved_name(name+"_hist_value"));
@@ -590,7 +451,6 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
           create.reserved_name(ASTReserved.ReadPerm),
           frac
       );
-      ASTNode nact=create.unresolved_name(name+"_hist_act");
       begin_cb.requires(create.expression(Perm,n,frac));
       begin_cb.ensures(create.expression(Perm,n,frac));
       begin_cb.ensures(create.expression(EQ,n,create.expression(Old,n)));
@@ -622,7 +482,6 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
     }
   }
   protected void add_lemma_to_adt(Method m) {
-    DeclarationStatement args[]=rewrite(m.getArgs());
     Contract c=m.getContract();
     int N=m.getArity();
     ASTNode eq=c.post_condition;
@@ -820,8 +679,8 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
       ASTNode data=rewrite(e.getArg(0));
       ASTNode half=create.expression(StandardOperator.Div,create.constant(1),create.constant(2));
       ASTClass cl=source().find((ClassType)e.getArg(0).getType());
-      ArrayList<ASTNode> props=new ArrayList();
-      HashMap<NameExpression,ASTNode> map=new HashMap();
+      ArrayList<ASTNode> props=new ArrayList<ASTNode>();
+      HashMap<NameExpression,ASTNode> map=new HashMap<NameExpression, ASTNode>();
       Substitution sigma=new Substitution(source(),map);
       for(DeclarationStatement decl:cl.dynamicFields()){
         props.add(create.expression(StandardOperator.Perm,
@@ -1022,8 +881,8 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
     
     Method end_hist;
     
-    final HashMap<String,ASTNode> map=new HashMap();
-    final HashMap<String,ASTNode> new_map=new HashMap();
+    final HashMap<String,ASTNode> map=new HashMap<String, ASTNode>();
+    final HashMap<String,ASTNode> new_map=new HashMap<String, ASTNode>();
     AbstractRewriter sigma=new AbstractRewriter(source()){
       @Override
       public void visit(Dereference d){
@@ -1088,10 +947,9 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
           , create.expression(Old,create.field_name(d.name+"_hist_value"))
       ));
     }
-    Simplify simp=new Simplify(this);
     cb.ensures(new_sigma.rewrite(rename_old.rewrite(def.getContract().post_condition)));
     
-    ArrayList<ASTNode> def_names=new ArrayList();
+    ArrayList<ASTNode> def_names=new ArrayList<ASTNode>();
     for(DeclarationStatement d:def.getArgs()){
       def_names.add(create.local_name(d.name));
     }

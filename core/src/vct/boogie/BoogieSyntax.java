@@ -4,7 +4,6 @@ package vct.boogie;
 import hre.ast.TrackingOutput;
 import vct.col.ast.ASTNode;
 import vct.col.ast.ProgramUnit;
-import vct.col.print.AbstractPrinter;
 import vct.col.rewrite.Parenthesize;
 import vct.col.rewrite.Standardize;
 import vct.col.syntax.Syntax;

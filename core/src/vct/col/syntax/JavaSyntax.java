@@ -5,8 +5,6 @@ package vct.col.syntax;
 import hre.ast.TrackingOutput;
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTReserved;
-import vct.col.ast.ASTSpecial;
-import vct.col.ast.ASTSpecial.Kind;
 import vct.col.print.JavaPrinter;
 import vct.col.rewrite.Parenthesize;
 import hre.HREError;

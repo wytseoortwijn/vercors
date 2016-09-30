@@ -1,8 +1,6 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 package vct.col.ast;
 
-import vct.col.ast.NameExpression.Kind;
-
 /** Node that can hold every possible kind of defined name.
  * 
  * @author Stefan Blom

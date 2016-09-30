@@ -3,8 +3,6 @@ package vct.col.ast;
 
 import hre.ast.MessageOrigin;
 
-import java.util.*;
-
 public class ReturnStatement extends ASTNode implements BeforeAfterAnnotations {
 
   @Override
