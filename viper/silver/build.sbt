@@ -39,5 +39,6 @@ dependencyClasspath in Compile += new File("../viper-api/bin")
 // repository that contains all classes and resources relevant for testing.
 // Other projects, e.g., Carbon or Silicon, can then depend on the Sil test artifact, which
 // allows them to access the Sil test suite.
+
 publishArtifact in (Test, packageBin) := true
 
