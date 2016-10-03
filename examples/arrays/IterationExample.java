@@ -1,5 +1,6 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 //:: cases IterationExample
+//:: suite puptol
 //:: tools silicon
 //:: verdict Pass
 class Ref {
