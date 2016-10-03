@@ -58,6 +58,7 @@ public class VerCorsError extends AbstractMessage {
     case "assignment.failed":
       code=AssignmentFailed;
       break;
+    case "predicate.not.wellformed":
     case "not.wellformed":
       code=NotWellFormed;
       break;
