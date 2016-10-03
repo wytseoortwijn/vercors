@@ -9,6 +9,7 @@ package viper.silicon.reporting
 import viper.silicon._
 import viper.silicon.interfaces.state.{Heap, State, StateFormatter, Store}
 import viper.silicon.state.terms._
+import viper.silver.ast.AbstractLocalVar
 
 class DefaultStateFormatter[ST <: Store[ST], H <: Heap[H], S <: State[ST, H, S]]
 (val config: Config)
@@ -66,8 +67,10 @@ class DefaultStateFormatter[ST <: Store[ST], H <: Heap[H], S <: State[ST, H, S]]
   }
 
   private def toJson(γ: ST): String = {
-    val values = γ.values
-    if (values.isEmpty) "[]" else values.mkString("[\"", "\",\"", "\"]")
+    val values: Map[AbstractLocalVar, Term] = γ.values
+    if (values.isEmpty) "[]" else values.map((storeChunk:(AbstractLocalVar,Term)) => {
+      s"""{"value":"${storeChunk._1.toString()} -> ${storeChunk._2.toString()}","type":"${storeChunk._1.typ}"}"""
+    }).mkString("[", ",", "]")
   }
 
   private def toJson(h: H): String = {
@@ -77,13 +80,12 @@ class DefaultStateFormatter[ST <: Store[ST], H <: Heap[H], S <: State[ST, H, S]]
 
   private def toJson(π: Set[Term]): String = {
     /* Attention: Hides non-null and combine terms. */
-    if (π.isEmpty) "[]"
-    else
-      π.filterNot {
-        case c: BuiltinEquals if c.p0.isInstanceOf[Combine]
-          || c.p1.isInstanceOf[Combine] => true
-        case Not(BuiltinEquals(_, Null())) => true
-        case _ => false
-  }.mkString("[\"", "\",\"", "\"]")
+    val filteredPcs = π.filterNot {
+      case c: BuiltinEquals if c.p0.isInstanceOf[Combine]
+        || c.p1.isInstanceOf[Combine] => true
+      case Not(BuiltinEquals(_, Null())) => true
+      case _ => false
+    }
+    if (filteredPcs.isEmpty) "[]" else filteredPcs.mkString("[\"", "\",\"", "\"]")
   }
 }

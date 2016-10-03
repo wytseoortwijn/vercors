@@ -40,10 +40,11 @@ object SiliconBuild extends Build {
               mainClass in assembly := Some("viper.silicon.Silicon"),
               jarName in assembly := "silicon.jar",
               dependencyClasspath in Compile += new File("../viper-api/bin"), /* add VerCors/Viper interface */
-              test in assembly := {}, /* Skip tests before assembling fat jar. Assembling stops if tests fails. */
-              /* remove elidable method calls such as in SymbExLogger during compiling */
-			  scalacOptions ++= Seq("-Xelide-below", "1000"),
-			  fork := true,
+              test in assembly := {},
+                /* Skip tests before assembling fat jar. Assembling stops if tests fails. */
+              // scalacOptions ++= Seq("-Xelide-below", "1000"),
+                /* remove elidable method calls such as in SymbExLogger during compiling */
+              fork := true,
                 /* Fork Silicon when run and tested. Avoids problems with file
                  * handlers on Windows 7 that remain open until Sbt is closed,
                  * which makes it very annoying to work on test files.
@@ -89,7 +90,7 @@ object SiliconBuild extends Build {
                     Val("hgid_tags", id.tags))
               }),
               sourceGenerators in Compile <+= BrandKeys.generateDataFile)
-              /* ,addCommandAlias("tn", "test-only -- -n ") // requires sbt 0.13.x */)
+        ++ addCommandAlias("tn", "test-only -- -n "))
     ).dependsOn(common)
 
     for (dep <- internalDep) {
