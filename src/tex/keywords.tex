@@ -10,20 +10,30 @@
 \item[set$<$E$>$] Set of E
 \item[bag$<$E$>$] Bag of E
 \item[cell$<$E$>$] Object that contains a single E with set and get (internal use only)
+\item[option$<$E$>$] The option data type that either be \lstinline+None+ or
+\lstinline+Some(e)+, where \lstinline+e+ has to be of type E.
 \item[process] Type of both actions and defined processes in histories.
 \end{description}
 
 \section*{method and parallel loop contracts}
 
+Below, we list the keywords that can be used in contract.
+
 \begin{description}
-\item[given] ghost in parameter
-\item[yields] ghost out parameter
-\item[??] ghost in/out parameter
-\item[requires] pre condition
-\item[ensures] post condition
-\item[keep] pre and post condition
-\item[modifies] could possibly write these variables (sequential only?)
+\item[given] Declare ghost in parameters.
+\item[yields] Declare ghost out parameter.
+\item[requires] State pre condition.
+\item[ensures] State post condition.
+\item[context] State a condition that is true before and after.
+\item[invariant] State a condition that is true before, during, and after.
+\item[modifies] List of locations that might be modified.
+\item[accessible] List of locations that might be accessed.
 \end{description}
+
+If in/out paramters become supported then we will need ghost in/out parameters
+as well. In all dialects of VAL, a single ghost parameter can be declared.
+Many dialects support declaring multiple variables in one clause using
+the same syntax as the programming language for variable declarations.
 
 \section*{sequential loop contracts}
 

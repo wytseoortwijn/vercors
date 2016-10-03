@@ -1,5 +1,6 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 //:: cases LFQhistoryApplication
+//:: suite skip-travis
 //:: tools silicon
 //:: options --check-history
 
@@ -7,6 +8,8 @@
 
   vct --silver=silicon --check-history HistoryApplication.java
   
+  We skip this example during Travis builds because it is unstable:
+  often is passes, soemtimes it fails.
  */
  
 public class History {/*@
