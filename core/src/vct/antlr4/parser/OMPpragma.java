@@ -4,7 +4,7 @@ import java.util.Arrays;
 
 public class OMPpragma implements OMPelement {
 
-  public enum Kind { Parallel , ParallelFor , For };
+  public enum Kind { Parallel , ParallelFor , For , Simd };
   
   public final Kind kind;
   

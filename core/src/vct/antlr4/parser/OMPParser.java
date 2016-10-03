@@ -20,6 +20,9 @@ import vct.parsers.ompParser.Omp_optionContext;
 import vct.parsers.ompParser.Omp_scheduleContext;
 import vct.parsers.ompParser.Omp_sectionContext;
 import vct.parsers.ompParser.Omp_sectionsContext;
+import vct.parsers.ompParser.Omp_simdContext;
+import vct.parsers.ompParser.Omp_simdlenContext;
+import vct.parsers.ompParser.Omp_simdoptContext;
 import vct.parsers.ompParser.Omp_singleContext;
 import vct.parsers.ompParser.*;
 import vct.parsers.ompVisitor;
@@ -142,6 +145,22 @@ class ConversionVisitor implements ompVisitor<OMPelement> {
   public OMPelement visitOmp_section(Omp_sectionContext ctx) {
     // TODO Auto-generated method stub
     return null;
+  }
+
+  @Override
+  public OMPelement visitOmp_simd(Omp_simdContext ctx) {
+    return new OMPpragma(OMPpragma.Kind.Simd,map(ctx));
+  }
+
+  @Override
+  public OMPelement visitOmp_simdlen(Omp_simdlenContext ctx) {
+    int N=Integer.parseInt(ctx.getChild(2).getText());
+    return new OMPoption(Kind.SimdLen,N);
+  }
+
+  @Override
+  public OMPelement visitOmp_simdopt(Omp_simdoptContext ctx) {
+    return new OMPoption(Kind.Simd);
   }
 
 }

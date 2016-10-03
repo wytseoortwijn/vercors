@@ -331,6 +331,17 @@ public class Main
         passes=new LinkedBlockingDeque<String>();
         passes.add("java_resolve");
         if (sat_check.get()) passes.add("sat_check");
+        
+        if (silver.used()) {
+          if (features.usesIterationContracts()||features.usesPragma("omp")){
+            passes.add("openmp2pvl");
+            passes.add("standardize");
+            passes.add("check");
+          }
+          features=new FeatureScanner();
+          program.accept(features);
+        }
+
         passes.add("propagate-invariants");
         if (features.usesSpecial(ASTSpecial.Kind.Lock)
            ||features.usesSpecial(ASTSpecial.Kind.Unlock)
@@ -357,17 +368,7 @@ public class Main
         passes.add("inline");
         passes.add("standardize");
         passes.add("check");
-  
-        if (silver.used()) {
-          if (features.usesIterationContracts()||features.usesPragma("omp")){
-            passes.add("openmp2pvl");
-            passes.add("standardize");
-            passes.add("check");
-          }
-          features=new FeatureScanner();
-          program.accept(features);
-        }
-        
+          
         if (features.usesCSL()){
           passes.add("csl-encode");
           passes.add("standardize");
