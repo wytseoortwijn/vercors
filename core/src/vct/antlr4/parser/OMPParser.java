@@ -69,12 +69,12 @@ class ConversionVisitor implements ompVisitor<OMPelement> {
 
   @Override
   public OMPelement visitTerminal(TerminalNode arg0) {
-    return null;
+    throw new Error("missing case "+arg0.getText());
   }
 
   @Override
   public OMPelement visitOmp_pragma(Omp_pragmaContext ctx) {
-    System.err.printf("pragma %s%n",ctx.toStringTree());
+    //System.err.printf("pragma %s%n",ctx.toStringTree());
     return ctx.getChild(0).accept(this); 
    }
 
@@ -85,24 +85,26 @@ class ConversionVisitor implements ompVisitor<OMPelement> {
 
   @Override
   public OMPelement visitOmp_parallel_for(Omp_parallel_forContext ctx) {
-    return new OMPpragma(OMPpragma.Kind.ParallelFor,map(ctx));
+    return new OMPpragma(OMPpragma.Kind.ParallelFor,map(ctx,2));
   }
-
-  private OMPoption[] map(ParserRuleContext ctx){
+  
+  private OMPoption[] map(ParserRuleContext ctx,int ofs){
     int N=ctx.getChildCount();
-    OMPoption[] res=new OMPoption[N];
-    for(int i=0;i<N;i++) res[i]=(OMPoption)ctx.getChild(i).accept(this);
+    OMPoption[] res=new OMPoption[N-ofs];
+    for(int i=ofs;i<N;i++) {
+      res[i-ofs]=(OMPoption)ctx.getChild(i).accept(this);
+    }
     return res;
   }
   
   @Override
   public OMPelement visitOmp_for(Omp_forContext ctx) {
-    return new OMPpragma(OMPpragma.Kind.For,map(ctx));
+    return new OMPpragma(OMPpragma.Kind.For,map(ctx,1));
   }
 
   @Override
   public OMPelement visitOmp_parallel(Omp_parallelContext ctx) {
-    return new OMPpragma(OMPpragma.Kind.Parallel,map(ctx));
+    return new OMPpragma(OMPpragma.Kind.Parallel,map(ctx,1));
   }
 
   @Override
@@ -131,25 +133,22 @@ class ConversionVisitor implements ompVisitor<OMPelement> {
 
   @Override
   public OMPelement visitOmp_single(Omp_singleContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
+    throw new Error("missing case");
   }
 
   @Override
   public OMPelement visitOmp_sections(Omp_sectionsContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
+    throw new Error("missing case");
   }
 
   @Override
   public OMPelement visitOmp_section(Omp_sectionContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
+    throw new Error("missing case");
   }
 
   @Override
   public OMPelement visitOmp_simd(Omp_simdContext ctx) {
-    return new OMPpragma(OMPpragma.Kind.Simd,map(ctx));
+    return new OMPpragma(OMPpragma.Kind.Simd,map(ctx,1));
   }
 
   @Override

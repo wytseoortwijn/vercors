@@ -332,14 +332,10 @@ public class Main
         passes.add("java_resolve");
         if (sat_check.get()) passes.add("sat_check");
         
-        if (silver.used()) {
-          if (features.usesIterationContracts()||features.usesPragma("omp")){
-            passes.add("openmp2pvl");
-            passes.add("standardize");
-            passes.add("check");
-          }
-          features=new FeatureScanner();
-          program.accept(features);
+        if (features.usesIterationContracts()||features.usesPragma("omp")){
+          passes.add("openmp2pvl"); // Converts *all* parallel loops!
+          passes.add("standardize");
+          passes.add("check");
         }
 
         passes.add("propagate-invariants");
@@ -375,7 +371,7 @@ public class Main
           passes.add("check");
         }
         
-        if(features.hasVectorBlocks()){
+        if(features.hasVectorBlocks()||features.usesPragma("omp")){
           passes.add("vector-encode");
           passes.add("standardize");
           passes.add("check");
