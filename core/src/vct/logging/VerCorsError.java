@@ -62,6 +62,7 @@ public class VerCorsError extends AbstractMessage {
     case "invariant.not.preserved":
       code=InvariantNotPreserved;
       break;
+    case "predicate.not.wellformed":
     case "not.wellformed":
       code=NotWellFormed;
       break;

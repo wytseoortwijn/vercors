@@ -263,7 +263,7 @@ trait HeuristicsSupporter[ST <: Store[ST],
 
       cause.message.reason match {
         case reason: MagicWandChunkNotFound =>
-          val chunks = (σ.h.values ++ h.values ++ c.reserveHeaps.flatMap(_.values)).toSeq
+          val chunks = (σ.h.values ++ h.values ++ c.reserveHeaps.flatMap(_.values)).toSeq.distinct
 
           /* HS1 (wands) */
           val wand = reason.offendingNode
@@ -283,7 +283,7 @@ trait HeuristicsSupporter[ST <: Store[ST],
 
         case reason: InsufficientPermission =>
           val locationMatcher = matchers.location(reason.offendingNode.loc(c.program), c.program)
-          val chunks = (σ.h.values ++ h.values ++ c.reserveHeaps.flatMap(_.values)).toSeq
+          val chunks = (σ.h.values ++ h.values ++ c.reserveHeaps.flatMap(_.values)).toSeq.distinct
 
           /* HS1 (wands) */
           val wandChunks = wandInstancesMatching(chunks, locationMatcher)
@@ -331,8 +331,6 @@ trait HeuristicsSupporter[ST <: Store[ST],
                    (σ: S, h: H, c: C)
                    (Q: (S, H, C) => VerificationResult)
                    : VerificationResult = {
-
-      val p = FullPerm()
 
       if (c.exhaleExt) {
         heuristicsLogger.debug(s"  reaction: packaging $wand")
