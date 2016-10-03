@@ -359,11 +359,11 @@ trait DefaultExecutor[ST <: Store[ST],
               viper.api.Reachable.reachable+=a.info
               if (config.disableSubsumption()) {
                 val r =
-                  consume(σ, FullPerm(), a, pve, c)((σ1, _, c1) =>
+                  consume(σ, a, pve, c)((σ1, _, c1) =>
                     Success())
                 r && Q(σ, c)
               } else
-                consume(σ, FullPerm(), a, pve, c)((σ1, _, c1) =>
+                consume(σ, a, pve, c)((σ1, _, c1) =>
                   Q(σ, c1))
             }
           /* "assert true" triggers a heap compression. */
