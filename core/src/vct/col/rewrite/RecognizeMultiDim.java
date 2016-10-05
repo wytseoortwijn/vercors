@@ -123,10 +123,11 @@ public class RecognizeMultiDim extends AbstractRewriter {
             create.expression(StandardOperator.Mod,create.reserved_name(ASTReserved.Result),create.local_name("N1")),
             create.local_name("i1")
         ));
-        cb.ensures(create.expression(StandardOperator.LT,
-            create.expression(StandardOperator.Mod,create.reserved_name(ASTReserved.Result),create.local_name("N1")),
-            create.local_name("N0")
-        ));
+        // Disabled because it caused an inconsistency.
+        //cb.ensures(create.expression(StandardOperator.LT,
+        //    create.expression(StandardOperator.Mod,create.reserved_name(ASTReserved.Result),create.local_name("N1")),
+        //    create.local_name("N0")
+        //));
       }
       Method idx=create.function_decl(
           create.primitive_type(Sort.Integer),

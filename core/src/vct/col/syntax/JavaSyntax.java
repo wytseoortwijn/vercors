@@ -68,6 +68,7 @@ public class JavaSyntax extends Syntax {
         syntax.addFunction(StructDeref,"\\structderef");
         syntax.addFunction(IterationOwner,"\\owner");
         
+        syntax.addFunction(Values,"\\values");
         
         syntax.addOperator(Unfolding,140,"\\unfolding","\\in","");
         syntax.addOperator(IndependentOf, -1 , "(" ,"!",")");
@@ -79,7 +80,10 @@ public class JavaSyntax extends Syntax {
         syntax.addReserved(Pure,"pure");
         syntax.addReserved(CurrentThread,"\\current_thread");
         syntax.addFunction(OptionGet,"getOption");
-               
+        
+        syntax.addFunction(ValidArray,"\\array");
+        syntax.addFunction(ValidMatrix,"\\matrix");
+        
         JavaVerCorsSyntax=syntax;
         
       }

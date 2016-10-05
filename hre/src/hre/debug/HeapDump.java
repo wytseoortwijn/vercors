@@ -45,6 +45,10 @@ public class HeapDump {
     tree_dump(out,new HashSet<Object>(),tree,base_classes);
   }
   private static void tree_dump(PrefixPrintStream out,Set<Object> visited,Object tree,Class<?> ... base_classes){
+    if (tree instanceof String){
+      out.printf("<String>%s</String>%n", tree);
+      return;
+    }
     if (visited.contains(tree)) return;
     visited.add(tree);
     Class<? extends Object> tree_class=tree.getClass();

@@ -77,7 +77,6 @@ class simplify_quant_pass1 {
   axiom div_3 { e1 / e1 == 1 }
   axiom div_4 { e1 / 1 == e1 }
   
-
   axiom B1 {
     true && b1 == b1
   }
@@ -286,6 +285,16 @@ class simplify_quant_pass1 {
      ( j \memberof ([ i * e3 .. (i + 1) * e3 )))
    }
 
+
+   axiom triple_1 {
+     (\forall* int i;( i \memberof ([ 0 .. e1 )) );
+       (\forall* int j;( j \memberof ([ 0 .. e2 )) );
+         (\forall* int k;( k \memberof ([ e3 .. e4 )) );
+           Perm(ar[k * ( e1 * e2 ) + ( j * e1 + i) ],e5) )))
+      ==
+     (\forall* int i;( i \memberof ([ e1 * e2 * e3 .. e1 * e2 * e4 )));Perm(ar[i],e5))
+   }
+
    axiom nested_1 {
         (\forall* int i;( i \memberof ([ e1 .. e2 )) );
             (\forall* int j;( j \memberof ([ i * e3 .. (i + 1) * e3 )) );
@@ -449,9 +458,14 @@ class simplify_quant_pass2 {
       ==
     (\forall* int k_fresh ; (\let int i=(k_fresh/e2)-e1;b1) && k_fresh % e2 == 0; Perm( ar [ k_fresh ] , e3 ))
   }
- 
-@*/
 
+
+  axiom unfold_2 {
+    (\forall* int i; ( i \memberof ([ 0 .. 2 ))) ; r1)
+    ==
+    (\let int i=0; r1) ** (\let int i=1; r1)
+  }
+@*/
 }
 
 

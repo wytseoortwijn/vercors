@@ -12,7 +12,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map.Entry;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorCompletionService;
@@ -20,6 +22,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import puptol.PuptolConfig;
 import hre.config.IntegerSetting;
 import hre.config.Option;
 import hre.config.OptionParser;
@@ -112,6 +115,10 @@ public class CommandLineTesting {
         System.exit(1);
       }
     }
+    PuptolConfig puptol_config=null;
+    if (puptol_file.used()){
+      puptol_config=new PuptolConfig();
+    }
     HashMap<String,Integer> times=new HashMap<String, Integer>();
     int successes=0;
     HashMap<String,Testcase> untested=new HashMap<String,Testcase>();
@@ -162,6 +169,38 @@ public class CommandLineTesting {
       for(String tool:test.tools){
         if (backend_option.used()&&!backends.contains(tool)) {
           // skip tests for back ends that are not selected.
+          continue;
+        }
+        if (puptol_file.used()){
+          if (test.files.size()!=1){
+            System.err.printf("cannot configure %s/%s in puptol: too many files%n",
+                name,tool);
+            continue;
+          }
+          Path file=null;
+          for(Path f:test.files) file=f;
+          System.err.printf("test %s/%s%n",name,tool);
+          Iterator<Path> iter=file.iterator();
+          try {
+            while(!iter.next().toString().equals("shared")) {}
+          } catch (NoSuchElementException e){
+            System.err.printf("path element shared not found%n");
+            continue;
+          }
+          String experiment=iter.next().toString();
+          String filename=iter.next().toString();
+          ArrayList<String> path=new ArrayList();
+          while(iter.hasNext()){
+            path.add(filename);
+            filename=iter.next().toString();
+          }
+          System.err.printf("  path: %s%n",path);
+          System.err.printf("  file: %s%n",filename);
+          for(String opt:test.options){
+            System.err.printf("  option: %s%n",opt);
+          }
+          System.err.printf("to be added to %s%n",experiment);
+          puptol_config.add(experiment,path,name,tool,filename,test.options);
           continue;
         }
         ArrayList<String> cmd=new ArrayList<String>();
@@ -222,6 +261,9 @@ public class CommandLineTesting {
       }
     }
     pool.shutdown();
+    if (puptol_file.used()){
+      puptol_config.update(puptol_file.get());
+    }
     boolean pass=true;
     for (String file:tv.files_by_name.keySet()){
       Set<Path> items=tv.files_by_name.get(file);
@@ -318,6 +360,13 @@ public class CommandLineTesting {
   private static Option commandlines=
       command_file.getAssign("output file with list of commands instead");
   
+  public static StringSetting puptol_file=new StringSetting(null);
+  private static Option puptolupdate=
+      puptol_file.getAssign("update experiments in puptol file");
+  
+  
+  
+  
   public static void add_options(OptionParser clops) {
     append_option=selftest.getAppendOption("execute test suites from the command line. "+
         "Each test suite is a folder which is scanned for valid test inputs");
@@ -328,6 +377,7 @@ public class CommandLineTesting {
     clops.add(include_option=includes.getAppendOption("include test suites"),"include-suite");
     clops.add(exclude_option=excludes.getAppendOption("exclude test suites"),"exclude-suite");
     clops.add(commandlines,"commands");
+    clops.add(puptolupdate,"puptol-config");
     clops.add(workers.getAssign("set the number of parallel tests"),"test-workers");
   }
 

@@ -1,5 +1,6 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 //:: cases TreeRecursiveSilver
+//:: suite puptol
 //:: tools silicon
 /**
   

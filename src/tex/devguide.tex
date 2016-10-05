@@ -135,15 +135,7 @@ can be written in Java and C as
 }
 \end{lstlisting}
 
-\chapter{Error Reporting}
-
-The error reporting mechanism is built around the notion of an \emph{origin}.
-Every transformation maintains the origin of every AST node that it produces.
-This origin contains enough information to both trace back every AST node
-to the source code from which it was generated and to convert error
-messages with respect to the output to the correct message for the input.
-E.g. an assertion failed in the output, might be reported as a
-post-condition failure at a return statement.
+\include{error_reporting}
 
 \include{encoding_passes}
 

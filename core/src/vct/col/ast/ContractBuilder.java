@@ -207,5 +207,15 @@ public class ContractBuilder {
     }
   }
 
+  public void context(Iterable<ASTNode> e) {
+    requires(e);
+    ensures(e);
+  }
+
+  public void context(ASTNode e) {
+    requires(e);
+    ensures(e);
+  }
+
 }
 

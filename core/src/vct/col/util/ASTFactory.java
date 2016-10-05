@@ -1286,4 +1286,15 @@ public Axiom axiom(String name,ASTNode exp){
     return struct_value(origin_stack.get(),type,map,values.toArray(new ASTNode[values.size()]));
   }
 
+  public VectorBlock vector_block(DeclarationStatement iter,BlockStatement block) {
+    return vector_block(origin_stack.get(),iter,block);
+  }
+
+  public VectorBlock vector_block(Origin o, DeclarationStatement iter,BlockStatement block) {
+    VectorBlock res=new VectorBlock(iter,block);
+    res.setOrigin(o);
+    res.accept_if(post);    
+    return res;
+  }
+
 }

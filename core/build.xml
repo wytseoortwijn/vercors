@@ -1,7 +1,7 @@
 <!-- -*- tab-width:2 ; indent-tabs-mode:nil -*- -->
 <!-- this file is used for command line building,
      somehow eclipse is unable to parse this file,
-     so we use jar-build.xml to include thte shared
+     so we use jar-build.xml to include thte sharedgson-2.7.jar
      jar building target.
   -->
 
@@ -13,7 +13,7 @@
   <property name="bin"          value="${basedir}/bin"/>
   <property name="lib"          value="${basedir}/libs"/>
   <property name="dist"         value="${basedir}/dist"/>
-  <property name="libpath"      value="${basedir}/../hre/hre.jar:${basedir}/../core/vct-core.jar:${lib}/antlr-4.5.3-complete.jar:${basedir}/../libs/commons-lang3-3.1/commons-lang3-3.1.jar:${basedir}/../viper/viper-api/bin"/>
+  <property name="libpath"      value="${basedir}/../hre/hre.jar:${basedir}/../core/vct-core.jar:${lib}/gson-2.7.jar:${lib}/antlr-4.5.3-complete.jar:${basedir}/../libs/commons-lang3-3.1/commons-lang3-3.1.jar:${basedir}/../viper/viper-api/bin"/>
   <property environment="env"/>
 
   <target name="clean">
