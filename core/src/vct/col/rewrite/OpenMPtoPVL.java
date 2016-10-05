@@ -7,12 +7,14 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.Stack;
 import java.util.concurrent.atomic.AtomicInteger;
+
 import vct.antlr4.parser.OMPParser;
 import vct.antlr4.parser.OMPoption;
 import vct.antlr4.parser.OMPpragma;
 import vct.col.ast.*;
 import vct.col.ast.ASTSpecial.Kind;
 import vct.col.ast.PrimitiveType.Sort;
+import vct.col.util.ASTUtils;
 import vct.col.util.FeatureScanner;
 
 interface PPLProgram {
@@ -255,12 +257,28 @@ public class OpenMPtoPVL extends AbstractRewriter {
                   cb.requires(rewrite(d.args[0]));
                   lo++;
                   continue;
+                case RequiresAndEnsures:
+                  cb.requires(rewrite(d.args[0]));
+                  cb.ensures(rewrite(d.args[0]));
+                  lo++;
+                  continue;
                 case Ensures:
                   cb.ensures(rewrite(d.args[0]));
                   lo++;
                   continue;
-                default:
+                case Comment:
+                  currentBlock.add(src_block[lo]);
+                  lo++;
+                  continue;
+                case Pragma:{
+                  String pragma2=((ASTSpecial)s).args[0].toString();
+                  if (!pragma2.startsWith("omp")){
+                    Abort("unexpected pragma %s",pragma2);
+                  }
                   break;
+                }
+                default:
+                  Abort("unexpected special %s",d.kind);
                 }
                 break;
               }
@@ -304,8 +322,21 @@ public class OpenMPtoPVL extends AbstractRewriter {
   }
 
   private PPLProgram do_for(OMPoption[] options, ASTNode S) {
+    boolean simd=false;
+    int simd_len=-1;
+    for(OMPoption o:options){
+      if (o.kind==OMPoption.Kind.SimdLen){
+        simd_len=o.len;
+      }
+      if (o.kind==OMPoption.Kind.Simd){
+        simd=true;
+      }
+    }
     if (!(S instanceof LoopStatement)){
       Fail("omp for only applies to loops");
+    }
+    if (simd && simd_len < 0){
+      Fail("cannot do sinmd without simdlen");
     }
     LoopStatement loop=(LoopStatement)S;
     String var_name="iii";
@@ -324,16 +355,59 @@ public class OpenMPtoPVL extends AbstractRewriter {
     } else {
       Fail("missing case in for initialisation");
     }
+    if (!loop.getEntryGuard().isa(StandardOperator.LT)){
+      Fail("loop guard must be . < . ");
+    }
     OperatorExpression cond=(OperatorExpression)loop.getEntryGuard();
     hi=rewrite(cond.getArg(1));
     
-    DeclarationStatement range=create.field_decl(var_name,
-        create.primitive_type(Sort.Integer),
-        create.expression(StandardOperator.RangeSeq,lo,hi));
-    BlockStatement body=(BlockStatement)rewrite(loop.getBody());
-    return new PPLParallel(options,rewrite(loop.getContract()),body,range);
+    if (simd){
+      lo=create.expression(StandardOperator.Div,lo,create.constant(simd_len));
+      hi=create.expression(StandardOperator.Div,hi,create.constant(simd_len));
+      String par_var_name="par_"+var_name;
+      DeclarationStatement range=create.field_decl(par_var_name,
+          create.primitive_type(Sort.Integer),
+          create.expression(StandardOperator.RangeSeq,lo,hi));
+      ASTNode pv=create.local_name(par_var_name);
+      ASTNode pv1=create.expression(StandardOperator.Plus,pv,create.constant(1));
+      ASTNode len=create.constant(simd_len);
+      DeclarationStatement vec_range=create.field_decl(var_name,
+          create.primitive_type(Sort.Integer),
+          create.expression(StandardOperator.RangeSeq
+              ,create.expression(StandardOperator.Mult,pv,len)
+              ,create.expression(StandardOperator.Mult,pv1,len)
+          ));
+      BlockStatement vec_body=(BlockStatement)rewrite(loop.getBody());
+      BlockStatement body=create.block();
+      body.add(create.special(Kind.Assume,create.expression(StandardOperator.LTE
+          ,create.expression(StandardOperator.Mult,pv1,len)
+          ,create.expression(StandardOperator.Mult,hi,len)
+      )));
+      body.add(create.vector_block(vec_range,vec_body));
+      ContractBuilder cb=new ContractBuilder();
+      for(ASTNode clause:ASTUtils.conjuncts(loop.getContract().pre_condition,StandardOperator.Star)){
+        cb.requires(starall(vec_range,clause));
+      }
+      for(ASTNode clause:ASTUtils.conjuncts(loop.getContract().post_condition,StandardOperator.Star)){
+        cb.ensures(starall(vec_range,clause));
+      }
+      return new PPLParallel(options,cb.getContract(),body,range);
+    } else {
+      DeclarationStatement range=create.field_decl(var_name,
+          create.primitive_type(Sort.Integer),
+          create.expression(StandardOperator.RangeSeq,lo,hi));
+      BlockStatement body=(BlockStatement)rewrite(loop.getBody());
+      return new PPLParallel(options,rewrite(loop.getContract()),body,range);
+    }
   }
 
+  private ASTNode starall(DeclarationStatement range,ASTNode clause){
+    DeclarationStatement decl=create.field_decl(range.name,range.getType());
+    ASTNode guard=create.expression(StandardOperator.Member,
+        create.local_name(range.name),range.getInit());
+    return create.starall(guard,clause,decl);
+  }
+  
   private PPLProgram do_ppl(ASTNode[] src_block, int lo, int hi) {
     ArrayList<PPLProgram> parts=new ArrayList<PPLProgram>();
     for(int i=lo;i<hi;i++){
@@ -348,6 +422,9 @@ public class OpenMPtoPVL extends AbstractRewriter {
         OMPpragma command=OMPParser.parse(pragma);
         System.err.printf("type is %s%n",command.kind);
         switch(command.kind){
+        case Simd:
+          Fail("simd only supported as for simd");
+          continue;
         case For:{
           while(i+1<hi && src_block[i+1].isDeclaration(Kind.Comment)){
             i=i+1;

@@ -795,6 +795,20 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       }
       break;
     }
+    case Values:{
+      Type t=e.getArg(0).getType();
+      if (!t.isPrimitive(Sort.Array)){
+        Abort("First argument values must be array at "+e.getOrigin());
+      }
+      t1=e.getArg(1).getType();
+      if (t1==null) Fail("type of from argument unknown at "+e.getOrigin());
+      if (!t1.isInteger()) Fail("type of from argument should be integer at "+e.getOrigin());
+      t2=e.getArg(2).getType();
+      if (t2==null) Fail("type of upto argument unknown at "+e.getOrigin());
+      if (!t2.isInteger()) Fail("type of upto argument should be integer at "+e.getOrigin());
+      e.setType(new PrimitiveType(Sort.Sequence,((PrimitiveType)t).getArgs()));
+      break;
+    }
     case ITE:
     {
       Type t=e.getArg(0).getType();
@@ -1319,6 +1333,22 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       break;
     }
   }
+  
+  
+
+  @Override
+  public void visit(VectorBlock pb){
+    if (!pb.iter.getType().isPrimitive(Sort.Integer)){
+      Fail("type of iteration variable must be integer");
+    }
+    ASTNode init=pb.iter.getInit();
+    if (!init.isa(StandardOperator.RangeSeq)){
+      Fail("value for iteration variable must be a range");
+    }
+    init.apply(this);
+    pb.block.apply(this);
+  }
+  
 
   @Override
   public void visit(ParallelBlock pb){

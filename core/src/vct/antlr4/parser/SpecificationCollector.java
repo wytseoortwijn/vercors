@@ -215,6 +215,18 @@ public class SpecificationCollector extends AbstractRewriter {
       if (block.get(i) instanceof ASTSpecial && currentContractBuilder==null){
         int j;
         for(j=i+1;j<N && (block.get(j) instanceof ASTSpecial);j++){
+          ASTSpecial S=(ASTSpecial)block.get(j);
+          switch(S.kind){
+          case Requires:
+          case Invariant:
+          case Ensures:
+          case Comment:
+          case RequiresAndEnsures:
+            continue;
+          default:
+            break;
+          }
+          break;
         }
         if (j<N && block.get(j) instanceof LoopStatement) {
           currentContractBuilder=new ContractBuilder();

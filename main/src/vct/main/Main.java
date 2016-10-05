@@ -78,6 +78,7 @@ import vct.col.rewrite.SilverReorder;
 import vct.col.rewrite.SimplifyCalls;
 import vct.col.rewrite.Standardize;
 import vct.col.rewrite.StripConstructors;
+import vct.col.rewrite.VectorEncode;
 import vct.col.rewrite.VoidCalls;
 import vct.col.rewrite.VoidCallsThrown;
 import vct.col.rewrite.WandEncoder;
@@ -330,6 +331,13 @@ public class Main
         passes=new LinkedBlockingDeque<String>();
         passes.add("java_resolve");
         if (sat_check.get()) passes.add("sat_check");
+        
+        if (features.usesIterationContracts()||features.usesPragma("omp")){
+          passes.add("openmp2pvl"); // Converts *all* parallel loops!
+          passes.add("standardize");
+          passes.add("check");
+        }
+
         passes.add("propagate-invariants");
         if (features.usesSpecial(ASTSpecial.Kind.Lock)
            ||features.usesSpecial(ASTSpecial.Kind.Unlock)
@@ -356,21 +364,19 @@ public class Main
         passes.add("inline");
         passes.add("standardize");
         passes.add("check");
-  
-        if (silver.used()) {
-          if (features.usesIterationContracts()||features.usesPragma("omp")){
-            passes.add("openmp2pvl");
-            passes.add("standardize");
-            passes.add("check");
-          }
-        }
-        
+          
         if (features.usesCSL()){
           passes.add("csl-encode");
           passes.add("standardize");
           passes.add("check");
         }
-          
+        
+        if(features.hasVectorBlocks()||features.usesPragma("omp")){
+          passes.add("vector-encode");
+          passes.add("standardize");
+          passes.add("check");
+        }
+        
         if (silver.used()) {
           if (features.usesIterationContracts()||features.usesParallelBlocks()||features.usesCSL()||features.usesPragma("omp")){
             passes.add("parallel_blocks");
@@ -1015,6 +1021,7 @@ public class Main
         return new VoidCallsThrown(arg).rewriteAll();
       }
     });
+    compiler_pass(defined_passes,"vector-encode","Encode vector blocks using the vector library",VectorEncode.class);
     defined_passes.put("chalice-preprocess",new CompilerPass("Pre processing for chalice"){
       public ProgramUnit apply(ProgramUnit arg,String ... args){
         return new ChalicePreProcess(arg).rewriteAll();
