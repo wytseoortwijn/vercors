@@ -260,6 +260,14 @@ public enum StandardOperator {
    * The get operator for the options type.
    */
   OptionGet(1),
+  /**
+   * Declares the first argument to be a valid array of the given size.
+   */
+  ValidArray(2),
+  /**
+   * Declares the first argument to be a valid matrix of the given size.
+   */
+  ValidMatrix(3),
   /*
    * Get the values from an array as a sequence form a start upto an end
    */

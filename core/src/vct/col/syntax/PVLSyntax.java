@@ -145,6 +145,10 @@ public class PVLSyntax {
       syntax.addFunction(PVLjoinToken,"running");
       
       syntax.addReserved(ASTReserved.Any, "*");
+      
+      
+      syntax.addFunction(ValidArray,"\\array");
+      syntax.addFunction(ValidMatrix,"\\matrix");
     }
     return syntax;
   }

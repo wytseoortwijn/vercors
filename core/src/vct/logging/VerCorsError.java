@@ -24,6 +24,7 @@ public class VerCorsError extends AbstractMessage {
     AssertFailed,
     ExhaleFailed,
     InvariantNotEstablished,
+    InvariantNotPreserved,
     InvariantBroken,
     PostConditionFailed,
     UnspecifiedError,
@@ -75,6 +76,12 @@ public class VerCorsError extends AbstractMessage {
       break;
     case "assignment.failed":
       code=AssignmentFailed;
+      break;
+    case "invariant.not.established":
+      code=InvariantNotEstablished;
+      break;
+    case "invariant.not.preserved":
+      code=InvariantNotPreserved;
       break;
     case "predicate.not.wellformed":
     case "not.wellformed":
