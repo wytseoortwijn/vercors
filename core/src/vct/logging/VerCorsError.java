@@ -59,6 +59,9 @@ public class VerCorsError extends AbstractMessage {
     case "assignment.failed":
       code=AssignmentFailed;
       break;
+    case "invariant.not.established":
+      code=InvariantNotEstablished;
+      break;
     case "invariant.not.preserved":
       code=InvariantNotPreserved;
       break;
