@@ -354,6 +354,11 @@ class MatchLinear implements ASTMapping1<Boolean,ASTNode> {
     
     return null;
   }
+
+  @Override
+  public Boolean map(VectorBlock vb, ASTNode a) {
+    return null;
+  }
   
 }
 

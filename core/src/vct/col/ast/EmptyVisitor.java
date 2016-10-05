@@ -268,5 +268,11 @@ public class EmptyVisitor<T> implements ASTVisitor<T> {
     // TODO Auto-generated method stub
     
   }
+
+  @Override
+  public void visit(VectorBlock vb) {
+    // TODO Auto-generated method stub
+    
+  }
   
 }

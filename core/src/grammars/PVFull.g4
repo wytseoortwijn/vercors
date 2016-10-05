@@ -93,6 +93,7 @@ statement
  | 'if' '(' expr ')' block ( 'else' block )?
  | 'barrier' '(' identifier ( ';' id_list )? ')' ( '{' contract '}' | contract block )
  | contract 'par' par_unit ( 'and' par_unit )* 
+ | 'vec' '(' iter ')' block 
  | 'invariant' identifier '(' expr ')' block 
  | 'atomic' '(' id_list ')' block 
  | invariant 'while' '(' expr ')' block

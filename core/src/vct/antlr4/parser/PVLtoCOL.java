@@ -535,6 +535,11 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
     if (match(ctx,null,"=",null,";")){
       return create.assignment(convert(ctx,0),convert(ctx,2));
     }
+    if (match(ctx,"vec","(",null,")",null)){
+      DeclarationStatement iter=(DeclarationStatement)convert(ctx,2);
+      BlockStatement block=(BlockStatement)convert(ctx,4);
+      return create.vector_block(iter,block);
+    }
     if (match(0,true,ctx,"Contract","par","Par_unit")){
       Contract c;
       if (((ContractContext)ctx.getChild(0)).getChildCount()>0){

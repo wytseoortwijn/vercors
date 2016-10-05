@@ -13,6 +13,7 @@ import vct.col.ast.NameExpression;
 import vct.col.ast.ParallelBlock;
 import vct.col.ast.RecursiveVisitor;
 import vct.col.ast.Type;
+import vct.col.ast.VectorBlock;
 
 
 public class NameScanner extends RecursiveVisitor<Object> {
@@ -119,6 +120,7 @@ public class NameScanner extends RecursiveVisitor<Object> {
     }
   }
   
+  @Override
   public void visit(ParallelBlock pb){
     Type oldi[]=new Type[pb.iters.length];
     for(int i=0;i<pb.iters.length;i++){
@@ -134,7 +136,17 @@ public class NameScanner extends RecursiveVisitor<Object> {
       }      
     }
   }
-  
+  @Override
+  public void visit(VectorBlock pb){
+    Type old=vars.get(pb.iter.name);
+    safe_decls.add(pb.iter);
+    super.visit(pb);
+    vars.remove(pb.iter.name);
+    if(old!=null){
+      vars.put(pb.iter.name,old);
+    }      
+  }
+
   @Override
   public void visit(BlockStatement b){
     int N=b.size();

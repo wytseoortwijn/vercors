@@ -74,7 +74,7 @@ par(int i = 0 .. N){
 }
 \end{lstlisting}
 
-Finally, we have invariant blocks, which establish invariants
+For use with atomics, we have invariant blocks, which establish invariants
 that can only be broken inside atomic blocks and barriers.
 \begin{lstlisting}
 int x=0;
@@ -88,6 +88,26 @@ invariant inv(x+y==z){
   }
 }
 \end{lstlisting}
+
+Finally, there is support for vector programming using vector blocks.
+A vector blocks is a parallel construct that quantifies over a single
+iteration variable, with the intended meaning that every statement is
+the block is executed for all possible values at once.
+
+For example, the following vector block adds the vectors b and c
+and puts the result in a and then swaps the contents of b and c.
+\begin{lstlisting}
+vec(int i=0..N){
+  a[i]=b[i]+c[i];
+  int tmp;
+  tmp=b[i];
+  b[i]=c[i];
+  c[i]=tmp;
+}
+\end{lstlisting}
+Note that tmp is declared as a scalar. The encoding pass for a vector block
+turns all statements into vector statements. Thus only specific forms of statements are allowed.
+\todo[inline]{List of permissible statements.}
 
 \section{Example}
 
