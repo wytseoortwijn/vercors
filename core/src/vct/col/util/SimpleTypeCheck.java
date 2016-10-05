@@ -795,6 +795,16 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       }
       break;
     }
+    case ValidArray:{
+      //TODO: check argument types.
+      e.setType(new PrimitiveType(Sort.Boolean));
+      break;
+    }
+    case ValidMatrix:{
+      //TODO: check argument types.
+      e.setType(new PrimitiveType(Sort.Boolean));
+      break;
+    }
     case ITE:
     {
       Type t=e.getArg(0).getType();

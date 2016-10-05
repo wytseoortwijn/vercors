@@ -79,7 +79,10 @@ public class JavaSyntax extends Syntax {
         syntax.addReserved(Pure,"pure");
         syntax.addReserved(CurrentThread,"\\current_thread");
         syntax.addFunction(OptionGet,"getOption");
-               
+        
+        syntax.addFunction(ValidArray,"\\array");
+        syntax.addFunction(ValidMatrix,"\\matrix");
+        
         JavaVerCorsSyntax=syntax;
         
       }

@@ -78,9 +78,11 @@ valPrimary
     | '\\old' '(' expression ')'
     | '\\id' '(' expression ')'
     | '\\typeof' '(' expression ')'
+    | '\\matrix' '(' expression ',' expression ',' expression ')'
+    | '\\array'  '(' expression ',' expression ')'
     | 'Reducible' '(' expression ',' ('+' | Identifier ) ')'
     ;
- 
+
 valReserved
  : 'create' | 'action' | 'destroy' | 'send' | 'recv' | 'use' | 'open' | 'close'
  | 'atomic' 

@@ -259,7 +259,15 @@ public enum StandardOperator {
   /**
    * The get operator for the options type.
    */
-  OptionGet(1)
+  OptionGet(1),
+  /**
+   * Declares the first argument to be a valid array of the given size.
+   */
+  ValidArray(2),
+  /**
+   * Declares the first argument to be a valid matrix of the given size.
+   */
+  ValidMatrix(3)
   ;
 
   private final int arity;

@@ -1,5 +1,6 @@
 package vct.col.rewrite;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 
 import vct.col.ast.ASTClass;
@@ -23,9 +24,55 @@ public class RewriteArrayRef extends AbstractRewriter {
 	
   private HashSet<Type> new_array;
 
+  
+  private ASTNode injective(ASTNode seq){
+    ArrayList<ASTNode> conds=new ArrayList<ASTNode>();
+    ASTNode max=create.expression(StandardOperator.Size, seq );
+    conds.add(create.expression(StandardOperator.LTE,create.constant(0),create.local_name("i")));
+    conds.add(create.expression(StandardOperator.LT,create.local_name("i"),max));
+    conds.add(create.expression(StandardOperator.LTE,create.constant(0),create.local_name("j")));
+    conds.add(create.expression(StandardOperator.LT,create.local_name("j"),max));
+    conds.add(create.expression(StandardOperator.EQ
+        ,create.expression(StandardOperator.Subscript,seq,create.local_name("i"))
+        ,create.expression(StandardOperator.Subscript,seq,create.local_name("j"))
+    ));
+    ASTNode guard=create.fold(StandardOperator.And, conds);
+    ASTNode claim=create.expression(StandardOperator.EQ,
+        create.local_name("i"),create.local_name("j"));
+    return create.forall(guard,claim
+        ,create.field_decl("i", create.primitive_type(Sort.Integer))
+        ,create.field_decl("j", create.primitive_type(Sort.Integer))
+    );
+  }
+  
   @Override
 	public void visit(OperatorExpression e){
 		switch (e.getOperator()){
+    case ValidArray:{
+      ASTNode M=rewrite(e.getArg(0));
+      ASTNode MD=create.expression(StandardOperator.OptionGet,M);
+      ASTNode sz=rewrite(e.getArg(1));
+      result=create.expression(StandardOperator.And
+        ,create.expression(StandardOperator.NEQ,M,create.reserved_name(ASTReserved.OptionNone))
+        ,and(create.expression(StandardOperator.EQ,create.expression(StandardOperator.Size,MD),sz),
+             injective(MD)
+            )
+      );
+      break;
+    }
+    case ValidMatrix:{
+      ASTNode M=rewrite(e.getArg(0));
+      ASTNode MD=create.expression(StandardOperator.OptionGet,M);
+      ASTNode sz=create.expression(StandardOperator.Mult,
+          rewrite(e.getArg(1)),rewrite(e.getArg(2)));
+      result=create.expression(StandardOperator.And
+        ,create.expression(StandardOperator.NEQ,M,create.reserved_name(ASTReserved.OptionNone))
+        ,and(create.expression(StandardOperator.EQ,create.expression(StandardOperator.Size,MD),sz),
+             injective(MD)
+            )
+      );
+      break;
+    }
 		  case EQ:
 		  case NEQ:
 		  {
