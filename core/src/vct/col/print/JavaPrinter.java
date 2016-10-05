@@ -1367,5 +1367,14 @@ public class JavaPrinter extends AbstractPrinter {
       out.printf("))");
     }
   }
+  
+  @Override
+  public void visit(VectorBlock v){
+    out.print("vec(");
+    nextExpr();
+    v.iter.accept(this);
+    out.println(")");
+    v.block.apply(this);
+  }
 }
 

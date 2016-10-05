@@ -32,7 +32,7 @@ public class MessageFactory {
   }
 
   public void error(ViperError<Origin> e) {
-    visitor.visit(new VerCorsError(e));
+    visitor.visit(VerCorsError.viper_error(e));
   }
   
   public void result(boolean pass,Origin origin){

@@ -68,6 +68,7 @@ public class JavaSyntax extends Syntax {
         syntax.addFunction(StructDeref,"\\structderef");
         syntax.addFunction(IterationOwner,"\\owner");
         
+        syntax.addFunction(Values,"\\values");
         
         syntax.addOperator(Unfolding,140,"\\unfolding","\\in","");
         syntax.addOperator(IndependentOf, -1 , "(" ,"!",")");

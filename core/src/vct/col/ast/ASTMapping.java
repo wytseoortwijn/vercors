@@ -86,4 +86,6 @@ public interface ASTMapping<R> {
 
   public R map(TypeVariable v);
 
+  public R map(VectorBlock vb);
+
 }

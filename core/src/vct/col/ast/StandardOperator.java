@@ -267,7 +267,11 @@ public enum StandardOperator {
   /**
    * Declares the first argument to be a valid matrix of the given size.
    */
-  ValidMatrix(3)
+  ValidMatrix(3),
+  /*
+   * Get the values from an array as a sequence form a start upto an end
+   */
+  Values(3)
   ;
 
   private final int arity;

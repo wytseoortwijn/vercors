@@ -3,6 +3,7 @@ package vct.silver;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+
 import hre.HREError;
 import hre.ast.Origin;
 import vct.col.ast.*;
@@ -465,7 +466,6 @@ public class SilverExpressionMap<T,E> implements ASTMapping<E>{
 
   @Override
   public E map(TypeVariable v) {
-    // TODO Auto-generated method stub
     return null;
   }
 
@@ -487,6 +487,11 @@ public class SilverExpressionMap<T,E> implements ASTMapping<E>{
     default:
       return null;
     }
+  }
+
+  @Override
+  public E map(VectorBlock vb) {
+    return null;
   }
   
 }

@@ -1,15 +1,25 @@
 package vct.logging;
 
 import java.util.ArrayList;
-
-import hre.HREError;
 import hre.ast.Origin;
 import viper.api.ViperError;
 import static vct.logging.VerCorsError.ErrorCode.*;
 import static vct.logging.VerCorsError.SubCode.*;
 
+/**
+ * Represents verifications errors as log messages.
+ * 
+ * @author Stefan Blom
+ *
+ */
 public class VerCorsError extends AbstractMessage {
 
+  /**
+   * The verification problem found.
+   * 
+   * @author Stefan Blom
+   *
+   */
   public static enum ErrorCode {
     AssertFailed,
     ExhaleFailed,
@@ -26,6 +36,12 @@ public class VerCorsError extends AbstractMessage {
     AssignmentFailed
   }
   
+  /**
+   * The reason for the verification problem.
+   * 
+   * @author Stefan Blom
+   *
+   */
   public static enum SubCode {
     AssertionFalse,
     DivisionByZero,
@@ -43,8 +59,10 @@ public class VerCorsError extends AbstractMessage {
   
   public final ArrayList<Origin> aux=new ArrayList<Origin>();
   
-  public VerCorsError(ViperError<Origin> e){
-    fatal=true;
+  
+  public static VerCorsError viper_error(ViperError<Origin> e){
+    ErrorCode code;
+    SubCode sub;
     String err[]=e.getError(0).split(":");
     switch(err[0]){
     case "postcondition.violated":
@@ -76,9 +94,9 @@ public class VerCorsError extends AbstractMessage {
       code=CallPreCondition;
       break;
     default:
-      throw new HREError("unspecified error %s%n",err[0]);
-      //code=UnspecifiedError;
-      //break;
+      hre.System.Warning("unspecified error %s",err[0]);
+      code=UnspecifiedError;
+      break;
     }
     switch(err[1]){
     case "assertion.false":
@@ -94,14 +112,16 @@ public class VerCorsError extends AbstractMessage {
       sub=InsufficientPermission;
       break;
     default:
-      throw new HREError("unspecified cause %s%n",err[1]);
-      //sub=UnspecifiedCause;
-      //break;    
+      hre.System.Warning("unspecified cause %s",err[1]);
+      sub=UnspecifiedCause;
+      break;    
     }
-    main=e.getOrigin(0);
+    Origin main=e.getOrigin(0);
+    ArrayList<Origin> aux=new ArrayList<Origin>();
     for(int i=1;i<e.getExtraCount();i++){
       aux.add(e.getOrigin(i));
     }
+    return new VerCorsError(code,sub,main,aux);
   }
   
   public VerCorsError(ErrorCode code, SubCode sub,Origin origin, ArrayList<Origin> aux) {
@@ -109,6 +129,7 @@ public class VerCorsError extends AbstractMessage {
     this.sub=sub;
     this.main=origin;
     this.aux.addAll(aux);
+    fatal=true;
   }
 
   @Override
