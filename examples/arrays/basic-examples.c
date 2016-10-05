@@ -1,5 +1,6 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 //:: cases basic-examples-c
+//:: suite puptol
 //:: tools silicon
 /*
   This file shows how arrays and matrices can be initialized to 0

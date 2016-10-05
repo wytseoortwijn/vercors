@@ -45,7 +45,8 @@ if [ -d $VCT_HOME/core/bin ] ; then
 else
     VCT_PATH+=$SEP$VCT_HOME/core/vct-core.jar
 fi
-VCT_PATH+=$SEP$VCT_HOME/core/libs/antlr-4.5-complete.jar
+VCT_PATH+=$SEP$VCT_HOME/core/libs/antlr-4.5.3-complete.jar
+VCT_PATH+=$SEP$VCT_HOME/core/libs/gson-2.7.jar
 if [ -d $VCT_HOME/main/bin ] ; then
     VCT_PATH+=$SEP$VCT_HOME/main/bin
 else 

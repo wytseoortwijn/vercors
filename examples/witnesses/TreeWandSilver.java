@@ -1,5 +1,6 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 //:: cases TreeWandSilver
+//:: suite puptol
 //:: tools silicon
 /*
     This file demonstrates how a magic wand can be used to prove
