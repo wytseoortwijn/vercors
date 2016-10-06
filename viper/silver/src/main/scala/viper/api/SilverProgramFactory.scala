@@ -30,7 +30,7 @@ class SilverProgramFactory[O,Err] extends ProgramFactory[O,Err,Type,Exp,Stmt,
   }
   
   override def add_field(p:Prog,o:O,name:String,t:Type)={
-    p.fields.add(Field(name,t)(NoPosition,new OriginInfo(o)))
+    p.fields.add(Field(name,t)(NoPosition,new OriginInfo(o,Seq(" a field "))))
   }
   
   override def add_predicate(p:Prog,o:O,name:String,args:List[Triple[O,String,Type]],body:Exp)={
