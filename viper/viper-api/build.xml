@@ -47,7 +47,8 @@
     <javac
       includeantruntime="false"
       destdir="${build-classes.dir}"
-      classpathref="project.classpath">
+      classpathref="project.classpath"
+      encoding="utf-8">
       <include name="**/*.java"/>
       <src><pathelement location="${src.dir}"/></src>
     </javac>
