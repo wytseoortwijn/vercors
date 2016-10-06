@@ -128,7 +128,8 @@
 	           includeAntRuntime="false"
 	           source="1.7"
 	           target="1.7"
-	           depend="true">
+	           depend="true"
+	           encoding="utf-8">
 	      <src path="${src}"/>
 	      <src path="${gen}"/>
 	      <include name="**/*.java"/>
