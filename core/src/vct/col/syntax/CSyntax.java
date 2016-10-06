@@ -1,10 +1,9 @@
-package vct.clang.printer;
+package vct.col.syntax;
 
 import hre.ast.TrackingOutput;
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTReserved;
-import vct.col.syntax.Syntax;
-import vct.col.syntax.VerCorsSyntax;
+import vct.col.print.CPrinter;
 import static vct.col.ast.StandardOperator.*;
 import static vct.col.ast.PrimitiveType.Sort.*;
 

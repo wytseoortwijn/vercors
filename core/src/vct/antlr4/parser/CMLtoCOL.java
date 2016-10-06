@@ -12,11 +12,11 @@ import org.antlr.v4.runtime.Vocabulary;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
-import vct.clang.printer.CSyntax;
 import vct.col.ast.*;
 import vct.col.ast.ASTClass.ClassKind;
 import vct.col.ast.ASTSpecial.Kind;
 import vct.col.ast.PrimitiveType.Sort;
+import vct.col.syntax.CSyntax;
 import vct.col.syntax.Syntax;
 import vct.parsers.*;
 import vct.parsers.CMLParser.*;
