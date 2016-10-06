@@ -1,10 +1,10 @@
-package vct.clang.printer;
+package vct.col.print;
 
 import java.io.PrintStream;
 
 import vct.col.ast.*;
 import vct.col.ast.PrimitiveType.Sort;
-import vct.col.print.AbstractPrinter;
+import vct.col.syntax.CSyntax;
 import hre.ast.TrackingOutput;
 import hre.ast.TrackingTree;
 
