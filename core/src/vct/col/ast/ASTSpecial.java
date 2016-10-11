@@ -26,13 +26,13 @@ public class ASTSpecial extends ASTDeclaration {
     Exhale,
     Inhale,
     ActionHeader(-1),
-    CreateHistory,
+    CreateHistory(1),
     DestroyHistory(2),
-    CreateFuture,
-    DestroyFuture,
+    CreateFuture(2),
+    DestroyFuture(1),
     SplitHistory(5),
     MergeHistory(5),
-    ChooseHistory,
+    ChooseHistory(4),
     /** Transfer resources into and out of atomic regions. */
     Transfer,
     /** Mark the subjects, whose invariants are available in an atomic region. */

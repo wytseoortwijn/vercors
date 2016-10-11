@@ -739,10 +739,12 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
         FieldAccess f=(FieldAccess)e.getArg(0);
         ASTNode frac=rewrite(e.getArg(1));
         if (isProcessRef(f.object)){
-          ASTNode p1=create.expression(Perm,create.dereference(rewrite(f.object),f.name+"_hist_value"),frac);
-          ASTNode p2=create.expression(PointsTo,create.dereference(rewrite(f.object),f.name+"_hist_mode"),
-              frac,create.constant(0));
-          result=create.expression(StandardOperator.Star,p1,p2);
+          result=create.fold(StandardOperator.Star
+            ,create.expression(Perm,create.dereference(rewrite(f.object),f.name+"_hist_value"),frac)
+            ,create.expression(PointsTo,create.dereference(rewrite(f.object),f.name+"_hist_mode"),frac,create.constant(0))
+            ,create.expression(Perm,create.dereference(rewrite(f.object),f.name+"_hist_init"),frac)
+            ,create.expression(Perm,create.dereference(rewrite(f.object),f.name+"_hist_act"),frac)
+          );
         } else {
           result=create.expression(Perm,create.dereference(rewrite(f.object),f.name),frac);
         }

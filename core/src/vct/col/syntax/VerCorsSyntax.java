@@ -58,13 +58,19 @@ public class VerCorsSyntax {
     syntax.addReserved(NoPerm,"none");
     syntax.addReserved(ASTReserved.OptionNone,"None");
     syntax.addFunction(StandardOperator.OptionSome,"Some");
-    
+
+    syntax.addFunction(StandardOperator.Future,"Future");
+    syntax.addFunction(StandardOperator.History,"Hist");
+    syntax.addFunction(StandardOperator.AbstractState,"AbstractState");
+
     syntax.add_annotation(ASTSpecial.Kind.ActionHeader, "action");
     syntax.add_annotation(ASTSpecial.Kind.ChooseHistory, "choose");
     syntax.add_annotation(ASTSpecial.Kind.CreateHistory, "create");
+    syntax.add_annotation(ASTSpecial.Kind.CreateFuture, "create");
     syntax.add_annotation(ASTSpecial.Kind.SplitHistory, "split");
     syntax.add_annotation(ASTSpecial.Kind.MergeHistory, "merge");
     syntax.add_annotation(ASTSpecial.Kind.DestroyHistory, "destroy");
+    syntax.add_annotation(ASTSpecial.Kind.DestroyFuture, "destroy");
     
     syntax.add_annotation(ASTSpecial.Kind.Fold, "fold");
     syntax.add_annotation(ASTSpecial.Kind.Unfold, "unfold");

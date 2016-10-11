@@ -89,6 +89,7 @@ statement
  | 'notify' expr ';'
  | 'fork' expr ';'
  | 'join' expr ';'
+ | 'action' tuple block
  | valStatement 
  | 'if' '(' expr ')' block ( 'else' block )?
  | 'barrier' '(' identifier ( ';' id_list )? ')' ( '{' contract '}' | contract block )
