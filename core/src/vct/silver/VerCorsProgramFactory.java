@@ -191,6 +191,7 @@ public class VerCorsProgramFactory implements
     SilverStatementMap<T, E, S> stat=new SilverStatementMap<T,E,S>(api,type,expr);
     P program=api.prog.program();
     
+    long base=System.currentTimeMillis();
     for(ASTNode entry:arg) {
       if (entry instanceof Method) {
         Method m = (Method)entry;
@@ -327,8 +328,8 @@ public class VerCorsProgramFactory implements
         throw new HREError("bad entry: %s",entry.getClass());
       }
     }
-
-    
+    long end=System.currentTimeMillis();
+    hre.System.Progress("conversion took %dms",end-base);
     return program;
   }
 

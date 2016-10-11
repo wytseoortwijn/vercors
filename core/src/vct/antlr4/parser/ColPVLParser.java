@@ -14,6 +14,7 @@ import pv.parser.PVFullLexer;
 import pv.parser.PVFullParser;
 import vct.col.ast.ProgramUnit;
 import vct.col.rewrite.FlattenVariableDeclarations;
+import vct.col.syntax.PVLSyntax;
 
 /**
  * Parse specified code and convert the contents to COL. 
@@ -43,7 +44,7 @@ public class ColPVLParser implements vct.col.util.Parser {
         pu=new FlattenVariableDeclarations(pu).rewriteAll();
         Progress("Variable pass took %dms",tk.show());
         
-        pu=new SpecificationCollector(pu).rewriteAll();
+        pu=new SpecificationCollector(PVLSyntax.get(),pu).rewriteAll();
         Progress("Shuffling specifications took %dms",tk.show());    
         Debug("after collecting specifications %s",pu);
         
