@@ -81,78 +81,78 @@ public class SilverExpressionMap<T,E> implements ASTMapping<E>{
     case PointsTo:{
       return create.and(o,create.field_access(o,e1,e2),create.eq(o, e1, e3));
     }
-    case CurrentPerm: return create.current_perm(o,e.getArg(0).apply(this));
-    case ITE: return create.cond(o,e.getArg(0).apply(this),e.getArg(1).apply(this),e.getArg(2).apply(this));
-    case Perm: return create.field_access(o,e.getArg(0).apply(this),e.getArg(1).apply(this));
-    case Value: return create.field_access(o,e.getArg(0).apply(this),create.read_perm(o));
-    case Star: return create.and(o,e.getArg(0).apply(this),e.getArg(1).apply(this));
-    case And: return create.and(o,e.getArg(0).apply(this),e.getArg(1).apply(this));
-    case Or: return create.or(o,e.getArg(0).apply(this),e.getArg(1).apply(this));
-    case Implies: return create.implies(o,e.getArg(0).apply(this),e.getArg(1).apply(this));
-    case Not: return create.not(o,e.getArg(0).apply(this));
-    case Unfolding: return create.unfolding_in(o,e.getArg(0).apply(this),e.getArg(1).apply(this));
-    case Old: return create.old(o,e.getArg(0).apply(this));
+    case CurrentPerm: return create.current_perm(o,e1);
+    case ITE: return create.cond(o,e1,e2,e3);
+    case Perm: return create.field_access(o,e1,e2);
+    case Value: return create.field_access(o,e1,create.read_perm(o));
+    case Star: return create.and(o,e1,e2);
+    case And: return create.and(o,e1,e2);
+    case Or: return create.or(o,e1,e2);
+    case Implies: return create.implies(o,e1,e2);
+    case Not: return create.not(o,e1);
+    case Unfolding: return create.unfolding_in(o,e1,e2);
+    case Old: return create.old(o,e1);
     
-    case Size: return create.size(o,e.getArg(0).apply(this));
-    case Tail: return create.drop(o,e.getArg(0).apply(this),create.Constant(o,1));
-    case Drop: return create.drop(o,e.getArg(0).apply(this),e.getArg(1).apply(this));
-    case Take: return create.take(o,e.getArg(0).apply(this),e.getArg(1).apply(this));
+    case Size: return create.size(o,e1);
+    case Tail: return create.drop(o,e1,create.Constant(o,1));
+    case Drop: return create.drop(o,e1,e2);
+    case Take: return create.take(o,e1,e2);
     case Member: {
       if (e.getArg(1).getType().isPrimitive(Sort.Sequence)){
-        return create.seq_contains(o,e.getArg(0).apply(this),e.getArg(1).apply(this));
+        return create.seq_contains(o,e1,e2);
       } else {
-        return create.any_set_contains(o,e.getArg(0).apply(this),e.getArg(1).apply(this));
+        return create.any_set_contains(o,e1,e2);
       }
     }
-    case RangeSeq: return create.range(o,e.getArg(0).apply(this),e.getArg(1).apply(this));
+    case RangeSeq: return create.range(o,e1,e2);
       
-    case Subscript: return create.index(o,e.getArg(0).apply(this),e.getArg(1).apply(this));
+    case Subscript: return create.index(o,e1,e2);
     
-    case GT: return create.gt(o,e.getArg(0).apply(this),e.getArg(1).apply(this));
-    case LT: return create.lt(o,e.getArg(0).apply(this),e.getArg(1).apply(this));
-    case GTE: return create.gte(o,e.getArg(0).apply(this),e.getArg(1).apply(this));
-    case LTE: return create.lte(o,e.getArg(0).apply(this),e.getArg(1).apply(this));
-    case EQ: return create.eq(o,e.getArg(0).apply(this),e.getArg(1).apply(this));
-    case NEQ: return create.neq(o,e.getArg(0).apply(this),e.getArg(1).apply(this));
+    case GT: return create.gt(o,e1,e2);
+    case LT: return create.lt(o,e1,e2);
+    case GTE: return create.gte(o,e1,e2);
+    case LTE: return create.lte(o,e1,e2);
+    case EQ: return create.eq(o,e1,e2);
+    case NEQ: return create.neq(o,e1,e2);
 
     case Mult:{
       if (e.getType().isPrimitive(Sort.Set) || e.getType().isPrimitive(Sort.Bag)){
-        return create.any_set_intersection(o,e.getArg(0).apply(this),e.getArg(1).apply(this));
+        return create.any_set_intersection(o,e1,e2);
       } else {
-        return create.mult(o,e.getArg(0).apply(this),e.getArg(1).apply(this));
+        return create.mult(o,e1,e2);
       }
     }
     case Div:{
       if (e.getType().isPrimitive(PrimitiveType.Sort.Fraction)||
           e.getType().isPrimitive(PrimitiveType.Sort.ZFraction)){
-        return create.frac(o,e.getArg(0).apply(this),e.getArg(1).apply(this));
+        return create.frac(o,e1,e2);
       } else {
-        return create.div(o,e.getArg(0).apply(this),e.getArg(1).apply(this));
+        return create.div(o,e1,e2);
       }
     }
-    case Mod: return create.mod(o,e.getArg(0).apply(this),e.getArg(1).apply(this));
+    case Mod: return create.mod(o,e1,e2);
     case Plus:{
       if (e.getType().isPrimitive(Sort.Sequence)){
-        return create.append(o,e.getArg(0).apply(this),e.getArg(1).apply(this));
+        return create.append(o,e1,e2);
       } else if (e.getType().isPrimitive(Sort.Set) || e.getType().isPrimitive(Sort.Bag)){
-        return create.union(o,e.getArg(0).apply(this),e.getArg(1).apply(this));
+        return create.union(o,e1,e2);
       } else {
-        return create.add(o,e.getArg(0).apply(this),e.getArg(1).apply(this));
+        return create.add(o,e1,e2);
       }
     }
     case Minus: {
       if (e.getType().isPrimitive(Sort.Set) || e.getType().isPrimitive(Sort.Bag)){
-        return create.any_set_minus(o,e.getArg(0).apply(this),e.getArg(1).apply(this));
+        return create.any_set_minus(o,e1,e2);
       } else {
-        return create.sub(o,e.getArg(0).apply(this),e.getArg(1).apply(this));
+        return create.sub(o,e1,e2);
       }
     }
-    case UMinus: return create.neg(o,e.getArg(0).apply(this));
+    case UMinus: return create.neg(o,e1);
     case Scale:{
-      return create.scale_access(o,e.getArg(1).apply(this), e.getArg(0).apply(this));
+      return create.scale_access(o,e2, e1);
     }
     case Append:
-      return create.append(o, e.getArg(0).apply(this),e.getArg(1).apply(this));
+      return create.append(o, e1,e2);
     default:
         throw new HREError("cannot map operator %s",e.getOperator());
     }
