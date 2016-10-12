@@ -62,10 +62,15 @@
   </target>
   
   <target name="doc" depends="jar">
+    <!-- do not inline! -->
+		<antcall target="javadoc"/>
+ </target>
+
+  <target name="javadoc">
     <mkdir dir="${basedir}/doc/api"/>
     <javadoc
            overview="${basedir}/src/overview.html"
-           classpath="${basedir}/main/vct-tool.jar:${basedir}/core/libs/antlr-4.5-complete.jar:${basedir}/libs/commons-lang3-3.1/commons-lang3-3.1.jar"
+           classpath="${basedir}/main/vct-tool.jar:${basedir}/core/libs/antlr-4.5.3-complete.jar:${basedir}/libs/commons-lang3-3.1/commons-lang3-3.1.jar"
            destdir="${basedir}/doc/api"
            author="true"
            version="true"
@@ -101,7 +106,6 @@
       <link href="http://developer.java.sun.com/developer/products/xml/docs/api/"/>
       -->
     </javadoc>
-    <ant antfile="build.xml" dir="${basedir}/src/tex" inheritAll="false" target="pdf"/>
   </target>  
 
 <!-- 
