@@ -13,7 +13,6 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 
 import vct.parsers.*;
-import vct.clang.printer.CSyntax;
 import vct.col.ast.ProgramUnit;
 import vct.col.rewrite.ConvertTypeExpressions;
 import vct.col.rewrite.EncodeAsClass;
@@ -21,6 +20,7 @@ import vct.col.rewrite.FilterSpecIgnore;
 import vct.col.rewrite.FlattenVariableDeclarations;
 import vct.col.rewrite.StripUnusedExtern;
 import vct.col.rewrite.VerCorsDesugar;
+import vct.col.syntax.CSyntax;
 
 /**
  * Parse specified code and convert the contents to COL. 

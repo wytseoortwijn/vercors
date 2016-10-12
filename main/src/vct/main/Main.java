@@ -627,7 +627,7 @@ public class Main
       });
     defined_passes.put("c",new CompilerPass("print AST in C syntax"){
         public ProgramUnit apply(ProgramUnit arg,String ... args){
-          vct.clang.printer.CPrinter.dump(System.out,arg);
+          vct.col.print.CPrinter.dump(System.out,arg);
           return arg;
         }
       });
