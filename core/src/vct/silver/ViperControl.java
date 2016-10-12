@@ -25,16 +25,17 @@ public class ViperControl implements VerificationControl<Origin> {
   private ScheduledFuture<?> future;
   private Runnable task=new Runnable(){
     public void run(){
-      if (old_task==current_task && old_origin==current_origin){
-        if (count==1){
+      if (old_task==current_task && old_origin==current_origin && old_task!=null){
+        int tmp=count+1;
+        if (count>0 && (tmp&count)==0){
           System.err.printf("Verifying %s at %s is taking %d+ ms%n",
-            current_task,current_origin,Configuration.profiling.get());
+            current_task,current_origin,count*Configuration.profiling.get());
         }
-        if (count>0) count--;
+        count=tmp;
       } else {
         old_task=current_task;
         old_origin=current_origin;
-        count=2;
+        count=0;
       }
       //future.cancel(false);
     }
