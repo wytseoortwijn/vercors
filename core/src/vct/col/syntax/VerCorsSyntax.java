@@ -63,6 +63,12 @@ public class VerCorsSyntax {
     syntax.addFunction(StandardOperator.History,"Hist");
     syntax.addFunction(StandardOperator.AbstractState,"AbstractState");
 
+    
+    
+    syntax.add_annotation(ASTSpecial.Kind.Inhale, "inhale");
+    syntax.add_annotation(ASTSpecial.Kind.Exhale, "exhale");
+    
+    
     syntax.add_annotation(ASTSpecial.Kind.ActionHeader, "action");
     syntax.add_annotation(ASTSpecial.Kind.ChooseHistory, "choose");
     syntax.add_annotation(ASTSpecial.Kind.CreateHistory, "create");
