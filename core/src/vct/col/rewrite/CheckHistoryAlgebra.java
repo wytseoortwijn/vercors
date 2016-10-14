@@ -330,7 +330,7 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
         null
     );
     hist_class.add(begin_hist);
-    System.out.printf("%s%n",Configuration.getDiagSyntax().print(begin_hist));
+    //System.out.printf("%s%n",Configuration.getDiagSyntax().print(begin_hist));
 
   }
 
@@ -589,57 +589,6 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
     }
   }
 
-  /*
-  @Override
-  public void visit(Method m){
-    if (m.getReturnType().isPrimitive(Sort.Process)){
-      Contract c=m.getContract();
-      ContractBuilder cb = new ContractBuilder();
-      for (ASTNode v:c.modifies){
-        create.enter();
-        create.setOrigin(v.getOrigin());
-        cb.requires(create.expression(StandardOperator.Perm,rewrite(v),create.reserved_name(ASTReserved.FullPerm)));
-        cb.ensures(create.expression(StandardOperator.Perm,rewrite(v),create.reserved_name(ASTReserved.FullPerm)));
-        create.leave();
-      }
-      if (c.pre_condition!=null) cb.requires(rewrite(c.pre_condition));
-      if (c.post_condition!=null) cb.ensures(rewrite(c.post_condition));
-      add_process_to_adt(m);
-      result=null;
-    } else if (m.kind == Kind.Plain || m.kind== Kind.Constructor){
-      ArrayList<DeclarationStatement> args=new ArrayList();
-      Type returns=rewrite(m.getReturnType());
-      ContractBuilder cb=new ContractBuilder();
-      Contract c=m.getContract();
-      cb.given(rewrite(c.given));
-      cb.yields(rewrite(c.yields));
-      for(DeclarationStatement decl:m.getArgs()){
-        args.add(rewrite(decl));
-      }
-      for(ASTNode e:ASTUtils.conjuncts(c.pre_condition,StandardOperator.Star)){
-        if (e.isa(StandardOperator.History)){
-          NameExpression lbl=e.getLabel(0);
-          cb.given(create.field_decl(lbl.getName(),create.class_type("Ref")));
-          //args.add(create.field_decl(lbl.getName(),create.class_type("Ref")));
-        }
-        ASTNode tmp=rewrite(e);
-        cb.requires(tmp);
-      }
-      for(ASTNode e:ASTUtils.conjuncts(c.post_condition,StandardOperator.Star)){
-        if (e.isa(StandardOperator.History)){
-          NameExpression lbl=e.getLabel(0);
-          //cb.yields(create.field_decl(lbl.getName(),create.class_type("Ref")));
-        }
-        ASTNode tmp=rewrite(e);
-        cb.ensures(tmp);
-      }
-      result=create.method_kind(m.kind,returns, cb.getContract(), m.name, args.toArray(new DeclarationStatement[0]), rewrite(m.getBody()));
-    } else {
-      super.visit(m);
-    }
-  }
-  */
-
   private boolean isProcessRef(ASTNode n){
     String type=n.getType().toString();
     return type.equals("History")||type.equals("Future");
@@ -677,14 +626,14 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
     }
     case AbstractState:{
       ASTNode data=rewrite(e.getArg(0));
-      ASTNode half=create.expression(StandardOperator.Div,create.constant(1),create.constant(2));
+      ASTNode full=create.reserved_name(FullPerm);
       ASTClass cl=source().find((ClassType)e.getArg(0).getType());
       ArrayList<ASTNode> props=new ArrayList<ASTNode>();
       HashMap<NameExpression,ASTNode> map=new HashMap<NameExpression, ASTNode>();
       Substitution sigma=new Substitution(source(),map);
       for(DeclarationStatement decl:cl.dynamicFields()){
         props.add(create.expression(StandardOperator.Perm,
-            create.dereference(data,decl.getName()+"_hist_init"),half));
+            create.dereference(data,decl.getName()+"_hist_init"),full));
         map.put(create.field_name(decl.getName()),
             create.dereference(data,decl.getName()+"_hist_init"));
       }
