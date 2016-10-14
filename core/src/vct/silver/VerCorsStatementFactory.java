@@ -1,12 +1,17 @@
 package vct.silver;
 
 import java.util.ArrayList;
+import java.util.List;
+
+import hre.HREError;
 import hre.ast.MessageOrigin;
 import hre.ast.Origin;
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTSpecial.Kind;
 import vct.col.ast.ASTSpecial;
 import vct.col.ast.BlockStatement;
+import vct.col.ast.Constraining;
+import vct.col.ast.NameExpression;
 import vct.col.ast.StandardOperator;
 import vct.col.ast.Type;
 import vct.col.util.ASTFactory;
@@ -167,6 +172,34 @@ public class VerCorsStatementFactory implements
     ASTNode loop=create.while_loop(cond, block, invs.toArray(new ASTNode[invs.size()]));
     leave();
     return loop;
+  }
+
+  @Override
+  public ASTNode constraining(Origin o, List<ASTNode> nodes, ASTNode body) {
+    enter(o);
+    ArrayList<NameExpression> names=new ArrayList<NameExpression>();
+    for(ASTNode n:nodes){
+      names.add((NameExpression)n);
+    }
+    Constraining res=create.constraining(checkBlock(body), names);
+    leave();
+    return res;
+  }
+
+  private BlockStatement checkBlock(ASTNode body) {
+    if (body instanceof BlockStatement){
+      return (BlockStatement)body;
+    } else {
+      throw new HREError("not a block statement");
+    }
+  }
+
+  @Override
+  public ASTNode fresh(Origin o, List<ASTNode> names) {
+    enter(o);
+    ASTNode res=create.special(ASTSpecial.Kind.Fresh,names);
+    leave();
+    return res;
   }
 
 }

@@ -1297,4 +1297,24 @@ public Axiom axiom(String name,ASTNode exp){
     return res;
   }
 
+  public Constraining constraining(BlockStatement block,NameExpression ... vars) {
+    return constraining(origin_stack.get(),block,vars);
+  }
+
+  private Constraining constraining(Origin o, BlockStatement block,NameExpression ... vars) {
+    Constraining res=new Constraining(block,vars);
+    res.setOrigin(o);
+    res.accept_if(post);    
+    return res;
+  }
+
+  public Constraining constraining(BlockStatement block, List<NameExpression> names) {
+    return constraining(origin_stack.get(),block,names.toArray(new NameExpression[names.size()]));
+  }
+
+  public ASTNode special(Kind kind, List<ASTNode> names){
+    return special(kind,names.toArray(new ASTNode[names.size()]));
+  }
+
 }
+

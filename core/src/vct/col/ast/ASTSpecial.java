@@ -90,7 +90,12 @@ public class ASTSpecial extends ASTDeclaration {
     /**
      * Receive permission statement for parallel loops.
      */
-    Recv(3);
+    Recv(3),
+    /**
+     * Havoc a list of local variables.
+     */
+    Fresh(-1)
+    ;
 
     
     

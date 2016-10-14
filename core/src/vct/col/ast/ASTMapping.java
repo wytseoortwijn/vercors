@@ -88,4 +88,6 @@ public interface ASTMapping<R> {
 
   public R map(VectorBlock vb);
 
+  public R map(Constraining c);
+
 }

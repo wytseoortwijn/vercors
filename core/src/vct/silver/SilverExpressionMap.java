@@ -51,7 +51,7 @@ public class SilverExpressionMap<T,E> implements ASTMapping<E>{
         switch(v){
           case 0 : return create.no_perm(e.getOrigin());
           case 1 : return create.write_perm(e.getOrigin());
-          default: throw new HREError("%d is not a valid fraction is Silver",v);
+          default: return create.Constant(e.getOrigin(),v);
         }
       } else {
         return create.Constant(e.getOrigin(),v);
@@ -491,6 +491,11 @@ public class SilverExpressionMap<T,E> implements ASTMapping<E>{
 
   @Override
   public E map(VectorBlock vb) {
+    return null;
+  }
+
+  @Override
+  public E map(Constraining c) {
     return null;
   }
   
