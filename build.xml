@@ -24,9 +24,6 @@
     <ant antfile="build.xml" dir="${basedir}/core" inheritAll="false" target="clean"/>
     <ant antfile="build.xml" dir="${basedir}/main" inheritAll="false" target="clean"/>
     <delete dir="${basedir}/doc/api"/>
-    <delete>
-      <fileset dir="test" includes="**/*.log,**/TEST-*.xml"/>
-    </delete>
   </target>
   
   <target name="assembly">
