@@ -1,0 +1,11 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
+;
+[subrepo]
+	remote = /home/sccblom/git/vercors-examples.git
+	branch = public
+	commit = 6117768037c756a76ae7a8a5a7faab374bcb4125
+	parent = 4c2c0ec2aaed38842001c56a0bef7e99b7dce9a7
+	cmdver = 0.3.0
