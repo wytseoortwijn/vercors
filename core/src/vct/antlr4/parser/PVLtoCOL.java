@@ -94,6 +94,10 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
     int N=ctx.getChildCount();
     for(int i=0;i<N;i++){
       ParserRuleContext ctx2=(ParserRuleContext)ctx.getChild(i);
+      if (match(ctx2,"accessible",null,";")){
+        cb.accesses(convert(ctx2,1));
+        continue;
+      }
       if (match(ctx2,"modifies",null,";")){
         cb.modifies(convert(ctx2,1));
         continue;
@@ -918,6 +922,9 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
   }
   @Override
   public ASTNode visitValContractClause(ValContractClauseContext ctx) {
+    if (match(ctx,"accessible",null,";")){
+      return create.special(ASTSpecial.Kind.Accessible,convert(ctx,1));
+    }
     if (match(ctx,"modifies",null,";")){
       return create.special(ASTSpecial.Kind.Modifies,convert(ctx,1));
     }
