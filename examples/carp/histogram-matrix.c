@@ -1,8 +1,10 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 //:: cases HistogramMatrix
+//:: suite puptol
 //:: tools silicon
 //:: verdict Pass
 
+//begin(all)
 /*@
   invariant M>0 && N > 0 && P > 0;
   invariant \matrix(matrix,M,N) ** \array(hist,P);
@@ -45,4 +47,5 @@ void histogram(int M,int N,int matrix[M][N],int P,int hist[P]){
     }
   }
 }
+//end(all)
 

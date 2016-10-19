@@ -6,6 +6,6 @@
 [subrepo]
 	remote = /home/sccblom/git/vercors-examples.git
 	branch = public
-	commit = 6953ae261bc12b1400d611511999791b3b405441
-	parent = fc05adce9c4ad636b167736ef0b7d8e4dc6d3034
+	commit = 9f1d25d948c4ade7102f825ffb39ca070fc7aeef
+	parent = eafc007399e091ef3fb0215e6c1a78f1fa1ebbd2
 	cmdver = 0.3.0
