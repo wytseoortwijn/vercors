@@ -721,15 +721,6 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
     for(ASTNode n:act.getArgs()){
       args.add(rewrite(n));
     }
-    /*
-    if (ac.modifies!=null) for(ASTNode n:ac.modifies){
-      String name="f_"+((FieldAccess)n).name;
-      names.add(create.local_name(name));
-      args.add(create.local_name(name));
-      res.add(create.field_decl(name, create.primitive_type(Sort.Fraction)));
-      res.add(create.special(Kind.Fresh,create.local_name(name)));
-    }
-    */
     if (ac.accesses!=null) for(ASTNode n:ac.accesses){
       String name="f_"+((FieldAccess)n).name;
       names.add(create.local_name(name));

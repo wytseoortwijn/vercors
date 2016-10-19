@@ -25,7 +25,7 @@ public class ASTSpecial extends ASTDeclaration {
     Label,
     Exhale,
     Inhale,
-    ActionHeader(-1),
+    ActionHeader(4),
     CreateHistory(1),
     DestroyHistory(2),
     CreateFuture(2),
