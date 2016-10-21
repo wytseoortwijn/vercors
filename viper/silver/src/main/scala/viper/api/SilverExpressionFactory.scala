@@ -142,7 +142,25 @@ class SilverExpressionFactory[O] extends ExpressionFactory[O,Type,Exp] with Fact
   
   override def cond(o:O,e1:Exp,e2:Exp,e3:Exp) :Exp = CondExp(e1,e2,e3)(NoPosition,new OriginInfo(o))
 
-  override def mult(o:O,e1:Exp,e2:Exp) :Exp = Mul(e1,e2)(NoPosition,new OriginInfo(o))
+  def perm_exp(e:Exp):Boolean = {
+    e match {
+      case LocalVar(n) => e.asInstanceOf[LocalVar].typ==Perm
+      case e:PermExp => true
+      case CondExp(g,x,y) => perm_exp(x) || perm_exp(y)
+      case _  => false
+    }
+  }
+  override def mult(o:O,e1:Exp,e2:Exp) :Exp = {
+    if (perm_exp(e1)){
+      PermMul(e1,e2)(NoPosition,new OriginInfo(o))
+    } else {
+      if (perm_exp(e2)){
+        IntPermMul(e1,e2)(NoPosition,new OriginInfo(o))
+      } else {
+        Mul(e1,e2)(NoPosition,new OriginInfo(o))
+      }
+    }
+  }
   //def div(o:O,e1:Exp,e2:Exp) :Exp = Div(e1,e2)(NoPosition,new OriginInfo(o))
   override def div(o:O,e1:Exp,e2:Exp) :Exp = {
     e1 match {

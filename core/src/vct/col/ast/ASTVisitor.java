@@ -90,6 +90,8 @@ public interface ASTVisitor<T> {
   public void visit(TypeVariable v);
 
   public void visit(VectorBlock vb);
+  
+  public void visit(Constraining c);
 
 }
 

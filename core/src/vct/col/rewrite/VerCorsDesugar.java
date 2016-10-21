@@ -33,6 +33,28 @@ public class VerCorsDesugar extends AbstractRewriter {
       result=res;
       break;
     }
+    case LT:{
+      ASTNode left=e.getArg(0);
+      if(left instanceof OperatorExpression){
+        OperatorExpression lhs=(OperatorExpression)left;
+        switch(lhs.getOperator()){
+        case LTE:{
+          ASTNode shared=rewrite(lhs.getArg(1));
+          lhs=rewrite(lhs);
+          ASTNode rhs=rewrite(e.getArg(1));
+          rhs=create.expression(e.getOperator(),shared,rhs);
+          result=create.expression(StandardOperator.And,lhs,rhs);
+          break;
+        }
+        default:
+          super.visit(e);
+          break;
+        }
+      } else {
+        super.visit(e);
+      }
+      break;
+    }
     default:
       super.visit(e);
       break;

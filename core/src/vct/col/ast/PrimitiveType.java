@@ -267,6 +267,7 @@ public final class PrimitiveType extends Type {
     return false;
   }
   
+  @Override
   public boolean isPrimitive(Sort sort) {
     if(sort==Sort.String && this.sort==Sort.Pointer && ((Type)args[0]).isPrimitive(Sort.Char)) return true;
     return this.sort==sort;

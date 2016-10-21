@@ -25,7 +25,7 @@ public class ASTSpecial extends ASTDeclaration {
     Label,
     Exhale,
     Inhale,
-    ActionHeader(-1),
+    ActionHeader(4),
     CreateHistory(1),
     DestroyHistory(2),
     CreateFuture(2),
@@ -90,7 +90,12 @@ public class ASTSpecial extends ASTDeclaration {
     /**
      * Receive permission statement for parallel loops.
      */
-    Recv(3);
+    Recv(3),
+    /**
+     * Havoc a list of local variables.
+     */
+    Fresh(-1)
+    ;
 
     
     

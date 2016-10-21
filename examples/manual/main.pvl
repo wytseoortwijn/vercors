@@ -2,6 +2,7 @@
 //:: cases MainPVL
 //:: tools silicon
 //:: verdict Fail
+//begin(all)
 class Main {
   void main(){
     Counter c=new Counter();
@@ -12,3 +13,4 @@ class Main {
     assert c.x==17;
   }
 }
+//end(all)
