@@ -66,14 +66,19 @@ class Parameter {
       default:
         System.err.printf("cannot map backend %s%n", backend);
       }
+      boolean histcheck=false;
       for (String arg:args){
         switch(arg){
         case "--check-history":
+          histcheck=true;
           Params.add(new Parameter("histcheck",arg));
           break;
         default:
           System.err.printf("cannot map argument %s%n", arg);
         }
+      }
+      if (!histcheck){
+        Params.add(new Parameter("histcheck",""));
       }
     }
   }
