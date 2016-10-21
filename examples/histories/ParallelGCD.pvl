@@ -4,42 +4,29 @@
 //:: tool silicon
 //:: option --check-history
 //begin(future)
-class Future {
-  int x;
-  int y;
+class Future {       int x, y;
 
-  accessible x;
-  modifies y;
-  requires x > 0 && y > x;
-  ensures  y == \old(y) - \old(x);
-  process decr_y();
-
-  modifies x;
-  accessible y;
-  requires x > y && y > 0;
-  ensures  x==\old(x) - \old(y);
-  process decr_x();
-
-  accessible x;
-  accessible y;
-  requires x==y;
-  process done();
+  accessible x; //skip(future)
+  modifies y; //skip(future)
+  requires x > 0 && y > x;  ensures  y == \old(y) - \old(x);   process decr_y();
+  modifies x; //skip(future)
+  accessible y; //skip(future)
+  requires x > y && y > 0;  ensures  x == \old(x) - \old(y);   process decr_x();
+  accessible x; //skip(future)
+  accessible y; //skip(future)
+  requires x==y;                                               process done();
 
   requires x > 0 && y > 0;
-  requires a==x && b==y;
-  ensures  a > 0 && b > 0;
-  ensures  x==ParallelGCD.gcd(a,b);
-  ensures  y==ParallelGCD.gcd(a,b);
-  process gcd(int a,int b)=tx()||ty();
+  ensures  x==y && y==ParallelGCD.gcd(\old(x),\old(y));
+  process gcd()=tx()||ty();
   
   process tx()=decr_x()*tx() + done();
-  
   process ty()=decr_y()*ty() + done();
 }
 //end(future)
 
-class ParallelGCD {
 //begin(main)
+class ParallelGCD {
   requires a > 0 ** b > 0;
   static int gcd(int a,int b)=a==b?a:(a>b?gcd(a-b,b):gcd(a,b-a));
 
@@ -47,14 +34,11 @@ class ParallelGCD {
   ensures  \result==gcd(x,y);
   int gcd2(int x,int y){
     Future F=new Future();
-    F.x=x;
-    F.y=y;
-    create F, F.gcd(x,y);
+    F.x=x; F.y=y;
+    create F, F.gcd();
     split  F, 1/2, F.tx(), 1/2, F.ty();
 
-    invariant inv(
-      HPerm(F.x,write) ** HPerm(F.y,write) ** F.x > 0 ** F.y > 0 
-    ){
+    invariant inv( HPerm(F.x,write) ** HPerm(F.y,write) ** F.x > 0 ** F.y > 0 ){
       par T0()
         requires Future(F,1/2,F.tx());
         ensures Future(F,1/2,empty);
@@ -63,21 +47,14 @@ class ParallelGCD {
         loop_invariant run?Future(F,1/2,F.tx()):Future(F,1/2,empty);
         while(run){
           atomic(inv){
-            if(F.x > F.y)
-            {
+            if(F.x > F.y){
               choose F, 1/2, F.tx(), F.decr_x()*F.tx();
-              action(F,1/2,F.tx(),F.decr_x()){
-                F.x = F.x - F.y;
-              }
+              action(F,1/2,F.tx(),F.decr_x()){ F.x = F.x - F.y; }
             }
             if(F.x==F.y){
               choose F, 1/2, F.tx(), F.done();
-              action(F,1/2,empty,F.done()){
-                run=false;
-              }
-            }
-          }
-        }
+              action(F,1/2,empty,F.done()){ run=false; }
+        } } }
       } and T1() #\(\cdots\)#
 //end(main)
         requires Future(F,1/2,F.ty());
@@ -106,9 +83,7 @@ class ParallelGCD {
 //begin(main)
     }
     merge F, 1/2, empty, 1/2, empty;
-    assert Future(F,1,empty);
     destroy F;
-    refute false;
     return F.x;
   }
 }
