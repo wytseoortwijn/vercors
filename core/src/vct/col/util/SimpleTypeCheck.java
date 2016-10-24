@@ -695,6 +695,7 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       break;      
     }
     case HistoryPerm:
+    case ActionPerm:
     case Perm:
     {
       check_location(e.getArg(0),"first argument");

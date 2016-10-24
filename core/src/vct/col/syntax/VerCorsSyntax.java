@@ -26,6 +26,8 @@ public class VerCorsSyntax {
     syntax.addInfix(IFF,"<==>",3);
     syntax.addLeftFix(Wand,"-*",3);
     syntax.addFunction(Perm,"Perm");
+    syntax.addFunction(HistoryPerm,"HPerm");
+    syntax.addFunction(ActionPerm,"APerm");
     syntax.addFunction(Contribution,"Contribution");
     syntax.addFunction(Head,"head");
     syntax.addFunction(Tail,"tail");

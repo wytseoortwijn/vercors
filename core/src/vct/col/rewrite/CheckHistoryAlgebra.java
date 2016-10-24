@@ -200,7 +200,7 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
         hist_class=create.new_class(cl.name,new DeclarationStatement[0],null);;
         for(Method m:cl.dynamicMethods()){
           if (m.getKind()==Method.Kind.Constructor){
-            continue; //res.add_dynamic(rewrite(m));
+            hist_class.add_dynamic(rewrite(m));
           } else if (m.getReturnType().isPrimitive(Sort.Process)){
             add_process_to_adt(m);
             if (m.getBody()==null) {
@@ -216,17 +216,20 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
           hist_class.add_dynamic(create.field_decl(m.name+"_hist_value",m.getType(),rewrite(m.getInit())));
           hist_class.add_dynamic(create.field_decl(m.name+"_hist_init",m.getType()));
           hist_class.add_dynamic(create.field_decl(m.name+"_hist_act",m.getType()));
+          hist_class.add_dynamic(create.field_decl(m.name+"_hist_write",m.getType()));
+          hist_class.add_dynamic(create.field_decl(m.name+"_hist_free",m.getType()));
+          hist_class.add_dynamic(create.field_decl(m.name+"_hist_hist",m.getType()));
+          hist_class.add_dynamic(create.field_decl(m.name+"_hist_action",m.getType()));
           add_setters_and_getter(hist_class,m.name,m.getType());
         }
         
-        add_begin_hist_method(cl);
+        add_begin_hist_of_end_future_method(cl);
         add_split_merge_methods(cl);
 
         DeclarationStatement args[]=new DeclarationStatement[2];
         args[0]=create.field_decl("frac",create.primitive_type(Sort.Fraction));
         args[1]=create.field_decl("proc",adt_type);
         hist_class.add(create.predicate("hist_idle", null, args));
-        create.addZeroConstructor(hist_class);
         result=hist_class;
         return;
       }}
@@ -236,36 +239,15 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
   }
 
   private void add_setters_and_getter(ASTClass cl, String name, Type type) {
-    ContractBuilder free_set_cb=new ContractBuilder();
     ContractBuilder hist_set_cb=new ContractBuilder();
-    ContractBuilder free_get_cb=new ContractBuilder();
-    ContractBuilder hist_get_cb=new ContractBuilder();
     ASTNode var=create.field_name(name+"_hist_value");
     ASTNode val=create.local_name("value");
-    ASTNode act=create.field_name(name+"_hist_act");
-    ASTNode oldact=create.expression(Old,act);
+    ASTNode wr=create.field_name(name+"_hist_write");
     ASTNode full=create.reserved_name(FullPerm);
-    free_set_cb.requires(create.expression(Perm,var,full));
-    free_set_cb.requires(create.expression(Perm,act,full));
-    free_set_cb.ensures(create.expression(PointsTo,var,full,val));
-    free_set_cb.ensures(create.expression(PointsTo,act,full,oldact));
     hist_set_cb.requires(create.expression(Perm,var,full));
-    hist_set_cb.requires(create.expression(Perm,act,full));
+    hist_set_cb.requires(create.expression(Perm,wr,full));
     hist_set_cb.ensures(create.expression(PointsTo,var,full,val));
-    hist_set_cb.ensures(create.expression(PointsTo,act,full,oldact));
-    free_get_cb.requires(create.expression(Value,var));
-    //free_get_cb.requires(create.expression(Value,mode));
-    //free_get_cb.requires(create.expression(EQ,mode,free));
-    hist_get_cb.requires(create.expression(Value,var));
-    //hist_get_cb.requires(create.expression(Value,mode));
-    //hist_get_cb.requires(create.expression(EQ,mode,hist));    
-    cl.add_dynamic(create.method_decl(
-        create.primitive_type(Sort.Void),
-        free_set_cb.getContract(),
-        "free_set_"+name,
-        new DeclarationStatement[]{create.field_decl("value", type)},
-        null
-    ));
+    hist_set_cb.ensures(create.expression(Perm,wr,full));
     cl.add_dynamic(create.method_decl(
         create.primitive_type(Sort.Void),
         hist_set_cb.getContract(),
@@ -273,48 +255,38 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
         new DeclarationStatement[]{create.field_decl("value", type)},
         null
     ));
-    cl.add_dynamic(create.function_decl(
-        type,
-        free_get_cb.getContract(),
-        "free_get_"+name,
-        new DeclarationStatement[0],
-        var
-    ));
-    cl.add_dynamic(create.function_decl(
-        type,
-        hist_get_cb.getContract(),
-        "hist_get_"+name,
-        new DeclarationStatement[0],
-        var
-    ));
   }
 
-  protected void add_begin_hist_method(ASTClass cl) {
+  protected void add_begin_hist_of_end_future_method(ASTClass cl) {
     Method begin_hist;
     boolean hist=hist_class.getName().equals("History");
     ContractBuilder cb=new ContractBuilder();
+    ASTNode diz=create.reserved_name(ASTReserved.This);
+    ASTNode full=create.reserved_name(FullPerm);
     for(DeclarationStatement d:cl.dynamicFields()){
-      cb.requires(create.expression(Perm,create.field_name(d.name+"_hist_value"),create.reserved_name(FullPerm)));
-      cb.requires(create.expression(Perm,create.field_name(d.name+"_hist_init"),create.reserved_name(FullPerm)));
+      
       if (hist){
-        cb.requires(create.expression(Perm,create.field_name(d.name+"_hist_act"),create.reserved_name(FullPerm)));
+        cb.requires(free_perm(diz,d.name,full));
+        cb.ensures(hist_perm(diz,d.name,full));
+        cb.ensures(create.expression(Perm,create.field_name(d.name+"_hist_init"),create.reserved_name(FullPerm)));
       } else {
-        cb.ensures(create.expression(Perm,create.field_name(d.name+"_hist_act"),create.reserved_name(FullPerm)));
+        cb.requires(hist_perm(diz,d.name,full));
+        cb.ensures(free_perm(diz,d.name,full));        
+        cb.requires(create.expression(Perm,create.field_name(d.name+"_hist_init"),create.reserved_name(FullPerm)));
       }
-      cb.ensures(create.expression(Perm,create.field_name(d.name+"_hist_value"),create.reserved_name(FullPerm)));
-      cb.ensures(create.expression(Perm,create.field_name(d.name+"_hist_init"),create.reserved_name(FullPerm)));
       cb.ensures(create.expression(EQ
           , create.field_name(d.name+"_hist_value")
           , create.expression(Old,create.field_name(d.name+"_hist_value"))
       ));
-      cb.ensures(create.expression(EQ
-          , create.field_name(d.name+"_hist_init")
-          , create.expression(Old,create.field_name(hist?d.name+"_hist_value":d.name+"_hist_init"))
-      ));
-      if (!hist){
+      if (hist){
         cb.ensures(create.expression(EQ
-            , create.field_name(d.name+"_hist_init")
-            , create.field_name(d.name+"_hist_value")
+          , create.field_name(d.name+"_hist_init")
+          , create.expression(Old,create.field_name(d.name+"_hist_value"))
+        ));
+      } else {
+        cb.ensures(create.expression(EQ
+          , create.field_name(d.name+"_hist_value")
+          , create.expression(Old,create.field_name(d.name+"_hist_init"))
         ));
       }
     }
@@ -445,6 +417,7 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
       ASTNode frac) {
     String name=((FieldAccess)n).name;
     ASTNode nact=create.unresolved_name(name+"_hist_act");
+    ASTNode obj=((FieldAccess)n).object;
     n=create.dereference(((FieldAccess)n).object, name+"_hist_value");
     old_map.put(create.field_name(name),create.unresolved_name(name+"_hist_act"));
     new_map.put(create.field_name(name),create.unresolved_name(name+"_hist_value"));
@@ -459,12 +432,12 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
         frac,create.reserved_name(ASTReserved.NoPerm)));
     begin_cb.ensures(create.expression(Perm,nact,frac));
     commit_cb.requires(create.expression(Perm,nact,frac));
-    begin_cb.requires(create.expression(Perm,n,frac));
-    begin_cb.ensures(create.expression(Perm,n,frac));
+    begin_cb.requires(hist_perm(obj,name,frac));
+    begin_cb.ensures(action_perm(obj,name,frac));
     begin_cb.ensures(create.expression(EQ,n,nact));
     begin_cb.ensures(create.expression(EQ,n,create.expression(Old,n)));
-    commit_cb.requires(create.expression(Perm,n,frac));
-    commit_cb.ensures(create.expression(Perm,n,frac));
+    commit_cb.requires(action_perm(obj,name,frac));
+    commit_cb.ensures(hist_perm(obj,name,frac));
     commit_cb.ensures(create.expression(EQ,n,create.expression(Old,n)));
   }
 
@@ -663,12 +636,25 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
       result=create.invokation(rewrite(hist),null,"hist_idle",rewrite(frac),rewrite(proc));
       return;
     }
+    case ActionPerm:{
+      if (e.getArg(0)instanceof FieldAccess){
+        FieldAccess f=(FieldAccess)e.getArg(0);
+        ASTNode frac=rewrite(e.getArg(1));
+        if (isProcessRef(f.object)){
+          result=action_perm(rewrite(f.object),f.name,frac);
+        } else {
+          throw new HREError("APerm on non-history variable.");
+        }
+        return;
+      }
+      throw new HREError("APerm on non-history variable.");
+    }
     case HistoryPerm:{
       if (e.getArg(0)instanceof FieldAccess){
         FieldAccess f=(FieldAccess)e.getArg(0);
         ASTNode frac=rewrite(e.getArg(1));
         if (isProcessRef(f.object)){
-          result=create.expression(Perm,create.dereference(rewrite(f.object),f.name+"_hist_value"),frac);
+          result=hist_perm(rewrite(f.object),f.name,frac);
         } else {
           throw new HREError("HPerm on non-history variable.");
         }
@@ -681,15 +667,23 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
         FieldAccess f=(FieldAccess)e.getArg(0);
         ASTNode frac=rewrite(e.getArg(1));
         if (isProcessRef(f.object)){
-          result=create.fold(StandardOperator.Star
-            ,create.expression(Perm,create.dereference(rewrite(f.object),f.name+"_hist_value"),frac)
-            ,create.expression(Perm,create.dereference(rewrite(f.object),f.name+"_hist_init"),frac)
-            ,create.expression(Perm,create.dereference(rewrite(f.object),f.name+"_hist_act"),frac)
-          );
+          result=free_perm(rewrite(f.object),f.name,frac);
         } else {
           result=create.expression(Perm,create.dereference(rewrite(f.object),f.name),frac);
         }
         return;
+      }
+      break;
+    }
+    case PointsTo:{
+      if (e.getArg(0)instanceof FieldAccess){
+        FieldAccess f=(FieldAccess)e.getArg(0);
+        if (isProcessRef(f.object)){
+          ASTNode frac=rewrite(e.getArg(1));
+          ASTNode val=rewrite(e.getArg(2));
+          result=free_pointsto(rewrite(f.object),f.name,frac,val);
+          return;
+        }
       }
       break;
     }
@@ -699,6 +693,35 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
     super.visit(e);
   }
   
+  private ASTNode free_pointsto(ASTNode obj, String name, ASTNode frac,ASTNode val) {
+    return create.fold(StandardOperator.Star
+        ,create.expression(Perm,create.dereference(obj,name+"_hist_value"),frac)
+        ,create.expression(Perm,create.dereference(obj,name+"_hist_write"),frac)
+        ,create.expression(Perm,create.dereference(obj,name+"_hist_free"),frac)
+        ,create.expression(EQ,create.dereference(obj,name+"_hist_value"),val)
+    );
+  }
+  private ASTNode free_perm(ASTNode obj, String name, ASTNode frac) {
+    return create.fold(StandardOperator.Star
+        ,create.expression(Perm,create.dereference(obj,name+"_hist_value"),frac)
+        ,create.expression(Perm,create.dereference(obj,name+"_hist_write"),frac)
+        ,create.expression(Perm,create.dereference(obj,name+"_hist_free"),frac)
+    );
+  }
+  private ASTNode hist_perm(ASTNode obj, String name, ASTNode frac) {
+    return create.fold(StandardOperator.Star
+        ,create.expression(Perm,create.dereference(obj,name+"_hist_value"),frac)
+        ,create.expression(Perm,create.dereference(obj,name+"_hist_hist"),frac)
+    );
+  }
+  private ASTNode action_perm(ASTNode obj, String name, ASTNode frac) {
+    return create.fold(StandardOperator.Star
+        ,create.expression(Perm,create.dereference(obj,name+"_hist_value"),frac)
+        ,create.expression(Perm,create.dereference(obj,name+"_hist_write"),frac)
+        ,create.expression(Perm,create.dereference(obj,name+"_hist_action"),frac)
+    );
+  }
+
   protected boolean in_action=false;
   
   @Override
@@ -866,17 +889,19 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
     };
     ApplyOld rename_old=new ApplyOld(sigma);
     ContractBuilder cb=new ContractBuilder();
+    ASTNode diz=create.reserved_name(ASTReserved.This);
+    ASTNode full=create.reserved_name(ASTReserved.FullPerm);
     for(DeclarationStatement d:cl.dynamicFields()){
       map.put(d.name,create.expression(Old,create.field_name(d.name+(hist?"_hist_init":"_hist_value"))));
       new_map.put(d.name,create.field_name(d.name+(hist?"_hist_value":"_hist_init")));
-      cb.requires(create.expression(Perm,create.field_name(d.name+"_hist_value"),create.reserved_name(FullPerm)));
-      cb.requires(create.expression(Perm,create.field_name(d.name+"_hist_init"),create.reserved_name(FullPerm)));
-      cb.ensures(create.expression(Perm,create.field_name(d.name+"_hist_value"),create.reserved_name(FullPerm)));
-      cb.ensures(create.expression(Perm,create.field_name(d.name+"_hist_init"),create.reserved_name(FullPerm)));
-      if(hist){
-        cb.ensures(create.expression(Perm,create.field_name(d.name+"_hist_act"),create.reserved_name(FullPerm)));
+      if (hist){
+        cb.requires(create.expression(Perm,create.field_name(d.name+"_hist_init"),full));
+        cb.requires(hist_perm(diz,d.name,full));
+        cb.ensures(free_perm(diz,d.name,full));
       } else {
-        cb.requires(create.expression(Perm,create.field_name(d.name+"_hist_act"),create.reserved_name(FullPerm)));
+        cb.requires(free_perm(diz,d.name,full));
+        cb.ensures(hist_perm(diz,d.name,full));
+        cb.ensures(create.expression(Perm,create.field_name(d.name+"_hist_init"),full));
       }
       cb.ensures(create.expression(EQ
           , create.field_name(d.name+"_hist_value")
@@ -916,12 +941,10 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
   @Override
   public void visit(FieldAccess a){
     if (a.object!=null && a.object.getType()!=null && isProcessRef(a.object)){
-      String prefix=in_action?"hist_":"free_";
       if (a.value==null){
-        //result=create.invokation(rewrite(a.object),null,prefix+"get_"+a.name);
         result=create.dereference(rewrite(a.object),a.name+"_hist_value");
       } else {
-        result=create.invokation(rewrite(a.object),null,prefix+"set_"+a.name,rewrite(a.value));
+        result=create.invokation(rewrite(a.object),null,"hist_set_"+a.name,rewrite(a.value));
       }
     } else {
       result=create.dereference(rewrite(a.object),a.name);
