@@ -6,24 +6,19 @@ public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
   
   public RecursiveVisitor(ASTFrame<T> share) {
     super(share);
-    // TODO Auto-generated constructor stub
   }
 
   public RecursiveVisitor(ProgramUnit source) {
     super(source,false);
-    // TODO Auto-generated constructor stub
   }
   public RecursiveVisitor(ProgramUnit source, ProgramUnit target) {
     super(source, target,false);
-    // TODO Auto-generated constructor stub
   }
   public RecursiveVisitor(ProgramUnit source,boolean do_scope) {
     super(source,do_scope);
-    // TODO Auto-generated constructor stub
   }
   public RecursiveVisitor(ProgramUnit source, ProgramUnit target,boolean do_scope) {
     super(source, target,do_scope);
-    // TODO Auto-generated constructor stub
   }
 
   @Override
@@ -361,6 +356,12 @@ public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
   public void visit(VectorBlock v) {
     dispatch(v.iter);
     dispatch(v.block);
+  }
+
+  @Override
+  public void visit(Constraining c) {
+    dispatch(c.vars);
+    dispatch(c.block);
   }
 
 }

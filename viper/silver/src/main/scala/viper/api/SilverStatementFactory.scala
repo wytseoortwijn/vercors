@@ -65,6 +65,19 @@ class SilverStatementFactory[O] extends StatementFactory[O,Type,Exp,Stmt] with F
   }
   
   override def block(o: O,stats: List[Stmt]): Stmt = Seqn(stats.asScala)(NoPosition,new OriginInfo(o))
-
+  
+  def constraining(o: O,ps: List[Exp],body:Stmt): Stmt = {
+    val vars=ps.asScala.map {
+      x => x.asInstanceOf[LocalVar]
+    }
+    Constraining(vars,body)(NoPosition,new OriginInfo(o))
+  }
+  
+  def fresh(o: O,ps: List[Exp]): Stmt = {
+    val vars=ps.asScala.map {
+      x => x.asInstanceOf[LocalVar]
+    }
+    Fresh(vars)(NoPosition,new OriginInfo(o))
+  }
 }
 

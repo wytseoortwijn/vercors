@@ -271,6 +271,7 @@ public class SilverStatementMap<T,E,S> implements ASTMapping<S>{
     case Assume: return create.inhale(special.getOrigin(),special.args[0].apply(expr));
     case Fold: return create.fold(special.getOrigin(),special.args[0].apply(expr));
     case Unfold: return create.unfold(special.getOrigin(),special.args[0].apply(expr));
+    case Fresh: return create.fresh(special.getOrigin(),do_names(special.args));
     default:
       throw new HREError("cannot map special %s",special.kind);
     }
@@ -377,6 +378,20 @@ public class SilverStatementMap<T,E,S> implements ASTMapping<S>{
   @Override
   public S map(VectorBlock vb) {
     return null;
+  }
+  
+  
+  private <F extends ASTNode> ArrayList<E> do_names(F args[]){
+    ArrayList<E> names=new ArrayList<E>();
+    for(ASTNode n:args){
+      names.add(n.apply(expr));
+    }
+    return names;
+  }
+
+  @Override
+  public S map(Constraining c) {
+    return create.constraining(c.getOrigin(), do_names(c.vars), c.block.apply(this));
   }
 
 

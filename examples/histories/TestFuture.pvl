@@ -35,8 +35,6 @@ class Test {
   requires HPerm(f.x,1) ** Future(f,1,empty) ** AbstractState(f,x==t);
   ensures Perm(f.x,1) ** f.x==t;
   static void stop(Future f,int t){
-    // TODO: make this work.
-    assume false;
     destroy f;
   }
 
@@ -45,11 +43,12 @@ class Test {
     f.x=1;
     create f,f.step();
     assert AbstractState(f,x==2);
-    action(f,1,empty,f.step(),x,write){
+    action(f,1,empty,f.step()){
       f.x=f.x+1;
     }
     destroy f;
     assert f.x==2;
+    refute false;
   }
   
   static void main2(){
