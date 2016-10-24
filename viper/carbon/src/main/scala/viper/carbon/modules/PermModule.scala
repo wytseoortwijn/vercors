@@ -90,13 +90,13 @@ trait PermModule extends Module with CarbonStateComponent {
 
   def permissionLookup(la: sil.LocationAccess) : Exp
 /** FIXME: duplicate method, here */
-  
-      /**
+
+  /**
    * The expression for the current permission at a location.
    */
   def currentPermission(loc: sil.LocationAccess): Exp
 
-  def currentPermission(rcv:Exp, loc:Exp):Exp 
+  def currentPermission(rcv:Exp, loc:Exp):Exp
 
   /**these methods are for experimental purposes, not yet finalized **/
   /*def beginSumMask : Stmt
