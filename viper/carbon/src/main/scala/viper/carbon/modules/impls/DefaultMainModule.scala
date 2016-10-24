@@ -49,9 +49,8 @@ class DefaultMainModule(val verifier: Verifier) extends MainModule with Stateles
 
     verifier.replaceProgram(
       p.transform({
-        case f: sil.Forall if f.isPure =>
-           f.autoTrigger
-
+        case f: sil.Forall =>
+          f.autoTrigger
       })((_) => true)
     )
 
@@ -124,7 +123,6 @@ class DefaultMainModule(val verifier: Verifier) extends MainModule with Stateles
   }
 
   private def translateMethodDeclCheckPosts(posts: Seq[sil.Exp]): Stmt = {
-
     val (stmt, state) = stateModule.freshTempState("Post")
 
     val reset = stateModule.resetBoogieState
