@@ -58,6 +58,8 @@ class Test {
     work(f);
     stop(f,2);
     assert f.x==2;
+    refute false;
   }
+  
 }
 

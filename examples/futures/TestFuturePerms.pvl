@@ -1,0 +1,123 @@
+// -*- tab-width:2 ; indent-tabs-mode:nil -*-
+//:: case TestFuturePerms
+//:: tool silicon
+//:: option --check-history --skip bad1,bad2,bad3,bad4,bad5,bad6,bad7
+
+//:: case TestFuturePermsE1
+//:: tool silicon
+//:: verdict Fail
+//:: option --check-history --skip bad2,bad3,bad4,bad5,bad6,bad7
+
+//:: case TestFuturePermsE2
+//:: tool silicon
+//:: verdict Fail
+//:: option --check-history --skip bad1,bad3,bad4,bad5,bad6,bad7
+
+//:: case TestFuturePermsE3
+//:: tool silicon
+//:: verdict Fail
+//:: option --check-history --skip bad1,bad2,bad4,bad5,bad6,bad7
+
+//:: case TestFuturePermsE4
+//:: tool silicon
+//:: verdict Fail
+//:: option --check-history --skip bad1,bad2,bad3,bad5,bad6,bad7
+
+//:: case TestFuturePermsE5
+//:: tool silicon
+//:: verdict Fail
+//:: option --check-history --skip bad1,bad2,bad3,bad4,bad6,bad7
+
+//:: case TestFuturePermsE6
+//:: tool silicon
+//:: verdict Fail
+//:: option --check-history --skip bad1,bad2,bad3,bad4,bad5,bad7
+
+//:: case TestFuturePermsE7
+//:: tool silicon
+//:: verdict Fail
+//:: option --check-history --skip bad1,bad2,bad3,bad4,bad5,bad6
+
+
+class Future {
+  int x;
+  
+  modifies x;
+  ensures x==\old(x)+1;
+  process step();
+}
+
+class Test {
+
+  int y;
+
+  requires Perm(f.x,1);
+  void good1(Future f){
+    f.x = 1;
+  }
+  
+  requires APerm(f.x,1);
+  void good2(Future f){
+    f.x = 1;
+  }
+  
+  requires HPerm(f.x,1);
+  void bad1(Future f){
+    f.x = 1;
+  }
+  
+  requires Perm(f.x,1);
+  void bad2(Future f){
+    assert HPerm(f.x,1);
+  }
+  
+  requires Perm(f.x,1);
+  void bad3(Future f){
+    assert APerm(f.x,1);
+  }
+  
+  requires HPerm(f.x,1);
+  void bad4(Future f){
+    assert Perm(f.x,1);
+  }
+  
+  requires HPerm(f.x,1);
+  void bad5(Future f){
+    assert APerm(f.x,1);
+  }
+  
+  requires APerm(f.x,1);
+  void bad6(Future f){
+    assert Perm(f.x,1);
+  }
+  
+  requires APerm(f.x,1);
+  void bad7(Future f){
+    assert HPerm(f.x,1);
+  }
+
+
+  requires Perm(f.x,1);
+  requires t==f.x+1;
+  ensures HPerm(f.x,1) ** Future(f,1,f.step()) ** AbstractState(f,x==t);
+  static void start(Future f,int t){
+    create f,f.step();
+  }
+
+  requires HPerm(f.x,1) ** Future(f,1,f.step());
+  ensures  HPerm(f.x,1) ** Future(f,1,empty);
+  static void work(Future f){
+    action(f,1,empty,f.step(),x,write){
+      f.x=f.x+1;
+    }
+  }
+
+  requires HPerm(f.x,1) ** Future(f,1,empty) ** AbstractState(f,x==t);
+  ensures Perm(f.x,1) ** f.x==t;
+  static void stop(Future f,int t){
+    destroy f;
+  }
+ 
+}
+
+
