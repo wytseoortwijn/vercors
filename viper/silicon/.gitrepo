@@ -4,8 +4,8 @@
 ; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
 ;
 [subrepo]
-	remote = ssh://vcs@vcs.utwente.nl/diffusion/VCTEX/vercors-examples.git
-	branch = public
-	commit = a63edb025520837412428203cd79077c9d452440
-	parent = 1783743fbef34ed73b550342b0557099f3cf1812
+	remote = git@bitbucket.org:vercors/silicon-git.git
+	branch = vercors
+	commit = 718fe0b71b6ba4871ee92466531c4922544b1747
+	parent = 30b8347e47604e76405ca1dd6f96a2b8d75937f9
 	cmdver = 0.3.0
