@@ -9,14 +9,14 @@ package viper.silicon
 import org.slf4s.Logging
 import viper.silver.ast
 import viper.silver.verifier.PartialVerificationError
-import viper.silicon.interfaces.state.{Store, Heap, State, StateFormatter}
-import viper.silicon.interfaces.{Failure, Producer, Consumer, Evaluator, VerificationResult}
+import viper.silicon.interfaces.state.{Heap, State, StateFormatter, Store}
+import viper.silicon.interfaces.{Consumer, Evaluator, Failure, Producer, VerificationResult}
 import viper.silicon.interfaces.decider.Decider
 import viper.silicon.reporting.Bookkeeper
 import viper.silicon.state.{DefaultContext, FieldChunk, PredicateChunk, SymbolConvert, ListBackedHeap}
 import viper.silicon.state.terms._
 import viper.silicon.supporters._
-import viper.silicon.supporters.qps.QuantifiedChunkSupporter
+import viper.silicon.supporters.qps.{QuantifiedChunkSupporter, QuantifiedPredicateChunkSupporter}
 import viper.silicon.supporters.functions.NoopFunctionRecorder
 
 trait DefaultProducer[ST <: Store[ST],
@@ -39,6 +39,7 @@ trait DefaultProducer[ST <: Store[ST],
   import symbolConverter.toSort
 
   protected val quantifiedChunkSupporter: QuantifiedChunkSupporter[ST, H, S, C]
+  protected val quantifiedPredicateChunkSupporter: QuantifiedPredicateChunkSupporter[ST, H, S, C]
   protected val stateFormatter: StateFormatter[ST, H, S, String]
   protected val bookkeeper: Bookkeeper
   protected val config: Config
@@ -70,7 +71,6 @@ trait DefaultProducer[ST <: Store[ST],
      * combine-terms, which can affect the snapshot structure of predicates and
      * functions.
      */
-
     if (φs.isEmpty)
       Q(σ, c)
     else {
@@ -199,13 +199,27 @@ trait DefaultProducer[ST <: Store[ST],
 
       case acc @ ast.PredicateAccessPredicate(pa @ ast.PredicateAccess(eArgs, predicateName), perm) =>
         val predicate = c.program.findPredicate(predicateName)
+        def addNewChunk(h:H, args:Seq[Term], s:Term, p:Term, c:C) : (H, C) =
+          if (c.qpPredicates.contains(predicate)) {
+            decider.prover.logComment("define formalVArgs")
+            var formalArgs:Seq[Var] = c.predicateFormalVarMap(predicate)
+            decider.prover.logComment("createPredicateSnapFunction")
+            val (psf, optPsfDef) = quantifiedPredicateChunkSupporter.createPredicateSnapFunction(predicate, args, formalArgs, s, c)
+            decider.prover.logComment("assume snapDefinition")
+            optPsfDef.foreach(psfDef => assume(psfDef.snapDefinitions))
+            val ch = quantifiedPredicateChunkSupporter.createSingletonQuantifiedPredicateChunk(args, formalArgs, predicate.name, psf, p)
+            (h + ch, c)
+          } else {
+            val ch = PredicateChunk(predicate.name, args, s.convert(sorts.Snap), p)
+            val (h1, c1) = chunkSupporter.produce(σ, σ.h, ch, c)
+            (h1, c1)
+          }
         evals(σ, eArgs, _ => pve, c)((tArgs, c1) =>
           eval(σ, perm, pve, c1)((tPerm, c2) => {
             assume(PermAtMost(NoPerm(), tPerm))
-            val s = sf(predicate.body.map(getOptimalSnapshotSort(_, c.program)._1).getOrElse(sorts.Snap))
+            var s:Term = sf(c1.predicateSnapMap(predicate))
             val gain = PermTimes(tPerm, c2.permissionScalingFactor)
-            val ch = PredicateChunk(predicate.name, tArgs, s.convert(sorts.Snap), gain)
-            val (h1, c3) = chunkSupporter.produce(σ, σ.h, ch, c2)
+            val (h1, c3) = addNewChunk(σ.h, tArgs, s, gain, c2)
             Q(h1, c3)}))
 
       case wand: ast.MagicWand =>
@@ -219,14 +233,15 @@ trait DefaultProducer[ST <: Store[ST],
             val snap = sf(sorts.FieldValueFunction(toSort(field.typ)))
             val additionalInvFctArgs = c1.quantifiedVariables
             val gain = PermTimes(tPerm, c1.permissionScalingFactor)
-            val (ch, invFct) =
-              quantifiedChunkSupporter.createQuantifiedChunk(tQVar, tRcvr, field, snap, gain, tCond,
-                                                             additionalInvFctArgs)
+            val (ch, invFct) = quantifiedChunkSupporter.createQuantifiedFieldChunk(tQVar, tRcvr, field, snap, gain, tCond, additionalInvFctArgs)
 
-            /* [2016-05-05 Malte]
+            /* [2016-10-26 Malte]
              * The issue described (and solved) in the previous comment is no longer a problem
-             * because FVF definitional axioms are no longer nested under other quantifiers.
-             * The comment is kept for documentary purposes.
+             * because quantifiers with FVFs in their triggers are rewritten by abstracting over
+             * the concrete FVF with a newly added, quantified variable. This allows the prover
+             * to instantiate the nesting axiom with any FVF and to get to the nested definitional
+             * axioms.
+             * The next comment is kept for documentary purposes.
              *
              * [2015-11-13 Malte]
              * Using the trigger of the inv-of-receiver definitional axiom of the new inverse
@@ -277,6 +292,34 @@ trait DefaultProducer[ST <: Store[ST],
             val c2 = c1.copy(functionRecorder = c1.functionRecorder.recordQPTerms(Nil, decider.pcs.branchConditions, invFct.definitionalAxioms))
             Q(σ.h + ch1, c2)}
 
+      case ast.utility.QuantifiedPermissions.QPPForall(qvar, cond, args, predname, gain, forall, predAcc) =>
+        //create new quantified predicate chunk
+        val predicate = c.program.findPredicate(predname)
+        val qid = s"prog.l${utils.ast.sourceLine(forall)}"
+        evalQuantified(σ, Forall, Seq(qvar.localVar), Seq(cond), args ++ Seq(gain) , None, qid, pve, c) {
+          case (Seq(tQVar), Seq(tCond), tArgsGain, _, Left(tAuxQuantNoTriggers), c1) =>
+            val (tArgs, Seq(tGain)) = tArgsGain.splitAt(args.size)
+            val snap = sf(sorts.PredicateSnapFunction(c.predicateSnapMap(predicate)))
+            val additionalInvFctArgs = c1.quantifiedVariables
+
+            val gain = PermTimes(tGain, c1.permissionScalingFactor)
+            val (ch, invFct) =
+              quantifiedPredicateChunkSupporter.createQuantifiedPredicateChunk(tQVar, predicate, c.predicateFormalVarMap(predicate), tArgs, snap, gain, tCond,
+                additionalInvFctArgs)
+
+            decider.prover.logComment("Nested auxiliary terms")
+            assume(tAuxQuantNoTriggers.copy(vars = invFct.invOfFct.vars, /* The trigger generation code might have added quantified variables to invOfFct */
+              triggers = invFct.invOfFct.triggers))
+
+            val gainNonNeg = Forall(invFct.invOfFct.vars, perms.IsNonNegative(tGain), invFct.invOfFct.triggers, s"$qid-perm")
+            assume(gainNonNeg)
+            decider.prover.logComment("Definitional axioms for inverse functions")
+            assume(invFct.definitionalAxioms)
+            val hints = quantifiedPredicateChunkSupporter.extractHints(Some(tQVar), Some(tCond), tArgs)
+            val ch1 = ch.copy(hints = hints)
+
+            val c2:C = c1.copy(functionRecorder = c1.functionRecorder.recordQPTerms(Nil, decider.pcs.branchConditions, invFct.definitionalAxioms))
+            Q(σ.h + ch1, c2)}
       case _: ast.InhaleExhaleExp =>
         Failure(utils.consistency.createUnexpectedInhaleExhaleExpressionError(φ))
 
