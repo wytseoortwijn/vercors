@@ -5,7 +5,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import vct.col.ast.ASTSpecial.Kind;
-import vct.col.ast.PrimitiveType.Sort;
 import hre.ast.BranchOrigin;
 import hre.ast.MessageOrigin;
 import hre.ast.Origin;

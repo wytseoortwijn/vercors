@@ -13,7 +13,6 @@ import vct.col.ast.*;
 import vct.logging.ErrorMapping;
 import vct.logging.VerCorsError.ErrorCode;
 import vct.util.Configuration;
-import static vct.col.ast.StandardOperator.Value;
 import static vct.col.ast.StandardOperator.Perm;
 import static vct.col.ast.StandardOperator.PointsTo;
 import static vct.col.ast.StandardOperator.EQ;
@@ -739,7 +738,7 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
     args.add(frac);
     args.add(p_expr);
     BlockStatement res=create.block();
-    ArrayList<NameExpression> names=new ArrayList();
+    ArrayList<NameExpression> names=new ArrayList<NameExpression>();
     Contract ac=act.getDefinition().getContract();
     for(ASTNode n:act.getArgs()){
       args.add(rewrite(n));
