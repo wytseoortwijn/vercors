@@ -160,6 +160,7 @@ trait DefaultExecutor[ST <: Store[ST],
 
         (locally {
             val mark = decider.setPathConditionMark()
+            viper.api.VControl.profile(loopStmt,"Loop: Check specs well-definedness")
             decider.prover.logComment("Loop: Check specs well-definedness")
             produces(σBody, fresh, lb.invs, ContractNotWellformed, c)((σ1, c1) =>
               produce(σ1, fresh, lb.cond, WhileFailed(loopStmt), c1)((σ2, c2) => {
@@ -171,21 +172,25 @@ trait DefaultExecutor[ST <: Store[ST],
                 Success()}))}
         && locally {
             val mark = decider.setPathConditionMark()
+            viper.api.VControl.profile(loopStmt,"Loop: Establish loop invariant")
             decider.prover.logComment("Loop: Establish loop invariant")
             consumes(σ, lb.invs, e => LoopInvariantNotEstablished(e), c)((σ1, _, c1) => {
               phase2data = phase2data :+ (σ1, decider.pcs.after(mark), c1)
               Success()})}
         && {
             decider.prover.logComment("Loop: Verify loop body")
+            viper.api.VControl.profile(loopStmt,"Loop: Verify loop body")
             phase1data.foldLeft(Success(): VerificationResult) {
               case (fatalResult: FatalResult, _) => fatalResult
               case (intermediateResult, (σ1, pcs1, c1)) =>
                 intermediateResult && locally {
                   assume(pcs1.assumptions)
                   exec(σ1, lb.body, c1)((σ2, c2) =>
+                    {viper.api.VControl.profile(loopStmt,"Loop: Re-Establish loop invariant")
                     consumes(σ2, lb.invs, e => LoopInvariantNotPreserved(e), c2)((σ3, _, c3) =>
-                      Success()))}}}
+                      Success())})}}}
         && {
+            viper.api.VControl.profile(loopStmt,"Loop: Continue after loop")
             decider.prover.logComment("Loop: Continue after loop")
             phase2data.foldLeft(Success(): VerificationResult) {
               case (fatalResult: FatalResult, _) => fatalResult
@@ -423,6 +428,7 @@ trait DefaultExecutor[ST <: Store[ST],
             eval(σ, ePerm, pve, c1)((tPerm, c2) =>
               decider.assert(σ, IsNonNegative(tPerm)){
                 case true =>
+                  //handles both quantified and unquantified predicates
                   predicateSupporter.fold(σ, predicate, tArgs, tPerm, pve, c2)(Q)
                 case false =>
                   Failure(pve dueTo NegativePermission(ePerm))}))
@@ -435,6 +441,7 @@ trait DefaultExecutor[ST <: Store[ST],
           eval(σ, ePerm, pve, c1)((tPerm, c2) =>
             decider.assert(σ, IsNonNegative(tPerm)){
               case true =>
+                //handles both quantified and unquantified predicates
                 predicateSupporter.unfold(σ, predicate, tArgs, tPerm, pve, c2, pa)(Q)
               case false =>
                 Failure(pve dueTo NegativePermission(ePerm))}))

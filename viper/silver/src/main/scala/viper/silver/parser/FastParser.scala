@@ -5,13 +5,15 @@ package viper.silver.parser
   */
 
 
+import java.io.File
+
 import fastparse.all._
 import fastparse.core.{Mutable, ParseCtx, Parser}
 import fastparse.Implicits.{Repeater, Sequencer}
 import fastparse.WhitespaceApi
 import fastparse.parsers.Combinators.Rule
 import fastparse.parsers.Terminals.Pass
-import java.nio.file.Path
+import java.nio.file.{Files, Path}
 
 import scala.collection.immutable.Iterable
 import scala.collection.mutable
@@ -79,8 +81,8 @@ object FastParser extends PosParser{
 
 
   // Actual Parser starts from here
-
-  def keyword(check: String) = check ~~ !CharIn('0' to '9', 'A' to 'Z', 'a' to 'z', "$_")
+  def identContinues = CharIn('0' to '9', 'A' to 'Z', 'a' to 'z', "$_")
+  def keyword(check: String) = check ~~ !identContinues
 
   def parens[A](p: fastparse.noApi.Parser[A]) = "(" ~ p ~ ")"
 
@@ -216,8 +218,12 @@ object FastParser extends PosParser{
             })
         }
 
-        case fapp: PCall => expandAllegedInvocation(fapp.func, fapp.args, fapp)
-        case call: PMethodCall => expandAllegedInvocation(call.method, call.args, call)
+        case fapp: PCall => {
+          expandAllegedInvocation(fapp.func, fapp.args, fapp)
+        }
+        case call: PMethodCall => {
+          expandAllegedInvocation(call.method, call.args, call)
+        }
       }(recursive = _ => true,
         resultCheck = {
           case (o,n) => checkMacroType(o, n)
@@ -438,7 +444,8 @@ object FastParser extends PosParser{
 
   lazy val multisetType: P[PType] = P(keyword("Multiset") ~/ "[" ~ typ ~ "]").map(PMultisetType)
 
-  lazy val primitiveTyp: P[PType] = P(StringIn("Rational").!.map { case _ => PPrimitiv("Perm") } | StringIn("Int", "Bool", "Perm", "Ref").!.map(PPrimitiv))
+  lazy val primitiveTyp: P[PType] = P(keyword("Rational").map { case _ => PPrimitiv("Perm") }
+                                      | (StringIn("Int", "Bool", "Perm", "Ref") ~~ !identContinues).!.map(PPrimitiv))
 
   lazy val trigger: P[Seq[PExp]] = P("{" ~/ exp.rep(sep = ",", min = 1) ~ "}")
 
@@ -602,7 +609,7 @@ object FastParser extends PosParser{
 
       val imp_progs_results: Seq[Either[ParseReport, Any] with Product with Serializable] = imports.collect {
         case imp@PImport(imp_file) =>
-          val imp_path = java.nio.file.Paths.get(file.getParent + "/" + imp_file)
+          val imp_path = file.getParent.resolve(imp_file)
           val imp_pos = imp.start.asInstanceOf[viper.silver.ast.Position]
 
           if (java.nio.file.Files.notExists(imp_path))
@@ -612,7 +619,7 @@ object FastParser extends PosParser{
             Left(viper.silver.verifier.ParseError(s"""importing yourself is probably not a good idea!""", imp_pos))
 
           else if (_imports.put(imp_path, true).isEmpty) {
-            val source = scala.io.Source.fromFile(imp_path.toString)
+            val source = scala.io.Source.fromInputStream(Files.newInputStream(imp_path))
             val buffer = try {
               Right(source.getLines.toArray)
             } catch {
@@ -625,7 +632,8 @@ object FastParser extends PosParser{
               case Left(e) => Left(e)
               case Right(s) =>
                 //TODO print debug info iff --dbg switch is used
-                val p = RecParser(imp_path).parses(s.mkString("\n") + "\n")
+                val imported_source = s.mkString("\n") + "\n"
+                val p = RecParser(imp_path).parses(imported_source)
                 p match {
                   case fastparse.core.Parsed.Success(a, _) => Right(a)
                   case fastparse.core.Parsed.Failure(msg, next, extra) => Left(viper.silver.verifier.ParseError(s"Failure: $msg", FilePosition(imp_path, extra.line, extra.col)))
@@ -692,9 +700,11 @@ object FastParser extends PosParser{
 
   lazy val relativeFilePath: P[String] = P((CharIn("~.").?).! ~~ (CharIn("/").? ~~ CharIn(".", 'A' to 'Z', 'a' to 'z', '0' to '9', "_- \n\t")).rep(1))
 
-  lazy val domainDecl: P[PDomain] = P("domain" ~/ idndef ~ ("[" ~ domainTypeVarDecl.rep(sep = ",") ~ "]").? ~ "{" ~ domainFunctionDecl.rep ~
-    axiomDecl.rep ~ "}").map {
-    case (name, typparams, funcs, axioms) =>
+  lazy val domainDecl: P[PDomain] = P("domain" ~/ idndef ~ ("[" ~ domainTypeVarDecl.rep(sep = ",") ~ "]").? ~ "{" ~ (domainFunctionDecl | axiomDecl).rep ~
+    "}").map {
+    case (name, typparams, members) =>
+      val funcs = members collect { case m: PDomainFunction1 => m}
+      val axioms = members collect { case m: PAxiom1 => m}
       PDomain(
         name,
         typparams.getOrElse(Nil),

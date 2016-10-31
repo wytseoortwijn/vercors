@@ -26,6 +26,8 @@ public class VerCorsSyntax {
     syntax.addInfix(IFF,"<==>",3);
     syntax.addLeftFix(Wand,"-*",3);
     syntax.addFunction(Perm,"Perm");
+    syntax.addFunction(HistoryPerm,"HPerm");
+    syntax.addFunction(ActionPerm,"APerm");
     syntax.addFunction(Contribution,"Contribution");
     syntax.addFunction(Head,"head");
     syntax.addFunction(Tail,"tail");
@@ -58,13 +60,25 @@ public class VerCorsSyntax {
     syntax.addReserved(NoPerm,"none");
     syntax.addReserved(ASTReserved.OptionNone,"None");
     syntax.addFunction(StandardOperator.OptionSome,"Some");
+
+    syntax.addFunction(StandardOperator.Future,"Future");
+    syntax.addFunction(StandardOperator.History,"Hist");
+    syntax.addFunction(StandardOperator.AbstractState,"AbstractState");
+
+    
+    
+    syntax.add_annotation(ASTSpecial.Kind.Inhale, "inhale");
+    syntax.add_annotation(ASTSpecial.Kind.Exhale, "exhale");
+    
     
     syntax.add_annotation(ASTSpecial.Kind.ActionHeader, "action");
     syntax.add_annotation(ASTSpecial.Kind.ChooseHistory, "choose");
     syntax.add_annotation(ASTSpecial.Kind.CreateHistory, "create");
+    syntax.add_annotation(ASTSpecial.Kind.CreateFuture, "create");
     syntax.add_annotation(ASTSpecial.Kind.SplitHistory, "split");
     syntax.add_annotation(ASTSpecial.Kind.MergeHistory, "merge");
     syntax.add_annotation(ASTSpecial.Kind.DestroyHistory, "destroy");
+    syntax.add_annotation(ASTSpecial.Kind.DestroyFuture, "destroy");
     
     syntax.add_annotation(ASTSpecial.Kind.Fold, "fold");
     syntax.add_annotation(ASTSpecial.Kind.Unfold, "unfold");

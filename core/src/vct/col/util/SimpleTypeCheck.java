@@ -695,6 +695,7 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       break;      
     }
     case HistoryPerm:
+    case ActionPerm:
     case Perm:
     {
       check_location(e.getArg(0),"first argument");
@@ -1388,6 +1389,10 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     }
     Type t1;
     switch(s.kind){
+    case Fresh:{
+      // TODO: check arguments.
+      break;
+    }
     case Send:{
       t1=s.args[0].getType();
       if (t1==null) Fail("type of left argument unknown at "+s.getOrigin());
@@ -1449,5 +1454,20 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     } else {
       a.setType(new PrimitiveType(Sort.Void));
     }
+  }
+  
+  @Override
+  public void visit(Constraining c){
+    for (NameExpression var:c.vars){
+      var.apply(this);
+      Type t=var.getType();
+      if (t==null){
+        Fail("unresolved variable %s at %s",var,var.getOrigin());
+      }
+      if (!t.isPrimitive(Sort.Fraction) && !t.isPrimitive(Sort.ZFraction)){
+        Fail("variable %s is %s rather than fraction at %s",var,t,var.getOrigin());
+      }
+    }
+    c.block.apply(this);
   }
 }

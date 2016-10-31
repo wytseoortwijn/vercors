@@ -1,0 +1,11 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
+;
+[subrepo]
+	remote = git@bitbucket.org:vercors/viper-api-git.git
+	branch = vercors
+	commit = 7113baecc79d086921b35a91418f162edb673894
+	parent = aa0d5f25bd7f01816317c924538c2066d07aca9a
+	cmdver = 0.3.0

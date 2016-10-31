@@ -9,9 +9,9 @@ package viper.silicon.supporters.qps
 import viper.silver.ast
 import viper.silver.components.StatefulComponent
 import viper.silver.verifier.PartialVerificationError
-import viper.silver.verifier.reasons.{ReceiverNull, InsufficientPermission}
+import viper.silver.verifier.reasons.InsufficientPermission
 import viper.silicon.interfaces.{Failure, VerificationResult}
-import viper.silicon.{Set, Map, Config, TriggerSets}
+import viper.silicon.Config
 import viper.silicon.interfaces.decider.Decider
 import viper.silicon.interfaces.state._
 import viper.silicon.reporting.Bookkeeper
@@ -34,13 +34,15 @@ trait QuantifiedChunkSupporter[ST <: Store[ST],
   def getFreshInverseFunction(qvar: Var,
                               fct: Term,
                               condition: Term,
+                              perms: Term,
                               additionalArgs: Seq[Var])
                              : InverseFunction
 
   def createFieldValueFunction(field: ast.Field, rcvr: Term, value: Term)
                               : (Term, Option[SingletonChunkFvfDefinition])
 
-  def injectivityAxiom(qvar: Var, condition: Term, receiver: Term): Quantification
+  def injectivityAxiom(qvars: Seq[Var], condition: Term, perms: Term, args: Seq[Term]): Quantification
+
   def receiverNonNullAxiom(qvar: Var, cond: Term, rcvr: Term, perms: Term): Quantification
 
   def singletonConditionalPermissions(rcvr: Term, perms: Term): Term
@@ -49,19 +51,20 @@ trait QuantifiedChunkSupporter[ST <: Store[ST],
                                      field: String,
                                      fvf: Term,
                                      perms: Term)
-                                    : QuantifiedChunk
+                                    : QuantifiedFieldChunk
 
-  def createQuantifiedChunk(qvar: Var,
-                            receiver: Term,
-                            field: ast.Field,
-                            fvf: Term,
-                            perms: Term,
-                            condition: Term,
-                            additionalArgs: Seq[Var])
-                           : (QuantifiedChunk, InverseFunction)
+  def createQuantifiedFieldChunk(qvar: Var,
+                                 receiver: Term,
+                                 field: ast.Field,
+                                 fvf: Term,
+                                 perms: Term,
+                                 condition: Term,
+                                 additionalArgs: Seq[Var])
+                                : (QuantifiedFieldChunk, InverseFunction)
 
   def permission(h: H, receiver: Term, field: ast.Field): Term
-  def permission(chs: Seq[QuantifiedChunk], receiver: Term, field: ast.Field): Term
+
+  def permission(chs: Seq[QuantifiedFieldChunk], receiver: Term, field: ast.Field): Term
 
   def withValue(σ: S,
                 h: H,
@@ -80,9 +83,9 @@ trait QuantifiedChunkSupporter[ST <: Store[ST],
                           field: ast.Field,
                           receiver: Term, // e
                           perms: Term, // p
-                          chunkOrderHeuristic: Seq[QuantifiedChunk] => Seq[QuantifiedChunk],
+                          chunkOrderHeuristic: Seq[QuantifiedFieldChunk] => Seq[QuantifiedFieldChunk],
                           c: C)
-                         (Q: Option[(H, QuantifiedChunk, FvfDefinition, C)] => VerificationResult)
+                         (Q: Option[(H, QuantifiedFieldChunk, FvfDefinition, C)] => VerificationResult)
                          : VerificationResult
 
   def splitLocations(σ: S,
@@ -93,15 +96,16 @@ trait QuantifiedChunkSupporter[ST <: Store[ST],
                      condition: Term, // c(x)
                      receiver: Term, // e(x)
                      perms: Term, // p(x)
-                     chunkOrderHeuristic: Seq[QuantifiedChunk] => Seq[QuantifiedChunk],
+                     chunkOrderHeuristic: Seq[QuantifiedFieldChunk] => Seq[QuantifiedFieldChunk],
                      c: C)
-                    (Q: Option[(H, QuantifiedChunk, QuantifiedChunkFvfDefinition, C)] => VerificationResult)
-                    : VerificationResult
+                     (Q: Option[(H, QuantifiedFieldChunk, QuantifiedChunkFvfDefinition, C)] => VerificationResult)
+                     : VerificationResult
 
-  def splitHeap(h: H, field: String): (Seq[QuantifiedChunk], Seq[Chunk])
+  def splitHeap(h: H, field: String): (Seq[QuantifiedFieldChunk], Seq[Chunk])
 
   def extractHints(qvar: Option[Var], cond: Option[Term], rcvr: Term): Seq[Term]
-  def hintBasedChunkOrderHeuristic(hints: Seq[Term]): Seq[QuantifiedChunk] => Seq[QuantifiedChunk]
+
+  def hintBasedChunkOrderHeuristic(hints: Seq[Term]): Seq[QuantifiedFieldChunk] => Seq[QuantifiedFieldChunk]
 }
 
 trait QuantifiedChunkSupporterProvider[ST <: Store[ST],
@@ -131,20 +135,21 @@ trait QuantifiedChunkSupporterProvider[ST <: Store[ST],
     /* Chunk creation */
 
     def createSingletonQuantifiedChunk(rcvr: Term,
-                                       field: String,
-                                       fvf: Term,
-                                       perms: Term)
-                                      : QuantifiedChunk = {
+      field: String,
+      fvf: Term,
+      perms: Term)
+      : QuantifiedFieldChunk = {
 
       val condPerms = singletonConditionalPermissions(rcvr, perms)
       val hints = extractHints(None, None, rcvr)
 
-      QuantifiedChunk(field, fvf, condPerms, None, Some(condPerms), Some(rcvr), hints)
+      QuantifiedFieldChunk(field, fvf, condPerms, None, Some(condPerms), Some(rcvr), hints)
     }
 
     def singletonConditionalPermissions(rcvr: Term, perms: Term): Term = {
       Ite(`?r` === rcvr, perms, NoPerm())
     }
+
 
     /** Creates a quantified chunk corresponding to the assertion
       * `forall x: T :: g(x) ==> acc(e(x).f, p(x))`.
@@ -161,25 +166,27 @@ trait QuantifiedChunkSupporterProvider[ST <: Store[ST],
       *           2. the definitional axioms of the inverse function created for the
       *              chunk, see [[getFreshInverseFunction]].
       */
-    def createQuantifiedChunk(qvar: Var,
-                              receiver: Term,
-                              field: ast.Field,
-                              fvf: Term,
-                              perms: Term,
-                              condition: Term,
-                              additionalArgs: Seq[Var])
-                             : (QuantifiedChunk, InverseFunction) = {
+    def createQuantifiedFieldChunk(qvar: Var,
+                                   receiver: Term,
+                                   field: ast.Field,
+                                   fvf: Term,
+                                   perms: Term,
+                                   condition: Term,
+                                   additionalArgs: Seq[Var])
+    : (QuantifiedFieldChunk, InverseFunction) = {
 
       Predef.assert(fvf.sort.isInstanceOf[sorts.FieldValueFunction],
         s"Quantified chunk values must be of sort FieldValueFunction, but found value $fvf of sort ${fvf.sort}")
 
-      val inverseFunction = getFreshInverseFunction(qvar, receiver, condition, additionalArgs)
+      val inverseFunction = getFreshInverseFunction(qvar, receiver, condition, perms, additionalArgs)
       val arbitraryInverseRcvr = inverseFunction(`?r`)
       val condPerms = conditionalPermissions(qvar, arbitraryInverseRcvr, condition, perms)
-      val ch = QuantifiedChunk(field.name, fvf, condPerms, Some(inverseFunction), Some(condPerms), None, Nil)
+      val ch = QuantifiedFieldChunk(field.name, fvf, condPerms, Some(inverseFunction), Some(condPerms), None, Nil)
 
       (ch, inverseFunction)
     }
+
+
 
     def conditionalPermissions(qvar: Var, // x
                                inverseReceiver: Term, // e⁻¹(r)
@@ -195,12 +202,12 @@ trait QuantifiedChunkSupporterProvider[ST <: Store[ST],
 
     /* State queries */
 
-    def splitHeap(h: H, field: String): (Seq[QuantifiedChunk], Seq[Chunk]) = {
-      var quantifiedChunks = Seq[QuantifiedChunk]()
+    def splitHeap(h: H, field: String): (Seq[QuantifiedFieldChunk], Seq[Chunk]) = {
+      var quantifiedChunks = Seq[QuantifiedFieldChunk]()
       var otherChunks = Seq[Chunk]()
 
       h.values foreach {
-        case ch: QuantifiedChunk if ch.name == field =>
+        case ch: QuantifiedFieldChunk if ch.name == field =>
           quantifiedChunks +:= ch
         case ch: BasicChunk if ch.name == field =>
           sys.error(s"I did not expect non-quantified chunks on the heap for field $field, but found $ch")
@@ -211,28 +218,29 @@ trait QuantifiedChunkSupporterProvider[ST <: Store[ST],
       (quantifiedChunks, otherChunks)
     }
 
+
     /**
       * Computes the total permission amount held in the given heap for the given receiver and field.
       */
     def permission(h: H, receiver: Term, field: ast.Field): Term = {
       val perms = h.values.toSeq.collect {
-        case permChunk: QuantifiedChunk if permChunk.name == field.name =>
+        case permChunk: QuantifiedFieldChunk if permChunk.name == field.name =>
           permChunk.perm.replace(`?r`, receiver)
       }
 
       BigPermSum(perms, Predef.identity)
     }
 
-    def permission(chs: Seq[QuantifiedChunk], receiver: Term, field: ast.Field): Term = {
+    def permission(chs: Seq[QuantifiedFieldChunk], receiver: Term, field: ast.Field): Term = {
       val perms = chs map {
-        case permChunk: QuantifiedChunk if permChunk.name == field.name =>
+        case permChunk: QuantifiedFieldChunk if permChunk.name == field.name =>
           permChunk.perm.replace(`?r`, receiver)
       }
 
       BigPermSum(perms, Predef.identity)
     }
 
-  //  private val withValueCache = MMap[(Term, Set[QuantifiedChunk]), MultiLocationFvf]()
+  //  private val withValueCache = MMap[(Term, Set[QuantifiedFieldChunk]), MultiLocationFvf]()
 
     def withValue(σ: S,
                   h: H,
@@ -300,7 +308,7 @@ trait QuantifiedChunkSupporterProvider[ST <: Store[ST],
           Q(fvfDefToReturn)}
     }
 
-    private def summarizeChunks(chunks: Seq[QuantifiedChunk],
+    private def summarizeChunks(chunks: Seq[QuantifiedFieldChunk],
                                 field: ast.Field,
                                 qvars: Seq[Var],
                                 condition: Term,
@@ -323,6 +331,7 @@ trait QuantifiedChunkSupporterProvider[ST <: Store[ST],
         SummarisingFvfDefinition(field, fvf, receiver, chunks.toSeq)(config)
       }
     }
+
 
     /* Manipulating quantified chunks */
 
@@ -370,9 +379,9 @@ trait QuantifiedChunkSupporterProvider[ST <: Store[ST],
                             field: ast.Field,
                             receiver: Term, // e
                             perms: Term, // p
-                            chunkOrderHeuristic: Seq[QuantifiedChunk] => Seq[QuantifiedChunk],
+                            chunkOrderHeuristic: Seq[QuantifiedFieldChunk] => Seq[QuantifiedFieldChunk],
                             c: C)
-                           (Q: Option[(H, QuantifiedChunk, FvfDefinition, C)] => VerificationResult)
+                           (Q: Option[(H, QuantifiedFieldChunk, FvfDefinition, C)] => VerificationResult)
                            : VerificationResult = {
 
       val (h1, ch, fvfDef, success) =
@@ -392,9 +401,9 @@ trait QuantifiedChunkSupporterProvider[ST <: Store[ST],
                        condition: Term, // c(x)
                        receiver: Term, // e(x)
                        perms: Term, // p(x)
-                       chunkOrderHeuristic: Seq[QuantifiedChunk] => Seq[QuantifiedChunk],
+                       chunkOrderHeuristic: Seq[QuantifiedFieldChunk] => Seq[QuantifiedFieldChunk],
                        c: C)
-                      (Q: Option[(H, QuantifiedChunk, QuantifiedChunkFvfDefinition, C)] => VerificationResult)
+                      (Q: Option[(H, QuantifiedFieldChunk, QuantifiedChunkFvfDefinition, C)] => VerificationResult)
                       : VerificationResult = {
 
       val (h1, ch, fvfDef, success) =
@@ -414,9 +423,9 @@ trait QuantifiedChunkSupporterProvider[ST <: Store[ST],
                       condition: Term, // c(x)
                       receiver: Term, // e(x)
                       perms: Term, // p(x)
-                      chunkOrderHeuristic: Seq[QuantifiedChunk] => Seq[QuantifiedChunk],
+                      chunkOrderHeuristic: Seq[QuantifiedFieldChunk] => Seq[QuantifiedFieldChunk],
                       c: C)
-                     : (H, QuantifiedChunk, FvfDefinition, Boolean) = {
+                     : (H, QuantifiedFieldChunk, FvfDefinition, Boolean) = {
 
       val (quantifiedChunks, otherChunks) = splitHeap(h, field.name)
       val candidates = if (config.disableChunkOrderHeuristics()) quantifiedChunks else chunkOrderHeuristic(quantifiedChunks)
@@ -498,7 +507,7 @@ trait QuantifiedChunkSupporterProvider[ST <: Store[ST],
       decider.prover.logComment("Done splitting")
 
       val hResidue = H(residue ++ otherChunks)
-      val chunkSplitOf = QuantifiedChunk(field.name, fvfDef.fvf, conditionalizedPermsOfInv, None, None, None, Nil)
+      val chunkSplitOf = QuantifiedFieldChunk(field.name, fvfDef.fvf, conditionalizedPermsOfInv, None, None, None, Nil)
 
       (hResidue, chunkSplitOf, fvfDef, success)
     }
@@ -506,7 +515,7 @@ trait QuantifiedChunkSupporterProvider[ST <: Store[ST],
     private def createPermissionConstraintAndDepletedCheck(qvar: Option[Var], // x
                                                            conditionalizedPermsOfInv: Term, // c(e⁻¹(r)) ? p_init(r) : 0
                                                            constrainPermissions: Boolean,
-                                                           ithChunk: QuantifiedChunk,
+                                                           ithChunk: QuantifiedFieldChunk,
                                                            ithPTaken: Term)
                                                           : (Term, Term) = {
 
@@ -638,6 +647,8 @@ trait QuantifiedChunkSupporterProvider[ST <: Store[ST],
           (fvf, Some(SingletonChunkFvfDefinition(field, fvf, rcvr, Left(value))))
       }
 
+
+
     def domainDefinitionAxioms(field: ast.Field, qvar: Var, cond: Term, rcvr: Term, fvf: Term, inv: InverseFunction) = {
       val axioms = cond match {
         case SetIn(`qvar`, set) if rcvr == qvar =>
@@ -674,24 +685,31 @@ trait QuantifiedChunkSupporterProvider[ST <: Store[ST],
       axioms
     }
 
-    def injectivityAxiom(qvar: Var, condition: Term, receiver: Term) = {
-      val vx = Var(Identifier("x"), qvar.sort)
-      val vy = Var(Identifier("y"), qvar.sort)
+    def injectivityAxiom(qvars: Seq[Var], condition: Term, perms: Term, args: Seq[Term])= {
+      val qvars1 = qvars.map(qvar => fresh(qvar.id.name, qvar.sort))
+      val qvars2 = qvars.map(qvar => fresh(qvar.id.name, qvar.sort))
 
-      val receiversEqual = receiver.replace(qvar, vx) === receiver.replace(qvar, vy)
+      val effectiveCondition = And(condition, PermLess(NoPerm(), perms))
+      val cond1 = effectiveCondition.replace(qvars, qvars1)
+      val cond2 = effectiveCondition.replace(qvars, qvars2)
+      val args1 = args.map(_.replace(qvars, qvars1))
+      val args2 = args.map(_.replace(qvars, qvars2))
+
+      val argsEqual = (args1 zip args2).map(argsRenamed =>  argsRenamed._1 === argsRenamed._2).reduce((a1, a2) => And(a1, a2))
+      val varsEqual = (qvars1 zip qvars2).map(vars => vars._1 === vars._2).reduce((v1, v2) => And(v1, v2) )
 
       val implies =
         Implies(
-          And(condition.replace(qvar, vx),
-            condition.replace(qvar, vy),
-            receiversEqual),
-          vx === vy)
+          And(cond1,
+            cond2,
+            argsEqual),
+          varsEqual)
 
       Forall(
-        vx :: vy :: Nil,
+        qvars1 ++ qvars2,
         implies,
         Nil,
-        /* receiversEqual :: And(condition.replace(qvar, vx), condition.replace(qvar, vy)) :: Nil */
+        /* receiversEqual :: And(effectiveCondition.replace(qvar, vx), effectiveCondition.replace(qvar, vy)) :: Nil */
         s"qp.inj${qidCounter.next()}")
     }
 
@@ -712,13 +730,15 @@ trait QuantifiedChunkSupporterProvider[ST <: Store[ST],
     /** Creates a fresh inverse function `inv` and returns the function as well as the
       * definitional axioms.
       *
-      * @param qvar A variable (most likely bound by a forall) that occurs in `of`
-      *             and that is the result of the inverse function applied to `of`,
-      *             i.e. `inv(of) = qvar` (if `condition` holds).
+      * @param qvar A variable (most likely bound by a forall) that occurs in `fct`
+      *             and that is the result of the inverse function applied to `fct`,
+      *             i.e. `inv(fct) = qvar` (if `condition` holds).
       * @param fct A term containing the variable `qvar` that can be understood as
       *           the application of an invertible function to `qvar`.
       * @param condition A condition (containing `qvar`) that must hold in order for
-      *                  `inv` to invert `of` to `qvar`.
+      *                  `inv` to invert `fct` to `qvar`.
+      * @param perms A permission term (containing `qvar`) that must denote non-none
+      *              permission in order for `inv` to invert `fct` to `qvar`.
       * @param additionalArgs Additional arguments on which `inv` depends.
       * @return A tuple of
       *           1. the inverse function as a function of a single arguments (the
@@ -728,6 +748,7 @@ trait QuantifiedChunkSupporterProvider[ST <: Store[ST],
     def getFreshInverseFunction(qvar: Var,
                                 fct: Term,
                                 condition: Term,
+                                perms: Term,
                                 additionalArgs: Seq[Var])
                                : InverseFunction = {
 
@@ -739,20 +760,21 @@ trait QuantifiedChunkSupporterProvider[ST <: Store[ST],
       val inverseFunc = (t: Term) => App(func, additionalArgs :+ t)
       val invOFct: Term = inverseFunc(fct)
       val fctOfInv = fct.replace(qvar, inverseFunc(`?r`))
-      val condInv = condition.replace(qvar, inverseFunc(`?r`))
+      val effectiveCondition = And(condition, PermLess(NoPerm(), perms))
+      val effectiveConditionInv = effectiveCondition.replace(qvar, inverseFunc(`?r`))
 
       val finalAxInvOfFct =
         TriggerGenerator.assembleQuantification(Forall,
                                                 qvar :: Nil,
-                                                Implies(condition, invOFct === qvar),
-                                                if (config.disableISCTriggers()) Nil: Seq[Term] else fct :: And(condition, invOFct) :: Nil,
+                                                Implies(effectiveCondition, invOFct === qvar),
+                                                if (config.disableISCTriggers()) Nil: Seq[Term] else fct :: And(effectiveCondition, invOFct) :: Nil,
                                                 s"qp.${func.id}-exp",
                                                 axiomRewriter)
 
       val finalAxFctOfInv =
         TriggerGenerator.assembleQuantification(Forall,
                                                 `?r` :: Nil,
-                                                Implies(condInv, fctOfInv === `?r`),
+                                                Implies(effectiveConditionInv, fctOfInv === `?r`),
                                                 if (config.disableISCTriggers()) Nil: Seq[Trigger] else Trigger(inverseFunc(`?r`)) :: Nil,
                                                 s"qp.${func.id}-imp",
                                                 axiomRewriter)
@@ -760,10 +782,11 @@ trait QuantifiedChunkSupporterProvider[ST <: Store[ST],
       InverseFunction(func, inverseFunc, finalAxInvOfFct, finalAxFctOfInv)
     }
 
-    def hintBasedChunkOrderHeuristic(hints: Seq[Term])
-                                    : Seq[QuantifiedChunk] => Seq[QuantifiedChunk] =
 
-      (chunks: Seq[QuantifiedChunk]) => {
+    def hintBasedChunkOrderHeuristic(hints: Seq[Term])
+                                    : Seq[QuantifiedFieldChunk] => Seq[QuantifiedFieldChunk] =
+
+      (chunks: Seq[QuantifiedFieldChunk]) => {
         val (matchingChunks, otherChunks) = chunks.partition(_.hints == hints)
 
         matchingChunks ++ otherChunks

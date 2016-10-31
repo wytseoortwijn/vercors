@@ -118,6 +118,11 @@ public enum StandardOperator {
    * Permission to a field that is part of an active history.
    */
   HistoryPerm(2),
+  /**
+   * Permission to a field that is part of an active history,
+   * while an action is in progress.
+   */
+  ActionPerm(2),
   /** Array permission predicate.
    *  ArrayPerm(name,first,step,count,p);
    *  The arguments are

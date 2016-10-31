@@ -25,14 +25,14 @@ public class ASTSpecial extends ASTDeclaration {
     Label,
     Exhale,
     Inhale,
-    ActionHeader(-1),
-    CreateHistory,
+    ActionHeader(4),
+    CreateHistory(1),
     DestroyHistory(2),
-    CreateFuture,
-    DestroyFuture,
+    CreateFuture(2),
+    DestroyFuture(1),
     SplitHistory(5),
     MergeHistory(5),
-    ChooseHistory,
+    ChooseHistory(4),
     /** Transfer resources into and out of atomic regions. */
     Transfer,
     /** Mark the subjects, whose invariants are available in an atomic region. */
@@ -90,7 +90,12 @@ public class ASTSpecial extends ASTDeclaration {
     /**
      * Receive permission statement for parallel loops.
      */
-    Recv(3);
+    Recv(3),
+    /**
+     * Havoc a list of local variables.
+     */
+    Fresh(-1)
+    ;
 
     
     

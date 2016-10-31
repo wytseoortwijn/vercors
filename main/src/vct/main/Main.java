@@ -719,15 +719,25 @@ public class Main
       }
     });
     defined_passes.put("check-axioms",new CompilerPass("rewrite process algebra class to check if history axioms are correct"){
-      public ProgramUnit apply(ProgramUnit arg,String ... args){
-        ProgramUnit tmp=new CheckHistoryAlgebra(arg,Mode.AxiomVerification).rewriteAll();
-        return new RandomizedIf(tmp).rewriteAll();
+      @Override
+      public PassReport apply_pass(PassReport arg,String ... args){
+        ProgramUnit input=arg.getOutput();
+        PassReport res=new PassReport(input);
+        ErrorMapping map=new ErrorMapping(arg);
+        res.add(map);
+        res.setOutput(new CheckHistoryAlgebra(input,Mode.AxiomVerification,map).rewriteAll());
+        return res;
       }
     });
     defined_passes.put("check-history",new CompilerPass("rewrite process algebra class to check if history accounting is correct"){
-      public ProgramUnit apply(ProgramUnit arg,String ... args){
-        ProgramUnit tmp=new CheckHistoryAlgebra(arg,Mode.ProgramVerification).rewriteAll();
-        return new RandomizedIf(tmp).rewriteAll();
+      @Override
+      public PassReport apply_pass(PassReport arg,String ... args){
+        ProgramUnit input=arg.getOutput();
+        PassReport res=new PassReport(input);
+        ErrorMapping map=new ErrorMapping(arg);
+        res.add(map);
+        res.setOutput(new CheckHistoryAlgebra(input,Mode.ProgramVerification,map).rewriteAll());
+        return res;
       }
     });
     defined_passes.put("csl-encode",new CompilerPass("Encode CSL atomic regions with methods"){

@@ -46,6 +46,7 @@ class DefaultVerifier(val config: Config)
        with HeuristicsSupporter[ST, H, S]
        with HeapCompressorProvider[ST, H, S, C]
        with QuantifiedChunkSupporterProvider[ST, H, S]
+       with QuantifiedPredicateChunkSupporterProvider[ST, H, S]
        with MethodSupporterProvider[ST, H, S]
        with Logging {
 
@@ -64,14 +65,18 @@ class DefaultVerifier(val config: Config)
   val multisetsEmitter = new DefaultMultisetsEmitter(decider.prover, symbolConverter, preambleEmitter)
   val domainsEmitter = new DefaultDomainsEmitter(decider.prover, domainTranslator, symbolConverter)
   val fieldValueFunctionsEmitter = new DefaultFieldValueFunctionsEmitter(decider.prover, symbolConverter, preambleEmitter, config)
+  val predSnapGenerator = new PredicateSnapGenerator(symbolConverter)
+  val predicateSnapFunctionsEmitter = new DefaultPredicateSnapFunctionsEmitter(decider.prover, symbolConverter, predSnapGenerator, preambleEmitter, config)
+
 
   private val statefulSubcomponents = List[StatefulComponent](
     bookkeeper,
     preambleEmitter, sequencesEmitter, setsEmitter, multisetsEmitter, domainsEmitter,
     fieldValueFunctionsEmitter,
+    predicateSnapFunctionsEmitter,
     decider, identifierFactory,
     functionsSupporter, predicateSupporter, methodSupporter,
-    quantifiedChunkSupporter)
+    quantifiedChunkSupporter, quantifiedPredicateChunkSupporter )
 
   /* Lifetime */
 
@@ -93,6 +98,8 @@ class DefaultVerifier(val config: Config)
   /* Program verification */
   
   def verify(program: ast.Program): List[VerificationResult] = {
+    predSnapGenerator.setup(program)
+
     emitPreamble(program)
     SymbExLogger.resetMemberList()
     SymbExLogger.setConfig(config)
@@ -166,11 +173,15 @@ class DefaultVerifier(val config: Config)
 
   private def createInitialContext(member: ast.Member, program: ast.Program): C = {
     val quantifiedFields = toSet(ast.utility.QuantifiedPermissions.quantifiedFields(member, program))
+    val quantifiedPredicates = toSet(ast.utility.QuantifiedPermissions.quantifiedPredicates(member, program))
     val applyHeuristics = program.fields.exists(_.name.equalsIgnoreCase("__CONFIG_HEURISTICS"))
 
     DefaultContext[H](program = program,
                       qpFields = quantifiedFields,
-                      applyHeuristics = applyHeuristics)
+                      qpPredicates = quantifiedPredicates,
+                      applyHeuristics = applyHeuristics,
+                      predicateSnapMap = predSnapGenerator.snapMap,
+                      predicateFormalVarMap = predSnapGenerator.formalVarMap)
   }
 
   private def excludeMethod(method: ast.Method) = (
@@ -191,6 +202,7 @@ class DefaultVerifier(val config: Config)
     multisetsEmitter.analyze(program)
     domainsEmitter.analyze(program)
     fieldValueFunctionsEmitter.analyze(program)
+    predicateSnapFunctionsEmitter.analyze(program)
     functionsSupporter.analyze(program)
     predicateSupporter.analyze(program)
     methodSupporter.analyze(program)
@@ -202,6 +214,7 @@ class DefaultVerifier(val config: Config)
     multisetsEmitter.declareSorts()
     domainsEmitter.declareSorts()
     fieldValueFunctionsEmitter.declareSorts()
+    predicateSnapFunctionsEmitter.declareSorts()
     functionsSupporter.declareSorts()
     predicateSupporter.declareSorts()
     methodSupporter.declareSorts()
@@ -216,6 +229,7 @@ class DefaultVerifier(val config: Config)
     domainsEmitter.declareSymbols()
     domainsEmitter.emitUniquenessAssumptions()
     fieldValueFunctionsEmitter.declareSymbols()
+    predicateSnapFunctionsEmitter.declareSymbols()
     functionsSupporter.declareSymbols()
     predicateSupporter.declareSymbols()
     methodSupporter.declareSymbols()
@@ -234,6 +248,7 @@ class DefaultVerifier(val config: Config)
     emitSortWrappers(multisetsEmitter.sorts)
     emitSortWrappers(domainsEmitter.sorts)
     emitSortWrappers(fieldValueFunctionsEmitter.sorts)
+    emitSortWrappers(predicateSnapFunctionsEmitter.sorts)
     emitSortWrappers(functionsSupporter.sorts)
     emitSortWrappers(predicateSupporter.sorts)
     emitSortWrappers(methodSupporter.sorts)
@@ -243,6 +258,7 @@ class DefaultVerifier(val config: Config)
      * been emitted.
      */
     fieldValueFunctionsEmitter.emitAxioms()
+    predicateSnapFunctionsEmitter.emitAxioms()
 
     decider.prover.logComment("Preamble end")
     decider.prover.logComment("-" * 60)

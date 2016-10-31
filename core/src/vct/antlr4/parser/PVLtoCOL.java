@@ -6,6 +6,7 @@ import static hre.System.Warning;
 import hre.HREError;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import org.antlr.v4.runtime.BufferedTokenStream;
 import org.antlr.v4.runtime.ParserRuleContext;
@@ -93,6 +94,10 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
     int N=ctx.getChildCount();
     for(int i=0;i<N;i++){
       ParserRuleContext ctx2=(ParserRuleContext)ctx.getChild(i);
+      if (match(ctx2,"accessible",null,";")){
+        cb.accesses(convert(ctx2,1));
+        continue;
+      }
       if (match(ctx2,"modifies",null,";")){
         cb.modifies(convert(ctx2,1));
         continue;
@@ -180,17 +185,11 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
       return convert(ctx.children.get(0));
     }
     if (ctx.children.get(0) instanceof TerminalNode){
-      switch(ctx.children.get(0).toString()){
-      case "\\old":
-        return create.expression(StandardOperator.Old,getTuple((ParserRuleContext)ctx.children.get(1)));
-      case "Hist":
-        return create.expression(StandardOperator.History,getTuple((ParserRuleContext)ctx.children.get(1)));
-      case "Perm":
-        return create.expression(StandardOperator.Perm,getTuple((ParserRuleContext)ctx.children.get(1)));
-      case "Value":
-        return create.expression(StandardOperator.Value,getTuple((ParserRuleContext)ctx.children.get(1)));
-      case "PointsTo":
-        return create.expression(StandardOperator.PointsTo,getTuple((ParserRuleContext)ctx.children.get(1)));
+      String ops=ctx.children.get(0).toString();
+      StandardOperator op=syntax.parseFunction(ops);
+      if (op!=null){
+        ASTNode args[]=getTuple((ParserRuleContext)ctx.children.get(1));
+        return create.expression(op, args);
       }
     }
     if (match(ctx,"(","\\forall*",null,null,";",null,";",null,")")){
@@ -506,27 +505,6 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
   @Override
   public ASTNode visitValStatement(ValStatementContext ctx) {
     return getValStatement(ctx);
-    /*
-    if (match(ctx,"action",tuple,null)){
-      ASTNode args[] = getTuple((ParserRuleContext)ctx.getChild(1));
-      ASTNode block=convert(ctx,2);
-      HashMap<String,ASTNode> map=new HashMap();
-      if (args.length < 4){
-        throw new HREError("missing arguments in action");
-      }
-      for(int i=4;i<args.length;i+=2){
-        if(!(args[i] instanceof NameExpression)){
-          throw new HREError("argument %d of action is not a name",i);
-        }
-        String name=((NameExpression)args[i]).getName();
-        if (i+1==args.length){
-          throw new HREError("argument %d of action is missing",i+1);
-        }
-        map.put(name,args[i+1]);
-      }
-      return create.action_block(args[0],args[1],args[2],args[3], map, block);
-    }
-    */
   }
  
   
@@ -597,6 +575,26 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
       }
       return create.while_loop(convert(ctx,3),convert(ctx,5),invs);
     }
+    if (match(ctx,"action",tuple,null)){
+      ASTNode args[] = getTuple((ParserRuleContext)ctx.getChild(1));
+      ASTNode block=convert(ctx,2);
+      HashMap<String,ASTNode> map=new HashMap<String,ASTNode>();
+      if (args.length < 4){
+        throw new HREError("missing arguments in action");
+      }
+      for(int i=4;i<args.length;i+=2){
+        if(!(args[i] instanceof NameExpression)){
+          throw new HREError("argument %d of action is not a name",i);
+        }
+        String name=((NameExpression)args[i]).getName();
+        if (i+1==args.length){
+          throw new HREError("argument %d of action is missing",i+1);
+        }
+        map.put(name,args[i+1]);
+      }
+      return create.action_block(args[0],args[1],args[2],args[3], map, block);
+    }
+
     if (match(ctx,"lock",null,";")){
       return create.special(ASTSpecial.Kind.Lock,convert(ctx,1));
     }
@@ -924,6 +922,9 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
   }
   @Override
   public ASTNode visitValContractClause(ValContractClauseContext ctx) {
+    if (match(ctx,"accessible",null,";")){
+      return create.special(ASTSpecial.Kind.Accessible,convert(ctx,1));
+    }
     if (match(ctx,"modifies",null,";")){
       return create.special(ASTSpecial.Kind.Modifies,convert(ctx,1));
     }

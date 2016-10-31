@@ -1,6 +1,7 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 //:: cases LoopPVL
 //:: tools silicon
+//begin(all)
 class Loop {
   requires c!=null ** Perm(c.x,1);
   requires y>=0;
@@ -17,3 +18,5 @@ class Loop {
     }
   }
 }
+//end(all)
+

@@ -11,15 +11,15 @@ pre-requisites
 For a basic installation of the VerCors toolset you need:
 
 - Java version 7 or 8 JDK.
+- Especically on Windows, the environment variable JAVA_HOME must be set. Without it, ant is unable to find the Java compiler.
 - git (On Windows you need git bash, see https://git-scm.com/downloads).
-- for documentation only: pdflatex.
 
 Advanced installation topics are covered in the manual and the developers guide.
 
 installation
 ------------
 
-1. Open a new terminal windows or git bash window.
+1. Open a new terminal window or git bash window.
 2. cd to the directory where VerCors should be installed.
 3. Issues the following commands
 

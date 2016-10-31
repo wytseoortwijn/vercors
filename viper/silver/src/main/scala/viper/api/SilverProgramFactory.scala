@@ -190,8 +190,8 @@ class SilverProgramFactory[O,Err] extends ProgramFactory[O,Err,Type,Exp,Stmt,
            null,
            null
        )
-       case Fresh(_) => throw new Error("fresh/constraining not implemented"); 
-       case Constraining(_, _) => throw new Error("fresh/constraining not implemented");
+       case Fresh(ps) => api.stat.fresh(o,map_expr(api,ps))
+       case Constraining(ps,body) => api.stat.constraining(o,map_expr(api,ps),map_stat(api,body))
        case Exhale(e) => api.stat.exhale(o,map_expr(api,e))
        case Goto(e) => api.stat.goto_(o,e)
        case If(c, s1, s2) => api.stat.if_then_else(o,
@@ -247,12 +247,17 @@ class SilverProgramFactory[O,Err] extends ProgramFactory[O,Err,Type,Exp,Stmt,
        case EqCmp(e1,e2) => ve.eq(o,map_expr(v,e1),map_expr(v,e2))
        case NeCmp(e1,e2) => ve.neq(o,map_expr(v,e1),map_expr(v,e2))
        case GtCmp(e1,e2) => ve.gt(o,map_expr(v,e1),map_expr(v,e2))
+       case PermGtCmp(e1,e2) => ve.gt(o,map_expr(v,e1),map_expr(v,e2))
        case LtCmp(e1,e2) => ve.lt(o,map_expr(v,e1),map_expr(v,e2))
        case GeCmp(e1,e2) => ve.gte(o,map_expr(v,e1),map_expr(v,e2))
        case LeCmp(e1,e2) => ve.lte(o,map_expr(v,e1),map_expr(v,e2))
        case Mul(e1,e2) => ve.mult(o,map_expr(v,e1),map_expr(v,e2))
        case Mod(e1,e2) => ve.mod(o,map_expr(v,e1),map_expr(v,e2))
        case PermDiv(e1,e2) => ve.div(o,map_expr(v,e1),map_expr(v,e2))
+       case PermAdd(e1,e2) => ve.add(o,map_expr(v,e1),map_expr(v,e2))
+       case PermMul(e1,e2) => ve.mult(o,map_expr(v,e1),map_expr(v,e2))
+       case PermSub(e1,e2) => ve.sub(o,map_expr(v,e1),map_expr(v,e2))
+       case IntPermMul(e1,e2) => ve.mult(o,map_expr(v,e1),map_expr(v,e2));
        case Div(e1,e2) => ve.div(o,map_expr(v,e1),map_expr(v,e2))
        case Add(e1,e2) => ve.add(o,map_expr(v,e1),map_expr(v,e2))
        case Sub(e1,e2) => ve.sub(o,map_expr(v,e1),map_expr(v,e2))
@@ -264,7 +269,8 @@ class SilverProgramFactory[O,Err] extends ProgramFactory[O,Err,Type,Exp,Stmt,
        case FullPerm() => ve.write_perm(o)
        case WildcardPerm() => ve.read_perm(o)
        case NoPerm() => ve.no_perm(o)
-       case CurrentPerm(e) => ve.current_perm(o,map_expr(v,e));
+       case CurrentPerm(e) => ve.current_perm(o,map_expr(v,e))
+       case Not(e) => ve.not(o,map_expr(v,e))
        case And(e1,e2) => ve.and(o,map_expr(v,e1),map_expr(v,e2))
        case Or(e1,e2) => ve.or(o,map_expr(v,e1),map_expr(v,e2))
        case Implies(e1,e2) => ve.implies(o,map_expr(v,e1),map_expr(v,e2))

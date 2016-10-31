@@ -948,6 +948,24 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
       return create.starall(convert(ctx,5),convert(ctx,7),
           create.field_decl(getIdentifier(ctx,3),checkType(convert(ctx,2))));
     }
+    if (match(ctx,"(","\\forall*",null,null,"=",null,"..",null,";",null,")")){
+      String name=getIdentifier(ctx,3);
+      ASTNode guard=create.expression(And,
+          create.expression(LTE,convert(ctx,5),create.local_name(name)),
+          create.expression(LT,create.local_name(name),convert(ctx,7))
+      );
+      return create.starall(guard,convert(ctx,9),
+          create.field_decl(name,checkType(convert(ctx,2))));
+    }
+    if (match(ctx,"(","\\forall",null,null,"=",null,"..",null,";",null,")")){
+      String name=getIdentifier(ctx,3);
+      ASTNode guard=create.expression(And,
+          create.expression(LTE,convert(ctx,5),create.local_name(name)),
+          create.expression(LT,create.local_name(name),convert(ctx,7))
+      );
+      return create.forall(guard,convert(ctx,9),
+          create.field_decl(name,checkType(convert(ctx,2))));
+    }
     if (match(ctx,"(","\\forall",null,null,";",null,";",null,")")){
       return create.forall(convert(ctx,5),convert(ctx,7),
           create.field_decl(getIdentifier(ctx,3),checkType(convert(ctx,2))));
