@@ -1,9 +1,9 @@
 package vct.col.rewrite;
 
-import static hre.System.Debug;
-import static hre.System.Fail;
-import hre.HREError;
+import static hre.lang.System.Debug;
+import static hre.lang.System.Fail;
 import hre.ast.Origin;
+import hre.lang.HREError;
 import hre.lang.Ref;
 
 import java.util.ArrayList;

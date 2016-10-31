@@ -1,6 +1,6 @@
 package vct.antlr4.parser;
 
-import static hre.System.Fail;
+import static hre.lang.System.Fail;
 
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -44,7 +44,7 @@ public final class ErrorCounter implements ANTLRErrorListener {
     }
     String fname=file.get(i);
     int fofs=arg2-ofs.get(i)+src.get(i);
-    hre.System.Warning("%s, %d:%d %s%n",fname,fofs,arg3,arg4);
+    hre.lang.System.Warning("%s, %d:%d %s%n",fname,fofs,arg3,arg4);
     count.incrementAndGet();
   }
 

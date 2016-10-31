@@ -2,7 +2,7 @@ package vct.antlr4.parser;
 
 import java.util.ArrayList;
 
-import hre.Failure;
+import hre.lang.Failure;
 
 import org.antlr.v4.runtime.BufferedTokenStream;
 import org.antlr.v4.runtime.Parser;
@@ -89,7 +89,7 @@ public class CMLtoCOL extends ANTLRtoCOL implements CMLVisitor<ASTNode> {
          block.add_statement(temp);
          scan_comments_after(block,ctx.getChild(1)); //DRB
     } else {      
-      throw hre.System.Failure("unknown BlockItemList");
+      throw hre.lang.System.Failure("unknown BlockItemList");
     }
   }
 
@@ -241,15 +241,15 @@ public class CMLtoCOL extends ANTLRtoCOL implements CMLVisitor<ASTNode> {
 
   @Override
   public ASTNode visitDeclarationSpecifiers(DeclarationSpecifiersContext ctx) {
-    hre.System.Debug("\"decl specs\" %s",ctx.toStringTree(parser));
+    hre.lang.System.Debug("\"decl specs\" %s",ctx.toStringTree(parser));
     int i=ctx.getChildCount()-1;
     ParserRuleContext tmp=(ParserRuleContext)((ParserRuleContext)ctx.getChild(i)).getChild(0);
-    hre.System.Debug("\"last:\" %s",tmp.toStringTree(parser));
+    hre.lang.System.Debug("\"last:\" %s",tmp.toStringTree(parser));
     String name=null;
     if (expect!=null && expect==DeclarationStatement.class){
       if (match(tmp,"TypedefName")){
         name=getIdentifier(tmp, 0);
-        hre.System.Debug("\"name:\" %s",name);
+        hre.lang.System.Debug("\"name:\" %s",name);
         i=i-1;
         tmp=(ParserRuleContext)((ParserRuleContext)ctx.getChild(i)).getChild(0);
       } else {
@@ -259,7 +259,7 @@ public class CMLtoCOL extends ANTLRtoCOL implements CMLVisitor<ASTNode> {
     if (match(tmp,"TypedefName")){
       tmp=(ParserRuleContext)((ParserRuleContext)tmp).getChild(0);
     } 
-    hre.System.Debug("\"type:\" %s",tmp.toStringTree(parser));
+    hre.lang.System.Debug("\"type:\" %s",tmp.toStringTree(parser));
     expect=Type.class;
     ASTNode t=convert(tmp);
     Type type=null;
@@ -268,14 +268,14 @@ public class CMLtoCOL extends ANTLRtoCOL implements CMLVisitor<ASTNode> {
     } else if (t instanceof NameExpression){
       type=create.class_type(((NameExpression)t).getName());
     } else {
-      hre.System.Abort("cannot convert %s/%s to type",tmp.toStringTree(parser),t.getClass());
+      hre.lang.System.Abort("cannot convert %s/%s to type",tmp.toStringTree(parser),t.getClass());
     }
     i=i-1;
     while(i>=0){
       if (i==0 && match((ParserRuleContext)ctx.getChild(0),"StorageClassSpecifier")){
-          hre.System.Debug("\"class:\" %s",ctx.getChild(0).toStringTree(parser));
+          hre.lang.System.Debug("\"class:\" %s",ctx.getChild(0).toStringTree(parser));
           String sclass=((ParserRuleContext)((ParserRuleContext)ctx.getChild(0))).getText();
-          hre.System.Debug("\"class:\" %s",sclass);
+          hre.lang.System.Debug("\"class:\" %s",sclass);
           switch(sclass){
           case "typedef":
             return create.field_decl(name,create.primitive_type(Sort.Class) ,type);
@@ -285,10 +285,10 @@ public class CMLtoCOL extends ANTLRtoCOL implements CMLVisitor<ASTNode> {
             type=create.__static(type);
             break;
           default:
-            hre.System.Abort("missing case");
+            hre.lang.System.Abort("missing case");
           }
       } else if (match((ParserRuleContext)ctx.getChild(i),"TypeQualifier")){
-        hre.System.Debug("\"tspec:\" %s",ctx.getChild(i).toStringTree(parser));
+        hre.lang.System.Debug("\"tspec:\" %s",ctx.getChild(i).toStringTree(parser));
         String modifier=((ParserRuleContext)((ParserRuleContext)ctx.getChild(i))).getText();
         switch(modifier){
         case "const":
@@ -307,10 +307,10 @@ public class CMLtoCOL extends ANTLRtoCOL implements CMLVisitor<ASTNode> {
           type=create.__long(type);
           break;
         default:
-          hre.System.Abort("unknown type modifier: %s",modifier);
+          hre.lang.System.Abort("unknown type modifier: %s",modifier);
         }
       } else  if (match((ParserRuleContext)ctx.getChild(i),"TypeSpecifier")){
-        hre.System.Debug("\"tspec:\" %s",ctx.getChild(i).toStringTree(parser));
+        hre.lang.System.Debug("\"tspec:\" %s",ctx.getChild(i).toStringTree(parser));
         String modifier=((ParserRuleContext)((ParserRuleContext)ctx.getChild(i))).getText();
         switch(modifier){
         case "const":
@@ -338,7 +338,7 @@ public class CMLtoCOL extends ANTLRtoCOL implements CMLVisitor<ASTNode> {
           type=create.__local(type);
           break;
         default:
-          hre.System.Abort("unknown type modifier: %s",modifier);
+          hre.lang.System.Abort("unknown type modifier: %s",modifier);
         }
       } else {
         ASTNode n=convert(ctx,i);
@@ -349,7 +349,7 @@ public class CMLtoCOL extends ANTLRtoCOL implements CMLVisitor<ASTNode> {
           }
           type.addLabel(l);
         } else {
-          hre.System.Abort("cannot handle modifier %s at %s",ctx.getChild(i).toStringTree(parser),n.getOrigin());
+          hre.lang.System.Abort("cannot handle modifier %s at %s",ctx.getChild(i).toStringTree(parser),n.getOrigin());
         }
       }
       i=i-1;
@@ -428,7 +428,7 @@ public class CMLtoCOL extends ANTLRtoCOL implements CMLVisitor<ASTNode> {
       DeclarationStatement d=(DeclarationStatement)convert(ctx,0);
       Type t=d.getType();
       if (N>4) {
-        hre.System.Warning("ignoring %d modifiers in declaration",N-4);
+        hre.lang.System.Warning("ignoring %d modifiers in declaration",N-4);
       }
       t=create.primitive_type(PrimitiveType.Sort.Array,t,convert(ctx,N-2));
       return create.field_decl(d.getName(),t);
@@ -546,7 +546,7 @@ public class CMLtoCOL extends ANTLRtoCOL implements CMLVisitor<ASTNode> {
         return null;
       }
     } else {
-      throw hre.System.Failure("unknown declarator%ntree: %s",ctx.getChild(ofs).toStringTree(parser));
+      throw hre.lang.System.Failure("unknown declarator%ntree: %s",ctx.getChild(ofs).toStringTree(parser));
     }
     ofs++;
     ASTNode body;
@@ -813,7 +813,7 @@ public class CMLtoCOL extends ANTLRtoCOL implements CMLVisitor<ASTNode> {
           } else if (text.matches("['].*[']")) {
             return create.constant(text);
           } else {
-            throw new hre.HREError("could not match constant: %s",text);
+            throw new hre.lang.HREError("could not match constant: %s",text);
           }
         case "StringLiteral":
           String str=text;
@@ -826,7 +826,7 @@ public class CMLtoCOL extends ANTLRtoCOL implements CMLVisitor<ASTNode> {
           }
           return create.constant(str);
         default:
-          throw new hre.HREError("missing case in visitPrimaryExpression: %s",name);
+          throw new hre.lang.HREError("missing case in visitPrimaryExpression: %s",name);
       }
     }
     return null;
@@ -839,7 +839,7 @@ public class CMLtoCOL extends ANTLRtoCOL implements CMLVisitor<ASTNode> {
 
   @Override
   public ASTNode visitPureFunctionDeclaration(PureFunctionDeclarationContext ctx) {
-    hre.System.Warning("pure function");
+    hre.lang.System.Warning("pure function");
     Type t=checkType(convert(ctx,0));
     ASTNode expr=convert(ctx,3);
     int ofs=1;
@@ -857,9 +857,9 @@ public class CMLtoCOL extends ANTLRtoCOL implements CMLVisitor<ASTNode> {
         return null;
       }
     } else {
-      throw hre.System.Failure("unknown declarator%ntree: %s",ctx.getChild(ofs).toStringTree(parser));
+      throw hre.lang.System.Failure("unknown declarator%ntree: %s",ctx.getChild(ofs).toStringTree(parser));
     }
-    hre.System.Warning("? %s (?) = %s",name,Configuration.getDiagSyntax().print(expr));
+    hre.lang.System.Warning("? %s (?) = %s",name,Configuration.getDiagSyntax().print(expr));
     return create.function_decl(t, null, name, args.toArray(new DeclarationStatement[0]), expr);
   }
 

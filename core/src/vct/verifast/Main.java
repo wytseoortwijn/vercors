@@ -50,7 +50,7 @@ public class Main {
     } catch (Exception e) {
       System.out.println("error: ");
       e.printStackTrace();
-      hre.System.Abort("internal error");
+      hre.lang.System.Abort("internal error");
       return null;
     }
   }

@@ -1,6 +1,6 @@
 package vct.col.rewrite;
 
-import hre.HREError;
+import hre.lang.HREError;
 
 import java.util.ArrayList;
 

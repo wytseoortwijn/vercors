@@ -1,10 +1,10 @@
 package vct.antlr4.parser;
 
-import static hre.System.Abort;
-import static hre.System.Debug;
-import static hre.System.Failure;
-import static hre.System.Warning;
-import hre.HREError;
+import static hre.lang.System.Abort;
+import static hre.lang.System.Debug;
+import static hre.lang.System.Failure;
+import static hre.lang.System.Warning;
+import hre.lang.HREError;
 
 import java.util.ArrayList;
 import java.util.Stack;
@@ -351,7 +351,7 @@ public class Java8JMLtoCol extends ANTLRtoCOL implements Java8JMLVisitor<ASTNode
         object=((Dereference)om).object;
         method=((Dereference)om).field;
       } else {
-        throw hre.System.Failure("could not convert %s to object/method at %s",om.getClass(),om.getOrigin());
+        throw hre.lang.System.Failure("could not convert %s to object/method at %s",om.getClass(),om.getOrigin());
       }
       MethodInvokation res= create.invokation(object, null, method, args);
       for(ASTNode n:before){
@@ -745,18 +745,18 @@ public class Java8JMLtoCol extends ANTLRtoCOL implements Java8JMLVisitor<ASTNode
     }
     Type returns=checkType(convert(ctx,i));
     String name=getIdentifier(ctx,i+1);
-    hre.System.Debug("function %s, contract %s",name,contract);
+    hre.lang.System.Debug("function %s, contract %s",name,contract);
     AtomicBoolean varargs=new AtomicBoolean();
     DeclarationStatement args[]=getFormalParameters(ctx.getChild(i+2),varargs);
     if (varargs.get()){
-      hre.System.Fail("functions with varargs not supported yet.");
+      hre.lang.System.Fail("functions with varargs not supported yet.");
     }
     ASTNode body=null;
     if (match(i+3,false,ctx,"=",null,";")){
       body=convert(ctx,i+4);
     }
     Method res=create.function_decl(returns, contract, name, args, body);
-    hre.System.Debug("function %s, contract %s",res.name,res.getContract());
+    hre.lang.System.Debug("function %s, contract %s",res.name,res.getContract());
     while(i0<i){
       //add modifiers as annotations.
       ASTNode mod=convert(ctx,i0);
@@ -1075,13 +1075,13 @@ public class Java8JMLtoCol extends ANTLRtoCOL implements Java8JMLVisitor<ASTNode
     NameSpace ns;
     int ptr=0;
     if (match(0,true,ctx,"PackageDeclaration")) {
-      hre.System.Debug("has package");
+      hre.lang.System.Debug("has package");
       ASTNode pkg=convert((ParserRuleContext)ctx.getChild(0),1);
       System.err.printf("pkg %s (%s)%n",Configuration.getDiagSyntax().print(pkg),pkg.getClass());
       ptr++;
       ns=create.namespace(to_name(pkg));
     } else {
-      hre.System.Debug("does not have package");
+      hre.lang.System.Debug("does not have package");
       ns=create.namespace(NameSpace.NONAME);
     }
     while(match(ptr,true,ctx,"ImportDeclaration")){
@@ -1099,7 +1099,7 @@ public class Java8JMLtoCol extends ANTLRtoCOL implements Java8JMLVisitor<ASTNode
         ASTNode name=convert(imp,2);
         ns.add_import(true,true,to_name(name));
       } else {
-        hre.System.Abort("unimplemented import type");
+        hre.lang.System.Abort("unimplemented import type");
       }
       ptr++;
     }
@@ -2268,7 +2268,7 @@ public class Java8JMLtoCol extends ANTLRtoCOL implements Java8JMLVisitor<ASTNode
       ofs+=2;
     }
     if (ofs!=N){
-      hre.System.Fail("unimplemented array dim variant");
+      hre.lang.System.Fail("unimplemented array dim variant");
     }
     return t;
   }

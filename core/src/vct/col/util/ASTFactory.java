@@ -17,7 +17,7 @@ import viper.api.Triple;
 import hre.ast.Origin;
 import hre.util.FrameControl;
 import hre.util.FrameReference;
-import static hre.System.*;
+import static hre.lang.System.*;
 import static vct.col.ast.ASTReserved.Null;
 
 /**

@@ -1,6 +1,6 @@
 package vct.antlr4.parser;
 
-import static hre.System.*;
+import static hre.lang.System.*;
 
 import java.io.BufferedReader;
 import java.io.File;

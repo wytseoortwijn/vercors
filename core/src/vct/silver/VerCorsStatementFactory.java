@@ -3,9 +3,9 @@ package vct.silver;
 import java.util.ArrayList;
 import java.util.List;
 
-import hre.HREError;
 import hre.ast.MessageOrigin;
 import hre.ast.Origin;
+import hre.lang.HREError;
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTSpecial.Kind;
 import vct.col.ast.ASTSpecial;
@@ -72,7 +72,7 @@ public class VerCorsStatementFactory implements
   private void enter(Origin o){
     create.enter();
     if (o==null){
-      hre.System.Warning("missing origin");
+      hre.lang.System.Warning("missing origin");
       o=new MessageOrigin("unknown origin");
     }
     create.setOrigin(o);    

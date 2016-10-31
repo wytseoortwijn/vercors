@@ -5,7 +5,8 @@ import java.io.PrintStream;
 import java.nio.file.Path;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-import static hre.System.Debug;
+
+import static hre.lang.System.Debug;
 
 /**
  * Provides communication with a interactive external process.

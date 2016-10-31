@@ -1,7 +1,7 @@
 package vct.col.ast;
 
-import static hre.System.Abort;
-import static hre.System.Fail;
+import static hre.lang.System.Abort;
+import static hre.lang.System.Fail;
 
 public final class PrimitiveType extends Type {
 

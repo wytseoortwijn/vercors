@@ -1,6 +1,6 @@
 package vct.antlr4.parser;
 
-import hre.HREError;
+import hre.lang.HREError;
 
 import org.antlr.v4.runtime.tree.ParseTree;
 

@@ -2,8 +2,6 @@
 
 package vct.main;
 
-import hre.HREError;
-import hre.HREExitException;
 import hre.ast.FileOrigin;
 import hre.config.BooleanSetting;
 import hre.config.Option;
@@ -12,6 +10,8 @@ import hre.config.StringListSetting;
 import hre.config.StringSetting;
 import hre.debug.HeapDump;
 import hre.io.PrefixPrintStream;
+import hre.lang.HREError;
+import hre.lang.HREExitException;
 import hre.util.CompositeReport;
 import hre.util.TestReport;
 
@@ -93,7 +93,7 @@ import vct.logging.PassReport;
 import vct.silver.ErrorDisplayVisitor;
 import vct.util.ClassName;
 import vct.util.Configuration;
-import static hre.System.*;
+import static hre.lang.System.*;
 
 /**
  * VerCors Tool main verifier.
@@ -208,12 +208,12 @@ public class Main
       Configuration.add_options(clops);
       
       String input[]=clops.parse(args);
-      hre.System.setProgressReporting(Configuration.progress.get());
+      hre.lang.System.setProgressReporting(Configuration.progress.get());
       
       for(String name:debug_list){
-        hre.System.EnableDebug(name,java.lang.System.err,"vct("+name+")");
+        hre.lang.System.EnableDebug(name,java.lang.System.err,"vct("+name+")");
       }
-      hre.System.EnableWhere(where.get());
+      hre.lang.System.EnableWhere(where.get());
   
       Hashtable<String,CompilerPass> defined_passes=new Hashtable<String,CompilerPass>();
       Hashtable<String,ValidationPass> defined_checks=new Hashtable<String,ValidationPass>();

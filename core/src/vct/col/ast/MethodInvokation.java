@@ -3,7 +3,7 @@ package vct.col.ast;
 
 import java.util.*;
 
-import static hre.System.*;
+import static hre.lang.System.*;
 
 /**
  * This AST node stores method invokations on objects.

@@ -30,7 +30,7 @@ public abstract class CompilerPass {
   }
   
   protected ProgramUnit apply(ProgramUnit arg, String ... args){
-    throw new hre.HREError("Class %s failed to override both apply method.",getClass());
+    throw new hre.lang.HREError("Class %s failed to override both apply method.",getClass());
   }
 
 }

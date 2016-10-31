@@ -4,8 +4,8 @@ import vct.col.ast.ProgramUnit;
 import vct.logging.ExceptionMessage;
 import vct.logging.PassAddVisitor;
 import vct.logging.PassReport;
-import hre.HREError;
-import hre.HREException;
+import hre.lang.HREError;
+import hre.lang.HREException;
 import hre.util.TestReport;
 import hre.util.TestReport.Verdict;
 

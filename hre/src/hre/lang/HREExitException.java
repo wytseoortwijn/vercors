@@ -1,4 +1,4 @@
-package hre;
+package hre.lang;
 
 public class HREExitException extends Error {
   

@@ -1,7 +1,8 @@
 package vct.col.ast;
 
-import static hre.System.Abort;
-import static hre.System.Debug;
+import static hre.lang.System.Abort;
+import static hre.lang.System.Debug;
+
 import java.util.Arrays;
 
 public class ClassType extends Type {

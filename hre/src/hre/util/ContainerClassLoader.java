@@ -5,7 +5,8 @@ import hre.io.Container;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import static hre.System.*;
+
+import static hre.lang.System.*;
 
 public class ContainerClassLoader extends ClassLoader {
     private final Container source;

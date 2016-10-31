@@ -94,7 +94,7 @@ public class VerCorsError extends AbstractMessage {
       code=CallPreCondition;
       break;
     default:
-      hre.System.Warning("unspecified error %s",err[0]);
+      hre.lang.System.Warning("unspecified error %s",err[0]);
       code=UnspecifiedError;
       break;
     }
@@ -112,7 +112,7 @@ public class VerCorsError extends AbstractMessage {
       sub=InsufficientPermission;
       break;
     default:
-      hre.System.Warning("unspecified cause %s",err[1]);
+      hre.lang.System.Warning("unspecified cause %s",err[1]);
       sub=UnspecifiedCause;
       break;    
     }

@@ -7,8 +7,8 @@ import java.io.File;
 import vct.col.ast.ProgramUnit;
 import vct.col.util.Parser;
 import vct.silver.ColSilverParser;
-import static hre.System.Fail;
-import static hre.System.Progress;
+import static hre.lang.System.Fail;
+import static hre.lang.System.Progress;
 
 public class Parsers {
   

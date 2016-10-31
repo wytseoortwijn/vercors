@@ -1,9 +1,9 @@
 package vct.antlr4.parser;
 
-import static hre.System.Debug;
-import static hre.System.Fail;
-import static hre.System.Warning;
-import hre.HREError;
+import static hre.lang.System.Debug;
+import static hre.lang.System.Fail;
+import static hre.lang.System.Warning;
+import hre.lang.HREError;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -16,7 +16,6 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 
 import pv.parser.PVFullLexer;
 import pv.parser.PVFullParser;
-import pv.parser.PVFullParser.ValPrimaryContext;
 import pv.parser.PVFullParser.*;
 import pv.parser.PVFullVisitor;
 import vct.col.ast.ASTClass;
@@ -135,7 +134,7 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
 
   @Override
   public ASTNode visitArgs(ArgsContext ctx) {
-    throw hre.System.Failure("illegal call to visitArgs");
+    throw hre.lang.System.Failure("illegal call to visitArgs");
   }
   
   private DeclarationStatement[] convertArgs(ArgsContext ctx){
@@ -743,7 +742,7 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
     } else if (f instanceof NameExpression){
       return create.invokation(null,null,((NameExpression)f).getName(),args);
     } else {
-      throw hre.System.Failure("unimplemented invokation");
+      throw hre.lang.System.Failure("unimplemented invokation");
     }
   }
   

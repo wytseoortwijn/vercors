@@ -5,7 +5,7 @@ import hre.ast.FileOrigin;
 
 import java.util.*;
 
-import static hre.System.*;
+import static hre.lang.System.*;
 
 public class OperatorExpression extends ExpressionNode {
 

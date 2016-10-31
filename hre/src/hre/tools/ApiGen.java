@@ -1,4 +1,4 @@
-package hre.api;
+package hre.tools;
 
 import java.io.IOException;
 import java.io.PrintStream;
@@ -10,11 +10,13 @@ import java.nio.file.Paths;
 import java.util.Comparator;
 
 /**
+ * Command line tool for generating wrapper classes.
+ * 
  * This program generates code for a wrapper that assumes that
  * a class is an implementation of the given interface except
  * that it is not a sub-class because it has not been declared
  * or it has been class loaded, or it was compiled against
- * a diferent version... 
+ * a different version... 
  *  
  * @author Stefan Blom
  *

@@ -1,6 +1,6 @@
 package vct.col.rewrite;
 
-import hre.HREError;
+import hre.lang.HREError;
 import vct.col.ast.*;
 import vct.col.ast.ASTSpecial.Kind;
 

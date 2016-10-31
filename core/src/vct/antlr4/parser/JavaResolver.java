@@ -7,10 +7,10 @@ import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.Queue;
 
-import hre.HREError;
 import hre.ast.FileOrigin;
 import hre.ast.MessageOrigin;
 import hre.ast.Origin;
+import hre.lang.HREError;
 import vct.col.ast.*;
 import vct.col.ast.Method.Kind;
 import vct.col.ast.NameSpace.Import;

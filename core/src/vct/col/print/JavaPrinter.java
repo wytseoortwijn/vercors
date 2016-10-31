@@ -1,9 +1,9 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 package vct.col.print;
 
-import hre.HREError;
 import hre.ast.TrackingOutput;
 import hre.ast.TrackingTree;
+import hre.lang.HREError;
 
 import java.io.PrintStream;
 import java.util.Map.Entry;
@@ -1134,7 +1134,7 @@ public class JavaPrinter extends AbstractPrinter {
   }
 
   public static TrackingTree dump(PrintStream out,JavaDialect dialect,ProgramUnit program){
-    hre.System.Debug("Dumping Java code...");
+    hre.lang.System.Debug("Dumping Java code...");
     try {
       TrackingOutput track_out=new TrackingOutput(out,false);
       JavaPrinter printer=new JavaPrinter(track_out, dialect);

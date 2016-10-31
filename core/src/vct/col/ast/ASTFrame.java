@@ -575,28 +575,28 @@ public abstract class ASTFrame<T> {
   }
   
   public void Abort(String format,Object ...args){
-    hre.System.Abort("("+this.getClass()+")At "+current_node().getOrigin()+": "+format,args);
+    hre.lang.System.Abort("("+this.getClass()+")At "+current_node().getOrigin()+": "+format,args);
   }
   public void Debug(String format,Object ...args){
     ASTNode node=current_node();
     if (node!=null){
-      hre.System.Debug("At "+node.getOrigin()+": "+format,args);
+      hre.lang.System.Debug("At "+node.getOrigin()+": "+format,args);
     } else {
-      hre.System.Debug(format,args);
+      hre.lang.System.Debug(format,args);
     }
   }
   public void Fail(String format,Object ...args){
     if (current_node()!=null){
-      hre.System.Fail("At "+current_node().getOrigin()+": "+format,args);
+      hre.lang.System.Fail("At "+current_node().getOrigin()+": "+format,args);
     } else {
-      hre.System.Fail(format,args);
+      hre.lang.System.Fail(format,args);
     }
   }
   public void Warning(String format,Object ...args){
     if (current_node()!=null){
-      hre.System.Warning("("+this.getClass()+"):%n  at "+current_node().getOrigin()+":%n    "+format,args);
+      hre.lang.System.Warning("("+this.getClass()+"):%n  at "+current_node().getOrigin()+":%n    "+format,args);
     } else {
-      hre.System.Warning("("+this.getClass()+"):%n  "+format,args);
+      hre.lang.System.Warning("("+this.getClass()+"):%n  "+format,args);
     }
   }
 

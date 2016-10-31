@@ -1,6 +1,6 @@
 package hre.config;
 
-import static hre.System.*;
+import static hre.lang.System.*;
 
 public abstract class AbstractOption implements Option {
 

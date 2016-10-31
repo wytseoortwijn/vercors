@@ -88,7 +88,7 @@ public class ViperControl implements VerificationControl<Origin> {
     if (m!=null){
       verified_methods.add(m);
     } else {
-      hre.System.Warning("failed to map origin %s to method",origin);
+      hre.lang.System.Warning("failed to map origin %s to method",origin);
     }
   }
 
@@ -99,13 +99,13 @@ public class ViperControl implements VerificationControl<Origin> {
     if (m!=null){
       failed_methods.add(m);
     } else {
-      hre.System.Warning("failed to map origin %s to method",origin);
+      hre.lang.System.Warning("failed to map origin %s to method",origin);
     }
   }
 
   @Override
   public void progress(String fmt, Object... args) {
-    hre.System.Progress(fmt, args);    
+    hre.lang.System.Progress(fmt, args);    
   }
   
   @Override

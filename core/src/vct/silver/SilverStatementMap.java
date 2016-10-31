@@ -3,11 +3,11 @@ package vct.silver;
 import java.util.ArrayList;
 import java.util.HashSet;
 
-import hre.HREError;
 import hre.ast.Origin;
+import hre.lang.HREError;
 import vct.col.ast.*;
 import vct.col.util.ASTUtils;
-import static hre.System.Abort;
+import static hre.lang.System.Abort;
 import viper.api.*;
 
 public class SilverStatementMap<T,E,S> implements ASTMapping<S>{

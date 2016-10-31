@@ -1,4 +1,4 @@
-package hre;
+package hre.lang;
 
 public class Failure extends Error {
 

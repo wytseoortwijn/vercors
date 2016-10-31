@@ -4,11 +4,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import hre.HREError;
 import hre.ast.Origin;
+import hre.lang.HREError;
 import vct.col.ast.*;
 import vct.col.ast.PrimitiveType.Sort;
-import static hre.System.Abort;
+import static hre.lang.System.Abort;
 import viper.api.*;
 
 public class SilverExpressionMap<T,E> implements ASTMapping<E>{
@@ -163,7 +163,7 @@ public class SilverExpressionMap<T,E> implements ASTMapping<E>{
     Origin o = e.getOrigin();
     switch(e.getKind()){
     case Label:
-      hre.System.Warning("assuming label %s means local Ref at %s",e.getName(),e.getOrigin());
+      hre.lang.System.Warning("assuming label %s means local Ref at %s",e.getName(),e.getOrigin());
       return create.local_name(o,e.getName(),tf.Ref());
     case Local:
     case Argument:
@@ -296,7 +296,7 @@ public class SilverExpressionMap<T,E> implements ASTMapping<E>{
     switch(e.binder){
     case STAR:
       if ((e.main instanceof BindingExpression)||e.getDeclarations().length>1){
-        hre.System.Warning("Simplification failure:%n%s",e);
+        hre.lang.System.Warning("Simplification failure:%n%s",e);
         failure=true;
       } else {
         boolean good=false;
@@ -313,7 +313,7 @@ public class SilverExpressionMap<T,E> implements ASTMapping<E>{
           }
         }
         if(!good){
-          hre.System.Warning("Possible simplification failure: %n%s",e);
+          hre.lang.System.Warning("Possible simplification failure: %n%s",e);
         }
       }
     case FORALL:

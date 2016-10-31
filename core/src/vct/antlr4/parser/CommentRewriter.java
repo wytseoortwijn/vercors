@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import vct.col.ast.*;
 import vct.col.ast.ASTSpecial.Kind;
 import vct.col.rewrite.AbstractRewriter;
-import static hre.System.*;
+import static hre.lang.System.*;
 import static vct.col.ast.ASTSpecial.Kind.Comment;
 
 /**

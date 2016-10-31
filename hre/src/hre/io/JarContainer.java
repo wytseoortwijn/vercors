@@ -5,7 +5,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
-import static hre.System.*;
+
+import static hre.lang.System.*;
 
 public class JarContainer implements Container {
   

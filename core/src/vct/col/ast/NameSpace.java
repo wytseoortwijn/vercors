@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 
-import hre.HREError;
+import hre.lang.HREError;
 import vct.util.ClassName;
 
 public class NameSpace extends ASTDeclaration implements ASTSequence<NameSpace> {
@@ -115,7 +115,7 @@ public class NameSpace extends ASTDeclaration implements ASTSequence<NameSpace> 
       }
     } else if (item==null) {
     } else {
-      hre.System.Warning("cannot insert %s into name space.",item);
+      hre.lang.System.Warning("cannot insert %s into name space.",item);
       //Abort("cannot insert %s into name space.",item.getClass());
     }
     return this;

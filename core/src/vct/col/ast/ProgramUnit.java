@@ -11,7 +11,7 @@ import vct.col.ast.ASTClass.ClassKind;
 import vct.col.util.ASTFactory;
 import vct.util.ClassName;
 import vct.util.Configuration;
-import static hre.System.*;
+import static hre.lang.System.*;
 
 /**
  * Class for containing a collection of classes.

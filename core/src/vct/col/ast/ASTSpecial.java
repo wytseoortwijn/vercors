@@ -119,7 +119,7 @@ public class ASTSpecial extends ASTDeclaration {
   
   public ASTSpecial(Kind kind,ASTNode ... args){
     super("<<special>>");
-    if (kind == null) hre.System.Abort("kind cannot be null");
+    if (kind == null) hre.lang.System.Abort("kind cannot be null");
     this.kind=kind;
     this.args=Arrays.copyOf(args,args.length);
   }

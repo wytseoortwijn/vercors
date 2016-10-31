@@ -8,10 +8,10 @@ import vct.col.ast.ASTSpecial.Kind;
 import hre.ast.BranchOrigin;
 import hre.ast.MessageOrigin;
 import hre.ast.Origin;
-import static hre.System.Abort;
-import static hre.System.Debug;
-import static hre.System.Fail;
-import static hre.System.Warning;
+import static hre.lang.System.Abort;
+import static hre.lang.System.Debug;
+import static hre.lang.System.Fail;
+import static hre.lang.System.Warning;
 
 /** common features of all AST nodes. */
 public abstract class ASTNode implements ASTFlags {

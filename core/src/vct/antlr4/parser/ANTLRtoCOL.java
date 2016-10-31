@@ -6,9 +6,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
-import hre.HREError;
 import hre.ast.FileOrigin;
 import hre.ast.Origin;
+import hre.lang.HREError;
 
 import org.antlr.v4.runtime.BufferedTokenStream;
 import org.antlr.v4.runtime.ParserRuleContext;
@@ -37,7 +37,7 @@ import vct.col.ast.Type;
 import vct.col.ast.VariableDeclaration;
 import vct.col.syntax.Syntax;
 import vct.col.util.ASTFactory;
-import static hre.System.*;
+import static hre.lang.System.*;
 import static vct.col.ast.ASTSpecial.Kind.*;
 import static vct.col.ast.StandardOperator.*;
 
@@ -179,7 +179,7 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
     } catch (IllegalArgumentException e) {
       e.printStackTrace();
     }
-    throw hre.System.Failure("reflection failed to work for field %s",field);
+    throw hre.lang.System.Failure("reflection failed to work for field %s",field);
   }
   /** Get static field by reflection. */
   public static int getStaticInt(Class<?> cl,String field){
@@ -187,7 +187,7 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
       Field f=cl.getDeclaredField(field);
       return f.getInt(null);
     } catch (NoSuchFieldException e) {
-      throw hre.System.Failure("class has no static field %s",field);
+      throw hre.lang.System.Failure("class has no static field %s",field);
     } catch (SecurityException e) {
       e.printStackTrace();
     } catch (IllegalArgumentException e) {
@@ -195,7 +195,7 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
     } catch (IllegalAccessException e) {
       e.printStackTrace();
     }
-    throw hre.System.Failure("reflection failed to work for field %s",field);
+    throw hre.lang.System.Failure("reflection failed to work for field %s",field);
   }
   
   /** Enter a new context for processing parse trees by setting the current origin
@@ -758,11 +758,11 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
             cb.yields((VariableDeclaration)convert(clause,1));
           }          
         }  else {
-          throw hre.System.Failure("bad clause %s",t);
+          throw hre.lang.System.Failure("bad clause %s",t);
         }
         leave(clause,null);
       } else {
-        throw hre.System.Failure("bad clause %s",t);
+        throw hre.lang.System.Failure("bad clause %s",t);
       }
     }
     Contract res=cb.getContract(false);
@@ -776,7 +776,7 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
     if (n instanceof NameExpression){
       return create.class_type(n.getOrigin(),((NameExpression)n).getName());
     }
-    throw hre.System.Failure("%s node at %s is not a type",n.getClass(),n.getOrigin());
+    throw hre.lang.System.Failure("%s node at %s is not a type",n.getClass(),n.getOrigin());
   }
 
   protected HREError MissingCase(ParserRuleContext ctx){
@@ -1030,7 +1030,7 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
   public ClassType forceClassType(ASTNode convert) {
     if (convert instanceof ClassType) return (ClassType)convert;
     if (convert instanceof NameExpression) return create.class_type(convert.toString());
-    throw hre.System.Failure("cannot convert %s to ClassType",convert.getClass());
+    throw hre.lang.System.Failure("cannot convert %s to ClassType",convert.getClass());
   }
 
 

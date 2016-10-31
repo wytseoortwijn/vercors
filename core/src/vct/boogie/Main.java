@@ -12,7 +12,7 @@ import java.io.*;
 
 import vct.col.ast.*;
 import vct.util.*;
-import static hre.System.*;
+import static hre.lang.System.*;
 
 /**
  * This class contains the main procedures of the Boogie/Chalice back ends.
@@ -80,7 +80,7 @@ public class Main {
     } catch (Exception e) {
       System.out.println("error: ");
       e.printStackTrace();
-      hre.System.Abort("internal error");
+      hre.lang.System.Abort("internal error");
       return null;
     }
   }
@@ -122,7 +122,7 @@ public class Main {
     } catch (Exception e) {
       System.out.println("error: ");
       e.printStackTrace();
-      hre.System.Abort("internal error");
+      hre.lang.System.Abort("internal error");
       return null;
     }
   }

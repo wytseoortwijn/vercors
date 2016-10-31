@@ -18,8 +18,8 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import vct.util.Configuration;
-import static hre.System.Progress;
-import static hre.System.Warning;
+import static hre.lang.System.Progress;
+import static hre.lang.System.Warning;
 
 /**
  * Create a test report for a Boogie run from the output file.

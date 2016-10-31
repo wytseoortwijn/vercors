@@ -1,6 +1,6 @@
 package vct.antlr4.parser;
 
-import static hre.System.Failure;
+import static hre.lang.System.Failure;
 
 import java.io.IOException;
 import java.io.InputStream;

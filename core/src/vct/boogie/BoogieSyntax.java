@@ -107,7 +107,7 @@ public class BoogieSyntax extends Syntax {
       p=new ChalicePrinter(out);
       break;
     default:
-      throw new hre.HREError("cannot print boogie language family member %s", variant);
+      throw new hre.lang.HREError("cannot print boogie language family member %s", variant);
     }
     if (n!=null){
       ASTNode nn=new Parenthesize(this).rewrite(n);
@@ -129,7 +129,7 @@ public class BoogieSyntax extends Syntax {
     	p=new DafnyPrinter(out);
     	break;
     default:
-      throw new hre.HREError("cannot print boogie language family member %s", variant);
+      throw new hre.lang.HREError("cannot print boogie language family member %s", variant);
     }
     if (pu!=null){
       ProgramUnit nn=new Parenthesize(this,pu).rewriteAll();

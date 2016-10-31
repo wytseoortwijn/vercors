@@ -1,7 +1,7 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 package hre.ast;
 
-import hre.HREError;
+import hre.lang.HREError;
 
 import java.io.PrintStream;
 import java.util.Hashtable;
