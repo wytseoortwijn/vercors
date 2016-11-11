@@ -11,7 +11,7 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.tree.ParseTree;
 
-import vct.parsers.*;
+import vct.antlr4.generated.*;
 import vct.col.ast.ProgramUnit;
 import vct.col.rewrite.AnnotationInterpreter;
 import vct.col.rewrite.FilterSpecIgnore;

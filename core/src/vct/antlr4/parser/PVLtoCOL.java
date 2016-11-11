@@ -14,10 +14,10 @@ import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
-import pv.parser.PVFullLexer;
-import pv.parser.PVFullParser;
-import pv.parser.PVFullParser.*;
-import pv.parser.PVFullVisitor;
+import vct.antlr4.generated.PVFullLexer;
+import vct.antlr4.generated.PVFullParser;
+import vct.antlr4.generated.PVFullParser.*;
+import vct.antlr4.generated.PVFullVisitor;
 import vct.col.ast.ASTClass;
 import vct.col.ast.ASTFlags;
 import vct.col.ast.ASTNode;

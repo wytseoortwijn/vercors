@@ -3,8 +3,8 @@ package vct.antlr4.parser;
 import org.antlr.v4.runtime.tree.ParseTree;
 
 import vct.col.ast.ASTSequence;
-import vct.parsers.Java7JMLLexer;
-import vct.parsers.Java7JMLParser;
+import vct.antlr4.generated.Java7JMLLexer;
+import vct.antlr4.generated.Java7JMLParser;
 
 /**
  * Parser for JML comments.

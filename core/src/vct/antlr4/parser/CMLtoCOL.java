@@ -18,8 +18,8 @@ import vct.col.ast.ASTSpecial.Kind;
 import vct.col.ast.PrimitiveType.Sort;
 import vct.col.syntax.CSyntax;
 import vct.col.syntax.Syntax;
-import vct.parsers.*;
-import vct.parsers.CMLParser.*;
+import vct.antlr4.generated.*;
+import vct.antlr4.generated.CMLParser.*;
 import vct.util.Configuration;
 
 /**

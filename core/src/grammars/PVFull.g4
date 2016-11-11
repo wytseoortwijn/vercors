@@ -3,7 +3,7 @@ grammar PVFull;
 import val;
 
 @header {
-package pv.parser;
+package vct.antlr4.generated;
 }
 
 @lexer::members{

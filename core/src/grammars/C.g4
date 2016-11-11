@@ -30,7 +30,7 @@
 grammar C;
 
 @header {
-package vct.parsers;
+package vct.antlr4.generated;
 }
 
 @lexer::members{

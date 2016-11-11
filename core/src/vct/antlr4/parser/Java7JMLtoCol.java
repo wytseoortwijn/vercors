@@ -20,20 +20,8 @@ import vct.col.ast.PrimitiveType.Sort;
 import vct.col.syntax.JavaDialect;
 import vct.col.syntax.JavaSyntax;
 import vct.col.syntax.Syntax;
-import vct.parsers.Java7JMLParser.*;
-import vct.parsers.*;
-import vct.parsers.Java7JMLParser.ExtraDeclarationContext;
-import vct.parsers.Java7JMLParser.ExtraIdentifierContext;
-import vct.parsers.Java7JMLParser.ExtraPrimaryContext;
-import vct.parsers.Java7JMLParser.ExtraTypeContext;
-import vct.parsers.Java7JMLParser.IdentifierContext;
-import vct.parsers.Java7JMLParser.JavaDeclarationsContext;
-import vct.parsers.Java7JMLParser.JavaIdentifierContext;
-import vct.parsers.Java7JMLParser.JavaStatementsContext;
-import vct.parsers.Java7JMLParser.ValContractClauseContext;
-import vct.parsers.Java7JMLParser.ValPrimaryContext;
-import vct.parsers.Java7JMLParser.ValReservedContext;
-import vct.parsers.Java7JMLParser.ValStatementContext;
+import vct.antlr4.generated.Java7JMLParser.*;
+import vct.antlr4.generated.*;
 import vct.util.Configuration;
 
 /**

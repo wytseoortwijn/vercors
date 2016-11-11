@@ -5,8 +5,8 @@ import hre.lang.HREError;
 import org.antlr.v4.runtime.tree.ParseTree;
 
 import vct.col.ast.ASTSequence;
-import vct.parsers.CMLLexer;
-import vct.parsers.CMLParser;
+import vct.antlr4.generated.CMLLexer;
+import vct.antlr4.generated.CMLParser;
 
 /**
  * Parser for CML comments.

@@ -1,7 +1,7 @@
 grammar omp;
 
 @header {
-package vct.parsers;
+package vct.antlr4.generated;
 }
 
 
