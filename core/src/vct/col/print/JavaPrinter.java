@@ -420,12 +420,6 @@ public class JavaPrinter extends AbstractPrinter {
       s.args[4].accept(this);
       out.println(";");
       break;    
-    case Transfer:
-      out.print("transfer ");
-      setExpr();
-      s.args[0].accept(this);
-      out.println(";");
-      break;    
     case CSLSubject:
       out.print("csl_subject ");
       setExpr();

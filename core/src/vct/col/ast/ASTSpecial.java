@@ -33,8 +33,6 @@ public class ASTSpecial extends ASTDeclaration {
     SplitHistory(5),
     MergeHistory(5),
     ChooseHistory(4),
-    /** Transfer resources into and out of atomic regions. */
-    Transfer,
     /** Mark the subjects, whose invariants are available in an atomic region. */
     CSLSubject,
     Goto,

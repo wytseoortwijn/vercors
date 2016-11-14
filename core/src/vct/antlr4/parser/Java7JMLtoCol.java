@@ -820,9 +820,6 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
     if (match(ctx,"close",null,";")){
       return create.special(ASTSpecial.Kind.Close,convert(ctx,1));
     }
-    if (match(ctx,"transfer",null,";")){
-      return create.special(ASTSpecial.Kind.Transfer,convert(ctx,1));
-    }
     if (match(ctx,"csl_subject",null,";")){
       return create.special(ASTSpecial.Kind.CSLSubject,convert(ctx,1));
     }
