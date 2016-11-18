@@ -34,7 +34,7 @@ public class DeclarationStatement extends ASTDeclaration {
   
   @Override
   public ClassName getDeclName() {
-    hre.System.Debug("%s.%s",package_name,name);
+    hre.lang.System.Debug("%s.%s",package_name,name);
     return new ClassName(package_name,name);
   }
 

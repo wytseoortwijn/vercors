@@ -2,11 +2,10 @@ package vct.verifast;
 
 import hre.ast.TrackingTree;
 import hre.io.ModuleShell;
-
 import hre.ast.Origin;
 import hre.io.Message;
-import static hre.System.Debug;
-import static hre.System.Warning;
+import static hre.lang.System.Debug;
+import static hre.lang.System.Warning;
 
 public class VeriFastReport  extends hre.util.TestReport {
 

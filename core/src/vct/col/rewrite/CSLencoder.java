@@ -95,34 +95,21 @@ public class CSLencoder extends AbstractRewriter {
       int no=count.incrementAndGet();
       String result_name="csl_result_"+no;
       String return_label="csl_return_"+no;
+      BlockStatement block=create.block();
+      if (!m.getReturnType().isVoid()){
+        currentBlock.add(create.field_decl(result_name,rewrite(m.getReturnType())));
+      }
       ArrayList<ASTNode> subjects=new ArrayList<ASTNode>();
-      for(ASTNode node:e.get_before()){
-        if (node.isSpecial(ASTSpecial.Kind.CSLSubject)){
-          subjects.add(((ASTSpecial)node).args[0]);
+      for(ASTNode s:e.get_before()){
+        if (s.isSpecial(ASTSpecial.Kind.CSLSubject)){
+          subjects.add(((ASTSpecial)s).args[0]);
+        } else {
+          block.add(rewrite(s));
         }
       }
       if (subjects.size()==0){
         //Warning("no explicit subjects for atomic method call.");
         subjects.add(create.reserved_name(ASTReserved.This));
-      }
-      BlockStatement block=create.block();
-      if (!m.getReturnType().isVoid()){
-        currentBlock.add(create.field_decl(result_name,rewrite(m.getReturnType())));
-      }
-      /*
-      for(ASTNode node:subjects){
-        block.add(create.special(ASTSpecial.Kind.Inhale,create.invokation(rewrite(node),null,"csl_invariant")));
-        block.add(create.expression(StandardOperator.Unfold,create.invokation(rewrite(node),null,"csl_invariant")));
-      }
-      */
-      for(ASTNode s:e.get_before()){
-        if (s.isSpecial(ASTSpecial.Kind.Transfer)){
-          Warning("ignoring transfer statement at %s",s.getOrigin());
-        } else if (s.isSpecial(ASTSpecial.Kind.CSLSubject)){
-          // skip
-        } else {
-          block.add(rewrite(s));
-        }
       }
       InlineMethod inline=new InlineMethod(source());
       inline.inline(block,result_name,return_label,m,e.object,e.getArgs(),e.getOrigin());    
@@ -131,18 +118,8 @@ public class CSLencoder extends AbstractRewriter {
       Substitution sigma=new Substitution(source(),map);
       map.put(create.reserved_name(ASTReserved.Result),create.local_name(result_name));
       for(ASTNode s:e.get_after()){
-        if (s.isSpecial(ASTSpecial.Kind.Transfer)){
-          // skip
-        } else {
-          block.add(sigma.rewrite(rewrite(s)));
-        }
+        block.add(sigma.rewrite(rewrite(s)));
       }
-      /*
-      for(ASTNode node:subjects){
-        block.add(create.expression(StandardOperator.Fold,create.invokation(rewrite(node),null,"csl_invariant")));
-        block.add(create.special(ASTSpecial.Kind.Exhale,create.invokation(rewrite(node),null,"csl_invariant")));
-      }
-      */
       currentBlock.add(create.csl_atomic(block,subjects.toArray(new ASTNode[0])));
       if (m.getReturnType().isVoid()){
         result=create.comment("// dummy");

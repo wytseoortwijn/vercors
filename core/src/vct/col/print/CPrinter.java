@@ -199,7 +199,7 @@ public class CPrinter extends AbstractPrinter {
 	}
 
 	public static TrackingTree dump(PrintStream out, ProgramUnit program) {
-		hre.System.Debug("Dumping C code...");
+		hre.lang.System.Debug("Dumping C code...");
 		try {
 			TrackingOutput track_out = new TrackingOutput(out, false);
 			CPrinter printer = new CPrinter(track_out);

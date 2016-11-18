@@ -1,5 +1,5 @@
 /**
- * This package contains the ANTLR4 grammars for the VerCros tool.
+ * This package contains the ANTLR4 grammars for the VerCors tool.
  * 
  */
 package grammars;

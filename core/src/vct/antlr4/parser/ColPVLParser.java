@@ -1,6 +1,6 @@
 package vct.antlr4.parser;
 
-import static hre.System.*;
+import static hre.lang.System.*;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -10,8 +10,8 @@ import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 
-import pv.parser.PVFullLexer;
-import pv.parser.PVFullParser;
+import vct.antlr4.generated.PVFullLexer;
+import vct.antlr4.generated.PVFullParser;
 import vct.col.ast.ProgramUnit;
 import vct.col.rewrite.FlattenVariableDeclarations;
 import vct.col.syntax.PVLSyntax;

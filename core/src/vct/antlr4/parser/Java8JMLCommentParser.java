@@ -3,8 +3,8 @@ package vct.antlr4.parser;
 import org.antlr.v4.runtime.tree.ParseTree;
 
 import vct.col.ast.ASTSequence;
-import vct.parsers.Java8JMLLexer;
-import vct.parsers.Java8JMLParser;
+import vct.antlr4.generated.Java8JMLLexer;
+import vct.antlr4.generated.Java8JMLParser;
 
 /**
  * Parser for JML comments.
@@ -24,7 +24,7 @@ public class Java8JMLCommentParser extends CommentParser<Java8JMLParser,Java8JML
     ec.report();
     TempSequence res=Java8JMLtoCol.convert_seq(tree, "embedded_comments", tokens, parser);
     long end=System.currentTimeMillis();
-    hre.System.Progress("comment parsing/conversion %d/%d",middle-begin,end-middle);
+    hre.lang.System.Progress("comment parsing/conversion %d/%d",middle-begin,end-middle);
     return res;
   }
 

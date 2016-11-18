@@ -1,7 +1,8 @@
 package hre.io;
 
 import java.util.Queue;
-import static hre.System.*;
+
+import static hre.lang.System.*;
 
 /**
  * This class implements a thread that waits for the completion

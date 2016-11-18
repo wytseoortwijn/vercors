@@ -33,8 +33,6 @@ public class ASTSpecial extends ASTDeclaration {
     SplitHistory(5),
     MergeHistory(5),
     ChooseHistory(4),
-    /** Transfer resources into and out of atomic regions. */
-    Transfer,
     /** Mark the subjects, whose invariants are available in an atomic region. */
     CSLSubject,
     Goto,
@@ -119,7 +117,7 @@ public class ASTSpecial extends ASTDeclaration {
   
   public ASTSpecial(Kind kind,ASTNode ... args){
     super("<<special>>");
-    if (kind == null) hre.System.Abort("kind cannot be null");
+    if (kind == null) hre.lang.System.Abort("kind cannot be null");
     this.kind=kind;
     this.args=Arrays.copyOf(args,args.length);
   }

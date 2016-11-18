@@ -189,7 +189,7 @@ public class CommandLineTesting {
           }
           String experiment=iter.next().toString();
           String filename=iter.next().toString();
-          ArrayList<String> path=new ArrayList();
+          ArrayList<String> path=new ArrayList<String>();
           while(iter.hasNext()){
             path.add(filename);
             filename=iter.next().toString();

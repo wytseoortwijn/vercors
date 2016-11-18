@@ -3,9 +3,9 @@ package vct.silver;
 import java.util.HashMap;
 import java.util.Map;
 
-import hre.HREError;
 import hre.ast.MessageOrigin;
 import hre.ast.Origin;
+import hre.lang.HREError;
 import vct.col.ast.*;
 import vct.col.rewrite.AbstractRewriter;
 import viper.api.*;

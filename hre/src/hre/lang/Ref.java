@@ -1,5 +1,12 @@
 package hre.lang;
 
+/**
+ * This class provides a non-atomic reference.
+ * 
+ * @author Stefan Blom
+ *
+ * @param <T>
+ */
 public class Ref<T> {
 
   private T val;

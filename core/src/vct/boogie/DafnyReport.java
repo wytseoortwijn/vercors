@@ -5,8 +5,8 @@ import hre.ast.Origin;
 import hre.ast.TrackingTree;
 import hre.io.Message;
 import hre.io.ModuleShell;
-import static hre.System.Debug;
-import static hre.System.Warning;
+import static hre.lang.System.Debug;
+import static hre.lang.System.Warning;
 
 /**
  * This class contains a parser for the output of the Chalice tool.

@@ -15,7 +15,7 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyleContext;
 
-import static hre.System.*;
+import static hre.lang.System.*;
 
 public class FileContext {
   private ArrayList<String> list=new ArrayList<String>();

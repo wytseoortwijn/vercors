@@ -18,7 +18,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-import static hre.System.Progress;
+import static hre.lang.System.Progress;
 
 /**
  * Create a test report for a Boogie run from the output file.

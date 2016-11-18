@@ -14,18 +14,18 @@ import org.antlr.v4.runtime.ParserRuleContext;
 
 import vct.antlr4.parser.OMPoption.Kind;
 import vct.antlr4.parser.OMPoption.Schedule;
-import vct.parsers.ompLexer;
-import vct.parsers.ompParser;
-import vct.parsers.ompParser.Omp_optionContext;
-import vct.parsers.ompParser.Omp_scheduleContext;
-import vct.parsers.ompParser.Omp_sectionContext;
-import vct.parsers.ompParser.Omp_sectionsContext;
-import vct.parsers.ompParser.Omp_simdContext;
-import vct.parsers.ompParser.Omp_simdlenContext;
-import vct.parsers.ompParser.Omp_simdoptContext;
-import vct.parsers.ompParser.Omp_singleContext;
-import vct.parsers.ompParser.*;
-import vct.parsers.ompVisitor;
+import vct.antlr4.generated.ompLexer;
+import vct.antlr4.generated.ompParser;
+import vct.antlr4.generated.ompParser.Omp_optionContext;
+import vct.antlr4.generated.ompParser.Omp_scheduleContext;
+import vct.antlr4.generated.ompParser.Omp_sectionContext;
+import vct.antlr4.generated.ompParser.Omp_sectionsContext;
+import vct.antlr4.generated.ompParser.Omp_simdContext;
+import vct.antlr4.generated.ompParser.Omp_simdlenContext;
+import vct.antlr4.generated.ompParser.Omp_simdoptContext;
+import vct.antlr4.generated.ompParser.Omp_singleContext;
+import vct.antlr4.generated.ompParser.*;
+import vct.antlr4.generated.ompVisitor;
 
 public class OMPParser {
   

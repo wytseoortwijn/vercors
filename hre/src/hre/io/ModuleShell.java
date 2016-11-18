@@ -7,8 +7,8 @@ import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 
-import static hre.System.Debug;
-import static hre.System.Progress;
+import static hre.lang.System.Debug;
+import static hre.lang.System.Progress;
 
 class RMRF extends Thread {
 

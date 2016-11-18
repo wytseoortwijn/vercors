@@ -10,8 +10,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
 
-import hre.HREError;
-import hre.HREException;
 import hre.ast.Origin;
 import hre.config.IntegerSetting;
 import hre.config.StringSetting;
@@ -19,6 +17,8 @@ import hre.io.Container;
 import hre.io.DirContainer;
 import hre.io.JarContainer;
 import hre.io.UnionContainer;
+import hre.lang.HREError;
+import hre.lang.HREException;
 import hre.util.ContainerClassLoader;
 import vct.col.ast.*;
 import vct.error.VerificationError;
@@ -41,7 +41,7 @@ public class SilverBackend {
     if (parser){
       tool="silicon";
     } else {
-      hre.System.Output("verifying with %s %s backend",
+      hre.lang.System.Output("verifying with %s %s backend",
           silver_module.used()?silver_module.get():"builtin",tool);
     }
     File jarfile;
@@ -95,7 +95,7 @@ public class SilverBackend {
       throw new HREError("Exception %s",e);
     }
     if (!(obj instanceof ViperAPI)){
-      hre.System.Fail("Plugin is incompatible: cannot cast verifier.");
+      hre.lang.System.Fail("Plugin is incompatible: cannot cast verifier.");
     }
     @SuppressWarnings("unchecked")
     ViperAPI<Origin,VerificationError,T,E,S,DFunc,DAxiom,Program> verifier=(ViperAPI<Origin, VerificationError, T, E, S, DFunc, DAxiom, Program>)obj;

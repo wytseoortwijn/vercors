@@ -10,8 +10,8 @@ import vct.col.ast.PrimitiveType.Sort;
 import vct.col.ast.ProgramUnit;
 import vct.col.ast.StandardOperator;
 import vct.col.print.AbstractPrinter;
-import hre.HREError;
 import hre.ast.TrackingOutput;
+import hre.lang.HREError;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
@@ -234,7 +234,7 @@ public class Syntax {
     precedence_map.put(op,precedence);
     for(int i=0;i<full_syntax.length;i++){
       if (full_syntax[i]==null){
-        hre.System.Abort("syntax of %s contain null at position %d",op,i);
+        hre.lang.System.Abort("syntax of %s contain null at position %d",op,i);
       }
     }
     syntax_map.put(op,Arrays.copyOf(full_syntax,full_syntax.length));

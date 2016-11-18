@@ -6,9 +6,9 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Set;
 
-import hre.HREError;
 import hre.ast.MessageOrigin;
 import hre.ast.Origin;
+import hre.lang.HREError;
 import vct.col.ast.ASTFlags;
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTSpecial;
@@ -160,7 +160,7 @@ public class VerCorsProgramFactory implements
   private void enter(Origin o){
     create.enter();
     if (o==null){
-      hre.System.Warning("missing origin");
+      hre.lang.System.Warning("missing origin");
       o=new MessageOrigin("unknown origin");
     }
     create.setOrigin(o);    
@@ -329,7 +329,7 @@ public class VerCorsProgramFactory implements
       }
     }
     long end=System.currentTimeMillis();
-    hre.System.Progress("conversion took %dms",end-base);
+    hre.lang.System.Progress("conversion took %dms",end-base);
     return program;
   }
 

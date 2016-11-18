@@ -13,8 +13,8 @@ import vct.col.rewrite.MultiSubstitution;
 import vct.col.util.DeclarationFilter;
 import vct.col.util.MethodFilter;
 import vct.util.ClassName;
-import static hre.System.Abort;
-import static hre.System.Debug;
+import static hre.lang.System.Abort;
+import static hre.lang.System.Debug;
 
 /** This class is the main container for declarations.
  *  For Java it contains both classes and packages.
@@ -321,7 +321,7 @@ public class ASTClass extends ASTDeclaration implements ASTSequence<ASTClass> {
       for(ClassType parent:this.super_classes){
         ASTClass rp=root.find(parent);
         if (rp==null){
-          hre.System.Fail("could not find %s",parent);
+          hre.lang.System.Fail("could not find %s",parent);
         }
         m = rp.find(name,object_type,type);
         if (m != null) return m;

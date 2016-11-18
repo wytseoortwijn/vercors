@@ -31,9 +31,9 @@
     <echo>
     Running ANTLR v4 on omp.g4
     </echo>
-  	<mkdir dir="${gen}/vct/parsers"/>
+  	<mkdir dir="${gen}/vct/antlr4/generated"/>
     <java fork="yes" dir="${src}/grammars" classpath="${lib}" jar="${lib}/antlr-4.5.3-complete.jar">
-      <arg value="-o"/><arg value="${gen}/vct/parsers"/>
+      <arg value="-o"/><arg value="${gen}/vct/antlr4/generated"/>
       <arg value="-visitor"/>
       <arg value="omp.g4"/>
     </java>
@@ -41,7 +41,7 @@
   <target name="check.omp">
   	<uptodate property="omp.uptodate">
       <srcfiles dir="${src}/grammars"/>
-      <globmapper from="omp.g4" to="${gen}/vct/parsers/omp.tokens"/>
+      <globmapper from="omp.g4" to="${gen}/vct/antlr4/generated/omp.tokens"/>
     </uptodate>
   </target>
     
@@ -49,9 +49,9 @@
     <echo>
     Running ANTLR v4 on CML.g4
     </echo>
-  	<mkdir dir="${gen}/vct/parsers"/>
+  	<mkdir dir="${gen}/vct/antlr4/generated"/>
     <java fork="yes" dir="${src}/grammars" classpath="${lib}" jar="${lib}/antlr-4.5.3-complete.jar">
-      <arg value="-o"/><arg value="${gen}/vct/parsers"/>
+      <arg value="-o"/><arg value="${gen}/vct/antlr4/generated"/>
       <arg value="-visitor"/>
       <arg value="CML.g4"/>
     </java>
@@ -59,7 +59,7 @@
   <target name="check.CML">
   	<uptodate property="CML.uptodate">
       <srcfiles dir="${src}/grammars"/>
-      <mapper type="regexp" from="val.g4|CML.g4|C.g4" to="${gen}/vct/parsers/CML.tokens"/>
+      <mapper type="regexp" from="val.g4|CML.g4|C.g4" to="${gen}/vct/antlr4/generated/CML.tokens"/>
     </uptodate>
   </target>
 
@@ -67,9 +67,9 @@
     <echo>
     Running ANTLR v4 on Java7JML.g4
     </echo>
-  	<mkdir dir="${gen}/vct/parsers"/>
+  	<mkdir dir="${gen}/vct/antlr4/generated"/>
     <java fork="yes" dir="${src}/grammars" classpath="${lib}" jar="${lib}/antlr-4.5.3-complete.jar">
-      <arg value="-o"/><arg value="${gen}/vct/parsers"/>
+      <arg value="-o"/><arg value="${gen}/vct/antlr4/generated"/>
       <arg value="-visitor"/>
       <arg value="Java7JML.g4"/>
     </java>
@@ -77,7 +77,7 @@
   <target name="check.Java7JML">
   	<uptodate property="Java7JML.uptodate">
       <srcfiles dir="${src}/grammars"/>
-      <mapper type="regexp" from="val.g4|Java7JML.g4|Java7.g4" to="${gen}/vct/parsers/Java7JML.tokens"/>
+      <mapper type="regexp" from="val.g4|Java7JML.g4|Java7.g4" to="${gen}/vct/antlr4/generated/Java7JML.tokens"/>
     </uptodate>
   </target>
   
@@ -87,9 +87,9 @@
     <echo>
     Running ANTLR v4 on Java8JML.g4
     </echo>
-  	<mkdir dir="${gen}/vct/parsers"/>
+  	<mkdir dir="${gen}/vct/antlr4/generated"/>
     <java fork="yes" dir="${src}/grammars" classpath="${lib}" jar="${lib}/antlr-4.5.3-complete.jar">
-      <arg value="-o"/><arg value="${gen}/vct/parsers"/>
+      <arg value="-o"/><arg value="${gen}/vct/antlr4/generated"/>
       <arg value="-visitor"/>
       <arg value="Java8JML.g4"/>
     </java>
@@ -97,7 +97,7 @@
   <target name="check.Java8JML">
   	<uptodate property="Java8JML.uptodate">
       <srcfiles dir="${src}/grammars"/>
-      <mapper type="regexp" from="val.g4|Java8JML.g4|Java8.g4" to="${gen}/vct/parsers/Java8JML.tokens"/>
+      <mapper type="regexp" from="val.g4|Java8JML.g4|Java8.g4" to="${gen}/vct/antlr4/generated/Java8JML.tokens"/>
     </uptodate>
   </target>
 
@@ -105,9 +105,9 @@
     <echo>
     Running ANTLR v4 on PVFull.g4
     </echo>
-  	<mkdir dir="${gen}/pv/parser"/>
+  	<mkdir dir="${gen}/vct/antlr4/generated"/>
     <java fork="yes" dir="${src}/grammars" classpath="${lib}" jar="${lib}/antlr-4.5.3-complete.jar">
-      <arg value="-o"/><arg value="${gen}/pv/parser"/>
+      <arg value="-o"/><arg value="${gen}/vct/antlr4/generated"/>
       <arg value="-visitor"/>
       <arg value="PVFull.g4"/>
     </java>
@@ -115,7 +115,7 @@
   <target name="check.PVFull">
   	<uptodate property="PVFull.uptodate">
       <srcfiles dir="${src}/grammars"/>
-      <mapper type="regexp" from="PVFull.g4|val.g4" to="${gen}/pv/parser/PVFull.tokens"/>
+      <mapper type="regexp" from="PVFull.g4|val.g4" to="${gen}/vct/antlr4/generated/PVFull.tokens"/>
     </uptodate>
   </target>
 	

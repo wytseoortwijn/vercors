@@ -1,9 +1,9 @@
 package vct.util;
 
-import static hre.System.Abort;
-import static hre.System.Debug;
-import static hre.System.Progress;
-import static hre.System.Warning;
+import static hre.lang.System.Abort;
+import static hre.lang.System.Debug;
+import static hre.lang.System.Progress;
+import static hre.lang.System.Warning;
 
 import java.io.File;
 import java.io.IOException;
@@ -181,7 +181,7 @@ public class Configuration {
     if (!module_deps.toFile().isDirectory()){
       module_deps=home.getParent().getParent().resolve(Paths.get("modules"));
       if (!module_deps.toFile().isDirectory()){
-        hre.System.Fail("dependency modules not found");
+        hre.lang.System.Fail("dependency modules not found");
       }
     }
     tool_home=module_deps.getParent();

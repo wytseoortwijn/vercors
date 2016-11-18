@@ -63,7 +63,7 @@ public class NameExpression extends ASTNode {
   }
   
   public void setKind(Kind kind){
-    if (kind==Kind.Reserved) hre.System.Abort("cannot just declared a word reserved");
+    if (kind==Kind.Reserved) hre.lang.System.Abort("cannot just declared a word reserved");
     this.kind=kind;
   }
   public Kind getKind(){
@@ -119,7 +119,7 @@ public class NameExpression extends ASTNode {
   }
 
   public int hashCode(){
-    if (name==null) hre.System.Abort("name is null!");
+    if (name==null) hre.lang.System.Abort("name is null!");
     return name.hashCode();
   }
   

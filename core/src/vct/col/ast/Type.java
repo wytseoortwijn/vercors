@@ -4,7 +4,7 @@ package vct.col.ast;
 import java.util.*;
 
 import vct.col.ast.PrimitiveType.Sort;
-import static hre.System.*;
+import static hre.lang.System.*;
 
 /**
  * Subclass of ASTNode meant for holding all type expressions.

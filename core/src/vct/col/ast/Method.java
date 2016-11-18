@@ -8,8 +8,8 @@ import java.util.*;
 import vct.col.ast.PrimitiveType.Sort;
 import vct.col.rewrite.MultiSubstitution;
 import vct.util.ClassName;
-import static hre.System.Abort;
-import static hre.System.Debug;
+import static hre.lang.System.Abort;
+import static hre.lang.System.Debug;
 
 /**
  * Method Declaration.

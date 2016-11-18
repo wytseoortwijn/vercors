@@ -1,15 +1,13 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 package vct.col.print;
 
-import hre.HREError;
 import hre.ast.MessageOrigin;
 import hre.ast.Origin;
 import hre.ast.TrackingOutput;
-
-
+import hre.lang.HREError;
 import vct.col.ast.*;
 import vct.col.syntax.Syntax;
-import static hre.System.*;
+import static hre.lang.System.*;
 
 /**
  * This class contains the generic code for pretty printing expressions

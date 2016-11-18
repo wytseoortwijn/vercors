@@ -3,7 +3,8 @@ package vct.col.util;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import static hre.System.Debug;
+
+import static hre.lang.System.Debug;
 
 public class ClassDefinition extends AnyDefinition {
 

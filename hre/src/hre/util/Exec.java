@@ -1,4 +1,6 @@
-package hre;
+package hre.util;
+
+import hre.lang.HREError;
 
 import java.io.File;
 import java.io.IOException;
@@ -61,7 +63,7 @@ public class Exec {
       }
       return exitcode;
     } catch (InterruptedException e){
-      hre.System.Warning("interrupted!");
+      hre.lang.System.Warning("interrupted!");
       process.destroy();
       return -1;
     }

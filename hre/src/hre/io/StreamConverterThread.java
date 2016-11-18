@@ -32,7 +32,7 @@ public class StreamConverterThread extends Thread {
         line=in.readLine();
         // if end-of-file exit loop;
         if (line==null) break;
-        hre.System.Debug("got: "+format,line);
+        hre.lang.System.Debug("got: "+format,line);
         queue.add(new Message(format,line));
       }
       in.close();

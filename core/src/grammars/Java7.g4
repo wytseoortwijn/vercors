@@ -41,7 +41,7 @@
 grammar Java7;
 
 @header {
-package vct.parsers;
+package vct.antlr4.generated;
 }
 
 // starting point for parsing a java file

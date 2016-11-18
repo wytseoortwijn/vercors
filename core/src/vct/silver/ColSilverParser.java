@@ -1,10 +1,11 @@
 package vct.silver;
 
-import hre.HREError;
 import hre.ast.MessageOrigin;
 import hre.ast.Origin;
+import hre.lang.HREError;
 
 import java.io.File;
+
 import vct.col.ast.ASTClass;
 import vct.col.ast.ASTNode;
 import vct.col.ast.DeclarationStatement;

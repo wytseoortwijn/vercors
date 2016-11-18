@@ -1,7 +1,8 @@
 package vct.util;
 
 import java.util.Arrays;
-import static hre.System.Abort;
+
+import static hre.lang.System.Abort;
 
 public class ClassName {
 

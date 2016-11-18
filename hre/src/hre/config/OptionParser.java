@@ -6,7 +6,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import static hre.System.*;
+import static hre.lang.System.*;
 
 /**
  * This class implements a simple options parser.

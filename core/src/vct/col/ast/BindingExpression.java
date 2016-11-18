@@ -3,7 +3,7 @@ package vct.col.ast;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import static hre.System.Abort;
+import static hre.lang.System.Abort;
 
 public class BindingExpression extends ExpressionNode {
 

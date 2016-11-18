@@ -3,11 +3,11 @@
 package vct.col.syntax;
 
 import hre.ast.TrackingOutput;
+import hre.lang.HREError;
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTReserved;
 import vct.col.print.JavaPrinter;
 import vct.col.rewrite.Parenthesize;
-import hre.HREError;
 import static vct.col.ast.StandardOperator.*;
 import static vct.col.ast.PrimitiveType.Sort.*;
 import static vct.col.ast.ASTReserved.*;

@@ -1,8 +1,8 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 package vct.col.ast;
 
-import hre.HREError;
 import hre.ast.MessageOrigin;
+import hre.lang.HREError;
 import vct.col.util.ASTUtils;
 
 public class LoopStatement extends ASTNode implements BeforeAfterAnnotations {
