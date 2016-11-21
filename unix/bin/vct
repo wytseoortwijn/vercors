@@ -12,7 +12,7 @@ function f() {
 }
 
 case `uname -s` in
-MINGW64_NT-6.1)
+MINGW*)
 SEP=";"
 VCT_HOME=`f`
 ;;
