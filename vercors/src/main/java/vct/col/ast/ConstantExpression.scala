@@ -52,11 +52,9 @@ class ConstantExpression(val value:Value) extends ASTNode {
     setOrigin(origin)
   }
   
-  /** Even though {@code value} is immutable, the other existing Java classes may still use {@code getValue}. */
   def getValue() : Value = value
-  
   override def equals(o:Any) : Boolean = value.equals(o)
-  override def isConstant(o:Object) : Boolean = equals(o)
+  override def isConstant(o:Any) : Boolean = equals(o)
   override def toString() : String = value.toString()
   
   private def handle_throwable(t:Throwable) = {
