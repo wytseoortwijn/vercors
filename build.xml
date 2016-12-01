@@ -12,6 +12,11 @@
     <os family="windows" />
   </condition>  
 
+  <condition property="sbtbuild" value="assembly"
+                                    else="packCopyDependencies">
+    <os family="windows" />
+  </condition>  
+
 	<property name="dist"         value="${basedir}/dist"/>
   <property environment="env"/>
 
@@ -56,7 +61,7 @@
     <ant antfile="build.xml" dir="${basedir}/viper/viper-api" inheritAll="false" target="compile"/>
     <ant antfile="build.xml" dir="${basedir}/hre" inheritAll="false" target="compile"/>
     <ant antfile="build.xml" dir="${basedir}/parsers" inheritAll="false" target="compile"/>
-    <exec dir="${basedir}/vercors" executable="${sbtcommand}"> <arg value="packCopyDependencies" /> </exec>
+    <exec dir="${basedir}/vercors" executable="${sbtcommand}"> <arg value="${sbtbuild}" /> </exec>
     <exec dir="${basedir}/viper/silver" executable="${sbtcommand}"> <arg value="compile" /> </exec>
     <exec dir="${basedir}/viper/silicon" executable="${sbtcommand}"> <arg value="assembly" /> </exec>
     <exec dir="${basedir}/viper/carbon" executable="${sbtcommand}"> <arg value="assembly" /> </exec>

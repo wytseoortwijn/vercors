@@ -46,3 +46,7 @@ sourceGenerators in Compile <+= sourceManaged in Compile map { dir =>
   IO.write(file, """object Test extends App { println("Hi") }""")
   Seq(file)
 }
+
+
+
+
