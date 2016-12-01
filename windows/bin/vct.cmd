@@ -14,7 +14,7 @@ set VCT_HOME=%~dp0..\..\
 rem Create class path with run time libraries
 
 set VCT_PATH=%VCT_HOME%\hre\bin
-set VCT_PATH=%VCT_HOME%\parsers\bin
+set VCT_PATH=%VCT_PATH%;%VCT_HOME%\parsers\bin
 set VCT_PATH=%VCT_PATH%;%VCT_HOME%\viper\viper-api\bin
 set VCT_PATH=%VCT_PATH%;%VCT_HOME%\vercors\target\scala-2.11\classes
 set VCT_PATH=%VCT_PATH%;%VCT_HOME%\vercors\target\lib\*
