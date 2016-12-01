@@ -1314,7 +1314,7 @@ public class JavaPrinter extends AbstractPrinter {
   
   public void visit(ConstantExpression ce){
     //if (!in_expr) Abort("constant %s outside of expression for %s",ce,ce.getOrigin());
-    if (ce.value instanceof StringValue){
+    if (ce.getValue() instanceof StringValue){
       out.print("\""+StringEscapeUtils.escapeJava(ce.toString())+"\"");
     } else {
       out.print(ce.toString());
