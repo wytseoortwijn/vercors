@@ -11,6 +11,8 @@ package vct.antlr4.generated;
   public final static int LINEDIRECTION=Integer.MAX_VALUE;
 }
 
+Identifier : ID ;
+
 expression : expr ;
 
 program  : (claz|kernel|block|field|method_decl)* (block)? ;
