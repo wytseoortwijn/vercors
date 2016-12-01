@@ -35,7 +35,7 @@ public class ASTUtils {
     } else {
       if (n instanceof ConstantExpression){
         ConstantExpression ce=(ConstantExpression)n;
-        if (ce.getValue() instanceof BooleanValue && ((BooleanValue)ce.getValue()).value){
+        if (ce.getValue() instanceof BooleanValue && ((BooleanValue)ce.getValue()).getValue()){
           // skip true.
           return;
         }

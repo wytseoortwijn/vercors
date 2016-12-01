@@ -57,7 +57,7 @@ public class SilverExpressionMap<T,E> implements ASTMapping<E>{
         return create.Constant(e.getOrigin(),v);
       }
     } else if (e.getValue() instanceof BooleanValue) {
-      return create.Constant(e.getOrigin(),((BooleanValue)e.getValue()).value);
+      return create.Constant(e.getOrigin(),((BooleanValue)e.getValue()).getValue());
     } else {
       throw new HREError("cannot map constant value %s",e.getValue().getClass());
     }
