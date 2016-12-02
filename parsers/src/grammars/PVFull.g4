@@ -11,8 +11,6 @@ package vct.antlr4.generated;
   public final static int LINEDIRECTION=Integer.MAX_VALUE;
 }
 
-Identifier : ID ;
-
 expression : expr ;
 
 program  : (claz|kernel|block|field|method_decl)* (block)? ;
@@ -155,9 +153,9 @@ typeArgs : '<' expr (',' expr)* '>';
 
 CONTAINER : 'seq' | 'set' | 'bag' ;
 
-identifier : ID | valReserved ;
+identifier : Identifier | valReserved ;
 
-ID  : ('a'..'z'|'A'..'Z') ('a'..'z'|'A'..'Z'|'0'..'9'|'_')*;
+Identifier  : ('a'..'z'|'A'..'Z') ('a'..'z'|'A'..'Z'|'0'..'9'|'_')*;
 NUMBER : ('0'..'9')+;
 
 COMMENT : '/*' .*? '*/' -> channel(COMMENT) ;

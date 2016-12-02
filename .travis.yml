@@ -35,7 +35,9 @@ addons:
 script:
  - ant compile
 # - ant dist 
- - vct --exclude-suite=slow,medium,problem-fail,skip-travis --test="",$TRAVIS_BUILD_DIR/examples
+ - vct --test=""
+ - vct --silicon $TRAVIS_BUILD_DIR/examples/fibonacci.pvl
+ - vct --exclude-suite=slow,medium,problem-fail,skip-travis --test=$TRAVIS_BUILD_DIR/examples
 
 #deploy:
 #  provider: releases
