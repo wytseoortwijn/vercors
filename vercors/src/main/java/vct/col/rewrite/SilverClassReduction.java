@@ -76,17 +76,26 @@ public class SilverClassReduction extends AbstractRewriter {
   
   @Override
   public void visit(PrimitiveType t){
-    if (t.isPrimitive(Sort.Cell)){
+    switch(t.sort){
+    case Cell:
       ref_items.add((Type)rewrite(t.getArg(0)));
       result=ref_type;
-    } else if (t.isPrimitive(Sort.Option)){
+      break;
+    case Float:
+      result=create.class_type("VCTFloat");
+      break;
+    case Option:
+    {
       options=true;
       ASTNode args[]=rewrite(((PrimitiveType)t).getArgs());
       args[0].addLabel(create.label("T"));
       result=create.class_type("VCTOption",args);
-    } else {
-      super.visit(t);
+      break;
     }
+    default:
+      super.visit(t);
+      break;
+    }    
   }
   
   @Override
@@ -135,6 +144,22 @@ public class SilverClassReduction extends AbstractRewriter {
   @Override
   public void visit(OperatorExpression e){
     switch(e.getOperator()){
+    case FoldPlus:{
+      if (e.getType().isPrimitive(Sort.Float)){
+        result=create.domain_call("VCTFloat", "fsum", rewrite(e.getArguments()));
+      } else {
+        Fail("cannot do a summation of type %s",e.getType()); 
+      }
+      break;      
+    }
+    case Plus:{
+      if (e.getType().isPrimitive(Sort.Float)){
+        result=create.domain_call("VCTFloat", "fadd", rewrite(e.getArguments()));
+      } else {
+        super.visit(e); 
+      }
+      break;
+    }
     case OptionSome:{
       options=true;
       Type t=rewrite(e.getType());
@@ -165,15 +190,24 @@ public class SilverClassReduction extends AbstractRewriter {
       break;
     }
     case Cast:{
+      Type t0=e.getArg(1).getType();
       ASTNode object=rewrite(e.getArg(1));
       Type t=(Type)e.getArg(0);
-      ASTNode condition=create.invokation(null, null,"instanceof",
-          create.domain_call("TYPE","type_of",object),
-          //create.invokation(null,null,"type_of",object));
-          create.domain_call("TYPE","class_"+t));
-          
-      ASTNode illegal=create.dereference(object,ILLEGAL_CAST);
-      result=create.expression(StandardOperator.ITE,condition,object,illegal);
+      if (t.isPrimitive(Sort.Float)){
+        if (t0.isPrimitive(Sort.Integer)){
+          result=create.domain_call("VCTFloat","ffromint",object);
+        } else {
+          Fail("cannot convert %s to float yet.",t0);
+        }
+      } else {
+        ASTNode condition=create.invokation(null, null,"instanceof",
+            create.domain_call("TYPE","type_of",object),
+            //create.invokation(null,null,"type_of",object));
+            create.domain_call("TYPE","class_"+t));
+            
+        ASTNode illegal=create.dereference(object,ILLEGAL_CAST);
+        result=create.expression(StandardOperator.ITE,condition,object,illegal);
+      }
       break;
     }
     default:
