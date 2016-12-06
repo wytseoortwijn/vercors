@@ -10,4 +10,6 @@ class Testcase {
   public HashSet<Path> files=new HashSet<Path>();
   public String verdict="Pass";
   public HashSet<String> suites=new HashSet<String>();
+  public HashSet<String> pass_methods=new HashSet<String>();
+  public HashSet<String> fail_methods=new HashSet<String>();
 }

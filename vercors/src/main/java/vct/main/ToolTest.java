@@ -8,6 +8,7 @@ import hre.util.TestReport.Verdict;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashSet;
 
 import vct.silver.SilverBackend;
 import vct.util.Configuration;
@@ -165,6 +166,19 @@ public class ToolTest {
       if (((String)msg.getArg(0)).contains("The final verdict is Fail")){
         if (res.verdict!=null && res.verdict != Verdict.Fail) fail(res,"inconsistent repeated verdict ("+res.verdict+")");
         else res.verdict=Verdict.Fail;
+      }
+      if (((String)msg.getArg(0)).startsWith("method verdict")){
+        String line[]=((String)msg.getArg(0)).split(" ");
+        switch(line[3]){
+        case "PASS":
+          res.pass_methods.add(line[2]);
+          break;
+        case "FAIL":
+          res.fail_methods.add(line[2]);
+          break;
+        default:
+          fail(res,"bad method verdict");
+        }
       }
     }
     if (res.verdict==null) fail(res,"missing verdict");

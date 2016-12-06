@@ -1,10 +1,9 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 //:: cases Incr
 //:: tools chalice silicon
-//:: verdict Fail
-/* vct --chalice Incr.java
-   Should complain about incr_n_badinv and no other method.
-*/
+//:: pass Incr__incr_n_ok Incr__incr_ok
+//:: fail Incr__incr_n_badinv
+
 class Incr {
   int val;
   

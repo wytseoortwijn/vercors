@@ -244,8 +244,31 @@ public class CommandLineTesting {
           tr.res.verdict=Verdict.Error;
         }
         if (tr.res.verdict.toString().equals(tr.test.verdict)){
-          System.err.printf("%4d %s/%s: Pass %n",submitted,tr.name,tr.tool);
-          successes++;
+          boolean ok=true;
+          for(String method:tr.test.pass_methods){
+            if (!tr.res.pass_methods.contains(method)){
+              failures.put(tr.name+"/"+tr.tool+"/"+method,String.format(
+                "method did not pass"));
+              ok=false;
+            }
+          }
+          for(String method:tr.test.fail_methods){
+            if (!tr.res.fail_methods.contains(method)){
+              failures.put(tr.name+"/"+tr.tool+"/"+method,String.format(
+                  "method did not fail"));
+              ok=false;
+            }
+          }
+          if (ok) {
+            System.err.printf("%4d %s/%s: Pass %n",submitted,tr.name,tr.tool);
+            successes++;
+          } else {
+            System.err.printf("%4d %s/%s: Fail (method list) %n ",submitted,tr.name,tr.tool);
+            for(String s:tr.command){
+              System.err.printf(" %s",s);
+            }
+            System.err.println();           
+          }
         } else {
           System.err.printf("%4d %s/%s: Fail (%s/%s) %n ",submitted,tr.name,tr.tool,tr.res.verdict,tr.test.verdict);
           for(String s:tr.command){

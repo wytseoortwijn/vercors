@@ -3,41 +3,10 @@
 //:: tool silicon
 //:: option --check-history --skip bad1,bad2,bad3,bad4,bad5,bad6,bad7
 
-//:: case TestFuturePermsE1
+//:: case TestFuturePermsErr
 //:: tool silicon
-//:: verdict Fail
-//:: option --check-history --skip bad2,bad3,bad4,bad5,bad6,bad7
-
-//:: case TestFuturePermsE2
-//:: tool silicon
-//:: verdict Fail
-//:: option --check-history --skip bad1,bad3,bad4,bad5,bad6,bad7
-
-//:: case TestFuturePermsE3
-//:: tool silicon
-//:: verdict Fail
-//:: option --check-history --skip bad1,bad2,bad4,bad5,bad6,bad7
-
-//:: case TestFuturePermsE4
-//:: tool silicon
-//:: verdict Fail
-//:: option --check-history --skip bad1,bad2,bad3,bad5,bad6,bad7
-
-//:: case TestFuturePermsE5
-//:: tool silicon
-//:: verdict Fail
-//:: option --check-history --skip bad1,bad2,bad3,bad4,bad6,bad7
-
-//:: case TestFuturePermsE6
-//:: tool silicon
-//:: verdict Fail
-//:: option --check-history --skip bad1,bad2,bad3,bad4,bad5,bad7
-
-//:: case TestFuturePermsE7
-//:: tool silicon
-//:: verdict Fail
-//:: option --check-history --skip bad1,bad2,bad3,bad4,bad5,bad6
-
+//:: option --check-history
+//:: fail Test__bad1 Test__bad2 Test__bad3 Test__bad4 Test__bad5 Test__bad6 Test__bad7
 
 class Future {
   int x;
