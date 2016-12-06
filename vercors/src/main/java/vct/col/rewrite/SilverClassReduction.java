@@ -71,6 +71,8 @@ public class SilverClassReduction extends AbstractRewriter {
   
   private boolean options=false;
   
+  private boolean floats=false;
+  
   private AtomicInteger option_count=new AtomicInteger();
   private HashMap<Type,String> option_get=new HashMap<Type,String>();
   
@@ -82,6 +84,7 @@ public class SilverClassReduction extends AbstractRewriter {
       result=ref_type;
       break;
     case Float:
+      floats=true;
       result=create.class_type("VCTFloat");
       break;
     case Option:
@@ -271,12 +274,21 @@ public class SilverClassReduction extends AbstractRewriter {
       String s=t.toString();
       ref_class.add_dynamic(create.field_decl(s+SEP+"item",t));
     }
-    if (options){
+    if (options || floats){
       File file=new File(new File(Configuration.getHome().toFile(),"config"),"prelude.sil");
       ProgramUnit prelude=Parsers.getParser("sil").parse(file);
       for(ASTNode n:prelude){
-        if (n instanceof ASTClass) continue;
-        res.add(n);
+        if (n instanceof AxiomaticDataType){
+          AxiomaticDataType adt=(AxiomaticDataType)n;
+          switch(adt.name){
+          case "VCTOption":
+            if (options) res.add(n);
+            break;
+          case "VCTFloat":
+            if (floats) res.add(n);
+            break;
+          }
+        }
       }
       for(Entry<Type,String> entry:option_get.entrySet()){
         create.enter();
