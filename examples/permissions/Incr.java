@@ -1,6 +1,10 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
-//:: cases Incr
-//:: tools chalice silicon
+//:: case IncrChalice
+//:: tools chalice
+//:: verdict Fail
+
+//:: case IncrSilicon
+//:: tools silicon
 //:: pass Incr__incr_n_ok Incr__incr_ok
 //:: fail Incr__incr_n_badinv
 
