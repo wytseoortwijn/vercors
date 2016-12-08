@@ -8,7 +8,6 @@ import hre.util.TestReport.Verdict;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashSet;
 
 import vct.silver.SilverBackend;
 import vct.util.Configuration;
