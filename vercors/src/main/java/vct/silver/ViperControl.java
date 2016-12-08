@@ -86,6 +86,7 @@ public class ViperControl implements VerificationControl<Origin> {
     report.result(true,origin);
     String m=origin2method.get(origin);
     if (m!=null){
+      origin.report("result","pass");
       verified_methods.add(m);
     } else {
       hre.lang.System.Warning("failed to map origin %s to method",origin);
@@ -97,6 +98,7 @@ public class ViperControl implements VerificationControl<Origin> {
     report.result(false,origin);
     String m=origin2method.get(origin);
     if (m!=null){
+      origin.report("result","fail");
       failed_methods.add(m);
     } else {
       hre.lang.System.Warning("failed to map origin %s to method",origin);

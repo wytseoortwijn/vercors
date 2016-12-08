@@ -17,7 +17,7 @@ public class FileOrigin extends Origin {
   public int linesAfter=2;
   
 
-  private void do_result(String result) {
+  private void do_mark(String result) {
     String file=getName();
     FileContext fc=data.get(file);
     if (fc==null) return;
@@ -51,8 +51,19 @@ public class FileOrigin extends Origin {
   }
   
   public synchronized void report(String level, String ... message) {
+    if (level.equals("mark")){
+      do_mark(message[0]);
+      return;
+    }
     if (level.equals("result")){
-      do_result(message[0]);
+      switch(message[0]){
+      case "pass":
+        do_mark("green");
+        break;
+      case "fail":
+        do_mark("red");
+        break;
+      }
       return;
     }
     printContext(System.out, linesBefore,linesAfter);     

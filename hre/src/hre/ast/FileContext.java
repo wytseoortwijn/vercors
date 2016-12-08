@@ -140,10 +140,11 @@ public class FileContext {
 
   public void mark(FileOrigin o, String result) {
     if (gui!=null){
-      Color color=Color.lightGray;
+      Color color;
       switch(result){
-      case "pass": color=Color.green; break;
-      case "fail": color=Color.red; break;
+      case "green": color=Color.green; break;
+      case "red": color=Color.red; break;
+      default : color=Color.white; break;
       }
       final StyleContext cont = StyleContext.getDefaultStyleContext();
       final AttributeSet attr = cont.addAttribute(cont.getEmptySet(), StyleConstants.Background, color);
