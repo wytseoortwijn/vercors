@@ -410,9 +410,9 @@ class PredicateClassGenerator extends AbstractRewriter {
       boolean non_true=true;
       if (body instanceof ConstantExpression){
         ConstantExpression e= (ConstantExpression)body;
-        if (e.value instanceof BooleanValue){
-          BooleanValue b=(BooleanValue)e.value;
-          non_true=!b.value;
+        if (e.getValue() instanceof BooleanValue){
+          BooleanValue b=(BooleanValue)e.getValue();
+          non_true=!b.getValue();
         }
       }
       if (non_true) valid_body.add(rewrite(m.getBody()));
