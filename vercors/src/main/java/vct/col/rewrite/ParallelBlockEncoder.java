@@ -497,7 +497,7 @@ public class ParallelBlockEncoder extends AbstractRewriter {
   
   private int ConstantExpToInt(ConstantExpression e)
   { 
-    return ((IntegerValue)e.value).value;         
+    return ((IntegerValue)e.getValue()).getValue();         
     
   }  
   private boolean sidecondition_check(ASTSpecial e)  {
@@ -990,8 +990,8 @@ public class ParallelBlockEncoder extends AbstractRewriter {
   }
   
   private int getConstant(ASTNode arg) {
-    IntegerValue v=(IntegerValue)((ConstantExpression)arg).value;
-    return v.value;
+    IntegerValue v=(IntegerValue)((ConstantExpression)arg).getValue();
+    return v.getValue();
   }
 
   @Override
