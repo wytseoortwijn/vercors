@@ -181,7 +181,7 @@ public class Configuration {
     if (!module_deps.toFile().isDirectory()){
       module_deps=home.getParent().getParent().resolve(Paths.get("modules"));
       if (!module_deps.toFile().isDirectory()){
-        hre.lang.System.Fail("dependency modules not found");
+        hre.lang.System.Warning("dependency modules not found");
       }
     }
     tool_home=module_deps.getParent();

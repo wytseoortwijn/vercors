@@ -46,6 +46,8 @@ class DefaultTypeModule(val verifier: Verifier) extends TypeModule with Stateles
         TypeVar(name)
       case t@sil.DomainType(_, _) =>
         translateDomainTyp(t)
+      case _ =>
+        sys.error("unexpected type");
     }
   }
 }

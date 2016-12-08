@@ -4,6 +4,7 @@ import hre.io.Message;
 import hre.util.TestReport.Verdict;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 
@@ -23,4 +24,6 @@ class VCTResult {
   public void checkVerdict(Verdict res){
     if (verdict != res) System.err.println("bad result : "+verdict);
   }
+  public final HashSet<String> pass_methods=new HashSet<String>();
+  public final HashSet<String> fail_methods=new HashSet<String>();
 }

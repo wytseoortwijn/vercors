@@ -422,6 +422,8 @@ case class Translator(program: PProgram) {
           case loc@PredicateAccessPredicate(inner, args) => CurrentPerm(inner.asInstanceOf[LocationAccess])(pos)
           case x: FieldAccess => CurrentPerm(x.asInstanceOf[LocationAccess])(pos)
           case x: PredicateAccess => CurrentPerm(x.asInstanceOf[LocationAccess])(pos)
+          case _ =>
+            sys.error("unexpected location")
         }
       }
       case PNoPerm() =>

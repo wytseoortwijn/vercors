@@ -110,6 +110,23 @@ public class TestcaseVisitor extends SimpleFileVisitor<Path>{
                   }
                 }
                 break;
+              case "pass":
+                for(int i=1;i<cmds.length;i++) {
+                  for(String test:cases){
+                    Testcase tc=testsuite.get(test);
+                    tc.pass_methods.add(cmds[i]);
+                  }                  
+                }
+                break;
+              case "fail":
+                for(int i=1;i<cmds.length;i++) {
+                  for(String test:cases){
+                    Testcase tc=testsuite.get(test);
+                    tc.fail_methods.add(cmds[i]);
+                    tc.verdict="Fail";
+                  }                  
+                }
+                break;
               default:
                 System.err.printf("ignoring %s in %s: %s%n",cmds[0],file,line);
               }

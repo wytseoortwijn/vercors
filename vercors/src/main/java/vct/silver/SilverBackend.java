@@ -144,19 +144,21 @@ public class SilverBackend {
         }
       }
       HashSet<Origin> accounted=new HashSet<Origin>();
-      //System.err.printf("verified methods: %n");
+      Configuration.detailed_errors.get();
       for(String method:control.verified_methods){
-        //System.err.printf("  %s%n",method);
+        boolean pass=true;
         for(Origin o:vercors.refuted.get(method)){
           if(!reachable.contains(o)){
             log.exception(new HREException("%s: unreachable",o));
+            pass=false;
           } else {
             accounted.add(o);
           }
         }
+        System.err.printf("method verdict %s %s%n",method,pass?"PASS":"FAIL");
       }
       for(String method:control.failed_methods){
-        //System.err.printf("  %s%n",method);
+        System.err.printf("method verdict %s FAIL%n",method);
         for(Origin o:vercors.refuted.get(method)){
           accounted.add(o);
         }
