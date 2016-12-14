@@ -6,6 +6,6 @@
 [subrepo]
 	remote = git@bitbucket.org:vercors/silver-git.git
 	branch = vercors
-	commit = 8cf0e54e01bd996392c68eadd33bc74e2f01887a
-	parent = 9617f3e97854183241ef70638713fb6fa51aea63
+	commit = 0610d7ed3ca97c28b3dd0cc772a9801dc1d1bb36
+	parent = 746a71f1836e7c87b2da49171b9dab3db3e1e5fa
 	cmdver = 0.3.0
