@@ -6,6 +6,6 @@
 [subrepo]
 	remote = git@bitbucket.org:vercors/silicon-git.git
 	branch = vercors
-	commit = 3c6db6fed9d4db1671d9d4ae511e04332fc77e7b
-	parent = fe382721bfbc3d071206114ab97b18ee25af0a0b
+	commit = 35813b83ba51863f439d5411f7e6a913c649c2ec
+	parent = 5b63f68422fc8944e08c46569b8137b64ccb72ac
 	cmdver = 0.3.0
