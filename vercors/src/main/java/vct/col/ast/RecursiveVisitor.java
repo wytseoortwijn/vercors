@@ -86,8 +86,8 @@ public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
   }
   @Override
   public void visit(TypeExpression t) {
-    for(int i=0;i<t.types.length;i++){
-      t.types[i].accept(this);
+    for(int i = 0; i < t.nrOfTypes(); i++) {
+      t.getType(i).accept(this);
     }
   }
   @Override

@@ -745,7 +745,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   
   @Override
   public void visit(TypeExpression t){
-    result=create.type_expression(t.op,rewrite(t.types));
+    result = create.type_expression(t.getOp(), rewrite(t.getTypes()));
   }
   
   @Override
