@@ -83,6 +83,7 @@ public class SilverClassReduction extends AbstractRewriter {
       ref_items.add((Type)rewrite(t.getArg(0)));
       result=ref_type;
       break;
+    case Double:
     case Float:
       floats=true;
       result=create.class_type("VCTFloat");

@@ -32,6 +32,7 @@ import vct.col.ast.ContractBuilder;
 import vct.col.ast.DeclarationStatement;
 import vct.col.ast.NameExpression;
 import vct.col.ast.PrimitiveType;
+import vct.col.ast.PrimitiveType.Sort;
 import vct.col.ast.StandardOperator;
 import vct.col.ast.Type;
 import vct.col.ast.VariableDeclaration;
@@ -929,6 +930,18 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
     throw new HREError("found %s instead of block",convert.getClass());
   }
 
+  public Type getValType(ParserRuleContext ctx){
+    if (match(ctx,"Identifier","TypeArgs")){
+      String id=getIdentifier(ctx,0);
+      ASTNode args[]=convert_list(ctx.getChild(1),"<",",",">");
+      switch(id){
+        case "seq": return create.primitive_type(Sort.Sequence, args);
+        default: break;
+      }
+    }
+    System.err.printf("NO MATCH%n%s%n",ctx.toStringTree(parser));
+    return null;
+  }
 
   public ASTNode getValPrimary(ParserRuleContext ctx){
     int N=ctx.getChildCount();

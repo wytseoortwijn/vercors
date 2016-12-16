@@ -814,7 +814,7 @@ public class ParallelBlockEncoder extends AbstractRewriter {
         body_cb.requires(create.expression(StandardOperator.PointsTo,
             copy_rw.rewrite(expr.getArg(0)),
             create.reserved_name(ASTReserved.FullPerm),
-            create.constant(0)
+            create.expression(StandardOperator.Cast,expr.getArg(0).getType(),create.constant(0))
         ));
       } else if(is_a_quantified(clause,Binder.STAR,StandardOperator.ReducibleSum)){
         BindingExpression bclause=(BindingExpression)clause;

@@ -46,6 +46,10 @@ domain VCTFloat {
         ffromint(0)==zero()
     }
     
+    axiom zero_add {
+      forall f1 : VCTFloat :: fadd(f1,zero()) == f1
+    }
+    
     axiom single_sum {
       forall xs : Seq[VCTFloat], i:Int :: (0 <= i && i < |xs|) ==> (fsum(xs[i..i+1]) == xs[i])
     }
