@@ -42,7 +42,7 @@ public interface StatementFactory<O, T, E, S> {
   public S goto_(O o,String l);
   
   /** Create a target label for a goto statement. */
-  public S label(O o,String l);
+  public S label(O o, String l, List<E> invs);
 
   /** Create a block of statements. */
   public S block(O o,List<S> stats);
