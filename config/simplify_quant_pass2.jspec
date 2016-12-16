@@ -75,5 +75,11 @@ class simplify_quant_pass2 {
     (\let int i=0; r1) ** (\let int i=1; r1)
   }
 
+  axiom unfold_4 {
+    (\forall* int i; ( i \memberof ([ 0 .. 4 ))) ; r1)
+    ==
+    (\let int i=0; r1) ** (\let int i=1; r1) ** (\let int i=2; r1) ** (\let int i=3; r1)
+  }
+
 }
 

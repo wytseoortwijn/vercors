@@ -543,7 +543,8 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     
     
     switch(op){
-    case FoldPlus:{
+    case FoldPlus:
+    case FoldPlusRange:{
       Type t=e.getArg(0).getType();
       if (t.isPrimitive(Sort.Sequence)){
         t = (Type)((PrimitiveType) t).getArg(0);

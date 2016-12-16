@@ -27,6 +27,7 @@ domain VCTFloat {
     function ffromint(i:Int) : VCTFloat
     function float(ref:Ref): VCTFloat
     function fsum(xs: Seq[VCTFloat]): VCTFloat
+    function fsumrange(xs: Seq[VCTFloat],lo:Int,hi:Int): VCTFloat
     function fadd(f1 : VCTFloat,f2:VCTFloat):VCTFloat
     
     axiom commutative_add {
@@ -35,6 +36,10 @@ domain VCTFloat {
     
     axiom zero_sum {
         fsum(Seq[VCTFloat]())==zero()
+    }
+
+    axiom zero_sum_r {
+        forall xs : Seq[VCTFloat], i:Int :: fsumrange(xs,i,i) == zero()
     }
 
     axiom zero_int {
@@ -52,5 +57,11 @@ domain VCTFloat {
     axiom append_sum {
       forall xs : Seq[VCTFloat], ys : Seq[VCTFloat] :: fsum(xs++ys) == fadd(fsum(xs),fsum(ys))
     }
+    
+    axiom extend_sum_r {
+      forall xs : Seq[VCTFloat], i:Int, j:Int ::
+        fsumrange(xs,i,j+1) == fadd(fsumrange(xs,i,j),xs[j])
+    }
+    
 }
 

@@ -98,7 +98,8 @@ public class VerCorsSyntax {
     syntax.addFunction(StandardOperator.ValidArray,"\\array");
     syntax.addFunction(StandardOperator.ValidMatrix,"\\matrix");
     
-    syntax.addFunction(StandardOperator.FoldPlus, "\\sum");
+    //syntax.addFunction(StandardOperator.FoldPlus, "\\sum");
+    syntax.addFunction(StandardOperator.FoldPlusRange, "\\sum");
 
   }
 

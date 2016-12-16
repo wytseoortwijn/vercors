@@ -155,6 +155,14 @@ public class SilverClassReduction extends AbstractRewriter {
       }
       break;      
     }
+    case FoldPlusRange:{
+      if (e.getType().isPrimitive(Sort.Float)){
+        result=create.domain_call("VCTFloat", "fsumrange", rewrite(e.getArguments()));
+      } else {
+        Fail("cannot do a summation of type %s",e.getType()); 
+      }
+      break;      
+    }
     case Plus:{
       if (e.getType().isPrimitive(Sort.Float)){
         result=create.domain_call("VCTFloat", "fadd", rewrite(e.getArguments()));

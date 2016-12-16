@@ -82,7 +82,8 @@ valPrimary
     | '\\typeof' '(' expression ')'
     | '\\matrix' '(' expression ',' expression ',' expression ')'
     | '\\array'  '(' expression ',' expression ')'
-    | '\\sum' '(' expression ')'
+//    | '\\sum' '(' expression ')'
+    | '\\sum' '(' expression ',' expression ',' expression ')'
     | 'Reducible' '(' expression ',' ('+' | Identifier ) ')'
     ;
 

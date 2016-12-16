@@ -280,7 +280,8 @@ public enum StandardOperator {
   /*
    * Summation over a sequence.
    */
-  FoldPlus(1)
+  FoldPlus(1),
+  FoldPlusRange(3)
   ;
 
   private final int arity;
