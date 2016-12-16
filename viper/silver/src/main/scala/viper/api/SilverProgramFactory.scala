@@ -197,7 +197,7 @@ class SilverProgramFactory[O,Err] extends ProgramFactory[O,Err,Type,Exp,Stmt,
        case If(c, s1, s2) => api.stat.if_then_else(o,
            map_expr(api,c),map_stat(api,s1),map_stat(api,s2))
        case Inhale(e) => api.stat.inhale(o,map_expr(api,e))
-       case Label(e) => api.stat.label(o,e)
+       case Label(e,invs:Seq[E2]) => api.stat.label(o,e,invs.asJava)
        case NewStmt(v, fs) => {
          val names=fs map {
            x => x.name

@@ -39,7 +39,7 @@ class SilverStatementFactory[O] extends StatementFactory[O,Type,Exp,Stmt] with F
   override def fold(o:O, e:Exp) : Stmt = Fold(e.asInstanceOf[PredicateAccessPredicate])(NoPosition,new OriginInfo(o))
   override def unfold(o:O, e:Exp) : Stmt = Unfold(e.asInstanceOf[PredicateAccessPredicate])(NoPosition,new OriginInfo(o))
   override def goto_(o:O, l:String) : Stmt = Goto(l)(NoPosition,new OriginInfo(o))
-  override def label(o:O, l:String) : Stmt = Label(l)(NoPosition,new OriginInfo(o))
+  override def label(o:O, l:String, invs:List[Exp]) : Stmt = Label(l, invs.asScala)(NoPosition, new OriginInfo(o))
   override def assignment(o:O,loc:Exp,v:Exp) : Stmt = {
     loc match {
         case l : FieldAccess =>
