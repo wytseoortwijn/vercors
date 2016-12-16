@@ -257,7 +257,7 @@ public class SilverStatementMap<T,E,S> implements ASTMapping<S>{
     case Goto:
       return create.goto_(special.getOrigin(),special.args[0].toString());
     case Label:
-      return create.label(special.getOrigin(),special.args[0].toString());
+      return create.label(special.getOrigin(),special.args[0].toString(), new ArrayList<E>());
     case Inhale:
       return create.inhale(special.getOrigin(),special.args[0].apply(expr));
     case Exhale:
