@@ -14,8 +14,6 @@ object CarbonBuild extends Build {
           dependencyClasspath in Compile += new File("../viper-api/bin"), /* add VerCors/Viper interface */
           libraryDependencies += "org.rogach" %% "scallop" % "0.9.5",
           libraryDependencies += "org.jgrapht" % "jgrapht-core" % "0.9.0"
-//          libraryDependencies += "com.googlecode.kiama" % "kiama_2.11" % "1.8.0"
-
        )
   )
 
