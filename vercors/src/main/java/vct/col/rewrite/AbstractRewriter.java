@@ -727,17 +727,17 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   public void visit(TryCatchBlock tcb){
     TryCatchBlock res=create.try_catch(rewrite(tcb.main),rewrite(tcb.after));
     for(CatchClause cc:tcb.catches){
-      pre_visit(cc.block);
+      pre_visit(cc.getBlock());
       BlockStatement tmp=currentBlock;
       currentBlock=new BlockStatement();
-      currentBlock.setOrigin(cc.block.getOrigin());
-      DeclarationStatement d=rewrite(cc.decl);
-      for(ASTNode S:cc.block){
+      currentBlock.setOrigin(cc.getBlock().getOrigin());
+      DeclarationStatement d=rewrite(cc.getDecl());
+      for(ASTNode S:cc.getBlock()){
         currentBlock.add(rewrite(S));
       }
       BlockStatement block=currentBlock;
       currentBlock=tmp;
-      post_visit(cc.block);
+      post_visit(cc.getBlock());
       res.catch_clause(d,block);
     }
     result=res;
