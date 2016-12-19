@@ -113,7 +113,7 @@ public class VerCorsStatementFactory implements
   }
 
   @Override
-  public ASTNode label(Origin o, String l) {
+  public ASTNode label(Origin o, String l, java.util.List<ASTNode> invs) {
     enter(o);
     ASTNode res=create.special(Kind.Label,create.label(l));
     leave();

@@ -6,6 +6,6 @@
 [subrepo]
 	remote = git@bitbucket.org:vercors/carbon-git.git
 	branch = vercors
-	commit = f157dfdda1438139fad8a5ff42d4f993dc273b8e
-	parent = d5bd5e1d24b2eaa2382f3b0f93d6edca13679e8d
+	commit = 0d55952c905f39e0effcba57bbe5cf5459e5f3e0
+	parent = 430a2d1ec5d942d2b5e32a95915881ad33efda2f
 	cmdver = 0.3.0
