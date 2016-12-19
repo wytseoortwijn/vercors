@@ -1,7 +1,8 @@
 package vct.col.ast
 
-class TypeExpression(val op:TypeOperator, val types:Array[Type]) extends Type {
+import vct.col.util.VisitorHelper
 
+class TypeExpression(val op:TypeOperator, val types:Array[Type]) extends Type with VisitorHelper {
   def this(op:TypeOperator, types:Type*) = this(op, types.toArray)
   
   def firstType() = types.head
@@ -15,14 +16,6 @@ class TypeExpression(val op:TypeOperator, val types:Array[Type]) extends Type {
       case TypeOperator.Local | TypeOperator.Global | TypeOperator.Long => types.head.isNumeric()
       case _ => false
     }
-  }
-  
-  private def handle_throwable(t:Throwable) = {
-    if (ASTNode.thrown.get() != t) {
-      System.err.printf("Triggered by %s:%n", getOrigin())
-      ASTNode.thrown.set(t)
-    }
-		throw t
   }
   
   override def supertypeof(context:ProgramUnit, t:Type) = false
