@@ -23,6 +23,8 @@ interface PPLProgram {
 
   boolean nowait();
 
+  boolean is_section();//@
+
 }
 
 class PPLCompose implements PPLProgram {
@@ -88,6 +90,11 @@ class PPLCompose implements PPLProgram {
   public boolean nowait() {
     return P1.nowait() && P2.nowait();
   }
+
+ @Override
+ public boolean is_section() {//$
+    return false;
+  }
   
 }
 
@@ -99,6 +106,7 @@ class PPLParallel implements PPLProgram {
   public final DeclarationStatement[] decls;
   public final BlockStatement body;
   public final int number;
+  private boolean isSection;//$
   
   public int fused=0;
   public Set<Integer> preds=new HashSet<Integer>();
@@ -109,6 +117,7 @@ class PPLParallel implements PPLProgram {
     this.body=body;
     this.contract=contract;
     number=count.incrementAndGet();
+    isSection=false;//$
   }
 
   @Override
@@ -119,6 +128,15 @@ class PPLParallel implements PPLProgram {
   @Override
   public boolean nowait() {
     return OMPoption.nowait(options);
+  }
+
+@Override
+ public boolean is_section() {
+    return isSection;
+  }
+
+  public void set_section() {
+    isSection=true;
   }
 
 }
@@ -440,8 +458,64 @@ public class OpenMPtoPVL extends AbstractRewriter {
         case Parallel:
           Fail("pragma omp parallel is not allowed at the task list level");
           continue;
-        default:
-          Abort("Cannot translate pragma: omp %s",pragma);
+	case Sections: //$
+          ASTNode src_block_sec[]=((BlockStatement)src_block[i+1]).getStatements(); 
+          for(int j=0;j<src_block_sec.length;j++){
+	     if (src_block_sec[j].isDeclaration(ASTSpecial.Kind.Pragma)){
+		String pragma_sec=((ASTSpecial)src_block_sec[j]).args[0].toString();
+                if (!pragma_sec.startsWith("omp")){
+	          Warning("ignoring statement %d",i);
+        	  continue;
+        	}
+              pragma_sec=pragma_sec.substring(3).trim();
+	      OMPpragma cmd=OMPParser.parse(pragma_sec);
+	      switch(cmd.kind) {
+		 case Section:     		 
+	         ContractBuilder cb=new ContractBuilder();
+                 j=j+1;
+                 while(j<src_block_sec.length && (src_block_sec[j] instanceof ASTSpecial)){
+		       ASTSpecial d=(ASTSpecial)src_block_sec[j];
+                       switch(d.kind){ //contract builder
+			case Requires:
+			  cb.requires(rewrite(d.args[0]));
+			  j++;
+			  continue;
+			case RequiresAndEnsures:
+			  cb.requires(rewrite(d.args[0]));
+			  cb.ensures(rewrite(d.args[0]));
+			  j++;
+			  continue;
+			case Ensures:
+			  cb.ensures(rewrite(d.args[0]));
+			  j++;
+			  continue;
+			case Comment:
+			  currentBlock.add(src_block_sec[j]);
+			  j++;
+			  continue;
+			case Pragma:
+			  String temp=((ASTSpecial)src_block_sec[j]).args[0].toString();
+			  if (!temp.startsWith("omp"))
+	    			Abort("unexpected pragma %s",temp);
+			  break;				
+			default:
+			  Abort("unexpected special %s",d.kind);
+		        }//swtich contract
+		        break;
+	           }//while		                         
+   		   PPLParallel PPLProg = new PPLParallel(cmd.options,rewrite(cb.getContract()),(BlockStatement)src_block_sec[j]);
+		   PPLProg.set_section();		
+      	           parts.add(PPLProg);		   
+                   continue;
+	         }//switch
+               }//if 
+	    }//for loop      	  
+	  continue;
+          case Section: 
+	       Abort("Orphan section!");
+	       continue;
+          default:
+               Abort("Cannot translate pragma: omp %s",pragma);
         }
       } else {
         Warning("ignoring statement %d",i);
@@ -451,7 +525,8 @@ public class OpenMPtoPVL extends AbstractRewriter {
     for(int i=0;i+1<parts.size();i++){
       PPLProgram P1=parts.get(i);
       PPLProgram P2=parts.get(i+1);
-      if (P1.static_schedule()&&P1.nowait()&&P2.static_schedule()){
+      if (P1.is_section() && P2.is_section()){op[i]=PPLOperator.Parallel;} //$
+      else if (P1.static_schedule()&&P1.nowait()&&P2.static_schedule()){
         op[i]=PPLOperator.Fuse;
       } else if (P1.nowait()){
         op[i]=PPLOperator.Parallel;
