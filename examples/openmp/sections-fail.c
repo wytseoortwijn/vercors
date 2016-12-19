@@ -1,10 +1,9 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
-//:: case OpenMPSection
-//:: suite puptol
+//:: case OpenMPSectionFail1
 //:: tools silicon
-//:: verdict pass
+//:: verdict fail
 /*
- * Demonstrates how two different section running in parallel to be 
+ * Demonstrates how two loops that must be fused to be 
  * data race free can be specified and verified.
  */
 #include <stdio.h>
@@ -68,7 +67,7 @@ void mul(int len,int a[],int b[],int d[]){
     #pragma omp for schedule(static) nowait
     for(int i=0;i<len;i++)
     /*@
-      context Perm(d[i],1) ** Perm(a[i],1/4);
+      context Perm(d[i],1) ** Perm(a[i],1/2);
       ensures d[i] == a[i];
     @*/
     {
