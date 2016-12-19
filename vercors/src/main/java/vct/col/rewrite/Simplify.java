@@ -22,8 +22,8 @@ public class Simplify extends AbstractRewriter {
   }
   
   public void visit(FieldAccess d){
-    if (d.object.isReserved(ASTReserved.This)){
-      result=create.local_name(d.name);
+    if (d.getObject().isReserved(ASTReserved.This)) {
+      result = create.local_name(d.getName());
     } else {
       super.visit(d);
     }
