@@ -2,7 +2,7 @@
 //:: case OpenMPSection
 //:: suite puptol
 //:: tools silicon
-//:: verdict pass
+//:: verdict Pass
 /*
  * Demonstrates how two different section running in parallel to be 
  * data race free can be specified and verified.

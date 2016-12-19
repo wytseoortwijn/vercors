@@ -1,7 +1,7 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 //:: case OpenMPSectionFail1
 //:: tools silicon
-//:: verdict fail
+//:: verdict Fail
 /*
  * Demonstrates how two loops that must be fused to be 
  * data race free can be specified and verified.
