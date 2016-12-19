@@ -61,9 +61,9 @@ public class JavaPrinter extends AbstractPrinter {
     for(CatchClause cb:tcb.catches){
       out.print("catch (");
       nextExpr();
-      cb.decl.accept(this);
+      cb.getDecl().accept(this);
       out.print(")");
-      cb.block.accept(this);
+      cb.getBlock().accept(this);
     }
     if (tcb.after!=null){
       out.print(" finally ");
@@ -902,7 +902,7 @@ public class JavaPrinter extends AbstractPrinter {
 
   public void visit(Lemma l){
       out.printf("/*@ lemma ");
-      l.block.accept(this);
+      l.getBlock().accept(this);
       out.lnprintf(" */");
   }
   
@@ -1344,19 +1344,19 @@ public class JavaPrinter extends AbstractPrinter {
   }
   
   @Override
-  public void visit(FieldAccess a){
+  public void visit(FieldAccess a) {
     setExpr();
-    if (a.value==null){
+    if (a.getValue() == null) {
       out.printf("((");
     }
-    if(a.object != null){
-      a.object.apply(this);
+    if (a.getObject() != null) {
+      a.getObject().apply(this);
       out.printf(".");
     }
-    out.printf("%s",a.name);
-    if(a.value!=null){
+    out.printf("%s", a.getName());
+    if (a.getValue() != null) {
       out.printf(" := ");
-      a.value.apply(this);
+      a.getValue().apply(this);
     } else {
       out.printf("))");
     }

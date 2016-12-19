@@ -74,41 +74,41 @@ public class AbstractPrinter extends AbstractVisitor<Object> {
 
   @Override
   public void visit(TypeExpression t){
-    switch(t.op){
+    switch(t.getOp()){
     case Extern:
       out.printf("extern ");
-      t.types[0].apply(this);
+      t.firstType().apply(this);
       break;
     case Static:
       out.printf("static ");
-      t.types[0].apply(this);
+      t.firstType().apply(this);
       break;
     case Const:
       out.printf("const ");
-      t.types[0].apply(this);
+      t.firstType().apply(this);
       break;
     case Kernel:
       out.printf("__kernel ");
-      t.types[0].apply(this);
+      t.firstType().apply(this);
       break;
     case Global:
       out.printf("__global ");
-      t.types[0].apply(this);
+      t.firstType().apply(this);
       break;
     case Local:
       out.printf("__local ");
-      t.types[0].apply(this);
+      t.firstType().apply(this);
       break;
     case Unsigned:
       out.printf("unsigned ");
-      t.types[0].apply(this);
+      t.firstType().apply(this);
       break;
     case PointerTo:
-      t.types[0].apply(this);
+      t.firstType().apply(this);
       out.printf("*");
       break;
     default:
-      throw new HREError("Missing case: %s",t.op);
+      throw new HREError("Missing case: %s",t.getOp());
     }
   }
   

@@ -366,7 +366,7 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
     do_args[0]=create.local_name("frac");
     do_args[1]=create.local_name("proc");
     for(int i=0;i<K;i++){
-      access_name[i]=((FieldAccess)c.accesses[i]).name+"_frac";
+      access_name[i]=((FieldAccess)c.accesses[i]).getName() + "_frac";
       do_args[2+i]=create.local_name(access_name[i]);
       args_short[2+i]=args_long[2+i]=create.field_decl(access_name[i],create.primitive_type(Sort.ZFraction));
     }
@@ -414,10 +414,10 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
       ContractBuilder commit_cb, HashMap<NameExpression, ASTNode> old_map,
       HashMap<NameExpression, ASTNode> new_map, ASTNode n,
       ASTNode frac) {
-    String name=((FieldAccess)n).name;
+    String name=((FieldAccess)n).getName();
     ASTNode nact=create.unresolved_name(name+"_hist_act");
-    ASTNode obj=((FieldAccess)n).object;
-    n=create.dereference(((FieldAccess)n).object, name+"_hist_value");
+    ASTNode obj=((FieldAccess)n).getObject();
+    n=create.dereference(((FieldAccess)n).getObject(), name + "_hist_value");
     old_map.put(create.field_name(name),create.unresolved_name(name+"_hist_act"));
     new_map.put(create.field_name(name),create.unresolved_name(name+"_hist_value"));
 
@@ -586,7 +586,7 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
       ASTNode arg=e.getArg(0);
       if (arg instanceof FieldAccess){
         FieldAccess fa=(FieldAccess)arg;
-        if (isFutureRef(fa.object) || isHistoryRef(fa.object)){
+        if (isFutureRef(fa.getObject()) || isHistoryRef(fa.getObject())){
           Abort("current permission on history/future field is unimplemented");
         }
       }
@@ -639,8 +639,8 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
       if (e.getArg(0)instanceof FieldAccess){
         FieldAccess f=(FieldAccess)e.getArg(0);
         ASTNode frac=rewrite(e.getArg(1));
-        if (isProcessRef(f.object)){
-          result=action_perm(rewrite(f.object),f.name,frac);
+        if (isProcessRef(f.getObject())){
+          result=action_perm(rewrite(f.getObject()), f.getName(), frac);
         } else {
           throw new HREError("APerm on non-history variable.");
         }
@@ -652,8 +652,8 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
       if (e.getArg(0)instanceof FieldAccess){
         FieldAccess f=(FieldAccess)e.getArg(0);
         ASTNode frac=rewrite(e.getArg(1));
-        if (isProcessRef(f.object)){
-          result=hist_perm(rewrite(f.object),f.name,frac);
+        if (isProcessRef(f.getObject())){
+          result=hist_perm(rewrite(f.getObject()) ,f.getName(), frac);
         } else {
           throw new HREError("HPerm on non-history variable.");
         }
@@ -665,10 +665,10 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
       if (e.getArg(0)instanceof FieldAccess){
         FieldAccess f=(FieldAccess)e.getArg(0);
         ASTNode frac=rewrite(e.getArg(1));
-        if (isProcessRef(f.object)){
-          result=free_perm(rewrite(f.object),f.name,frac);
+        if (isProcessRef(f.getObject())){
+          result=free_perm(rewrite(f.getObject()), f.getName(), frac);
         } else {
-          result=create.expression(Perm,create.dereference(rewrite(f.object),f.name),frac);
+          result=create.expression(Perm,create.dereference(rewrite(f.getObject()), f.getName()), frac);
         }
         return;
       }
@@ -677,10 +677,10 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
     case PointsTo:{
       if (e.getArg(0)instanceof FieldAccess){
         FieldAccess f=(FieldAccess)e.getArg(0);
-        if (isProcessRef(f.object)){
+        if (isProcessRef(f.getObject())){
           ASTNode frac=rewrite(e.getArg(1));
           ASTNode val=rewrite(e.getArg(2));
-          result=free_pointsto(rewrite(f.object),f.name,frac,val);
+          result=free_pointsto(rewrite(f.getObject()) ,f.getName(), frac,val);
           return;
         }
       }
@@ -744,7 +744,7 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
       args.add(rewrite(n));
     }
     if (ac.accesses!=null) for(ASTNode n:ac.accesses){
-      String name="f_"+((FieldAccess)n).name;
+      String name="f_"+((FieldAccess)n).getName();
       names.add(create.local_name(name));
       args.add(create.local_name(name));
       res.add(create.field_decl(name, create.primitive_type(Sort.Fraction)));
@@ -857,7 +857,7 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
       }
       @Override
       public void visit(FieldAccess d){
-        ASTNode n=map.get(d.name);
+        ASTNode n=map.get(d.getName());
         if (n==null){
           super.visit(d);
         } else {
@@ -877,8 +877,8 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
       }
       @Override
       public void visit(FieldAccess d){
-        ASTNode n=new_map.get(d.name);
-        Warning("name %s",d.name);
+        ASTNode n=new_map.get(d.getName());
+        Warning("name %s",d.getName());
         if (n==null){
           super.visit(d);
         } else {
@@ -939,16 +939,16 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
   
   @Override
   public void visit(FieldAccess a){
-    if (a.object!=null && a.object.getType()!=null && isProcessRef(a.object)){
-      if (a.value==null){
-        result=create.dereference(rewrite(a.object),a.name+"_hist_value");
+    if (a.getObject() != null && a.getObject().getType() != null && isProcessRef(a.getObject())) {
+      if (a.getValue() == null) {
+        result=create.dereference(rewrite(a.getObject()), a.getName() + "_hist_value");
       } else {
-        result=create.invokation(rewrite(a.object),null,"hist_set_"+a.name,rewrite(a.value));
+        result=create.invokation(rewrite(a.getObject()), null, "hist_set_" + a.getName(), rewrite(a.getValue()));
       }
     } else {
-      result=create.dereference(rewrite(a.object),a.name);
-      if (a.value!=null){
-        result=create.assignment(result,rewrite(a.value));
+      result=create.dereference(rewrite(a.getObject()), a.getName());
+      if (a.getValue() != null){
+        result=create.assignment(result, rewrite(a.getValue()));
       }
     }
   }

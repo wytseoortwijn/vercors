@@ -349,12 +349,12 @@ public class SilverStatementMap<T,E,S> implements ASTMapping<S>{
 
   @Override
   public S map(FieldAccess a) {
-    if (a.value==null){
+    if (a.getValue() == null) {
       throw new HREError("Field read expression in statement map.");
     } else {
-      ASTNode var=new Dereference(a.object,a.name);
+      ASTNode var = new Dereference(a.getObject(), a.getName());
       var.setOrigin(a);
-      return assignment(a.getOrigin(),var,a.value);
+      return assignment(a.getOrigin(), var, a.getValue());
     }
   }
 

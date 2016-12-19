@@ -2,6 +2,7 @@ package vct.col.ast
 
 import hre.ast.Origin
 import vct.col.ast.PrimitiveType.Sort
+import vct.col.util.VisitorHelper
 
 /**
  * AST node for wrapping constant values, e.g. integers, booleans, strings, doubles, and longs.
@@ -9,7 +10,8 @@ import vct.col.ast.PrimitiveType.Sort
  * @author sccblom, whmoortwijn
  * @param value The constant value that is wrapped by this node.
  */
-class ConstantExpression(val value:Value) extends ASTNode {
+class ConstantExpression(val value:Value) extends ASTNode with VisitorHelper {
+  def getValue() = value
   
   def this(v:Value, t:Type) = {
     this(v)
@@ -52,18 +54,10 @@ class ConstantExpression(val value:Value) extends ASTNode {
     setOrigin(origin)
   }
   
-  def getValue() : Value = value
   override def equals(o:Any) : Boolean = value.equals(o)
   override def isConstant(o:Any) : Boolean = equals(o)
   override def toString() : String = value.toString()
-  
-  private def handle_throwable(t:Throwable) = {
-    if (ASTNode.thrown.get() != t) {
-      System.err.printf("Triggered by %s:%n", getOrigin())
-      ASTNode.thrown.set(t)
-    }
-		throw t
-  }
+  override def accept_simple[T,A](map:ASTMapping1[T,A], arg:A) = map.map(this, arg)
     
   override def accept_simple[T](visitor:ASTVisitor[T]) = {
     try visitor.visit(this)
@@ -78,11 +72,7 @@ class ConstantExpression(val value:Value) extends ASTNode {
       case t:Throwable => handle_throwable(t)
     }
   }
-  
-  override def accept_simple[T,A](map:ASTMapping1[T,A], arg:A) : T = {
-    return map.map(this, arg)
-  }
-  
+
   override def `match`(ast:ASTNode) : Boolean = {
     ast match {
       case h:Hole => h.`match`(this)
