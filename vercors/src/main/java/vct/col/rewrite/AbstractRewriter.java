@@ -560,7 +560,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   
   @Override
   public void visit(Lemma l){
-    result=create.lemma(rewrite(l.block));
+    result = create.lemma(rewrite(l.getBlock()));
   }
   
   @Override

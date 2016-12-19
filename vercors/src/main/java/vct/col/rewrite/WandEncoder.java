@@ -204,10 +204,10 @@ public class WandEncoder extends AbstractRewriter {
 	AtomicInteger count=new AtomicInteger();
 	  	
 	public void visit(Lemma l){
-	  int N=l.block.size();
+	  int N=l.getBlock().size();
 	  WandUtil wand=null;
-	  if (l.block.get(N-1).isSpecial(Kind.QED)){
-	    ASTNode tmp=((ASTSpecial)l.block.get(N-1)).getArg(0);
+	  if (l.getBlock().get(N-1).isSpecial(Kind.QED)){
+	    ASTNode tmp=((ASTSpecial)l.getBlock().get(N-1)).getArg(0);
 	    if (tmp.isa(StandardOperator.Wand)){
 	      wand=new WandUtil((OperatorExpression)tmp);
 	    } else {
@@ -216,7 +216,7 @@ public class WandEncoder extends AbstractRewriter {
 	  } else {
 	    Fail("lemma does not end in qed.");
 	  }
-	  result=wand.generate_lemma(l.block);
+	  result=wand.generate_lemma(l.getBlock());
 	}
 	
 	private ASTClass wand_class;

@@ -902,7 +902,7 @@ public class JavaPrinter extends AbstractPrinter {
 
   public void visit(Lemma l){
       out.printf("/*@ lemma ");
-      l.block.accept(this);
+      l.getBlock().accept(this);
       out.lnprintf(" */");
   }
   

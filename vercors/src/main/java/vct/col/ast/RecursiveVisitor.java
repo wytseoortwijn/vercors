@@ -250,7 +250,7 @@ public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
   
   @Override
   public void visit(Lemma l){
-    l.block.accept(this);
+    l.getBlock().accept(this);
   }
   
   public void visit(ParallelAtomic pa){
