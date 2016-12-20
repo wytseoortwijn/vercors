@@ -14,7 +14,7 @@ public class ApplyOld extends AbstractRewriter {
   @Override
   public void visit(OperatorExpression e){
     if (e.isa(StandardOperator.Old)){
-      result=rw_old.rewrite(e.getArg(0));
+      result=rw_old.rewrite(e.arg(0));
     } else {
       super.visit(e);
     }

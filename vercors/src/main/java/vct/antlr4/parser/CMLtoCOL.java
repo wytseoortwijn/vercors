@@ -218,8 +218,8 @@ public class CMLtoCOL extends ANTLRtoCOL implements CMLVisitor<ASTNode> {
           res.add((ASTDeclaration)decls[i]);
         } else if (decls[i] instanceof OperatorExpression){
           OperatorExpression e=(OperatorExpression)decls[i];
-          DeclarationStatement d=(DeclarationStatement)e.getArg(0);
-          res.add(create.field_decl(d.getName(),d.getType(),e.getArg(1)));
+          DeclarationStatement d=(DeclarationStatement)e.arg(0);
+          res.add(create.field_decl(d.getName(),d.getType(),e.arg(1)));
         } else {
           return null;
         }

@@ -24,10 +24,10 @@ public class ASTUtils {
   private static void scan_ops(ArrayList<ASTNode> res, EnumSet<StandardOperator> ops,ASTNode n) {
     if (n instanceof OperatorExpression){
       OperatorExpression e=(OperatorExpression)n;
-      if (ops.contains(e.getOperator())) {
-        int N=e.getOperator().arity();
+      if (ops.contains(e.operator())) {
+        int N=e.operator().arity();
         for (int i=0;i<N;i++){
-          scan_ops(res,ops,e.getArg(i));
+          scan_ops(res,ops,e.arg(i));
         }
       } else {
         res.add(e);

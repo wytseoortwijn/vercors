@@ -97,12 +97,12 @@ public class ForkJoinEncode extends AbstractRewriter {
   
   @Override
   public void visit(OperatorExpression e){
-    switch(e.getOperator()){
+    switch(e.operator()){
     case PVLidleToken:
-      result=create.invokation(rewrite(e.getArg(0)),null,"idleToken");
+      result=create.invokation(rewrite(e.arg(0)),null,"idleToken");
       break;
     case PVLjoinToken:
-      result=create.invokation(rewrite(e.getArg(0)),null,"joinToken");
+      result=create.invokation(rewrite(e.arg(0)),null,"joinToken");
       break;
       default:
         super.visit(e);

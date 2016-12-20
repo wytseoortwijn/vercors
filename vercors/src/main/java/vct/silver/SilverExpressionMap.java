@@ -69,15 +69,15 @@ public class SilverExpressionMap<T,E> implements ASTMapping<E>{
     E e1=null;
     E e2=null;
     E e3=null;
-    switch(e.getOperator().arity()){
+    switch (e.operator().arity()) {
     case 3:
-      e3=e.getArg(2).apply(this);
+      e3=e.arg(2).apply(this);
     case 2:
-      e2=e.getArg(1).apply(this);
+      e2=e.arg(1).apply(this);
     case 1:
-      e1=e.getArg(0).apply(this);
+      e1=e.arg(0).apply(this);
     }
-    switch(e.getOperator()){
+    switch(e.operator()){
     case PointsTo:{
       return create.and(o,create.field_access(o,e1,e2),create.eq(o, e1, e3));
     }
@@ -98,7 +98,7 @@ public class SilverExpressionMap<T,E> implements ASTMapping<E>{
     case Drop: return create.drop(o,e1,e2);
     case Take: return create.take(o,e1,e2);
     case Member: {
-      if (e.getArg(1).getType().isPrimitive(Sort.Sequence)){
+      if (e.arg(1).getType().isPrimitive(Sort.Sequence)){
         return create.seq_contains(o,e1,e2);
       } else {
         return create.any_set_contains(o,e1,e2);
@@ -154,7 +154,7 @@ public class SilverExpressionMap<T,E> implements ASTMapping<E>{
     case Append:
       return create.append(o, e1,e2);
     default:
-        throw new HREError("cannot map operator %s",e.getOperator());
+        throw new HREError("cannot map operator %s", e.operator());
     }
   }
 
@@ -303,12 +303,12 @@ public class SilverExpressionMap<T,E> implements ASTMapping<E>{
         if (e.main.getType().isBoolean()){
           good=true;
         } else if (e.main.isa(StandardOperator.Perm)||e.main.isa(StandardOperator.Value)){
-          ASTNode loc=((OperatorExpression)e.main).getArg(0);
+          ASTNode loc=((OperatorExpression)e.main).arg(0);
           while (loc instanceof Dereference){
             loc=((Dereference)loc).object();
           }
           if (loc.isa(StandardOperator.Subscript)){
-            loc=((OperatorExpression)loc).getArg(1);
+            loc=((OperatorExpression)loc).arg(1);
             good=loc instanceof NameExpression;
           }
         }

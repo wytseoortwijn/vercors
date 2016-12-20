@@ -147,10 +147,10 @@ public class OpenMPtoPVL extends AbstractRewriter {
       }
       if (tmp.isa(StandardOperator.PostIncr)||tmp.isa(StandardOperator.PreIncr)){
         Debug("increment found");
-        tmp=((OperatorExpression)tmp).getArg(0);
+        tmp=((OperatorExpression)tmp).arg(0);
         if (tmp.isName(decl.name)){
           Debug("match");
-          ASTNode upper=((OperatorExpression)loop.getEntryGuard()).getArg(1);
+          ASTNode upper=((OperatorExpression)loop.getEntryGuard()).arg(1);
           return create.field_decl(
               decl.name,
               rewrite(decl.getType()),
@@ -346,8 +346,8 @@ public class OpenMPtoPVL extends AbstractRewriter {
     ASTNode init=loop.getInitBlock();
     if (init.isa(StandardOperator.Assign)){
       OperatorExpression tmp=(OperatorExpression)init;
-      var_name=tmp.getArg(0).toString();
-      lo=rewrite(tmp.getArg(1));
+      var_name=tmp.arg(0).toString();
+      lo=rewrite(tmp.arg(1));
     } else if (init instanceof DeclarationStatement){
       DeclarationStatement tmp=(DeclarationStatement)init;
       var_name=tmp.name;
@@ -359,7 +359,7 @@ public class OpenMPtoPVL extends AbstractRewriter {
       Fail("loop guard must be . < . ");
     }
     OperatorExpression cond=(OperatorExpression)loop.getEntryGuard();
-    hi=rewrite(cond.getArg(1));
+    hi=rewrite(cond.arg(1));
     
     if (simd){
       lo=create.expression(StandardOperator.Div,lo,create.constant(simd_len));

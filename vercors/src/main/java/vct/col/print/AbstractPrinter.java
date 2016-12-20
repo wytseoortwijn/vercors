@@ -168,13 +168,13 @@ public class AbstractPrinter extends AbstractVisitor<Object> {
   }
 
   public void visit(OperatorExpression e){
-    StandardOperator op=e.getOperator();
+    StandardOperator op=e.operator();
     String op_syntax[]=syntax.getSyntax(op);
     if (op_syntax==null){
       throw new Error("no syntax defined for "+op+" operation");
     }
     int N=op.arity();
-    ASTNode args[]=e.getArguments();
+    ASTNode args[]=e.args();
     setExpr();    
     if (N<0){
       out.print(op_syntax[0]);

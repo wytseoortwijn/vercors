@@ -122,8 +122,8 @@ public class VectorEncode extends AbstractRewriter {
   @Override
   public void visit(VectorBlock v){
     OperatorExpression init=(OperatorExpression)v.iter.getInit();
-    ASTNode from=rewrite(init.getArg(0));
-    ASTNode upto=rewrite(init.getArg(1));
+    ASTNode from=rewrite(init.arg(0));
+    ASTNode upto=rewrite(init.arg(1));
     ivar = v.iter.getName();
     BlockStatement res=create.block();
     locals = new HashSet<String>();
@@ -166,8 +166,8 @@ public class VectorEncode extends AbstractRewriter {
         }
         if (expr.isa(StandardOperator.Plus)){
           OperatorExpression rhs=(OperatorExpression)expr;
-          String e1=detect_array(rhs.getArg(0));
-          String e2=detect_array(rhs.getArg(1));
+          String e1=detect_array(rhs.arg(0));
+          String e2=detect_array(rhs.arg(1));
           op=Add;
           args.add(create.expression(StandardOperator.Values,create.local_name(e1),from,upto));
           args.add(create.expression(StandardOperator.Values,create.local_name(e2),from,upto));
@@ -199,8 +199,8 @@ public class VectorEncode extends AbstractRewriter {
       }
     } else if (loc.isa(StandardOperator.Subscript)) {
       OperatorExpression deref=(OperatorExpression)loc;
-      ASTNode ar=deref.getArg(0);
-      ASTNode idx=deref.getArg(1);
+      ASTNode ar=deref.arg(0);
+      ASTNode idx=deref.arg(1);
       if (ar instanceof NameExpression && idx.isName(ivar)){
         array=((NameExpression)ar).getName();
       }

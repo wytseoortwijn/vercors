@@ -146,10 +146,10 @@ public class SilverClassReduction extends AbstractRewriter {
   
   @Override
   public void visit(OperatorExpression e){
-    switch(e.getOperator()){
+    switch(e.operator()){
     case FoldPlus:{
       if (e.getType().isPrimitive(Sort.Float)){
-        result=create.domain_call("VCTFloat", "fsum", rewrite(e.getArguments()));
+        result=create.domain_call("VCTFloat", "fsum", rewrite(e.args()));
       } else {
         Fail("cannot do a summation of type %s",e.getType()); 
       }
@@ -157,7 +157,7 @@ public class SilverClassReduction extends AbstractRewriter {
     }
     case Plus:{
       if (e.getType().isPrimitive(Sort.Float)){
-        result=create.domain_call("VCTFloat", "fadd", rewrite(e.getArguments()));
+        result=create.domain_call("VCTFloat", "fadd", rewrite(e.args()));
       } else {
         super.visit(e); 
       }
@@ -166,18 +166,18 @@ public class SilverClassReduction extends AbstractRewriter {
     case OptionSome:{
       options=true;
       Type t=rewrite(e.getType());
-      result=create.invokation(t, null,"VCTSome",rewrite(e.getArguments()));
+      result=create.invokation(t, null,"VCTSome",rewrite(e.args()));
       break;
     }
     case OptionGet:{
       options=true;
-      Type t=rewrite(e.getArg(0).getType());
+      Type t=rewrite(e.arg(0).getType());
       String method=optionGet(t);
-      result=create.invokation(null, null,method,rewrite(e.getArguments()));
+      result=create.invokation(null, null,method,rewrite(e.args()));
       break;
     }
     case New:{
-      ClassType t=(ClassType)e.getArg(0);
+      ClassType t=(ClassType)e.arg(0);
       ASTClass cl=source().find(t);
       ArrayList<ASTNode>args=new ArrayList<ASTNode>();
       //NameExpression f=create.field_name("A__x");
@@ -189,13 +189,13 @@ public class SilverClassReduction extends AbstractRewriter {
       break;
     }
     case TypeOf:{
-      result=create.domain_call("TYPE","type_of",rewrite(e.getArg(0)));
+      result=create.domain_call("TYPE","type_of",rewrite(e.arg(0)));
       break;
     }
     case Cast:{
-      Type t0=e.getArg(1).getType();
-      ASTNode object=rewrite(e.getArg(1));
-      Type t=(Type)e.getArg(0);
+      Type t0=e.arg(1).getType();
+      ASTNode object=rewrite(e.arg(1));
+      Type t=(Type)e.arg(0);
       if (t.isPrimitive(Sort.Float)){
         if (t0.isPrimitive(Sort.Integer)){
           result=create.domain_call("VCTFloat","ffromint",object);

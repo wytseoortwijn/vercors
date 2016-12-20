@@ -293,18 +293,18 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
       */
   
   public void visit(OperatorExpression e){
-    switch(e.getOperator()){
+    switch(e.operator()){
     case Subscript:{
-      e.getArg(0).apply(this);
+      e.arg(0).apply(this);
       out.print("[");
-      e.getArg(1).apply(this);
+      e.arg(1).apply(this);
       out.print("]");
       break;
     }
       case Perm:{
         assert in_expr;
-        ASTNode a0=e.getArg(0);
-        ASTNode a1=e.getArg(1);
+        ASTNode a0=e.arg(0);
+        ASTNode a1=e.arg(1);
         //Warning("perm with %s",a1.getType());
         if (a1.getType().isPrimitive(Sort.ZFraction)){
           out.print("(((");
@@ -327,9 +327,9 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
       }
       case PointsTo:{
         assert in_expr;
-        ASTNode a0=e.getArg(0);
-        ASTNode a1=e.getArg(1);
-        ASTNode a2=e.getArg(2);
+        ASTNode a0=e.arg(0);
+        ASTNode a1=e.arg(1);
+        ASTNode a2=e.arg(2);
         out.print("(acc(");
         current_precedence=0;
         a0.accept(this);
@@ -347,7 +347,7 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
       }
       case Value:{
         assert in_expr;
-        ASTNode a0=e.getArg(0);
+        ASTNode a0=e.arg(0);
         out.print("rd*(");
         //out.print("rd(");
         a0.accept(this);
@@ -358,30 +358,30 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
       case New:{
         assert in_expr;
         out.print("new ");
-        e.getArg(0).accept(this);
+        e.arg(0).accept(this);
         break;
       }
       case Head:{
-        e.getArg(0).accept(this);
+        e.arg(0).accept(this);
         out.print("[0]");
         break;
       }
       case Tail:{
-        e.getArg(0).accept(this);
+        e.arg(0).accept(this);
         out.print("[1..]");
         break;
       }
       case Member:{
-        if (e.getArg(1).isa(StandardOperator.RangeSeq)){
-          OperatorExpression range=(OperatorExpression)e.getArg(1);
+        if (e.arg(1).isa(StandardOperator.RangeSeq)){
+          OperatorExpression range=(OperatorExpression)e.arg(1);
           out.print("(");
-          range.getArg(0).accept(this);
+          range.arg(0).accept(this);
           out.print(" <= ");
-          e.getArg(0).accept(this);
+          e.arg(0).accept(this);
           out.print(" && ");
-          e.getArg(0).accept(this);
+          e.arg(0).accept(this);
           out.print(" < ");
-          range.getArg(1).accept(this);
+          range.arg(1).accept(this);
           out.print(")");
         } else {
           super.visit(e);
@@ -390,9 +390,9 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
       }
       case Unfolding:{
         out.print("unfolding ");
-        e.getArg(0).accept(this);
+        e.arg(0).accept(this);
         out.print(" in ");
-        e.getArg(1).accept(this);
+        e.arg(1).accept(this);
         break;
       }
       default:{

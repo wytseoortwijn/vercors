@@ -19,12 +19,12 @@ public class AccessIntroduce extends AbstractRewriter {
   
   @Override
   public void visit(OperatorExpression e){
-    switch(e.getOperator()){
+    switch(e.operator()){
     case Assign:{
-      ASTNode tmp=e.getArg(0);
+      ASTNode tmp=e.arg(0);
       if (tmp instanceof Dereference){
         Dereference loc=(Dereference)tmp;
-        result = create.set_field(null, rewrite(loc.object()), loc.field(), rewrite(e.getArg(1)));
+        result = create.set_field(null, rewrite(loc.object()), loc.field(), rewrite(e.arg(1)));
       } else {
         super.visit(e);
       }

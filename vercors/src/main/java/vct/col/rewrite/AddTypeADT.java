@@ -107,16 +107,16 @@ public class AddTypeADT extends AbstractRewriter {
   }
   
   public void visit(OperatorExpression e){
-    switch(e.getOperator()){
+    switch(e.operator()){
     case EQ:
-      if (e.getArg(0).isa(StandardOperator.TypeOf)
-        && e.getArg(1) instanceof ClassType){
-        result=create.expression(StandardOperator.EQ,rewrite(e.getArg(0)),
-               create.invokation(create.class_type(type_adt),null,"class_"+e.getArg(1)));
-      } else if(e.getArg(1).isa(StandardOperator.TypeOf)
-          && e.getArg(0) instanceof ClassType) {
-        result=create.expression(StandardOperator.EQ,rewrite(e.getArg(1)),
-            create.invokation(create.class_type(type_adt),null,"class_"+e.getArg(0)));       
+      if (e.arg(0).isa(StandardOperator.TypeOf)
+        && e.arg(1) instanceof ClassType){
+        result=create.expression(StandardOperator.EQ,rewrite(e.arg(0)),
+               create.invokation(create.class_type(type_adt),null,"class_"+e.arg(1)));
+      } else if(e.arg(1).isa(StandardOperator.TypeOf)
+          && e.arg(0) instanceof ClassType) {
+        result=create.expression(StandardOperator.EQ,rewrite(e.arg(1)),
+            create.invokation(create.class_type(type_adt),null,"class_"+e.arg(0)));       
       } else {
         super.visit(e);
       }
@@ -124,12 +124,12 @@ public class AddTypeADT extends AbstractRewriter {
     case Instance:
       result=create.expression(StandardOperator.And,
           create.expression(StandardOperator.NEQ,
-              rewrite(e.getArg(0)),
+              rewrite(e.arg(0)),
               create.reserved_name(ASTReserved.Null)
           ),
           create.invokation(create.class_type(type_adt), null,"instanceof",
-            create.expression(StandardOperator.TypeOf,rewrite(e.getArg(0))),
-            create.invokation(create.class_type(type_adt),null,"class_"+e.getArg(1))
+            create.expression(StandardOperator.TypeOf,rewrite(e.arg(0))),
+            create.invokation(create.class_type(type_adt),null,"class_"+e.arg(1))
           )
       );
       break;

@@ -5,29 +5,26 @@ import scala.annotation.varargs
 import vct.col.util.VisitorHelper
 
 /**
- * Wytse: I used an extra static factory method here to retain the varargs functionality. Without the
+ * Wytse: I used an extra static factory here to retain the varargs functionality. Without the
  * "varargs" annotation the Java code breaks, and apparently constructors cannot have "varargs" annotations..
  */
 object OperatorExpression {
   @varargs def construct(op:StandardOperator, args:ASTNode*) = new OperatorExpression(op, args:_*)
 }
 
-class OperatorExpression private[this] (val op:StandardOperator, val args:Array[ASTNode]) extends ExpressionNode with VisitorHelper {
-  def getArguments() = args.clone()
-  def getOperator() = op
+class OperatorExpression private[this] (val operator:StandardOperator, private[this] val _args:Array[ASTNode]) extends ExpressionNode with VisitorHelper {
+  def args : Array[ASTNode] = _args.clone()
+  
+  def arg(i:Int) : ASTNode =
+    if (i >= args.length) 
+      throw new Error(String.format("The operator %s does not have an argument %i.", List(operator, i)))
+    else args.apply(i)
   
   /** Use {@code OperatorExpression.construct(...)} to construct a new operator expression. */
   private def this(op:StandardOperator, args:ASTNode*) = {
     this(op, args.toArray)
-    if (op.arity() >= 0 && args.length != op.arity()) {
-      hre.lang.System.Abort("Wrong number of arguments for %s: got %d, but expected %d.", List(op, args.length, op.arity()))
-    }
-  }
-  
-  def getArg(i:Int) : ASTNode = {
-    if (i >= args.length) 
-      throw new Error(String.format("The operator %s does not have an argument %i.", List(op, i)))
-    else args.apply(i)
+    if (op.arity() >= 0 && args.length != op.arity())
+      hre.lang.System.Abort("Wrong number of arguments for %s: got %d, but expected %d.", List(operator, _args.length, operator.arity()))
   }
   
   def mergeOrigins() = {
@@ -43,7 +40,7 @@ class OperatorExpression private[this] (val op:StandardOperator, val args:Array[
     setOrigin(start.merge(end))
   }
   
-  override def isa(op:StandardOperator) = op == this.op
+  override def isa(op:StandardOperator) = op == this.operator
   override def accept_simple[T,A](map:ASTMapping1[T,A], arg:A) = map.map(this, arg)
   override def accept_simple[T](visitor:ASTVisitor[T]) = try visitor.visit(this) catch { case t:Throwable => handle_throwable(t) }
   override def accept_simple[T](map:ASTMapping[T]) = try map.map(this) catch { case t:Throwable => handle_throwable(t) }
@@ -56,7 +53,7 @@ class OperatorExpression private[this] (val op:StandardOperator, val args:Array[
   
   override def `match`(ast:ASTNode) = ast match {
     case h:Hole => h.`match`(this)
-    case oe:OperatorExpression => if (oe.isa(op)) match_compare(args, oe.getArguments) else false
+    case oe:OperatorExpression => if (oe.isa(operator)) match_compare(_args, oe.args) else false
     case _ => false
   }
 }

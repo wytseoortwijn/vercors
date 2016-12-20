@@ -457,12 +457,12 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   @Override
   public void visit(OperatorExpression e) {
     //checkPermission(e);
-    StandardOperator op=e.getOperator();
+    StandardOperator op=e.operator();
     int N=op.arity();
-    if(N<0) N=e.getArguments().length;
+    if(N<0) N=e.args().length;
     ASTNode args[]=new ASTNode[N];
     for(int i=0;i<N;i++){
-      args[i]=e.getArg(i).apply(this);
+      args[i]=e.arg(i).apply(this);
     }
     OperatorExpression res = OperatorExpression.construct(op, args);
     res.set_before(rewrite(e.get_before()));

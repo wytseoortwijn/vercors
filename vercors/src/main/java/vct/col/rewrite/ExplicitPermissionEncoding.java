@@ -600,11 +600,11 @@ class PredicateClassGenerator extends AbstractRewriter {
   }
   
   public void visit(OperatorExpression e){
-    switch(e.getOperator()){
+    switch(e.operator()){
       case Perm:
       case PointsTo:
         if (condition_level==0){
-          ASTNode tmp=e.getArg(0);
+          ASTNode tmp=e.arg(0);
           if (tmp instanceof Dereference){
             Dereference field=(Dereference)tmp;
             tmp=field.object();

@@ -236,9 +236,9 @@ public abstract class ASTFrame<T> {
     public void visit(OperatorExpression node){
       switch(action){
       case ENTER:
-        switch(((OperatorExpression)node).getOperator()){
+        switch(((OperatorExpression)node).operator()){
           case BindOutput:{
-            ASTNode e=((OperatorExpression) node).getArg(0);
+            ASTNode e=((OperatorExpression) node).arg(0);
             if (e instanceof NameExpression){
               NameExpression name=(NameExpression) e;
               variables.add(name.getName(),new VariableInfo(node,NameExpression.Kind.Output));
@@ -528,7 +528,7 @@ public abstract class ASTFrame<T> {
       }
     //}
     if (node instanceof OperatorExpression){
-      for(ASTNode arg:((OperatorExpression)node).getArguments()){
+      for (ASTNode arg : ((OperatorExpression)node).args()) {
         scan_labels(arg);
       }
     }

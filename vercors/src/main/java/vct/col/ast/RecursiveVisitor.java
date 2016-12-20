@@ -61,7 +61,7 @@ public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
   
   @Override
   public void visit(OperatorExpression e) {
-    for(ASTNode arg:e.getArguments()){
+    for(ASTNode arg:e.args()){
       arg.accept(this);
     }    
   }

@@ -65,18 +65,18 @@ class MatchLinear implements ASTMapping1<Boolean,ASTNode> {
   @Override
   public Boolean map(OperatorExpression e1, ASTNode a) {
     if (e1.isa(StandardOperator.IndependentOf)){
-      ASTNode tmp = match.get(((NameExpression)e1.getArg(1)).getName()).get();
+      ASTNode tmp = match.get(((NameExpression)e1.arg(1)).getName()).get();
       if (tmp instanceof DeclarationStatement){
         DeclarationStatement decl=(DeclarationStatement)tmp;
-        return !ASTUtils.find_name(a,decl.name) && e1.getArg(0).apply(this,a);
+        return !ASTUtils.find_name(a,decl.name) && e1.arg(0).apply(this,a);
       } else {
         return false;
       }
     }
-    if (a.isa(e1.getOperator())){
+    if (a.isa(e1.operator())){
       OperatorExpression e2=(OperatorExpression)a;
-      ASTNode[] args1=e1.getArguments();
-      ASTNode[] args2=e2.getArguments();
+      ASTNode[] args1=e1.args();
+      ASTNode[] args2=e2.args();
       if (args1.length!=args2.length) return false;
       for(int i=0;i<args1.length;i++){
         if (!args1[i].apply(this,args2[i])){
@@ -536,8 +536,8 @@ public class RewriteSystem {
         if (!axiom.rule().isa(StandardOperator.EQ)){
           Fail("not a == rule");
         }
-        ASTNode lhs=((OperatorExpression)axiom.rule()).getArg(0);
-        ASTNode rhs=((OperatorExpression)axiom.rule()).getArg(1);
+        ASTNode lhs=((OperatorExpression)axiom.rule()).arg(0);
+        ASTNode rhs=((OperatorExpression)axiom.rule()).arg(1);
         rules.add(new RewriteRule(axiom.name,vars,lhs,rhs));
         continue;
       }

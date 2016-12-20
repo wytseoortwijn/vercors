@@ -64,7 +64,7 @@ public class SilverStatementMap<T,E,S> implements ASTMapping<S>{
 
   @Override
   public S map(OperatorExpression e) {
-    throw new HREError("cannot map operator %s to statement",e.getOperator());
+    throw new HREError("cannot map operator %s to statement", e.operator());
   }
 
   @Override
@@ -167,7 +167,7 @@ public class SilverStatementMap<T,E,S> implements ASTMapping<S>{
       //Configuration.getDiagSyntax().print(System.err, s);
       ArrayList<String> names=new ArrayList<String>();
       ArrayList<T> types=new ArrayList<T>();
-      ASTNode args[]=((OperatorExpression)expression).getArguments();
+      ASTNode args[]=((OperatorExpression)expression).args();
       for(int i=0;i<args.length;i++){
         Dereference d=(Dereference)args[i];
         names.add(d.field());

@@ -87,9 +87,9 @@ public class FinalizeArguments extends AbstractRewriter {
   
   @Override
   public void visit(OperatorExpression e){
-    switch(e.getOperator()){
+    switch(e.operator()){
       case Old:{
-        ASTNode arg=e.getArg(0);
+        ASTNode arg=e.arg(0);
         if (arg instanceof NameExpression){
           NameExpression name=(NameExpression)arg;
           if (name.getKind()==NameExpression.Kind.Argument){

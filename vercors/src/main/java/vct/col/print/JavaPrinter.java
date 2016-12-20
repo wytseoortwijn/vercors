@@ -922,20 +922,20 @@ public class JavaPrinter extends AbstractPrinter {
     }
   }
   private void visitVeriFast(OperatorExpression e){
-    switch(e.getOperator()){
+    switch(e.operator()){
     case PointsTo:{
-      if (e.getArg(1) instanceof ConstantExpression
-      && ((ConstantExpression)e.getArg(1)).equals(1)
+      if (e.arg(1) instanceof ConstantExpression
+      && ((ConstantExpression)e.arg(1)).equals(1)
       ){
         // [1] is implicit.
       } else {
         out.printf("[");
-        e.getArg(1).accept(this);
+        e.arg(1).accept(this);
         out.printf("]");
       }
-      e.getArg(0).accept(this);
+      e.arg(0).accept(this);
       out.printf(" |-> ");
-      e.getArg(2).accept(this);
+      e.arg(2).accept(this);
       break;
     }
     default:{
@@ -943,7 +943,7 @@ public class JavaPrinter extends AbstractPrinter {
     }}
   }
   private void visitVerCors(OperatorExpression e){
-    switch(e.getOperator()){
+    switch(e.operator()){
       case NewSilver:{
         out.print("new ");
         // no break on purpose!
@@ -951,7 +951,7 @@ public class JavaPrinter extends AbstractPrinter {
       case Wrap:{
         out.print("(");
         String sep="";
-        for(ASTNode arg:e.getArguments()){
+        for(ASTNode arg:e.args()){
           out.print(sep);
           sep=",";
           arg.accept(this);
@@ -962,7 +962,7 @@ public class JavaPrinter extends AbstractPrinter {
       case Continue:{
         out.printf("continue ");
         current_precedence=0;
-        ASTNode lbl=e.getArg(0);
+        ASTNode lbl=e.arg(0);
         if (lbl!=null){
           setExpr();
           lbl.accept(this);
@@ -971,7 +971,7 @@ public class JavaPrinter extends AbstractPrinter {
       }
       case New:{
         out.printf("new ");
-        e.getArg(0).accept(this);
+        e.arg(0).accept(this);
         out.printf("()");
         break;
       }
