@@ -848,7 +848,7 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
     AbstractRewriter sigma=new AbstractRewriter(source()){
       @Override
       public void visit(Dereference d){
-        ASTNode n=map.get(d.field);
+        ASTNode n = map.get(d.field());
         if (n==null){
           super.visit(d);
         } else {
@@ -868,7 +868,7 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
     AbstractRewriter new_sigma=new AbstractRewriter(source()){
       @Override
       public void visit(Dereference d){
-        ASTNode n=new_map.get(d.field);
+        ASTNode n = new_map.get(d.field());
         if (n==null){
           super.visit(d);
         } else {

@@ -550,7 +550,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
 
   @Override
   public void visit(Dereference e) {
-    result=create.dereference(e.object.apply(this),e.field);
+    result = create.dereference(e.object().apply(this), e.field());
   }
   
   @Override
@@ -728,17 +728,17 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   public void visit(TryCatchBlock tcb){
     TryCatchBlock res=create.try_catch(rewrite(tcb.main),rewrite(tcb.after));
     for(CatchClause cc:tcb.catches){
-      pre_visit(cc.getBlock());
+      pre_visit(cc.block());
       BlockStatement tmp=currentBlock;
       currentBlock=new BlockStatement();
-      currentBlock.setOrigin(cc.getBlock().getOrigin());
-      DeclarationStatement d=rewrite(cc.getDecl());
-      for(ASTNode S:cc.getBlock()){
+      currentBlock.setOrigin(cc.block().getOrigin());
+      DeclarationStatement d=rewrite(cc.decl());
+      for(ASTNode S:cc.block()){
         currentBlock.add(rewrite(S));
       }
       BlockStatement block=currentBlock;
       currentBlock=tmp;
-      post_visit(cc.getBlock());
+      post_visit(cc.block());
       res.catch_clause(d,block);
     }
     result=res;
@@ -788,6 +788,6 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   
   @Override
   public void visit(Constraining c){
-    result=create.constraining(rewrite(c.block),rewrite(c.vars));
+    result = create.constraining(rewrite(c.block()) ,rewrite(c.vars()));
   }
 }

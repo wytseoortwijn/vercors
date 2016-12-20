@@ -334,11 +334,11 @@ public class Flatten extends AbstractRewriter {
   
   @Override
   public void visit(Dereference e){
-    if (simple_expression(e.object)){
+    if (simple_expression(e.object())) {
       super.visit(e);
     } else {
-      ASTNode obj=add_as_var(e.object);
-      result=create.dereference(obj,e.field);
+      ASTNode obj = add_as_var(e.object());
+      result = create.dereference(obj, e.field());
     }
   }
 }

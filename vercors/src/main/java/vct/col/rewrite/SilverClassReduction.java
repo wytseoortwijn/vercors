@@ -127,20 +127,20 @@ public class SilverClassReduction extends AbstractRewriter {
   }
   @Override
   public void visit(Dereference e){
-    if (e.object.getType()==null){
-      Fail("untyped object %s at %s",e.object,e.object.getOrigin());
-      result=create.dereference(rewrite(e.object),"????"+SEP+e.field);
+    if (e.object().getType()==null){
+      Fail("untyped object %s at %s", e.object(), e.object().getOrigin());
+      result=create.dereference(rewrite(e.object()), "????"+SEP+e.field());
       return;
     }
-    Type t=e.object.getType();
+    Type t=e.object().getType();
     if (t.isPrimitive(Sort.Cell)){
       PrimitiveType tt=(PrimitiveType)t;
       Type type=(Type)rewrite(tt.getArg(0));
       String name=type.toString();
       ref_items.add(type);
-      result=create.dereference(rewrite(e.object),name+SEP+e.field);
+      result=create.dereference(rewrite(e.object()), name+SEP+e.field());
     } else {
-      result=create.dereference(rewrite(e.object),((ClassType)t).getName()+SEP+e.field);
+      result=create.dereference(rewrite(e.object()), ((ClassType)t).getName()+SEP+e.field());
     }
   }
   

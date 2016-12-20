@@ -170,7 +170,7 @@ public class SilverStatementMap<T,E,S> implements ASTMapping<S>{
       ASTNode args[]=((OperatorExpression)expression).getArguments();
       for(int i=0;i<args.length;i++){
         Dereference d=(Dereference)args[i];
-        names.add(d.field);
+        names.add(d.field());
         types.add(d.getType().apply(type));
       }
       return create.new_object(origin,location.apply(expr),names,types);
@@ -309,7 +309,6 @@ public class SilverStatementMap<T,E,S> implements ASTMapping<S>{
 
   @Override
   public S map(ActionBlock actionBlock) {
-    
     return null;
   }
 
@@ -391,8 +390,6 @@ public class SilverStatementMap<T,E,S> implements ASTMapping<S>{
 
   @Override
   public S map(Constraining c) {
-    return create.constraining(c.getOrigin(), do_names(c.vars), c.block.apply(this));
+    return create.constraining(c.getOrigin(), do_names(c.vars()), c.block().apply(this));
   }
-
-
 }

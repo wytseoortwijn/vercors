@@ -11,7 +11,7 @@ public class AccessIntroduce extends AbstractRewriter {
   @Override
   public void visit(Dereference e){
     //if (!in_ensures && !in_invariant && !in_requires){
-      result=create.get_field(null,e.object,e.field);
+      result = create.get_field(null, e.object(), e.field());
     //} else {
     //  super.visit(e);
     //}
@@ -24,7 +24,7 @@ public class AccessIntroduce extends AbstractRewriter {
       ASTNode tmp=e.getArg(0);
       if (tmp instanceof Dereference){
         Dereference loc=(Dereference)tmp;
-        result=create.set_field(null, rewrite(loc.object), loc.field, rewrite(e.getArg(1)));
+        result = create.set_field(null, rewrite(loc.object()), loc.field(), rewrite(e.getArg(1)));
       } else {
         super.visit(e);
       }
@@ -46,7 +46,7 @@ public class AccessIntroduce extends AbstractRewriter {
     ASTNode tmp=e.getLocation();
     if (tmp instanceof Dereference){
       Dereference loc=(Dereference)tmp;
-      result=create.set_field(null, rewrite(loc.object), loc.field, rewrite(e.getExpression()));
+      result = create.set_field(null, rewrite(loc.object()), loc.field(), rewrite(e.getExpression()));
     } else {
       super.visit(e);
     }

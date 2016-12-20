@@ -129,9 +129,9 @@ public class RewriteArrayRef extends AbstractRewriter {
 	
   @Override
 	public void visit(Dereference e){
-	  if (e.field.equals("length")){
-	    ASTNode res=rewrite(e.object);
-	    if (e.object.getType().isPrimitive(Sort.Array)){
+	  if (e.field().equals("length")){
+	    ASTNode res=rewrite(e.object());
+	    if (e.object().getType().isPrimitive(Sort.Array)){
   	    res=create.expression(StandardOperator.OptionGet,res);
 	    }
       result=create.expression(StandardOperator.Size,res);

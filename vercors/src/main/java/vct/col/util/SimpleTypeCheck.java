@@ -1214,24 +1214,24 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
 
   public void visit(Dereference e){
     super.visit(e);
-    Type object_type=e.object.getType();
+    Type object_type=e.object().getType();
     if (object_type==null) Fail("type of object unknown at "+e.getOrigin());
     if (object_type.isPrimitive(Sort.Location)){
       object_type=(Type)object_type.getArg(0);
     }
     if (object_type instanceof PrimitiveType){
-      if (e.field.equals("length")){
+      if (e.field().equals("length")){
         e.setType(new PrimitiveType(Sort.Integer));
         return;
       }
-      if (e.field.equals("item")){
+      if (e.field().equals("item")){
         e.setType((Type)object_type.getArg(0));
         return;
       }
-      Fail("%s is not a pseudo field of (%s).",e.field,object_type);
+      Fail("%s is not a pseudo field of (%s).",e.field(),object_type);
     }
     if (!(object_type instanceof ClassType)) {
-      Fail("cannot select member %s of non-object type %s",e.field,object_type.getClass());
+      Fail("cannot select member %s of non-object type %s",e.field(),object_type.getClass());
     }
     if (((ClassType)object_type).getFullName().equals("<<label>>")){
       //TODO: avoid this kludge to not typing labeled arguments
@@ -1241,11 +1241,11 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       ASTClass cl=source().find(((ClassType)object_type).getNameFull());
       if (cl==null) Fail("could not find class %s",((ClassType)object_type).getFullName());
       Debug("looking in class "+cl.getName());
-      DeclarationStatement decl=cl.find_field(e.field,true);
+      DeclarationStatement decl=cl.find_field(e.field(),true);
       if (decl!=null){
         e.setType(decl.getType());
       } else {
-        Method m=cl.find_predicate(e.field);
+        Method m=cl.find_predicate(e.field());
         if (m!= null && !m.isStatic()){
           Type [] args=m.getArgType();
           if (args.length==0){
@@ -1253,7 +1253,7 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
           }  
           e.setType(new FunctionType(args,m.getReturnType()));
         } else {
-          Fail("Field nor predicate %s not found in class %s",e.field,((ClassType)object_type).getFullName());
+          Fail("Field nor predicate %s not found in class %s",e.field(),((ClassType)object_type).getFullName());
         }
       }
     }
@@ -1468,7 +1468,7 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
   
   @Override
   public void visit(Constraining c){
-    for (NameExpression var:c.vars){
+    for (NameExpression var : c.vars()){
       var.apply(this);
       Type t=var.getType();
       if (t==null){
@@ -1478,6 +1478,6 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
         Fail("variable %s is %s rather than fraction at %s",var,t,var.getOrigin());
       }
     }
-    c.block.apply(this);
+    c.block().apply(this);
   }
 }

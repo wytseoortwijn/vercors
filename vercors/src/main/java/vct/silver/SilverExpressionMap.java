@@ -305,7 +305,7 @@ public class SilverExpressionMap<T,E> implements ASTMapping<E>{
         } else if (e.main.isa(StandardOperator.Perm)||e.main.isa(StandardOperator.Value)){
           ASTNode loc=((OperatorExpression)e.main).getArg(0);
           while (loc instanceof Dereference){
-            loc=((Dereference)loc).object;
+            loc=((Dereference)loc).object();
           }
           if (loc.isa(StandardOperator.Subscript)){
             loc=((OperatorExpression)loc).getArg(1);
@@ -366,7 +366,7 @@ public class SilverExpressionMap<T,E> implements ASTMapping<E>{
 
   @Override
   public E map(Dereference e) {
-    return create.FieldAccess(e.getOrigin(),e.object.apply(this),e.field,e.getType().apply(type));
+    return create.FieldAccess(e.getOrigin(), e.object().apply(this), e.field(), e.getType().apply(type));
   }
 
   @Override

@@ -38,7 +38,7 @@ public class CheckProcessAlgebra extends AbstractRewriter {
           hist_set.add((NameExpression)n);
         } else if (n instanceof Dereference) {
           Dereference d=(Dereference)n;
-          hist_set.add(create.field_name(d.field));
+          hist_set.add(create.field_name(d.field()));
         } else {
           Fail("unexpected entry in modifies clause");
         }

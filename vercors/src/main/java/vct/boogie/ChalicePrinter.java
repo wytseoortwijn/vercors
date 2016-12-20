@@ -260,14 +260,14 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
   }
   
   public void visit(Dereference e){
-    if (e.object instanceof NameExpression){
-      NameExpression arg1=(NameExpression)e.object;
+    if (e.object() instanceof NameExpression){
+      NameExpression arg1=(NameExpression)e.object();
       if (arg1.getKind()==NameExpression.Kind.Unresolved){
         Abort("unresolved name %s",arg1.getName());
       }
       if (arg1.getKind()==NameExpression.Kind.Label){
         arg1.accept(this);
-        out.printf("_%s",e.field);
+        out.printf("_%s", e.field());
         return;
       }
     }

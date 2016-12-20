@@ -547,7 +547,7 @@ class PredicateClassGenerator extends AbstractRewriter {
   public void visit(MethodInvokation call){
     String field_name=null;
     if (call.object instanceof Dereference) {
-      field_name=((Dereference)call.object).field;
+      field_name=((Dereference)call.object).field();
     } else if (call.object instanceof NameExpression){
       field_name=((NameExpression)call.object).getName();
       if (!field_name.equals("This")) {
@@ -607,7 +607,7 @@ class PredicateClassGenerator extends AbstractRewriter {
           ASTNode tmp=e.getArg(0);
           if (tmp instanceof Dereference){
             Dereference field=(Dereference)tmp;
-            tmp=field.object;
+            tmp=field.object();
             /*
             if (tmp instanceof NameExpression && ((NameExpression)tmp).getName().equals("this")){
               String name=field.field;

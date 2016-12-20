@@ -61,9 +61,9 @@ public class JavaPrinter extends AbstractPrinter {
     for(CatchClause cb:tcb.catches){
       out.print("catch (");
       nextExpr();
-      cb.getDecl().accept(this);
+      cb.decl().accept(this);
       out.print(")");
-      cb.getBlock().accept(this);
+      cb.block().accept(this);
     }
     if (tcb.after!=null){
       out.print(" finally ");
@@ -1154,8 +1154,8 @@ public class JavaPrinter extends AbstractPrinter {
   }
 
   public void visit(Dereference e){
-    e.object.accept(this);
-    out.printf(".%s",e.field);
+    e.object().accept(this);
+    out.printf(".%s", e.field());
   }
   
   public void visit(PrimitiveType t){
@@ -1377,15 +1377,15 @@ public class JavaPrinter extends AbstractPrinter {
   @Override
   public void visit(Constraining c){
     out.print("constraining(");
-    String sep="";
-    for(NameExpression n:c.vars){
+    String sep = "";
+    for (NameExpression n : c.vars()) {
       out.print(sep);
       nextExpr();
       n.accept(this);
       sep=",";
     }
     out.print(")");
-    c.block.accept(this);
+    c.block().accept(this);
   }
 }
 

@@ -252,8 +252,8 @@ public class Method extends ASTDeclaration {
       return s.getDefinition().find(target, scanned);
     }
     if (node instanceof Dereference){
-      Dereference expr=(Dereference)node;
-      return find(target,scanned,expr.object);
+      Dereference expr = (Dereference)node;
+      return find(target,scanned, expr.object());
     }
     if (node instanceof BindingExpression){
       BindingExpression abs=(BindingExpression)node;

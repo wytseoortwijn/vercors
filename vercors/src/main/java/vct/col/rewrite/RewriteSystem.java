@@ -226,7 +226,7 @@ class MatchLinear implements ASTMapping1<Boolean,ASTNode> {
   public Boolean map(Dereference e1, ASTNode a) {
     if (!(a instanceof Dereference)) return false;
     Dereference e2=(Dereference)a;
-    return e1.field.equals(e2.field) && e1.object.apply(this,e2.object);
+    return e1.field().equals(e2.field()) && e1.object().apply(this,e2.object());
   }
 
   @Override
