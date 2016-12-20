@@ -166,19 +166,19 @@ public abstract class GlobalizeStatics extends AbstractRewriter {
   }
 
   public void visit(Dereference e){
-    if (e.field.equals("length")){
+    if (e.field().equals("length")){
       super.visit(e);
       return;
     }
-    if (e.field.equals("item")){
+    if (e.field().equals("item")){
       super.visit(e);
       return;
     }
     ClassType t;
-    if (e.object instanceof ClassType){
-      t=(ClassType)e.object;
+    if (e.object() instanceof ClassType){
+      t=(ClassType)e.object();
     } else {
-      t=(ClassType)e.object.getType();
+      t=(ClassType)e.object().getType();
     }
     String s=t.toString();
     if (s.equals("<<label>>")){
@@ -187,9 +187,9 @@ public abstract class GlobalizeStatics extends AbstractRewriter {
       return;
     }
     ASTClass cl=source().find(t);
-    DeclarationStatement decl=cl.find_field(e.field);
+    DeclarationStatement decl=cl.find_field(e.field());
     if (decl.isStatic()){
-      String var_name=new ClassName(t.getNameFull()).toString("_")+"_"+e.field;
+      String var_name=new ClassName(t.getNameFull()).toString("_")+"_"+e.field();
       if (!processing_static){
         result=create.dereference(create.local_name("global"),var_name);
       } else {

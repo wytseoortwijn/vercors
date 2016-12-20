@@ -178,7 +178,7 @@ public class FeatureScanner extends RecursiveVisitor<Object> {
   
   public void visit(OperatorExpression e){
     super.visit(e);
-    ops_used.add(e.getOperator());
+    ops_used.add(e.operator());
   }
   public boolean usesPragma(String string) {
     return pragmas.contains(string);

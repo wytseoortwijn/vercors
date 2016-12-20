@@ -71,7 +71,7 @@ public class ChalicePreProcess extends AbstractRewriter {
   @Override
   public void visit(ConstantExpression e){
     if (e.getType().isPrimitive(Sort.Fraction)){
-      int v=((IntegerValue)(e.getValue())).getValue();
+      int v=((IntegerValue)(e.value())).getValue();
       if (v==1){
         result=create.reserved_name(ASTReserved.FullPerm);
         return;
@@ -103,8 +103,8 @@ public class ChalicePreProcess extends AbstractRewriter {
   
   @Override
   public void visit(Dereference e){
-    if (e.field.equals("length") && e.object.getType().isPrimitive(PrimitiveType.Sort.Sequence)){
-      result=create.expression(StandardOperator.Size,rewrite(e.object));
+    if (e.field().equals("length") && e.object().getType().isPrimitive(PrimitiveType.Sort.Sequence)){
+      result=create.expression(StandardOperator.Size,rewrite(e.object()));
     } else {
       super.visit(e);
     }    
@@ -123,17 +123,17 @@ public class ChalicePreProcess extends AbstractRewriter {
   
   @Override
   public void visit(OperatorExpression e){
-    switch(e.getOperator()){
+    switch(e.operator()){
       case Minus:{
         super.visit(e);
-        if (e.getArg(0).getType().isPrimitive(Sort.Fraction) ||
-            e.getArg(0).getType().isPrimitive(Sort.ZFraction) ||
-            e.getArg(1).getType().isPrimitive(Sort.Fraction) ||
-            e.getArg(1).getType().isPrimitive(Sort.ZFraction) )
+        if (e.arg(0).getType().isPrimitive(Sort.Fraction) ||
+            e.arg(0).getType().isPrimitive(Sort.ZFraction) ||
+            e.arg(1).getType().isPrimitive(Sort.Fraction) ||
+            e.arg(1).getType().isPrimitive(Sort.ZFraction) )
         {
           ASTNode temp=result;
           result=create.expression(StandardOperator.ITE,
-              create.expression(StandardOperator.LT,rewrite(e.getArg(0)),rewrite(e.getArg(1))),
+              create.expression(StandardOperator.LT, rewrite(e.arg(0)), rewrite(e.arg(1))),
               create.constant(0),
               temp
           );
@@ -143,7 +143,7 @@ public class ChalicePreProcess extends AbstractRewriter {
       }
       case Plus:{
         if (e.getType().isPrimitive(Sort.Sequence)){
-          result=create.expression(StandardOperator.Append,rewrite(e.getArguments()));
+          result = create.expression(StandardOperator.Append, rewrite(e.args()));
         } else {
           super.visit(e);
         }

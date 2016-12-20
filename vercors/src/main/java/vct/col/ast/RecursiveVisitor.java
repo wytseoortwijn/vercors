@@ -61,7 +61,7 @@ public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
   
   @Override
   public void visit(OperatorExpression e) {
-    for(ASTNode arg:e.getArguments()){
+    for(ASTNode arg:e.args()){
       arg.accept(this);
     }    
   }
@@ -209,9 +209,9 @@ public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
 
   @Override
   public void visit(ActionBlock ab){
-    dispatch(ab.process);
-    dispatch(ab.action);
-    dispatch(ab.block);
+    dispatch(ab.process());
+    dispatch(ab.action());
+    dispatch(ab.block());
   }
   
   @Override
@@ -245,7 +245,7 @@ public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
 
   @Override
   public void visit(Dereference e){
-    e.object.accept(this);
+    e.object().accept(this);
   }
   
   @Override
@@ -307,7 +307,7 @@ public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
   
   @Override
   public void visit(Axiom axiom){
-    dispatch(axiom.getRule());
+    dispatch(axiom.rule());
   }
   
   @Override
@@ -326,20 +326,20 @@ public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
   public void visit(TryCatchBlock tcb) {
     dispatch(tcb.main);
     for(CatchClause c:tcb.catches){
-      enter(c.getBlock());
-      dispatch(c.getDecl());
-      for(ASTNode S:c.getBlock()){
+      enter(c.block());
+      dispatch(c.decl());
+      for(ASTNode S:c.block()){
         dispatch(S);
       }
-      leave(c.getBlock());
+      leave(c.block());
     }
     dispatch(tcb.after);
   }
 
   @Override
   public void visit(FieldAccess a) {
-    dispatch(a.getObject());
-    dispatch(a.getValue());
+    dispatch(a.object());
+    dispatch(a.value());
   }
 
   @Override
@@ -360,8 +360,8 @@ public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
 
   @Override
   public void visit(Constraining c) {
-    dispatch(c.vars);
-    dispatch(c.block);
+    dispatch(c.vars());
+    dispatch(c.block());
   }
 
 }

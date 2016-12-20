@@ -21,8 +21,8 @@ public class AssignmentRewriter extends AbstractRewriter {
     switch(s.kind){
     case Expression:
       if (s.args[0].isa(StandardOperator.Assign)){
-        OperatorExpression e=(OperatorExpression)s.args[0];
-        result=create.assignment(e.getArg(0),e.getArg(1));
+        OperatorExpression e = (OperatorExpression)s.args[0];
+        result = create.assignment(e.arg(0), e.arg(1));
         break;
       }
     default:

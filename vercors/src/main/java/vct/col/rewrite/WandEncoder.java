@@ -41,7 +41,7 @@ public class WandEncoder extends AbstractRewriter {
       String type_name="Wand";
       ArrayList<ASTNode> args=new ArrayList<ASTNode>();      
       ArrayList<DeclarationStatement> decls=new ArrayList<DeclarationStatement>();
-      for(ASTNode n:ASTUtils.conjuncts(e.getArg(0),StandardOperator.Star)){
+      for(ASTNode n:ASTUtils.conjuncts(e.arg(0),StandardOperator.Star)){
         if (n instanceof MethodInvokation){
           MethodInvokation m=(MethodInvokation)n;
           type_name+="_"+m.method;
@@ -62,7 +62,7 @@ public class WandEncoder extends AbstractRewriter {
         }
       }
       type_name+="_for";
-      for(ASTNode n:ASTUtils.conjuncts(e.getArg(1),StandardOperator.Star)){
+      for(ASTNode n:ASTUtils.conjuncts(e.arg(1),StandardOperator.Star)){
         if (n instanceof MethodInvokation){
           MethodInvokation m=(MethodInvokation)n;
           type_name+="_"+m.method;
@@ -103,8 +103,8 @@ public class WandEncoder extends AbstractRewriter {
         label=e.getLabel(0).getName();
       }
       name=get_wand_type(e);
-      pre=e.getArg(0);
-      post=e.getArg(1);
+      pre=e.arg(0);
+      post=e.arg(1);
     }
     
     public ASTNode wand(boolean lbl){
@@ -190,7 +190,7 @@ public class WandEncoder extends AbstractRewriter {
 	
 	@Override
 	public void visit(OperatorExpression e){
-    switch (e.getOperator()){
+    switch (e.operator()){
 		    case Wand:{
 		      WandUtil wand=new WandUtil(e);
 		      result=wand.wand(false);

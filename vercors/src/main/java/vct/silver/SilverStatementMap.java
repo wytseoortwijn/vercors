@@ -64,7 +64,7 @@ public class SilverStatementMap<T,E,S> implements ASTMapping<S>{
 
   @Override
   public S map(OperatorExpression e) {
-    throw new HREError("cannot map operator %s to statement",e.getOperator());
+    throw new HREError("cannot map operator %s to statement", e.operator());
   }
 
   @Override
@@ -167,10 +167,10 @@ public class SilverStatementMap<T,E,S> implements ASTMapping<S>{
       //Configuration.getDiagSyntax().print(System.err, s);
       ArrayList<String> names=new ArrayList<String>();
       ArrayList<T> types=new ArrayList<T>();
-      ASTNode args[]=((OperatorExpression)expression).getArguments();
+      ASTNode args[]=((OperatorExpression)expression).args();
       for(int i=0;i<args.length;i++){
         Dereference d=(Dereference)args[i];
-        names.add(d.field);
+        names.add(d.field());
         types.add(d.getType().apply(type));
       }
       return create.new_object(origin,location.apply(expr),names,types);
@@ -309,7 +309,6 @@ public class SilverStatementMap<T,E,S> implements ASTMapping<S>{
 
   @Override
   public S map(ActionBlock actionBlock) {
-    
     return null;
   }
 
@@ -349,12 +348,12 @@ public class SilverStatementMap<T,E,S> implements ASTMapping<S>{
 
   @Override
   public S map(FieldAccess a) {
-    if (a.getValue() == null) {
+    if (a.value() == null) {
       throw new HREError("Field read expression in statement map.");
     } else {
-      ASTNode var = new Dereference(a.getObject(), a.getName());
+      ASTNode var = new Dereference(a.object(), a.name());
       var.setOrigin(a);
-      return assignment(a.getOrigin(), var, a.getValue());
+      return assignment(a.getOrigin(), var, a.value());
     }
   }
 
@@ -391,8 +390,6 @@ public class SilverStatementMap<T,E,S> implements ASTMapping<S>{
 
   @Override
   public S map(Constraining c) {
-    return create.constraining(c.getOrigin(), do_names(c.vars), c.block.apply(this));
+    return create.constraining(c.getOrigin(), do_names(c.vars()), c.block().apply(this));
   }
-
-
 }

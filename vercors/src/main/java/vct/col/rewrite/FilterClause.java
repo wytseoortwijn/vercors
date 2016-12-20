@@ -16,7 +16,7 @@ public class FilterClause extends AbstractRewriter {
   
   public void visit(OperatorExpression e){
     if (resource_only){
-      switch(e.getOperator()){
+      switch (e.operator()) {
       case Star:
       case Implies:
       case ITE:
@@ -24,19 +24,19 @@ public class FilterClause extends AbstractRewriter {
         return;
       case Perm:
       case PointsTo:
-        result=create.expression(StandardOperator.Perm,copy_rw.rewrite(e.getArg(0)),copy_rw.rewrite(e.getArg(1)));
+        result=create.expression(StandardOperator.Perm,copy_rw.rewrite(e.arg(0)),copy_rw.rewrite(e.arg(1)));
         return;
       default:
         result=create.constant(true);
         return;
       }
     } else {
-      switch(e.getOperator()){
+      switch (e.operator()) {
       case Perm:
         result=create.constant(true);
         return;
       case PointsTo:
-        result=create.expression(StandardOperator.EQ,copy_rw.rewrite(e.getArg(0)),copy_rw.rewrite(e.getArg(2)));
+        result=create.expression(StandardOperator.EQ,copy_rw.rewrite(e.arg(0)),copy_rw.rewrite(e.arg(2)));
         return;
       default:
         super.visit(e);

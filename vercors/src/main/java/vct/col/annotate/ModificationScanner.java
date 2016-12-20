@@ -49,12 +49,12 @@ public class ModificationScanner extends RecursiveVisitor<Object> {
   }
   
   public void visit(OperatorExpression e){
-    switch(e.getOperator()){
+    switch(e.operator()){
     case PreIncr:
     case PostIncr:
     case PreDecr:
     case PostDecr:
-      modifies_loc(e.getArg(0));
+      modifies_loc(e.arg(0));
     default:
       break;
     }

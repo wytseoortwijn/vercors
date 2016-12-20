@@ -73,7 +73,7 @@ public class BoogieFOL {
             OperatorExpression e=(OperatorExpression)block.getStatement(i);
             if (e.isSpecial(Kind.Assert)) continue;
             DeclarationStatement args[]=m.getArgs();
-            ASTNode formula=e.getArg(0);
+            ASTNode formula=e.arg(0);
             System.err.printf("checking formula at %s%n",formula.getOrigin());
             vct.util.Configuration.getDiagSyntax().print(System.out,formula);
             for(ASTNode part:ASTUtils.conjuncts(formula,StandardOperator.And)){

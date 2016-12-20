@@ -69,14 +69,14 @@ public class Flatten extends AbstractRewriter {
   }
  
   public void visit(OperatorExpression e){
-    if (e.getType()==null) Abort("untyped operator %s in clause at %s",e.getOperator(),e.getOrigin());
-    switch(e.getOperator()){
+    if (e.getType()==null) Abort("untyped operator %s in clause at %s",e.operator(),e.getOrigin());
+    switch(e.operator()){
     case AddAssign:
     {
-      ASTNode loc=e.getArg(0);
+      ASTNode loc=e.arg(0);
       ASTNode loc_res=loc.apply(this);
       
-      ASTNode val=e.getArg(1);
+      ASTNode val=e.arg(1);
       ASTNode val_res=val.apply(this);
       
       //current_block.add_statement(create.assignment(loc_res,create.expression(StandardOperator.Plus,loc_res,val_res)));
@@ -88,8 +88,8 @@ public class Flatten extends AbstractRewriter {
     case PreDecr:
     {
       boolean expression=e.getParent()==null;
-      StandardOperator op=e.getOperator()==StandardOperator.PreIncr?StandardOperator.Plus:StandardOperator.Minus;
-      ASTNode arg=e.getArg(0);
+      StandardOperator op=e.operator()==StandardOperator.PreIncr?StandardOperator.Plus:StandardOperator.Minus;
+      ASTNode arg=e.arg(0);
       ASTNode arg_out=arg.apply(this);
       
       String name="__flatten_"+(++counter);
@@ -109,8 +109,8 @@ public class Flatten extends AbstractRewriter {
     case PostIncr:
     case PostDecr:
     {
-      StandardOperator op=e.getOperator()==StandardOperator.PostIncr?StandardOperator.Plus:StandardOperator.Minus;
-      ASTNode arg=e.getArg(0);
+      StandardOperator op=e.operator()==StandardOperator.PostIncr?StandardOperator.Plus:StandardOperator.Minus;
+      ASTNode arg=e.arg(0);
       ASTNode arg_out=arg.apply(this);
       String name="__flatten_"+(++counter);
       declaration_block.add_statement(create.field_decl(name,e.getType(),null));
@@ -334,11 +334,11 @@ public class Flatten extends AbstractRewriter {
   
   @Override
   public void visit(Dereference e){
-    if (simple_expression(e.object)){
+    if (simple_expression(e.object())) {
       super.visit(e);
     } else {
-      ASTNode obj=add_as_var(e.object);
-      result=create.dereference(obj,e.field);
+      ASTNode obj = add_as_var(e.object());
+      result = create.dereference(obj, e.field());
     }
   }
 }

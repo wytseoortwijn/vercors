@@ -56,9 +56,9 @@ public class LockEncoder extends AbstractRewriter {
   
   @Override
   public void visit(OperatorExpression e){
-    switch(e.getOperator()){
+    switch (e.operator()) {
     case Held:
-      result=create.invokation(rewrite(e.getArg(0)),null,HELD);
+      result = create.invokation(rewrite(e.arg(0)), null, HELD);
       break;
     default:
       super.visit(e);
