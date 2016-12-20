@@ -1457,8 +1457,8 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
   @Override
   public void visit(FieldAccess a){
     super.visit(a);
-    if (a.getValue() == null) {
-      Dereference d = new Dereference(a.getObject(), a.getName());
+    if (a.value() == null) {
+      Dereference d = new Dereference(a.object(), a.name());
       visit(d);
       a.setType(d.getType());
     } else {

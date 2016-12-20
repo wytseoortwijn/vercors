@@ -1349,17 +1349,17 @@ public class JavaPrinter extends AbstractPrinter {
   @Override
   public void visit(FieldAccess a) {
     setExpr();
-    if (a.getValue() == null) {
+    if (a.value() == null) {
       out.printf("((");
     }
-    if (a.getObject() != null) {
-      a.getObject().apply(this);
+    if (a.object() != null) {
+      a.object().apply(this);
       out.printf(".");
     }
-    out.printf("%s", a.getName());
-    if (a.getValue() != null) {
+    out.printf("%s", a.name());
+    if (a.value() != null) {
       out.printf(" := ");
-      a.getValue().apply(this);
+      a.value().apply(this);
     } else {
       out.printf("))");
     }

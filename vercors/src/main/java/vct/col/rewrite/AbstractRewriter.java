@@ -756,7 +756,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   
   @Override
   public void visit(FieldAccess a){
-    result=create.set_field(a.getClassName(), rewrite(a.getObject()), a.getName(), rewrite(a.getValue()));
+    result=create.set_field(a.classname(), rewrite(a.object()), a.name(), rewrite(a.value()));
   }
 
   public ASTNode inline_call(MethodInvokation e){
