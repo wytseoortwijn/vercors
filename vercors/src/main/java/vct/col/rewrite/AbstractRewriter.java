@@ -344,7 +344,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   @Override
   public void visit(ConstantExpression e) {
     //checkPermission(e);
-    result=new ConstantExpression(e.getValue(),e.getType(),e.getOrigin());
+    result=new ConstantExpression(e.value(),e.getType(),e.getOrigin());
   }
   
   @Override
@@ -464,7 +464,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
     for(int i=0;i<N;i++){
       args[i]=e.getArg(i).apply(this);
     }
-    OperatorExpression res=new OperatorExpression(op,args);
+    OperatorExpression res = OperatorExpression.construct(op, args);
     res.set_before(rewrite(e.get_before()));
     res.set_after(rewrite(e.get_after()));
     res.setOrigin(e.getOrigin());
@@ -500,7 +500,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   @Override
   public void visit(StandardProcedure p) {
     //checkPermission(p);
-    StandardProcedure res=new StandardProcedure(p.getOperator());
+    StandardProcedure res = new StandardProcedure(p.operator());
     res.setOrigin(p.getOrigin());
     result=res;
   }
@@ -624,9 +624,8 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
     result=res;
   }
   
-  public void visit(Axiom ax){
-    Axiom res=create.axiom(ax.name,rewrite(ax.getRule()));
-    result=res;
+  public void visit(Axiom axiom){
+    result = create.axiom(axiom.name, rewrite(axiom.rule()));
   }
   
   /*
@@ -673,17 +672,19 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
 
   @Override
   public void visit(ActionBlock ab) {
-    Map<String,ASTNode> map=new HashMap<String,ASTNode>();
-    for(Entry<String, ASTNode> e:ab.map.entrySet()){
-      map.put(e.getKey(),rewrite(e.getValue()));
+    Map<String,ASTNode> map = new HashMap<String,ASTNode>();
+    
+    for (Entry<String, ASTNode> e : ab.mapAsJava().entrySet()) {
+      map.put(e.getKey(), rewrite(e.getValue()));
     }
+    
     result=create.action_block(
-        rewrite(ab.history),
-        rewrite(ab.fraction),
-        rewrite(ab.process),
-        rewrite(ab.action),
+        rewrite(ab.history()),
+        rewrite(ab.fraction()),
+        rewrite(ab.process()),
+        rewrite(ab.action()),
         map,
-        rewrite(ab.block)
+        rewrite(ab.block())
     );
   }
   

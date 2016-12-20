@@ -97,19 +97,22 @@ public class JavaPrinter extends AbstractPrinter {
   @Override
   public void visit(ActionBlock ab){
     out.printf("action(");
-    nextExpr(); ab.history.accept(this);
+    nextExpr(); ab.history().accept(this);
     out.printf(",");
-    nextExpr(); ab.fraction.accept(this);
+    nextExpr(); ab.fraction().accept(this);
     out.printf(",");
-    nextExpr(); ab.process.accept(this);
+    nextExpr(); ab.process().accept(this);
     out.printf(",");
-    nextExpr(); ab.action.accept(this);
-    for(Entry<String, ASTNode> e:ab.map.entrySet()){
-      out.printf(", %s, ",e.getKey());
-      nextExpr(); e.getValue().accept(this);
+    nextExpr(); ab.action().accept(this);
+    
+    for (Entry<String, ASTNode> e : ab.mapAsJava().entrySet()) {
+      out.printf(", %s, ", e.getKey());
+      nextExpr();
+      e.getValue().accept(this);
     }
+    
     out.printf(")");
-    ab.block.accept(this);
+    ab.block().accept(this);
   }
   
   public void post_visit(ASTNode node){
@@ -134,9 +137,9 @@ public class JavaPrinter extends AbstractPrinter {
   }
    
   @Override 
-  public void visit(Axiom ax){
-    out.printf("axioms %s: ", ax.name);
-    ax.getRule().accept(this);
+  public void visit(Axiom axiom){
+    out.printf("axioms %s: ", axiom.name);
+    axiom.rule().accept(this);
     out.println(";");
   }
 
@@ -1314,7 +1317,7 @@ public class JavaPrinter extends AbstractPrinter {
   
   public void visit(ConstantExpression ce){
     //if (!in_expr) Abort("constant %s outside of expression for %s",ce,ce.getOrigin());
-    if (ce.getValue() instanceof StringValue){
+    if (ce.value() instanceof StringValue){
       out.print("\""+StringEscapeUtils.escapeJava(ce.toString())+"\"");
     } else {
       out.print(ce.toString());

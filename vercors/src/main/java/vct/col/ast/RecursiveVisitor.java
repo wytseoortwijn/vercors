@@ -209,9 +209,9 @@ public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
 
   @Override
   public void visit(ActionBlock ab){
-    dispatch(ab.process);
-    dispatch(ab.action);
-    dispatch(ab.block);
+    dispatch(ab.process());
+    dispatch(ab.action());
+    dispatch(ab.block());
   }
   
   @Override
@@ -307,7 +307,7 @@ public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
   
   @Override
   public void visit(Axiom axiom){
-    dispatch(axiom.getRule());
+    dispatch(axiom.rule());
   }
   
   @Override

@@ -533,11 +533,11 @@ public class RewriteSystem {
       if (d instanceof Axiom){
         Axiom axiom=(Axiom)d;
         //Warning("axiom %s",axiom.name);
-        if (!axiom.getRule().isa(StandardOperator.EQ)){
+        if (!axiom.rule().isa(StandardOperator.EQ)){
           Fail("not a == rule");
         }
-        ASTNode lhs=((OperatorExpression)axiom.getRule()).getArg(0);
-        ASTNode rhs=((OperatorExpression)axiom.getRule()).getArg(1);
+        ASTNode lhs=((OperatorExpression)axiom.rule()).getArg(0);
+        ASTNode rhs=((OperatorExpression)axiom.rule()).getArg(1);
         rules.add(new RewriteRule(axiom.name,vars,lhs,rhs));
         continue;
       }

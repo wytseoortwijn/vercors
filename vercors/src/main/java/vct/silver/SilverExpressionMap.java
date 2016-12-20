@@ -45,8 +45,8 @@ public class SilverExpressionMap<T,E> implements ASTMapping<E>{
 
   @Override
   public E map(ConstantExpression e) {
-    if (e.getValue() instanceof IntegerValue){
-      int v=((IntegerValue)e.getValue()).getValue();
+    if (e.value() instanceof IntegerValue){
+      int v=((IntegerValue)e.value()).getValue();
       if (e.getType().isPrimitive(Sort.Fraction)){
         switch(v){
           case 0 : return create.no_perm(e.getOrigin());
@@ -56,10 +56,10 @@ public class SilverExpressionMap<T,E> implements ASTMapping<E>{
       } else {
         return create.Constant(e.getOrigin(),v);
       }
-    } else if (e.getValue() instanceof BooleanValue) {
-      return create.Constant(e.getOrigin(),((BooleanValue)e.getValue()).getValue());
+    } else if (e.value() instanceof BooleanValue) {
+      return create.Constant(e.getOrigin(),((BooleanValue)e.value()).getValue());
     } else {
-      throw new HREError("cannot map constant value %s",e.getValue().getClass());
+      throw new HREError("cannot map constant value %s",e.value().getClass());
     }
   }
 

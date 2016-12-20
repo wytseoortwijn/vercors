@@ -729,10 +729,10 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
       Fail("nested action block");
     }
     in_action=true;
-    MethodInvokation act=(MethodInvokation)ab.action;
-    ASTNode hist=rewrite(ab.history);
-    ASTNode frac=rewrite(ab.fraction);
-    ASTNode p_expr=rewrite(ab.process);
+    MethodInvokation act=(MethodInvokation)ab.action();
+    ASTNode hist=rewrite(ab.history());
+    ASTNode frac=rewrite(ab.fraction());
+    ASTNode p_expr=rewrite(ab.process());
     p_expr.clearLabels();
     ArrayList<ASTNode> args=new ArrayList<ASTNode>();
     args.add(frac);
@@ -752,7 +752,7 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
     }
     BlockStatement body=create.block();
     body.add(create.invokation(hist, null, act.method+"_begin", args.toArray(new ASTNode[0])));
-    for(ASTNode n:(BlockStatement)ab.block){
+    for(ASTNode n:(BlockStatement)ab.block()){
       body.add(rewrite(n));
     }
     body.add(create.invokation(hist, null, act.method+"_commit", args.toArray(new ASTNode[0])));

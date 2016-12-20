@@ -211,7 +211,7 @@ public class Translator {
 	private boolean handleZ3ConstantExpression(ASTNode pre, ConstantExpression e, ASTNode post) {
 		//outputToString.printf("Found constant %s of type %s%n",e.getValue(),e.getType());
 		hoareTriple.set(currentWorkingTriple, hoareTriple.get(currentWorkingTriple).concat(" "));
-		hoareTriple.set(currentWorkingTriple, hoareTriple.get(currentWorkingTriple).concat(e.getValue().toString()));
+		hoareTriple.set(currentWorkingTriple, hoareTriple.get(currentWorkingTriple).concat(e.value().toString()));
 		return true;
 	}
 
@@ -664,9 +664,9 @@ public class Translator {
 		@Override
 		public void visit(ConstantExpression e) {
 		    // Constants have no children.
-			outputToString.printf("Found constant %s of type %s%n",e.getValue(),e.getType());
+			outputToString.printf("Found constant %s of type %s%n",e.value(),e.getType());
 			hoareTriple.set(currentWorkingTriple, hoareTriple.get(currentWorkingTriple).concat(" "));
-			hoareTriple.set(currentWorkingTriple, hoareTriple.get(currentWorkingTriple).concat(e.getValue().toString()));
+			hoareTriple.set(currentWorkingTriple, hoareTriple.get(currentWorkingTriple).concat(e.value().toString()));
 		}
 
 		@Override

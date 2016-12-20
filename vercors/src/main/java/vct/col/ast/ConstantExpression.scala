@@ -11,8 +11,6 @@ import vct.col.util.VisitorHelper
  * @param value The constant value that is wrapped by this node.
  */
 class ConstantExpression(val value:Value) extends ASTNode with VisitorHelper {
-  def getValue() = value
-  
   def this(v:Value, t:Type) = { this(v); setType(t) }
   def this(v:Value, t:Type, origin:Origin) = { this(v, t); setOrigin(origin) }
   def this(i:Int) = this(new IntegerValue(i), new PrimitiveType(Sort.Integer))
