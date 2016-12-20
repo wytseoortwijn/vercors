@@ -10,20 +10,7 @@ import vct.col.util.VisitorHelper
  */
 class Lemma(val block:BlockStatement) extends ASTNode with VisitorHelper {
   def getBlock() = block
-  
   override def accept_simple[T,A](map:ASTMapping1[T,A], arg:A) = map.map(this, arg)
-  
-  override def accept_simple[T](visitor:ASTVisitor[T]) = {
-    try visitor.visit(this)
-    catch {
-      case t:Throwable => handle_throwable(t)
-    }
-  }
-  
-  override def accept_simple[T](map:ASTMapping[T]) : T = {
-    try return map.map(this)
-    catch {
-      case t:Throwable => handle_throwable(t)
-    }
-  }
+  override def accept_simple[T](visitor:ASTVisitor[T]) = try visitor.visit(this) catch { case t:Throwable => handle_throwable(t) }
+  override def accept_simple[T](map:ASTMapping[T]) = try map.map(this) catch { case t:Throwable => handle_throwable(t) }
 }
