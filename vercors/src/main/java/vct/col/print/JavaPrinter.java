@@ -903,9 +903,9 @@ public class JavaPrinter extends AbstractPrinter {
     }
   }
 
-  public void visit(Lemma l){
+  public void visit(Lemma lemma){
       out.printf("/*@ lemma ");
-      l.getBlock().accept(this);
+      lemma.block().accept(this);
       out.lnprintf(" */");
   }
   
@@ -1239,14 +1239,14 @@ public class JavaPrinter extends AbstractPrinter {
   public void visit(ParallelAtomic pa){
     out.printf("atomic (");
     String sep="";
-    for(ASTNode s:pa.sync_list){
+    for (ASTNode s : pa.synclist()) {
       out.printf("%s",sep);
       sep=",";
       nextExpr();
       s.apply(this);
     }
     out.printf(")");
-    visit(pa.block);
+    visit(pa.block());
   }
 
   @Override
@@ -1273,40 +1273,40 @@ public class JavaPrinter extends AbstractPrinter {
 
   @Override
   public void visit(ParallelBarrier pb){
-    if(pb.contract==null){
+    if (pb.contract() == null) {
       Fail("parallel barrier with null contract!");
     } else {
-      out.printf("barrier(%s;%s){",pb.label,pb.invs);
+      out.printf("barrier(%s;%s){", pb.label(), pb.invs());
       out.println("");
       out.incrIndent();
-      visit(pb.contract);
+      visit(pb.contract());
       out.decrIndent();
-      if (pb.body==null){
+      if (pb.body() == null ) {
         out.println("{ }");
       } else {
-        pb.body.accept(this);
+        pb.body().accept(this);
       }
       
     }
   }
   @Override
-  public void visit(ParallelInvariant pb){
-    out.printf("invaratiant %s (",pb.label);
+  public void visit(ParallelInvariant pb) {
+    out.printf("invariants %s (", pb.label());
     nextExpr();
-    pb.inv.accept(this);
+    pb.inv().accept(this);
     out.printf(")");
-    pb.block.accept(this);
+    pb.block().accept(this);
   }
   @Override
   public void visit(ParallelRegion region){
-    if (region.contract!=null){
+    if (region.contract() != null) {
       out.println("parallel");
-      region.contract.accept(this);
+      region.contract().accept(this);
       out.println("{");
     } else {
       out.println("parallel {");
     }
-    for(ParallelBlock pb:region.blocks){
+    for (ParallelBlock pb : region.blocks()) {
       out.incrIndent();
       pb.accept(this);
       out.println("");

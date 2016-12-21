@@ -559,18 +559,18 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   }
   
   @Override
-  public void visit(Lemma l){
-    result = create.lemma(rewrite(l.getBlock()));
+  public void visit(Lemma l) {
+    result = create.lemma(rewrite(l.block()));
   }
   
   @Override
   public void visit(ParallelAtomic pa){
-    result=create.csl_atomic(rewrite(pa.block),rewrite(pa.sync_list.toArray(new ASTNode[0])));
+    result = create.csl_atomic(rewrite(pa.block()), rewrite(pa.synclist().toArray(new ASTNode[0])));
   }
   
   @Override
   public void visit(ParallelInvariant inv){
-    result=create.invariant_block(inv.label,rewrite(inv.inv),rewrite(inv.block));
+    result = create.invariant_block(inv.label(), rewrite(inv.inv()), rewrite(inv.block()));
   }
   
   @Override
@@ -587,12 +587,12 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   
   @Override
   public void visit(ParallelRegion region){
-    result=create.region(rewrite(region.contract),rewrite(region.blocks));
+    result = create.region(rewrite(region.contract()), rewrite(region.blocks()));
   }
   
   @Override
-  public void visit(ParallelBarrier pb){
-    result=create.barrier(pb.label,rewrite(pb.contract),pb.invs,rewrite(pb.body));
+  public void visit(ParallelBarrier pb) {
+    result = create.barrier(pb.label(), rewrite(pb.contract()), pb.invs(), rewrite(pb.body()));
   }
 
   @Override
@@ -745,8 +745,8 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   }
   
   @Override
-  public void visit(TypeExpression t){
-    result = create.type_expression(t.getOp(), rewrite(t.getTypes()));
+  public void visit(TypeExpression te){
+    result = create.type_expression(te.operator(), rewrite(te.types()));
   }
   
   @Override

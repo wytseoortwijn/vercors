@@ -249,21 +249,21 @@ public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
   }
   
   @Override
-  public void visit(Lemma l){
-    l.getBlock().accept(this);
+  public void visit(Lemma lemma) {
+    lemma.block().accept(this);
   }
   
   public void visit(ParallelAtomic pa){
-    dispatch(pa.block);
+    dispatch(pa.block());
   }
   
   public void visit(ParallelInvariant inv){
-    dispatch(inv.inv);
-    dispatch(inv.block);
+    dispatch(inv.inv());
+    dispatch(inv.block());
   }
 
   public void visit(ParallelBarrier pb){
-    dispatch(pb.contract);
+    dispatch(pb.contract());
   }
 
   public void visit(ParallelBlock pb){
@@ -273,8 +273,8 @@ public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
   }
   
   public void visit(ParallelRegion region){
-    dispatch(region.contract);
-    dispatch(region.blocks);
+    dispatch(region.contract());
+    dispatch(region.blocks());
   }
 
   public void visit(Contract c){

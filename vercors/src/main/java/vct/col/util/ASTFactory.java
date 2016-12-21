@@ -192,7 +192,7 @@ public class ASTFactory<E> implements FrameControl {
     * Create a new barrier node.
     */
    public ParallelBarrier barrier(Origin origin,String label,Contract c,ArrayList<String> fences, BlockStatement body){
-     ParallelBarrier res=new ParallelBarrier(label,c,fences,body);
+     ParallelBarrier res = new ParallelBarrier(label, c, fences, body);
      res.setOrigin(origin);
      res.accept_if(post);
      return res;
@@ -770,7 +770,7 @@ public BlockStatement block(Origin origin, ASTNode ... args) {
     return csl_atomic(origin_stack.get(),block,invs);
   }
   public ParallelAtomic csl_atomic(Origin origin,BlockStatement block,ASTNode ... invs){
-    ParallelAtomic res=new ParallelAtomic(block,invs);
+    ParallelAtomic res = new ParallelAtomic(block, invs);
     res.setOrigin(origin);
     res.accept_if(post);
     return res;    

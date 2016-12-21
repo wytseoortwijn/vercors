@@ -71,7 +71,7 @@ public class ChalicePreProcess extends AbstractRewriter {
   @Override
   public void visit(ConstantExpression e){
     if (e.getType().isPrimitive(Sort.Fraction)){
-      int v=((IntegerValue)(e.value())).getValue();
+      int v = ((IntegerValue)(e.value())).value();
       if (v==1){
         result=create.reserved_name(ASTReserved.FullPerm);
         return;
