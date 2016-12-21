@@ -472,12 +472,12 @@ public class SilverExpressionMap<T,E> implements ASTMapping<E>{
   @Override
   public E map(StructValue v) {
     Origin o = v.getOrigin();
-    ArrayList<E> elems=new ArrayList<E>();
-    for(int i=0;i<v.values.length;i++){
-      elems.add(v.values[i].apply(this));
+    ArrayList<E> elems = new ArrayList<E>();
+    for (int i=0;i<v.values().length;i++) {
+      elems.add(v.value(i).apply(this));
     }
-    T t=((Type)((Type)v.type).getArg(0)).apply(type);
-    switch(((PrimitiveType)v.type).sort){
+    T t=((Type)((Type)v.type()).getArg(0)).apply(type);
+    switch(((PrimitiveType)v.type()).sort){
     case Sequence:
       return create.explicit_seq(o, t, elems);
     case Bag:

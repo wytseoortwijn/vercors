@@ -1132,10 +1132,10 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
   @Override
   public void visit(StructValue v){
     super.visit(v);
-    if (v.type==null){
+    if (v.type() == null) {
       Abort("Build without type argument");
     }
-    Type t=v.type;
+    Type t = v.type();
     v.setType(t);
     if (t instanceof ClassType){
       Abort("constructor encoded as struct value");
@@ -1144,9 +1144,9 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
         Fail("type without arguments: %s in %s",t,v);
       }
       t=(Type)t.getArg(0);
-      for(int i=0;i<v.values.length;i++){
-        Type t2=v.values[i].getType();
-        if (t2==null){
+      for (int i=0;i<v.values().length;i++) {
+        Type t2=v.value(i).getType();
+        if (t2 == null) {
           Fail("untyped build argument %d",i);
         }
         if (t.equals(t2)) continue;

@@ -983,17 +983,17 @@ public class JavaPrinter extends AbstractPrinter {
   
   
   @Override
-  public void visit(StructValue v){
+  public void visit(StructValue v) {
     setExpr();
-    if (v.type!=null){
-      v.type.accept(this);
+    if (v.type() != null) {
+      v.type().accept(this);
     }
     out.print("{");
     String sep="";
-    for(int i=0;i<v.values.length;i++){
+    for (int i=0;i<v.values().length;i++) {
       out.print(sep);
       sep=",";
-      v.values[i].accept(this);
+      v.value(i).accept(this);
     }
     out.print("}");
   }

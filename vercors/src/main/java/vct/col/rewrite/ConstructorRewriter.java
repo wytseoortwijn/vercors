@@ -19,7 +19,7 @@ public class ConstructorRewriter extends AbstractRewriter {
   
   public void visit(AssignmentStatement e){
     if ((e.getExpression() instanceof StructValue)
-       && (((StructValue)e.getExpression()).type instanceof ClassType)){
+       && (((StructValue)e.getExpression()).type() instanceof ClassType)){
       Abort("illegal use of structvalue for constructor call");
     }
     if (e.getExpression() instanceof MethodInvokation){
