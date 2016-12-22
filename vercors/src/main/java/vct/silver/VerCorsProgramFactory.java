@@ -307,7 +307,7 @@ public class VerCorsProgramFactory implements
         }
         ArrayList<DAxiom> axioms=new ArrayList<DAxiom>();
         for(Axiom axiom:adt.axioms()){
-          axioms.add(api.prog.daxiom(axiom.getOrigin(),axiom.name,axiom.getRule().apply(expr),adt.name));
+          axioms.add(api.prog.daxiom(axiom.getOrigin(),axiom.name,axiom.rule().apply(expr),adt.name));
         }
         ArrayList<String> pars=new ArrayList<String>();
         for(DeclarationStatement decl:adt.getParameters()){

@@ -38,7 +38,7 @@ public class CheckProcessAlgebra extends AbstractRewriter {
           hist_set.add((NameExpression)n);
         } else if (n instanceof Dereference) {
           Dereference d=(Dereference)n;
-          hist_set.add(create.field_name(d.field));
+          hist_set.add(create.field_name(d.field()));
         } else {
           Fail("unexpected entry in modifies clause");
         }
@@ -187,11 +187,11 @@ public class CheckProcessAlgebra extends AbstractRewriter {
       return m_body;
     } else if (m_body instanceof OperatorExpression){
       OperatorExpression p=(OperatorExpression)m_body;
-      switch(p.getOperator()){
+      switch(p.operator()){
       case Or:{
-        ASTNode p0=p.getArg(0);
+        ASTNode p0=p.arg(0);
         ASTNode g0=expand_unguarded(p0);
-        ASTNode p1=p.getArg(1);
+        ASTNode p1=p.arg(1);
         ASTNode g1=expand_unguarded(p1);
         return create.expression(StandardOperator.Plus,
             left_merge(g0,p1),
@@ -199,23 +199,23 @@ public class CheckProcessAlgebra extends AbstractRewriter {
         );
       }
       case Plus:{
-        ASTNode p0=p.getArg(0);
+        ASTNode p0=p.arg(0);
         ASTNode g0=expand_unguarded(p0);
-        ASTNode p1=p.getArg(1);
+        ASTNode p1=p.arg(1);
         ASTNode g1=expand_unguarded(p1);
         return create.expression(StandardOperator.Plus,g0,g1);
       }
       case Mult:{
-        ASTNode p0=p.getArg(0);
+        ASTNode p0=p.arg(0);
         ASTNode g0=expand_unguarded(p0);
-        ASTNode p1=p.getArg(1);
+        ASTNode p1=p.arg(1);
         return create.expression(StandardOperator.Mult,g0,p1); 
       }
       case ITE:{
-        ASTNode b=p.getArg(0);
-        ASTNode p0=p.getArg(1);
+        ASTNode b=p.arg(0);
+        ASTNode p0=p.arg(1);
         ASTNode g0=expand_unguarded(p0);
-        ASTNode p1=p.getArg(2);
+        ASTNode p1=p.arg(2);
         ASTNode g1=expand_unguarded(p1);
         return create.expression(StandardOperator.ITE,b,g0,g1);
       }
@@ -232,17 +232,17 @@ public class CheckProcessAlgebra extends AbstractRewriter {
       return other;
     } else if (m_body instanceof OperatorExpression){
       OperatorExpression p=(OperatorExpression)m_body;
-      switch(p.getOperator()){
+      switch(p.operator()){
       case Plus:{
-        ASTNode p0=p.getArg(0);
+        ASTNode p0=p.arg(0);
         ASTNode g0=left_merge(p0,other);
-        ASTNode p1=p.getArg(1);
+        ASTNode p1=p.arg(1);
         ASTNode g1=left_merge(p1,other);
         return create.expression(StandardOperator.Plus,g0,g1);
       }
       case Mult:{
-        ASTNode p0=p.getArg(0);
-        ASTNode p1=p.getArg(1);
+        ASTNode p0=p.arg(0);
+        ASTNode p1=p.arg(1);
         if (!(p0 instanceof MethodInvokation)) break;
         if (!(p1 instanceof MethodInvokation)) break;
         MethodInvokation m0=(MethodInvokation)p1;
@@ -260,10 +260,10 @@ public class CheckProcessAlgebra extends AbstractRewriter {
         return create.expression(StandardOperator.Mult,p0,guess); 
       }
       case ITE:{
-        ASTNode b=p.getArg(0);
-        ASTNode p0=p.getArg(1);
+        ASTNode b=p.arg(0);
+        ASTNode p0=p.arg(1);
         ASTNode g0=left_merge(p0,other);
-        ASTNode p1=p.getArg(2);
+        ASTNode p1=p.arg(2);
         ASTNode g1=left_merge(p1,other);
         return create.expression(StandardOperator.ITE,b,g0,g1);
       }
@@ -280,25 +280,25 @@ public class CheckProcessAlgebra extends AbstractRewriter {
     create.setOrigin(m_body.getOrigin());
     if (m_body instanceof OperatorExpression) {
       OperatorExpression e=(OperatorExpression)m_body;
-      switch(e.getOperator()){
+      switch(e.operator()){
       case ITE:{
         BlockStatement lhs=create.block();
-        create_body(lhs,e.getArg(1));
+        create_body(lhs,e.arg(1));
         BlockStatement rhs=create.block();
-        create_body(rhs,e.getArg(2));
-        body.add(create.ifthenelse(copy_rw.rewrite(e.getArg(0)),lhs,rhs));
+        create_body(rhs,e.arg(2));
+        body.add(create.ifthenelse(copy_rw.rewrite(e.arg(0)),lhs,rhs));
         break;
       }
       case Mult:{
-        create_body(body,e.getArg(0));
-        create_body(body,e.getArg(1));
+        create_body(body,e.arg(0));
+        create_body(body,e.arg(1));
         break;
       }
       case Plus:{
         BlockStatement lhs=create.block();
-        create_body(lhs,e.getArg(0));
+        create_body(lhs,e.arg(0));
         BlockStatement rhs=create.block();
-        create_body(rhs,e.getArg(1));
+        create_body(rhs,e.arg(1));
         body.add(create.ifthenelse(create.reserved_name(ASTReserved.Any),lhs,rhs));    
         break;
       }
@@ -306,7 +306,7 @@ public class CheckProcessAlgebra extends AbstractRewriter {
         Abort("cannot generate body for parallel composition");
       }
       default:
-        Abort("skipping unknown process operator %s",e.getOperator());
+        Abort("skipping unknown process operator %s", e.operator());
       }
     } else if (m_body instanceof MethodInvokation) {
       body.add(copy_rw.rewrite(m_body));
@@ -320,16 +320,16 @@ public class CheckProcessAlgebra extends AbstractRewriter {
 
   @Override
   public void visit(OperatorExpression e){
-    switch(e.getOperator()){
+    switch(e.operator()){
     case Or:
       if(e.getType().isPrimitive(Sort.Process)){
-        result=create.invokation(null,null,"p_merge",rewrite(e.getArguments()));
+        result=create.invokation(null, null, "p_merge", rewrite(e.args()));
         return;
       }
       break;
     case Mult:
       if(e.getType().isPrimitive(Sort.Process)){
-        result=create.invokation(null,null,"p_seq",rewrite(e.getArguments()));
+        result=create.invokation(null, null, "p_seq", rewrite(e.args()));
         return;
       }
       break;

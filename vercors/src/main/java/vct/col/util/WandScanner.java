@@ -11,7 +11,7 @@ public class WandScanner extends RecursiveVisitor<Object> {
 	}
 
 	public void visit(OperatorExpression e){
-		switch(e.getOperator()){
+		switch(e.operator()){
 		case Wand:{
 			Warning("found magic wand.");
 			break;

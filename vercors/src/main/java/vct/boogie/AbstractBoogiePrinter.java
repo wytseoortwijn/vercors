@@ -337,15 +337,15 @@ public abstract class AbstractBoogiePrinter extends AbstractPrinter {
 
   public void visit(Dereference e){
     if (boogie){
-      if (e.object instanceof ClassType) {
+      if (e.object() instanceof ClassType) {
         // TODO: check if really OK.
-        out.printf("%s",e.field);
+        out.printf("%s", e.field());
       } else {
         Fail("dereferences are illegal in Boogie programs");
       }
     } else {
-      e.object.accept(this);
-      out.printf(".%s",e.field);
+      e.object().accept(this);
+      out.printf(".%s", e.field());
     }
   }
   public void visit(ReturnStatement s){

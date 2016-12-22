@@ -95,7 +95,7 @@ public class VoidCallsThrown extends AbstractRewriter {
           create.invokation(null,null,"type_of",create.local_name("sys__thrown")),
           create.invokation(null,null,"class_Exception")
       );
-      catches.addClause(guard,rewrite(c.block));
+      catches.addClause(guard,rewrite(c.block()));
     }
     catches.addClause(IfStatement.else_guard,create.special(Kind.Assert,create.constant(false)));
     block.add(catches);

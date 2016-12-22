@@ -14,16 +14,16 @@ public class Simplify extends AbstractRewriter {
   }
   
   public void visit(Dereference d){
-    if (d.object.isReserved(ASTReserved.This)){
-      result=create.local_name(d.field);
+    if (d.object().isReserved(ASTReserved.This)){
+      result = create.local_name(d.field());
     } else {
       super.visit(d);
     }
   }
   
   public void visit(FieldAccess d){
-    if (d.object.isReserved(ASTReserved.This)){
-      result=create.local_name(d.name);
+    if (d.object().isReserved(ASTReserved.This)) {
+      result = create.local_name(d.name());
     } else {
       super.visit(d);
     }

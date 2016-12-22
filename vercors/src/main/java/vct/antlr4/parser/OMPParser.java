@@ -138,12 +138,14 @@ class ConversionVisitor implements ompVisitor<OMPelement> {
 
   @Override
   public OMPelement visitOmp_sections(Omp_sectionsContext ctx) {
-    throw new Error("missing case");
+     return new OMPpragma(OMPpragma.Kind.Sections,map(ctx,1));//Saeed 
+    //throw new Error("missing case");
   }
 
   @Override
   public OMPelement visitOmp_section(Omp_sectionContext ctx) {
-    throw new Error("missing case");
+    return new OMPpragma(OMPpragma.Kind.Section,map(ctx,1));//Saeed 
+    //throw new Error("missing case");
   }
 
   @Override

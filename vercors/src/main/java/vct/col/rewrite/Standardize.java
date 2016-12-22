@@ -112,18 +112,18 @@ public class Standardize extends AbstractRewriter {
   @Override
   public void visit(OperatorExpression e){
     if (e.getParent() instanceof BlockStatement){
-      switch(e.getOperator()){
+      switch(e.operator()){
       case Assign:
       {
-        ASTNode var=e.getArg(0).apply(this);
-        ASTNode val=e.getArg(1).apply(this);
+        ASTNode var=e.arg(0).apply(this);
+        ASTNode val=e.arg(1).apply(this);
         result=create.assignment(var,val);
         break;
       }
       case PostIncr:
       case PreIncr:
       {
-        ASTNode arg=e.getArg(0);
+        ASTNode arg=e.arg(0);
         if (arg instanceof NameExpression){
           ASTNode incr=create.expression(e.getOrigin(),StandardOperator.Plus,rewrite(arg),create.constant(e.getOrigin(),1));
           result=create.assignment(rewrite(arg),incr);
@@ -135,7 +135,7 @@ public class Standardize extends AbstractRewriter {
       case PostDecr:
       case PreDecr:
       {
-        ASTNode arg=e.getArg(0);
+        ASTNode arg=e.arg(0);
         if (arg instanceof NameExpression){
           ASTNode incr=create.expression(e.getOrigin(),StandardOperator.Minus,rewrite(arg),create.constant(e.getOrigin(),1));
           result=create.assignment(rewrite(arg),incr);

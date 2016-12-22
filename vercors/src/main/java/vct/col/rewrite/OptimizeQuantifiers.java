@@ -26,8 +26,8 @@ public class OptimizeQuantifiers extends AbstractRewriter {
     ASTNode main=e.main;
     while(main.isa(StandardOperator.Implies)){
       OperatorExpression oe=(OperatorExpression)main;
-      cond.add(rewrite(oe.getArg(0)));
-      main=oe.getArg(1);
+      cond.add(rewrite(oe.arg(0)));
+      main=oe.arg(1);
     }
     if(main instanceof BindingExpression){
       BindingExpression tmp=(BindingExpression)main;

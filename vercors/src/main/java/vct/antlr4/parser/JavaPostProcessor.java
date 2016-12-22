@@ -151,26 +151,26 @@ public class JavaPostProcessor extends AbstractRewriter {
   @Override
   public void visit(OperatorExpression e){
     Type deftype=create.class_type("Object");
-    switch(e.getOperator()){
+    switch(e.operator()){
       case StructSelect:
-        ASTNode arg=e.getArg(1);
+        ASTNode arg=e.arg(1);
         if (arg instanceof NameExpression){
-          result=create.dereference(rewrite(e.getArg(0)), arg.toString());
+          result=create.dereference(rewrite(e.arg(0)), arg.toString());
           return;
         } else {
           Abort("unexpected StructSelect expression");
         }
       case SubType:
-        deftype=(Type)rewrite(e.getArg(1));
+        deftype=(Type)rewrite(e.arg(1));
       case SuperType:
       {
-        NameExpression n=(NameExpression)e.getArg(0);
+        NameExpression n=(NameExpression)e.arg(0);
         if (n.getName().equals("?")){
           wildcard_count++;
           String name="wildcard_"+wildcard_count;
           if (currentContractBuilder==null) Abort("no contract builder set");
           currentContractBuilder.given(create.field_decl(name, create.primitive_type(Sort.Class),deftype));
-          currentContractBuilder.requires(create.expression(e.getOperator(),create.unresolved_name(name),rewrite(e.getArg(1))));
+          currentContractBuilder.requires(create.expression(e.operator(),create.unresolved_name(name),rewrite(e.arg(1))));
           result=create.unresolved_name(name);
           return;
         }
@@ -179,15 +179,15 @@ public class JavaPostProcessor extends AbstractRewriter {
       case LT:
       case LTE:
       {
-        ASTNode arg0=rewrite(e.getArg(0));
-        ASTNode arg1=rewrite(e.getArg(1));
+        ASTNode arg0=rewrite(e.arg(0));
+        ASTNode arg1=rewrite(e.arg(1));
         OperatorExpression res;
-        if (arg0 instanceof OperatorExpression && is_comparison(((OperatorExpression)arg0).getOperator())){
-          ASTNode tmp=rewrite(((OperatorExpression)e.getArg(0)).getArg(1));
-          arg1=create.expression(e.getOperator(),tmp,arg1);
+        if (arg0 instanceof OperatorExpression && is_comparison(((OperatorExpression)arg0).operator())){
+          ASTNode tmp=rewrite(((OperatorExpression)e.arg(0)).arg(1));
+          arg1=create.expression(e.operator(),tmp,arg1);
           res=create.expression(StandardOperator.And,arg0,arg1);
         } else {
-          res=create.expression(e.getOperator(),arg0,arg1);
+          res=create.expression(e.operator(),arg0,arg1);
         }
         res.set_before(null);
         res.set_after(null);

@@ -344,7 +344,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   @Override
   public void visit(ConstantExpression e) {
     //checkPermission(e);
-    result=new ConstantExpression(e.getValue(),e.getType(),e.getOrigin());
+    result=new ConstantExpression(e.value(),e.getType(),e.getOrigin());
   }
   
   @Override
@@ -457,14 +457,14 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   @Override
   public void visit(OperatorExpression e) {
     //checkPermission(e);
-    StandardOperator op=e.getOperator();
+    StandardOperator op=e.operator();
     int N=op.arity();
-    if(N<0) N=e.getArguments().length;
+    if(N<0) N=e.args().length;
     ASTNode args[]=new ASTNode[N];
     for(int i=0;i<N;i++){
-      args[i]=e.getArg(i).apply(this);
+      args[i]=e.arg(i).apply(this);
     }
-    OperatorExpression res=new OperatorExpression(op,args);
+    OperatorExpression res = OperatorExpression.construct(op, args);
     res.set_before(rewrite(e.get_before()));
     res.set_after(rewrite(e.get_after()));
     res.setOrigin(e.getOrigin());
@@ -500,7 +500,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   @Override
   public void visit(StandardProcedure p) {
     //checkPermission(p);
-    StandardProcedure res=new StandardProcedure(p.getOperator());
+    StandardProcedure res = new StandardProcedure(p.operator());
     res.setOrigin(p.getOrigin());
     result=res;
   }
@@ -550,7 +550,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
 
   @Override
   public void visit(Dereference e) {
-    result=create.dereference(e.object.apply(this),e.field);
+    result = create.dereference(e.object().apply(this), e.field());
   }
   
   @Override
@@ -560,7 +560,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   
   @Override
   public void visit(Lemma l){
-    result=create.lemma(rewrite(l.block));
+    result = create.lemma(rewrite(l.getBlock()));
   }
   
   @Override
@@ -624,9 +624,8 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
     result=res;
   }
   
-  public void visit(Axiom ax){
-    Axiom res=create.axiom(ax.name,rewrite(ax.getRule()));
-    result=res;
+  public void visit(Axiom axiom){
+    result = create.axiom(axiom.name, rewrite(axiom.rule()));
   }
   
   /*
@@ -673,17 +672,19 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
 
   @Override
   public void visit(ActionBlock ab) {
-    Map<String,ASTNode> map=new HashMap<String,ASTNode>();
-    for(Entry<String, ASTNode> e:ab.map.entrySet()){
-      map.put(e.getKey(),rewrite(e.getValue()));
+    Map<String,ASTNode> map = new HashMap<String,ASTNode>();
+    
+    for (Entry<String, ASTNode> e : ab.mapAsJava().entrySet()) {
+      map.put(e.getKey(), rewrite(e.getValue()));
     }
+    
     result=create.action_block(
-        rewrite(ab.history),
-        rewrite(ab.fraction),
-        rewrite(ab.process),
-        rewrite(ab.action),
+        rewrite(ab.history()),
+        rewrite(ab.fraction()),
+        rewrite(ab.process()),
+        rewrite(ab.action()),
         map,
-        rewrite(ab.block)
+        rewrite(ab.block())
     );
   }
   
@@ -727,17 +728,17 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   public void visit(TryCatchBlock tcb){
     TryCatchBlock res=create.try_catch(rewrite(tcb.main),rewrite(tcb.after));
     for(CatchClause cc:tcb.catches){
-      pre_visit(cc.block);
+      pre_visit(cc.block());
       BlockStatement tmp=currentBlock;
       currentBlock=new BlockStatement();
-      currentBlock.setOrigin(cc.block.getOrigin());
-      DeclarationStatement d=rewrite(cc.decl);
-      for(ASTNode S:cc.block){
+      currentBlock.setOrigin(cc.block().getOrigin());
+      DeclarationStatement d=rewrite(cc.decl());
+      for(ASTNode S:cc.block()){
         currentBlock.add(rewrite(S));
       }
       BlockStatement block=currentBlock;
       currentBlock=tmp;
-      post_visit(cc.block);
+      post_visit(cc.block());
       res.catch_clause(d,block);
     }
     result=res;
@@ -745,7 +746,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   
   @Override
   public void visit(TypeExpression t){
-    result=create.type_expression(t.op,rewrite(t.types));
+    result = create.type_expression(t.getOp(), rewrite(t.getTypes()));
   }
   
   @Override
@@ -755,7 +756,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   
   @Override
   public void visit(FieldAccess a){
-    result=create.set_field(a.claz, rewrite(a.object), a.name, rewrite(a.value));
+    result=create.set_field(a.classname(), rewrite(a.object()), a.name(), rewrite(a.value()));
   }
 
   public ASTNode inline_call(MethodInvokation e){
@@ -787,6 +788,6 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   
   @Override
   public void visit(Constraining c){
-    result=create.constraining(rewrite(c.block),rewrite(c.vars));
+    result = create.constraining(rewrite(c.block()) ,rewrite(c.vars()));
   }
 }

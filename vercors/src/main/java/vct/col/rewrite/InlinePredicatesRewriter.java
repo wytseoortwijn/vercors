@@ -52,11 +52,11 @@ public class InlinePredicatesRewriter extends AbstractRewriter {
   
   @Override
   public void visit(OperatorExpression e){
-    switch(e.getOperator()){
+    switch(e.operator()){
       case Unfolding:
       {
-        ASTNode arg1=rewrite(e.getArg(0));
-        ASTNode arg2=rewrite(e.getArg(1));
+        ASTNode arg1=rewrite(e.arg(0));
+        ASTNode arg2=rewrite(e.arg(1));
         if (arg1 instanceof MethodInvokation || arg1.isa(StandardOperator.Scale)){
           result=create.expression(StandardOperator.Unfolding,arg1,arg2);
         } else {

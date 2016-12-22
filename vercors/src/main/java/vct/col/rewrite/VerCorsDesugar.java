@@ -15,12 +15,12 @@ public class VerCorsDesugar extends AbstractRewriter {
   
   @Override
   public void visit(OperatorExpression e){
-    switch(e.getOperator()){
+    switch (e.operator()) {
     case Perm:{
       ArrayList<String> vars=new ArrayList<String>();
       ArrayList<ASTNode> range=new ArrayList<ASTNode>();
-      ASTNode loc=desugar_loc(vars,range,e.getArg(0));
-      ASTNode frac=rewrite(e.getArg(1));
+      ASTNode loc=desugar_loc(vars,range,e.arg(0));
+      ASTNode frac=rewrite(e.arg(1));
       ASTNode res=create.expression(StandardOperator.Perm,loc,frac);
       int N=vars.size();
       for(int i=N-1;i>=0;i--){
@@ -34,15 +34,15 @@ public class VerCorsDesugar extends AbstractRewriter {
       break;
     }
     case LT:{
-      ASTNode left=e.getArg(0);
+      ASTNode left=e.arg(0);
       if(left instanceof OperatorExpression){
         OperatorExpression lhs=(OperatorExpression)left;
-        switch(lhs.getOperator()){
+        switch(lhs.operator()){
         case LTE:{
-          ASTNode shared=rewrite(lhs.getArg(1));
+          ASTNode shared=rewrite(lhs.arg(1));
           lhs=rewrite(lhs);
-          ASTNode rhs=rewrite(e.getArg(1));
-          rhs=create.expression(e.getOperator(),shared,rhs);
+          ASTNode rhs=rewrite(e.arg(1));
+          rhs=create.expression(e.operator(),shared,rhs);
           result=create.expression(StandardOperator.And,lhs,rhs);
           break;
         }
@@ -64,8 +64,8 @@ public class VerCorsDesugar extends AbstractRewriter {
   private ASTNode desugar_loc(ArrayList<String> vars, ArrayList<ASTNode> range, ASTNode loc) {
     if (loc.isa(StandardOperator.Subscript)){
       OperatorExpression e=(OperatorExpression)loc;
-      ASTNode base=desugar_loc(vars,range,e.getArg(0));
-      ASTNode idx=e.getArg(1);
+      ASTNode base=desugar_loc(vars,range,e.arg(0));
+      ASTNode idx=e.arg(1);
       if (idx.isa(StandardOperator.RangeSeq)){
         String iter="idx_"+count.incrementAndGet();
         vars.add(iter);

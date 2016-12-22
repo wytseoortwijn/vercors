@@ -405,10 +405,10 @@ public class ParallelBlockEncoder extends AbstractRewriter {
       map1.put(create.unresolved_name(decl.name),create.unresolved_name(name));
       OperatorExpression range=(OperatorExpression)decl.getInit();
       cb.requires(create.expression(
-          StandardOperator.LTE,rewrite(range.getArg(0)),create.unresolved_name(name))
+          StandardOperator.LTE,rewrite(range.arg(0)),create.unresolved_name(name))
       );
       cb.requires(create.expression(
-          StandardOperator.LT,create.unresolved_name(name),rewrite(range.getArg(1)))
+          StandardOperator.LT,create.unresolved_name(name),rewrite(range.arg(1)))
       );
     }
     for(DeclarationStatement decl:pb2.iters){
@@ -417,10 +417,10 @@ public class ParallelBlockEncoder extends AbstractRewriter {
       map2.put(create.unresolved_name(decl.name),create.unresolved_name(name));
       OperatorExpression range=(OperatorExpression)decl.getInit();
       cb.requires(create.expression(
-          StandardOperator.LTE,rewrite(range.getArg(0)),create.unresolved_name(name))
+          StandardOperator.LTE,rewrite(range.arg(0)),create.unresolved_name(name))
       );
       cb.requires(create.expression(
-          StandardOperator.LT,create.unresolved_name(name),rewrite(range.getArg(1)))
+          StandardOperator.LT,create.unresolved_name(name),rewrite(range.arg(1)))
       );
     }
     ASTNode args[]=new ASTNode[N];
@@ -497,7 +497,7 @@ public class ParallelBlockEncoder extends AbstractRewriter {
   
   private int ConstantExpToInt(ConstantExpression e)
   { 
-    return ((IntegerValue)e.getValue()).getValue();         
+    return ((IntegerValue)e.value()).getValue();         
     
   }  
   private boolean sidecondition_check(ASTSpecial e)  {
@@ -736,7 +736,7 @@ public class ParallelBlockEncoder extends AbstractRewriter {
       } else if (clause.isa(StandardOperator.ReducibleSum)){
         OperatorExpression expr=(OperatorExpression) clause;
         main_cb.requires(create.expression(StandardOperator.Perm,
-            copy_rw.rewrite(expr.getArg(0)),
+            copy_rw.rewrite(expr.arg(0)),
             create.reserved_name(ASTReserved.FullPerm)
         ));  
       } else if(is_a_quantified(clause,Binder.STAR,StandardOperator.ReducibleSum)){
@@ -745,7 +745,7 @@ public class ParallelBlockEncoder extends AbstractRewriter {
         main_cb.requires(create.starall(
             bclause.select,
             create.expression(StandardOperator.Perm,
-                copy_rw.rewrite(expr.getArg(0)),
+                copy_rw.rewrite(expr.arg(0)),
                 create.reserved_name(ASTReserved.FullPerm)
             ),
             bclause.getDeclarations()
@@ -760,13 +760,13 @@ public class ParallelBlockEncoder extends AbstractRewriter {
       } else if (clause.isa(StandardOperator.Contribution)){
         OperatorExpression expr=(OperatorExpression) clause;
         main_cb.ensures(create.expression(StandardOperator.Perm,
-            copy_rw.rewrite(expr.getArg(0)),
+            copy_rw.rewrite(expr.arg(0)),
             create.reserved_name(ASTReserved.FullPerm)
         ));
         main_cb.ensures(create.expression(StandardOperator.EQ,
-            copy_rw.rewrite(expr.getArg(0)),
-            plus(create.expression(StandardOperator.Old,copy_rw.rewrite(expr.getArg(0))),
-                 create.summation(copy_rw.rewrite(s.guard), rewrite(expr.getArg(1)) , iter_decls))
+            copy_rw.rewrite(expr.arg(0)),
+            plus(create.expression(StandardOperator.Old,copy_rw.rewrite(expr.arg(0))),
+                 create.summation(copy_rw.rewrite(s.guard), rewrite(expr.arg(1)) , iter_decls))
         ));
       } else if(is_a_quantified(clause,Binder.STAR,StandardOperator.Contribution)){
         BindingExpression bclause=(BindingExpression)clause;
@@ -774,7 +774,7 @@ public class ParallelBlockEncoder extends AbstractRewriter {
         main_cb.ensures(create.starall(
             bclause.select,
             create.expression(StandardOperator.Perm,
-                copy_rw.rewrite(expr.getArg(0)),
+                copy_rw.rewrite(expr.arg(0)),
                 create.reserved_name(ASTReserved.FullPerm)
             ),
             bclause.getDeclarations()
@@ -782,9 +782,9 @@ public class ParallelBlockEncoder extends AbstractRewriter {
         main_cb.ensures(create.forall(
             bclause.select,
             create.expression(StandardOperator.EQ,
-                copy_rw.rewrite(expr.getArg(0)),
-                plus(create.expression(StandardOperator.Old,copy_rw.rewrite(expr.getArg(0))),
-                     create.summation(copy_rw.rewrite(s.guard), rewrite(expr.getArg(1)) , iter_decls))
+                copy_rw.rewrite(expr.arg(0)),
+                plus(create.expression(StandardOperator.Old,copy_rw.rewrite(expr.arg(0))),
+                     create.summation(copy_rw.rewrite(s.guard), rewrite(expr.arg(1)) , iter_decls))
             ),
             bclause.getDeclarations()
         ));        
@@ -812,9 +812,9 @@ public class ParallelBlockEncoder extends AbstractRewriter {
       if(clause.isa(StandardOperator.ReducibleSum)){
         OperatorExpression expr=(OperatorExpression) clause;
         body_cb.requires(create.expression(StandardOperator.PointsTo,
-            copy_rw.rewrite(expr.getArg(0)),
+            copy_rw.rewrite(expr.arg(0)),
             create.reserved_name(ASTReserved.FullPerm),
-            create.expression(StandardOperator.Cast,expr.getArg(0).getType(),create.constant(0))
+            create.expression(StandardOperator.Cast,expr.arg(0).getType(),create.constant(0))
         ));
       } else if(is_a_quantified(clause,Binder.STAR,StandardOperator.ReducibleSum)){
         BindingExpression bclause=(BindingExpression)clause;
@@ -822,7 +822,7 @@ public class ParallelBlockEncoder extends AbstractRewriter {
         body_cb.requires(create.starall(
             bclause.select,
             create.expression(StandardOperator.Perm,
-                copy_rw.rewrite(expr.getArg(0)),
+                copy_rw.rewrite(expr.arg(0)),
                 create.reserved_name(ASTReserved.FullPerm)
             ),
             bclause.getDeclarations()
@@ -830,7 +830,7 @@ public class ParallelBlockEncoder extends AbstractRewriter {
         body_cb.requires(create.forall(
             bclause.select,
             create.expression(StandardOperator.EQ,
-                copy_rw.rewrite(expr.getArg(0)),
+                copy_rw.rewrite(expr.arg(0)),
                 create.constant(0)
             ),
             bclause.getDeclarations()
@@ -843,9 +843,9 @@ public class ParallelBlockEncoder extends AbstractRewriter {
       if(clause.isa(StandardOperator.Contribution)){
         OperatorExpression expr=(OperatorExpression) clause;
         body_cb.ensures(create.expression(StandardOperator.PointsTo,
-            rewrite(expr.getArg(0)),
+            rewrite(expr.arg(0)),
             create.reserved_name(ASTReserved.FullPerm),
-            rewrite(expr.getArg(1))
+            rewrite(expr.arg(1))
         ));       
       } else if(is_a_quantified(clause,Binder.STAR,StandardOperator.Contribution)){
         BindingExpression bclause=(BindingExpression)clause;
@@ -853,7 +853,7 @@ public class ParallelBlockEncoder extends AbstractRewriter {
         body_cb.ensures(create.starall(
             bclause.select,
             create.expression(StandardOperator.Perm,
-                rewrite(expr.getArg(0)),
+                rewrite(expr.arg(0)),
                 create.reserved_name(ASTReserved.FullPerm)
             ),
             bclause.getDeclarations()
@@ -861,8 +861,8 @@ public class ParallelBlockEncoder extends AbstractRewriter {
         body_cb.ensures(create.forall(
             bclause.select,
             create.expression(StandardOperator.EQ,
-                rewrite(expr.getArg(0)),
-                rewrite(expr.getArg(1))
+                rewrite(expr.arg(0)),
+                rewrite(expr.arg(1))
             ),
             bclause.getDeclarations()
         ));
@@ -990,7 +990,7 @@ public class ParallelBlockEncoder extends AbstractRewriter {
   }
   
   private int getConstant(ASTNode arg) {
-    IntegerValue v=(IntegerValue)((ConstantExpression)arg).getValue();
+    IntegerValue v=(IntegerValue)((ConstantExpression)arg).value();
     return v.getValue();
   }
 

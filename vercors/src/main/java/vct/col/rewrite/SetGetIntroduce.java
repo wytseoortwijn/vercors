@@ -18,14 +18,14 @@ public class SetGetIntroduce extends AbstractRewriter {
   
   @Override
   public void visit(OperatorExpression e){
-    switch(e.getOperator()){
+    switch(e.operator()){
     case Assign:{
-      ASTNode tmp=rewrite(e.getArg(0));
+      ASTNode tmp=rewrite(e.arg(0));
       if (tmp.isa(StandardOperator.Get)){
-        tmp=((OperatorExpression)tmp).getArg(0);
-        result=create.expression(StandardOperator.Set,tmp,rewrite(e.getArg(1)));
+        tmp=((OperatorExpression)tmp).arg(0);
+        result=create.expression(StandardOperator.Set,tmp,rewrite(e.arg(1)));
       } else {
-        result=create.expression(StandardOperator.Assign,tmp,rewrite(e.getArg(1)));
+        result=create.expression(StandardOperator.Assign,tmp,rewrite(e.arg(1)));
       }
       break;
     }
@@ -44,7 +44,7 @@ public class SetGetIntroduce extends AbstractRewriter {
   public void visit(AssignmentStatement e){
     ASTNode tmp=rewrite(e.getLocation());
     if (tmp.isa(StandardOperator.Get)){
-      tmp=((OperatorExpression)tmp).getArg(0);
+      tmp=((OperatorExpression)tmp).arg(0);
       result=create.expression(StandardOperator.Set,tmp,rewrite(e.getExpression()));
     } else {
       result=create.expression(StandardOperator.Assign,tmp,rewrite(e.getExpression()));

@@ -211,7 +211,7 @@ public class Translator {
 	private boolean handleZ3ConstantExpression(ASTNode pre, ConstantExpression e, ASTNode post) {
 		//outputToString.printf("Found constant %s of type %s%n",e.getValue(),e.getType());
 		hoareTriple.set(currentWorkingTriple, hoareTriple.get(currentWorkingTriple).concat(" "));
-		hoareTriple.set(currentWorkingTriple, hoareTriple.get(currentWorkingTriple).concat(e.getValue().toString()));
+		hoareTriple.set(currentWorkingTriple, hoareTriple.get(currentWorkingTriple).concat(e.value().toString()));
 		return true;
 	}
 
@@ -238,7 +238,7 @@ public class Translator {
 
 	private boolean handleZ3OperatorExpression(ASTNode pre, OperatorExpression e, ASTNode post) {
 		boolean ans = true;
-		int N=e.getOperator().arity();
+		int N=e.operator().arity();
 		/*outputToString.printf("Found operator %s with arity %s %n",e.getOperator(),N);
     	outputToString.enter();
     	outputToString.prefixAdd("  ");*/
@@ -252,7 +252,7 @@ public class Translator {
 	    	hoareTriple.set(currentWorkingTriple, hoareTriple.get(currentWorkingTriple).concat(getCommand(e,"Z3")));
     	}
 	    for(int i=0;i<N && ! abort;i++){
-	    	ans = generateZ3Logic(null, e.getArg(i), null);
+	    	ans = generateZ3Logic(null, e.arg(i), null);
 	    }
     	//outputToString.leave();
     	if(!e.isSpecial(ASTSpecial.Kind.HoarePredicate)){
@@ -463,32 +463,32 @@ public class Translator {
 	
 	private String getLayout(OperatorExpression e) {
 		String ans = "";
-		if(e.getOperator().equals(StandardOperator.Plus)){
+		if(e.operator().equals(StandardOperator.Plus)){
 			ans = "+";
-		}else if(e.getOperator().equals(StandardOperator.Minus)){
+		}else if(e.operator().equals(StandardOperator.Minus)){
 			ans = "-";
-		}else if(e.getOperator().equals(StandardOperator.Mult)){
+		}else if(e.operator().equals(StandardOperator.Mult)){
 			ans = "*";
-		}else if(e.getOperator().equals(StandardOperator.GT)){
+		}else if(e.operator().equals(StandardOperator.GT)){
 			ans = ">";
-		}else if(e.getOperator().equals(StandardOperator.GTE)){
+		}else if(e.operator().equals(StandardOperator.GTE)){
 			ans = ">=";
-		}else if(e.getOperator().equals(StandardOperator.LT)){
+		}else if(e.operator().equals(StandardOperator.LT)){
 			ans = "<";
-		}else if(e.getOperator().equals(StandardOperator.LTE)){
+		}else if(e.operator().equals(StandardOperator.LTE)){
 			ans = "<=";
-		}else if(e.getOperator().equals(StandardOperator.EQ)){
+		}else if(e.operator().equals(StandardOperator.EQ)){
 			ans = "=";
-		}else if(e.getOperator().equals(StandardOperator.Not)){
+		}else if(e.operator().equals(StandardOperator.Not)){
 			ans = "not";
-		}else if(e.getOperator().equals(StandardOperator.Or)){
+		}else if(e.operator().equals(StandardOperator.Or)){
 			ans = "or";
-		}else if(e.getOperator().equals(StandardOperator.And)){
+		}else if(e.operator().equals(StandardOperator.And)){
 			ans = "and";
-		}else if(e.getOperator().equals(StandardOperator.UMinus)){
+		}else if(e.operator().equals(StandardOperator.UMinus)){
 			ans = "-";
 		}else{
-			ans = e.getOperator().toString();
+			ans = e.operator().toString();
 		}
 		return ans;
 	}
@@ -612,7 +612,7 @@ public class Translator {
 			              out.printf("checking formula at %s%n",e.getOrigin());
 			              if (e.isSpecial(Kind.Assert));
 			              DeclarationStatement args[]=m.getArgs();
-			              ASTNode formula=e.getArg(0);
+			              ASTNode formula=e.arg(0);
 			              //BoogieReport res=check_boogie(args,formula);
 			              out.printf("formula at %s:%s%n",e.getOrigin(),args,formula);
 			          }
@@ -664,21 +664,21 @@ public class Translator {
 		@Override
 		public void visit(ConstantExpression e) {
 		    // Constants have no children.
-			outputToString.printf("Found constant %s of type %s%n",e.getValue(),e.getType());
+			outputToString.printf("Found constant %s of type %s%n",e.value(),e.getType());
 			hoareTriple.set(currentWorkingTriple, hoareTriple.get(currentWorkingTriple).concat(" "));
-			hoareTriple.set(currentWorkingTriple, hoareTriple.get(currentWorkingTriple).concat(e.getValue().toString()));
+			hoareTriple.set(currentWorkingTriple, hoareTriple.get(currentWorkingTriple).concat(e.value().toString()));
 		}
 
 		@Override
 		public void visit(OperatorExpression e) {
-			int N=e.getOperator().arity();
+			int N=e.operator().arity();
 			if(e.isSpecial(ASTSpecial.Kind.HoarePredicate)){
 				ASTFactory astfactory = new ASTFactory();
-				OperatorExpression e2 = astfactory.expression(e.getOrigin(),StandardOperator.Not,e.getArg(0));
+				OperatorExpression e2 = astfactory.expression(e.getOrigin(),StandardOperator.Not,e.arg(0));
 				e2.accept(this);
 				//thisParent.checkWithZ3(hoareTriple, variablelenLijst);
 			}
-			outputToString.printf("Found operator %s with arity %s %n",e.getOperator(),N);
+			outputToString.printf("Found operator %s with arity %s %n", e.operator(), N);
 	    	outputToString.enter();
 	    	outputToString.prefixAdd("  ");
 	    	treeDepth++;
@@ -691,7 +691,7 @@ public class Translator {
 		    	hoareTriple.set(currentWorkingTriple, hoareTriple.get(currentWorkingTriple).concat(getCommand(e)));
 	    	}
 		    for(int i=0;i<N && ! abort;i++){
-		    	e.getArg(i).accept(this);
+		    	e.arg(i).accept(this);
 		    }
 	    	outputToString.leave();
 	    	treeDepth--;
@@ -968,30 +968,30 @@ public class Translator {
 
 		private String getLayout(OperatorExpression e) {
 			String ans = "";
-			if(e.getOperator().equals(StandardOperator.Plus)){
+			if(e.operator().equals(StandardOperator.Plus)){
 				ans = "+";
-			}else if(e.getOperator().equals(StandardOperator.Minus)){
+			}else if(e.operator().equals(StandardOperator.Minus)){
 				ans = "-";
-			}else if(e.getOperator().equals(StandardOperator.Mult)){
+			}else if(e.operator().equals(StandardOperator.Mult)){
 				ans = "*";
-			}else if(e.getOperator().equals(StandardOperator.GT)){
+			}else if(e.operator().equals(StandardOperator.GT)){
 				ans = ">";
-			}else if(e.getOperator().equals(StandardOperator.GTE)){
+			}else if(e.operator().equals(StandardOperator.GTE)){
 				ans = ">=";
-			}else if(e.getOperator().equals(StandardOperator.LT)){
+			}else if(e.operator().equals(StandardOperator.LT)){
 				ans = "<";
-			}else if(e.getOperator().equals(StandardOperator.LTE)){
+			}else if(e.operator().equals(StandardOperator.LTE)){
 				ans = "<=";
-			}else if(e.getOperator().equals(StandardOperator.EQ)){
+			}else if(e.operator().equals(StandardOperator.EQ)){
 				ans = "=";
-			}else if(e.getOperator().equals(StandardOperator.Not)){
+			}else if(e.operator().equals(StandardOperator.Not)){
 				ans = "not";
-			}else if(e.getOperator().equals(StandardOperator.Or)){
+			}else if(e.operator().equals(StandardOperator.Or)){
 				ans = "or";
-			}else if(e.getOperator().equals(StandardOperator.And)){
+			}else if(e.operator().equals(StandardOperator.And)){
 				ans = "and";
 			}else{
-				ans = e.getOperator().toString();
+				ans = e.operator().toString();
 			}
 			return ans;
 		}

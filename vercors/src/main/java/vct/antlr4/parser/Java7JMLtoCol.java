@@ -209,8 +209,8 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
           method=((NameExpression)om).getName();
         }
       } else if (om instanceof Dereference){
-        object=((Dereference)om).object;
-        method=((Dereference)om).field;
+        object=((Dereference)om).object();
+        method=((Dereference)om).field();
       } else {
         throw hre.lang.System.Failure("could not convert %s to object/method at %s",om.getClass(),om.getOrigin());
       }
@@ -362,8 +362,8 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
     ArrayList<String> list=new ArrayList<String>();
     while(pkg instanceof Dereference){
       Dereference d=(Dereference)pkg;
-      list.add(0,d.field);
-      pkg=d.object;
+      list.add(0,d.field());
+      pkg=d.object();
     }
     list.add(0,pkg.toString());
     return list.toArray(new String[0]);

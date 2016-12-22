@@ -410,8 +410,8 @@ class PredicateClassGenerator extends AbstractRewriter {
       boolean non_true=true;
       if (body instanceof ConstantExpression){
         ConstantExpression e= (ConstantExpression)body;
-        if (e.getValue() instanceof BooleanValue){
-          BooleanValue b=(BooleanValue)e.getValue();
+        if (e.value() instanceof BooleanValue){
+          BooleanValue b=(BooleanValue)e.value();
           non_true=!b.getValue();
         }
       }
@@ -547,7 +547,7 @@ class PredicateClassGenerator extends AbstractRewriter {
   public void visit(MethodInvokation call){
     String field_name=null;
     if (call.object instanceof Dereference) {
-      field_name=((Dereference)call.object).field;
+      field_name=((Dereference)call.object).field();
     } else if (call.object instanceof NameExpression){
       field_name=((NameExpression)call.object).getName();
       if (!field_name.equals("This")) {
@@ -600,14 +600,14 @@ class PredicateClassGenerator extends AbstractRewriter {
   }
   
   public void visit(OperatorExpression e){
-    switch(e.getOperator()){
+    switch(e.operator()){
       case Perm:
       case PointsTo:
         if (condition_level==0){
-          ASTNode tmp=e.getArg(0);
+          ASTNode tmp=e.arg(0);
           if (tmp instanceof Dereference){
             Dereference field=(Dereference)tmp;
-            tmp=field.object;
+            tmp=field.object();
             /*
             if (tmp instanceof NameExpression && ((NameExpression)tmp).getName().equals("this")){
               String name=field.field;

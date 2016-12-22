@@ -61,9 +61,9 @@ public class JavaPrinter extends AbstractPrinter {
     for(CatchClause cb:tcb.catches){
       out.print("catch (");
       nextExpr();
-      cb.decl.accept(this);
+      cb.decl().accept(this);
       out.print(")");
-      cb.block.accept(this);
+      cb.block().accept(this);
     }
     if (tcb.after!=null){
       out.print(" finally ");
@@ -97,19 +97,22 @@ public class JavaPrinter extends AbstractPrinter {
   @Override
   public void visit(ActionBlock ab){
     out.printf("action(");
-    nextExpr(); ab.history.accept(this);
+    nextExpr(); ab.history().accept(this);
     out.printf(",");
-    nextExpr(); ab.fraction.accept(this);
+    nextExpr(); ab.fraction().accept(this);
     out.printf(",");
-    nextExpr(); ab.process.accept(this);
+    nextExpr(); ab.process().accept(this);
     out.printf(",");
-    nextExpr(); ab.action.accept(this);
-    for(Entry<String, ASTNode> e:ab.map.entrySet()){
-      out.printf(", %s, ",e.getKey());
-      nextExpr(); e.getValue().accept(this);
+    nextExpr(); ab.action().accept(this);
+    
+    for (Entry<String, ASTNode> e : ab.mapAsJava().entrySet()) {
+      out.printf(", %s, ", e.getKey());
+      nextExpr();
+      e.getValue().accept(this);
     }
+    
     out.printf(")");
-    ab.block.accept(this);
+    ab.block().accept(this);
   }
   
   public void post_visit(ASTNode node){
@@ -134,9 +137,9 @@ public class JavaPrinter extends AbstractPrinter {
   }
    
   @Override 
-  public void visit(Axiom ax){
-    out.printf("axioms %s: ", ax.name);
-    ax.getRule().accept(this);
+  public void visit(Axiom axiom){
+    out.printf("axioms %s: ", axiom.name);
+    axiom.rule().accept(this);
     out.println(";");
   }
 
@@ -902,7 +905,7 @@ public class JavaPrinter extends AbstractPrinter {
 
   public void visit(Lemma l){
       out.printf("/*@ lemma ");
-      l.block.accept(this);
+      l.getBlock().accept(this);
       out.lnprintf(" */");
   }
   
@@ -919,20 +922,20 @@ public class JavaPrinter extends AbstractPrinter {
     }
   }
   private void visitVeriFast(OperatorExpression e){
-    switch(e.getOperator()){
+    switch(e.operator()){
     case PointsTo:{
-      if (e.getArg(1) instanceof ConstantExpression
-      && ((ConstantExpression)e.getArg(1)).equals(1)
+      if (e.arg(1) instanceof ConstantExpression
+      && ((ConstantExpression)e.arg(1)).equals(1)
       ){
         // [1] is implicit.
       } else {
         out.printf("[");
-        e.getArg(1).accept(this);
+        e.arg(1).accept(this);
         out.printf("]");
       }
-      e.getArg(0).accept(this);
+      e.arg(0).accept(this);
       out.printf(" |-> ");
-      e.getArg(2).accept(this);
+      e.arg(2).accept(this);
       break;
     }
     default:{
@@ -940,7 +943,7 @@ public class JavaPrinter extends AbstractPrinter {
     }}
   }
   private void visitVerCors(OperatorExpression e){
-    switch(e.getOperator()){
+    switch(e.operator()){
       case NewSilver:{
         out.print("new ");
         // no break on purpose!
@@ -948,7 +951,7 @@ public class JavaPrinter extends AbstractPrinter {
       case Wrap:{
         out.print("(");
         String sep="";
-        for(ASTNode arg:e.getArguments()){
+        for(ASTNode arg:e.args()){
           out.print(sep);
           sep=",";
           arg.accept(this);
@@ -959,7 +962,7 @@ public class JavaPrinter extends AbstractPrinter {
       case Continue:{
         out.printf("continue ");
         current_precedence=0;
-        ASTNode lbl=e.getArg(0);
+        ASTNode lbl=e.arg(0);
         if (lbl!=null){
           setExpr();
           lbl.accept(this);
@@ -968,7 +971,7 @@ public class JavaPrinter extends AbstractPrinter {
       }
       case New:{
         out.printf("new ");
-        e.getArg(0).accept(this);
+        e.arg(0).accept(this);
         out.printf("()");
         break;
       }
@@ -1151,8 +1154,8 @@ public class JavaPrinter extends AbstractPrinter {
   }
 
   public void visit(Dereference e){
-    e.object.accept(this);
-    out.printf(".%s",e.field);
+    e.object().accept(this);
+    out.printf(".%s", e.field());
   }
   
   public void visit(PrimitiveType t){
@@ -1314,7 +1317,7 @@ public class JavaPrinter extends AbstractPrinter {
   
   public void visit(ConstantExpression ce){
     //if (!in_expr) Abort("constant %s outside of expression for %s",ce,ce.getOrigin());
-    if (ce.getValue() instanceof StringValue){
+    if (ce.value() instanceof StringValue){
       out.print("\""+StringEscapeUtils.escapeJava(ce.toString())+"\"");
     } else {
       out.print(ce.toString());
@@ -1344,19 +1347,19 @@ public class JavaPrinter extends AbstractPrinter {
   }
   
   @Override
-  public void visit(FieldAccess a){
+  public void visit(FieldAccess a) {
     setExpr();
-    if (a.value==null){
+    if (a.value() == null) {
       out.printf("((");
     }
-    if(a.object != null){
-      a.object.apply(this);
+    if (a.object() != null) {
+      a.object().apply(this);
       out.printf(".");
     }
-    out.printf("%s",a.name);
-    if(a.value!=null){
+    out.printf("%s", a.name());
+    if (a.value() != null) {
       out.printf(" := ");
-      a.value.apply(this);
+      a.value().apply(this);
     } else {
       out.printf("))");
     }
@@ -1374,15 +1377,15 @@ public class JavaPrinter extends AbstractPrinter {
   @Override
   public void visit(Constraining c){
     out.print("constraining(");
-    String sep="";
-    for(NameExpression n:c.vars){
+    String sep = "";
+    for (NameExpression n : c.vars()) {
       out.print(sep);
       nextExpr();
       n.accept(this);
       sep=",";
     }
     out.print(")");
-    c.block.accept(this);
+    c.block().accept(this);
   }
 }
 

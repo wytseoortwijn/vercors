@@ -41,12 +41,12 @@ public class Parenthesize extends AbstractRewriter {
 
   @Override
   public void visit(OperatorExpression e){
-    StandardOperator op=e.getOperator();
-    ASTNode args[]=rewrite(e.getArguments());
+    StandardOperator op=e.operator();
+    ASTNode args[]=rewrite(e.args());
     if (syntax.isOperator(op)){
       for(int i=0;i<args.length;i++){
         if (args[i] instanceof OperatorExpression){
-          StandardOperator child_op=((OperatorExpression)args[i]).getOperator();
+          StandardOperator child_op=((OperatorExpression)args[i]).operator();
           if (syntax.isOperator(child_op)){
             int prio=syntax.getPrecedence(child_op);
             if (i==0 && syntax.getAssociativity(op)==Associativity.Left

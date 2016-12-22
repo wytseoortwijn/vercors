@@ -48,11 +48,11 @@ public class RewriteArrayRef extends AbstractRewriter {
   
   @Override
 	public void visit(OperatorExpression e){
-		switch (e.getOperator()){
+		switch (e.operator()){
     case ValidArray:{
-      ASTNode M=rewrite(e.getArg(0));
+      ASTNode M=rewrite(e.arg(0));
       ASTNode MD=create.expression(StandardOperator.OptionGet,M);
-      ASTNode sz=rewrite(e.getArg(1));
+      ASTNode sz=rewrite(e.arg(1));
       result=create.expression(StandardOperator.And
         ,create.expression(StandardOperator.NEQ,M,create.reserved_name(ASTReserved.OptionNone))
         ,and(create.expression(StandardOperator.EQ,create.expression(StandardOperator.Size,MD),sz),
@@ -62,10 +62,10 @@ public class RewriteArrayRef extends AbstractRewriter {
       break;
     }
     case ValidMatrix:{
-      ASTNode M=rewrite(e.getArg(0));
+      ASTNode M=rewrite(e.arg(0));
       ASTNode MD=create.expression(StandardOperator.OptionGet,M);
       ASTNode sz=create.expression(StandardOperator.Mult,
-          rewrite(e.getArg(1)),rewrite(e.getArg(2)));
+          rewrite(e.arg(1)),rewrite(e.arg(2)));
       result=create.expression(StandardOperator.And
         ,create.expression(StandardOperator.NEQ,M,create.reserved_name(ASTReserved.OptionNone))
         ,and(create.expression(StandardOperator.EQ,create.expression(StandardOperator.Size,MD),sz),
@@ -77,8 +77,8 @@ public class RewriteArrayRef extends AbstractRewriter {
 		  case EQ:
 		  case NEQ:
 		  {
-        ASTNode e0=e.getArg(0);
-        ASTNode e1=e.getArg(1);
+        ASTNode e0=e.arg(0);
+        ASTNode e1=e.arg(1);
         ASTNode array=null;
         if (e0.isReserved(ASTReserved.Null) && e1.getType().isPrimitive(Sort.Array)){
           array=e1;
@@ -89,37 +89,37 @@ public class RewriteArrayRef extends AbstractRewriter {
         if(array==null){
           super.visit(e);
         } else {
-          result=create.expression(e.getOperator(),
+          result=create.expression(e.operator(),
               create.reserved_name(ASTReserved.OptionNone),
               rewrite(array));
         }
 		    break;
 		  }
 		  case Subscript:
-			  if (e.getArg(0).getType().isPrimitive(Sort.Array)){
+			  if (e.arg(0).getType().isPrimitive(Sort.Array)){
 			    
-          ASTNode res=create.expression(StandardOperator.OptionGet,rewrite(e.getArg(0)));
-          res=create.expression(StandardOperator.Subscript,res,rewrite(e.getArg(1)));
+          ASTNode res=create.expression(StandardOperator.OptionGet,rewrite(e.arg(0)));
+          res=create.expression(StandardOperator.Subscript,res,rewrite(e.arg(1)));
           result=create.dereference(res,"item");
 			  } else {
 			    super.visit(e);
 			  }
 			  break;
 		  case Length:{
-		    ASTNode res=create.expression(StandardOperator.OptionGet,rewrite(e.getArg(0)));
+		    ASTNode res=create.expression(StandardOperator.OptionGet,rewrite(e.arg(0)));
 		    result=create.expression(StandardOperator.Size,res);
 		    break;
 		  }
 		  case Values:{
         Type t=(Type)((PrimitiveType)e.getType()).getArg(0);
         array_values.add(t);
-        result=create.invokation(null,null,"array_values_"+t,rewrite(e.getArguments()));
+        result=create.invokation(null,null,"array_values_"+t,rewrite(e.args()));
         break;
 		  }
 		  case NewArray:{
-        Type t=(Type)e.getArg(0);
+        Type t=(Type)e.arg(0);
         new_array.add(t);
-        result=create.invokation(null,null,"new_array_some_"+t,rewrite(e.getArg(1)));
+        result=create.invokation(null,null,"new_array_some_"+t,rewrite(e.arg(1)));
 		    break;
 		  }
 			default:
@@ -129,9 +129,9 @@ public class RewriteArrayRef extends AbstractRewriter {
 	
   @Override
 	public void visit(Dereference e){
-	  if (e.field.equals("length")){
-	    ASTNode res=rewrite(e.object);
-	    if (e.object.getType().isPrimitive(Sort.Array)){
+	  if (e.field().equals("length")){
+	    ASTNode res=rewrite(e.object());
+	    if (e.object().getType().isPrimitive(Sort.Array)){
   	    res=create.expression(StandardOperator.OptionGet,res);
 	    }
       result=create.expression(StandardOperator.Size,res);

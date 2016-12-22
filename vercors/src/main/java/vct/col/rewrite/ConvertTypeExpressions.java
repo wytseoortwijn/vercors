@@ -25,16 +25,16 @@ public class ConvertTypeExpressions extends AbstractRewriter {
     Type t=d.getType(); 
     while(t instanceof TypeExpression){
       TypeExpression e=(TypeExpression)t;
-      switch(e.op){
+      switch(e.getOp()){
       case Static:
-        t=e.types[0];
+        t=e.firstType();
         break;
       case Extern:
         extern=true;
-        t=e.types[0];
+        t=e.firstType();
         break;        
       default:
-        Fail("cannot deal with type operator %s",e.op);
+        Fail("cannot deal with type operator %s", e.getOp());
       }
     }
     DeclarationStatement res=create.field_decl(d.name,rewrite(t),rewrite(d.getInit()));
@@ -51,21 +51,21 @@ public class ConvertTypeExpressions extends AbstractRewriter {
     boolean kernel=false;
     while(t instanceof TypeExpression){
       TypeExpression e=(TypeExpression)t;
-      switch(e.op){
+      switch(e.getOp()){
       case Static:
         res.setStatic(true);
-        t=e.types[0];
+        t=e.firstType();
         break;
       case Extern:
         res.setFlag(ASTFlags.EXTERN,true);
-        t=e.types[0];
+        t=e.firstType();
         break;        
       case Kernel:
         kernel=true;
-        t=e.types[0];
+        t=e.firstType();
         break;        
       default:
-        Fail("cannot deal with type operator %s",e.op);
+        Fail("cannot deal with type operator %s", e.getOp());
       }
     }
     System.err.printf("remaining type of %s is %s%n",m.getReturnType(),t);

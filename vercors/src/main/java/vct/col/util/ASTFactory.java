@@ -17,6 +17,8 @@ import viper.api.Triple;
 import hre.ast.Origin;
 import hre.util.FrameControl;
 import hre.util.FrameReference;
+import scala.collection.JavaConverters;
+
 import static hre.lang.System.*;
 import static vct.col.ast.ASTReserved.Null;
 
@@ -365,7 +367,7 @@ public BlockStatement block(Origin origin, ASTNode ... args) {
   public OperatorExpression expression(Origin origin,StandardOperator op, ASTNode ... args){
     if (op==null) Abort("null operator at %s",origin);
     if (args==null) Abort("null arguments at %s",origin);
-    OperatorExpression res=new OperatorExpression(op,args);
+    OperatorExpression res = OperatorExpression.construct(op, args);
     res.setOrigin(origin);
     res.accept_if(post);
     return res;
@@ -1102,7 +1104,7 @@ public Axiom axiom(String name,ASTNode exp){
       ASTNode action,
       Map<String,ASTNode> map,
       ASTNode block) {
-    ActionBlock res=new ActionBlock(history,fraction,process,action,map,block);
+    ActionBlock res = new ActionBlock(history, fraction, process, action, map, block);
     res.setOrigin(origin_stack.get());
     res.accept_if(post);
     return res;
