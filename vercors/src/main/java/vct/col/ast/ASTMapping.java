@@ -90,4 +90,6 @@ public interface ASTMapping<R> {
 
   public R map(Constraining c);
 
+  public R map(Switch s);
+
 }

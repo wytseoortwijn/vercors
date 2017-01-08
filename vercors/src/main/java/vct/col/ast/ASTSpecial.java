@@ -49,6 +49,7 @@ public class ASTSpecial extends ASTDeclaration {
     Accessible(-1),
     StaticEntry(0),
     InlineEntry(0),
+    VolatileEntry(0),
     /** Lock statement. */
     Lock(1),
     /** Unfold statement. */
@@ -92,7 +93,15 @@ public class ASTSpecial extends ASTDeclaration {
     /**
      * Havoc a list of local variables.
      */
-    Fresh(-1)
+    Fresh(-1),
+    /**
+     * break a loop or switch.
+     */
+    Break(-1),
+    /**
+     * Continue a loop.
+     */
+    Continue(-1)
     ;
 
     

@@ -280,5 +280,11 @@ public class EmptyVisitor<T> implements ASTVisitor<T> {
     // TODO Auto-generated method stub
     
   }
+
+  @Override
+  public void visit(Switch s) {
+    // TODO Auto-generated method stub
+    
+  }
   
 }

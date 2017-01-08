@@ -12,6 +12,8 @@ public enum TypeOperator {
   Local,
   Extern,
   Static,
-  PointerTo
+  PointerTo,
+  Extends,
+  Super
   
 }

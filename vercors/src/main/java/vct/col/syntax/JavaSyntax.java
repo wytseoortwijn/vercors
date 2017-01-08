@@ -6,6 +6,7 @@ import hre.ast.TrackingOutput;
 import hre.lang.HREError;
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTReserved;
+import vct.col.ast.ASTSpecial;
 import vct.col.print.JavaPrinter;
 import vct.col.rewrite.Parenthesize;
 import static vct.col.ast.StandardOperator.*;
@@ -172,6 +173,7 @@ public class JavaSyntax extends Syntax {
     syntax.addPrimitiveType(Void,"void");
     syntax.addPrimitiveType(Boolean,"boolean");
     syntax.addPrimitiveType(Char,"char");
+    syntax.addPrimitiveType(Byte,"byte");
     syntax.addPrimitiveType(Float,"float");
     syntax.addPrimitiveType(UInteger,"/*unsigned*/ int");
     syntax.addPrimitiveType(ULong,"/*unsigned*/ long");
@@ -184,10 +186,20 @@ public class JavaSyntax extends Syntax {
     syntax.addReserved(Public,"public");
     syntax.addReserved(Private,"private");
     syntax.addReserved(Static,"static");
+    syntax.addReserved(Volatile,"volatile");
+    syntax.addReserved(Synchronized,"synchronized");
+    syntax.addReserved(Protected,"protected");
+    syntax.addReserved(Abstract,"abstract");
     syntax.addReserved(This,"this");
     syntax.addReserved(Null,"null");
     syntax.addReserved(Super,"super");
+    syntax.addReserved(GetClass,"class");
     syntax.addReserved(Final,"final");
+    syntax.addReserved(Any,"?");
+    
+    syntax.addReserved(Default,"default");
+    syntax.add_annotation(ASTSpecial.Kind.Continue,"continue");
+    syntax.add_annotation(ASTSpecial.Kind.Break,"break");
   }
 
   @Override

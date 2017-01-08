@@ -1,5 +1,6 @@
 package vct.col.rewrite;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -11,6 +12,7 @@ import hre.ast.MessageOrigin;
 import hre.ast.Origin;
 import vct.col.ast.*;
 import vct.col.ast.ASTSpecial.Kind;
+import vct.col.ast.Switch.Case;
 import vct.col.util.ASTFactory;
 import vct.col.util.ASTUtils;
 import vct.col.util.NameScanner;
@@ -789,5 +791,18 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   @Override
   public void visit(Constraining c){
     result = create.constraining(rewrite(c.block()) ,rewrite(c.vars()));
+  }
+  
+  @Override
+  public void visit(Switch s){
+    ASTNode expr=rewrite(s.expr);
+    ArrayList<Case> case_list=new ArrayList();
+    for (Case c:s.cases){
+      Case rwc=new Case();
+      for(ASTNode n:c.cases) rwc.cases.add(rewrite(n));
+      for(ASTNode n:c.stats) rwc.stats.add(rewrite(n));
+      case_list.add(rwc);
+    }
+    result = create.switch_statement(expr, case_list);
   }
 }

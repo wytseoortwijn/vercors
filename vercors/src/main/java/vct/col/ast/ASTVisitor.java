@@ -93,6 +93,8 @@ public interface ASTVisitor<T> {
   
   public void visit(Constraining c);
 
+  public void visit(Switch s);
+
 }
 
 

@@ -423,7 +423,7 @@ public abstract class ASTNode implements ASTFlags {
     return false;
   }
   
-  protected static ThreadLocal<Throwable> thrown=new ThreadLocal<Throwable>();
+  public static ThreadLocal<Throwable> thrown=new ThreadLocal<Throwable>();
 
   public boolean isDeclaration(ASTSpecial.Kind kind) {
     return (this instanceof ASTSpecial) && ((ASTSpecial)this).kind==kind;
