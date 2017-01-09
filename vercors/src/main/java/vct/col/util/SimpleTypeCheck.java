@@ -555,6 +555,21 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       e.setType(t);
       break;
     }
+    case Count:
+    case CountRange:
+    {
+      Type t=e.arg(0).getType();
+      if (t.isPrimitive(Sort.Sequence)){
+        t = (Type)((PrimitiveType) t).getArg(0);
+        if (!t.isPrimitive(Sort.Boolean)){
+          Fail("argument of count must be a sequence of booleans");
+        }
+      } else {
+        Fail("argument of count must be a sequence");
+      }
+      e.setType(new PrimitiveType(Sort.Integer));
+      break;      
+    }
     case IndependentOf:
     {
       e.setType(t1);

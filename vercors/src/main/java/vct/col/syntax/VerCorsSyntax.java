@@ -100,6 +100,7 @@ public class VerCorsSyntax {
     
     //syntax.addFunction(StandardOperator.FoldPlus, "\\sum");
     syntax.addFunction(StandardOperator.FoldPlusRange, "\\sum");
+    syntax.addFunction(StandardOperator.CountRange, "\\count");
 
   }
 

@@ -1,7 +1,7 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 //:: cases TestFloat
 //:: tools silicon
-//:: verdict Pass
+//:: pass Global__TestFloat_main TestFloat__add TestFloat__prefixsum
 
 class TestFloat {
 
@@ -60,7 +60,6 @@ class TestFloat {
       k=k+1;
     }
   }
-
-  
+ 
 }
 

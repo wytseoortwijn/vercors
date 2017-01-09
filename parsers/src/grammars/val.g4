@@ -84,6 +84,7 @@ valPrimary
     | '\\array'  '(' expression ',' expression ')'
 //    | '\\sum' '(' expression ')'
     | '\\sum' '(' expression ',' expression ',' expression ')'
+    | '\\count' '(' expression ',' expression ',' expression ')'
     | 'Reducible' '(' expression ',' ('+' | Identifier ) ')'
     ;
 

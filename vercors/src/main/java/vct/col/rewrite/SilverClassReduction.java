@@ -148,6 +148,11 @@ public class SilverClassReduction extends AbstractRewriter {
   @Override
   public void visit(OperatorExpression e){
     switch(e.operator()){
+    case CountRange:{
+      floats=true;
+      result=create.domain_call("VCTFloat", "fcountrange", rewrite(e.args()));
+      break;
+    }
     case FoldPlus:{
       if (e.getType().isPrimitive(Sort.Float)){
         result=create.domain_call("VCTFloat", "fsum", rewrite(e.args()));

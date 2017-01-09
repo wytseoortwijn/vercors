@@ -273,15 +273,20 @@ public enum StandardOperator {
    * Declares the first argument to be a valid matrix of the given size.
    */
   ValidMatrix(3),
-  /*
+  /**
    * Get the values from an array as a sequence form a start upto an end
    */
   Values(3),
-  /*
+  /**
    * Summation over a sequence.
    */
   FoldPlus(1),
-  FoldPlusRange(3)
+  FoldPlusRange(3),
+  /**
+   * Count the positives in a sequence.
+   */
+  Count(1),
+  CountRange(3)
   ;
 
   private final int arity;

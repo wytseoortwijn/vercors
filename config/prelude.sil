@@ -14,14 +14,6 @@ domain VCTOption[T] {
   }
 }
 
-/*
-function get_Integer(o:Option[Int]) : Int
-  requires  o != None()
-{
-  get(o)
-}
-*/
-
 domain VCTFloat {
     function zero() : VCTFloat
     function ffromint(i:Int) : VCTFloat
@@ -29,6 +21,31 @@ domain VCTFloat {
     function fsum(xs: Seq[VCTFloat]): VCTFloat
     function fsumrange(xs: Seq[VCTFloat],lo:Int,hi:Int): VCTFloat
     function fadd(f1 : VCTFloat,f2:VCTFloat):VCTFloat
+    function fcount(bs: Seq[Bool]):Int
+    function fcountrange(bs: Seq[Bool],lo:Int,hi:Int):Int
+    
+    axiom count_range_empty {
+      forall xs : Seq[Bool],i:Int :: fcountrange(xs,i,i)==0
+    }
+    
+    axiom count_range_single {
+      forall xs : Seq[Bool],i:Int :: fcountrange(xs,i,i+1)==(xs[i]?1:0)
+    }
+    axiom count_range_extend_r {
+      forall xs : Seq[Bool],i:Int,j:Int :: fcountrange(xs,i,j+1)==fcountrange(xs,i,j)+(xs[j]?1:0)
+    }
+
+    axiom count_empty {
+      fcount(Seq[Bool]())==0
+    }
+
+    axiom count_single {
+      forall b:Bool :: fcount(Seq(b))==(b?1:0)
+    }
+    
+    axiom count_concat {
+      forall xs : Seq[Bool], ys: Seq[Bool] :: { fcount(xs++ys) } fcount(xs++ys) == fcount(xs) + fcount(ys)
+    }
     
     axiom commutative_add {
         forall f1 : VCTFloat, f2 : VCTFloat :: fadd(f1,f2)==fadd(f2,f1)
