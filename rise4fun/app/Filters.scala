@@ -5,7 +5,7 @@ import play.api.http.HttpFilters
 import play.api.mvc._
 import play.filters.gzip.GzipFilter
 
-import filters.ExampleFilter
+import filters.DebugFilter
 
 /**
  * This class configures filters that run on every request. This
@@ -23,5 +23,6 @@ import filters.ExampleFilter
 @Singleton
 class Filters @Inject() (
   env: Environment,
-  gzipFilter: GzipFilter) extends DefaultHttpFilters(gzipFilter) {
+  gzipFilter: GzipFilter,
+  debugFilter:DebugFilter) extends DefaultHttpFilters(gzipFilter, debugFilter) {
 }

@@ -6,8 +6,6 @@ import play.api.libs.json._
 import play.api.mvc._
 import models._
 
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
-
 @Singleton
 class VercorsController @Inject() extends Controller {
 
@@ -38,7 +36,8 @@ class VercorsController @Inject() extends Controller {
     Ok(Json.toJson(data))
   }
 	
-	def run = Action { request =>
+	def run = Action(parse.tolerantText) { request =>
+	  
 	  // construct an output message
 	  var output = new ServicetoolResponse()
 	  output.version = "1.0" // should match the version returned by /metadata
