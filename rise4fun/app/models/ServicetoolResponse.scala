@@ -1,5 +1,6 @@
 package models
 
+import play.api.libs.json._
 import scala.collection.mutable.ArrayBuffer
 
 /**
@@ -11,4 +12,14 @@ class ServicetoolResponse {
   
   /** gets the list of outputs produced by the tool. there should be at least one output of type 'text/plain'. other outputs will be supported in the future. */
   var outputs = new ArrayBuffer[ServicetoolOutput]()
+}
+
+object ServicetoolResponse {
+  /** Converts an {@code ServicetoolResponse} instance to JSON. */
+  implicit val servicetoolResponseWrites = new Writes[ServicetoolResponse] {
+    def writes(response:ServicetoolResponse) = Json.obj(
+      "Version" -> response.version,
+      "Outputs" -> response.outputs
+    )
+  }
 }

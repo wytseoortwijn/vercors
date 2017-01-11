@@ -9,8 +9,9 @@ import models._
 @Singleton
 class VercorsController @Inject() extends Controller {
 
-  def metadata = Action { request =>
+  def metadata = Action { implicit request =>
     // construct a metadata object by filling in the necessary fields
+		// note: there should be a way to automatically generate the URLs in a cleaner way...
     var data = new ServicetoolMetadata()
     data.name = "vercors"
     data.displayname = "Vercors Verification Toolset"
@@ -21,7 +22,7 @@ class VercorsController @Inject() extends Controller {
     data.privacyUrl = "http://utwente.nl/vercors?privacy"
     data.institution = "University of Twente"
     data.institutionUrl = "http://utwente.nl"
-    data.institutionImageUrl = "http://" + request.host + "/assets/images/fmt.png" // there should be a way to automatically generate this URL in a cleaner way..
+    data.institutionImageUrl = "http://" + request.host + "/assets/images/fmt.png"
     data.mimetype = "text/plain"
     data.title = "Vercors Verification Toolset"
     data.description = "Verifies memory safety and functional correctness of parallel and concurrent programs."
@@ -34,4 +35,15 @@ class VercorsController @Inject() extends Controller {
     // render the metadata object as JSON
     Ok(Json.toJson(data))
   }
+	
+	def run = Action { implicit request =>
+	  
+	  // construct an output message
+	  var output = new ServicetoolResponse()
+	  output.version = "1.0" // should match the version from {@code /metadata}
+	  output.outputs += new ServicetoolOutput("text/plain", "This is a response!!")
+	  
+		// render the output message as JSON
+    Ok(Json.toJson(output))
+	}
 }
