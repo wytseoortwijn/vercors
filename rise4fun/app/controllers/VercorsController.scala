@@ -36,12 +36,11 @@ class VercorsController @Inject() extends Controller {
     Ok(Json.toJson(data))
   }
 	
-	def run = Action { implicit request =>
-	  
+	def run = Action {
 	  // construct an output message
 	  var output = new ServicetoolResponse()
-	  output.version = "1.0" // should match the version from {@code /metadata}
-	  output.outputs += new ServicetoolOutput("text/plain", "This is a response!!")
+	  output.version = "1.0" // should match the version returned by /metadata
+	  output.outputs += new ServicetoolOutput("text/plain", "This is a response")
 	  
 		// render the output message as JSON
     Ok(Json.toJson(output))
