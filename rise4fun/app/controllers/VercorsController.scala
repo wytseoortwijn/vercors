@@ -9,7 +9,7 @@ import models._
 @Singleton
 class VercorsController @Inject() extends Controller {
 
-  def metadata = Action {
+  def metadata = Action { request =>
     // construct a metadata object by filling in the necessary fields
     var data = new ServicetoolMetadata()
     data.name = "vercors"
@@ -21,7 +21,7 @@ class VercorsController @Inject() extends Controller {
     data.privacyUrl = "http://utwente.nl/vercors?privacy"
     data.institution = "University of Twente"
     data.institutionUrl = "http://utwente.nl"
-    data.institutionImageUrl = "https://fmt.ewi.utwente.nl/redmine/attachments/download/632/UT_Logo_2400_Black_EN.png"
+    data.institutionImageUrl = request.host + "/assets/images/fmt.png"
     data.mimetype = "text/plain"
     data.title = "Vercors Verification Toolset"
     data.description = "Verifies memory safety and functional correctness of parallel and concurrent programs."
