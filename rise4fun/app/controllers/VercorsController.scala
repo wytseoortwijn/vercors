@@ -22,14 +22,14 @@ class VercorsController @Inject() extends Controller {
     data.institution = "University of Twente"
     data.institutionUrl = "http://utwente.nl"
     data.institutionImageUrl = "https://fmt.ewi.utwente.nl/redmine/attachments/download/632/UT_Logo_2400_Black_EN.png"
-    data.mimetype = "text/x-echo"
+    data.mimetype = "text/plain"
     data.title = "Vercors Verification Toolset"
     data.description = "Verifies memory safety and functional correctness of parallel and concurrent programs."
-    data.question = "Is this program correct?"
+    data.question = "Is this program functionally correct?"
     data.url = "http://utwente.nl/vercors"
     
     // populate the metadata object with examples (and, optionally, tutorials)
-    data.samples += new ServicetoolSample("Hello World", "class HelloWorld { }")
+    data.samples += new ServicetoolSample("Hello World", "Dit is een test")
     
     // render the metadata object as JSON
     Ok(Json.toJson(data))

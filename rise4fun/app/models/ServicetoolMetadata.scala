@@ -59,7 +59,7 @@ class ServicetoolMetadata {
   var videourl = ""
   
   /** (optional) disables the parsing of the output to build the error table */
-  var disablEerrorTable = false
+  var disableErrorTable = false
   
   /** gets the list of samples for the tool, in order. must have at least 1 sample. */
   var samples = new ArrayBuffer[ServicetoolSample]()
@@ -85,6 +85,8 @@ object ServicetoolMetadata {
       "Description" -> metadata.description,
       "Question" -> metadata.question,
       "Url" -> metadata.url,
+			"VideoUrl" -> metadata.videourl,
+			"DisableErrorTable" -> metadata.disableErrorTable,
       "Samples" -> metadata.samples
     )
   }
