@@ -85,9 +85,10 @@ object ServicetoolMetadata {
       "Description" -> metadata.description,
       "Question" -> metadata.question,
       "Url" -> metadata.url,
-			"VideoUrl" -> metadata.videourl,
+			"VideoUrl" -> JsNull,
 			"DisableErrorTable" -> metadata.disableErrorTable,
-      "Samples" -> metadata.samples
+      "Samples" -> metadata.samples,
+			"Tutorials" -> JsNull
     )
   }
 }
