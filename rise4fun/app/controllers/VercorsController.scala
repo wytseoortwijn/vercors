@@ -21,7 +21,7 @@ class VercorsController @Inject() extends Controller {
     data.privacyUrl = "http://utwente.nl/vercors?privacy"
     data.institution = "University of Twente"
     data.institutionUrl = "http://utwente.nl"
-    data.institutionImageUrl = request.host + "/assets/images/fmt.png"
+    data.institutionImageUrl = "http://" + request.host + "/assets/images/fmt.png" // there should be a way to automatically generate this URL in a cleaner way..
     data.mimetype = "text/plain"
     data.title = "Vercors Verification Toolset"
     data.description = "Verifies memory safety and functional correctness of parallel and concurrent programs."
