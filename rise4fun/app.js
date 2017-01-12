@@ -97,24 +97,23 @@ app.post('/run', function (req, res) {
 				return;
 			}
 
-			console.log(info.path);
+			// execute vercors on the received program (with silicon)
+			var toolpath = path.join(__dirname, '../unix/bin/vct --silicon');
+			var tooloutput = syncexec(toolpath + ' ' + info.path);
+			
+			// build a message containing the tool output
+			var output = {
+				Version: "1.0",
+				Outputs: [
+					{ MimeType: "text/plain", Value: tooloutput.stdout }
+				]
+			}
+			
+			// render the output message as JSON
+			res.setHeader('Content-Type', 'application/json');
+			res.json(output);
 		});
 	});
-
-	var toolpath = path.join(__dirname, '../unix/bin/vct --silicon');
-	var test = syncexec(toolpath);
-
-	// build an output message
-	var output = {
-		Version: "1.0",
-		Outputs: [
-			{ MimeType: "text/plain", Value: "ECHO: " + req.body.Source + "OUTPUT: " +  test.stdout }
-		]
-	}
-	
-	// render the output message as JSON
-	res.setHeader('Content-Type', 'application/json');
-	res.json(output);
 });
 
 // start our app
