@@ -3,6 +3,7 @@ var exec = require('child_process').exec;
 var express = require('express');
 var fs = require('fs');
 var path = require('path');
+var syncexec = require('sync-exec');
 var temp = require('temp');
 
 var app = express();
@@ -79,24 +80,7 @@ app.post('/run', function (req, res) {
 		return;
 	}
 	
-	// determine filename and construct its absolute path
-	var filename = 'input.java';
-	var filepath = path.join(__dirname, '/upload/', filename);
-
-	/*
-	// write the received program to the filesystem
-	fs.writeFile(filepath, req.body.Source, function (err) {
-		if (err) {
-			res.status(400).send('Error: could not write the file!');
-			console.log(err);
-			return;
-		}
-
-		exec('nl ' + filepath + ' > ' + filepath + '2', function (error, stdout, stderr) {
-			console.log(stdout);
-		});
-	});
-	*/
+	syncexec('sleep 10');
 
 	// create a temporary file for the received program
 	temp.open('vercors-rise4fun', function (err, info) {
