@@ -1,29 +1,24 @@
 var bodyparser = require('body-parser');
-var exec = require('child_process').exec;
 var express = require('express');
 var fs = require('fs');
 var path = require('path');
 var syncexec = require('sync-exec');
 var temp = require('temp');
-
 var app = express();
 
 // automatically track and cleanup temporary files
 temp.track();
 
 // rise4fun claims to encode their content using GZIP, but it appears that the content is not encoded at all!
-// to prevent the bodyparser to automatically decode the non-encoded contents, we remove the encoding entry from the header.
+// to prevent the bodyparser to automatically decode the apparently non-encoded contents, we remove the encoding entry from the header.
 app.use(function (req, res, next) {
 	delete req.headers["content-encoding"];
 	next();
 });
 
+// enable json and set the assets directory
 app.use(express.static('public'));
 app.use(bodyparser.json());
-
-app.get('/', function (req, res) {
-  res.send('Hi there! This is the Vercors interface for Rise4fun')
-});
 
 // creates a 'servicetoolrequest' JSON object for the given example file
 load_example = function (name, filepath) {
@@ -33,6 +28,11 @@ load_example = function (name, filepath) {
 		Source: fs.readFileSync(fullpath, 'utf8')
 	};
 }
+
+// default action
+app.get('/', function (req, res) {
+  res.send('Hi there! This is the Vercors interface for Rise4fun')
+});
 
 app.get('/metadata', function (req, res) {
 	// construct a metadata object by filling in the necessary fields
@@ -80,8 +80,8 @@ app.post('/run', function (req, res) {
 		return;
 	}
 
-	// create a temporary file for the received program
-	temp.open({ prefix: 'vercors-rise4fun', suffix: '.java'}, function (err, info) {
+	// create a temporary file for the received (java) program
+	temp.open({ prefix: 'vercors-rise4fun', suffix: '.java' }, function (err, info) {
 		if (err) {
 			res.status(400).send('Error: could not create a temporary file');
 			console.log(err);
@@ -104,9 +104,7 @@ app.post('/run', function (req, res) {
 			// build a message containing the tool output
 			var output = {
 				Version: "1.0",
-				Outputs: [
-					{ MimeType: "text/plain", Value: tooloutput.stdout }
-				]
+				Outputs: [{ MimeType: "text/plain", Value: tooloutput.stdout }]
 			}
 			
 			// render the output message as JSON
