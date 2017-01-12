@@ -3,7 +3,6 @@ var exec = require('child_process').exec;
 var express = require('express');
 var fs = require('fs');
 var path = require('path');
-var syncexec = require('sync-exec');
 var temp = require('temp');
 
 var app = express();
@@ -22,7 +21,7 @@ app.use(express.static('public'));
 app.use(bodyparser.json());
 
 app.get('/', function (req, res) {
-  res.send('Hi there! This is the Vercors interface for Rise4fun.')
+  res.send('Hi there! This is the Vercors interface for Rise4fun')
 });
 
 // creates a 'servicetoolrequest' JSON object for the given example file
@@ -49,7 +48,7 @@ app.get('/metadata', function (req, res) {
   data.InstitutionImageUrl = "http://" + req.header('host') + "/fmt.png";
   data.MimeType = "text/plain";
 	data.SupportsLanguageSyntax = false;
-  data.Title = "Vercors Verification Toolset";
+  data.Title = "VerCors Verification Toolset";
   data.Description = "Verifies memory safety and functional correctness of parallel and concurrent programs.";
   data.Question = "Is this program functionally correct?";
   data.Url = "http://utwente.nl/vercors";
@@ -80,7 +79,24 @@ app.post('/run', function (req, res) {
 		return;
 	}
 	
-	syncexec('sleep 10');
+	// determine filename and construct its absolute path
+	var filename = 'input.java';
+	var filepath = path.join(__dirname, '/upload/', filename);
+
+	/*
+	// write the received program to the filesystem
+	fs.writeFile(filepath, req.body.Source, function (err) {
+		if (err) {
+			res.status(400).send('Error: could not write the file!');
+			console.log(err);
+			return;
+		}
+
+		exec('nl ' + filepath + ' > ' + filepath + '2', function (error, stdout, stderr) {
+			console.log(stdout);
+		});
+	});
+	*/
 
 	// create a temporary file for the received program
 	temp.open('vercors-rise4fun', function (err, info) {
@@ -118,5 +134,5 @@ app.post('/run', function (req, res) {
 
 // start our app
 app.listen(8080, function () {
-  console.log('vercors-rise4fun interface active and listening on port 8080.')
+  console.log('vercors-rise4fun interface active and listening on port 8080')
 });
