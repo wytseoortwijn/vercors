@@ -9,7 +9,7 @@ var app = express();
 // automatically track and cleanup temporary files
 temp.track();
 
-// rise4fun claims to encode their content using GZIP, but it appears that the content is not encoded at all!
+// Rise4fun claims to encode their content using GZIP, but it appears that the content is not encoded at all!
 // to prevent the bodyparser to automatically decode the apparently non-encoded contents, we remove the encoding entry from the header.
 app.use(function (req, res, next) {
 	delete req.headers["content-encoding"];
@@ -101,20 +101,17 @@ app.post('/run', function (req, res) {
 			var toolpath = path.join(__dirname, '../unix/bin/vct --silicon');
 			var tooloutput = syncexec(toolpath + ' ' + info.path);
 			
-			// build a message containing the tool output
-			var output = {
-				Version: "1.0",
-				Outputs: [{ MimeType: "text/plain", Value: tooloutput.stdout }]
-			}
-			
 			// render the output message as JSON
 			res.setHeader('Content-Type', 'application/json');
-			res.json(output);
+			res.json({
+				Version: "1.0",
+				Outputs: [{ MimeType: "text/plain", Value: tooloutput.stdout }]
+			});
 		});
 	});
 });
 
-// start our app
+// start the app!
 app.listen(8080, function () {
   console.log('vercors-rise4fun interface active and listening on port 8080')
 });
