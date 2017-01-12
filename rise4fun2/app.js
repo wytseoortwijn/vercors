@@ -28,7 +28,7 @@ app.get('/metadata', function (req, res) {
 	// construct a metadata object by filling in the necessary fields
 	var data = new Object();
 	data.Name = "vercors";
-  data.DisplayName = "Vercors";
+  data.DisplayName = "VerCors";
   data.Version = "1.0";
   data.Email = "w.h.m.oortwijn@utwente.nl";
   data.SupportEmail = "w.h.m.oortwijn@utwente.nl";
@@ -60,13 +60,13 @@ app.get('/metadata', function (req, res) {
 app.post('/run', function (req, res) {
 	// is the content actually parsed with the built-in JSON parser?
 	if (req.body == undefined) {
-		res.status(400).send('Error: expecting JSON content!');
+		res.status(400).send('Error: expecting JSON content');
 		return;
 	}
 	
 	// does the parsed JSON object has the right format?
 	if (req.body.Version == undefined || req.body.Source == undefined) {
-		res.status(400).send('Error: incorrect JSON content!');
+		res.status(400).send('Error: incorrect JSON content');
 		return;
 	}
 	
@@ -89,6 +89,7 @@ app.post('/run', function (req, res) {
 	});
 	*/
 
+	// create a temporary file for the received program
 	temp.open('vercors-rise4fun', function (err, info) {
 		if (err) {
 			res.status(400).send('Error: could not create a temporary file');
@@ -96,8 +97,15 @@ app.post('/run', function (req, res) {
 			return;
 		}
 
+		// write the program to the temp file
 		fs.write(info.fd, req.body.Source);
 		fs.close(info.fd, function (err) {
+			if (err) {
+				res.status(400).send('Error: could not write to temporary file');
+				console.log(err);
+				return;
+			}
+
 			console.log(info.path);
 		});
 	});
@@ -115,6 +123,7 @@ app.post('/run', function (req, res) {
 	res.json(output);
 });
 
+// start our app
 app.listen(8080, function () {
   console.log('vercors-rise4fun interface active and listening on port 8080.')
 });
