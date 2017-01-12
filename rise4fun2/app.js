@@ -1,9 +1,14 @@
 var bodyparser = require('body-parser');
-var exec = require('exec');
+var exec = require('child_process').exec;
 var express = require('express');
 var fs = require('fs');
+var path = require('path');
+var temp = require('temp');
 
 var app = express();
+
+// automatically track and cleanup temp files
+temp.track();
 
 // rise4fun claims to encode their content using GZIP, but it appears that the content is not encoded at all!
 // to prevent the bodyparser to automatically decode the non-encoded contents, we remove the encoding entry from the header.
@@ -65,11 +70,36 @@ app.post('/run', function (req, res) {
 		return;
 	}
 	
+	// determine filename and construct its absolute path
+	var filename = 'input.java';
+	var filepath = path.join(__dirname, '/upload/', filename);
+
+	/*
 	// write the received program to the filesystem
-	fs.writefile('/upload/temp.java', 'Hello!!', function (err) {
+	fs.writeFile(filepath, req.body.Source, function (err) {
 		if (err) {
+			res.status(400).send('Error: could not write the file!');
 			console.log(err);
+			return;
 		}
+
+		exec('nl ' + filepath + ' > ' + filepath + '2', function (error, stdout, stderr) {
+			console.log(stdout);
+		});
+	});
+	*/
+
+	temp.open('vercors-rise4fun', function (err, info) {
+		if (err) {
+			res.status(400).send('Error: could not create a temporary file');
+			console.log(err);
+			return;
+		}
+
+		fs.write(info.fd, req.body.Source);
+		fs.close(info.fd, function (err) {
+			console.log(info.path);
+		});
 	});
 
 	// build an output message
