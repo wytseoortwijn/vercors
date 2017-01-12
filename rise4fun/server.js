@@ -46,7 +46,7 @@ app.get('/metadata', function (req, res) {
   data.PrivacyUrl = "http://utwente.nl/vercors?privacy";
   data.Institution = "University of Twente";
   data.InstitutionUrl = "http://utwente.nl";
-  data.InstitutionImageUrl = "http://" + req.header('host') + "/fmt.png";
+  data.InstitutionImageUrl = req.protocol + '://' + req.header('host') + '/fmt.png';
   data.MimeType = "text/plain";
 	data.SupportsLanguageSyntax = true;
   data.Title = "VerCors Verification Toolset";
