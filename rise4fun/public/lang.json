@@ -8,7 +8,7 @@
   "blockCommentStart": "/*",
   "blockCommentEnd":   "*/",
 
-  "keywords": ["public", "class", "static", "int", "void", "while", "for", "return", "if", "else", "switch"],
+  "keywords": ["public", "class", "static", "int", "boolean", "void", "while", "for", "return", "if", "else", "switch"],
 
   "operators": ["~", "+", "-"],
 
@@ -23,13 +23,13 @@
       { "include": "@whitespace" },
 
 
-      ["[{}()\\[\\]]", "@brackets"],
+      ["[{}()\\[\\]]", "@brackets"]
    ],
 
     "whitespace": [
       ["[ \\t\\r\\n]+", "white"],
       ["\\/\\*",       "comment", "@comment" ],
-      ["\\/\\/.*$",    "comment"],
+      ["\\/\\/.*$",    "comment"]
     ],
 
     "comment": [
@@ -37,6 +37,6 @@
       ["\\/\\*",    "comment.invalid" ],
       ["\\*/",    "comment", "@pop"  ],
       ["[\\/*]",   "comment" ]
-    ],
-  },
+    ]
+  }
 }

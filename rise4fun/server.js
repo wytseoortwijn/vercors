@@ -48,7 +48,7 @@ app.get('/metadata', function (req, res) {
   data.InstitutionUrl = "http://utwente.nl";
   data.InstitutionImageUrl = "http://" + req.header('host') + "/fmt.png";
   data.MimeType = "text/plain";
-	data.SupportsLanguageSyntax = false;
+	data.SupportsLanguageSyntax = true;
   data.Title = "VerCors Verification Toolset";
   data.Description = "Verifies memory safety and functional correctness of parallel and concurrent programs.";
   data.Question = "Is this program functionally correct?";
