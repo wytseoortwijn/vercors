@@ -79,8 +79,6 @@ app.post('/run', function (req, res) {
 		res.status(400).send('Error: incorrect JSON content');
 		return;
 	}
-	
-	syncexec('sleep 10');
 
 	// create a temporary file for the received program
 	temp.open('vercors-rise4fun', function (err, info) {
@@ -103,11 +101,14 @@ app.post('/run', function (req, res) {
 		});
 	});
 
+	var toolpath = path.join(__dirname, '../unix/bin/vct --silicon');
+	var test = syncexec(toolpath);
+
 	// build an output message
 	var output = {
 		Version: "1.0",
 		Outputs: [
-			{ MimeType: "text/plain", Value: "ECHO: " + req.body.Source }
+			{ MimeType: "text/plain", Value: "ECHO: " + req.body.Source + "OUTPUT: " +  test.stdout }
 		]
 	}
 	
