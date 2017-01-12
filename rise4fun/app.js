@@ -111,6 +111,10 @@ app.post('/run', function (req, res) {
 	});
 });
 
+app.get('/language', function (req, res) {
+	res.sendFile(__dirname + '/public/lang.json');
+});
+
 // start the app!
 app.listen(8080, function () {
   console.log('vercors-rise4fun interface active and listening on port 8080')
