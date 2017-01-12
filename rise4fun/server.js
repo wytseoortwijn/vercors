@@ -112,7 +112,7 @@ app.post('/run', function (req, res) {
 });
 
 app.get('/language', function (req, res) {
-	res.sendFile(__dirname + '/public/lang.json');
+	res.sendFile(path.join(__dirname, '/public/lang.json'));
 });
 
 // start the app!
