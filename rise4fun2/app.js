@@ -7,7 +7,7 @@ var temp = require('temp');
 
 var app = express();
 
-// automatically track and cleanup temp files
+// automatically track and cleanup temporary files
 temp.track();
 
 // rise4fun claims to encode their content using GZIP, but it appears that the content is not encoded at all!
@@ -23,6 +23,15 @@ app.use(bodyparser.json());
 app.get('/', function (req, res) {
   res.send('Hi there! This is the Vercors interface for Rise4fun.')
 });
+
+// creates a 'servicetoolrequest' JSON object for the given example file
+load_example = function (name, filepath) {
+	var fullpath = path.join(__dirname, '../examples/', filepath);
+	return {
+		Name: name,
+		Source: fs.readFileSync(fullpath, 'utf8')
+	};
+}
 
 app.get('/metadata', function (req, res) {
 	// construct a metadata object by filling in the necessary fields
@@ -49,7 +58,7 @@ app.get('/metadata', function (req, res) {
 	
 	// populate the sample programs
 	data.Samples = [
-		{ Name: "Hello World", Source: "This is a test!!!" }
+		load_example("BasicAssert", "basic/BasicAssert.java")
 	];
 	
 	// render the metadata object as JSON
