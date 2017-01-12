@@ -7,8 +7,10 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class DebugFilter @Inject() (implicit val mat: Materializer, ec: ExecutionContext) extends Filter {
   def apply(next: RequestHeader => Future[Result])(request: RequestHeader): Future[Result] = {
-    System.out.println("HEADERS:")
-    System.out.println(request.headers.toString())
-    next(request)
+    System.out.println("HEADERS:" + request.headers.toString())
+    
+    next(request).map { result =>
+      result
+    }
   }
 }

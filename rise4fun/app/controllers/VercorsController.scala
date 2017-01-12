@@ -35,8 +35,9 @@ class VercorsController @Inject() extends Controller {
     // render the metadata object as JSON
     Ok(Json.toJson(data))
   }
-	
-	def run = Action(parse.tolerantText) { request =>
+
+	def run = Action(parse.anyContent) { request =>
+	 
 	  
 	  // construct an output message
 	  var output = new ServicetoolResponse()
