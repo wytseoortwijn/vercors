@@ -81,7 +81,7 @@ app.post('/run', function (req, res) {
 	}
 
 	// create a temporary file for the received program
-	temp.open('vercors-rise4fun', function (err, info) {
+	temp.open({ prefix: 'vercors-rise4fun', suffix: '.java'}, function (err, info) {
 		if (err) {
 			res.status(400).send('Error: could not create a temporary file');
 			console.log(err);
