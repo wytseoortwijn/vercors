@@ -1,8 +1,17 @@
-var express = require('express')
-var app = express()
+var bodyparser = require('body-parser');
+var express = require('express');
 
-// directory containing static assets
-app.use(express.static('public'))
+var app = express();
+
+// rise4fun claims to encode their content using GZIP, but it appears that the content is not encoded at all!
+// to prevent the bodyparser to automatically decode the non-encoded contents, we remove the encoding entry from the header.
+app.use(function (req, res, next) {
+	delete req.headers["content-encoding"];
+	next();
+});
+
+app.use(express.static('public'));
+app.use(bodyparser.json());
 
 app.get('/', function (req, res) {
   res.send('Hi there! This is the Vercors REST interface for Rise4fun.')
@@ -42,11 +51,12 @@ app.get('/metadata', function (req, res) {
 });
 
 app.post('/run', function (req, res) {
+
 	// build an output message
 	var output = {
 		Version: "1.0",
 		Outputs: [
-			{ MimeType: "text/plain", Value: "This is a response!" }
+			{ MimeType: "text/plain", Value: "ECHO: " + req.body.Source }
 		]
 	}
 	
