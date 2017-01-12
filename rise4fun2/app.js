@@ -1,5 +1,7 @@
 var bodyparser = require('body-parser');
+var exec = require('exec');
 var express = require('express');
+var fs = require('fs');
 
 var app = express();
 
@@ -14,7 +16,7 @@ app.use(express.static('public'));
 app.use(bodyparser.json());
 
 app.get('/', function (req, res) {
-  res.send('Hi there! This is the Vercors REST interface for Rise4fun.')
+  res.send('Hi there! This is the Vercors interface for Rise4fun.')
 });
 
 app.get('/metadata', function (req, res) {
@@ -51,6 +53,24 @@ app.get('/metadata', function (req, res) {
 });
 
 app.post('/run', function (req, res) {
+	// is the content actually parsed with the built-in JSON parser?
+	if (req.body == undefined) {
+		res.status(400).send('Error: expecting JSON content!');
+		return;
+	}
+	
+	// does the parsed JSON object has the right format?
+	if (req.body.Version == undefined || req.body.Source == undefined) {
+		res.status(400).send('Error: incorrect JSON content!');
+		return;
+	}
+	
+	// write the received program to the filesystem
+	fs.writefile('/upload/temp.java', 'Hello!!', function (err) {
+		if (err) {
+			console.log(err);
+		}
+	});
 
 	// build an output message
 	var output = {
