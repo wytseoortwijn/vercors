@@ -8,15 +8,31 @@
   "blockCommentStart": "/*",
   "blockCommentEnd":   "*/",
 
-  "keywords": ["class", "kernel", "global", "local", "static", "thread_local", "inline", "pure", "with", "then", "in", "id", "new", "unfolding", 
-		"return", "lock", "unlock", "wait", "notify", "fork", "join", "action", "if", "else", "barrier", "par", "and", "vec", "invariant", 
-		"atomic", "while", "goto", "label", "loop_invariant", "option", "process", "int", "boolean", "zfrac", "frac", "resource", "void", "set", "seq", "bag"],
+  "keywords": ["class", "kernel", "global", "local", "static", "thread_local", "inline", 
+    "pure", "with", "then", "in", "id", "new", "unfolding", "return", "lock", "unlock", 
+    "wait", "notify", "fork", "join", "if", "else", "barrier", "par", "and", "vec", 
+		"while", "goto", "resource", "true", "false"],
+
+  "typeKeywords": ["int", "boolean", "option", "process", "zfrac", "frac", "set", "seq", "bag", "void"],
+
+  "specKeywords": ["modifies", "accessible", "requires", "ensures", "given", "yields", 
+    "invariant", "context", "loop_invariant", "create", "qed", "apply", "use", "create",
+    "destroy", "split", "merge", "choose", "fold", "unfold", "open", "close",
+    "assert", "assume", "inhale", "exhale", "label", "refute", "witness", "ghost",
+    "send", "to", "recv", "from", "transfer", "csl_subject", "spec_ignore", "action", "atomic",
+    "forall"],
 
   "operators": [":", "<", ">", "!", "-", "^^", "*", "/", "%", "+", "-", "<=", ">=", "==", "!=", "?", "->", "&&", "**", "||", "==>", "-*", ""],
 
   "tokenizer": {
     "root": [
-      ["[a-z_$][\\w$]*", { "cases": { "@keywords": "keyword", "@default": "identifier" } }],
+      ["[a-z_$][\\w$]*", { "cases": { 
+        "@keywords": "keyword", 
+        "@typeKeywords": "keyword", 
+        "@specKeywords": "type.identifier", 
+        "@default": "identifier" 
+      } }],
+
       { "include": "@whitespace" },
       ["[{}()\\[\\]]", "@brackets"]
    ],
