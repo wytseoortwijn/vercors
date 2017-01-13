@@ -8,21 +8,16 @@
   "blockCommentStart": "/*",
   "blockCommentEnd":   "*/",
 
-  "keywords": ["public", "class", "static", "int", "boolean", "void", "while", "for", "return", "if", "else", "switch", "par", "vec", "context", "requires", "ensures", "invariant"],
+  "keywords": ["class", "kernel", "global", "local", "static", "thread_local", "inline", "pure", "with", "then", "in", "id", "new", "unfolding", 
+		"return", "lock", "unlock", "wait", "notify", "fork", "join", "action", "if", "else", "barrier", "par", "and", "vec", "invariant", 
+		"atomic", "while", "goto", "label", "loop_invariant", "option", "process", "int", "boolean", "zfrac", "frac", "resource", "void", "set", "seq", "bag"],
 
-  "operators": ["~", "+", "-"],
-
+  "operators": [":", "<", ">", "!", "-", "^^", "*", "/", "%", "+", "-", "<=", ">=", "==", "!=", "?", "->", "&&", "**", "||", "==>", "-*", ""],
 
   "tokenizer": {
     "root": [
-
-      ["[a-z_$][\\w$]*", { "cases": { "@keywords": "keyword",
-                                   "@default": "identifier" } }],
-
-
+      ["[a-z_$][\\w$]*", { "cases": { "@keywords": "keyword", "@default": "identifier" } }],
       { "include": "@whitespace" },
-
-
       ["[{}()\\[\\]]", "@brackets"]
    ],
 
