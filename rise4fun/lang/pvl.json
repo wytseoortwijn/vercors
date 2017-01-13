@@ -1,0 +1,42 @@
+{
+  "displayName":    "pvl",
+  "name":           "pvl",
+  "mimeTypes":      ["text/x-pvl"],
+  "fileExtensions": [".pvl"],
+
+  "lineComments":      "//",
+  "blockCommentStart": "/*",
+  "blockCommentEnd":   "*/",
+
+  "keywords": ["public", "class", "static", "int", "boolean", "void", "while", "for", "return", "if", "else", "switch"],
+
+  "operators": ["~", "+", "-"],
+
+
+  "tokenizer": {
+    "root": [
+
+      ["[a-z_$][\\w$]*", { "cases": { "@keywords": "keyword",
+                                   "@default": "identifier" } }],
+
+
+      { "include": "@whitespace" },
+
+
+      ["[{}()\\[\\]]", "@brackets"]
+   ],
+
+    "whitespace": [
+      ["[ \\t\\r\\n]+", "white"],
+      ["\\/\\*",       "comment", "@comment" ],
+      ["\\/\\/.*$",    "comment"]
+    ],
+
+    "comment": [
+      ["[^\\/*]+", "comment" ],
+      ["\\/\\*",    "comment.invalid" ],
+      ["\\*/",    "comment", "@pop"  ],
+      ["[\\/*]",   "comment" ]
+    ]
+  }
+}

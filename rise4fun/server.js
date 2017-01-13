@@ -104,7 +104,7 @@ app.get('/c/metadata', function (req, res) {
 	res.json(metadata);
 });
 
-// this function handles 'run' requests made by Rise4fun: it executes VerCors on the received program and sends back a result message.
+// handles '/run' requests made by Rise4fun by executing VerCors on the received program and sending back a result message.
 handle_run_vercors = function (req, res, options) {
 	// is the content actually parsed with the built-in JSON parser?
 	if (req.body == undefined) {
@@ -161,12 +161,14 @@ app.post('/c/run', function (req, res) {
 	handle_run_vercors(req, res, { suffix: '.c' });
 });
 
-// send the Java syntax definition (for syntax highlighting)
 app.get('/java/language', function (req, res) {
 	res.sendFile(path.join(__dirname, '/lang/java.json'));
 });
 
-// start the app!
+app.get('/pvl/language', function (req, res) {
+	res.sendFile(path.join(__dirname, '/lang/pvl.json'));
+});
+
 app.listen(8080, function () {
   console.log('vercors-rise4fun interface active and listening on port 8080')
 });
