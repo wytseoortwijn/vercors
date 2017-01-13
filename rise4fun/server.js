@@ -20,54 +20,92 @@ app.use(function (req, res, next) {
 app.use(express.static('public'));
 app.use(bodyparser.json());
 
-// creates a 'servicetoolrequest' JSON object for the given example file
-load_example = function (name, filepath) {
-	var fullpath = path.join(__dirname, '../examples/', filepath);
-	return {
-		Name: name,
-		Source: fs.readFileSync(fullpath, 'utf8')
-	};
-}
-
-// default action
 app.get('/', function (req, res) {
   res.send('Hi there! This is the Vercors interface for Rise4fun')
 });
 
-app.get('/metadata', function (req, res) {
-	// construct a metadata object by filling in the necessary fields
-	var data = new Object();
-	data.Name = "vercors";
-  data.DisplayName = "VerCors";
-  data.Version = "1.0";
-  data.Email = "w.h.m.oortwijn@utwente.nl";
-  data.SupportEmail = "w.h.m.oortwijn@utwente.nl";
-  data.TermsOfUseUrl = "http://utwente.nl/vercors?terms";
-  data.PrivacyUrl = "http://utwente.nl/vercors?privacy";
-  data.Institution = "University of Twente";
-  data.InstitutionUrl = "http://utwente.nl";
-  data.InstitutionImageUrl = req.protocol + '://' + req.header('host') + '/fmt.png';
-  data.MimeType = "text/plain";
-	data.SupportsLanguageSyntax = true;
-  data.Title = "VerCors Verification Toolset";
-  data.Description = "Verifies memory safety and functional correctness of parallel and concurrent programs.";
-  data.Question = "Is this program functionally correct?";
-  data.Url = "http://utwente.nl/vercors";
-	data.VideoUrl = null;
-	data.DisableErrorTable = false;
-	data.Tutorials = null;
-	
-	// populate the sample programs
-	data.Samples = [
+// returns standard (generic) Rise4fun metadata 
+standard_metadata = function (req) {
+	return {
+		Name: 'vercors',
+		DisplayName: 'VerCors',
+		Version: '1.0',
+		Email: 'w.h.m.oortwijn@utwente.nl',
+		SupportEmail: 'w.h.m.oortwijn@utwente.nl',
+		TermsOfUseUrl: 'http://utwente.nl/vercors?terms',
+		PrivacyUrl: 'http://utwente.nl/vercors?privacy',
+		Institution: 'University of Twente',
+		InstitutionUrl: 'http://utwente.nl',
+		InstitutionImageUrl: req.protocol + '://' + req.header('host') + '/fmt.png',
+		MimeType: 'text/plain',
+		SupportsLanguageSyntax: false,
+		Title: 'VerCors Verification Toolset',
+		Description: 'Verifies memory safety and functional correctness of parallel and concurrent programs.',
+		Question: 'Is this program functionally correct?',
+		Url: 'http://utwente.nl/vercors',
+		VideoUrl: null,
+		DisableErrorTable: false,
+		Samples: null,
+		Tutorials: null
+	};
+}
+
+// creates a 'servicetoolrequest' JSON object for the provided example file
+load_example = function (name, filepath) {
+	var fullpath = path.join(__dirname, '../examples/', filepath);
+	return { Name: name, Source: fs.readFileSync(fullpath, 'utf8') };
+}
+
+app.get('/java/metadata', function (req, res) {
+	// configure metadata
+	var metadata = standard_metadata(req);
+	metadata.DisplayName = "VerCors-Java";
+	metadata.Question = "Is this Java program functionally correct?";
+	metadata.SupportsLanguageSyntax = true;
+
+	// populate with sample programs
+	metadata.Samples = [
 		load_example("BasicAssert.java", "basic/BasicAssert.java")
 	];
 	
-	// render the metadata object as JSON
-	res.setHeader('Content-Type', 'application/json');
-	res.json(data);
+	// render metadata as JSON
+	res.json(metadata);
 });
 
-app.post('/run', function (req, res) {
+app.get('/pvl/metadata', function (req, res) {
+	// configure metadata
+	var metadata = standard_metadata(req);
+	metadata.DisplayName = "VerCors-PVL";
+	metadata.Question = "Is this PVL program functionally correct?";
+	metadata.SupportsLanguageSyntax = false;
+
+	// populate with sample programs
+	metadata.Samples = [
+		load_example("addvec2.pvl", "openmp/addvec2.pvl")
+	];
+	
+	// render metadata as JSON
+	res.json(metadata);
+});
+
+app.get('/c/metadata', function (req, res) {
+	// configure metadata
+	var metadata = standard_metadata(req);
+	metadata.DisplayName = "VerCors-C";
+	metadata.Question = "Is this C program functionally correct?";
+	metadata.SupportsLanguageSyntax = false;
+
+	// populate with sample programs
+	metadata.Samples = [
+		load_example("zero-spec.c", "openmp/zero-spec.c")
+	];
+	
+	// render metadata as JSON
+	res.json(metadata);
+});
+
+// this function handles 'run' requests made by Rise4fun: it executes VerCors on the received program and sends back a result message.
+handle_run_vercors = function (req, res, options) {
 	// is the content actually parsed with the built-in JSON parser?
 	if (req.body == undefined) {
 		res.status(400).send('Error: expecting JSON content');
@@ -81,7 +119,7 @@ app.post('/run', function (req, res) {
 	}
 
 	// create a temporary file for the received (java) program
-	temp.open({ prefix: 'vercors-rise4fun', suffix: '.java' }, function (err, info) {
+	temp.open({ prefix: 'vercors-rise4fun', suffix: options.suffix }, function (err, info) {
 		if (err) {
 			res.status(400).send('Error: could not create a temporary file');
 			console.log(err);
@@ -109,10 +147,23 @@ app.post('/run', function (req, res) {
 			});
 		});
 	});
+}
+
+app.post('/java/run', function (req, res) {
+	handle_run_vercors(req, res, { suffix: '.java' });
 });
 
-app.get('/language', function (req, res) {
-	res.sendFile(path.join(__dirname, '/public/lang.json'));
+app.post('/pvl/run', function (req, res) {
+	handle_run_vercors(req, res, { suffix: '.pvl' });
+});
+
+app.post('/c/run', function (req, res) {
+	handle_run_vercors(req, res, { suffix: '.c' });
+});
+
+// send the Java syntax definition (for syntax highlighting)
+app.get('/java/language', function (req, res) {
+	res.sendFile(path.join(__dirname, '/lang/java.json'));
 });
 
 // start the app!
