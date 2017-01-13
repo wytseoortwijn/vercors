@@ -77,7 +77,7 @@ app.get('/pvl/metadata', function (req, res) {
 	var metadata = standard_metadata(req);
 	metadata.DisplayName = "VerCors-PVL";
 	metadata.Question = "Is this PVL program functionally correct?";
-	metadata.SupportsLanguageSyntax = false;
+	metadata.SupportsLanguageSyntax = true;
 
 	// populate with sample programs
 	metadata.Samples = [
