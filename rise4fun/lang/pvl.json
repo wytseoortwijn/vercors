@@ -19,17 +19,17 @@
     "invariant", "context", "loop_invariant", "create", "qed", "apply", "use", "create",
     "destroy", "split", "merge", "choose", "fold", "unfold", "open", "close",
     "assert", "assume", "inhale", "exhale", "label", "refute", "witness", "ghost",
-    "send", "to", "recv", "from", "transfer", "csl_subject", "spec_ignore", "action", "atomic",
-    "forall"],
+    "send", "to", "recv", "from", "transfer", "csl_subject", "spec_ignore", "action", "atomic"],
 
-  "operators": [":", "<", ">", "!", "-", "^^", "*", "/", "%", "+", "-", "<=", ">=", "==", "!=", "?", "->", "&&", "**", "||", "==>", "-*", ""],
+  "operators": [":", "<", ">", "!", "-", "^^", "*", "/", "%", "+", "-", "<=", 
+    ">=", "==", "!=", "?", "->", "&&", "**", "||", "==>", "-*", ".."],
 
   "tokenizer": {
     "root": [
       ["[a-z_$][\\w$]*", { "cases": { 
         "@keywords": "keyword", 
         "@typeKeywords": "keyword", 
-        "@specKeywords": "type.identifier", 
+        "@specKeywords": "type.identifier",
         "@default": "identifier" 
       } }],
 
