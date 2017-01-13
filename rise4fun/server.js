@@ -59,7 +59,7 @@ app.get('/metadata', function (req, res) {
 	
 	// populate the sample programs
 	data.Samples = [
-		load_example("BasicAssert", "basic/BasicAssert.java")
+		load_example("BasicAssert.java", "basic/BasicAssert.java")
 	];
 	
 	// render the metadata object as JSON
