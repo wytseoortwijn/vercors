@@ -28,7 +28,7 @@ app.get('/', function (req, res) {
 standard_metadata = function (req) {
 	return {
 		Name: 'vercors',
-		DisplayName: 'VerCors',
+		DisplayName: 'Vercors',
 		Version: '1.0',
 		Email: 'w.h.m.oortwijn@utwente.nl',
 		SupportEmail: 'w.h.m.oortwijn@utwente.nl',
@@ -52,21 +52,33 @@ standard_metadata = function (req) {
 
 // creates a 'servicetoolrequest' JSON object for the provided example file
 load_example = function (name, filepath) {
-	var fullpath = path.join(__dirname, '../examples/', filepath);
+	var fullpath = path.join(__dirname, filepath);
 	return { Name: name, Source: fs.readFileSync(fullpath, 'utf8') };
+}
+
+// fetch the example program for the specified language (e.g. java, pvl, c) by querying the Vercors tool
+fetch_examples = function (lang) {
+	var output = syncexec(path.join(__dirname, '../unix/bin/vct --test=../examples --tool=silicon --lang=' + lang + ' --rise4fun-json --include-suite=rise4fun'));
+	return JSON.parse(output.stdout);
+}
+
+// adds the given list of examples to the given metadata object
+populate_examples = function(metadata, samples) {
+	metadata.Samples = [];
+	for (var i = 0; i < samples.length; i++) {
+		metadata.Samples.push(load_example(samples[i].name, samples[i].path));
+	}
 }
 
 app.get('/java/metadata', function (req, res) {
 	// configure metadata
 	var metadata = standard_metadata(req);
-	metadata.DisplayName = "VerCors-Java";
+	metadata.DisplayName = "Vercors-Java";
 	metadata.Question = "Is this Java program functionally correct?";
 	metadata.SupportsLanguageSyntax = true;
 
-	// populate with sample programs
-	metadata.Samples = [
-		load_example("BasicAssert.java", "basic/BasicAssert.java")
-	];
+	// fetch examples from Vercors
+	populate_examples(metadata, fetch_examples('java').examples);
 	
 	// render metadata as JSON
 	res.json(metadata);
@@ -75,15 +87,13 @@ app.get('/java/metadata', function (req, res) {
 app.get('/pvl/metadata', function (req, res) {
 	// configure metadata
 	var metadata = standard_metadata(req);
-	metadata.DisplayName = "VerCors-PVL";
+	metadata.DisplayName = "Vercors-PVL";
 	metadata.Question = "Is this PVL program functionally correct?";
 	metadata.SupportsLanguageSyntax = true;
 
-	// populate with sample programs
-	metadata.Samples = [
-		load_example("addvec2.pvl", "openmp/addvec2.pvl")
-	];
-	
+	// fetch examples from Vercors
+	populate_examples(metadata, fetch_examples('pvl').examples);
+
 	// render metadata as JSON
 	res.json(metadata);
 });
@@ -91,14 +101,12 @@ app.get('/pvl/metadata', function (req, res) {
 app.get('/c/metadata', function (req, res) {
 	// configure metadata
 	var metadata = standard_metadata(req);
-	metadata.DisplayName = "VerCors-C";
+	metadata.DisplayName = "Vercors-C";
 	metadata.Question = "Is this C program functionally correct?";
 	metadata.SupportsLanguageSyntax = false;
 
-	// populate with sample programs
-	metadata.Samples = [
-		load_example("zero-spec.c", "openmp/zero-spec.c")
-	];
+	// fetch examples from Vercors
+	populate_examples(metadata, fetch_examples('c').examples);
 	
 	// render metadata as JSON
 	res.json(metadata);
@@ -118,7 +126,7 @@ handle_run_vercors = function (req, res, options) {
 		return;
 	}
 
-	// create a temporary file for the received (java) program
+	// create a temporary file for the received program
 	temp.open({ prefix: 'vercors-rise4fun', suffix: options.suffix }, function (err, info) {
 		if (err) {
 			res.status(400).send('Error: could not create a temporary file');

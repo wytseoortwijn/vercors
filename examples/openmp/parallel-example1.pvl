@@ -1,6 +1,7 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 //:: case ParallelPVLExample1
 //:: tools silicon
+//:: suite rise4fun
 
 /*
  * Testing the PVL parallel loop construct.
