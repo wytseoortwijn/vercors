@@ -1,10 +1,11 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
-//:: cases BarrierWithAtomic-1
+//:: cases BarrierWithAtomic
 //:: tools silicon
+
 class Ref {
   int x;
   
-  invariant ar != null ** N>0;
+  invariant ar != null && N>0;
   context Perm(x,1);
   context (\forall* int i;0 <= i && i < N ; Perm(ar[i],write));
   ensures (\forall int i;0 <= i && i < N ; ar[i]==0);
