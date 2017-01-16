@@ -9,8 +9,8 @@ var app = express();
 // automatically track and cleanup temporary files
 temp.track();
 
-// Rise4fun claims to encode their content using GZIP, but it appears that the content is not encoded at all!
-// to prevent the bodyparser to automatically decode the apparently non-encoded contents, we remove the encoding entry from the header.
+// Rise4fun indicates that their requests are GZIP encoded, but they are not actually encoded.
+// To prevent the bodyparser to automatically decode the non-encoded requests, we remove the encoding entry from the header.
 app.use(function (req, res, next) {
 	delete req.headers["content-encoding"];
 	next();
@@ -178,5 +178,5 @@ app.get('/pvl/language', function (req, res) {
 });
 
 app.listen(8080, function () {
-  console.log('vercors-rise4fun interface active and listening on port 8080')
+	console.log('vercors-rise4fun interface active and listening on port 8080')
 });
