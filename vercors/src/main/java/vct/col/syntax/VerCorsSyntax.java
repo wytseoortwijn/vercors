@@ -98,10 +98,13 @@ public class VerCorsSyntax {
     syntax.addFunction(StandardOperator.ValidArray,"\\array");
     syntax.addFunction(StandardOperator.ValidMatrix,"\\matrix");
     
-    //syntax.addFunction(StandardOperator.FoldPlus, "\\sum");
-    syntax.addFunction(StandardOperator.FoldPlusRange, "\\sum");
-    syntax.addFunction(StandardOperator.CountRange, "\\count");
-
+    syntax.addFunction(StandardOperator.FoldPlus, "\\sum");
+    syntax.addFunction(StandardOperator.VectorRepeat, "\\vrep");
+    syntax.addFunction(StandardOperator.VectorCompare, "\\vcmp");
+    
+    syntax.addFunction(StandardOperator.MatrixSum, "\\msum");
+    syntax.addFunction(StandardOperator.MatrixRepeat, "\\mrep");
+    syntax.addFunction(StandardOperator.MatrixCompare, "\\mcmp");
   }
 
 }

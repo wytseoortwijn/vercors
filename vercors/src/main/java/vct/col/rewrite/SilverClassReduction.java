@@ -25,6 +25,107 @@ import vct.util.Configuration;
  */
 public class SilverClassReduction extends AbstractRewriter {
 
+  private ASTMapping<ASTNode> seq=new UndefinedMapping<ASTNode>(){
+
+    @Override
+    public ASTNode post_map(ASTNode n, ASTNode res) {
+      if (res==null) {
+        Type t=n.getType();
+        if (t.isPrimitive(Sort.Sequence)){
+          t=VectorExpression(rewrite((Type)((PrimitiveType)t).getArg(0)));
+          return create.invokation(t,null,"vseq", rewrite(n));
+        }
+        Fail("cannot map vector expression %s",n);
+        return null;
+      } else {
+        return res;
+      }
+    }
+
+    @Override
+    public ASTNode map(OperatorExpression e) {
+      switch(e.operator()){
+      case VectorRepeat:{
+        floats=true;
+        Type t=VectorExpression(rewrite(e.arg(0).getType()));
+        return create.invokation(t,null,"vrep",rewrite(e.arg(0)));
+      }
+      case VectorCompare:{
+        floats=true;
+        Type t=VectorExpression(rewrite((Type)((PrimitiveType)e.getType()).getArg(0)));
+        return create.invokation(t,null,"vcmp",e.arg(0).apply(this),e.arg(1).apply(this));
+      }
+      default:
+        return null;
+      }
+    }
+  };
+  private ASTMapping<ASTNode> mat=new UndefinedMapping<ASTNode>(){
+
+    @Override
+    public ASTNode post_map(ASTNode n, ASTNode res) {
+      if (res==null) {
+        Type t=n.getType();
+        if (t.isPrimitive(Sort.Sequence)){
+          t=(Type)((PrimitiveType)t).getArg(0);
+          t=MatrixExpression(rewrite((Type)((PrimitiveType)t).getArg(0)));
+          return create.invokation(t,null,"mseq", rewrite(n));
+        }
+        Fail("cannot map vector expression %s",n);
+        return null;
+      } else {
+        return res;
+      }
+    }
+
+    @Override
+    public ASTNode map(OperatorExpression e) {
+      switch(e.operator()){
+      case MatrixRepeat:{
+        floats=true;
+        Type t=MatrixExpression(rewrite(e.arg(0).getType()));
+        return create.invokation(t,null,"mrep",rewrite(e.arg(0)));
+      }
+      case MatrixCompare:{
+        floats=true;
+        Type t=(Type)((PrimitiveType)e.getType()).getArg(0);
+        t=MatrixExpression(rewrite((Type)((PrimitiveType)t).getArg(0)));
+        return create.invokation(t,null,"mcmp",e.arg(0).apply(this),e.arg(1).apply(this));
+      }
+      default:
+        return null;
+      }
+    }
+  };
+  
+  private AbstractRewriter index=new AbstractRewriter(source()){
+    @Override
+    public void visit(OperatorExpression e){
+      switch(e.operator()){
+      case RangeSeq:
+        result=create.domain_call("VectorIndex","vrange",e.args());
+        break;
+      default:
+        result=e;
+        break;
+      }
+    }
+  };
+  
+  private AbstractRewriter mindex=new AbstractRewriter(source()){
+    @Override
+    public void visit(OperatorExpression e){
+      switch(e.operator()){
+      case Mult:
+        result=create.domain_call("MatrixIndex","product",index.rewrite(e.args()));
+        break;
+      default:
+        result=e;
+        break;
+      }
+    }
+  };
+  
   private static final String SEP="__";
       
   private static final String ILLEGAL_CAST="possibly_illegal_cast";
@@ -145,25 +246,71 @@ public class SilverClassReduction extends AbstractRewriter {
     }
   }
   
+  private Type VectorExpression(Type t){
+    ASTNode args[]=new ASTNode[]{t};
+    args[0].addLabel(create.label("T"));
+    t=create.class_type("VectorExpression",args);
+    return t;
+  }
+  
+  private Type MatrixExpression(Type t){
+    ASTNode args[]=new ASTNode[]{t};
+    args[0].addLabel(create.label("T"));
+    t=create.class_type("MatrixExpression",args);
+    return t;
+  }
+  
   @Override
   public void visit(OperatorExpression e){
     switch(e.operator()){
-    case CountRange:{
+    case VectorRepeat:{
       floats=true;
-      result=create.domain_call("VCTFloat", "fcountrange", rewrite(e.args()));
+      Type t=VectorExpression(rewrite(e.getType()));
+      result=create.invokation(t,null,"vrep",rewrite(e.args()));
       break;
     }
-    case FoldPlus:{
-      if (e.getType().isPrimitive(Sort.Float)){
-        result=create.domain_call("VCTFloat", "fsum", rewrite(e.args()));
+    case VectorCompare:{
+      floats=true;
+      Type t=VectorExpression(rewrite((Type)((PrimitiveType)e.getType()).getArg(0)));
+      result=create.invokation(t,null,"vcmp",rewrite(e.args()));
+      break;
+    }
+    case MatrixRepeat:{
+      floats=true;
+      Type t=MatrixExpression(rewrite(e.getType()));
+      result=create.invokation(t,null,"mrep",rewrite(e.args()));
+      break;
+    }
+    case MatrixCompare:{
+      floats=true;
+      Type t=(Type)((PrimitiveType)e.getType()).getArg(0);
+      t=VectorExpression(rewrite((Type)((PrimitiveType)t).getArg(0)));
+      result=create.invokation(t,null,"mcmp",rewrite(e.args()));
+      break;
+    }
+    case MatrixSum:{
+      floats=true;
+      if (e.getType().isNumeric()){
+        Type t=rewrite(e.getType());
+        t=MatrixExpression(t);
+        result=create.invokation(t,null,"msum",
+            mindex.rewrite(rewrite(e.arg(0))),e.arg(1).apply(mat));
       } else {
         Fail("cannot do a summation of type %s",e.getType()); 
       }
       break;      
+     
     }
-    case FoldPlusRange:{
-      if (e.getType().isPrimitive(Sort.Float)){
-        result=create.domain_call("VCTFloat", "fsumrange", rewrite(e.args()));
+    case FoldPlus:{
+      floats=true;
+      if (e.getType().isNumeric()){
+        Type t=rewrite(e.getType());
+        ASTNode args[]=new ASTNode[]{t};
+        args[0].addLabel(create.label("T"));
+        t=create.class_type("VectorExpression",args);
+        
+        result=create.invokation(t,null,"vsum",
+            index.rewrite(rewrite(e.arg(0))),e.arg(1).apply(seq));
       } else {
         Fail("cannot do a summation of type %s",e.getType()); 
       }
@@ -298,6 +445,10 @@ public class SilverClassReduction extends AbstractRewriter {
           case "VCTOption":
             if (options) res.add(n);
             break;
+          case "MatrixIndex":
+          case "MatrixExpression":
+          case "VectorIndex":
+          case "VectorExpression":
           case "VCTFloat":
             if (floats) res.add(n);
             break;

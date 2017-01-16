@@ -280,13 +280,28 @@ public enum StandardOperator {
   /**
    * Summation over a sequence.
    */
-  FoldPlus(1),
-  FoldPlusRange(3),
+  FoldPlus(2),
   /**
-   * Count the positives in a sequence.
+   * Vector Repeat.
    */
-  Count(1),
-  CountRange(3)
+  VectorRepeat(1),
+  /**
+   * Pointwise Comparison of Vectors.
+   * The result is a vector of integers, where true==1 and false==0.
+   */
+  VectorCompare(2),
+  /**
+   * sum over matrix
+   */
+  MatrixSum(2),
+  /**
+   * constant matrix
+   */
+  MatrixRepeat(1),
+  /**
+   * compare matrices pointwise
+   */
+  MatrixCompare(2)
   ;
 
   private final int arity;
