@@ -1,11 +1,13 @@
 {
   "name": "rise4fun",
   "version": "1.0.0",
-  "description": "test",
-  "main": "index.js",
+  "description": "A simple web server that provides a Rise4fun interface for the Vercors verification toolset.",
+  "main": "server.js",
   "dependencies": {
+		"body-parser": "~1.15.2",
     "express": "^4.14.0",
-    "body-parser": "~1.15.2"
+		"sync-exec": "~0.6.2",
+		"temp": "~0.8.3"
   },
   "devDependencies": {},
   "scripts": {
@@ -15,6 +17,8 @@
   "license": "ISC",
   "keywords": [
     "vercors",
-    "rise4fun"
+    "rise4fun",
+		"webservice",
+		"verification"
   ]
 }
