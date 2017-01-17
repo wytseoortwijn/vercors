@@ -1,6 +1,6 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 //:: case ParallelVectorAdd2
-//:: suite puptol
+//:: suite puptol rise4fun
 //:: tools silicon
 /*
  * Handwritten translation of the for simd loop.
