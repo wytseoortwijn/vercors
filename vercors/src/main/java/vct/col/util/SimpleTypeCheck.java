@@ -1359,15 +1359,15 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
 
   @Override
   public void visit(VectorBlock pb){
-    if (!pb.iter.getType().isPrimitive(Sort.Integer)){
+    if (!pb.iter().getType().isPrimitive(Sort.Integer)) {
       Fail("type of iteration variable must be integer");
     }
-    ASTNode init=pb.iter.getInit();
+    ASTNode init = pb.iter().getInit();
     if (!init.isa(StandardOperator.RangeSeq)){
       Fail("value for iteration variable must be a range");
     }
     init.apply(this);
-    pb.block.apply(this);
+    pb.block().apply(this);
   }
   
 

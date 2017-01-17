@@ -354,8 +354,8 @@ public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
 
   @Override
   public void visit(VectorBlock v) {
-    dispatch(v.iter);
-    dispatch(v.block);
+    dispatch(v.iter());
+    dispatch(v.block());
   }
 
   @Override

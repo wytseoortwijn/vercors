@@ -121,13 +121,13 @@ public class VectorEncode extends AbstractRewriter {
 
   @Override
   public void visit(VectorBlock v){
-    OperatorExpression init=(OperatorExpression)v.iter.getInit();
+    OperatorExpression init = (OperatorExpression)v.iter().getInit();
     ASTNode from=rewrite(init.arg(0));
     ASTNode upto=rewrite(init.arg(1));
-    ivar = v.iter.getName();
+    ivar = v.iter().getName();
     BlockStatement res=create.block();
     locals = new HashSet<String>();
-    for(ASTNode S:v.block){
+    for(ASTNode S:v.block()){
       // Turn locally declared variables into arrays.
       if (S instanceof DeclarationStatement){
         DeclarationStatement D=(DeclarationStatement)S;

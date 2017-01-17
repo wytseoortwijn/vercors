@@ -783,7 +783,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   
   @Override
   public void visit(VectorBlock v){
-    result=create.vector_block(rewrite(v.iter),rewrite(v.block));
+    result = create.vector_block(rewrite(v.iter()), rewrite(v.block()));
   }
   
   @Override
