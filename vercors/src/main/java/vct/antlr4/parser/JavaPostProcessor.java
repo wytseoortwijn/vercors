@@ -70,6 +70,9 @@ public class JavaPostProcessor extends AbstractRewriter {
       case "bag":
         result=create.primitive_type(PrimitiveType.Sort.Bag,rewrite(t.getArgs()));
         return;
+      case "process":
+        result=create.primitive_type(PrimitiveType.Sort.Process);
+        return;
       default:
         super.visit(t);
         return;
