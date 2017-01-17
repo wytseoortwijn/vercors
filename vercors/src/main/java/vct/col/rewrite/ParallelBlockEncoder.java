@@ -1001,7 +1001,7 @@ public class ParallelBlockEncoder extends AbstractRewriter {
     int N=s.getCount();
     for(int i=0;i<N;i++){
       ASTNode guard=s.getGuard(i);
-      if (guard!=IfStatement.else_guard) guard=guard.apply(this);
+      if (guard!=IfStatement.elseGuard()) guard=guard.apply(this);
       Debug("pushing guard");
       guard_stack.push(guard);
       ASTNode body=s.getStatement(i);

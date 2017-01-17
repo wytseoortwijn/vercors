@@ -144,8 +144,8 @@ public class VectorEncode extends AbstractRewriter {
       // Process assignments.
       if (S instanceof AssignmentStatement){
         AssignmentStatement A=(AssignmentStatement)S;
-        ASTNode loc=A.getLocation();
-        ASTNode expr=A.getExpression();
+        ASTNode loc = A.location();
+        ASTNode expr = A.expression();
 
         // check types.
         Type t1=detect(loc.getType());

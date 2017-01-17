@@ -389,7 +389,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
     int N=s.getCount();
     for(int i=0;i<N;i++){
       ASTNode guard=s.getGuard(i);
-      if (guard!=IfStatement.else_guard) guard=guard.apply(this);
+      if (guard!=IfStatement.elseGuard()) guard=guard.apply(this);
       ASTNode body=s.getStatement(i);
       body=body.apply(this);
       res.addClause(guard,body);
@@ -751,7 +751,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   
   @Override
   public void visit(TypeVariable t){
-    result=create.type_variable(t.name);
+    result=create.type_variable(t.name());
   }
   
   @Override

@@ -172,8 +172,8 @@ public class ChalicePreProcess extends AbstractRewriter {
         rnd.setDefinition(if_any_method);
         currentBlock.add(rnd);
         guard=name;
-      } else if (s.getGuard(i)==IfStatement.else_guard) {
-        guard=IfStatement.else_guard;
+      } else if (s.getGuard(i)==IfStatement.elseGuard()) {
+        guard=IfStatement.elseGuard();
       } else {
         guard=rewrite(s.getGuard(i));
       }

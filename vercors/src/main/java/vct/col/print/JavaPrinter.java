@@ -32,7 +32,7 @@ public class JavaPrinter extends AbstractPrinter {
   }
 
   public void visit(TypeVariable v){
-    out.print(v.name);
+    out.print(v.name());
   }
   
   public void pre_visit(ASTNode node){
@@ -855,7 +855,7 @@ public class JavaPrinter extends AbstractPrinter {
         if (self_terminating(s.getStatement(i-1))){
           out.printf(" ");
         }
-        if (i==N-1 && s.getGuard(i)==IfStatement.else_guard){
+        if (i==N-1 && s.getGuard(i)==IfStatement.elseGuard()){
           out.printf("else ");
         } else {
           out.printf(" else if (");
@@ -881,9 +881,9 @@ public class JavaPrinter extends AbstractPrinter {
 
   public void visit(AssignmentStatement s){
     setExpr();
-    s.getLocation().accept(this);
+    s.location().accept(this);
     out.printf("=");
-    s.getExpression().accept(this);
+    s.expression().accept(this);
   }
 
   public void visit(ReturnStatement s){

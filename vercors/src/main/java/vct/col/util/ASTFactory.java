@@ -582,7 +582,7 @@ public BlockStatement block(Origin origin, ASTNode ... args) {
     if (branches.length<1 || branches.length>2 ) Abort("illegal number of branches");
     IfStatement res=new IfStatement();
     res.addClause(test,branches[0]);
-    if (branches.length==2 && branches[1]!=null) res.addClause(IfStatement.else_guard,branches[1]);
+    if (branches.length==2 && branches[1]!=null) res.addClause(IfStatement.elseGuard(), branches[1]);
     res.setOrigin(origin_stack.get());
     res.accept_if(post);
     return res;    

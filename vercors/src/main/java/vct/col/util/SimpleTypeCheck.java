@@ -276,15 +276,15 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     }
   }
   public void visit(AssignmentStatement s){
-    ASTNode val=s.getExpression();
+    ASTNode val=s.expression();
     val.accept(this);
     Type val_type=val.getType();
     if (val_type==null) Abort("Value %s has no type.",val);
     if (val_type.toString().equals("<<label>>")) {
       return;
     }
-    s.getLocation().accept(this);
-    check_loc_val(s.getLocation().getType(),s.getExpression());
+    s.location().accept(this);
+    check_loc_val(s.location().getType(),s.expression());
   }
   
   public void visit(DeclarationStatement s){
