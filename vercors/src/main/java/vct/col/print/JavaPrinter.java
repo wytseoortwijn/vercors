@@ -147,14 +147,14 @@ public class JavaPrinter extends AbstractPrinter {
   public void visit(AxiomaticDataType adt){
     out.printf("ADT %s [",adt.name);
     String sep="";
-    for(DeclarationStatement d:adt.getParameters()){
+    for (DeclarationStatement d : adt.parameters()) {
       out.printf("%s%s",sep,d.name);
       sep=", ";
     }
     out.println("] {");
     out.incrIndent();
     out.println("//constructors");
-    for(Method f:adt.constructors()){
+    for (Method f : adt.constructors()) {
       f.accept(this);
     }
     out.println("//mappings");
