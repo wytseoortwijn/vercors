@@ -23,6 +23,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import puptol.PuptolConfig;
+import rise4fun.Rise4funConfig;
+import hre.config.BooleanSetting;
 import hre.config.IntegerSetting;
 import hre.config.Option;
 import hre.config.OptionParser;
@@ -115,10 +117,19 @@ public class CommandLineTesting {
         System.exit(1);
       }
     }
+    
+    // if enabled, construct new puptol configuration
     PuptolConfig puptol_config=null;
-    if (puptol_file.used()){
-      puptol_config=new PuptolConfig();
+	if (puptol_file.used()){
+    	puptol_config=new PuptolConfig();
     }
+    
+    // if enabled, construct new rise4fun configuration
+    Rise4funConfig rise4fun_config = null;
+    if (rise4fun.get()) {
+    	rise4fun_config = new Rise4funConfig();
+    }
+ 
     HashMap<String,Integer> times=new HashMap<String, Integer>();
     int successes=0;
     HashMap<String,Testcase> untested=new HashMap<String,Testcase>();
@@ -171,6 +182,25 @@ public class CommandLineTesting {
           // skip tests for back ends that are not selected.
           continue;
         }
+        
+        if (rise4fun.get()) {
+        	// for now we only support single-file example programs 
+        	if (test.files.size() != 1) {
+        		System.err.printf("cannot configure %s/%s in rise4fun: too many files%n", name, tool);
+        		continue;
+        	}
+        	
+        	// retrieve example file name
+        	Path file = null;
+        	for (Path f : test.files) file = f;
+        	
+        	// add example to the rise4fun suite
+        	rise4fun_config.addExample(name, file.toString());
+        	
+        	// skip the actual test execution
+        	continue;
+        }
+        
         if (puptol_file.used()){
           if (test.files.size()!=1){
             System.err.printf("cannot configure %s/%s in puptol: too many files%n",
@@ -235,6 +265,12 @@ public class CommandLineTesting {
         submitted++;
       }
     }
+    
+    // if rise4fun configuration is enabled, write the config data as JSON to stdout
+    if (rise4fun.get()) {
+    	System.out.printf("%s%n", rise4fun_config.toJson());
+    }
+    
     for(;submitted>0;submitted--){
       try {
         Future<TestResult> c=ecs.take();
@@ -387,8 +423,8 @@ public class CommandLineTesting {
   private static Option puptolupdate=
       puptol_file.getAssign("update experiments in puptol file");
   
-  
-  
+  public static BooleanSetting rise4fun = new BooleanSetting(false);
+  private static Option rise4fun_option = rise4fun.getEnable("yield rise4fun experiments as JSON");
   
   public static void add_options(OptionParser clops) {
     append_option=selftest.getAppendOption("execute test suites from the command line. "+
@@ -401,6 +437,7 @@ public class CommandLineTesting {
     clops.add(exclude_option=excludes.getAppendOption("exclude test suites"),"exclude-suite");
     clops.add(commandlines,"commands");
     clops.add(puptolupdate,"puptol-config");
+    clops.add(rise4fun_option,"rise4fun-json");
     clops.add(workers.getAssign("set the number of parallel tests"),"test-workers");
   }
 

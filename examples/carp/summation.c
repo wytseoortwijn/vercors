@@ -1,30 +1,26 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
-//:: cases Summation
+//:: cases SummationReduction
+//:: suite puptol
 //:: tools silicon
 //:: verdict Pass
 
-int res;
+float res;
 
 /*@
+  given seq<float> as;
   invariant ar!=NULL;
-  requires N>0;
-  requires Perm(res,write);
-  requires (\forall* int k ; 0 <= k && k < N ; Perm(ar[k],1/2));
-  ensures  N>0;
-  ensures  Perm(res,write);
-  ensures  (\forall* int k ; 0 <= k && k < N ; Perm(ar[k],1/2));
-  ensures  (\forall int k ; 0 <= k && k < N ; ar[k]==\old(ar[k]));
-  ensures  res==(\sum int k ; 0 <= k && k < N ; ar[k] );
+  invariant N>0;
+  context Perm(res,write);
+  context (\forall* int k ; 0 <= k && k < N ; PointsTo(ar[k],1/2,as[k]));
+  ensures  res==(\sum int k ; 0 <= k && k < N ; as[k] );
 @*/
-void do_sum(int N,int ar[N]){
-  res=0;
+void do_sum(int N,float ar[N]){
+  res=(float)0;
   for(int i=0;i<N;i++)
     /*@
-      loop_invariant N>0;
       requires Reducible(res,+);
-      requires Perm(ar[i],1/4);
-      ensures  Perm(ar[i],1/4);
-      ensures  Contribution(res,ar[i]);
+      context  PointsTo(ar[i],1/4,as[i]);
+      ensures  Contribution(res,as[i]);
     */
   {
     res+=ar[i];

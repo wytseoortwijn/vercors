@@ -18,7 +18,7 @@ import viper.api.Triple;
 import hre.ast.Origin;
 import hre.util.FrameControl;
 import hre.util.FrameReference;
-import scala.collection.JavaConverters;
+
 import static hre.lang.System.*;
 import static vct.col.ast.ASTReserved.Null;
 

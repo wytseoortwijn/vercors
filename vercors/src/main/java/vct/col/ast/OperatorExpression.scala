@@ -47,7 +47,7 @@ class OperatorExpression private[this] (val operator:StandardOperator, private[t
   
   private[this] def match_compare(a:Array[ASTNode], b:Array[ASTNode]) : Boolean = {
     if (a.isEmpty || b.isEmpty) true
-    if (a.head.`match`(b.head)) match_compare(a.tail, b.tail)
+    else if (a.head.`match`(b.head)) match_compare(a.tail, b.tail)
     else false
   }
   
