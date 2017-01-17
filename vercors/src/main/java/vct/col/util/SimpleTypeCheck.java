@@ -975,11 +975,10 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     case Mult:
     {
       // handle cartesian product meaning of *
-      if (t1.isPrimitive(Sort.Sequence) && ((Type)t1.getArg(0)).isPrimitive(Sort.Integer)){
-        if (!t1.comparableWith(source(),t2)) {
-          Fail("Types of left and right-hand side argument are uncomparable: %s/%s",t1,t2);
-        }
-        e.setType(new PrimitiveType(Sort.Sequence,t1));
+      if (t1.isPrimitive(Sort.Sequence) && t2.isPrimitive(Sort.Sequence)){
+        t1=(Type)((PrimitiveType)t1).getArg(0);
+        t2=(Type)((PrimitiveType)t2).getArg(0);
+        e.setType(new PrimitiveType(Sort.Sequence,new TupleType(t1,t2)));
         break;
       }
       // handle intersection meaning of *

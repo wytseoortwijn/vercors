@@ -78,8 +78,7 @@ domain VectorExpression[T] {
   
   axiom vcmp_get {
     forall i:Int, xs : VectorExpression[T], ys : VectorExpression[T] ::
-      { vget(vcmp(xs,ys),i) }
-      vget(vcmp(xs,ys),i) == ((vget(xs,i)==vget(ys,i))?1:0)
+      { vget(vcmp(xs,ys),i) } vget(vcmp(xs,ys),i) == ((vget(xs,i)==vget(ys,i))?1:0)
   }
   
   axiom add_float {
@@ -97,74 +96,27 @@ domain VectorExpression[T] {
   }
    
   axiom extend_vsum_r {
-      forall xs : VectorExpression[T], i:Int, j:Int ::
-        { vsum(vrange(i,j),xs) }
-        vsum(vrange(i,j+1),xs) == vadd(vsum(vrange(i,j),xs),vget(xs,j))
+    forall xs : VectorExpression[T], i:Int, j:Int ::
+      { vsum(vrange(i,j),xs) } vsum(vrange(i,j+1),xs) == vadd(vsum(vrange(i,j),xs),vget(xs,j))
   }
 }
 
 domain VCTFloat {
-    function zero() : VCTFloat
-    function ffromint(i:Int) : VCTFloat
-    function float(ref:Ref): VCTFloat
-    function fsum(is:VectorIndex,xs: VectorExpression[VCTFloat]): VCTFloat
-    function fadd(f1 : VCTFloat,f2:VCTFloat):VCTFloat
+  function zero() : VCTFloat
+  function ffromint(i:Int) : VCTFloat
+  function fadd(f1 : VCTFloat,f2:VCTFloat):VCTFloat
     
+  axiom commutative_add {
+    forall f1 : VCTFloat, f2 : VCTFloat :: fadd(f1,f2)==fadd(f2,f1)
+  }
     
-    axiom commutative_add {
-        forall f1 : VCTFloat, f2 : VCTFloat :: fadd(f1,f2)==fadd(f2,f1)
-    }
+  axiom zero_int {
+    ffromint(0)==zero()
+  }
     
-    axiom zero_sum_r {
-        forall xs : VectorExpression[VCTFloat], i:Int :: fsum(vrange(i,i),xs) == zero()
-    }
-
-    axiom zero_int {
-        ffromint(0)==zero()
-    }
+  axiom zero_add {
+    forall f1 : VCTFloat :: fadd(f1,zero()) == f1
+  }
     
-    axiom zero_add {
-      forall f1 : VCTFloat :: fadd(f1,zero()) == f1
-    }
-    
-    axiom extend_sum_r {
-      forall xs : Seq[VCTFloat], i:Int, j:Int ::
-        fsum(vrange(i,j+1),vseq(xs)) == fadd(fsum(vrange(i,j),vseq(xs)),xs[j])
-    }
-
-/*
-    axiom zero_sum {
-        fsum(Seq[VCTFloat]())==zero()
-    }
-
-    axiom zero_sum_r {
-        forall xs : Seq[VCTFloat], i:Int :: fsumrange(xs,i,i) == zero()
-    }
-
-    axiom zero_int {
-        ffromint(0)==zero()
-    }
-    
-    axiom zero_add {
-      forall f1 : VCTFloat :: fadd(f1,zero()) == f1
-    }
-    
-    axiom single_sum {
-      forall xs : Seq[VCTFloat], i:Int :: (0 <= i && i < |xs|) ==> (fsum(xs[i..i+1]) == xs[i])
-    }
-    
-    axiom single_sum_2 {
-      forall f : VCTFloat :: fsum(Seq(f)) == f
-    }
-    
-    axiom append_sum {
-      forall xs : Seq[VCTFloat], ys : Seq[VCTFloat] :: fsum(xs++ys) == fadd(fsum(xs),fsum(ys))
-    }
-    
-    axiom extend_sum_r {
-      forall xs : Seq[VCTFloat], i:Int, j:Int ::
-        fsumrange(xs,i,j+1) == fadd(fsumrange(xs,i,j),xs[j])
-    }
-    */
 }
 
