@@ -543,14 +543,57 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     
     
     switch(op){
-    case FoldPlus:{
+    case VectorRepeat:
+    {
       Type t=e.arg(0).getType();
+      e.setType(new PrimitiveType(Sort.Sequence,t));
+      break;
+    }
+    case VectorCompare:
+    {
+      e.setType(new PrimitiveType(Sort.Sequence,new PrimitiveType(Sort.Integer)));
+      break;
+    }
+    case MatrixRepeat:
+    {
+      Type t=e.arg(0).getType();
+      e.setType(new PrimitiveType(Sort.Sequence,new PrimitiveType(Sort.Sequence,t)));
+      break;
+    }
+    case MatrixCompare:
+    {
+      e.setType(new PrimitiveType(Sort.Sequence,new PrimitiveType(Sort.Sequence,new PrimitiveType(Sort.Integer))));
+      break;
+    }
+    case MatrixSum:{
+      Type t=e.arg(1).getType();
+      t = (Type)((PrimitiveType) t).getArg(0);
+      t = (Type)((PrimitiveType) t).getArg(0);
+      e.setType(t);
+      break;
+    }
+    case FoldPlus:
+    {
+      Type t=e.arg(0).getType();
+      if (t.isPrimitive(Sort.Sequence)){
+        t = (Type)((PrimitiveType) t).getArg(0);
+        if (!t.isPrimitive(Sort.Integer)){
+          Fail("first argument of summation must be a sequence of integers");
+        }
+      } else {
+        Fail("first argument of summation must be a sequence");
+      }      
+      t=e.arg(1).getType();
       if (t.isPrimitive(Sort.Sequence)){
         t = (Type)((PrimitiveType) t).getArg(0);
       } else {
         Fail("argument of summation must be a sequence");
       }
-      e.setType(t);
+      if(t.isPrimitive(Sort.Boolean)){
+        e.setType(new PrimitiveType(Sort.Integer));
+      } else {
+        e.setType(t);
+      }
       break;
     }
     case IndependentOf:
@@ -931,7 +974,14 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     }
     case Mult:
     {
-      // handle intersection meaning of -
+      // handle cartesian product meaning of *
+      if (t1.isPrimitive(Sort.Sequence) && t2.isPrimitive(Sort.Sequence)){
+        t1=(Type)((PrimitiveType)t1).getArg(0);
+        t2=(Type)((PrimitiveType)t2).getArg(0);
+        e.setType(new PrimitiveType(Sort.Sequence,new TupleType(t1,t2)));
+        break;
+      }
+      // handle intersection meaning of *
       if (t1.isPrimitive(Sort.Set)||t1.isPrimitive(Sort.Bag)){
         if (!t1.comparableWith(source(),t2)) {
           Fail("Types of left and right-hand side argument are uncomparable: %s/%s",t1,t2);

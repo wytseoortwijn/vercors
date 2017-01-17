@@ -515,7 +515,7 @@ public class CMLtoCOL extends ANTLRtoCOL implements CMLVisitor<ASTNode> {
 
   @Override
   public ASTNode visitExtraType(ExtraTypeContext ctx) {
-    return null;
+    return getValType(ctx);
   }
 
   @Override
