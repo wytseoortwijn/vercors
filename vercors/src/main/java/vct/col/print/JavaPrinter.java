@@ -12,6 +12,7 @@ import org.apache.commons.lang3.StringEscapeUtils;
 
 import vct.col.ast.*;
 import vct.col.ast.PrimitiveType.Sort;
+import vct.col.ast.Switch.Case;
 import vct.col.syntax.JavaDialect;
 import vct.col.syntax.JavaSyntax;
 import vct.col.util.ASTUtils;
@@ -959,16 +960,6 @@ public class JavaPrinter extends AbstractPrinter {
         out.print(")");
         break;
       }
-      case Continue:{
-        out.printf("continue ");
-        current_precedence=0;
-        ASTNode lbl=e.arg(0);
-        if (lbl!=null){
-          setExpr();
-          lbl.accept(this);
-        }
-        break;
-      }
       case New:{
         out.printf("new ");
         e.arg(0).accept(this);
@@ -981,6 +972,44 @@ public class JavaPrinter extends AbstractPrinter {
     }
   }
   
+  @Override
+  public void visit(TypeExpression t){
+    switch(t.op()){
+    case Extends:
+      out.printf("? extends ");
+      t.getType(0).accept(this);
+      return;
+    case Super:
+      out.printf("? super ");
+      t.getType(0).accept(this);
+      return;
+    default:
+      super.visit(t);
+    }
+  }
+  
+  @Override
+  public void visit(Switch s){
+    out.printf("switch (");
+    nextExpr();
+    s.expr.accept(this);
+    out.println("){");
+    for(Case c:s.cases){
+      for(ASTNode n:c.cases){
+        out.printf("case ");
+        nextExpr();
+        s.expr.accept(this);
+        out.println(":");
+      }
+      out.incrIndent();
+      for(ASTNode n:c.stats){
+        n.accept(this);
+        out.println("");
+      }
+      out.decrIndent();
+    }
+    out.println("}");
+  }
   
   @Override
   public void visit(StructValue v){

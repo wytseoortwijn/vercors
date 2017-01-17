@@ -151,8 +151,6 @@ public enum StandardOperator {
   Subscript(2),
   /** Evaluate argument in pre-execution(old) state. */
   Old(1),
-  /** Continue with next value in loop */
-  Continue(1),
   /** Create a new uninitialized object, note that Java Constructors are encoded as a MethodInvokation. */
   New(1),
   /** Create a new uninitialized object, Silver style. */

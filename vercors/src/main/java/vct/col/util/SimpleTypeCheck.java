@@ -1062,13 +1062,6 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       e.setType(t);      
       break;
     }
-    case Continue:
-    {
-      Type t=e.arg(0).getType();
-      if (t!=null) Fail("argument of %s should not have type %s",op,t);
-      e.setType(new PrimitiveType(Sort.Void));  
-      break;
-    }
     case New:
     {
       ASTNode t=e.arg(0);

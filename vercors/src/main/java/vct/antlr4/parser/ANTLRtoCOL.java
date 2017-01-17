@@ -19,6 +19,7 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeVisitor;
 import org.antlr.v4.runtime.tree.RuleNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
+import org.antlr.v4.runtime.tree.TerminalNodeImpl;
 
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTReserved;
@@ -496,6 +497,8 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
       Token tok=((TerminalNode)arg0).getSymbol();
       if (tok.getType()==id_token) {
         return create.unresolved_name(tok.getText());
+      } else if (syntax.is_reserved(tok.getText())){
+        return create.reserved_name(syntax.reserved(tok.getText()));
       }
     }
     return null;

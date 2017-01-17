@@ -14,6 +14,10 @@ public enum ASTReserved {
    */
   This,
   /**
+   * Get the static class.
+   */
+  GetClass,
+  /**
    * Denotes a public member of a class or module.
    */
   Public,
@@ -28,6 +32,22 @@ public enum ASTReserved {
    * the C keyword static maps to Private.
    */
   Static,
+  /**
+   * volatile member
+   */
+  Volatile,
+  /**
+   * denotes a protected class or member.
+   */
+  Protected,
+  /**
+   * denotes an abstract class
+   */
+  Abstract,
+  /**
+   * Synchronized method modifier.
+   */
+  Synchronized,
   /**
    * null value for pointers.
    */
@@ -79,6 +99,10 @@ public enum ASTReserved {
   /**
    * No value case for the option type.
    */
-  OptionNone
+  OptionNone,
+  /**
+   * The default case in a switch.
+   */
+  Default
 }
 

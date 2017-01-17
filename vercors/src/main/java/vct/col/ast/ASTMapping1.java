@@ -89,4 +89,6 @@ public interface ASTMapping1<R,A1> {
   public R map(VectorBlock vb,A1 a);
   
   public R map(Constraining c,A1 a);
+
+  public R map(Switch s,A1 a);
 }

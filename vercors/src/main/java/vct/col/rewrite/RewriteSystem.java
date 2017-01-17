@@ -364,6 +364,11 @@ class MatchLinear implements ASTMapping1<Boolean,ASTNode> {
   public Boolean map(Constraining c, ASTNode a) {
     return null;
   }
+
+  @Override
+  public Boolean map(Switch s, ASTNode a) {
+    return null;
+  }
   
 }
 

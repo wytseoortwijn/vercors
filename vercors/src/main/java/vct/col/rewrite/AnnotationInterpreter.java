@@ -49,6 +49,8 @@ public class AnnotationInterpreter extends AbstractRewriter {
       for (ASTNode a : ann){
         if (a.isReserved(null)){
           switch(((NameExpression)a).reserved()){
+          case Synchronized:
+            break;
           case Final:
             res.setFlag(ASTFlags.FINAL, true);
             break;
@@ -60,7 +62,8 @@ public class AnnotationInterpreter extends AbstractRewriter {
             break;
           case Public:
           case Private:
-            // ignore visibility
+          case Protected:
+          case Abstract:
             break;
           default:
             throw new HREError("cannot set flag for reserved annotation %s",a);

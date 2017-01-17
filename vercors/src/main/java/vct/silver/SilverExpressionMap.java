@@ -498,5 +498,10 @@ public class SilverExpressionMap<T,E> implements ASTMapping<E>{
   public E map(Constraining c) {
     return null;
   }
+
+  @Override
+  public E map(Switch s) {
+    return null;
+  }
   
 }

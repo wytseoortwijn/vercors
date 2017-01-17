@@ -11,6 +11,7 @@ import vct.col.ast.ASTClass.ClassKind;
 import vct.col.ast.ASTSpecial.Kind;
 import vct.col.ast.BindingExpression.Binder;
 import vct.col.ast.PrimitiveType.Sort;
+import vct.col.ast.Switch.Case;
 import vct.col.rewrite.AbstractRewriter;
 import vct.util.ClassName;
 import viper.api.Triple;
@@ -1315,6 +1316,13 @@ public Axiom axiom(String name,ASTNode exp){
 
   public ASTNode special(Kind kind, List<ASTNode> names){
     return special(kind,names.toArray(new ASTNode[names.size()]));
+  }
+
+  public ASTNode switch_statement(ASTNode expr, ArrayList<Case> case_list) {
+    Switch res=new Switch(expr,case_list.toArray(new Case[case_list.size()]));
+    res.setOrigin(origin_stack.get());
+    res.accept_if(post);    
+    return res;
   }
 
 }

@@ -1,5 +1,7 @@
 package vct.col.ast;
 
+import vct.col.ast.Switch.Case;
+
 public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
 
   protected boolean auto_before_after=true;
@@ -362,6 +364,15 @@ public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
   public void visit(Constraining c) {
     dispatch(c.vars());
     dispatch(c.block());
+  }
+
+  @Override
+  public void visit(Switch s) {
+    dispatch(s.expr);
+    for(Case c:s.cases){
+      for(ASTNode n:c.cases) dispatch(n);
+      for(ASTNode n:c.stats) dispatch(n);
+    }
   }
 
 }

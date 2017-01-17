@@ -93,6 +93,7 @@ valPrimary
 
 valReserved
  : 'create' | 'action' | 'destroy' | 'send' | 'recv' | 'use' | 'open' | 'close'
- | 'atomic'  | 'from' | 'split' | 'merge' | 'apply'
+ | 'atomic'  | 'from' | 'merge' | 'split' | 'process' | 'apply' | 'label'
  | '\\result' | '\\current_thread'
  ;
+

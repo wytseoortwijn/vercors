@@ -237,4 +237,9 @@ public class UndefinedMapping<T> implements ASTMapping<T> {
     return null;
   }
 
+  @Override
+  public T map(Switch s) {
+    return null;
+  }
+
 }
