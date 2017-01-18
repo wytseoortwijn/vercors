@@ -4,6 +4,7 @@
 //:: option --check-history
 
 
+// begin(future)
 class Future {
   int x;
   
@@ -11,7 +12,7 @@ class Future {
   ensures x==\old(x)+1;
   process step();
 }
-
+//end(future)
 
 class Test {
 
@@ -38,6 +39,7 @@ class Test {
     destroy f;
   }
 
+// begin(main)
   static void main(){
     Future f=new Future();
     f.x=1;
@@ -50,7 +52,8 @@ class Test {
     assert f.x==2;
     refute false;
   }
-  
+// end(main)
+
   static void main2(){
     Future f=new Future();
     f.x=1;

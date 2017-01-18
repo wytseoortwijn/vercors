@@ -19,6 +19,7 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeVisitor;
 import org.antlr.v4.runtime.tree.RuleNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
+import org.antlr.v4.runtime.tree.TerminalNodeImpl;
 
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTReserved;
@@ -32,6 +33,7 @@ import vct.col.ast.ContractBuilder;
 import vct.col.ast.DeclarationStatement;
 import vct.col.ast.NameExpression;
 import vct.col.ast.PrimitiveType;
+import vct.col.ast.PrimitiveType.Sort;
 import vct.col.ast.StandardOperator;
 import vct.col.ast.Type;
 import vct.col.ast.VariableDeclaration;
@@ -495,6 +497,8 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
       Token tok=((TerminalNode)arg0).getSymbol();
       if (tok.getType()==id_token) {
         return create.unresolved_name(tok.getText());
+      } else if (syntax.is_reserved(tok.getText())){
+        return create.reserved_name(syntax.reserved(tok.getText()));
       }
     }
     return null;
@@ -929,6 +933,18 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
     throw new HREError("found %s instead of block",convert.getClass());
   }
 
+  public Type getValType(ParserRuleContext ctx){
+    if (match(ctx,"Identifier","TypeArgs")){
+      String id=getIdentifier(ctx,0);
+      ASTNode args[]=convert_list(ctx.getChild(1),"<",",",">");
+      switch(id){
+        case "seq": return create.primitive_type(Sort.Sequence, args);
+        default: break;
+      }
+    }
+    System.err.printf("NO MATCH%n%s%n",ctx.toStringTree(parser));
+    return null;
+  }
 
   public ASTNode getValPrimary(ParserRuleContext ctx){
     int N=ctx.getChildCount();

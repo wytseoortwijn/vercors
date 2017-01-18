@@ -82,12 +82,18 @@ valPrimary
     | '\\typeof' '(' expression ')'
     | '\\matrix' '(' expression ',' expression ',' expression ')'
     | '\\array'  '(' expression ',' expression ')'
-    | '\\sum' '(' expression ')'
+    | '\\sum' '(' expression ',' expression ')'
+    | '\\vcmp' '(' expression ',' expression ')'
+    | '\\vrep' '(' expression ')'
+    | '\\msum' '(' expression ',' expression ')'
+    | '\\mcmp' '(' expression ',' expression ')'
+    | '\\mrep' '(' expression ')'
     | 'Reducible' '(' expression ',' ('+' | Identifier ) ')'
     ;
 
 valReserved
  : 'create' | 'action' | 'destroy' | 'send' | 'recv' | 'use' | 'open' | 'close'
- | 'atomic'  | 'from'
+ | 'atomic'  | 'from' | 'merge' | 'split' | 'process' | 'apply' | 'label'
  | '\\result' | '\\current_thread'
  ;
+

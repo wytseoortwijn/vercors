@@ -2,6 +2,7 @@ package vct.antlr4.parser;
 
 import static hre.lang.System.Abort;
 import static hre.lang.System.Debug;
+import hre.lang.HREError;
 
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -15,8 +16,10 @@ import org.antlr.v4.runtime.Parser;
 import org.apache.commons.lang3.StringEscapeUtils;
 
 import vct.col.ast.*;
+import vct.col.ast.ASTClass.ClassKind;
 import vct.col.ast.ASTSpecial.Kind;
 import vct.col.ast.PrimitiveType.Sort;
+import vct.col.ast.Switch.Case;
 import vct.col.syntax.JavaDialect;
 import vct.col.syntax.JavaSyntax;
 import vct.col.syntax.Syntax;
@@ -48,6 +51,8 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
   private final int IntegerLiteral;
   
   private final int StringLiteral;
+
+  private final int CharacterLiteral;
   
   private final int FloatingPointLiteral;
   
@@ -55,6 +60,7 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
     super(unit,true,syntax, filename, tokens, parser, Java7JMLLexer.Identifier,Java7JMLLexer.class);
     IntegerLiteral=getStaticInt(lexer_class,"IntegerLiteral");
     StringLiteral=getStaticInt(lexer_class,"StringLiteral");
+    CharacterLiteral=getStaticInt(lexer_class,"CharacterLiteral");
     FloatingPointLiteral=getStaticInt(lexer_class,"FloatingPointLiteral");
   }
 
@@ -371,7 +377,12 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
 
   @Override
   public ASTNode visitAnnotation(AnnotationContext ctx) {
-    
+    if (match(ctx,"@",null)){
+      return convert(ctx, 1);
+    }
+    if (match(ctx,"@",null,"(",null,")")){
+      return create.invokation(null, null,getIdentifier(ctx,1),convert(ctx,3));
+    }
     return null;
   }
 
@@ -596,12 +607,14 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
     AtomicBoolean varargs=new AtomicBoolean();
     DeclarationStatement args[]=getFormalParameters(ctx.getChild(1),varargs);
     Type returns=create.primitive_type(Sort.Void);
+    ASTNode body;
     if (ctx.getChildCount()==3){
-      ASTNode body=convert(ctx,2);
-      return create.method_kind(Method.Kind.Constructor, returns, null, name, args,varargs.get(),body);
+      body=convert(ctx,2);
     } else {
-      return null;
+      hre.lang.System.Warning("ignoring exceptiojns in contructor declaration");
+      body=convert(ctx,4);
     }
+    return create.method_kind(Method.Kind.Constructor, returns, null, name, args,varargs.get(),body);
   }
 
   @Override
@@ -623,12 +636,23 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
     if (match(ctx,null,"ClassCreatorRestContext")){
       ParserRuleContext rest_ctx=(ParserRuleContext)ctx.getChild(1);
       Type type=checkType(convert(ctx,0));
-      //String name=getIdentifier(ctx,0);
       if (match(rest_ctx,"ArgumentsContext")){
         ASTNode args[]=convert_list(rest_ctx.getChild(0),"(",",",")");
         BeforeAfterAnnotations res=create.new_object((ClassType)type/*create.class_type(name)*/, args);
         scan_comments_after(res.get_before(),ctx.getChild(0));
         scan_comments_after(res.get_after(),ctx);
+        return (ASTNode)res;
+      }
+      if (match(rest_ctx,"ArgumentsContext","ClassBody")){
+        ASTNode args[]=convert_list(rest_ctx.getChild(0),"(",",",")");
+        BeforeAfterAnnotations res=create.new_object((ClassType)type, args);
+        scan_comments_after(res.get_before(),ctx.getChild(0));
+        scan_comments_after(res.get_after(),ctx);
+        
+        ClassType bases[]=new ClassType[]{(ClassType)type};
+        ASTClass cl=create.ast_class("__inline_ext", ClassKind.Plain ,null, bases , null );
+        scan_body(cl,(ParserRuleContext)rest_ctx.getChild(1));
+        System.err.printf("cannot attach inline class %s%n", cl);
         return (ASTNode)res;
       }
       Debug("no arguments");
@@ -711,8 +735,16 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
 
   @Override
   public ASTNode visitEnumDeclaration(EnumDeclarationContext ctx) {
-    
-    return null;
+    String name=getIdentifier(ctx,1);
+    ASTNode elements[]=null;
+    if (match(ctx,"enum",null,"{",null,"}")){
+      elements=convert_list((ParserRuleContext)ctx.getChild(3), ",");
+    }
+    ASTClass res=create.ast_class(name, ClassKind.Plain, null, null, null);
+    Type t=create.primitive_type(Sort.Sequence,create.class_type(name));
+    ASTNode vals=create.struct_value(t, null, elements);
+    res.add(create.field_decl(name,t,vals));
+    return res;
   }
 
   @Override
@@ -903,6 +935,13 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
       DeclarationStatement vars[]=decl.flatten();
       if (vars.length==1) return vars[0];
     }
+    if (match(ctx,"final",null,null)){
+      VariableDeclaration decl=create.variable_decl(checkType(convert(ctx,1)));
+      DeclarationStatement var=getVariableDeclaratorId((ParserRuleContext)ctx.getChild(2));
+      decl.add(var);
+      DeclarationStatement vars[]=decl.flatten();
+      if (vars.length==1) return vars[0];
+    }
     return null;
   }
 
@@ -1070,7 +1109,13 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
     Token tok=((TerminalNode)ctx.getChild(0)).getSymbol();
     int t=tok.getType();
     if (t==IntegerLiteral){
-      return create.constant(Integer.parseInt(tok.getText()));
+      String val=tok.getText();
+      if (val.endsWith("L")){
+        return create.constant(Long.parseLong(val.substring(0,val.length()-1)));
+
+      } else {
+        return create.constant(Integer.parseInt(tok.getText()));
+      }
     }
     if (t==FloatingPointLiteral){
       return create.constant(Double.parseDouble(tok.getText()));
@@ -1078,6 +1123,10 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
     if (t==StringLiteral){
       String text=tok.getText();
       return create.constant(StringEscapeUtils.unescapeJava(text.substring(1,text.length()-1)));
+    }
+    if (t==CharacterLiteral){
+      String text=tok.getText();
+      return create.constant(StringEscapeUtils.unescapeJava(text.substring(1,text.length()-1)));     
     }
     if (match(ctx,"true")) return create.constant(true);
     if (match(ctx,"false")) return create.constant(false);
@@ -1208,6 +1257,9 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
     if (match(ctx,"if",null,null,"else",null)){
       return create.ifthenelse(convert(ctx,1),convert(ctx,2),convert(ctx,4));
     }
+    if (match(ctx,";")){
+      return create.comment(";");
+    }
     if (match(ctx,"return",";")){
       return create.return_statement();
     }
@@ -1229,16 +1281,86 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
     }
     if (match(ctx,"for","(",null,")",null)){
       ParserRuleContext control=(ParserRuleContext)ctx.getChild(2);
-      if (match(control,null,";",null,";",null)){
-        ASTNode init=convert(control,0);
-        init=create.block(init.getOrigin(),init);
-        ASTNode test=convert(control,2);
-        ASTNode update=convert(control,4);
+      if (match(control,"EnhancedForControl")){
+        control=(ParserRuleContext)control.getChild(0);
+        if (match(control,null,null,":",null)){
+          Type t=checkType(convert(control,0));
+          String var=getIdentifier(control,1);
+          ASTNode collection=convert(control,3);
+          ASTNode body=convert(ctx,4);
+          DeclarationStatement decls[]=new DeclarationStatement[]{create.field_decl(var, t,collection)};
+          ForEachLoop res=create.foreach(decls, create.constant(true), body);
+          scan_comments_after(res.get_after(), ctx.getChild(3));
+          System.err.printf("%s%n",res);
+          return res;
+        }
+      } else {
+        int ofs=0;
+        ASTNode init;
+        if (match(ofs,true,control,";")){
+          init=null;
+          ofs++;
+        } else {
+          init=convert(control,ofs);
+          init=create.block(init.getOrigin(),init);
+          ofs+=2;
+        }
+        ASTNode test;
+        if (match(ofs,true,control,";")){
+          test=null;
+          ofs++;
+        } else {
+          test=convert(control,ofs);
+          ofs+=2;
+        }
+        ASTNode update;
+        if(ofs<control.getChildCount()){
+          update=convert(control,ofs);
+        } else {
+          update=null;
+        }
         ASTNode body=convert(ctx,4);
         LoopStatement res=create.for_loop(init, test, update, body);
         scan_comments_after(res.get_after(), ctx.getChild(3));
         return res;
       }
+    }
+    if (match(0,true, ctx,"switch",null,"{")){
+      ASTNode expr=convert(ctx,1);
+      ArrayList<Case> case_list=new ArrayList();
+      Case c=new Case();
+      int G=ctx.getChildCount()-1;
+      for(int i=3;i<G;i++){
+        if (match(i,true,ctx,"SwitchBlockStatementGroup")){
+          ParserRuleContext group=(ParserRuleContext)ctx.getChild(i);
+          int k=0;
+          int N=group.getChildCount();
+          while (k<N && match(k,true,group,"SwitchLabel")){
+            if (match((ParserRuleContext)group.getChild(k),"default",":")){
+              c.cases.add(null); 
+            } else {
+              c.cases.add(convert((ParserRuleContext)group.getChild(k),1));
+            }
+            k++;
+          }
+          while(k < N){
+            c.stats.add(convert(group,k));
+            k++;
+          }
+          case_list.add(c);
+          c=new Case();
+        } else if (match(i,true,ctx,"SwitchLabel")){
+          if (match((ParserRuleContext)ctx.getChild(i),"default",":")){
+            c.cases.add(create.reserved_name(ASTReserved.Default)); 
+          } else {
+            c.cases.add(convert((ParserRuleContext)ctx.getChild(i),1));
+          }
+        }
+      }
+      if (c.cases.size()>0){
+        case_list.add(c);
+      }
+      return create.switch_statement(expr,case_list);
     }
     if (match(ctx,"assert",null,";")){
       return create.special(ASTSpecial.Kind.Assert,convert(ctx,1));
@@ -1311,7 +1433,12 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
 
   @Override
   public ASTNode visitTypeArgument(TypeArgumentContext ctx) {
-    
+    if (match(ctx,"?","extends",null)){
+      return create.type_expression(TypeOperator.Extends,checkType(convert(ctx,2)));
+    }
+    if (match(ctx,"?","super",null)){
+      return create.type_expression(TypeOperator.Super,checkType(convert(ctx,2)));
+    }       
     return null;
   }
 

@@ -363,13 +363,11 @@ public class SilverStatementMap<T,E,S> implements ASTMapping<S>{
 
   @Override
   public S map(TypeVariable v) {
-    
     return null;
   }
 
   @Override
   public S map(StructValue v) {
-    
     return null;
   }
 
@@ -390,5 +388,10 @@ public class SilverStatementMap<T,E,S> implements ASTMapping<S>{
   @Override
   public S map(Constraining c) {
     return create.constraining(c.getOrigin(), do_names(c.vars()), c.block().apply(this));
+  }
+
+  @Override
+  public S map(Switch s) {
+    return null;
   }
 }

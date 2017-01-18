@@ -151,8 +151,6 @@ public enum StandardOperator {
   Subscript(2),
   /** Evaluate argument in pre-execution(old) state. */
   Old(1),
-  /** Continue with next value in loop */
-  Continue(1),
   /** Create a new uninitialized object, note that Java Constructors are encoded as a MethodInvokation. */
   New(1),
   /** Create a new uninitialized object, Silver style. */
@@ -273,14 +271,35 @@ public enum StandardOperator {
    * Declares the first argument to be a valid matrix of the given size.
    */
   ValidMatrix(3),
-  /*
+  /**
    * Get the values from an array as a sequence form a start upto an end
    */
   Values(3),
-  /*
+  /**
    * Summation over a sequence.
    */
-  FoldPlus(1)
+  FoldPlus(2),
+  /**
+   * Vector Repeat.
+   */
+  VectorRepeat(1),
+  /**
+   * Pointwise Comparison of Vectors.
+   * The result is a vector of integers, where true==1 and false==0.
+   */
+  VectorCompare(2),
+  /**
+   * sum over matrix
+   */
+  MatrixSum(2),
+  /**
+   * constant matrix
+   */
+  MatrixRepeat(1),
+  /**
+   * compare matrices pointwise
+   */
+  MatrixCompare(2)
   ;
 
   private final int arity;
