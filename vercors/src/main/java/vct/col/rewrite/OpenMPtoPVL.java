@@ -477,7 +477,7 @@ public class OpenMPtoPVL extends AbstractRewriter {
 	  PPLProgram ParPPLProg= do_operator(parparts);//$$
 	  parts.add(ParPPLProg);//$$
           continue;
-	case Sections: //$
+	case Sections: //$  //
           ASTNode src_block_sec[]=((BlockStatement)src_block[i+1]).getStatements(); 
           for(int j=0;j<src_block_sec.length;j++){
 	     if (src_block_sec[j].isDeclaration(ASTSpecial.Kind.Pragma)){
