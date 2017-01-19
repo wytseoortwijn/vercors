@@ -23,8 +23,9 @@ interface PPLProgram {
 
   boolean nowait();
 
-  boolean is_section();//@
+  boolean is_section();//$
 
+  void set_section(); //$
 }
 
 class PPLCompose implements PPLProgram {
@@ -32,6 +33,7 @@ class PPLCompose implements PPLProgram {
   public final PPLProgram P1;
   public final PPLOperator op;
   public final PPLProgram P2;
+  private boolean isSection;//$
   
   public PPLCompose(PPLProgram P1,PPLOperator op,PPLProgram P2){
     this.P1=P1;
@@ -93,9 +95,13 @@ class PPLCompose implements PPLProgram {
 
  @Override
  public boolean is_section() {//$
-    return false;
+    return isSection;
   }
-  
+   @Override
+ public void set_section() { //$
+    System.out.println("------------SAeed: set section in PPLCOmpose ");
+    isSection=true;
+  }
 }
 
 class PPLParallel implements PPLProgram {
@@ -107,6 +113,7 @@ class PPLParallel implements PPLProgram {
   public final BlockStatement body;
   public final int number;
   private boolean isSection;//$
+
   
   public int fused=0;
   public Set<Integer> preds=new HashSet<Integer>();
@@ -131,11 +138,11 @@ class PPLParallel implements PPLProgram {
   }
 
 @Override
- public boolean is_section() {
+ public boolean is_section() {//$$
     return isSection;
   }
-
-  public void set_section() {
+@Override
+  public void set_section() {//$$
     isSection=true;
   }
 
@@ -266,6 +273,7 @@ public class OpenMPtoPVL extends AbstractRewriter {
             if (statements[i+1] instanceof BlockStatement){
               ASTNode src_block[]=((BlockStatement)statements[i+1]).getStatements();
               i=i+1;
+//ContractBuilder
               ContractBuilder cb=new ContractBuilder();
               int lo=0;int hi=src_block.length;
               while(lo<hi && (src_block[lo] instanceof ASTSpecial)){
@@ -312,7 +320,10 @@ public class OpenMPtoPVL extends AbstractRewriter {
                 }
                 break;
               }
-              PPLProgram ppl_program=do_ppl(src_block,lo,hi);
+//ContractBuilder
+              ArrayList<PPLProgram> parts=do_ppl(src_block,lo,hi);
+              PPLProgram ppl_program= do_operator(parts);//$$
+	      
               currentBlock.add(create.region(cb.getContract(),ppl_to_ordered(ppl_program)));
               continue;
             } else {
@@ -425,19 +436,23 @@ public class OpenMPtoPVL extends AbstractRewriter {
         create.local_name(range.name),range.getInit());
     return create.starall(guard,clause,decl);
   }
-  
-  private PPLProgram do_ppl(ASTNode[] src_block, int lo, int hi) {
-    ArrayList<PPLProgram> parts=new ArrayList<PPLProgram>();
+
+  private OMPpragma ParseOMP(String pragma){
+        System.err.printf("pragma [%s]%n",pragma);
+        if (!pragma.startsWith("omp"))
+          return null;
+        pragma=pragma.substring(3).trim();
+        return OMPParser.parse(pragma);
+ }
+
+
+  private ArrayList<PPLProgram> do_ppl(ASTNode[] src_block, int lo, int hi) {
+   ArrayList<PPLProgram> parts=new ArrayList<PPLProgram>();
     for(int i=lo;i<hi;i++){
       if (src_block[i].isDeclaration(ASTSpecial.Kind.Pragma)){
         String pragma=((ASTSpecial)src_block[i]).args[0].toString();
-        System.err.printf("pragma [%s]%n",pragma);
-        if (!pragma.startsWith("omp")){
-          Warning("ignoring statement %d",i);
-          continue;
-        }
-        pragma=pragma.substring(3).trim();
-        OMPpragma command=OMPParser.parse(pragma);
+        OMPpragma command = ParseOMP(pragma);
+        if(command ==null) {Warning("ignoring statement %d",i);continue;}        
         System.err.printf("type is %s%n",command.kind);
         switch(command.kind){
         case Simd:
@@ -456,9 +471,13 @@ public class OpenMPtoPVL extends AbstractRewriter {
         }
         case ParallelFor:
         case Parallel:
-          Fail("pragma omp parallel is not allowed at the task list level");
+          //Fail("pragma omp parallel is not allowed at the task list level");
+	  ASTNode src_block_par[]=((BlockStatement)src_block[i+1]).getStatements();  //$$
+          ArrayList<PPLProgram> parparts= do_ppl(src_block_par,0,src_block_par.length);//$$
+	  PPLProgram ParPPLProg= do_operator(parparts);//$$
+	  parts.add(ParPPLProg);//$$
           continue;
-	case Sections: //$
+	case Sections: //$  //
           ASTNode src_block_sec[]=((BlockStatement)src_block[i+1]).getStatements(); 
           for(int j=0;j<src_block_sec.length;j++){
 	     if (src_block_sec[j].isDeclaration(ASTSpecial.Kind.Pragma)){
@@ -502,10 +521,21 @@ public class OpenMPtoPVL extends AbstractRewriter {
 			  Abort("unexpected special %s",d.kind);
 		        }//swtich contract
 		        break;
-	           }//while		                         
-   		   PPLParallel PPLProg = new PPLParallel(cmd.options,rewrite(cb.getContract()),(BlockStatement)src_block_sec[j]);
-		   PPLProg.set_section();		
-      	           parts.add(PPLProg);		   
+	           }//while	
+		   ASTNode sec_block[]=((BlockStatement)src_block_sec[j]).getStatements();			 
+		   //if section includes a parallel block
+		   if(sec_block[0].isDeclaration(ASTSpecial.Kind.Pragma)) //$$
+		   {
+			ArrayList<PPLProgram> secparts= do_ppl(sec_block,0,sec_block.length);
+			PPLProgram SecPPLProg= do_operator(secparts);
+			SecPPLProg.set_section();		
+	                parts.add(SecPPLProg);
+		   }                   
+   		   else{//if section includes a sequential block 
+		   	PPLParallel PPLProg = new PPLParallel(cmd.options,rewrite(cb.getContract()),(BlockStatement)src_block_sec[j]);
+ 		        PPLProg.set_section();		
+	      	        parts.add(PPLProg);		   
+		   }
                    continue;
               default:
                 Fail("%s is not allowed inside sections",cmd.kind);
@@ -524,12 +554,17 @@ public class OpenMPtoPVL extends AbstractRewriter {
         Warning("ignoring statement %d",i);
       }
     }
+return parts;
+}
+ private PPLProgram do_operator(ArrayList<PPLProgram> parts){//$$
+    if (parts.size() == 1) {return parts.get(0);} //$$
+
     PPLOperator op[]=new PPLOperator[parts.size()];
     for(int i=0;i+1<parts.size();i++){
       PPLProgram P1=parts.get(i);
       PPLProgram P2=parts.get(i+1);
       if (P1.is_section() && P2.is_section()){op[i]=PPLOperator.Parallel;} //$
-      else if (P1.static_schedule()&&P1.nowait()&&P2.static_schedule()){
+      else if (P1.static_schedule() && P1.nowait() && P2.static_schedule()){
         op[i]=PPLOperator.Fuse;
       } else if (P1.nowait()){
         op[i]=PPLOperator.Parallel;
