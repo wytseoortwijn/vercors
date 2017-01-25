@@ -4,7 +4,7 @@ import hre.ast.MessageOrigin;
 import vct.col.util.VisitorHelper
 
 object IfStatement {
-  def elseGuard = new ConstantExpression(true, new MessageOrigin("else guard"))
+  val elseGuard = new ConstantExpression(true, new MessageOrigin("else guard"))
 }
 
 class IfStatement extends ASTNode with VisitorHelper  {
@@ -16,18 +16,14 @@ class IfStatement extends ASTNode with VisitorHelper  {
   
   def addClause(guard:ASTNode, stmt:ASTNode) : Unit = {
     stmt.setParent(this)
-    if (guard != IfStatement.elseGuard) {
-      guard.setParent(this)
-    }
+    if (guard != IfStatement.elseGuard) guard.setParent(this)
     cases.add(new Tuple2(guard, stmt))
   }
   
   def this(cond:ASTNode, truebranch:ASTNode, falsebranch:ASTNode) = {
     this()
     addClause(cond, truebranch)
-    if (falsebranch != null) {
-      addClause(IfStatement.elseGuard, falsebranch)
-    }
+    if (falsebranch != null) addClause(IfStatement.elseGuard, falsebranch)
   }
   
   override def accept_simple[T,A](m:ASTMapping1[T,A], arg:A) = m.map(this, arg)
