@@ -1,8 +1,8 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 //:: cases AccessSubMatrix
 //:: tools silicon
-//:: pass Ref__good1
-//:: fail Ref__bad1 Ref__bad2
+//:: pass Ref.good1
+//:: fail Ref.bad1 Ref.bad2
 
 /*@
   requires matrix != NULL;

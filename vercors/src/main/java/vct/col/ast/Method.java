@@ -270,6 +270,11 @@ public class Method extends ASTDeclaration {
     Abort("missing case in isRecursive: %s",node.getClass());
     return true;
   }
+
+  public boolean isOverloaded() {
+    ASTClass cl=(ASTClass)getParent();
+    return cl.isOverloaded(name);
+  }
 }
 
 

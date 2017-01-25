@@ -46,12 +46,15 @@ public class ClassType extends Type {
   public String getName(){
     return name[name.length-1];
   }
-  public String getFullName(){
+  public String getFullName(String sep){
     String res=name[0];
     for(int i=1;i<name.length;i++){
-      res+="."+name[i];
+      res+=sep+name[i];
     }
     return res;
+  }
+  public String getFullName(){
+    return getFullName(".");
   }
 
   

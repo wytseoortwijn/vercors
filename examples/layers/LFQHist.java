@@ -7,7 +7,7 @@
     vct --silver=silicon --check-history LFQHist.java
  */
 
-public class History {/*@
+final class History {/*@
     seq<int> q;
     
     modifies q;
@@ -30,7 +30,7 @@ public class History {/*@
 @*/
 }
 
-class Integer {
+final class Integer {
 
   int val;
   
@@ -43,7 +43,7 @@ class Integer {
   
 }
 
-class Node {
+final class Node {
 
   int val;
   
@@ -52,7 +52,7 @@ class Node {
 }
 
 
-class AtomicNode {
+final class AtomicNode {
 
   Node ref;
 
@@ -78,7 +78,7 @@ class AtomicNode {
 
 
 
-class Queue {
+final class Queue {
 
   /*@
     requires Value(hist) ** PointsTo(hist_active,1/2,true);

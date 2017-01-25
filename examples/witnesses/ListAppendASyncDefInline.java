@@ -7,7 +7,7 @@
   This example shows the usefulness of the inline modifier.
 */
 
-class List {
+final class List {
 
   public int val;
   public List next;

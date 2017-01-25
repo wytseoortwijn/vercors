@@ -83,6 +83,7 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
       } 
     }
     cl.setContract(c);
+    cl.setFlag(ASTFlags.FINAL, true);
     return cl;
   }
 

@@ -9,6 +9,7 @@ public class EncodeAsClass extends AbstractRewriter {
     super(source);
     cl=new ASTClass("Ref",ASTClass.ClassKind.Plain);
     cl.setOrigin(new MessageOrigin("EncodeAsClass"));
+    cl.setFlag(ASTFlags.FINAL,true);
   }
 
   private ASTClass cl;

@@ -51,16 +51,16 @@ import vct.col.rewrite.FilterClass;
 import vct.col.rewrite.FinalizeArguments;
 import vct.col.rewrite.Flatten;
 import vct.col.rewrite.FlattenBeforeAfter;
-import vct.col.rewrite.ForkJoinEncode;
 import vct.col.rewrite.GenericPass1;
 import vct.col.rewrite.GhostLifter;
 import vct.col.rewrite.GlobalizeStaticsParameter;
 import vct.col.rewrite.InlinePredicatesRewriter;
+import vct.col.rewrite.JavaEncoder;
 import vct.col.rewrite.KernelRewriter;
-import vct.col.rewrite.LockEncoder;
 import vct.col.rewrite.OpenMPtoPVL;
 import vct.col.rewrite.OptimizeQuantifiers;
 import vct.col.rewrite.PVLCompiler;
+import vct.col.rewrite.PVLEncoder;
 import vct.col.rewrite.ParallelBlockEncoder;
 import vct.col.rewrite.PropagateInvariants;
 import vct.col.rewrite.PureMethodsAsFunctions;
@@ -86,6 +86,7 @@ import vct.col.syntax.JavaDialect;
 import vct.col.syntax.JavaSyntax;
 import vct.col.syntax.Syntax;
 import vct.col.util.FeatureScanner;
+import vct.col.util.JavaTypeCheck;
 import vct.col.util.SimpleTypeCheck;
 import vct.logging.ErrorMapping;
 import vct.logging.ExceptionMessage;
@@ -330,6 +331,25 @@ public class Main
       } else if (silver.used()||chalice.get()||chalice2sil.get()) {
         passes=new LinkedBlockingDeque<String>();
         passes.add("java_resolve");
+        
+        if (silver.used() &&
+           (features.usesSpecial(ASTSpecial.Kind.Lock)
+          ||features.usesSpecial(ASTSpecial.Kind.Unlock)
+          ||features.usesSpecial(ASTSpecial.Kind.Fork)
+          ||features.usesSpecial(ASTSpecial.Kind.Join)
+          ||features.usesOperator(StandardOperator.PVLidleToken)
+          ||features.usesOperator(StandardOperator.PVLjoinToken)
+        )){
+          passes.add("pvl-encode");
+        }
+        passes.add("standardize");
+        passes.add("java-check");
+        if (silver.used()){
+          // The new encoding does not apply to Chalice yet.
+          // Maybe it never will.
+          passes.add("java-encode");
+        }
+        
         if (sat_check.get()) passes.add("sat_check");
         
         if (features.usesIterationContracts()||features.usesPragma("omp")){
@@ -339,11 +359,6 @@ public class Main
         }
 
         passes.add("propagate-invariants");
-        if (features.usesSpecial(ASTSpecial.Kind.Lock)
-           ||features.usesSpecial(ASTSpecial.Kind.Unlock)
-        ){
-          passes.add("lock-encode");
-        }
         passes.add("standardize");
         passes.add("check");      
         if (features.usesOperator(StandardOperator.Wand)){
@@ -351,16 +366,7 @@ public class Main
           passes.add("standardize");
           passes.add("check");
         }
-        if ( silver.used() && // Chalice has its own built-ins, for now.
-            (features.usesSpecial(ASTSpecial.Kind.Fork)
-           ||features.usesSpecial(ASTSpecial.Kind.Join)
-           ||features.usesOperator(StandardOperator.PVLidleToken)
-           ||features.usesOperator(StandardOperator.PVLjoinToken))
-        ){
-          passes.add("fork-join-encode");
-          passes.add("standardize");
-          passes.add("check");
-        }
+
         passes.add("inline");
         passes.add("standardize");
         passes.add("check");
@@ -410,7 +416,8 @@ public class Main
           }
         }
   
-        if (features.usesInheritance()){
+        if (!silver.used() && features.usesInheritance()){
+          // Use the old inheritance encoding for Chalice.
           passes.add("standardize");
           passes.add("check");       
           passes.add("ds_inherit");
@@ -423,13 +430,11 @@ public class Main
           passes.add("check-defined");
           passes.add("standardize");
           passes.add("check");
-        }
-        if (check_axioms.get()){
+        } else if (check_axioms.get()){
           passes.add("check-axioms");
           passes.add("standardize");
           passes.add("check");
-        }
-        if (check_history.get()){
+        } else if (features.usesProcesses() || check_history.get()){
           passes.add("access");
           passes.add("standardize");
           passes.add("check");
@@ -460,19 +465,20 @@ public class Main
         passes.add("standardize");
         passes.add("check");
           
-        passes.add("globalize");
-        passes.add("standardize");
-        passes.add("check");
-          
         if (silver.used()) {
-          passes.add("class-conversion");
-          passes.add("standardize");
-          passes.add("check");
+          // Part of this is now done in java-encode
+          // The remainder is shifted to silver-class-reduction
+          //passes.add("class-conversion");
+          //passes.add("standardize");
+          //passes.add("check");
           
           passes.add("silver-class-reduction");
           passes.add("standardize");
           passes.add("check");
         } else {
+          passes.add("globalize");
+          passes.add("standardize");
+          passes.add("check");
           passes.add("rm_cons");
           passes.add("standardize");
           passes.add("check");
@@ -706,9 +712,15 @@ public class Main
         }
       }
     });
-    defined_passes.put("check",new CompilerPass("run a type check"){
+    defined_passes.put("check",new CompilerPass("run a basic type check"){
       public ProgramUnit apply(ProgramUnit arg,String ... args){
         new SimpleTypeCheck(arg).check();
+        return arg;
+      }
+    });
+    defined_passes.put("java-check",new CompilerPass("run a Java aware type check"){
+      public ProgramUnit apply(ProgramUnit arg,String ... args){
+        new JavaTypeCheck(arg).check();
         return arg;
       }
     });
@@ -806,6 +818,12 @@ public class Main
         return new CurrentThreadRewriter(arg).rewriteAll();
       }
     });
+    defined_passes.put("java-encode",new CompilerPass("Encode Java overloading and inheritance"){
+      public ProgramUnit apply(ProgramUnit arg,String ... args){
+        arg=new JavaEncoder(arg).rewriteAll();
+        return arg;
+      }
+    });
     defined_passes.put("erase",new CompilerPass("Erase generic types"){
       public ProgramUnit apply(ProgramUnit arg,String ... args){
         arg=new GenericPass1(arg).rewriteAll();
@@ -820,11 +838,6 @@ public class Main
     defined_passes.put("finalize_args",new CompilerPass("???"){
       public ProgramUnit apply(ProgramUnit arg,String ... args){
         return new FinalizeArguments(arg).rewriteAll();
-      }
-    });
-    defined_passes.put("fork-join-encode",new CompilerPass("Encode fork/join operations using method calls."){
-      public ProgramUnit apply(ProgramUnit arg,String ... args){
-        return new ForkJoinEncode(arg).rewriteAll();
       }
     });
     defined_passes.put("flatten",new CompilerPass("remove nesting of expression"){
@@ -862,9 +875,9 @@ public class Main
         return new KernelRewriter(arg).rewriteAll();
       }
     });
-    defined_passes.put("lock-encode",new CompilerPass("Encode lock/unlock statements."){
+    defined_passes.put("pvl-encode",new CompilerPass("Encode PVL builtins for verification."){
       public ProgramUnit apply(ProgramUnit arg,String ... args){
-        return new LockEncoder(arg).rewriteAll();
+        return new PVLEncoder(arg).rewriteAll();
       }
     });
     branching_pass(

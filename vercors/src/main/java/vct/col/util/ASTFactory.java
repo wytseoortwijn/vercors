@@ -819,6 +819,10 @@ public BlockStatement block(Origin origin, ASTNode ... args) {
     return method_kind(Method.Kind.Predicate,primitive_type(Sort.Resource),null,name,args,false,body);
   } 
   
+  public Method predicate(String name, ASTNode body,List<DeclarationStatement> args) {
+    return method_kind(Method.Kind.Predicate,primitive_type(Sort.Resource),null,name,args,false,body);
+  } 
+  
   public PrimitiveType primitive_type(E origin,PrimitiveType.Sort sort,ASTNode ... args){
     return primitive_type(origin_source.create(origin),sort,args);
   }

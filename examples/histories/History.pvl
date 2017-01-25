@@ -2,12 +2,19 @@
 //:: cases HistoryLoop
 
 //:: cases HistoryDefined
+//:: suite problem-fail
 //:: tools silicon
 //:: options --check-defined
 
 //:: cases HistoryAxioms
+//:: suite problem-fail
 //:: tools silicon
 //:: options --check-axioms
+
+/*
+ Checking the correctness of the defined processes and/or axioms is disabled due
+ refactoring.
+*/
 
 class History {
 

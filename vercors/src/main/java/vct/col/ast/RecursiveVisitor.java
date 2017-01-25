@@ -124,7 +124,7 @@ public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
     }
     // TODO: fix dispatch(e.get_after());
   }
-
+  
   private void dispatch(Contract c){
     if (c!=null){
       c.accept(this);
@@ -211,8 +211,12 @@ public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
 
   @Override
   public void visit(ActionBlock ab){
+    dispatch(ab.history());
+    dispatch(ab.fraction());
     dispatch(ab.process());
     dispatch(ab.action());
+    // TODO: enable visiting map elements.
+    //dispatch(ab.map().values().to);
     dispatch(ab.block());
   }
   
@@ -256,6 +260,9 @@ public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
   }
   
   public void visit(ParallelAtomic pa){
+    for(ASTNode n:pa.sync_list){
+      dispatch(n);
+    }
     dispatch(pa.block);
   }
   
@@ -266,6 +273,7 @@ public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
 
   public void visit(ParallelBarrier pb){
     dispatch(pb.contract);
+    dispatch(pb.body);
   }
 
   public void visit(ParallelBlock pb){

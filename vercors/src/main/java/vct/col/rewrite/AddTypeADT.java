@@ -51,10 +51,11 @@ public class AddTypeADT extends AbstractRewriter {
   @Override
   public void visit(Method m){
     if (m.getKind()==Method.Kind.Constructor){
+      ASTClass cls=(ASTClass)m.getParent();
       currentContractBuilder=new ContractBuilder();
       currentContractBuilder.ensures(create.expression(StandardOperator.EQ,
           create.expression(StandardOperator.TypeOf,create.reserved_name(ASTReserved.Result)),
-          create.invokation(create.class_type(type_adt),null,"class_"+m.name)
+          create.invokation(create.class_type(type_adt),null,"class_"+cls.name)
       ));
     }
     //else if (!m.isStatic()) {
@@ -68,10 +69,11 @@ public class AddTypeADT extends AbstractRewriter {
     super.visit(m);
     if (m.getKind()==Method.Kind.Constructor){
       Method c=(Method)result;
-      if (c!=null){
+      if (c!=null && c.getBody()!=null){
+        ASTClass cls=(ASTClass)m.getParent();
         ((BlockStatement)c.getBody()).prepend(create.special(ASTSpecial.Kind.Inhale,create.expression(StandardOperator.EQ,
             create.expression(StandardOperator.TypeOf,create.reserved_name(ASTReserved.This)),
-            create.invokation(create.class_type(type_adt),null,"class_"+m.name)
+            create.invokation(create.class_type(type_adt),null,"class_"+cls.name)
         )));
       }
       result=c;

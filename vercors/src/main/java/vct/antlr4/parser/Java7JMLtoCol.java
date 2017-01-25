@@ -510,9 +510,7 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
   }
 
   @Override
-  public ASTNode visitClassOrInterfaceModifier(
-      ClassOrInterfaceModifierContext ctx) {
-    
+  public ASTNode visitClassOrInterfaceModifier(ClassOrInterfaceModifierContext ctx) {
     return null;
   }
 
@@ -1462,8 +1460,12 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
 
   @Override
   public ASTNode visitTypeDeclaration(TypeDeclarationContext ctx) {
-    
-    return null;
+    int N=ctx.getChildCount();
+    ASTNode res=convert(ctx.getChild(N-1));
+    for(int i=0;i<N-1;i++){
+      res.attach(convert(ctx,i));
+    }
+    return res;
   }
 
   @Override

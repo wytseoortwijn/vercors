@@ -7,13 +7,13 @@
     vct --silver=silicon LFQ.java
  */
 
-class Node {
+final class Node {
   int val;
   AtomicNode next;
 }
 
 
-class AtomicNode {
+final class AtomicNode {
   Node val;
   
   // the set method is inlined as an atomic block
@@ -39,7 +39,7 @@ class AtomicNode {
   }
 }
 
-class Integer {
+final class Integer {
   int val;
   /*@
     ensures PointsTo(val,1,v);
@@ -49,7 +49,7 @@ class Integer {
   }
 }
 
-class Queue {
+final class Queue {
 /*@
   ensures Value(begin) ** Value(head) ** Value(tail);
 @*/
