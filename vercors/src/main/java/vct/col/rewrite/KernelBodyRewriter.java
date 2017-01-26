@@ -95,6 +95,6 @@ class KernelBodyRewriter extends AbstractRewriter {
     body=create.block(create.region(null,create.parallel_block("group_block", icb.getContract(),iters, body)));
     iters=new DeclarationStatement[]{outer_decl};
     body=create.block(create.region(null,create.parallel_block("kernel_block", gcb.getContract(),iters, body)));
-    result=create.method_decl(returns, kcb.getContract(), m.name, decls, body);
+    result=create.method_decl(returns, kcb.getContract(), m.name(), decls, body);
   }
 }

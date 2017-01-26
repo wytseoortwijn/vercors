@@ -34,14 +34,14 @@ public class StripUnusedExtern extends AbstractRewriter {
     }
     
     @Override
-    public void visit(Method m){
-      defined_names.add(m.name);
-      Method ext=externs.get(m.name);
-      if(ext!=null){
+    public void visit(Method m) {
+      defined_names.add(m.name());
+      Method ext = externs.get(m.name());
+      if (ext != null) {
         if (m.getContract()!=null){
           Fail("%s: contract must be written for the extern declaration",m.getOrigin());
         }
-        defined_names.add(m.name);
+        defined_names.add(m.name());
       }
       super.visit(m);
     }
@@ -60,10 +60,10 @@ public class StripUnusedExtern extends AbstractRewriter {
   private Scanner scanner=new Scanner(source());
 
   @Override
-  public void visit(DeclarationStatement d){
+  public void visit(DeclarationStatement d) {
     if (d.getParent() instanceof ASTClass){
-      DeclarationStatement real=vars.get(d.name);
-      if(real!=d){
+      DeclarationStatement real = vars.get(d.name());
+      if (real != d) {
         return;
       }
     }
@@ -72,11 +72,11 @@ public class StripUnusedExtern extends AbstractRewriter {
   @Override
   public void visit(Method m){
     if (m.isValidFlag(ASTFlags.EXTERN)){
-      if (!used_externs.contains(m.name) || defined_names.contains(m.name)){
+      if (!used_externs.contains(m.name()) || defined_names.contains(m.name())){
         return;
       }
     } else {
-      Method ext=externs.get(m.name);
+      Method ext=externs.get(m.name());
       if (ext!=null){
         if (currentContractBuilder==null&&ext.getContract()!=null){
           currentContractBuilder=new ContractBuilder();
@@ -93,22 +93,22 @@ public class StripUnusedExtern extends AbstractRewriter {
     }
     ASTClass src=source().find("Ref");
     for(DeclarationStatement d:src.fields()){
-      DeclarationStatement old=vars.get(d.name);
+      DeclarationStatement old=vars.get(d.name());
       if (d.isValidFlag(ASTFlags.EXTERN)){
-        System.err.printf("extern var %s%n", d.name);
+        System.err.printf("extern var %s%n", d.name());
         if (old != null){
-          Fail("double declaration of %s",d.name);
+          Fail("double declaration of %s", d.name());
         }
       } else {
         if (old!=null && ! old.isValidFlag(ASTFlags.EXTERN)){
-          Fail("double declaration of %s",d.name);
+          Fail("double declaration of %s", d.name());
         }
       }
-      vars.put(d.name,d);
+      vars.put(d.name(), d);
     }
     for(Method m:source().find("Ref").methods()){
       if (m.isValidFlag(ASTFlags.EXTERN)){
-        externs.put(m.name,m);
+        externs.put(m.name(), m);
       }
     }
     for(Method m:source().find("Ref").methods()){
@@ -125,6 +125,4 @@ public class StripUnusedExtern extends AbstractRewriter {
     }
     return res;
   }
-
-
 }

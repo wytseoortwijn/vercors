@@ -371,7 +371,7 @@ public class CMLtoCOL extends ANTLRtoCOL implements CMLVisitor<ASTNode> {
     if (match(ctx,"Pointer",null)){
       DeclarationStatement d=(DeclarationStatement)convert(ctx,1);
       Type t=getPointer(d.getType(),(ParserRuleContext)ctx.getChild(0));
-      return create.field_decl(d.name, t);//create.primitive_type(Sort.Pointer,d.getType()));
+      return create.field_decl(d.name(), t);//create.primitive_type(Sort.Pointer,d.getType()));
     }
     return null;
   }
@@ -901,7 +901,7 @@ public class CMLtoCOL extends ANTLRtoCOL implements CMLVisitor<ASTNode> {
       ASTNode tmp=convert(ctx,1);
       if (tmp instanceof DeclarationStatement){
         DeclarationStatement decl=(DeclarationStatement)convert(ctx,1);
-        return create.field_decl(decl.name,create.type_expression(TypeOperator.Unsigned,decl.getType()));
+        return create.field_decl(decl.name(), create.type_expression(TypeOperator.Unsigned,decl.getType()));
       } else {
         return create.type_expression(TypeOperator.Unsigned,(Type)tmp);
       }
@@ -910,7 +910,7 @@ public class CMLtoCOL extends ANTLRtoCOL implements CMLVisitor<ASTNode> {
       ASTNode tmp=convert(ctx,1);
       if (tmp instanceof DeclarationStatement){
         DeclarationStatement decl=(DeclarationStatement)convert(ctx,1);
-        return create.field_decl(decl.name,create.type_expression(TypeOperator.Const,decl.getType()));
+        return create.field_decl(decl.name(), create.type_expression(TypeOperator.Const,decl.getType()));
       } else {
         return create.type_expression(TypeOperator.Const,(Type)tmp);
       }

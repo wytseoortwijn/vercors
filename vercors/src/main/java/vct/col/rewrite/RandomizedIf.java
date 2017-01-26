@@ -23,7 +23,7 @@ public class RandomizedIf extends AbstractRewriter {
   public void visit(Method m){
     if (m.kind==Kind.Plain && m.getBody()!=null){
       Type returns=rewrite(m.getReturnType());
-      String name=m.name;
+      String name = m.name();
       Contract contract=rewrite(m.getContract());
       DeclarationStatement[] args=rewrite(m.getArgs());
       BlockStatement body=create.block(

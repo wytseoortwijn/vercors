@@ -203,9 +203,9 @@ public class VerCorsProgramFactory implements
           for(DeclarationStatement decl:m.getArgs()){
             T t=decl.getType().apply(type);
             if (decl.isValidFlag(ASTFlags.OUT_ARG) && decl.getFlag(ASTFlags.OUT_ARG)){
-              out.add(new Triple<Origin,String,T>(decl.getOrigin(),decl.name,t));
+              out.add(new Triple<Origin,String,T>(decl.getOrigin(),decl.name(), t));
             } else {
-              in.add(new Triple<Origin,String,T>(decl.getOrigin(),decl.name,t));
+              in.add(new Triple<Origin,String,T>(decl.getOrigin(),decl.name(), t));
             }
           }
           ArrayList<Triple<Origin,String,T>> locals=new ArrayList<Triple<Origin,String,T>>();
@@ -238,9 +238,9 @@ public class VerCorsProgramFactory implements
               posts.add(n.apply(expr));
             }
           }
-          api.prog.add_method(program,m.getOrigin(),m.name,pres,posts,in,out,locals,body);
+          api.prog.add_method(program,m.getOrigin(),m.name(),pres,posts,in,out,locals,body);
           // TODO: fix refuted accounting.
-          refuted.put(m.name,stat.refuted);
+          refuted.put(m.name(),stat.refuted);
           stat.refuted=null;
           break;
         }
@@ -263,7 +263,7 @@ public class VerCorsProgramFactory implements
           }
           ASTNode b=m.getBody();
           E body=(b==null?null:b.apply(expr));
-          api.prog.add_function(program,m.getOrigin(),m.name,args,t,pres,posts,body);
+          api.prog.add_function(program,m.getOrigin(),m.name(),args,t,pres,posts,body);
           break;
         }
         case Predicate:{
@@ -273,7 +273,7 @@ public class VerCorsProgramFactory implements
           for(DeclarationStatement decl:m.getArgs()){
             args.add(new Triple<Origin,String,T>(decl.getOrigin(),decl.getName(),decl.getType().apply(type)));
           }
-          api.prog.add_predicate(program,m.getOrigin(),m.name,args,body);
+          api.prog.add_predicate(program,m.getOrigin(),m.name(),args,body);
           break;
         }
         default:
@@ -281,12 +281,12 @@ public class VerCorsProgramFactory implements
         }
       } else if (entry instanceof ASTClass){
         ASTClass cl=(ASTClass) entry;
-        if (cl.name.equals("Ref")&& cl.kind==ASTClass.ClassKind.Record){
+        if (cl.name().equals("Ref")&& cl.kind==ASTClass.ClassKind.Record){
           for(DeclarationStatement decl:cl.dynamicFields()){
             api.prog.add_field(program, decl.getOrigin(), decl.getName(), decl.getType().apply(type));
           }
         } else {
-          throw new HREError("bad class entry: %s",cl.name);
+          throw new HREError("bad class entry: %s",cl.name());
         }
       } else if (entry instanceof AxiomaticDataType) {
         AxiomaticDataType adt=(AxiomaticDataType)entry;
@@ -296,24 +296,24 @@ public class VerCorsProgramFactory implements
           for(DeclarationStatement decl:m.getArgs()){
             args.add(new Triple<Origin,String,T>(decl.getOrigin(),decl.getName(),decl.getType().apply(type)));
           }
-          funcs.add(api.prog.dfunc(m.getOrigin(),m.name, args,m.getReturnType().apply(type),adt.name));
+          funcs.add(api.prog.dfunc(m.getOrigin(), m.name(), args,m.getReturnType().apply(type), adt.name()));
         }
         for(Method m:adt.mappings()){
           List<Triple<Origin,String,T>> args=new ArrayList<Triple<Origin,String,T>>();
           for(DeclarationStatement decl:m.getArgs()){
             args.add(new Triple<Origin,String,T>(decl.getOrigin(),decl.getName(),decl.getType().apply(type)));
           }
-          funcs.add(api.prog.dfunc(m.getOrigin(),m.name, args,m.getReturnType().apply(type),adt.name));
+          funcs.add(api.prog.dfunc(m.getOrigin(), m.name(), args, m.getReturnType().apply(type), adt.name()));
         }
         ArrayList<DAxiom> axioms=new ArrayList<DAxiom>();
         for(Axiom axiom:adt.axioms()){
-          axioms.add(api.prog.daxiom(axiom.getOrigin(),axiom.name,axiom.rule().apply(expr),adt.name));
+          axioms.add(api.prog.daxiom(axiom.getOrigin(),axiom.name(), axiom.rule().apply(expr), adt.name()));
         }
         ArrayList<String> pars=new ArrayList<String>();
         for (DeclarationStatement decl : adt.parameters()) {
           pars.add(decl.getName());
         }
-        api.prog.add_adt(program,adt.getOrigin(),adt.name,funcs,axioms,pars);
+        api.prog.add_adt(program,adt.getOrigin(), adt.name(), funcs,axioms,pars);
       } else if(entry instanceof ASTSpecial){
         ASTSpecial s=(ASTSpecial)entry;
         switch(s.kind){

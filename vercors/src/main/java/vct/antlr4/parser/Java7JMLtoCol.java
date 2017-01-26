@@ -989,7 +989,7 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
       body=convert(ctx,i+4);
     }
     Method res=create.function_decl(returns, contract, name, args, body);
-    hre.lang.System.Debug("function %s, contract %s",res.name,res.getContract());
+    hre.lang.System.Debug("function %s, contract %s", res.name(), res.getContract());
     while(i0<i){
       //add modifiers as annotations.
       ASTNode mod=convert(ctx,i0);
@@ -1509,9 +1509,9 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
   @Override
   public ASTNode visitVariableDeclarator(VariableDeclaratorContext ctx) {
     if (match(ctx,null,"=",null)){
-      DeclarationStatement decl=(DeclarationStatement)convert(ctx,0);
+      DeclarationStatement decl = (DeclarationStatement)convert(ctx,0);
       ASTNode expr=convert(ctx,2);
-      return create.field_decl(decl.name,decl.getType(),expr);
+      return create.field_decl(decl.name(), decl.getType(), expr);
     }
     return null;
   }

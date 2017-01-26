@@ -147,7 +147,7 @@ public class SilverClassReduction extends AbstractRewriter {
   @Override
   public void visit(AxiomaticDataType adt){
     super.visit(adt);
-    if (adt.name.equals("TYPE")){
+    if (adt.name().equals("TYPE")){
       AxiomaticDataType res=(AxiomaticDataType)result;
       res.add_cons(create.function_decl(
           create.class_type("TYPE"),
@@ -211,7 +211,7 @@ public class SilverClassReduction extends AbstractRewriter {
     for(DeclarationStatement decl:cl.dynamicFields()){
       create.enter();
       create.setOrigin(decl.getOrigin());
-      DeclarationStatement res=create.field_decl(cl.name+SEP+decl.name,
+      DeclarationStatement res=create.field_decl(cl.name() + SEP + decl.name(),
           rewrite(decl.getType()),rewrite(decl.getInit()));
       create.leave();
       ref_class.add(res);
@@ -344,7 +344,7 @@ public class SilverClassReduction extends AbstractRewriter {
       //NameExpression f=create.field_name("A__x");
       //f.setSite(ref_class);
       for(DeclarationStatement field:cl.dynamicFields()){
-        args.add(create.dereference(create.class_type("Ref"),cl.name+SEP+field.name));
+        args.add(create.dereference(create.class_type("Ref"),cl.name() + SEP + field.name()));
       }
       result=create.expression(StandardOperator.NewSilver,args.toArray(new ASTNode[0]));
       break;
@@ -441,7 +441,7 @@ public class SilverClassReduction extends AbstractRewriter {
       for(ASTNode n:prelude){
         if (n instanceof AxiomaticDataType){
           AxiomaticDataType adt=(AxiomaticDataType)n;
-          switch(adt.name){
+          switch (adt.name()) {
           case "VCTOption":
             if (options) res.add(n);
             break;

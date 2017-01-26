@@ -81,7 +81,7 @@ public class SilverReorder extends AbstractRewriter {
   @Override
   public void visit(DeclarationStatement d){
     if (currentBlock!=null){
-      String name=d.name;
+      String name = d.name();
       count++;
       DeclarationStatement res=create.field_decl(
           name+"__"+count,
@@ -90,7 +90,7 @@ public class SilverReorder extends AbstractRewriter {
       Debug("mapping %s",name);
       locals.add(name,name+"__"+count);
       if (main_block!=null){
-        Debug("moving decl %s",d.name);
+        Debug("moving decl %s", d.name());
         main_block.prepend(res);
         result=null;
       } else {

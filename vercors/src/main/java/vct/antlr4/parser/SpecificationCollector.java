@@ -280,7 +280,7 @@ public class SpecificationCollector extends AbstractRewriter {
       super.visit(d);
     } else {
       Warning("fixing special %s",kind);
-      result=create.special(kind,create.unresolved_name(d.name));
+      result = create.special(kind, create.unresolved_name(d.name()));
     }
   }
 }

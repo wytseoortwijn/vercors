@@ -613,7 +613,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   
   @Override
   public void visit(AxiomaticDataType adt){
-    AxiomaticDataType res = create.adt(adt.name, rewrite(adt.parameters()));
+    AxiomaticDataType res = create.adt(adt.name(), rewrite(adt.parameters()));
     for (Method c : adt.constructors()) {
       res.add_cons(rewrite(c));
     }
@@ -627,7 +627,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   }
   
   public void visit(Axiom axiom){
-    result = create.axiom(axiom.name, rewrite(axiom.rule()));
+    result = create.axiom(axiom.name(), rewrite(axiom.rule()));
   }
   
   /*

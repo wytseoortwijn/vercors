@@ -48,8 +48,8 @@ public class LockEncoder extends AbstractRewriter {
 
   @Override
   public void visit(Method m){
-    if(m.name.equals(INV)){
-      currentTargetClass.add_dynamic(create.predicate(HELD,null));
+    if (m.name().equals(INV)) {
+      currentTargetClass.add_dynamic(create.predicate(HELD, null));
     }
     super.visit(m);
   }

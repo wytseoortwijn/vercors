@@ -35,13 +35,13 @@ public class InlineMethod extends Substitution {
     prefix="inline_"+count.incrementAndGet()+"_";
     DeclarationStatement decls[]=m.getArgs();
     for(int i=0;i<decls.length;i++){
-      tmp=create.field_decl(prefix+decls[i].name, copy_rw.rewrite(decls[i].getType()));
+      tmp=create.field_decl(prefix+decls[i].name(), copy_rw.rewrite(decls[i].getType()));
       OriginWrapper.wrap(null, tmp,branch);
       block.add(tmp);
-      tmp=create.assignment(create.local_name(prefix+decls[i].name), copy_rw.rewrite(args[i]));
+      tmp=create.assignment(create.local_name(prefix+decls[i].name()), copy_rw.rewrite(args[i]));
       OriginWrapper.wrap(null, tmp,branch);
       block.add(tmp);      
-      map.put(create.local_name(decls[i].name),create.local_name(prefix+decls[i].name));
+      map.put(create.local_name(decls[i].name()),create.local_name(prefix+decls[i].name()));
     }
     this.return_name=return_name;
     this.return_label=return_label;

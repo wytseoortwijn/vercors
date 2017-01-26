@@ -173,11 +173,11 @@ public class OpenMPtoPVL extends AbstractRewriter {
       if (tmp.isa(StandardOperator.PostIncr)||tmp.isa(StandardOperator.PreIncr)){
         Debug("increment found");
         tmp=((OperatorExpression)tmp).arg(0);
-        if (tmp.isName(decl.name)){
+        if (tmp.isName(decl.name())){
           Debug("match");
           ASTNode upper=((OperatorExpression)loop.getEntryGuard()).arg(1);
           return create.field_decl(
-              decl.name,
+              decl.name(),
               rewrite(decl.getType()),
               create.expression(StandardOperator.RangeSeq,
                   rewrite(decl.getInit()),
@@ -247,10 +247,10 @@ public class OpenMPtoPVL extends AbstractRewriter {
   
   @Override
   public void visit(Method m){
-    switch(m.name){
+    switch (m.name()) {
     case "omp_get_thread_num":
     case "omp_get_num_threads":
-      Warning("removing method %s",m.name);
+      Warning("removing method %s", m.name());
       return;
     default:
       super.visit(m);
@@ -379,7 +379,7 @@ public class OpenMPtoPVL extends AbstractRewriter {
       lo=rewrite(tmp.arg(1));
     } else if (init instanceof DeclarationStatement){
       DeclarationStatement tmp=(DeclarationStatement)init;
-      var_name=tmp.name;
+      var_name = tmp.name();
       lo=tmp.getInit();
     } else {
       Fail("missing case in for initialisation");
@@ -431,9 +431,9 @@ public class OpenMPtoPVL extends AbstractRewriter {
   }
 
   private ASTNode starall(DeclarationStatement range,ASTNode clause){
-    DeclarationStatement decl=create.field_decl(range.name,range.getType());
+    DeclarationStatement decl=create.field_decl(range.name(), range.getType());
     ASTNode guard=create.expression(StandardOperator.Member,
-        create.local_name(range.name),range.getInit());
+        create.local_name(range.name()),range.getInit());
     return create.starall(guard,clause,decl);
   }
 
@@ -613,7 +613,7 @@ return parts;
       ArrayList<ASTNode> dep_list=new ArrayList<ASTNode>();
       if(par.fused>0){
         dep_list.add(create.invokation(null,null,"omp_"+par.fused,
-            create.unresolved_name(par.decls[0].name)));
+            create.unresolved_name(par.decls[0].name())));
       } else {
         for(int no:par.preds){
           dep_list.add(create.unresolved_name("omp_"+no));

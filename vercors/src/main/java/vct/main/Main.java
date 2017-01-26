@@ -775,7 +775,7 @@ public class Main
           if (node instanceof ASTClass){
             PrintStream out;
             try {
-              out = new PrintStream(new FileOutputStream(new File(dir,((ASTClass)node).name+".java")));
+              out = new PrintStream(new FileOutputStream(new File(dir,((ASTClass)node).name() + ".java")));
             } catch (FileNotFoundException e) {
               report.add(new ExceptionMessage(e));
               return arg;

@@ -76,7 +76,7 @@ public class Method extends ASTDeclaration {
 
   public Kind getKind(){ return kind; }
     
-  public String getName(){ return name; }
+  public String getName(){ return name(); }
 
   public int getArity(){ return args.length; }
 
@@ -164,12 +164,12 @@ public class Method extends ASTDeclaration {
       }
     } else if(parent instanceof AxiomaticDataType) {
       AxiomaticDataType adt=(AxiomaticDataType)parent;
-      Debug("%s: computing substitution (%s)...",object_type.getOrigin(),adt.name);
+      Debug("%s: computing substitution (%s)...",object_type.getOrigin(), adt.name());
       DeclarationStatement decl[] = adt.parameters();
       for(int i=0;i<decl.length;i++){
         if (i<object_type.args.length){
-          Debug("%s -> %s",decl[i].name,(Type)object_type.args[i]);
-          map.put(decl[i].name,(Type)object_type.args[i]);          
+          Debug("%s -> %s",decl[i].name(), (Type)object_type.args[i]);
+          map.put(decl[i].name(), (Type)object_type.args[i]);          
         }
       }
     }
@@ -180,9 +180,9 @@ public class Method extends ASTDeclaration {
   public ClassName getDeclName() {
     ASTDeclaration parent=((ASTDeclaration)getParent());
     if (parent ==null || parent instanceof AxiomaticDataType){
-      return new ClassName(name);
+      return new ClassName(name());
     } else {
-      return new ClassName(parent.getDeclName(),name);
+      return new ClassName(parent.getDeclName(), name());
     }
   }
 
@@ -219,7 +219,7 @@ public class Method extends ASTDeclaration {
     HashSet<Method> scanned=new HashSet<Method>();
     boolean res=find(this,scanned,body);
     if (res){
-      Debug("function %s is recursive",name);
+      Debug("function %s is recursive", name());
     }
     return res;
   }

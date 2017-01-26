@@ -232,7 +232,7 @@ public class SilverExpressionMap<T,E> implements ASTMapping<E>{
         HashMap<String, T> dpars=new HashMap<String, T>();
         type.domain_type(dpars,(ClassType)e.object);
         //System.err.printf("%s expression type %s base %s%n",name,e.getType(),e.object);
-        return create.domain_call(o, name, args, dpars, rt, pars, adt.name);
+        return create.domain_call(o, name, args, dpars, rt, pars, adt.name());
       } else {
         
         ArrayList<Triple<Origin,String,T>> pars=new ArrayList<Triple<Origin,String,T>>();
@@ -342,7 +342,7 @@ public class SilverExpressionMap<T,E> implements ASTMapping<E>{
       for(int i=decls.length-1;i>=0;i--){
         res=create.let(
             o,
-            decls[i].name,
+            decls[i].name(),
             decls[i].getType().apply(type),
             decls[i].getInit().apply(this),
             res

@@ -76,12 +76,12 @@ public class NameScanner extends RecursiveVisitor<Object> {
     }
     if (init instanceof DeclarationStatement){
       DeclarationStatement decl=(DeclarationStatement)init;
-      Type old=vars.get(decl.name);
+      Type old=vars.get(decl.name());
       safe_decls.add(decl);
       super.visit(s);
-      vars.remove(decl.name);
+      vars.remove(decl.name());
       if(old!=null){
-        vars.put(decl.name,old);
+        vars.put(decl.name(), old);
       }
     } else {
       super.visit(s);
@@ -91,12 +91,12 @@ public class NameScanner extends RecursiveVisitor<Object> {
   public void visit(BindingExpression e){
     if (e.getDeclCount()==1){
       DeclarationStatement decl=e.getDeclaration(0);
-      Type old=vars.get(decl.name);
+      Type old=vars.get(decl.name());
       safe_decls.add(decl);
       super.visit(e);
-      vars.remove(decl.name);
+      vars.remove(decl.name());
       if(old!=null){
-        vars.put(decl.name,old);
+        vars.put(decl.name(), old);
       }      
     } else {
       Abort("missing case in free variable detection");
@@ -105,7 +105,7 @@ public class NameScanner extends RecursiveVisitor<Object> {
   public void visit(ForEachLoop s){
     Type old[]=new Type[s.decls.length];
     for(int i=0;i<s.decls.length;i++){
-      old[i]=vars.get(s.decls[i].name);
+      old[i] = vars.get(s.decls[i].name());
       safe_decls.add(s.decls[i]);
     }
     super.visit(s);
@@ -113,9 +113,9 @@ public class NameScanner extends RecursiveVisitor<Object> {
     if (s.get_after()!=null) s.get_after().accept(this);
     auto_before_after=false;
     for(int i=0;i<s.decls.length;i++){
-      vars.remove(s.decls[i].name);
+      vars.remove(s.decls[i].name());
       if(old[i]!=null){
-        vars.put(s.decls[i].name,old[i]);
+        vars.put(s.decls[i].name(), old[i]);
       }      
     }
   }
@@ -124,26 +124,26 @@ public class NameScanner extends RecursiveVisitor<Object> {
   public void visit(ParallelBlock pb){
     Type oldi[]=new Type[pb.iters.length];
     for(int i=0;i<pb.iters.length;i++){
-      oldi[i]=vars.get(pb.iters[i].name);
+      oldi[i] = vars.get(pb.iters[i].name());
       safe_decls.add(pb.iters[i]);
     }
     super.visit(pb);
     auto_before_after=false;
     for(int i=0;i<pb.iters.length;i++){
-      vars.remove(pb.iters[i].name);
+      vars.remove(pb.iters[i].name());
       if(oldi[i]!=null){
-        vars.put(pb.iters[i].name,oldi[i]);
+        vars.put(pb.iters[i].name(), oldi[i]);
       }      
     }
   }
   @Override
   public void visit(VectorBlock pb){
-    Type old = vars.get(pb.iter().name);
+    Type old = vars.get(pb.iter().name());
     safe_decls.add(pb.iter());
     super.visit(pb);
-    vars.remove(pb.iter().name);
+    vars.remove(pb.iter().name());
     if (old != null){
-      vars.put(pb.iter().name,old);
+      vars.put(pb.iter().name(), old);
     }      
   }
 
@@ -156,9 +156,9 @@ public class NameScanner extends RecursiveVisitor<Object> {
       ASTNode s=b.get(i);
       if (s instanceof DeclarationStatement){
         DeclarationStatement decl=(DeclarationStatement)s;
-        Type old=vars.get(decl.name);
-        saved_names.add(decl.name);
-        if (old!=null) saved_vars.put(decl.name, old);
+        Type old=vars.get(decl.name());
+        saved_names.add(decl.name());
+        if (old!=null) saved_vars.put(decl.name(), old);
         safe_decls.add(decl);
       }
       s.accept(this);

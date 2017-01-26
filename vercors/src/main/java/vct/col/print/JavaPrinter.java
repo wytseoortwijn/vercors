@@ -75,7 +75,7 @@ public class JavaPrinter extends AbstractPrinter {
   
   @Override
   public void visit(NameSpace ns){
-    if(!ns.name.equals(NameSpace.NONAME)){
+    if (!ns.name().equals(NameSpace.NONAME)) {
       out.printf("package %s;",ns.getDeclName().toString("."));
       out.println("");
     } else {
@@ -139,17 +139,17 @@ public class JavaPrinter extends AbstractPrinter {
    
   @Override 
   public void visit(Axiom axiom){
-    out.printf("axioms %s: ", axiom.name);
+    out.printf("axioms %s: ", axiom.name());
     axiom.rule().accept(this);
     out.println(";");
   }
 
   @Override
   public void visit(AxiomaticDataType adt){
-    out.printf("ADT %s [",adt.name);
+    out.printf("ADT %s [", adt.name());
     String sep="";
     for (DeclarationStatement d : adt.parameters()) {
-      out.printf("%s%s",sep,d.name);
+      out.printf("%s%s", sep, d.name());
       sep=", ";
     }
     out.println("] {");
@@ -572,7 +572,7 @@ public class JavaPrinter extends AbstractPrinter {
       for(DeclarationStatement d:cl.parameters){
         out.print(sep);
         if(d.getType().isPrimitive(Sort.Class)){
-          out.print(d.name);
+          out.print(d.name());
         } else {
           d.accept(this);
         }

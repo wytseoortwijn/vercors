@@ -123,7 +123,7 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       e.setType(t);
       int N=m.getArity();
       if (e.getArity()!=N){
-        Fail("different number of arguments for %s (%d instead of %d)",m.name,e.getArity(),N);
+        Fail("different number of arguments for %s (%d instead of %d)", m.name(), e.getArity(), N);
       }
       for(int i=0;i<N;i++){
         Type ti=m.getArgType(i);
@@ -323,7 +323,7 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
         if (m.kind==Method.Kind.Pure){
           for(ASTNode clause:ASTUtils.conjuncts(contract.post_condition, StandardOperator.Star)){
             if (!clause.getType().isPrimitive(Sort.Boolean)){
-              clause.getOrigin().report("error","post condition of function "+m.name+" is not a boolean");
+              clause.getOrigin().report("error","post condition of function " + m.name() + " is not a boolean");
               Fail("type error");
             }
           }
