@@ -15,16 +15,16 @@ class IfStatement extends ASTNode with VisitorHelper  {
   def getGuard(i:Int) = cases.apply(i)._1
   def getStatement(i:Int) = cases.apply(i)._2
   
-  def addClause(guard:ASTNode, stmt:ASTNode) : Unit = {
-    stmt.setParent(this)
-    if (guard != IfStatement.elseGuard) guard.setParent(this)
-    cases += new Tuple2(guard, stmt)
-  }
-  
   def this(cond:ASTNode, truebranch:ASTNode, falsebranch:ASTNode) = {
     this()
     addClause(cond, truebranch)
     if (falsebranch != null) addClause(IfStatement.elseGuard, falsebranch)
+  }
+  
+  def addClause(guard:ASTNode, stmt:ASTNode) : Unit = {
+    stmt.setParent(this)
+    if (guard != IfStatement.elseGuard) guard.setParent(this)
+    cases += new Tuple2(guard, stmt)
   }
   
   override def accept_simple[T,A](m:ASTMapping1[T,A], arg:A) = m.map(this, arg)
