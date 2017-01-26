@@ -133,8 +133,8 @@ public class Flatten extends AbstractRewriter {
     } else {
       throw new Error("type AST rewrote to non-type AST");
     }
-    String name=s.getName();
-    ASTNode init=s.getInit();
+    String name = s.name();
+    ASTNode init = s.init();
     if (init!=null) {
       if (current_block==null){
         Abort("internal error: current block is null");

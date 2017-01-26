@@ -212,7 +212,7 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
           }
         }
         for(DeclarationStatement m:cl.dynamicFields()){
-          hist_class.add_dynamic(create.field_decl(m.name() + "_hist_value",m.getType(),rewrite(m.getInit())));
+          hist_class.add_dynamic(create.field_decl(m.name() + "_hist_value",m.getType(),rewrite(m.init())));
           hist_class.add_dynamic(create.field_decl(m.name() + "_hist_init",m.getType()));
           hist_class.add_dynamic(create.field_decl(m.name() + "_hist_act",m.getType()));
           hist_class.add_dynamic(create.field_decl(m.name() + "_hist_write",m.getType()));
@@ -601,9 +601,9 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
       Substitution sigma=new Substitution(source(),map);
       for(DeclarationStatement decl:cl.dynamicFields()){
         props.add(create.expression(StandardOperator.Perm,
-            create.dereference(data,decl.getName()+"_hist_init"),full));
-        map.put(create.field_name(decl.getName()),
-            create.dereference(data,decl.getName()+"_hist_init"));
+            create.dereference(data,decl.name() + "_hist_init"),full));
+        map.put(create.field_name(decl.name()),
+            create.dereference(data,decl.name() + "_hist_init"));
       }
       props.add(rewrite(sigma.rewrite(e.arg(1))));
       result=create.fold(StandardOperator.Star,props);

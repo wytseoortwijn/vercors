@@ -329,7 +329,7 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
         tmp=create.field_decl(name,create.class_type(name));
       } else if (vars[i] instanceof DeclarationStatement) {
         DeclarationStatement d=(DeclarationStatement)vars[i];
-        tmp=create.field_decl(d.getName(),d.getType(),d.getInit());
+        tmp = create.field_decl(d.name(), d.getType(), d.init());
       } else {
         throw hre.lang.System.Failure("unexpected %s in variable list at %s",vars[i].getClass(),create.getOrigin());
       }

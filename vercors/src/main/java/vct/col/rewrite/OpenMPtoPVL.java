@@ -180,7 +180,7 @@ public class OpenMPtoPVL extends AbstractRewriter {
               decl.name(),
               rewrite(decl.getType()),
               create.expression(StandardOperator.RangeSeq,
-                  rewrite(decl.getInit()),
+                  rewrite(decl.init()),
                   rewrite(upper)
               )
           );
@@ -380,7 +380,7 @@ public class OpenMPtoPVL extends AbstractRewriter {
     } else if (init instanceof DeclarationStatement){
       DeclarationStatement tmp=(DeclarationStatement)init;
       var_name = tmp.name();
-      lo=tmp.getInit();
+      lo=tmp.init();
     } else {
       Fail("missing case in for initialisation");
     }
@@ -433,7 +433,7 @@ public class OpenMPtoPVL extends AbstractRewriter {
   private ASTNode starall(DeclarationStatement range,ASTNode clause){
     DeclarationStatement decl=create.field_decl(range.name(), range.getType());
     ASTNode guard=create.expression(StandardOperator.Member,
-        create.local_name(range.name()),range.getInit());
+        create.local_name(range.name()),range.init());
     return create.starall(guard,clause,decl);
   }
 

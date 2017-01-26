@@ -246,13 +246,13 @@ public class KernelRewriter extends AbstractRewriter {
       }
       ASTClass res=create.ast_class(cl.getName(), ASTClass.ClassKind.Plain,null, null, null);
       for (DeclarationStatement global:cl.staticFields()){
-        globals.add(global.getName());
-        kernel_main_invariant.add(create.expression(StandardOperator.Value,create.field_name(global.getName())));
-        base_inv.add(create.expression(StandardOperator.Value,create.field_name(global.getName())));
+        globals.add(global.name());
+        kernel_main_invariant.add(create.expression(StandardOperator.Value,create.field_name(global.name())));
+        base_inv.add(create.expression(StandardOperator.Value,create.field_name(global.name())));
         Type t=global.getType();
         if (t.isPrimitive(Sort.Array)){
           ASTNode tmp=create.expression(StandardOperator.EQ,
-              create.dereference(create.field_name(global.getName()),"length"),
+              create.dereference(create.field_name(global.name()),"length"),
               rewrite(t.getArg(1))
           );
           kernel_main_invariant.add(tmp);
@@ -261,18 +261,18 @@ public class KernelRewriter extends AbstractRewriter {
         } else {
           t=rewrite(t);
         }
-        constraint.add(create.expression(StandardOperator.EQ,create.field_name(global.getName()),
-            create.expression(StandardOperator.Old,create.field_name(global.getName()))));
-        res.add_dynamic(create.field_decl(global.getName(), t));
+        constraint.add(create.expression(StandardOperator.EQ,create.field_name(global.name()),
+            create.expression(StandardOperator.Old,create.field_name(global.name()))));
+        res.add_dynamic(create.field_decl(global.name(), t));
       }
       for (DeclarationStatement local:cl.dynamicFields()){
-        locals.add(local.getName());
-        kernel_main_invariant.add(create.expression(StandardOperator.Value,create.field_name(local.getName())));
-        base_inv.add(create.expression(StandardOperator.Value,create.field_name(local.getName())));
+        locals.add(local.name());
+        kernel_main_invariant.add(create.expression(StandardOperator.Value,create.field_name(local.name())));
+        base_inv.add(create.expression(StandardOperator.Value,create.field_name(local.name())));
         Type t=local.getType();
         if (t.isPrimitive(Sort.Array)){
           ASTNode tmp=create.expression(StandardOperator.EQ,
-              create.dereference(create.field_name(local.getName()),"length"),
+              create.dereference(create.field_name(local.name()),"length"),
               rewrite(t.getArg(1))
           );
           kernel_main_invariant.add(tmp);
@@ -281,9 +281,9 @@ public class KernelRewriter extends AbstractRewriter {
         } else {
           t=rewrite(t);
         }
-        constraint.add(create.expression(StandardOperator.EQ,create.field_name(local.getName()),
-            create.expression(StandardOperator.Old,create.field_name(local.getName()))));
-        res.add_dynamic(create.field_decl(local.getName(), t));
+        constraint.add(create.expression(StandardOperator.EQ,create.field_name(local.name()),
+            create.expression(StandardOperator.Old,create.field_name(local.name()))));
+        res.add_dynamic(create.field_decl(local.name(), t));
       }
       for (Method m:cl.dynamicMethods()){
         if (m.getKind()==Method.Kind.Predicate){
@@ -349,7 +349,7 @@ public class KernelRewriter extends AbstractRewriter {
           if (s instanceof DeclarationStatement){
             DeclarationStatement d=(DeclarationStatement)s;
             private_decls.add(d);
-            private_args.add(create.local_name(d.getName()));
+            private_args.add(create.local_name(d.name()));
           }
         }
         BlockStatement save_block=currentBlock;

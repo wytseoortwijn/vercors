@@ -200,7 +200,7 @@ class MatchLinear implements ASTMapping1<Boolean,ASTNode> {
   public Boolean map(BindingExpression e, ASTNode a) {
     if (e.getDeclCount()!=1) throw new HREError("binders must declare precisely one variable");
     DeclarationStatement decl=e.getDeclaration(0);
-    String name=decl.getName();
+    String name=decl.name();
     Ref<ASTNode> ref=match.get(name);
     if(ref==null){
       throw new HREError("bound variable must be a matched variable");
@@ -438,12 +438,12 @@ class MatchSubstitution extends AbstractRewriter {
       } else {
         dref=(DeclarationStatement)ref.get();
       }
-      decls[i]=create.field_decl(dref.name(), rewrite(dref.getType()),rewrite(decls[i].getInit()));
+      decls[i]=create.field_decl(dref.name(), rewrite(dref.getType()), rewrite(decls[i].init()));
     }
     if (e.binder==BindingExpression.Binder.LET){
       HashMap<NameExpression, ASTNode> map=new HashMap<NameExpression, ASTNode>();
       for(int i=0;i<decls.length;i++){
-        map.put(create.local_name(decls[i].name()),rewrite(decls[i].getInit()));
+        map.put(create.local_name(decls[i].name()), rewrite(decls[i].init()));
       }
       Substitution sigma=new Substitution(source(),map);
       ASTNode tmp=rewrite(e.main);
@@ -526,7 +526,7 @@ public class RewriteSystem {
     for(ASTNode d:pu.find(sys)){
       if(d instanceof DeclarationStatement){
         DeclarationStatement decl=(DeclarationStatement)d;
-        String name=decl.getName();
+        String name = decl.name();
         //Warning("variable %s",name);
         vars.add(name);
       }

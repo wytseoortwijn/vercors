@@ -247,7 +247,7 @@ public class VerCorsProgramFactory implements
         case Pure:{
           ArrayList<Triple<Origin,String,T>> args=new ArrayList<Triple<Origin,String,T>>();
           for(DeclarationStatement decl:m.getArgs()){
-            args.add(new Triple<Origin,String,T>(decl.getOrigin(),decl.getName(),decl.getType().apply(type)));
+            args.add(new Triple<Origin,String,T>(decl.getOrigin(),decl.name(),decl.getType().apply(type)));
           }
           T t=m.getReturnType().apply(type);
           ArrayList<E> pres=new ArrayList<E>();
@@ -271,7 +271,7 @@ public class VerCorsProgramFactory implements
           E body=(b==null?null:b.apply(expr));
           ArrayList<Triple<Origin,String,T>> args=new ArrayList<Triple<Origin,String,T>>();
           for(DeclarationStatement decl:m.getArgs()){
-            args.add(new Triple<Origin,String,T>(decl.getOrigin(),decl.getName(),decl.getType().apply(type)));
+            args.add(new Triple<Origin,String,T>(decl.getOrigin(),decl.name(),decl.getType().apply(type)));
           }
           api.prog.add_predicate(program,m.getOrigin(),m.name(),args,body);
           break;
@@ -283,7 +283,7 @@ public class VerCorsProgramFactory implements
         ASTClass cl=(ASTClass) entry;
         if (cl.name().equals("Ref")&& cl.kind==ASTClass.ClassKind.Record){
           for(DeclarationStatement decl:cl.dynamicFields()){
-            api.prog.add_field(program, decl.getOrigin(), decl.getName(), decl.getType().apply(type));
+            api.prog.add_field(program, decl.getOrigin(), decl.name(), decl.getType().apply(type));
           }
         } else {
           throw new HREError("bad class entry: %s",cl.name());
@@ -294,14 +294,14 @@ public class VerCorsProgramFactory implements
         for(Method m:adt.constructors()){
           List<Triple<Origin,String,T>> args=new ArrayList<Triple<Origin,String,T>>();
           for(DeclarationStatement decl:m.getArgs()){
-            args.add(new Triple<Origin,String,T>(decl.getOrigin(),decl.getName(),decl.getType().apply(type)));
+            args.add(new Triple<Origin,String,T>(decl.getOrigin(),decl.name(),decl.getType().apply(type)));
           }
           funcs.add(api.prog.dfunc(m.getOrigin(), m.name(), args,m.getReturnType().apply(type), adt.name()));
         }
         for(Method m:adt.mappings()){
           List<Triple<Origin,String,T>> args=new ArrayList<Triple<Origin,String,T>>();
           for(DeclarationStatement decl:m.getArgs()){
-            args.add(new Triple<Origin,String,T>(decl.getOrigin(),decl.getName(),decl.getType().apply(type)));
+            args.add(new Triple<Origin,String,T>(decl.getOrigin(),decl.name(),decl.getType().apply(type)));
           }
           funcs.add(api.prog.dfunc(m.getOrigin(), m.name(), args, m.getReturnType().apply(type), adt.name()));
         }
@@ -311,7 +311,7 @@ public class VerCorsProgramFactory implements
         }
         ArrayList<String> pars=new ArrayList<String>();
         for (DeclarationStatement decl : adt.parameters()) {
-          pars.add(decl.getName());
+          pars.add(decl.name());
         }
         api.prog.add_adt(program,adt.getOrigin(), adt.name(), funcs,axioms,pars);
       } else if(entry instanceof ASTSpecial){
@@ -342,7 +342,7 @@ public class VerCorsProgramFactory implements
     int N=block.getLength();
     while(i<N && (block.get(i) instanceof DeclarationStatement)){
       DeclarationStatement decl=(DeclarationStatement)block.get(i);
-      locals.add(new Triple<Origin, String, T>(decl.getOrigin(),decl.getName(),decl.getType().apply(type)));
+      locals.add(new Triple<Origin, String, T>(decl.getOrigin(),decl.name(),decl.getType().apply(type)));
       i=i+1;
     }
     for(;i<N;i++){

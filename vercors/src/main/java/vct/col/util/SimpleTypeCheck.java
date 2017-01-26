@@ -290,7 +290,7 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
   public void visit(DeclarationStatement s){
     super.visit(s);
     Type t=s.getType();
-    ASTNode e=s.getInit();
+    ASTNode e = s.init();
     if (e!=null) {
       check_loc_val(t,e);
     }
@@ -511,7 +511,7 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       ASTClass cl=source().find((ClassType)t);
       variables.enter();
       for(DeclarationStatement decl:cl.dynamicFields()){
-        variables.add(decl.getName(),new VariableInfo(decl,Kind.Local));
+        variables.add(decl.name(), new VariableInfo(decl, Kind.Local));
       }
       e.arg(1).accept(this);
       t=e.arg(1).getType();
@@ -1405,7 +1405,7 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
     if (!pb.iter().getType().isPrimitive(Sort.Integer)) {
       Fail("type of iteration variable must be integer");
     }
-    ASTNode init = pb.iter().getInit();
+    ASTNode init = pb.iter().init();
     if (!init.isa(StandardOperator.RangeSeq)){
       Fail("value for iteration variable must be a range");
     }
@@ -1420,7 +1420,7 @@ public class SimpleTypeCheck extends RecursiveVisitor<Type> {
       if (!decl.getType().isPrimitive(Sort.Integer)){
         Fail("type of iteration variable must be integer");
       }
-      ASTNode init=decl.getInit();
+      ASTNode init=decl.init();
       if (!init.isa(StandardOperator.RangeSeq)){
         Fail("value for iteration variable must be a range");
       }

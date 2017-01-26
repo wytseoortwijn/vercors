@@ -73,9 +73,9 @@ public abstract class GlobalizeStatics extends AbstractRewriter {
     if (prefix!=null){
       String save=prefix;
       prefix=null;
-      result=create.field_decl(save+"_"+s.getName(),
+      result=create.field_decl(save + "_" + s.name(),
            rewrite(s.getType()), 
-           rewrite(s.getInit()));
+           rewrite(s.init()));
       prefix=save;
     } else {
       super.visit(s);

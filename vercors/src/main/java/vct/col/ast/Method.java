@@ -80,7 +80,7 @@ public class Method extends ASTDeclaration {
 
   public int getArity(){ return args.length; }
 
-  public String getArgument(int i){ return args[i].getName(); }
+  public String getArgument(int i){ return args[i].name(); }
 
   public Type getArgType(int i){ return args[i].getType(); }
 
@@ -156,10 +156,10 @@ public class Method extends ASTDeclaration {
       Debug("building map...");
       for(int i=0;i<c.given.length&&i<object_type.args.length;i++){
         if (c.given[i].getType().isPrimitive(Sort.Class)){
-          Debug("%s = %s",c.given[i].getName(),object_type.args[i]);
-          map.put(c.given[i].getName(),(Type)object_type.args[i]);
+          Debug("%s = %s", c.given[i].name(), object_type.args[i]);
+          map.put(c.given[i].name(), (Type)object_type.args[i]);
         } else {
-          Debug("skipping %s",c.given[i].getName());
+          Debug("skipping %s", c.given[i].name());
         }
       }
     } else if(parent instanceof AxiomaticDataType) {

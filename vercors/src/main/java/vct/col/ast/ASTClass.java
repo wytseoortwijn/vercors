@@ -334,14 +334,14 @@ public class ASTClass extends ASTDeclaration implements ASTSequence<ASTClass> {
     for(ASTNode n:list){
       if (n instanceof DeclarationStatement){
         DeclarationStatement d=(DeclarationStatement)n;
-        if (d.getName().equals(name)){
+        if (d.name().equals(name)) {
           return d;
         } else {
-          Debug("skipping field "+d.getName());
+          Debug("skipping field " + d.name());
         }
       }
-      if (n instanceof Method){
-        Method m=(Method)n;
+      if (n instanceof Method) {
+        Method m = (Method)n;
         Debug("skipping method "+m.getName());
       }
     }
@@ -366,7 +366,7 @@ public class ASTClass extends ASTDeclaration implements ASTSequence<ASTClass> {
     if (temp!=null) return temp;
     if (contract!=null){
       for(DeclarationStatement tmp : contract.given){
-         if(tmp.getName().equals(name)) return tmp;
+         if (tmp.name().equals(name)) return tmp;
       }
     }
     if (!recursive) return temp;

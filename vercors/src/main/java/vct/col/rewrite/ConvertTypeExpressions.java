@@ -37,7 +37,7 @@ public class ConvertTypeExpressions extends AbstractRewriter {
         Fail("cannot deal with type operator %s", e.operator());
       }
     }
-    DeclarationStatement res=create.field_decl(d.name(), rewrite(t), rewrite(d.getInit()));
+    DeclarationStatement res=create.field_decl(d.name(), rewrite(t), rewrite(d.init()));
     if (extern){
       res.setFlag(ASTFlags.EXTERN,true);
     }

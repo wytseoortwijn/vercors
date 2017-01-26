@@ -27,7 +27,7 @@ public class GhostLifter extends AbstractRewriter {
       }
       cb.requires(rewrite(c.pre_condition));
       for(DeclarationStatement arg:c.yields){
-        ASTNode init=rewrite(arg.getInit());
+        ASTNode init=rewrite(arg.init());
         if (init!=null){
           yielded.put(arg.name(), init);
         }
@@ -106,7 +106,7 @@ public class GhostLifter extends AbstractRewriter {
       if(c.given!=null) for(DeclarationStatement decl:c.given){
         ASTNode arg = arg_map.get(decl.name());
         if (arg==null){
-          arg=rewrite(decl.getInit());
+          arg=rewrite(decl.init());
         }
         if (arg==null){
           System.err.printf("key set %s%n",arg_map.keySet());

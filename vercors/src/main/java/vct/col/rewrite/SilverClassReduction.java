@@ -212,7 +212,7 @@ public class SilverClassReduction extends AbstractRewriter {
       create.enter();
       create.setOrigin(decl.getOrigin());
       DeclarationStatement res=create.field_decl(cl.name() + SEP + decl.name(),
-          rewrite(decl.getType()),rewrite(decl.getInit()));
+          rewrite(decl.getType()), rewrite(decl.init()));
       create.leave();
       ref_class.add(res);
     }
@@ -416,7 +416,7 @@ public class SilverClassReduction extends AbstractRewriter {
       }
       in_ensures=false;
       if (c.signals!=null) for(DeclarationStatement decl:c.signals){
-        cb.signals((ClassType)rewrite(decl.getType()),decl.getName(),rewrite(decl.getInit()));      
+        cb.signals((ClassType)rewrite(decl.getType()),decl.name(),rewrite(decl.init()));      
       }
     }
     Method.Kind kind=m.kind;

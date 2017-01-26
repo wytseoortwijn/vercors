@@ -219,7 +219,7 @@ public class CMLtoCOL extends ANTLRtoCOL implements CMLVisitor<ASTNode> {
         } else if (decls[i] instanceof OperatorExpression){
           OperatorExpression e=(OperatorExpression)decls[i];
           DeclarationStatement d=(DeclarationStatement)e.arg(0);
-          res.add(create.field_decl(d.getName(),d.getType(),e.arg(1)));
+          res.add(create.field_decl(d.name(),d.getType(),e.arg(1)));
         } else {
           return null;
         }
@@ -421,7 +421,7 @@ public class CMLtoCOL extends ANTLRtoCOL implements CMLVisitor<ASTNode> {
       DeclarationStatement d=(DeclarationStatement)convert(ctx,0);
       Type t=d.getType();
       t=create.primitive_type(PrimitiveType.Sort.Array,t);
-      return create.field_decl(d.getName(),t);
+      return create.field_decl(d.name(), t);
     }
     int N=ctx.getChildCount();
     if (match(0,true,ctx,null,"[") && match(N-1,false,ctx,"]")){
@@ -431,7 +431,7 @@ public class CMLtoCOL extends ANTLRtoCOL implements CMLVisitor<ASTNode> {
         hre.lang.System.Warning("ignoring %d modifiers in declaration",N-4);
       }
       t=create.primitive_type(PrimitiveType.Sort.Array,t,convert(ctx,N-2));
-      return create.field_decl(d.getName(),t);
+      return create.field_decl(d.name(), t);
     }
     return null;
   }

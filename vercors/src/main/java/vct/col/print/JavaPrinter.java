@@ -497,10 +497,10 @@ public class JavaPrinter extends AbstractPrinter {
       if (i>0) out.printf(",");
       DeclarationStatement decl=e.getDeclaration(i);
       decl.getType().accept(this);
-      out.printf(" %s",decl.getName());
-      if (decl.getInit()!=null){
+      out.printf(" %s", decl.name());
+      if (decl.init() != null) {
         out.printf("= ");
-        decl.getInit().accept(this);
+        decl.init().accept(this);
       }
     }
     if (e.triggers!=null){
@@ -644,9 +644,9 @@ public class JavaPrinter extends AbstractPrinter {
       for (DeclarationStatement d:contract.signals){
         out.printf("signals (");
         d.getType().accept(this);
-        out.printf(" %s) ",d.getName());
+        out.printf(" %s) ",d.name());
         nextExpr();
-        d.getInit().accept(this);
+        d.init().accept(this);
         out.lnprintf(";");
       }      
       if (contract.modifies!=null){
@@ -685,10 +685,10 @@ public class JavaPrinter extends AbstractPrinter {
   }
 
   public void visit(DeclarationStatement s){
-    ASTNode expr=s.getInit();
+    ASTNode expr = s.init();
     nextExpr();
     s.getType().accept(this);
-    out.printf(" %s",s.getName());
+    out.printf(" %s", s.name());
     if (expr!=null){
       out.printf("=");
       nextExpr();
@@ -1363,7 +1363,7 @@ public class JavaPrinter extends AbstractPrinter {
       if (dd instanceof DeclarationStatement){
         DeclarationStatement d = (DeclarationStatement)dd;
         d.getType().accept(this);
-        ASTNode init=d.getInit();
+        ASTNode init = d.init();
         if (init!=null){
           out.print("=");
           init.accept(this);

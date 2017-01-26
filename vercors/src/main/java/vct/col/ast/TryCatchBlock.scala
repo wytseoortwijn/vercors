@@ -4,11 +4,32 @@ import scala.collection.JavaConverters._
 import scala.collection.mutable.ArrayBuffer
 import vct.col.util.VisitorHelper
 
+/**
+ * AST node that represents a try-catch-finally block.
+ * 
+ * @param main The body of the "try" clause.
+ * @param after The body of the "finally" clause.
+ * @param _catches An (ordered) list of "catch" clauses.
+ */
 class TryCatchBlock(val main:BlockStatement, val after:BlockStatement, private[this] val _catches:ArrayBuffer[CatchClause]) extends ASTNode with VisitorHelper {
+  /**
+   * Initialises a try-catch-finally block without any catch clauses.
+   * 
+   * @param main The body of the "try" clause.
+   * @param after The body of the "finally" clause.
+   */
   def this(main:BlockStatement, after:BlockStatement) = this(main, after, new ArrayBuffer[CatchClause]())
   
+  /** Yields the catch clauses attached to this try-catch-block as an Java iterator. */
   def catches = _catches.toIterable.asJava
   
+  /**
+   * Adds a catch clause (i.e. an exception handler) to this try-catch-block AST node,
+   * for example, {@code catch (ExceptionType e) { S }}.
+   * 
+   * @param decl The declaration that determines the exception type to handle (e.g. {@code (ExceptionType e)}).
+   * @param block The body statement block of the catch clause (e.g. {@code { S }}).
+   */
   def catch_clause(decl:DeclarationStatement, block:BlockStatement) : Unit =
     _catches += new CatchClause(decl, block)
 

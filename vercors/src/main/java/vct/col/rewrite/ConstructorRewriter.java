@@ -62,7 +62,7 @@ public class ConstructorRewriter extends AbstractRewriter {
       for(DeclarationStatement field:((ASTClass)m.getParent()).dynamicFields()){
         cb.requires(create.expression(
             StandardOperator.Perm,
-            create.field_name(field.getName()),
+            create.field_name(field.name()),
             create.constant(100)
         ));
       }

@@ -24,7 +24,7 @@ public class GenericPass1 extends AbstractRewriter {
     }
     for(DeclarationStatement decl:c.given){
       if (decl.getType().isPrimitive(Sort.Class)){
-        map.put(decl.getName(),(Type)decl.getInit());
+        map.put(decl.name(), (Type)decl.init());
       }
     }
     super.visit(cl);
@@ -97,7 +97,7 @@ public class GenericPass1 extends AbstractRewriter {
       args[i]=rewrite(old_args[i]);
       if (old_args[i].getType().getArgCount()>0 ||!args[i].getType().equals(old_args[i].getType())){
         cb.requires(create.expression(StandardOperator.Instance,
-            create.local_name(old_args[i].getName()),
+            create.local_name(old_args[i].name()),
             copy_rw.rewrite(old_args[i].getType())
     ));     
         

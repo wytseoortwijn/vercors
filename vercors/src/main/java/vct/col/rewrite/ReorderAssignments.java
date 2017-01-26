@@ -19,7 +19,7 @@ public class ReorderAssignments extends AbstractRewriter {
     for(int i=0;i<N;i++){
       if (s.getStatement(i) instanceof DeclarationStatement){
         DeclarationStatement decl=(DeclarationStatement)s.getStatement(i);
-        String name=decl.getName();
+        String name = decl.name();
         if (names.contains(name)){
           Abort("variable %s was declared twice",name);
         }
