@@ -741,7 +741,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
       BlockStatement block=currentBlock;
       currentBlock=tmp;
       post_visit(cc.block());
-      res.catch_clause(d,block);
+      res.addCatchClause(d, block);
     }
     result=res;
   }

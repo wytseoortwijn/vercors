@@ -1386,7 +1386,7 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
           String name=getIdentifier(clause, 3);
           BlockStatement block=(BlockStatement)convert(clause,5);
           DeclarationStatement decl=create.field_decl(name, type);
-          res.catch_clause(decl,block);
+          res.addCatchClause(decl, block);
         } else {
           return null;
         }
