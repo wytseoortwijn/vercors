@@ -2,10 +2,17 @@ package vct.col.ast
 
 import vct.col.util.VisitorHelper
 
-class TupleType(private[this] val _types:Seq[Type]) extends Type with VisitorHelper {
-  val types = _types.toArray
+/**
+ * AST node that represents the type of tuples, or actually {@code n}-tuples 
+ * with types "{@code (T_1 * ... * T_n)}".
+ * 
+ * @param _types The list of types that constitutes the tuple type.
+ */
+class TupleType(private[this] val _types:Array[Type]) extends Type with VisitorHelper {
+  /** The list of types that constitutes the type of the tuple. */
+  val types = _types.clone()
   
-  def this(_types:Array[Type]) = this(_types.toSeq)
+  /** Yields the type "{@code T_i}" of the {@code i}-th element of tuples of "this" type. */
   def `type`(i:Int) = types.apply(i)
 
   override def supertypeof(context:ProgramUnit, t:Type) = false

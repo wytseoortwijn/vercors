@@ -20,7 +20,7 @@ class TryCatchBlock(val main:BlockStatement, val after:BlockStatement, private[t
    */
   def this(main:BlockStatement, after:BlockStatement) = this(main, after, new ArrayBuffer[CatchClause]())
   
-  /** Yields the catch-clauses attached to this try-catch-block as an Java iterator. */
+  /** Yields the catch-clauses attached to this try-catch-block as a Java iterator. */
   def catches = catchClauses.toIterable.asJava
   
   /**
