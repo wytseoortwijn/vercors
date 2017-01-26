@@ -109,10 +109,10 @@ public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
 
   @Override
   public void visit(RecordType t) {
-    int N=t.getFieldCount();
-    for(int i=0;i<N;i++){
-      t.getFieldType(i).accept(this);
-    }    
+    int n = t.fieldCount();
+    for (int i = 0; i < n; i++) {
+      t.fieldType(i).accept(this);
+    }
   }
 
   @Override
