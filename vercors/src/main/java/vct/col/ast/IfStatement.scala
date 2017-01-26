@@ -1,6 +1,7 @@
 package vct.col.ast
 
 import hre.ast.MessageOrigin;
+import scala.collection.mutable.ArrayBuffer
 import vct.col.util.VisitorHelper
 
 object IfStatement {
@@ -8,16 +9,16 @@ object IfStatement {
 }
 
 class IfStatement extends ASTNode with VisitorHelper  {
-  private[this] val cases = new java.util.ArrayList[(ASTNode,ASTNode)]()
+  private[this] val cases = new ArrayBuffer[(ASTNode,ASTNode)]()
   
   def getCount = cases.size
-  def getGuard(i:Int) = cases.get(i)._1
-  def getStatement(i:Int) = cases.get(i)._2
+  def getGuard(i:Int) = cases.apply(i)._1
+  def getStatement(i:Int) = cases.apply(i)._2
   
   def addClause(guard:ASTNode, stmt:ASTNode) : Unit = {
     stmt.setParent(this)
     if (guard != IfStatement.elseGuard) guard.setParent(this)
-    cases.add(new Tuple2(guard, stmt))
+    cases += new Tuple2(guard, stmt)
   }
   
   def this(cond:ASTNode, truebranch:ASTNode, falsebranch:ASTNode) = {

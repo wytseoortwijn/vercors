@@ -58,17 +58,17 @@ public class JavaPrinter extends AbstractPrinter {
   @Override
   public void visit(TryCatchBlock tcb){
     out.print("try");
-    tcb.main.accept(this);
-    for(CatchClause cb:tcb.catches){
+    tcb.main().accept(this);
+    for (CatchClause cb : tcb.catches()) {
       out.print("catch (");
       nextExpr();
       cb.decl().accept(this);
       out.print(")");
       cb.block().accept(this);
     }
-    if (tcb.after!=null){
+    if (tcb.after() != null){
       out.print(" finally ");
-      tcb.after.accept(this);
+      tcb.after().accept(this);
     }
     out.println("");
   }
