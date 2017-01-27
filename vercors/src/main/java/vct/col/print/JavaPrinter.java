@@ -58,24 +58,24 @@ public class JavaPrinter extends AbstractPrinter {
   @Override
   public void visit(TryCatchBlock tcb){
     out.print("try");
-    tcb.main.accept(this);
-    for(CatchClause cb:tcb.catches){
+    tcb.main().accept(this);
+    for (CatchClause cb : tcb.catches()) {
       out.print("catch (");
       nextExpr();
       cb.decl().accept(this);
       out.print(")");
       cb.block().accept(this);
     }
-    if (tcb.after!=null){
+    if (tcb.after() != null){
       out.print(" finally ");
-      tcb.after.accept(this);
+      tcb.after().accept(this);
     }
     out.println("");
   }
   
   @Override
   public void visit(NameSpace ns){
-    if(!ns.name.equals(NameSpace.NONAME)){
+    if (!ns.name().equals(NameSpace.NONAME)) {
       out.printf("package %s;",ns.getDeclName().toString("."));
       out.println("");
     } else {
@@ -139,17 +139,17 @@ public class JavaPrinter extends AbstractPrinter {
    
   @Override 
   public void visit(Axiom axiom){
-    out.printf("axioms %s: ", axiom.name);
+    out.printf("axioms %s: ", axiom.name());
     axiom.rule().accept(this);
     out.println(";");
   }
 
   @Override
   public void visit(AxiomaticDataType adt){
-    out.printf("ADT %s [",adt.name);
+    out.printf("ADT %s [", adt.name());
     String sep="";
     for (DeclarationStatement d : adt.parameters()) {
-      out.printf("%s%s",sep,d.name);
+      out.printf("%s%s", sep, d.name());
       sep=", ";
     }
     out.println("] {");
@@ -497,10 +497,10 @@ public class JavaPrinter extends AbstractPrinter {
       if (i>0) out.printf(",");
       DeclarationStatement decl=e.getDeclaration(i);
       decl.getType().accept(this);
-      out.printf(" %s",decl.getName());
-      if (decl.getInit()!=null){
+      out.printf(" %s", decl.name());
+      if (decl.init() != null) {
         out.printf("= ");
-        decl.getInit().accept(this);
+        decl.init().accept(this);
       }
     }
     if (e.triggers!=null){
@@ -572,7 +572,7 @@ public class JavaPrinter extends AbstractPrinter {
       for(DeclarationStatement d:cl.parameters){
         out.print(sep);
         if(d.getType().isPrimitive(Sort.Class)){
-          out.print(d.name);
+          out.print(d.name());
         } else {
           d.accept(this);
         }
@@ -644,9 +644,9 @@ public class JavaPrinter extends AbstractPrinter {
       for (DeclarationStatement d:contract.signals){
         out.printf("signals (");
         d.getType().accept(this);
-        out.printf(" %s) ",d.getName());
+        out.printf(" %s) ",d.name());
         nextExpr();
-        d.getInit().accept(this);
+        d.init().accept(this);
         out.lnprintf(";");
       }      
       if (contract.modifies!=null){
@@ -685,10 +685,10 @@ public class JavaPrinter extends AbstractPrinter {
   }
 
   public void visit(DeclarationStatement s){
-    ASTNode expr=s.getInit();
+    ASTNode expr = s.init();
     nextExpr();
     s.getType().accept(this);
-    out.printf(" %s",s.getName());
+    out.printf(" %s", s.name());
     if (expr!=null){
       out.printf("=");
       nextExpr();
@@ -1363,7 +1363,7 @@ public class JavaPrinter extends AbstractPrinter {
       if (dd instanceof DeclarationStatement){
         DeclarationStatement d = (DeclarationStatement)dd;
         d.getType().accept(this);
-        ASTNode init=d.getInit();
+        ASTNode init = d.init();
         if (init!=null){
           out.print("=");
           init.accept(this);

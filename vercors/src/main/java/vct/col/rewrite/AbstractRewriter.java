@@ -194,7 +194,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
     }
     in_ensures=false;
     if (c.signals!=null) for(DeclarationStatement decl:c.signals){
-      cb.signals((ClassType)rewrite(decl.getType()),decl.getName(),rewrite(decl.getInit()));      
+      cb.signals((ClassType)rewrite(decl.getType()), decl.name(), rewrite(decl.init()));      
     }
     //cb.requires(rewrite(c.pre_condition));
     //cb.ensures(rewrite(c.post_condition));
@@ -277,9 +277,9 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
 
   @Override
   public void visit(AssignmentStatement s) {
-    ASTNode loc=s.getLocation().apply(this);
-    ASTNode val=s.getExpression().apply(this);
-    result=create.assignment(loc,val);
+    ASTNode loc = s.location().apply(this);
+    ASTNode val = s.expression().apply(this);
+    result = create.assignment(loc,val);
   }
 
   @Override
@@ -324,7 +324,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
         Debug("Got null rewriting %s at %s",s.getStatement(i).getClass(),s.getStatement(i).getOrigin());
       } else {
         Debug("adding %s",n.getClass());
-        currentBlock.add_statement(n);
+        currentBlock.addStatement(n);
       }
     }
     result=currentBlock;
@@ -360,8 +360,8 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
       Abort("Type %s rewrote to non-type %s",t.getClass(),tmp==null ? "null":tmp.getClass());
       throw new Error("type AST rewrote to non-type AST");
     }
-    String name=s.getName();
-    ASTNode init=s.getInit();
+    String name = s.name();
+    ASTNode init = s.init();
     if (init!=null) init=init.apply(this);
     DeclarationStatement res=new DeclarationStatement(name,t,init);
     res.setOrigin(s.getOrigin());
@@ -613,7 +613,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   
   @Override
   public void visit(AxiomaticDataType adt){
-    AxiomaticDataType res = create.adt(adt.name, rewrite(adt.parameters()));
+    AxiomaticDataType res = create.adt(adt.name(), rewrite(adt.parameters()));
     for (Method c : adt.constructors()) {
       res.add_cons(rewrite(c));
     }
@@ -627,7 +627,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   }
   
   public void visit(Axiom axiom){
-    result = create.axiom(axiom.name, rewrite(axiom.rule()));
+    result = create.axiom(axiom.name(), rewrite(axiom.rule()));
   }
   
   /*
@@ -642,7 +642,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   }
   public ASTNode name(DeclarationStatement decl){
   	create.enter();
-  	ASTNode res=create(decl.getOrigin()).unresolved_name(decl.getName());
+  	ASTNode res = create(decl.getOrigin()).unresolved_name(decl.name());
   	create.leave();
   	return res;
   }
@@ -728,8 +728,8 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   }
   @Override
   public void visit(TryCatchBlock tcb){
-    TryCatchBlock res=create.try_catch(rewrite(tcb.main),rewrite(tcb.after));
-    for(CatchClause cc:tcb.catches){
+    TryCatchBlock res = create.try_catch(rewrite(tcb.main()), rewrite(tcb.after()));
+    for (CatchClause cc : tcb.catches()) {
       pre_visit(cc.block());
       BlockStatement tmp=currentBlock;
       currentBlock=new BlockStatement();
@@ -741,7 +741,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
       BlockStatement block=currentBlock;
       currentBlock=tmp;
       post_visit(cc.block());
-      res.catch_clause(d,block);
+      res.addCatchClause(d, block);
     }
     result=res;
   }

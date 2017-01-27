@@ -54,9 +54,9 @@ public class DefinitionScanner extends RecursiveVisitor<Object> {
 
   public void visit(DeclarationStatement s){
     if (s.getType().isPrimitive(Sort.Class)){
-      current.addNested(s.getName());
+      current.addNested(s.name());
     } else {
-      current.addField(s.getName(),static_context);
+      current.addField(s.name(), static_context);
     }
   }
 

@@ -64,8 +64,8 @@ public class ExplicitPermissionEncoding extends AbstractRewriter {
       tmp=t.apply(copy_rw);
     }
     t=(Type)tmp;
-    String name=s.getName();
-    ASTNode init=s.getInit();
+    String name = s.name();
+    ASTNode init = s.init();
     if (init!=null) init=init.apply(this);
     DeclarationStatement res=new DeclarationStatement(name,t,init);
     res.setOrigin(s.getOrigin());
@@ -149,7 +149,7 @@ public class ExplicitPermissionEncoding extends AbstractRewriter {
           DeclarationStatement decl=new DeclarationStatement(label_name,t);
           decl.setOrigin(s);
           decl.setFlag(ASTFlags.GHOST, true);
-          block.add_statement(decl);
+          block.addStatement(decl);
         }
         super.visit(i);
       }        
@@ -173,7 +173,7 @@ public class ExplicitPermissionEncoding extends AbstractRewriter {
     res.setOrigin(s.getOrigin());
     res.set_before(copy_rw.rewrite(s.get_before()));
     res.set_after(rewrite(s.get_after()));
-    block.add_statement(res);
+    block.addStatement(res);
     result=block;
   }
    
@@ -258,8 +258,8 @@ public class ExplicitPermissionEncoding extends AbstractRewriter {
         );
         DeclarationStatement decls[]=pred.getDefinition().getArgs();
         for (int i=0;i<decls.length;i++){
-          block.add_statement(create.assignment(
-              create.dereference(create.local_name(lbl.getName()),decls[i].getName()),
+          block.addStatement(create.assignment(
+              create.dereference(create.local_name(lbl.getName()),decls[i].name()),
               rewrite(pred.getArg(i))
           ));
           args.add(pred.getArg(i).apply(copy_rw));
@@ -267,17 +267,17 @@ public class ExplicitPermissionEncoding extends AbstractRewriter {
         }
         ASTNode pred_args[]=pred.getArgs();
         for(int i=decls.length;i<pred_args.length;i++){
-          block.add_statement(create.assignment(
+          block.addStatement(create.assignment(
               create.dereference(create.local_name(lbl.getName()),pred_args[i].getLabel(0).getName()),
               rewrite(pred_args[i])
           ));
           cons_args.add(rewrite(pred_args[i]));
         }
-        block.add_statement(
+        block.addStatement(
             create.special(e.kind,
                 create.invokation(create.local_name(lbl.getName()), null, "valid"))
         );
-        block.add_statement(
+        block.addStatement(
             create.special(ASTSpecial.Kind.Assert,
                 create.invokation(create.local_name(lbl.getName()), null, "check",args.toArray(new ASTNode[0])))
         );
@@ -421,7 +421,7 @@ class PredicateClassGenerator extends AbstractRewriter {
     // Add permissions to render all fields immutable.
     for(DeclarationStatement field:pred_class.dynamicFields()){
       //valid_body.add(0,create.expression(StandardOperator.Perm,create.field_name(field.getName()),create.constant(100)));
-      valid_body.add(0,create.expression(StandardOperator.Value,create.field_name(field.getName())));
+      valid_body.add(0,create.expression(StandardOperator.Value,create.field_name(field.name())));
     }
     // Add valid predicate;
     pred_class.add_dynamic(create.predicate("valid", create.fold(StandardOperator.Star, valid_body) , new DeclarationStatement[0] ));
@@ -436,9 +436,9 @@ class PredicateClassGenerator extends AbstractRewriter {
       check_body=create.expression(StandardOperator.EQ,create.field_name("ref"),create.local_name("object"));
     }
     for (DeclarationStatement decl:m.getArgs()){
-      ASTNode field=create.dereference(create.reserved_name(This),decl.getName());
+      ASTNode field=create.dereference(create.reserved_name(This),decl.name());
       check_body=create.expression(StandardOperator.And,check_body,
-          create.expression(StandardOperator.EQ,field,create.local_name(decl.getName())));
+          create.expression(StandardOperator.EQ,field,create.local_name(decl.name())));
     }
     DeclarationStatement check_decls[];
     if (m.isStatic()){
@@ -472,13 +472,13 @@ class PredicateClassGenerator extends AbstractRewriter {
       cons_decls.add(create.field_decl("ref",class_type));
       ASTNode field=create.dereference(create.reserved_name(This),"ref");
       check_args[0]=create.local_name("ref");
-      cons_body.add_statement(create.assignment(field, check_args[0]));
+      cons_body.addStatement(create.assignment(field, check_args[0]));
     }
     for(int i=0;i<N;i++){
       cons_decls.add(create.field_decl(m.getArgument(i),m.getArgType(i)));
       ASTNode field=create.dereference(create.reserved_name(This),m.getArgument(i));
       check_args[i+ofs]=create.local_name(m.getArgument(i));
-      cons_body.add_statement(create.assignment(field, check_args[i+ofs]));
+      cons_body.addStatement(create.assignment(field, check_args[i+ofs]));
     }
     cb.requires(cons_req);
     if (m.getBody()!=null) {
@@ -502,16 +502,16 @@ class PredicateClassGenerator extends AbstractRewriter {
             decl.setGhost(true);
             cons_decls.add(decl);
             ASTNode field=create.dereference(create.reserved_name(This),name);
-            cons_body.add_statement(create.assignment(field, create.local_name(name)));
+            cons_body.addStatement(create.assignment(field, create.local_name(name)));
           }
         }
       }));
     } else {
-      cons_body.add_statement(create.special(ASTSpecial.Kind.Assume,
+      cons_body.addStatement(create.special(ASTSpecial.Kind.Assume,
           create.invokation(create.reserved_name(This),null, ("abstract_valid"), new ASTNode[0])));
     }
     cb.ensures(create.invokation(null,null, ("check"), check_args));
-    cons_body.add_statement(create.special(ASTSpecial.Kind.Fold,
+    cons_body.addStatement(create.special(ASTSpecial.Kind.Fold,
         create.invokation(create.reserved_name(This),null, ("valid"), new ASTNode[0])));
     if (Configuration.witness_constructors.get()){
       pred_class.add_dynamic(create.method_kind(Method.Kind.Constructor,
@@ -534,9 +534,9 @@ class PredicateClassGenerator extends AbstractRewriter {
       getters.add(create.function_decl(
           field.getType(),
           cb.getContract(),
-          "get_"+field.getName(),
+          "get_"+field.name(),
           new DeclarationStatement[0],
-          create.field_name(field.getName())));
+          create.field_name(field.name())));
     }
     for(Method decl:getters){
       pred_class.add_dynamic(decl);

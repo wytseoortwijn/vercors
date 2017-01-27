@@ -7,9 +7,6 @@ class TypeExpression(val operator:TypeOperator, val types:Array[Type]) extends T
   def nrOfTypes = types.length
   def getType(i:Int) = types.apply(i)
   
-  //@deprecated("will soon be removed", "next release")
-  //def op = operator
-  
   override def isNumeric = operator match {
     case TypeOperator.Local | TypeOperator.Global | TypeOperator.Long => types.head.isNumeric()
     case _ => false

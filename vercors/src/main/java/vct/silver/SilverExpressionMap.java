@@ -226,18 +226,18 @@ public class SilverExpressionMap<T,E> implements ASTMapping<E>{
           } else {
             t2=t.apply(type);
           }
-          pars.add(new Triple<Origin, String, T>(decl.getOrigin(),decl.getName(),t2));
+          pars.add(new Triple<Origin, String, T>(decl.getOrigin(),decl.name(),t2));
         }
         AxiomaticDataType adt=(AxiomaticDataType)m.getParent();
         HashMap<String, T> dpars=new HashMap<String, T>();
         type.domain_type(dpars,(ClassType)e.object);
         //System.err.printf("%s expression type %s base %s%n",name,e.getType(),e.object);
-        return create.domain_call(o, name, args, dpars, rt, pars, adt.name);
+        return create.domain_call(o, name, args, dpars, rt, pars, adt.name());
       } else {
         
         ArrayList<Triple<Origin,String,T>> pars=new ArrayList<Triple<Origin,String,T>>();
         for(DeclarationStatement decl:m.getArgs()){
-          pars.add(new Triple<Origin,String,T>(decl.getOrigin(),decl.getName(),decl.getType().apply(type)));
+          pars.add(new Triple<Origin,String,T>(decl.getOrigin(),decl.name(),decl.getType().apply(type)));
         }
         return create.function_call(o, name, args, rt, pars);
       }
@@ -342,9 +342,9 @@ public class SilverExpressionMap<T,E> implements ASTMapping<E>{
       for(int i=decls.length-1;i>=0;i--){
         res=create.let(
             o,
-            decls[i].name,
+            decls[i].name(),
             decls[i].getType().apply(type),
-            decls[i].getInit().apply(this),
+            decls[i].init().apply(this),
             res
         );
       }
@@ -359,7 +359,7 @@ public class SilverExpressionMap<T,E> implements ASTMapping<E>{
   private List<Triple<Origin,String,T>> convert(DeclarationStatement[] declarations) {
     ArrayList<Triple<Origin,String,T>> res=new ArrayList<Triple<Origin,String,T>>();
     for(DeclarationStatement d:declarations){
-      res.add(new Triple<Origin,String,T>(d.getOrigin(),d.getName(),d.getType().apply(type)));
+      res.add(new Triple<Origin,String,T>(d.getOrigin(),d.name(),d.getType().apply(type)));
     }
     return res;
   }

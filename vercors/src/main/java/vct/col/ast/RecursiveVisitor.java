@@ -109,10 +109,10 @@ public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
 
   @Override
   public void visit(RecordType t) {
-    int N=t.getFieldCount();
-    for(int i=0;i<N;i++){
-      t.getFieldType(i).accept(this);
-    }    
+    int n = t.fieldCount();
+    for (int i = 0; i < n; i++) {
+      t.fieldType(i).accept(this);
+    }
   }
 
   @Override
@@ -171,7 +171,7 @@ public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
   @Override
   public void visit(DeclarationStatement s) {
     s.getType().accept(this);
-    dispatch(s.getInit());
+    dispatch(s.init());
   }
 
   @Override
@@ -326,8 +326,8 @@ public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
 
   @Override
   public void visit(TryCatchBlock tcb) {
-    dispatch(tcb.main);
-    for(CatchClause c:tcb.catches){
+    dispatch(tcb.main());
+    for (CatchClause c : tcb.catches()) {
       enter(c.block());
       dispatch(c.decl());
       for(ASTNode S:c.block()){
@@ -335,7 +335,7 @@ public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
       }
       leave(c.block());
     }
-    dispatch(tcb.after);
+    dispatch(tcb.after());
   }
 
   @Override

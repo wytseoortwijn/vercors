@@ -12,4 +12,3 @@ package vct.col.ast;
  */
 public interface Value {
 }
-

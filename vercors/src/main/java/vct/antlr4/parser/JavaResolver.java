@@ -66,7 +66,7 @@ public class JavaResolver extends AbstractRewriter {
         }
         if (m.isVarArgs()){
           DeclarationStatement old=args[pars.length-1];
-          args[pars.length-1]=create.field_decl(old.name,(Type)old.getType().getArg(0));
+          args[pars.length-1] = create.field_decl(old.name(), (Type)old.getType().getArg(0));
         }
         Method ast=create.method_kind(Method.Kind.Plain , returns, null, m.getName(),args, m.isVarArgs() , null);
         ast.setFlag(ASTFlags.STATIC,Modifier.isStatic(m.getModifiers()));
@@ -288,7 +288,7 @@ public class JavaResolver extends AbstractRewriter {
   public void visit(ASTClass cl){
     ASTClass tmp=currentTargetClass;
     currentTargetClass=create.ast_class(
-        prefix+cl.name,
+        prefix+cl.name(),
         cl.kind,
         rewrite(cl.parameters),
         rewrite(cl.super_classes),

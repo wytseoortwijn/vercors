@@ -24,7 +24,7 @@ public class PureMethodsAsFunctions extends AbstractRewriter {
       Contract contract=rewrite(m.getContract());
       DeclarationStatement args[]=rewrite(m.getArgs());
       ASTNode body=do_body((BlockStatement)m.getBody(),0);
-      result=create.function_decl(returns, contract, m.name, args, body);
+      result=create.function_decl(returns, contract, m.name(), args, body);
     } else {
       super.visit(m);
     }

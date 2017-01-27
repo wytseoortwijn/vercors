@@ -224,8 +224,8 @@ public class Translator {
 
 	private boolean handleZ3DeclarationStatement(ASTNode pre, DeclarationStatement s, ASTNode post) {
 		Type t=s.getType();
-		String name=s.getName();
-		ASTNode init=s.getInit();
+		String name = s.name();
+		ASTNode init = s.init();
 		boolean ans = true;
 		//outputToString.printf("Found declaration %s of type %s %n",name,t);
 		variablelenLijst.add(name);
@@ -828,8 +828,8 @@ public class Translator {
 		@Override
 		public void visit(DeclarationStatement s) {
 			Type t=s.getType();
-			String name=s.getName();
-			ASTNode init=s.getInit();
+			String name = s.name();
+			ASTNode init = s.init();
 			outputToString.printf("Found declaration %s of type %s %n",name,t);
 			variablelenLijst.add(name);
 			variablelenLijst.add(getZ3Type(t));

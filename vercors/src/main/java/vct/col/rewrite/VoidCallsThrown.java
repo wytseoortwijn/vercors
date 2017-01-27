@@ -75,7 +75,7 @@ public class VoidCallsThrown extends AbstractRewriter {
   public void visit(TryCatchBlock tcb){
     int block_no=count.incrementAndGet();
     BlockStatement block=create.block();
-    for(ASTNode S:tcb.main){
+    for (ASTNode S : tcb.main()){
       ASTNode rw=rewrite(S);
       block.add(rw);
       if (S.isSpecial(Kind.Throw) || rw instanceof MethodInvokation){
@@ -89,7 +89,7 @@ public class VoidCallsThrown extends AbstractRewriter {
     block.add(create.special(Kind.Label,create.unresolved_name("Catches_"+block_no)));
     IfStatement catches=new IfStatement();
     catches.setOrigin(tcb.getOrigin());
-    for(CatchClause c:tcb.catches){
+    for (CatchClause c : tcb.catches()) {
       //ASTNode guard=create.expression(StandardOperator.Instance,create.local_name("sys__thrown"),rewrite(c.decl.getType()));
       ASTNode guard=create.expression(StandardOperator.EQ,
           create.invokation(null,null,"type_of",create.local_name("sys__thrown")),
@@ -101,7 +101,7 @@ public class VoidCallsThrown extends AbstractRewriter {
     block.add(catches);
     //block.add(create.special(Kind.Inhale,create.constant(false)));
     block.add(create.special(Kind.Label,create.unresolved_name("Finally_"+block_no)));
-    for(ASTNode S:tcb.after){
+    for (ASTNode S : tcb.after()) {
       block.add(rewrite(S));
     }
     result=block;

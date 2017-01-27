@@ -90,12 +90,12 @@ public class ASTFactory<E> implements FrameControl {
     for(DeclarationStatement field : cl.dynamicFields()){
       cb.requires(expression(
           StandardOperator.Perm,
-          field_name(field.getName()),
+          field_name(field.name()),
           constant(100)
       ));
       cb.ensures(expression(
           StandardOperator.Perm,
-          field_name(field.getName()),
+          field_name(field.name()),
           constant(100)
      ));
     }
@@ -126,15 +126,15 @@ public class ASTFactory<E> implements FrameControl {
         zero.setOrigin(cl.getOrigin());
         cb.ensures(expression(
              StandardOperator.PointsTo,
-             field_name(field.getName()),
+             field_name(field.name()),
              fullPermission(),
              zero
         ));
-        body.add_statement(assignment(field_name(field.getName()),zero));
+        body.addStatement(assignment(field_name(field.name()),zero));
       } else {
         cb.ensures(expression(
             StandardOperator.Perm,
-            field_name(field.getName()),
+            field_name(field.name()),
             fullPermission()
        ));       
       }
@@ -217,7 +217,7 @@ public class ASTFactory<E> implements FrameControl {
 public BlockStatement block(Origin origin, ASTNode ... args) {
   BlockStatement res=new BlockStatement();
   for(ASTNode node:args){
-    res.add_statement(node);
+    res.addStatement(node);
   }
   res.setOrigin(origin);
   res.accept_if(post);

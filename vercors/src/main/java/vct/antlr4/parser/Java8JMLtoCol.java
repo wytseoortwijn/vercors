@@ -573,7 +573,7 @@ public class Java8JMLtoCol extends ANTLRtoCOL implements Java8JMLVisitor<ASTNode
           String name=getIdentifier(clause, 3);
           BlockStatement block=(BlockStatement)convert(clause,5);
           DeclarationStatement decl=create.field_decl(name, type);
-          res.catch_clause(decl,block);
+          res.addCatchClause(decl, block);
         } else {
           return null;
         }
@@ -644,7 +644,7 @@ public class Java8JMLtoCol extends ANTLRtoCOL implements Java8JMLVisitor<ASTNode
         tmp=create.field_decl(name,create.class_type(name));
       } else if (vars[i] instanceof DeclarationStatement) {
         DeclarationStatement d=(DeclarationStatement)vars[i];
-        tmp=create.field_decl(d.getName(),d.getType(),d.getInit());
+        tmp=create.field_decl(d.name(), d.getType(), d.init());
       } else {
         throw new HREError("unexpected %s in variable list at %s",vars[i].getClass(),create.getOrigin());
       }
@@ -658,9 +658,9 @@ public class Java8JMLtoCol extends ANTLRtoCOL implements Java8JMLVisitor<ASTNode
 
   public DeclarationStatement getVariableDeclarator(ParserRuleContext ctx) {
     if (match(ctx,null,"=",null)){
-      DeclarationStatement decl=(DeclarationStatement)convert(ctx,0);
+      DeclarationStatement decl = (DeclarationStatement)convert(ctx,0);
       ASTNode expr=convert(ctx,2);
-      return create.field_decl(decl.name,decl.getType(),expr);
+      return create.field_decl(decl.name(), decl.getType(), expr);
     }
     return null;
   }
@@ -743,7 +743,7 @@ public class Java8JMLtoCol extends ANTLRtoCOL implements Java8JMLVisitor<ASTNode
       body=convert(ctx,i+4);
     }
     Method res=create.function_decl(returns, contract, name, args, body);
-    hre.lang.System.Debug("function %s, contract %s",res.name,res.getContract());
+    hre.lang.System.Debug("function %s, contract %s", res.name(), res.getContract());
     while(i0<i){
       //add modifiers as annotations.
       ASTNode mod=convert(ctx,i0);

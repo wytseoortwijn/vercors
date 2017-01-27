@@ -400,21 +400,21 @@ public class DynamicStaticInheritance extends AbstractRewriter {
     ASTNode body=block;
     switch(m.kind){
     case Pure:{
-      block.add_statement(create.special(ASTSpecial.Kind.Unfold,tag_this.rewrite(c.pre_condition)));
-      block.add_statement(create.return_statement(create.invokation(
+      block.addStatement(create.special(ASTSpecial.Kind.Unfold,tag_this.rewrite(c.pre_condition)));
+      block.addStatement(create.return_statement(create.invokation(
           create.reserved_name(This),null,name+AT_STRING+parent.getName(),names)));
       break;
     }
     case Plain:{
       Type t=m.getReturnType();
-      block.add_statement(create.special(ASTSpecial.Kind.Unfold,tag_this.rewrite(c.pre_condition)));
+      block.addStatement(create.special(ASTSpecial.Kind.Unfold,tag_this.rewrite(c.pre_condition)));
       if (t.isVoid()){
-        block.add_statement(create.invokation(
+        block.addStatement(create.invokation(
             create.reserved_name(This),null,name+AT_STRING+parent.getName(),names));
       } else {
         Abort("unsupported non-void method");
       }
-      block.add_statement(create.special(ASTSpecial.Kind.Fold,tag_this.rewrite(c.post_condition)));
+      block.addStatement(create.special(ASTSpecial.Kind.Fold,tag_this.rewrite(c.post_condition)));
       break;
     }
     case Predicate:{

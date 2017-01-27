@@ -57,8 +57,9 @@ public class ASTClass extends ASTDeclaration implements ASTSequence<ASTClass> {
   
   private void getFullName(ArrayList<String> fullname){
     if (parent_class!=null) parent_class.getFullName(fullname);
-    if (name!=null) fullname.add(name); 
+    if (name() != null) fullname.add(name()); 
   }
+  
   public String[] getFullName(){
     ArrayList<String> fullname=new ArrayList<String>();
     getFullName(fullname);
@@ -68,8 +69,6 @@ public class ASTClass extends ASTDeclaration implements ASTSequence<ASTClass> {
   public ClassName getDeclName(){
     return new ClassName(getFullName());
   }
-
-  
 
   /** Create a root class from a given block statement. */
   public ASTClass(BlockStatement node) {
@@ -106,7 +105,7 @@ public class ASTClass extends ASTDeclaration implements ASTSequence<ASTClass> {
     for(int i=0;i<N;i++){
       if (get(i) instanceof ASTClass){
         ASTClass cl=(ASTClass)entries.get(i);
-        if (cl.name.equals(name)) {
+        if (cl.name().equals(name)) {
           if (cl.isStatic()) throw new Error("class "+name+" already exists as a dynamic entry");
           return cl;
         }
@@ -138,8 +137,9 @@ public class ASTClass extends ASTDeclaration implements ASTSequence<ASTClass> {
   }
 
   public String getName(){
-    return name;
+    return name();
   }
+  
   public ASTClass getParentClass(){
     return parent_class;
   }
@@ -256,7 +256,7 @@ public class ASTClass extends ASTDeclaration implements ASTSequence<ASTClass> {
     for(ASTNode n:entries){
       if (n instanceof ASTClass){
         ASTClass c=(ASTClass)n;
-        if (c.name.equals(name[pos])){
+        if (c.name().equals(name[pos])) {
           pos++;
           if (pos==name.length) return c;
           else return find(name,pos);
@@ -284,10 +284,10 @@ public class ASTClass extends ASTDeclaration implements ASTSequence<ASTClass> {
                 idx=i;
               }
               Type m_idx_t=sigma.rewrite(m.getArgType(idx));
-              if (!m_idx_t.supertypeof(root, type[i])){
+              if (!m_idx_t.supertypeof(root(), type[i])){
                 if (m_idx_t.isPrimitive(Sort.Location)){
                   Type lt=(Type)m_idx_t.getArg(0);
-                  if (!lt.supertypeof(root, type[i])){
+                  if (!lt.supertypeof(root(), type[i])){
                     continue node;
                   }
                 } else {
@@ -319,7 +319,7 @@ public class ASTClass extends ASTDeclaration implements ASTSequence<ASTClass> {
     if (m!=null) return m;
     if (recursive){
       for(ClassType parent:this.super_classes){
-        ASTClass rp=root.find(parent);
+        ASTClass rp = root().find(parent);
         if (rp==null){
           hre.lang.System.Fail("could not find %s",parent);
         }
@@ -334,14 +334,14 @@ public class ASTClass extends ASTDeclaration implements ASTSequence<ASTClass> {
     for(ASTNode n:list){
       if (n instanceof DeclarationStatement){
         DeclarationStatement d=(DeclarationStatement)n;
-        if (d.getName().equals(name)){
+        if (d.name().equals(name)) {
           return d;
         } else {
-          Debug("skipping field "+d.getName());
+          Debug("skipping field " + d.name());
         }
       }
-      if (n instanceof Method){
-        Method m=(Method)n;
+      if (n instanceof Method) {
+        Method m = (Method)n;
         Debug("skipping method "+m.getName());
       }
     }
@@ -366,12 +366,12 @@ public class ASTClass extends ASTDeclaration implements ASTSequence<ASTClass> {
     if (temp!=null) return temp;
     if (contract!=null){
       for(DeclarationStatement tmp : contract.given){
-         if(tmp.getName().equals(name)) return tmp;
+         if (tmp.name().equals(name)) return tmp;
       }
     }
     if (!recursive) return temp;
     for(ClassType parent:this.super_classes){
-      temp = root.find(parent).find_field(name,true);
+      temp = root().find(parent).find_field(name,true);
       if (temp != null) return temp;
     }
     return null;

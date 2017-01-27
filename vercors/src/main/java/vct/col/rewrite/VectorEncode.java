@@ -121,10 +121,10 @@ public class VectorEncode extends AbstractRewriter {
 
   @Override
   public void visit(VectorBlock v){
-    OperatorExpression init = (OperatorExpression)v.iter().getInit();
+    OperatorExpression init = (OperatorExpression)v.iter().init();
     ASTNode from=rewrite(init.arg(0));
     ASTNode upto=rewrite(init.arg(1));
-    ivar = v.iter().getName();
+    ivar = v.iter().name();
     BlockStatement res=create.block();
     locals = new HashSet<String>();
     for(ASTNode S:v.block()){
@@ -133,11 +133,11 @@ public class VectorEncode extends AbstractRewriter {
         DeclarationStatement D=(DeclarationStatement)S;
         detect(D.getType()); // check for valid type.
         DeclarationStatement decl=create.field_decl(
-            D.getName(),
+            D.name(),
             create.primitive_type(Sort.Array,D.getType()),
             create.new_array(D.getType(), upto));
         res.add(decl);
-        locals.add(D.getName());
+        locals.add(D.name());
         continue;
       }
       

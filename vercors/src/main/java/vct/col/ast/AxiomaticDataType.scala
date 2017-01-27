@@ -17,9 +17,6 @@ class AxiomaticDataType(private[this] val _name:String, private[this] val _pars:
   def mappings = _maps.toIterable.asJava
   def axioms = _axioms.toIterable.asJava
   
-  @deprecated("this will soon be removed", "next")
-  def getParameters = parameters
-  
   def add_map(m:Method) : Unit = {
     m.setFlag(ASTFlags.STATIC, true)
     m.setParent(this)

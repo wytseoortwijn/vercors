@@ -117,7 +117,7 @@ public class FeatureScanner extends RecursiveVisitor<Object> {
   
   @Override
   public void visit(Method m){
-    uses_csl = uses_csl || m.name.equals("csl_invariant");
+    uses_csl = uses_csl || m.name().equals("csl_invariant");
     super.visit(m);
   }
   @Override

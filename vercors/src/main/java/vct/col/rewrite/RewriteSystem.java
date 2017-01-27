@@ -68,7 +68,7 @@ class MatchLinear implements ASTMapping1<Boolean,ASTNode> {
       ASTNode tmp = match.get(((NameExpression)e1.arg(1)).getName()).get();
       if (tmp instanceof DeclarationStatement){
         DeclarationStatement decl=(DeclarationStatement)tmp;
-        return !ASTUtils.find_name(a,decl.name) && e1.arg(0).apply(this,a);
+        return !ASTUtils.find_name(a, decl.name()) && e1.arg(0).apply(this,a);
       } else {
         return false;
       }
@@ -101,7 +101,7 @@ class MatchLinear implements ASTMapping1<Boolean,ASTNode> {
     } else {
       if (ref.get() instanceof DeclarationStatement){
         DeclarationStatement dref=(DeclarationStatement)ref.get();
-        return a.isName(dref.name);
+        return a.isName(dref.name());
       }
       return ref.get().match(a);
       //throw new HREError("non-linear left-hand side");
@@ -200,7 +200,7 @@ class MatchLinear implements ASTMapping1<Boolean,ASTNode> {
   public Boolean map(BindingExpression e, ASTNode a) {
     if (e.getDeclCount()!=1) throw new HREError("binders must declare precisely one variable");
     DeclarationStatement decl=e.getDeclaration(0);
-    String name=decl.getName();
+    String name=decl.name();
     Ref<ASTNode> ref=match.get(name);
     if(ref==null){
       throw new HREError("bound variable must be a matched variable");
@@ -209,7 +209,7 @@ class MatchLinear implements ASTMapping1<Boolean,ASTNode> {
       BindingExpression ee=(BindingExpression)a;
       if (ee.getDeclCount()!=1) return false;
       DeclarationStatement ee_decl=ee.getDeclaration(0);
-      Debug("attempting %s -> %s for",name,ee_decl.name);
+      Debug("attempting %s -> %s for",name, ee_decl.name());
       Debug(" %s%n match with%n  %s",
           Configuration.getDiagSyntax().print(e),
           Configuration.getDiagSyntax().print(a));
@@ -411,7 +411,7 @@ class MatchSubstitution extends AbstractRewriter {
       ASTNode n=ref.get();
       if (n instanceof DeclarationStatement){
         DeclarationStatement dref=(DeclarationStatement)n;
-        result=create.local_name(dref.name);
+        result = create.local_name(dref.name());
       } else {
         if (n==null){
           // variable used in rewrite system, but not in LHS? 
@@ -429,21 +429,21 @@ class MatchSubstitution extends AbstractRewriter {
   public void visit(BindingExpression e){
     DeclarationStatement decls[]=e.getDeclarations();
     for(int i=0;i<decls.length;i++){
-      Ref<ASTNode> ref=match.get(decls[i].name);
+      Ref<ASTNode> ref = match.get(decls[i].name());
       DeclarationStatement dref;
       if(ref==null) {
         int no=ai.getAndIncrement();
-        dref=create.field_decl(decls[i].name+"_rw_"+no,decls[i].getType()); 
-        match.put(decls[i].name,new Ref<ASTNode>(dref));
+        dref=create.field_decl(decls[i].name() + "_rw_" + no, decls[i].getType()); 
+        match.put(decls[i].name(), new Ref<ASTNode>(dref));
       } else {
         dref=(DeclarationStatement)ref.get();
       }
-      decls[i]=create.field_decl(dref.name,rewrite(dref.getType()),rewrite(decls[i].getInit()));
+      decls[i]=create.field_decl(dref.name(), rewrite(dref.getType()), rewrite(decls[i].init()));
     }
     if (e.binder==BindingExpression.Binder.LET){
       HashMap<NameExpression, ASTNode> map=new HashMap<NameExpression, ASTNode>();
       for(int i=0;i<decls.length;i++){
-        map.put(create.local_name(decls[i].name),rewrite(decls[i].getInit()));
+        map.put(create.local_name(decls[i].name()), rewrite(decls[i].init()));
       }
       Substitution sigma=new Substitution(source(),map);
       ASTNode tmp=rewrite(e.main);
@@ -526,7 +526,7 @@ public class RewriteSystem {
     for(ASTNode d:pu.find(sys)){
       if(d instanceof DeclarationStatement){
         DeclarationStatement decl=(DeclarationStatement)d;
-        String name=decl.getName();
+        String name = decl.name();
         //Warning("variable %s",name);
         vars.add(name);
       }
@@ -543,7 +543,7 @@ public class RewriteSystem {
         }
         ASTNode lhs=((OperatorExpression)axiom.rule()).arg(0);
         ASTNode rhs=((OperatorExpression)axiom.rule()).arg(1);
-        rules.add(new RewriteRule(axiom.name,vars,lhs,rhs));
+        rules.add(new RewriteRule(axiom.name(), vars, lhs, rhs));
         continue;
       }
       if (d instanceof Method && ((Method)d).kind==Method.Kind.Pure){
