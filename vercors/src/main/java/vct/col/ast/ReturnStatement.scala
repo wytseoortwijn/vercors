@@ -39,7 +39,7 @@ class ReturnStatement(private[this] val expression:Option[ASTNode]) extends ASTN
   
   /**
    * Getter for the "returned" expression, but with Java interoperability (meaning that
-   * this getter returns {@code null} whether the expression is {@code None}).
+   * this getter returns {@code null} whenever the expression is {@code None}).
    */
   def getExpression : ASTNode = expression match {
     case Some(expr) => expr
@@ -64,6 +64,8 @@ class ReturnStatement(private[this] val expression:Option[ASTNode]) extends ASTN
   
   /**
    * Assigns {@code block} to the {@code before} field, provided that {@code element = Some(block)}.
+   * 
+   * @return A reference to the resulting return statement AST node.
    */
   def set_before(element:Option[BlockStatement]) = element match {
     case Some(block) => { updateBlock(block, "before block"); before = Some(block); this }
@@ -72,11 +74,15 @@ class ReturnStatement(private[this] val expression:Option[ASTNode]) extends ASTN
   
   /**
    * Assigns {@code block} to the {@code before} field, provided that {@code block} is not {@code null}.
+   * 
+   * @return A reference to the resulting return statement AST node.
    */
   override def set_before(block:BlockStatement) = set_before(Option(block))
   
   /**
    * Assigns {@code block} to the {@code after} field, provided that {@code element = Some(block)}.
+   * 
+   * @return A reference to the resulting return statement AST node.
    */
   def set_after(element:Option[BlockStatement]) = element match {
     case Some(block) => { updateBlock(block, "after block"); after = Some(block); this }
@@ -85,6 +91,8 @@ class ReturnStatement(private[this] val expression:Option[ASTNode]) extends ASTN
   
   /**
    * Assigns {@code block} to the {@code after} field, provided that {@code block} is not {@code null}.
+   * 
+   * @return A reference to the resulting return statement AST node.
    */
   override def set_after(element:BlockStatement) = set_after(Option(element))
   
