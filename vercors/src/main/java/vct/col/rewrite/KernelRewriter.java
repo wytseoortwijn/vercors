@@ -343,7 +343,7 @@ public class KernelRewriter extends AbstractRewriter {
         BlockStatement orig_block=(BlockStatement)m.getBody();
         BlockStatement block=create.block();
         int K=orig_block.getLength();
-        block.add_statement(create.field_decl("__last_barrier",create.primitive_type(Sort.Integer),create.constant(0)));
+        block.addStatement(create.field_decl("__last_barrier",create.primitive_type(Sort.Integer),create.constant(0)));
         for(int i=0;i<K;i++){
           ASTNode s=orig_block.getStatement(i);
           if (s instanceof DeclarationStatement){
@@ -357,7 +357,7 @@ public class KernelRewriter extends AbstractRewriter {
         for(int i=0;i<K;i++){
           ASTNode s=orig_block.getStatement(i);
           ASTNode r=rewrite(s);
-          if (r!=null) block.add_statement(r);
+          if (r!=null) block.addStatement(r);
         }
         currentBlock=save_block;
         Contract tc=thread_cb.getContract();

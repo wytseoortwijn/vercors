@@ -52,7 +52,7 @@ public class Flatten extends AbstractRewriter {
       Debug("declaring variable %s (%s)",name,e.getType());
       ASTNode n=create.field_decl(name,e.getType());
       Debug("inserting in %s",declaration_block);
-      declaration_block.add_statement(n);
+      declaration_block.addStatement(n);
       Debug("assigning resutl of call");
       MethodInvokation call=create.invokation(object,rewrite(e.dispatch),e.method,args);
       call.set_before(copy_pure.rewrite(e.get_before()));
@@ -61,7 +61,7 @@ public class Flatten extends AbstractRewriter {
         Debug("FLATTEN: copying label %s",lbl);
         call.addLabel(lbl);
       }
-      current_block.add_statement(create.assignment(create.local_name(name),call));
+      current_block.addStatement(create.assignment(create.local_name(name),call));
       Debug("return variable name");
       result=create.local_name(name);
       auto_labels=false;
@@ -94,12 +94,12 @@ public class Flatten extends AbstractRewriter {
       
       String name="__flatten_"+(++counter);
       if (expression){
-        declaration_block.add_statement(create.field_decl(name,e.getType(),null));
+        declaration_block.addStatement(create.field_decl(name,e.getType(),null));
       }
       ASTNode effect=create.assignment(arg_out,create.expression(op,arg_out,create.constant(1)));
       if (expression){
-        current_block.add_statement(effect);
-        current_block.add_statement(create.assignment(create.local_name(name),arg_out));
+        current_block.addStatement(effect);
+        current_block.addStatement(create.assignment(create.local_name(name),arg_out));
         result=create.local_name(name);
       } else {
         result=effect;
@@ -113,9 +113,9 @@ public class Flatten extends AbstractRewriter {
       ASTNode arg=e.arg(0);
       ASTNode arg_out=arg.apply(this);
       String name="__flatten_"+(++counter);
-      declaration_block.add_statement(create.field_decl(name,e.getType(),null));
-      current_block.add_statement(create.assignment(create.local_name(name),arg_out));
-      current_block.add_statement(create.assignment(arg_out,create.expression(op,arg_out,create.constant(1))));
+      declaration_block.addStatement(create.field_decl(name,e.getType(),null));
+      current_block.addStatement(create.assignment(create.local_name(name),arg_out));
+      current_block.addStatement(create.assignment(arg_out,create.expression(op,arg_out,create.constant(1))));
       result=create.local_name(name);
       return;
     }
@@ -139,7 +139,7 @@ public class Flatten extends AbstractRewriter {
       if (current_block==null){
         Abort("internal error: current block is null");
       }
-      current_block.add_statement(create.field_decl(name,t,null));
+      current_block.addStatement(create.field_decl(name,t,null));
       init=init.apply(this);
       result=create.assignment(create.local_name(name),init);
     } else {
@@ -211,9 +211,9 @@ public class Flatten extends AbstractRewriter {
       t.setOrigin(new MessageOrigin("Flatten.add_as_var fix near %s",e.getOrigin()));
     }
     ASTNode n=create.field_decl(name,t);
-    declaration_block.add_statement(n);
+    declaration_block.addStatement(n);
     ASTNode ee=e.apply(this);
-    current_block.add_statement(create.assignment(create.local_name(name),ee));
+    current_block.addStatement(create.assignment(create.local_name(name),ee));
     ASTNode tmp=create.local_name(name);
     create.leave();
     return tmp;
@@ -241,13 +241,13 @@ public class Flatten extends AbstractRewriter {
           for(i++;i<N;i++){
             visit_body(s.getStatement(i));
           }
-          current_block.add_statement(last);
+          current_block.addStatement(last);
         } else {
           visit_body(s.getStatement(i));
         }
       }
     } else {
-      current_block.add_statement(body.apply(this));
+      current_block.addStatement(body.apply(this));
     }
   }
   

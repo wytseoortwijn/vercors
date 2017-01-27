@@ -130,7 +130,7 @@ public class ASTFactory<E> implements FrameControl {
              fullPermission(),
              zero
         ));
-        body.add_statement(assignment(field_name(field.name()),zero));
+        body.addStatement(assignment(field_name(field.name()),zero));
       } else {
         cb.ensures(expression(
             StandardOperator.Perm,
@@ -217,7 +217,7 @@ public class ASTFactory<E> implements FrameControl {
 public BlockStatement block(Origin origin, ASTNode ... args) {
   BlockStatement res=new BlockStatement();
   for(ASTNode node:args){
-    res.add_statement(node);
+    res.addStatement(node);
   }
   res.setOrigin(origin);
   res.accept_if(post);

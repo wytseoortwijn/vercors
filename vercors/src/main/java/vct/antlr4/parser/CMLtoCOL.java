@@ -80,13 +80,13 @@ public class CMLtoCOL extends ANTLRtoCOL implements CMLVisitor<ASTNode> {
         //hre.System.Warning("%s",ctx.getChild(0).toStringTree(parser));
         ASTNode temp = convert(ctx,0);
         scan_comments_before(block,ctx.getChild(0)); //DRB    
-        block.add_statement(temp);
+        block.addStatement(temp);
         scan_comments_after(block,ctx.getChild(0));//DRB 
     } else if (match(ctx,"BlockItemListContext","BlockItemContext")){                       
          doblock(block,(ParserRuleContext)ctx.getChild(0));
          //hre.System.Warning("%s",ctx.getChild(1).toStringTree(parser));
          ASTNode temp = convert(ctx,1);              
-         block.add_statement(temp);
+         block.addStatement(temp);
          scan_comments_after(block,ctx.getChild(1)); //DRB
     } else {      
       throw hre.lang.System.Failure("unknown BlockItemList");

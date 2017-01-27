@@ -324,7 +324,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
         Debug("Got null rewriting %s at %s",s.getStatement(i).getClass(),s.getStatement(i).getOrigin());
       } else {
         Debug("adding %s",n.getClass());
-        currentBlock.add_statement(n);
+        currentBlock.addStatement(n);
       }
     }
     result=currentBlock;

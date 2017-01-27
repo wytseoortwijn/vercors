@@ -51,8 +51,8 @@ public class FinalizeArguments extends AbstractRewriter {
             args[i].setGhost(old_decls[i].isGhost());
           }
           Type arg_type=rewrite(m.getArgType(i));
-          block.add_statement(create.field_decl(old_name,arg_type));
-          block.add_statement(create.assignment(create.local_name(old_name),create.local_name(new_name)));
+          block.addStatement(create.field_decl(old_name,arg_type));
+          block.addStatement(create.assignment(create.local_name(old_name),create.local_name(new_name)));
           subst.put(create.local_name(old_name),create.local_name(new_name));
         }
         create.leave();
@@ -73,7 +73,7 @@ public class FinalizeArguments extends AbstractRewriter {
         { // this flattening could also be done by a generic pass.
           BlockStatement orig=(BlockStatement)body;
           for(int i=0;i<orig.getLength();i++){
-            block.add_statement(orig.getStatement(i).apply(this));
+            block.addStatement(orig.getStatement(i).apply(this));
           }
         }
         result=create.method_kind(kind, rewrite(m.getReturnType()),c, name, args, block);

@@ -24,13 +24,13 @@ public class ReorderAssignments extends AbstractRewriter {
           Abort("variable %s was declared twice",name);
         }
         names.add(name);
-        res.add_statement(decl.apply(this));
+        res.addStatement(decl.apply(this));
       }
     }
     // copy non-declarations
     for(int i=0;i<N;i++){
       if (!(s.getStatement(i) instanceof DeclarationStatement)){
-        res.add_statement(s.getStatement(i).apply(this));
+        res.addStatement(s.getStatement(i).apply(this));
       }
     }
     result=res;
