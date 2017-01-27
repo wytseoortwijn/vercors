@@ -277,9 +277,9 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
 
   @Override
   public void visit(AssignmentStatement s) {
-    ASTNode loc=s.getLocation().apply(this);
-    ASTNode val=s.getExpression().apply(this);
-    result=create.assignment(loc,val);
+    ASTNode loc = s.location().apply(this);
+    ASTNode val = s.expression().apply(this);
+    result = create.assignment(loc,val);
   }
 
   @Override
