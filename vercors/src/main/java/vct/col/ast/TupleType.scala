@@ -3,14 +3,15 @@ package vct.col.ast
 import vct.col.util.VisitorHelper
 
 /**
- * AST node that represents the type of tuples, or actually {@code n}-tuples 
- * with types "{@code (T_1 * ... * T_n)}".
+ * AST node that represents the type of tuples, or actually {@code n}-tuples,
+ * where the type is of the form "{@code (T_1 * ... * T_n)}", i.e. a sequence of types 
+ * for the tuple elements.
  * 
- * @param _types The list of types that constitutes the tuple type.
+ * @param _types The sequence of types that constitutes the tuple type.
  */
 class TupleType(private[this] val _types:Array[Type]) extends Type with VisitorHelper {
   /** The list of types that constitutes the type of the tuple. */
-  val types = _types.clone()
+  val types = _types.toArray.clone()
   
   /** Yields the type "{@code T_i}" of the {@code i}-th element of tuples of "this" type. */
   def `type`(i:Int) = types.apply(i)
