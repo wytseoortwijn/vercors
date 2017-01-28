@@ -6,9 +6,12 @@ import vct.col.util.VisitorHelper
 
 /**
  * AST node that represents a block of statements, that is, a sequence
- * "{@code S_1;...;S_n}" of individual statements "{@code S_i}".
+ * "{@code S_1;...;S_n}" of (individual) statements "{@code S_i}".
  */
 class BlockStatement extends ASTNode with ASTSequence[BlockStatement] with VisitorHelper {
+  /**
+   * The list of statements that constitutes the statement block.
+   */
   private[this] val statements = new ArrayBuffer[ASTNode]
   
   /** 
@@ -51,12 +54,11 @@ class BlockStatement extends ASTNode with ASTSequence[BlockStatement] with Visit
    *  If {@code element} contains an AST node, the node is added to 
    *  (the back of) this statement block.
    *  
-   *  @param element The AST node to add.
-   *  @return A reference to the resulting statement block.
+   *  @param element The AST node to insert.
    */
-  def add(element:Option[ASTNode]) = element match {
-    case Some(node) => node.setParent(this); statements += node; this
-    case None => this
+  def add(element:Option[ASTNode]) : Unit = element match {
+    case Some(node) => node.setParent(this); statements += node
+    case None => ()
   }
   
   /** 
@@ -84,8 +86,15 @@ class BlockStatement extends ASTNode with ASTSequence[BlockStatement] with Visit
     case None => ()
   }
 
-  /** Adds the given AST node "{@code node}" to (the back of) this statement block. */
-  override def add(node:ASTNode) = add(Option(node))
+  /** 
+   *  Adds the given AST node "{@code node}" to (the back of) this statement block.
+   *  
+   *  @return A reference to the resulting statement block.
+   */
+  override def add(node:ASTNode) = { 
+    add(Option(node))
+    this 
+  }
   
   /** Yields the {@code i}-th statement in this statement block. */
   override def get(i:Int) = statements.apply(i)

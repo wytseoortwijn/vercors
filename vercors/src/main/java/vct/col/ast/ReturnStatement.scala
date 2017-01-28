@@ -5,9 +5,9 @@ import hre.ast.MessageOrigin
 import vct.col.util.VisitorHelper
 
 /**
- * AST node that represents a return statement, that is, either
+ * AST node that represents a return statement, which is either
  * "{@code return;}" if the parameter {@code expression} is "{@code None}", or
- * "{@code return expr;}" if the parameter {@code expression} equals "{@code Some(expr)}".
+ * "{@code return expr;}" if the parameter {@code expression} is "{@code Some(expr)}".
  * 
  * @param expression The expression that determines the return value.
  */
@@ -29,7 +29,7 @@ class ReturnStatement(private[this] val expression:Option[ASTNode]) extends ASTN
    * Instantiates a new AST node representing a "{@code return expr;}" statement, where the 
    * parameter {@code node} represents the expression {@code expr}.
    */
-  def this(node:ASTNode) = this(Some(node))
+  def this(node:ASTNode) = this(Option(node))
   
   /**
    * Instantiates a new AST node representing a "{@code return;}" statement 
@@ -52,7 +52,7 @@ class ReturnStatement(private[this] val expression:Option[ASTNode]) extends ASTN
    */
   private[this] def updateOrigin(block:BlockStatement, message:String) = Option(block.getOrigin()) match {
     case None => block.setOrigin(new MessageOrigin(message))
-    case Some(o:Origin) => ()
+    case Some(_:Origin) => ()
   }
   
   /**
@@ -63,13 +63,11 @@ class ReturnStatement(private[this] val expression:Option[ASTNode]) extends ASTN
   }
   
   /**
-   * Assigns {@code block} to the {@code before} field, provided that {@code element = Some(block)}.
-   * 
-   * @return A reference to the resulting return statement AST node.
+   * Assigns {@code block} to the {@code before} field, provided that {@code element} equals {@code Some(block)}.
    */
-  def set_before(element:Option[BlockStatement]) = element match {
-    case Some(block) => { updateBlock(block, "before block"); before = Some(block); this }
-    case None => this
+  def set_before(element:Option[BlockStatement]) : Unit = element match {
+    case Some(block) => updateBlock(block, "before block"); before = Some(block)
+    case None => ()
   }
   
   /**
@@ -77,16 +75,17 @@ class ReturnStatement(private[this] val expression:Option[ASTNode]) extends ASTN
    * 
    * @return A reference to the resulting return statement AST node.
    */
-  override def set_before(block:BlockStatement) = set_before(Option(block))
+  override def set_before(block:BlockStatement) = { 
+    set_before(Option(block))
+    this 
+  }
   
   /**
-   * Assigns {@code block} to the {@code after} field, provided that {@code element = Some(block)}.
-   * 
-   * @return A reference to the resulting return statement AST node.
+   * Assigns {@code block} to the {@code after} field, provided that {@code element} equals {@code Some(block)}.
    */
-  def set_after(element:Option[BlockStatement]) = element match {
-    case Some(block) => { updateBlock(block, "after block"); after = Some(block); this }
-    case None => this
+  def set_after(element:Option[BlockStatement]) : Unit = element match {
+    case Some(block) => updateBlock(block, "after block"); after = Some(block)
+    case None => ()
   }
   
   /**
@@ -94,24 +93,29 @@ class ReturnStatement(private[this] val expression:Option[ASTNode]) extends ASTN
    * 
    * @return A reference to the resulting return statement AST node.
    */
-  override def set_after(element:BlockStatement) = set_after(Option(element))
+  override def set_after(element:BlockStatement) = { 
+    set_after(Option(element))
+    this 
+  }
   
   /**
    * Getter for the {@code before} field, but assigns a default 
-   * value to {@code before} if it equals "{@code None}".
+   * value to {@code before} if it equals "{@code None}". Therefore, this method
+   * is guaranteed never to return {@code null}.
    */
   override def get_before = before match {
-    case None => { set_before(new BlockStatement()); get_before }
-    case Some(block:BlockStatement) => block
+    case None => set_before(new BlockStatement()); get_before
+    case Some(block) => block
   }
   
   /**
    * Getter for the {@code after} field, but assigns a default 
-   * value to {@code after} if it equals "{@code None}".
+   * value to {@code after} if it equals "{@code None}". Therefore, this method
+   * is guaranteed never to return {@code null}.
    */
   override def get_after = after match {
-    case None => { set_after(new BlockStatement()); get_after }
-    case Some(block:BlockStatement) => block
+    case None => set_after(new BlockStatement()); get_after
+    case Some(block) => block
   }
   
   override def accept_simple[T,A](m:ASTMapping1[T,A], arg:A) = m.map(this, arg)
