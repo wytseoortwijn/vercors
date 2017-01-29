@@ -8,7 +8,6 @@ package vct.col.ast;
  * Needs a visitor pattern, to deal with the various known atomic types.
  * 
  * @author sccblom
- *
  */
 public interface Value {
 }

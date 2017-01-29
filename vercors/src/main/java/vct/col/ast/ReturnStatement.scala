@@ -9,7 +9,9 @@ import vct.col.util.VisitorHelper
  * "{@code return;}" if the parameter {@code expression} is "{@code None}", or
  * "{@code return expr;}" if the parameter {@code expression} is "{@code Some(expr)}".
  * 
- * @param expression The expression that determines the return value.
+ * @param expression The expression that determines the return value of
+ * this return statement. Invariably, if {@code expression} equals 
+ * "{@code Some(e)}", then "{@code e}" is not {@code null}.
  */
 class ReturnStatement(private[this] val expression:Option[ASTNode]) extends ASTNode with BeforeAfterAnnotations with VisitorHelper {
   /**
@@ -102,6 +104,10 @@ class ReturnStatement(private[this] val expression:Option[ASTNode]) extends ASTN
    * Getter for the {@code before} field, but assigns a default 
    * value to {@code before} if it equals "{@code None}". Therefore, this method
    * is guaranteed never to return {@code null}.
+   * 
+   * @note I would rather have {@code set_before} to yield the resulting block, thus
+   * preventing an extra (internal) call to {@code get_before}, but this is not possible due to the 
+   * {@code BeforeAfterAnnotations} interface.
    */
   override def get_before = before match {
     case None => set_before(new BlockStatement()); get_before
@@ -112,6 +118,10 @@ class ReturnStatement(private[this] val expression:Option[ASTNode]) extends ASTN
    * Getter for the {@code after} field, but assigns a default 
    * value to {@code after} if it equals "{@code None}". Therefore, this method
    * is guaranteed never to return {@code null}.
+   * 
+   * @note I would rather have {@code set_after} to yield the resulting block, thus
+   * preventing an extra (internal) call to {@code get_after}, but this is not possible due to the 
+   * {@code BeforeAfterAnnotations} interface.
    */
   override def get_after = after match {
     case None => set_after(new BlockStatement()); get_after
