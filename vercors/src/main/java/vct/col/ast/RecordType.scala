@@ -3,7 +3,7 @@ package vct.col.ast
 import vct.col.util.VisitorHelper
 
 /** A single type entry of a record type (only used in `RecordType`). */
-case class RecordTypeEntry(val recordName:String, val recordType:Type)
+case class RecordTypeEntry(val variableName:String, val variableType:Type)
 
 /**
  * AST node that represents record types, that is, pairs of variable names (identifiers)
@@ -18,10 +18,10 @@ case class RecordType(val types:List[RecordTypeEntry]) extends Type with Visitor
   def fieldCount = types.length
   
   /** @return The name of the {@code i}-th record field. */
-  def fieldName(i:Int) = types.apply(i).recordName
+  def fieldName(i:Int) = types.apply(i).variableName
   
   /** @return The type of the {@code i}-th record field. */
-  def fieldType(i:Int) = types.apply(i).recordType
+  def fieldType(i:Int) = types.apply(i).variableType
   
   /** @return Always `false`: no type can extend (inherit from) a record type. */
   override def supertypeof(context:ProgramUnit, t:Type) = false
