@@ -8,7 +8,7 @@ import vct.col.ast._
 
 class TupleTypeSpec extends FlatSpec with Matchers {
   
-  "A Tuple Type" should "yield the correct type when queried for one" in {
+  "A tuple type" should "yield the correct type when queried for one" in {
     var inttype = new PrimitiveType(PrimitiveType.Sort.Integer)
     var booltype = new PrimitiveType(PrimitiveType.Sort.Boolean)
     var tupletype = new TupleType(Array[Type](inttype, booltype))

@@ -7,7 +7,7 @@ import vct.col.ast._
 
 class RecordTypeSpec extends FlatSpec with Matchers {
   
-  "A Record Type" should "successfully instantiate after invoking the default constructor" in {
+  "A record type" should "successfully instantiate after invoking the default constructor" in {
     var record = new RecordType(List(
       new RecordTypeEntry("field1", new PrimitiveType(PrimitiveType.Sort.Integer)),
       new RecordTypeEntry("field2", new PrimitiveType(PrimitiveType.Sort.Boolean))

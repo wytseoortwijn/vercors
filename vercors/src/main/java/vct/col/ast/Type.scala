@@ -16,7 +16,7 @@ abstract class Type(val args:List[ASTNode]) extends ASTNode {
   def this(args:Array[ASTNode]) = this(args.toList)
   def this() = this(List())
   
-  /** @return The arguments list as array (for Java interoperability). */
+  /** @return The arguments list as an array (for Java interoperability). */
   def argsToArray = args.toArray
   
   def getArg(i:Int) = args.apply(i)
