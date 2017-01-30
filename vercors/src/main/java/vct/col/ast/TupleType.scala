@@ -1,5 +1,6 @@
 package vct.col.ast
 
+import hre.lang.System.Abort
 import vct.col.util.VisitorHelper
 
 /**
@@ -9,6 +10,9 @@ import vct.col.util.VisitorHelper
  * @param types The (immutable) list of types that constitutes the tuple type.
  */
 case class TupleType(val types:List[Type]) extends Type with VisitorHelper {
+  if (types.isEmpty) Abort("tuple types must have at least one type entry.")
+  
+  /** Instantiates a tuple type from an array of types. */
   def this(types:Array[Type]) = this(types.toList)
   
   /** @return A (copy of) the `types` list converted to an array (e.g for Java interoperability). */

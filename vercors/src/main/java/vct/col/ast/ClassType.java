@@ -144,9 +144,11 @@ public class ClassType extends Type {
 
   public String toString(){
     String res=getFullName();
-    if (this.args!=null && this.args.length>0){
-      res=res+"<"+args[0];
-      for(int i=1;i<args.length;i++) res=res+","+args[i];
+    if (getArgCount() > 0) {
+      res=res+"<"+getArg(0);
+      for (int i = 1; i < getArgCount(); i++) {
+    	  res=res+","+getArg(i);
+      }
       res=res+">";
     }
     return res;

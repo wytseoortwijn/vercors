@@ -32,7 +32,7 @@ public class SilverTypeMap<T> implements TypeMapping<T> {
       Map<String,Type> map,
       ClassType t
   ){
-    ASTNode args[]=t.getArgs();
+    ASTNode args[]=t.argsToArray();
     for(ASTNode a:args){
       String s=a.getLabel(0).toString();
       if( s.equals(a.toString())){
@@ -51,7 +51,7 @@ public class SilverTypeMap<T> implements TypeMapping<T> {
 
   
   public T domain_type(HashMap<String,T> map,ClassType t){
-    ASTNode args[]=t.getArgs();
+    ASTNode args[]=t.argsToArray();
     for(ASTNode a:args){
       String s=a.getLabel(0).toString();
       if( s.toString().equals(a.toString())){

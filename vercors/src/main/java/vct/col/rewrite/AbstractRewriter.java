@@ -333,9 +333,10 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
 
   public void visit(ClassType t){
     //checkPermission(t);
-    ClassType res=new ClassType(t.getNameFull(),rewrite(t.getArgs()));
+    ClassType res=new ClassType(t.getNameFull(),rewrite(t.argsToArray()));
     res.setOrigin(t.getOrigin());
-    result=res; return ;    
+    result=res;
+    return;    
   }
   
   @Override
@@ -475,7 +476,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
 
   public void visit(PrimitiveType t){
     //checkPermission(t);
-    PrimitiveType res=new PrimitiveType(t.sort,rewrite(t.getArgs()));
+    PrimitiveType res=new PrimitiveType(t.sort,rewrite(t.argsToArray()));
     if (t.getOrigin()!=null){
       res.setOrigin(t);
     } else {

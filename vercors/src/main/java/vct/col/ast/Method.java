@@ -138,7 +138,7 @@ public class Method extends ASTDeclaration {
       Debug("missing object type");
       return sigma;      
     }
-    if (object_type.args==null){
+    if (object_type.getArgCount() == 0){
       Debug("object type has no arguments");
       return sigma;
     }
@@ -154,10 +154,10 @@ public class Method extends ASTDeclaration {
         return sigma;
       }
       Debug("building map...");
-      for(int i=0;i<c.given.length&&i<object_type.args.length;i++){
+      for (int i = 0; i < c.given.length && i<object_type.getArgCount(); i++) {
         if (c.given[i].getType().isPrimitive(Sort.Class)){
-          Debug("%s = %s", c.given[i].name(), object_type.args[i]);
-          map.put(c.given[i].name(), (Type)object_type.args[i]);
+          Debug("%s = %s", c.given[i].name(), object_type.getArg(i));
+          map.put(c.given[i].name(), (Type)object_type.getArg(i));
         } else {
           Debug("skipping %s", c.given[i].name());
         }
@@ -167,9 +167,9 @@ public class Method extends ASTDeclaration {
       Debug("%s: computing substitution (%s)...",object_type.getOrigin(), adt.name());
       DeclarationStatement decl[] = adt.parameters();
       for(int i=0;i<decl.length;i++){
-        if (i<object_type.args.length){
-          Debug("%s -> %s",decl[i].name(), (Type)object_type.args[i]);
-          map.put(decl[i].name(), (Type)object_type.args[i]);          
+        if (i < object_type.getArgCount()) {
+          Debug("%s -> %s",decl[i].name(), (Type)object_type.getArg(i));
+          map.put(decl[i].name(), (Type)object_type.getArg(i));          
         }
       }
     }

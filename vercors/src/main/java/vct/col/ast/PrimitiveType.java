@@ -70,13 +70,13 @@ public final class PrimitiveType extends Type {
     if (o instanceof PrimitiveType) {
       PrimitiveType t=(PrimitiveType)o;
       if (sort!=t.sort) return false;
-      if (args.length != t.args.length) return false;
-      for(int i=0;i<args.length;i++){
-        if (!args[i].equals(t.args[i])) return false;
+      if (getArgCount() != t.getArgCount()) return false;
+      for (int i = 0; i < getArgCount(); i++){
+        if (!getArg(i).equals(t.getArg(i))) return false;
       }
       return true;
     } else if (o instanceof Sort) {
-      if (args.length>0) return false;
+      if (getArgCount() > 0) return false;
       return o==sort;
     } else {
       return false;
@@ -141,11 +141,11 @@ public final class PrimitiveType extends Type {
 
   public String toString(){
     String res=sort.toString();
-    if (args.length>0){
+    if (getArgCount() > 0) {
       res+="<";
-      res+=args[0];
-      for(int i=1;i<args.length;i++){
-        res+=","+args[i];
+      res+=getArg(0);
+      for(int i = 1; i < getArgCount(); i++) {
+        res+=","+getArg(i);
       }
       res+=">";
     }
@@ -161,7 +161,7 @@ public final class PrimitiveType extends Type {
       return true;
     case Array:
       if (t.isPrimitive(this.sort)){
-        return args[0].equals(((PrimitiveType)t).args[0]);
+        return getArg(0).equals(((PrimitiveType)t).getArg(0));
       }
     case Sequence:
     case Cell:
@@ -251,7 +251,7 @@ public final class PrimitiveType extends Type {
         break;
       case Pointer:
         if (t.isPrimitive(Sort.String)){
-          Type tt=((Type)args[0]);
+          Type tt=((Type)getArg(0));
           if (tt.isPrimitive(Sort.Char)) return true;
           if (tt instanceof TypeExpression){
             TypeExpression te=(TypeExpression)tt;
@@ -269,7 +269,7 @@ public final class PrimitiveType extends Type {
   
   @Override
   public boolean isPrimitive(Sort sort) {
-    if(sort==Sort.String && this.sort==Sort.Pointer && ((Type)args[0]).isPrimitive(Sort.Char)) return true;
+    if(sort==Sort.String && this.sort==Sort.Pointer && ((Type)getArg(0)).isPrimitive(Sort.Char)) return true;
     return this.sort==sort;
   }
 

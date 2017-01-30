@@ -210,7 +210,7 @@ public class JavaResolver extends AbstractRewriter {
   public void visit(ClassType t){
     String name[]=t.getNameFull();
     if (ensures_loaded(name)){
-      result=create.class_type(ClassName.toString(name,FQN_SEP),rewrite(t.getArgs()));
+      result=create.class_type(ClassName.toString(name,FQN_SEP),rewrite(t.argsToArray()));
       return;
     }
     ClassName tmp;
@@ -218,7 +218,7 @@ public class JavaResolver extends AbstractRewriter {
       tmp=new ClassName(name);
       tmp=tmp.prepend(current_space.getDeclName().name);
       if (ensures_loaded(tmp.name)){
-        result=create.class_type(tmp.toString(FQN_SEP),rewrite(t.getArgs()));
+        result=create.class_type(tmp.toString(FQN_SEP),rewrite(t.argsToArray()));
         return;
       }
       for(int i=current_space.imports.size()-1;i>=0;i--){
@@ -228,14 +228,14 @@ public class JavaResolver extends AbstractRewriter {
           tmp=new ClassName(name);
           tmp=tmp.prepend(imp.name);
           if (ensures_loaded(tmp.name)){
-            result=create.class_type(tmp.toString(FQN_SEP),rewrite(t.getArgs()));
+            result=create.class_type(tmp.toString(FQN_SEP),rewrite(t.argsToArray()));
             return;
           }
         } else {
           String imp_name=imp.name[imp.name.length-1];
           if (name.length==1 && name[0].equals(imp_name)) {
             if (ensures_loaded(imp.name)){
-              result=create.class_type(ClassName.toString(imp.name,FQN_SEP),rewrite(t.getArgs()));
+              result=create.class_type(ClassName.toString(imp.name,FQN_SEP),rewrite(t.argsToArray()));
               return;
             }            
           }
