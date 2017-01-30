@@ -6,14 +6,19 @@ import vct.col.util.VisitorHelper
  * AST node that represents `n`-tuple types, where the type
  * is of the form "`(T_1 * ... * T_n)`", represented by a list of `n` types.
  * 
- * @param _types The list of types that constitutes the tuple type.
+ * @param types The (immutable) list of types that constitutes the tuple type.
  */
-class TupleType(private[this] val _types:Array[Type]) extends Type with VisitorHelper {
-  /** The list of types that constitutes the type of the tuple. */
-  val types = _types.toArray.clone()
+case class TupleType(val types:List[Type]) extends Type with VisitorHelper {
+  def this(types:Array[Type]) = this(types.toList)
+  
+  /** @return A (copy of) the `types` list converted to an array (e.g for Java interoperability). */
+  def typesToArray : Array[Type] = types.toArray
 
   /** @return The type "`T_i`" of the `i`-th tuple element. */
-  def `type`(i:Int) : Type = types.apply(i)
+  def getType(i:Int) : Type = types.apply(i)
+  
+  /** @return The number of types represented by this AST node. */
+  def nrOfTypes : Int = types.size
 
   /** @return Always `false`: no type can extend (inherit from) a tuple type. */
   override def supertypeof(context:ProgramUnit, t:Type) = false
