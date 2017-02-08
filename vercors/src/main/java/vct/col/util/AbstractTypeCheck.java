@@ -425,15 +425,15 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
     }
   }
   public void visit(AssignmentStatement s){
-    ASTNode val=s.getExpression();
+    ASTNode val=s.expression();
     val.accept(this);
     Type val_type=val.getType();
     if (val_type==null) Abort("Value %s has no type.",val);
     if (val_type.toString().equals("<<label>>")) {
       return;
     }
-    s.getLocation().accept(this);
-    check_loc_val(s.getLocation().getType(),s.getExpression());
+    s.location().accept(this);
+    check_loc_val(s.location().getType(),s.expression());
   }
   
   public void visit(DeclarationStatement s){
@@ -472,7 +472,7 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
         if (m.kind==Method.Kind.Pure){
           for(ASTNode clause:ASTUtils.conjuncts(contract.post_condition, StandardOperator.Star)){
             if (!clause.getType().isPrimitive(Sort.Boolean)){
-              clause.getOrigin().report("error","post condition of function "+m.name+" is not a boolean");
+              clause.getOrigin().report("error","post condition of function "+m.name()+" is not a boolean");
               Fail("type error");
             }
           }
@@ -666,7 +666,7 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
       ASTClass cl=source().find((ClassType)t);
       variables.enter();
       for(DeclarationStatement decl:cl.dynamicFields()){
-        variables.add(decl.getName(),new VariableInfo(decl,Kind.Local));
+        variables.add(decl.name(),new VariableInfo(decl,Kind.Local));
       }
       e.arg(1).accept(this);
       t=e.arg(1).getType();
@@ -1133,7 +1133,7 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
       if (t1.isPrimitive(Sort.Sequence) && t2.isPrimitive(Sort.Sequence)){
         t1=(Type)((PrimitiveType)t1).getArg(0);
         t2=(Type)((PrimitiveType)t2).getArg(0);
-        e.setType(new PrimitiveType(Sort.Sequence,new TupleType(t1,t2)));
+        e.setType(new PrimitiveType(Sort.Sequence,new TupleType(new Type[] { t1, t2 })));
         break;
       }
       // handle intersection meaning of *
@@ -1330,10 +1330,10 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
   @Override
   public void visit(StructValue v){
     super.visit(v);
-    if (v.type==null){
+    if (v.type()==null){
       Abort("Build without type argument");
     }
-    Type t=v.type;
+    Type t=v.type();
     v.setType(t);
     if (t instanceof ClassType){
       Abort("constructor encoded as struct value");
@@ -1342,8 +1342,8 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
         Fail("type without arguments: %s in %s",t,v);
       }
       t=(Type)t.getArg(0);
-      for(int i=0;i<v.values.length;i++){
-        Type t2=v.values[i].getType();
+      for(int i=0;i<v.values().length;i++){
+        Type t2=v.values()[i].getType();
         if (t2==null){
           Fail("untyped build argument %d",i);
         }
@@ -1557,15 +1557,15 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
 
   @Override
   public void visit(VectorBlock pb){
-    if (!pb.iter.getType().isPrimitive(Sort.Integer)){
+    if (!pb.iter().getType().isPrimitive(Sort.Integer)){
       Fail("type of iteration variable must be integer");
     }
-    ASTNode init=pb.iter.getInit();
+    ASTNode init=pb.iter().getInit();
     if (!init.isa(StandardOperator.RangeSeq)){
       Fail("value for iteration variable must be a range");
     }
     init.apply(this);
-    pb.block.apply(this);
+    pb.block().apply(this);
   }
   
 

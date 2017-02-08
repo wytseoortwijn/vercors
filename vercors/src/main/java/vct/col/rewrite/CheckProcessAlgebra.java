@@ -32,7 +32,7 @@ public class CheckProcessAlgebra extends AbstractRewriter {
     for(Method m:cl.dynamicMethods()){
       if (!m.getReturnType().isPrimitive(Sort.Process)) continue;
       ASTNode body=m.getBody();
-      process_map.put(m.name, m);
+      process_map.put(m.name(), m);
       for(ASTNode n:m.getContract().modifies){
         if (n instanceof NameExpression){
           hist_set.add((NameExpression)n);
@@ -56,8 +56,8 @@ public class CheckProcessAlgebra extends AbstractRewriter {
         // TODO: check if arguments are passed in-order.
         // That is p(a,b)=q(a)||q(b) is allowed
         // p(a,b)=q(b)||q(a) is forbidden.
-        composite_map.put(composite,m.name);
-        Warning("mapping %s to %s",composite,m.name);
+        composite_map.put(composite, m.name());
+        Warning("mapping %s to %s", composite, m.name());
       }
     }
     super.visit(cl);
@@ -138,7 +138,7 @@ public class CheckProcessAlgebra extends AbstractRewriter {
           arg_names[i]=create.local_name(m.getArgument(i));
         }
       }
-      result=create.method_decl(create.primitive_type(Sort.Void), cb.getContract(), m.name, args, body);
+      result=create.method_decl(create.primitive_type(Sort.Void), cb.getContract(), m.name(), args, body);
     } else {
       //super.visit(m);
       result=null;

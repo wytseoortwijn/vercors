@@ -34,7 +34,7 @@ public class CSLencoder extends AbstractRewriter {
 
   private boolean has_csl_inv(ASTClass cl){
     for(Method m:cl.dynamicMethods()){
-      if (m.name.equals("csl_invariant")){
+      if (m.name().equals("csl_invariant")){
         return true;
       }
     }
@@ -48,12 +48,12 @@ public class CSLencoder extends AbstractRewriter {
       ContractBuilder cb=new ContractBuilder();
       rewrite(m.getContract(),cb);
       cb.ensures(create.invokation(null,null,"csl_invariant"));
-      String name=m.name;
+      String name = m.name();
       DeclarationStatement args[]=rewrite(m.getArgs());
       BlockStatement body;
       if (m.getBody()!=null){
         body=(BlockStatement)rewrite(m.getBody());
-        body.add_statement(create.special(ASTSpecial.Kind.Fold,
+        body.addStatement(create.special(ASTSpecial.Kind.Fold,
             create.invokation(null,null,"csl_invariant")
         ));   
       } else {

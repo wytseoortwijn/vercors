@@ -340,6 +340,13 @@ class simplify_quant_pass1 {
          ==
        (\forall* int i;e1;Perm(e2,e3)) ** (\forall int i;e1;e2==e4)
     }
-        
+    
+    
+    axiom nested_value {
+      (\forall* int i ; e1 ; (\forall* int j ; (e2!i) ; Value((e3!i))))
+        ==
+      (\forall* int j ; e2 ; Value(e3))
+    }
+    
 }
 

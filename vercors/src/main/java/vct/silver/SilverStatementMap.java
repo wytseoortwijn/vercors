@@ -102,7 +102,7 @@ public class SilverStatementMap<T,E,S> implements ASTMapping<S>{
   public S map(MethodInvokation e) {
     Origin o=e.getOrigin();
     Method m=e.getDefinition();
-    String name=m.name;
+    String name = m.name();
     ArrayList<E> args=new ArrayList<E>();
     ArrayList<E> outs=new ArrayList<E>();
     ArrayList<Triple<Origin,String,T>> pars=new ArrayList<Triple<Origin,String,T>>();
@@ -112,10 +112,10 @@ public class SilverStatementMap<T,E,S> implements ASTMapping<S>{
     for(int i=0;i<N;i++){
       if (decl[i].isValidFlag(ASTFlags.OUT_ARG) && decl[i].getFlag(ASTFlags.OUT_ARG)){
         outs.add(e.getArg(i).apply(expr));
-        rets.add(new Triple<Origin,String,T>(decl[i].getOrigin(),decl[i].name, decl[i].getType().apply(type)));
+        rets.add(new Triple<Origin,String,T>(decl[i].getOrigin(),decl[i].name(), decl[i].getType().apply(type)));
       } else {
         args.add(e.getArg(i).apply(expr));
-        pars.add(new Triple<Origin,String,T>(decl[i].getOrigin(),decl[i].name, decl[i].getType().apply(type)));
+        pars.add(new Triple<Origin,String,T>(decl[i].getOrigin(),decl[i].name(), decl[i].getType().apply(type)));
       }
     }
     return create.method_call(o, name, args, outs, pars, rets);
@@ -157,8 +157,8 @@ public class SilverStatementMap<T,E,S> implements ASTMapping<S>{
   @Override
   public S map(AssignmentStatement s) {
     Origin origin = s.getOrigin();
-    ASTNode location = s.getLocation();
-    ASTNode expression = s.getExpression();
+    ASTNode location = s.location();
+    ASTNode expression = s.expression();
     return assignment(origin, location, expression);
   }
 
@@ -181,7 +181,6 @@ public class SilverStatementMap<T,E,S> implements ASTMapping<S>{
 
   @Override
   public S map(DeclarationStatement s) {
-    
     return null;
   }
 

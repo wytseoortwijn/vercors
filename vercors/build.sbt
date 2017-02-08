@@ -1,25 +1,17 @@
-
-
-name := "vercors"
-
-organization  := "utwente"
-
+name := "Vercors Verification Toolset"
+organization  := "University of Twente"
 version := "0.1-SNAPSHOT"
-
-scalaVersion := "2.11.7"
+scalaVersion := "2.11.8"
 
 libraryDependencies += "commons-io" % "commons-io" % "2.4"
-
 libraryDependencies += "com.google.code.gson" % "gson" % "2.8.0"
-
 libraryDependencies += "org.apache.commons" % "commons-lang3" % "3.1"
+libraryDependencies += "org.scalactic" %% "scalactic" % "3.0.1"
+libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.1" % "test"
 
 scalacOptions += "-deprecation"
-
 scalacOptions += "-feature"
-
 scalacOptions += "-unchecked"
-
 scalacOptions += "-Dscalac.patmat.analysisBudget=off"
 
 packAutoSettings
@@ -32,6 +24,8 @@ antlr4GenVisitor in Antlr4 := true
 dependencyClasspath in Compile += new File("../hre/bin")
 dependencyClasspath in Compile += new File("../parsers/bin")
 dependencyClasspath in Compile += new File("../viper/viper-api/bin")
+
+dependencyClasspath in Test += new File("../hre/bin")
 
 // Make publish-local also create a test artifact, i.e., put a jar-file into the local Ivy
 // repository that contains all classes and resources relevant for testing.

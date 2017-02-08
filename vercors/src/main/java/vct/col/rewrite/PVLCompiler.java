@@ -54,7 +54,7 @@ public class PVLCompiler extends AbstractRewriter {
       Fail("cannot compile classes that extends others");
     }    
     ClassType bases[]=new ClassType[]{create.class_type(new String[]{"col","lang","Object"})};
-    currentTargetClass=create.ast_class(cl.name,ASTClass.ClassKind.Plain, parameters, bases, supports);
+    currentTargetClass=create.ast_class(cl.name(), ASTClass.ClassKind.Plain, parameters, bases, supports);
     currentTargetClass.add(create.comment("//:: cases GeneratedCode"));
     currentTargetClass.add(create.comment("//:: tools"));
     for(ASTNode node:cl){

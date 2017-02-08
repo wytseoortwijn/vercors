@@ -46,7 +46,7 @@ public class SilverExpressionMap<T,E> implements ASTMapping<E>{
   @Override
   public E map(ConstantExpression e) {
     if (e.value() instanceof IntegerValue){
-      int v=((IntegerValue)e.value()).getValue();
+      int v = ((IntegerValue)e.value()).value();
       if (e.getType().isPrimitive(Sort.Fraction)){
         switch(v){
           case 0 : return create.no_perm(e.getOrigin());
@@ -57,7 +57,7 @@ public class SilverExpressionMap<T,E> implements ASTMapping<E>{
         return create.Constant(e.getOrigin(),v);
       }
     } else if (e.value() instanceof BooleanValue) {
-      return create.Constant(e.getOrigin(),((BooleanValue)e.value()).getValue());
+      return create.Constant(e.getOrigin(),((BooleanValue)e.value()).value());
     } else {
       throw new HREError("cannot map constant value %s",e.value().getClass());
     }
@@ -226,18 +226,18 @@ public class SilverExpressionMap<T,E> implements ASTMapping<E>{
           } else {
             t2=t.apply(type);
           }
-          pars.add(new Triple<Origin, String, T>(decl.getOrigin(),decl.getName(),t2));
+          pars.add(new Triple<Origin, String, T>(decl.getOrigin(),decl.name(),t2));
         }
         AxiomaticDataType adt=(AxiomaticDataType)m.getParent();
         HashMap<String, T> dpars=new HashMap<String, T>();
         type.domain_type(dpars,(ClassType)e.object);
         //System.err.printf("%s expression type %s base %s%n",name,e.getType(),e.object);
-        return create.domain_call(o, name, args, dpars, rt, pars, adt.name);
+        return create.domain_call(o, name, args, dpars, rt, pars, adt.name());
       } else {
         
         ArrayList<Triple<Origin,String,T>> pars=new ArrayList<Triple<Origin,String,T>>();
         for(DeclarationStatement decl:m.getArgs()){
-          pars.add(new Triple<Origin,String,T>(decl.getOrigin(),decl.getName(),decl.getType().apply(type)));
+          pars.add(new Triple<Origin,String,T>(decl.getOrigin(),decl.name(),decl.getType().apply(type)));
         }
         return create.function_call(o, name, args, rt, pars);
       }
@@ -342,9 +342,9 @@ public class SilverExpressionMap<T,E> implements ASTMapping<E>{
       for(int i=decls.length-1;i>=0;i--){
         res=create.let(
             o,
-            decls[i].name,
+            decls[i].name(),
             decls[i].getType().apply(type),
-            decls[i].getInit().apply(this),
+            decls[i].init().apply(this),
             res
         );
       }
@@ -359,7 +359,7 @@ public class SilverExpressionMap<T,E> implements ASTMapping<E>{
   private List<Triple<Origin,String,T>> convert(DeclarationStatement[] declarations) {
     ArrayList<Triple<Origin,String,T>> res=new ArrayList<Triple<Origin,String,T>>();
     for(DeclarationStatement d:declarations){
-      res.add(new Triple<Origin,String,T>(d.getOrigin(),d.getName(),d.getType().apply(type)));
+      res.add(new Triple<Origin,String,T>(d.getOrigin(),d.name(),d.getType().apply(type)));
     }
     return res;
   }
@@ -472,12 +472,12 @@ public class SilverExpressionMap<T,E> implements ASTMapping<E>{
   @Override
   public E map(StructValue v) {
     Origin o = v.getOrigin();
-    ArrayList<E> elems=new ArrayList<E>();
-    for(int i=0;i<v.values.length;i++){
-      elems.add(v.values[i].apply(this));
+    ArrayList<E> elems = new ArrayList<E>();
+    for (int i=0;i<v.values().length;i++) {
+      elems.add(v.value(i).apply(this));
     }
-    T t=((Type)((Type)v.type).getArg(0)).apply(type);
-    switch(((PrimitiveType)v.type).sort){
+    T t=((Type)((Type)v.type()).getArg(0)).apply(type);
+    switch(((PrimitiveType)v.type()).sort){
     case Sequence:
       return create.explicit_seq(o, t, elems);
     case Bag:

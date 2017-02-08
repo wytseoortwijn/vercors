@@ -1,11 +1,9 @@
 package vct.col.rewrite;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
 
-import hre.ast.Origin;
 import hre.lang.HREError;
 import vct.col.ast.ASTClass;
 import vct.col.ast.ASTClass.ClassKind;
@@ -17,7 +15,6 @@ import vct.col.ast.BlockStatement;
 import vct.col.ast.Contract;
 import vct.col.ast.Dereference;
 import vct.col.ast.Method.Kind;
-import vct.col.ast.NameExpression;
 import vct.col.ast.PrimitiveType;
 import vct.col.ast.PrimitiveType.Sort;
 import vct.col.ast.StandardOperator;
@@ -66,7 +63,7 @@ public class JavaEncoder extends AbstractRewriter {
   }
   
   private String create_field_name(ASTClass cls, String name){
-    if (cls.name.equals("History") || cls.name.equals("Future")){
+    if (cls.name().equals("History") || cls.name().equals("Future")){
       return name;
     }
     String res="field_";
@@ -82,7 +79,7 @@ public class JavaEncoder extends AbstractRewriter {
     for(String part:ct.getNameFull()){
       res+="_"+part;
     }
-    res+="_"+m.name;
+    res+="_"+m.name();
     for(DeclarationStatement decl:m.getArgs()){
       res=res+"__"+create_type_name(decl.getType());
     }
@@ -96,7 +93,7 @@ public class JavaEncoder extends AbstractRewriter {
     ASTNode parent=m.getParent();
     // ADT names are supposed to be globally unique.
     if (parent instanceof AxiomaticDataType){
-      return "adt_"+m.name;
+      return "adt_"+m.name();
     }
     ASTClass cls=(ASTClass)parent;
     String prefix;
@@ -104,7 +101,7 @@ public class JavaEncoder extends AbstractRewriter {
       prefix="procedure_";
     } else {
       String name[]=cls.getFullName();
-      if (m.name.equals(cls.name)){
+      if (m.name().equals(cls.name())){
         prefix="constructor_";
       } else {
         prefix="method_";
@@ -113,7 +110,7 @@ public class JavaEncoder extends AbstractRewriter {
         prefix+=part+"_";
       }
     }
-    String res=m.name;
+    String res=m.name();
     for(DeclarationStatement decl:m.getArgs()){
       res=res+"__"+create_type_name(decl.getType());
     }
@@ -135,7 +132,7 @@ public class JavaEncoder extends AbstractRewriter {
           rewrite(m.dispatch)
       )));
       String method=create_method_name(get_initial_definition(m.getDefinition()));
-      ArrayList<ASTNode> args=new ArrayList();
+      ArrayList<ASTNode> args=new ArrayList<ASTNode>();
       args.add(create.local_name("globals"));
       for(ASTNode n:m.getArgs()){
         args.add(rewrite(n));
@@ -154,7 +151,7 @@ public class JavaEncoder extends AbstractRewriter {
           rewrite(m.dispatch)
       )));
       String method=create_method_name(get_initial_definition(m.getDefinition()));
-      ArrayList<ASTNode> args=new ArrayList();
+      ArrayList<ASTNode> args=new ArrayList<ASTNode>();
       args.add(create.local_name("globals"));
       for(ASTNode n:m.getArgs()){
         args.add(rewrite(n));
@@ -174,7 +171,7 @@ public class JavaEncoder extends AbstractRewriter {
   public void visit(DeclarationStatement decl){
     if(decl.getParent() instanceof ASTClass){
       ASTClass cls=(ASTClass)decl.getParent();
-      String field=create_field_name(cls,decl.name);
+      String field=create_field_name(cls,decl.name());
       DeclarationStatement res=create.field_decl(field,
           rewrite(decl.getType()),
           rewrite(decl.getInit()));
@@ -221,17 +218,17 @@ public class JavaEncoder extends AbstractRewriter {
   }
   
   
-  private Hashtable<ClassType,List<Method>> methods=new Hashtable();
+  private Hashtable<ClassType,List<Method>> methods=new Hashtable<ClassType, List<Method>>();
   
   @Override
   public void visit(ASTClass cl){
-    System.err.printf("class %s%n",cl.name);
+    System.err.printf("class %s%n",cl.name());
     if (!cl.isValidFlag(ASTFlags.FINAL)){
       cl.setFlag(ASTFlags.FINAL, false);
     }
     super.visit(cl);
-    if (cl.name.equals("History")||cl.name.equals("Future")) return;
-    ArrayList<Method> method_list=new ArrayList();
+    if (cl.name().equals("History")||cl.name().equals("Future")) return;
+    ArrayList<Method> method_list=new ArrayList<Method>();
     for(Method m:cl.dynamicMethods()){
       if(m.kind==Kind.Constructor) continue;
       if(is_direct_definition(m)) continue;
@@ -248,7 +245,7 @@ public class JavaEncoder extends AbstractRewriter {
         for(int i=0;i<N;i++){
           arg_type[i]=pars[i].getType();
         }
-        Method tmp=cl.find(m.name,null,arg_type,false);
+        Method tmp=cl.find(m.name(),null,arg_type,false);
         if (tmp==null){
           method_list.add(m);
           ArrayList<DeclarationStatement> parameters=gen_pars(m);
@@ -311,7 +308,7 @@ public class JavaEncoder extends AbstractRewriter {
       ASTClass cls=(ASTClass)m.getParent();
       if (cls.super_classes.length>0){
         cls=source().find(cls.super_classes[0]);
-        Method tmp=cls.find(m.name,null,arg_type);
+        Method tmp=cls.find(m.name(),null,arg_type);
         if (tmp!=null){
           m=tmp;
           continue;
@@ -343,7 +340,7 @@ public class JavaEncoder extends AbstractRewriter {
       cls=(ASTClass)m.getParent();
       if (cls.super_classes.length>0){
         cls=source().find(cls.super_classes[0]);
-        Method tmp=cls.find(m.name,null,arg_type);
+        Method tmp=cls.find(m.name(),null,arg_type);
         if (tmp!=null){
           m=tmp;
           continue;
@@ -355,13 +352,13 @@ public class JavaEncoder extends AbstractRewriter {
     return cls.getFlag(ASTFlags.FINAL) || m.getFlag(ASTFlags.FINAL);
   }
 
-  private Hashtable<Method,Contract> contract_table = new Hashtable();
+  private Hashtable<Method,Contract> contract_table = new Hashtable<Method,Contract>();
   
   
   private ArrayList<DeclarationStatement> gen_pars(Method m){
     ArrayList<DeclarationStatement> args=new ArrayList<DeclarationStatement>();
     if (needs_globals(m)){
-      args.add(create.field_decl("globals",create.class_type(globals.name)));
+      args.add(create.field_decl("globals",create.class_type(globals.name())));
     }
     int N=m.getArity();
     DeclarationStatement pars[]=m.getArgs();
@@ -374,7 +371,7 @@ public class JavaEncoder extends AbstractRewriter {
   private ASTNode[] get_names(List<DeclarationStatement> pars){
     ASTNode [] res=new ASTNode[pars.size()];
     for(int i=0;i<res.length;i++){
-      res[i]=create.local_name(pars.get(i).getName());
+      res[i]=create.local_name(pars.get(i).name());
     }
     return res;
   }
@@ -405,9 +402,9 @@ public class JavaEncoder extends AbstractRewriter {
       String internal_name=create_method_name(INTERNAL,new ClassType(cls.getFullName()), m);
       boolean isFinal=m.isStatic()||cls.getFlag(ASTFlags.FINAL)||m.getFlag(ASTFlags.FINAL);
       if (isFinal){
-        System.err.printf("  method %s is final%n",m.name);
+        System.err.printf("  method %s is final%n",m.name());
       } else {
-        System.err.printf("  method %s is not final%n",m.name);
+        System.err.printf("  method %s is not final%n",m.name());
       }
       boolean isInitial=true;
       Method base=m;
@@ -465,7 +462,7 @@ public class JavaEncoder extends AbstractRewriter {
           if (!isInitial){
             ASTNode args_names[]=new ASTNode[args.size()];
             for(int i=0;i<args_names.length;i++){
-              args_names[i]=create.local_name(args.get(i).getName());
+              args_names[i]=create.local_name(args.get(i).name());
             }
             ASTNode override=create.invokation(
                 create.reserved_name(ASTReserved.This),
@@ -525,6 +522,8 @@ public class JavaEncoder extends AbstractRewriter {
         }
         break;
       case Constructor: prefix="constructor"; break;
+      default:
+        break;
       }
       method=create_method_name(prefix,dispatch,m);
     } else {
@@ -563,7 +562,7 @@ public class JavaEncoder extends AbstractRewriter {
     if (parent instanceof AxiomaticDataType) return false;
     if (parent instanceof ASTClass){
       ASTClass cl=(ASTClass)parent;
-      return !cl.name.equals("Future") && !cl.name.equals("History");
+      return !cl.name().equals("Future") && !cl.name().equals("History");
     }
     return true;
   }

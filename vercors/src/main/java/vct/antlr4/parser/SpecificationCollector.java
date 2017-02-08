@@ -187,13 +187,13 @@ public class SpecificationCollector extends AbstractRewriter {
         switch(sp.kind){
         case With:{
           for(ASTNode s:(BlockStatement)sp.args[0]){
-            new_before.add_statement(rewrite(s));
+            new_before.addStatement(rewrite(s));
           }
           continue;
         }
         case Then:{
           for(ASTNode s:(BlockStatement)sp.args[0]){
-            new_after.add_statement(rewrite(s));
+            new_after.addStatement(rewrite(s));
           }
           continue;
         }
@@ -201,7 +201,7 @@ public class SpecificationCollector extends AbstractRewriter {
           break;
         }
       }
-      new_current.add_statement(rewrite(n));
+      new_current.addStatement(rewrite(n));
     }
   }
   
@@ -280,7 +280,7 @@ public class SpecificationCollector extends AbstractRewriter {
       super.visit(d);
     } else {
       Warning("fixing special %s",kind);
-      result=create.special(kind,create.unresolved_name(d.name));
+      result = create.special(kind, create.unresolved_name(d.name()));
     }
   }
 }

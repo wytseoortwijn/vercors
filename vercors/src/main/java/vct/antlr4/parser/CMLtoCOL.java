@@ -80,13 +80,13 @@ public class CMLtoCOL extends ANTLRtoCOL implements CMLVisitor<ASTNode> {
         //hre.System.Warning("%s",ctx.getChild(0).toStringTree(parser));
         ASTNode temp = convert(ctx,0);
         scan_comments_before(block,ctx.getChild(0)); //DRB    
-        block.add_statement(temp);
+        block.addStatement(temp);
         scan_comments_after(block,ctx.getChild(0));//DRB 
     } else if (match(ctx,"BlockItemListContext","BlockItemContext")){                       
          doblock(block,(ParserRuleContext)ctx.getChild(0));
          //hre.System.Warning("%s",ctx.getChild(1).toStringTree(parser));
          ASTNode temp = convert(ctx,1);              
-         block.add_statement(temp);
+         block.addStatement(temp);
          scan_comments_after(block,ctx.getChild(1)); //DRB
     } else {      
       throw hre.lang.System.Failure("unknown BlockItemList");
@@ -219,7 +219,7 @@ public class CMLtoCOL extends ANTLRtoCOL implements CMLVisitor<ASTNode> {
         } else if (decls[i] instanceof OperatorExpression){
           OperatorExpression e=(OperatorExpression)decls[i];
           DeclarationStatement d=(DeclarationStatement)e.arg(0);
-          res.add(create.field_decl(d.getName(),d.getType(),e.arg(1)));
+          res.add(create.field_decl(d.name(),d.getType(),e.arg(1)));
         } else {
           return null;
         }
@@ -371,7 +371,7 @@ public class CMLtoCOL extends ANTLRtoCOL implements CMLVisitor<ASTNode> {
     if (match(ctx,"Pointer",null)){
       DeclarationStatement d=(DeclarationStatement)convert(ctx,1);
       Type t=getPointer(d.getType(),(ParserRuleContext)ctx.getChild(0));
-      return create.field_decl(d.name, t);//create.primitive_type(Sort.Pointer,d.getType()));
+      return create.field_decl(d.name(), t);//create.primitive_type(Sort.Pointer,d.getType()));
     }
     return null;
   }
@@ -421,7 +421,7 @@ public class CMLtoCOL extends ANTLRtoCOL implements CMLVisitor<ASTNode> {
       DeclarationStatement d=(DeclarationStatement)convert(ctx,0);
       Type t=d.getType();
       t=create.primitive_type(PrimitiveType.Sort.Array,t);
-      return create.field_decl(d.getName(),t);
+      return create.field_decl(d.name(), t);
     }
     int N=ctx.getChildCount();
     if (match(0,true,ctx,null,"[") && match(N-1,false,ctx,"]")){
@@ -431,7 +431,7 @@ public class CMLtoCOL extends ANTLRtoCOL implements CMLVisitor<ASTNode> {
         hre.lang.System.Warning("ignoring %d modifiers in declaration",N-4);
       }
       t=create.primitive_type(PrimitiveType.Sort.Array,t,convert(ctx,N-2));
-      return create.field_decl(d.getName(),t);
+      return create.field_decl(d.name(), t);
     }
     return null;
   }
@@ -901,7 +901,7 @@ public class CMLtoCOL extends ANTLRtoCOL implements CMLVisitor<ASTNode> {
       ASTNode tmp=convert(ctx,1);
       if (tmp instanceof DeclarationStatement){
         DeclarationStatement decl=(DeclarationStatement)convert(ctx,1);
-        return create.field_decl(decl.name,create.type_expression(TypeOperator.Unsigned,decl.getType()));
+        return create.field_decl(decl.name(), create.type_expression(TypeOperator.Unsigned,decl.getType()));
       } else {
         return create.type_expression(TypeOperator.Unsigned,(Type)tmp);
       }
@@ -910,7 +910,7 @@ public class CMLtoCOL extends ANTLRtoCOL implements CMLVisitor<ASTNode> {
       ASTNode tmp=convert(ctx,1);
       if (tmp instanceof DeclarationStatement){
         DeclarationStatement decl=(DeclarationStatement)convert(ctx,1);
-        return create.field_decl(decl.name,create.type_expression(TypeOperator.Const,decl.getType()));
+        return create.field_decl(decl.name(), create.type_expression(TypeOperator.Const,decl.getType()));
       } else {
         return create.type_expression(TypeOperator.Const,(Type)tmp);
       }

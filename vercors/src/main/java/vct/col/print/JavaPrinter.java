@@ -33,7 +33,7 @@ public class JavaPrinter extends AbstractPrinter {
   }
 
   public void visit(TypeVariable v){
-    out.print(v.name);
+    out.print(v.name());
   }
   
   public void pre_visit(ASTNode node){
@@ -58,24 +58,24 @@ public class JavaPrinter extends AbstractPrinter {
   @Override
   public void visit(TryCatchBlock tcb){
     out.print("try");
-    tcb.main.accept(this);
-    for(CatchClause cb:tcb.catches){
+    tcb.main().accept(this);
+    for (CatchClause cb : tcb.catches()) {
       out.print("catch (");
       nextExpr();
       cb.decl().accept(this);
       out.print(")");
       cb.block().accept(this);
     }
-    if (tcb.after!=null){
+    if (tcb.after() != null){
       out.print(" finally ");
-      tcb.after.accept(this);
+      tcb.after().accept(this);
     }
     out.println("");
   }
   
   @Override
   public void visit(NameSpace ns){
-    if(!ns.name.equals(NameSpace.NONAME)){
+    if (!ns.name().equals(NameSpace.NONAME)) {
       out.printf("package %s;",ns.getDeclName().toString("."));
       out.println("");
     } else {
@@ -139,23 +139,23 @@ public class JavaPrinter extends AbstractPrinter {
    
   @Override 
   public void visit(Axiom axiom){
-    out.printf("axioms %s: ", axiom.name);
+    out.printf("axioms %s: ", axiom.name());
     axiom.rule().accept(this);
     out.println(";");
   }
 
   @Override
   public void visit(AxiomaticDataType adt){
-    out.printf("ADT %s [",adt.name);
+    out.printf("ADT %s [", adt.name());
     String sep="";
-    for(DeclarationStatement d:adt.getParameters()){
-      out.printf("%s%s",sep,d.name);
+    for (DeclarationStatement d : adt.parameters()) {
+      out.printf("%s%s", sep, d.name());
       sep=", ";
     }
     out.println("] {");
     out.incrIndent();
     out.println("//constructors");
-    for(Method f:adt.constructors()){
+    for (Method f : adt.constructors()) {
       f.accept(this);
     }
     out.println("//mappings");
@@ -497,10 +497,10 @@ public class JavaPrinter extends AbstractPrinter {
       if (i>0) out.printf(",");
       DeclarationStatement decl=e.getDeclaration(i);
       decl.getType().accept(this);
-      out.printf(" %s",decl.getName());
-      if (decl.getInit()!=null){
+      out.printf(" %s", decl.name());
+      if (decl.init() != null) {
         out.printf("= ");
-        decl.getInit().accept(this);
+        decl.init().accept(this);
       }
     }
     if (e.triggers!=null){
@@ -572,7 +572,7 @@ public class JavaPrinter extends AbstractPrinter {
       for(DeclarationStatement d:cl.parameters){
         out.print(sep);
         if(d.getType().isPrimitive(Sort.Class)){
-          out.print(d.name);
+          out.print(d.name());
         } else {
           d.accept(this);
         }
@@ -644,9 +644,9 @@ public class JavaPrinter extends AbstractPrinter {
       for (DeclarationStatement d:contract.signals){
         out.printf("signals (");
         d.getType().accept(this);
-        out.printf(" %s) ",d.getName());
+        out.printf(" %s) ",d.name());
         nextExpr();
-        d.getInit().accept(this);
+        d.init().accept(this);
         out.lnprintf(";");
       }      
       if (contract.modifies!=null){
@@ -685,10 +685,10 @@ public class JavaPrinter extends AbstractPrinter {
   }
 
   public void visit(DeclarationStatement s){
-    ASTNode expr=s.getInit();
+    ASTNode expr = s.init();
     nextExpr();
     s.getType().accept(this);
-    out.printf(" %s",s.getName());
+    out.printf(" %s", s.name());
     if (expr!=null){
       out.printf("=");
       nextExpr();
@@ -856,7 +856,7 @@ public class JavaPrinter extends AbstractPrinter {
         if (self_terminating(s.getStatement(i-1))){
           out.printf(" ");
         }
-        if (i==N-1 && s.getGuard(i)==IfStatement.else_guard){
+        if (i==N-1 && s.getGuard(i)==IfStatement.elseGuard()){
           out.printf("else ");
         } else {
           out.printf(" else if (");
@@ -882,9 +882,9 @@ public class JavaPrinter extends AbstractPrinter {
 
   public void visit(AssignmentStatement s){
     setExpr();
-    s.getLocation().accept(this);
+    s.location().accept(this);
     out.printf("=");
-    s.getExpression().accept(this);
+    s.expression().accept(this);
   }
 
   public void visit(ReturnStatement s){
@@ -904,9 +904,9 @@ public class JavaPrinter extends AbstractPrinter {
     }
   }
 
-  public void visit(Lemma l){
+  public void visit(Lemma lemma){
       out.printf("/*@ lemma ");
-      l.getBlock().accept(this);
+      lemma.block().accept(this);
       out.lnprintf(" */");
   }
   
@@ -974,7 +974,7 @@ public class JavaPrinter extends AbstractPrinter {
   
   @Override
   public void visit(TypeExpression t){
-    switch(t.op()){
+    switch (t.operator()) {
     case Extends:
       out.printf("? extends ");
       t.getType(0).accept(this);
@@ -998,7 +998,7 @@ public class JavaPrinter extends AbstractPrinter {
       for(ASTNode n:c.cases){
         out.printf("case ");
         nextExpr();
-        s.expr.accept(this);
+        n.accept(this);
         out.println(":");
       }
       out.incrIndent();
@@ -1012,17 +1012,17 @@ public class JavaPrinter extends AbstractPrinter {
   }
   
   @Override
-  public void visit(StructValue v){
+  public void visit(StructValue v) {
     setExpr();
-    if (v.type!=null){
-      v.type.accept(this);
+    if (v.type() != null) {
+      v.type().accept(this);
     }
     out.print("{");
     String sep="";
-    for(int i=0;i<v.values.length;i++){
+    for (int i=0;i<v.values().length;i++) {
       out.print(sep);
       sep=",";
-      v.values[i].accept(this);
+      v.value(i).accept(this);
     }
     out.print("}");
   }
@@ -1268,14 +1268,14 @@ public class JavaPrinter extends AbstractPrinter {
   public void visit(ParallelAtomic pa){
     out.printf("atomic (");
     String sep="";
-    for(ASTNode s:pa.sync_list){
+    for (ASTNode s : pa.synclist()) {
       out.printf("%s",sep);
       sep=",";
       nextExpr();
       s.apply(this);
     }
     out.printf(")");
-    visit(pa.block);
+    visit(pa.block());
   }
 
   @Override
@@ -1302,40 +1302,40 @@ public class JavaPrinter extends AbstractPrinter {
 
   @Override
   public void visit(ParallelBarrier pb){
-    if(pb.contract==null){
+    if (pb.contract() == null) {
       Fail("parallel barrier with null contract!");
     } else {
-      out.printf("barrier(%s;%s){",pb.label,pb.invs);
+      out.printf("barrier(%s;%s){", pb.label(), pb.invs());
       out.println("");
       out.incrIndent();
-      visit(pb.contract);
+      visit(pb.contract());
       out.decrIndent();
-      if (pb.body==null){
+      if (pb.body() == null ) {
         out.println("{ }");
       } else {
-        pb.body.accept(this);
+        pb.body().accept(this);
       }
       
     }
   }
   @Override
-  public void visit(ParallelInvariant pb){
-    out.printf("invaratiant %s (",pb.label);
+  public void visit(ParallelInvariant pb) {
+    out.printf("invariants %s (", pb.label());
     nextExpr();
-    pb.inv.accept(this);
+    pb.inv().accept(this);
     out.printf(")");
-    pb.block.accept(this);
+    pb.block().accept(this);
   }
   @Override
   public void visit(ParallelRegion region){
-    if (region.contract!=null){
+    if (region.contract() != null) {
       out.println("parallel");
-      region.contract.accept(this);
+      region.contract().accept(this);
       out.println("{");
     } else {
       out.println("parallel {");
     }
-    for(ParallelBlock pb:region.blocks){
+    for (ParallelBlock pb : region.blocks()) {
       out.incrIndent();
       pb.accept(this);
       out.println("");
@@ -1363,7 +1363,7 @@ public class JavaPrinter extends AbstractPrinter {
       if (dd instanceof DeclarationStatement){
         DeclarationStatement d = (DeclarationStatement)dd;
         d.getType().accept(this);
-        ASTNode init=d.getInit();
+        ASTNode init = d.init();
         if (init!=null){
           out.print("=");
           init.accept(this);
@@ -1398,9 +1398,9 @@ public class JavaPrinter extends AbstractPrinter {
   public void visit(VectorBlock v){
     out.print("vec(");
     nextExpr();
-    v.iter.accept(this);
+    v.iter().accept(this);
     out.println(")");
-    v.block.apply(this);
+    v.block().apply(this);
   }
   
   @Override

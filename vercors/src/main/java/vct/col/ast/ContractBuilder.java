@@ -37,7 +37,7 @@ public class ContractBuilder {
       ASTNode d=decls.getStatement(i);
       if (d instanceof DeclarationStatement){
         DeclarationStatement decl=(DeclarationStatement)d;
-        if (decl.getInit()!=null) throw new Error("illegal initialization");
+        if (decl.init() != null) throw new Error("illegal initialization");
         list.add(decl);
       } else {
         throw new Error("not a declaration: "+d.getClass());

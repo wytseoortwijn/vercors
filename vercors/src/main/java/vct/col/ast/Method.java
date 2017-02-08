@@ -76,11 +76,11 @@ public class Method extends ASTDeclaration {
 
   public Kind getKind(){ return kind; }
     
-  public String getName(){ return name; }
+  public String getName(){ return name(); }
 
   public int getArity(){ return args.length; }
 
-  public String getArgument(int i){ return args[i].getName(); }
+  public String getArgument(int i){ return args[i].name(); }
 
   public Type getArgType(int i){ return args[i].getType(); }
 
@@ -156,20 +156,20 @@ public class Method extends ASTDeclaration {
       Debug("building map...");
       for(int i=0;i<c.given.length&&i<object_type.args.length;i++){
         if (c.given[i].getType().isPrimitive(Sort.Class)){
-          Debug("%s = %s",c.given[i].getName(),object_type.args[i]);
-          map.put(c.given[i].getName(),(Type)object_type.args[i]);
+          Debug("%s = %s", c.given[i].name(), object_type.args[i]);
+          map.put(c.given[i].name(), (Type)object_type.args[i]);
         } else {
-          Debug("skipping %s",c.given[i].getName());
+          Debug("skipping %s", c.given[i].name());
         }
       }
     } else if(parent instanceof AxiomaticDataType) {
       AxiomaticDataType adt=(AxiomaticDataType)parent;
-      Debug("%s: computing substitution (%s)...",object_type.getOrigin(),adt.name);
-      DeclarationStatement decl[]=adt.getParameters();
+      Debug("%s: computing substitution (%s)...",object_type.getOrigin(), adt.name());
+      DeclarationStatement decl[] = adt.parameters();
       for(int i=0;i<decl.length;i++){
         if (i<object_type.args.length){
-          Debug("%s -> %s",decl[i].name,(Type)object_type.args[i]);
-          map.put(decl[i].name,(Type)object_type.args[i]);          
+          Debug("%s -> %s",decl[i].name(), (Type)object_type.args[i]);
+          map.put(decl[i].name(), (Type)object_type.args[i]);          
         }
       }
     }
@@ -180,9 +180,9 @@ public class Method extends ASTDeclaration {
   public ClassName getDeclName() {
     ASTDeclaration parent=((ASTDeclaration)getParent());
     if (parent ==null || parent instanceof AxiomaticDataType){
-      return new ClassName(name);
+      return new ClassName(name());
     } else {
-      return new ClassName(parent.getDeclName(),name);
+      return new ClassName(parent.getDeclName(), name());
     }
   }
 
@@ -219,7 +219,7 @@ public class Method extends ASTDeclaration {
     HashSet<Method> scanned=new HashSet<Method>();
     boolean res=find(this,scanned,body);
     if (res){
-      Debug("function %s is recursive",name);
+      Debug("function %s is recursive", name());
     }
     return res;
   }
@@ -273,7 +273,7 @@ public class Method extends ASTDeclaration {
 
   public boolean isOverloaded() {
     ASTClass cl=(ASTClass)getParent();
-    return cl.isOverloaded(name);
+    return cl.isOverloaded(name());
   }
 }
 

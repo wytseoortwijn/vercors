@@ -27,11 +27,11 @@ public class GhostLifter extends AbstractRewriter {
       }
       cb.requires(rewrite(c.pre_condition));
       for(DeclarationStatement arg:c.yields){
-        ASTNode init=rewrite(arg.getInit());
+        ASTNode init=rewrite(arg.init());
         if (init!=null){
-          yielded.put(arg.name,init);
+          yielded.put(arg.name(), init);
         }
-        arg=create.field_decl(arg.name, rewrite(arg.getType()));
+        arg=create.field_decl(arg.name(), rewrite(arg.getType()));
         arg.setFlag(ASTFlags.OUT_ARG, true);
         args.add(arg);
       }
@@ -48,7 +48,7 @@ public class GhostLifter extends AbstractRewriter {
         m.kind,
         rewrite(m.getReturnType()),
         cb.getContract(), 
-        m.name, 
+        m.name(), 
         args.toArray(new DeclarationStatement[0]), 
         m.usesVarArgs(), 
         body
@@ -69,14 +69,14 @@ public class GhostLifter extends AbstractRewriter {
     if (m.get_before()!=null) for(ASTNode n:m.get_before()){
       if (n instanceof AssignmentStatement){
         AssignmentStatement s=(AssignmentStatement)n;
-        if (s.getLocation() instanceof NameExpression){
-          NameExpression name=(NameExpression)s.getLocation();
+        if (s.location() instanceof NameExpression){
+          NameExpression name=(NameExpression)s.location();
           //TODO: make kind checking work
           //if (name.getKind()==NameExpression.Kind.Label){
             if (arg_map.containsKey(name.getName())){
               Fail("%s is assigned twice",name.getName());
             }
-            arg_map.put(name.getName(), rewrite(s.getExpression()));
+            arg_map.put(name.getName(), rewrite(s.expression()));
             continue;
           //}
         }
@@ -86,14 +86,14 @@ public class GhostLifter extends AbstractRewriter {
     if (m.get_after()!=null) for(ASTNode n:m.get_after()){
       if (n instanceof AssignmentStatement){
         AssignmentStatement s=(AssignmentStatement)n;
-        if (s.getExpression() instanceof NameExpression){
-          NameExpression name=(NameExpression)s.getExpression();
+        if (s.expression() instanceof NameExpression){
+          NameExpression name=(NameExpression)s.expression();
           //TODO: make kind checking work
           //if (name.getKind()==NameExpression.Kind.Label){
             if (arg_map.containsKey(name.getName())){
               Fail("%s is assigned twice",name.getName());
             }
-            arg_map.put(name.getName(), rewrite(s.getLocation()));
+            arg_map.put(name.getName(), rewrite(s.location()));
             continue;
           //}
         }
@@ -104,18 +104,18 @@ public class GhostLifter extends AbstractRewriter {
     Contract c=def.getContract();
     if (c!=null){
       if(c.given!=null) for(DeclarationStatement decl:c.given){
-        ASTNode arg=arg_map.get(decl.name);
+        ASTNode arg = arg_map.get(decl.name());
         if (arg==null){
-          arg=rewrite(decl.getInit());
+          arg=rewrite(decl.init());
         }
         if (arg==null){
           System.err.printf("key set %s%n",arg_map.keySet());
-          Fail("argument %s is missing",decl.name);
+          Fail("argument %s is missing", decl.name());
         }
         args.add(arg);
       }
       if (c.yields!=null) for(DeclarationStatement decl:c.yields){
-        ASTNode arg=arg_map.get(decl.name);
+        ASTNode arg=arg_map.get(decl.name());
         if (arg==null){
           count++;
           String name="dummy_yields_"+count;

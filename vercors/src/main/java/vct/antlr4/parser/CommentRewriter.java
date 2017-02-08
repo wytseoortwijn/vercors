@@ -208,7 +208,7 @@ public class CommentRewriter extends AbstractRewriter {
     if (queue.size()>0) {
       Contract c=parser.contract(currentBlock,grabQueue());
       if (c!=null) {
-        currentBlock.add_statement(create.special_decl(ASTSpecial.Kind.Contract, c));
+        currentBlock.addStatement(create.special_decl(ASTSpecial.Kind.Contract, c));
       }
     }
     result=currentBlock;

@@ -89,10 +89,10 @@ public class PVLEncoder extends AbstractRewriter {
   
   @Override
   public void visit(Method m){
-    if(m.name.equals(INV)){
+    if(m.name().equals(INV)){
       currentTargetClass.add_dynamic(create.predicate(HELD,null));
     }
-    if(m.name.equals("run")){
+    if (m.name().equals("run")) {
       Contract c=m.getContract();
       FeatureScanner features=new FeatureScanner();
       c.post_condition.accept(features);
@@ -132,7 +132,7 @@ public class PVLEncoder extends AbstractRewriter {
       ASTClass parent=(ASTClass)m.getParent();
       boolean runnable=false;
       for(Method method:parent.dynamicMethods()){
-        if (method.name.equals("run")){
+        if (method.name().equals("run")){
           runnable=true; 
           break;
         }

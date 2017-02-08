@@ -32,12 +32,12 @@ public class RenamingRewriter extends AbstractRewriter {
     if (e.getKind()==NameExpression.Kind.Reserved){
       super.visit(e);
     } else {
-      result=create.name(e.getKind(),null,rename_variable(e.getName()));
+      result = create.name(e.getKind(), null, rename_variable(e.getName()));
     }
   }
   
   public void visit(DeclarationStatement decl){
-    result=create.field_decl(rename_variable(decl.getName()),rewrite(decl.getType()));
+    result = create.field_decl(rename_variable(decl.name()), rewrite(decl.getType()));
   }
   
 }

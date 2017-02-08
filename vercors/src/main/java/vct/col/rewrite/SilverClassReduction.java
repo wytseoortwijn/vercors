@@ -149,7 +149,7 @@ public class SilverClassReduction extends AbstractRewriter {
   @Override
   public void visit(AxiomaticDataType adt){
     super.visit(adt);
-    if (adt.name.equals("TYPE")){
+    if (adt.name().equals("TYPE")){
       AxiomaticDataType res=(AxiomaticDataType)result;
       res.add_cons(create.function_decl(
           create.class_type("TYPE"),
@@ -231,7 +231,7 @@ public class SilverClassReduction extends AbstractRewriter {
     for(ASTNode n:cl.staticMembers()){
       if (n instanceof Method){
         Method m=(Method)n;
-        if (m.name.equals("multidim_index_2")){
+        if (m.name().equals("multidim_index_2")){
           if (multidim_index_2) continue;
           multidim_index_2=true;
         }
@@ -249,7 +249,7 @@ public class SilverClassReduction extends AbstractRewriter {
         ref_class.add(rewrite(n));
       } else if (n instanceof Method){
         Method m=(Method)n;
-        if (m.name.equals("multidim_index_2")){
+        if (m.name().equals("multidim_index_2")){
           if (multidim_index_2) continue;
           multidim_index_2=true;
         }
@@ -262,16 +262,6 @@ public class SilverClassReduction extends AbstractRewriter {
         Fail("Illegal dynamic member %s",n);
       }
     }
-/*    
-    for(DeclarationStatement decl:cl.dynamicFields()){
-      create.enter();
-      create.setOrigin(decl.getOrigin());
-      DeclarationStatement res=create.field_decl(decl.name,
-          rewrite(decl.getType()),rewrite(decl.getInit()));
-      create.leave();
-      ref_class.add(res);
-    }
-    */
   }
   
   @Override
@@ -400,7 +390,7 @@ public class SilverClassReduction extends AbstractRewriter {
       //NameExpression f=create.field_name("A__x");
       //f.setSite(ref_class);
       for(DeclarationStatement field:cl.dynamicFields()){
-        args.add(create.dereference(create.class_type("Ref"),field.name));
+        args.add(create.dereference(create.class_type("Ref"),field.name()));
       }
       result=create.expression(StandardOperator.NewSilver,args.toArray(new ASTNode[0]));
       break;
@@ -448,7 +438,7 @@ public class SilverClassReduction extends AbstractRewriter {
   public void visit(Method m){
     String name=m.getName();
     ContractBuilder cb=new ContractBuilder();
-    ArrayList<DeclarationStatement> args=new ArrayList();
+    ArrayList<DeclarationStatement> args=new ArrayList<DeclarationStatement>();
     ASTNode body=m.getBody();
     if (!m.isStatic() && m.kind!=Kind.Constructor){
       args.add(create.field_decl(THIS, ref_type));
@@ -495,7 +485,7 @@ public class SilverClassReduction extends AbstractRewriter {
       }
       in_ensures=false;
       if (c.signals!=null) for(DeclarationStatement decl:c.signals){
-        cb.signals((ClassType)rewrite(decl.getType()),decl.getName(),rewrite(decl.getInit()));      
+        cb.signals((ClassType)rewrite(decl.getType()),decl.name(),rewrite(decl.init()));      
       }
       constructor_this.pop();
     }
@@ -542,7 +532,7 @@ public class SilverClassReduction extends AbstractRewriter {
       for(ASTNode n:prelude){
         if (n instanceof AxiomaticDataType){
           AxiomaticDataType adt=(AxiomaticDataType)n;
-          switch(adt.name){
+          switch (adt.name()) {
           case "VCTOption":
             if (options) res.add(n);
             break;
@@ -575,14 +565,14 @@ public class SilverClassReduction extends AbstractRewriter {
         create.leave();
       }
     }
-    HashSet<String> names=new HashSet();
+    HashSet<String> names=new HashSet<String>();
     for(ASTNode n:res){
       if (n instanceof ASTDeclaration){
         ASTDeclaration d=(ASTDeclaration)n;
-        if (names.contains(d.name)){
-          Warning("name %s declared more than once",d.name);
+        if (names.contains(d.name())){
+          Warning("name %s declared more than once",d.name());
         }
-        names.add(d.name);
+        names.add(d.name());
       }
     }
     return res;

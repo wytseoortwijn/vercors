@@ -111,7 +111,7 @@ public class ProgramUnit implements ASTSequence<ProgramUnit> {
     if (n instanceof NameSpace){
       NameSpace ns=(NameSpace)n;
       String prefix[];
-      if (ns.name.equals(NameSpace.NONAME)){
+      if (ns.name().equals(NameSpace.NONAME)) {
         prefix=new String[0];
       } else {
         prefix=ns.getDeclName().name;
@@ -143,7 +143,7 @@ public class ProgramUnit implements ASTSequence<ProgramUnit> {
     }
     if (n instanceof ASTClass){
       ASTClass cl=(ASTClass)n;
-      Debug("indexing %s as %s",cl.name,cl.getDeclName());
+      Debug("indexing %s as %s",cl.name(), cl.getDeclName());
       cl.attach(this,cl.getDeclName().prepend(prefix));
       classes.put(cl.getDeclName().prepend(prefix),cl);
       for(Method m : cl.staticMethods()){

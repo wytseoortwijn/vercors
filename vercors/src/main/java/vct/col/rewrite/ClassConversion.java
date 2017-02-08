@@ -47,12 +47,12 @@ public class ClassConversion extends AbstractRewriter {
   }
   @Override
   public void visit(ASTClass cl){
-    ASTClass res=create.ast_class(cl.name, ASTClass.ClassKind.Record,null, null, null);
+    ASTClass res=create.ast_class(cl.name(), ASTClass.ClassKind.Record,null, null, null);
     for(DeclarationStatement decl:cl.staticFields()){
-      String name=cl.name+SEP+decl.name;
+      String name=cl.name() + SEP + decl.name();
       create.enter();
       create(decl);
-      target().add(create.field_decl(name, rewrite(decl.getType()), rewrite(decl.getInit())));
+      target().add(create.field_decl(name, rewrite(decl.getType()), rewrite(decl.init())));
       create.leave();
     }
     for(DeclarationStatement decl:cl.dynamicFields()){
@@ -64,19 +64,19 @@ public class ClassConversion extends AbstractRewriter {
       Method.Kind kind;
       Type returns;
       if (m.kind==Method.Kind.Constructor){
-        Debug("constructor %s",m.name);
-        returns=create.class_type(cl.name);
+        Debug("constructor %s", m.name());
+        returns=create.class_type(cl.name());
         kind=Method.Kind.Plain;
       } else {
         returns=rewrite(m.getReturnType());
         kind=m.kind;
       }
       ContractBuilder cb=new ContractBuilder();
-      String name=cl.name+SEP+m.name;
+      String name = cl.name() + SEP + m.name();
       ArrayList<DeclarationStatement> args=new ArrayList<DeclarationStatement>();
       ASTNode body=m.getBody();
       if (m.kind!=Method.Kind.Constructor && !m.isStatic()){
-        args.add(create.field_decl(THIS,create.class_type(cl.name)));
+        args.add(create.field_decl(THIS,create.class_type(cl.name())));
         ASTNode nonnull=create.expression(StandardOperator.NEQ,
             create.local_name(THIS),
             create.reserved_name(ASTReserved.Null));
@@ -95,10 +95,10 @@ public class ClassConversion extends AbstractRewriter {
       if (m.kind==Method.Kind.Constructor){
         if (body!=null){
           body=create.block(
-            create.field_decl(THIS,create.class_type(cl.name)),
+            create.field_decl(THIS,create.class_type(cl.name())),
             create.assignment(
                 create.local_name(THIS),
-                create.new_record(create.class_type(cl.name))
+                create.new_record(create.class_type(cl.name()))
             ),
             body,
             create.return_statement(create.local_name(THIS))
@@ -125,12 +125,12 @@ public class ClassConversion extends AbstractRewriter {
   }
   
   @Override
-  public void visit(StructValue v){
-    if (v.type instanceof ClassType){
+  public void visit(StructValue v) {
+    if (v.type() instanceof ClassType) {
       Abort("struct value used for constructor call");
       // If this is actually a constructor call.
-      String method=v.type+SEP+v.type;
-      MethodInvokation res=create.invokation(null, null, method, rewrite(v.values));
+      String method = v.type() + SEP + v.type();
+      MethodInvokation res=create.invokation(null, null, method, rewrite(v.values()));
       res.set_before(rewrite(v.get_before()));
       res.set_after(rewrite(v.get_after()));
       result=res;

@@ -23,7 +23,7 @@ public class RandomizedIf extends AbstractRewriter {
   public void visit(Method m){
     if (m.kind==Kind.Plain && m.getBody()!=null){
       Type returns=rewrite(m.getReturnType());
-      String name=m.name;
+      String name = m.name();
       Contract contract=rewrite(m.getContract());
       DeclarationStatement[] args=rewrite(m.getArgs());
       BlockStatement body=create.block(
@@ -37,7 +37,7 @@ public class RandomizedIf extends AbstractRewriter {
           body.add(rewrite(s));
         }
       } else {
-        body.add_statement(rewrite(m.getBody()));
+        body.addStatement(rewrite(m.getBody()));
       }
       currentBlock=tmp;
       result=create.method_decl(returns, contract, name, args, body);
@@ -49,14 +49,14 @@ public class RandomizedIf extends AbstractRewriter {
   @Override
   public void visit(IfStatement s){
     int N=s.getCount();
-    if (N==2 && s.getGuard(0).isReserved(ASTReserved.Any) && s.getGuard(1)==IfStatement.else_guard){
+    if (N==2 && s.getGuard(0).isReserved(ASTReserved.Any) && s.getGuard(1)==IfStatement.elseGuard()){
       IfStatement res=new IfStatement();
-      currentBlock.add_statement(
+      currentBlock.addStatement(
           create.assignment(create.local_name("if_any_bool"),
           create.invokation(null,null,"if_any_random"))
       );
       res.addClause(create.local_name("if_any_bool"), rewrite(s.getStatement(0)));
-      res.addClause(IfStatement.else_guard, rewrite(s.getStatement(1)));
+      res.addClause(IfStatement.elseGuard(), rewrite(s.getStatement(1)));
       res.setOrigin(s);
       result=res;
     } else {

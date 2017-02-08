@@ -168,7 +168,7 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
     BlockStatement block=create.block();
     int N=ctx.children.size()-1;
     for(int i=1;i<N;i++){
-      block.add_statement(convert(ctx.children.get(i)));
+      block.addStatement(convert(ctx.children.get(i)));
     }
     return block;
   }

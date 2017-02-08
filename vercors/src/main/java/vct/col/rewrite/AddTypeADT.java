@@ -55,7 +55,7 @@ public class AddTypeADT extends AbstractRewriter {
       currentContractBuilder=new ContractBuilder();
       currentContractBuilder.ensures(create.expression(StandardOperator.EQ,
           create.expression(StandardOperator.TypeOf,create.reserved_name(ASTReserved.Result)),
-          create.invokation(create.class_type(type_adt),null,"class_"+cls.name)
+          create.invokation(create.class_type(type_adt),null,"class_"+cls.name())
       ));
     }
     //else if (!m.isStatic()) {
@@ -73,7 +73,7 @@ public class AddTypeADT extends AbstractRewriter {
         ASTClass cls=(ASTClass)m.getParent();
         ((BlockStatement)c.getBody()).prepend(create.special(ASTSpecial.Kind.Inhale,create.expression(StandardOperator.EQ,
             create.expression(StandardOperator.TypeOf,create.reserved_name(ASTReserved.This)),
-            create.invokation(create.class_type(type_adt),null,"class_"+cls.name)
+            create.invokation(create.class_type(type_adt),null,"class_"+cls.name())
         )));
       }
       result=c;
@@ -85,23 +85,23 @@ public class AddTypeADT extends AbstractRewriter {
   public void visit(ASTClass cl){
     super.visit(cl);
     ASTClass res=(ASTClass)result;
-    adt.add_cons(create.function_decl(create.class_type(type_adt),null,"class_"+cl.name,new DeclarationStatement[0],null));
+    adt.add_cons(create.function_decl(create.class_type(type_adt),null, "class_"+cl.name(), new DeclarationStatement[0],null));
     if (cl.super_classes.length==0){
       for(String other:rootclasses){
-        adt.add_axiom(create.axiom("different_"+other+"_"+cl.name,
+        adt.add_axiom(create.axiom("different_"+other+"_" + cl.name(),
             create.expression(StandardOperator.Not,
                create.invokation(create.class_type(type_adt), null,"instanceof",
                    create.invokation(create.class_type(type_adt),null,"class_"+other),
-                   create.invokation(create.class_type(type_adt),null,"class_"+cl.name)))
+                   create.invokation(create.class_type(type_adt),null,"class_"+cl.name())))
         ));
-        adt.add_axiom(create.axiom("different_"+cl.name+"_"+other,
+        adt.add_axiom(create.axiom("different_"+cl.name()+"_"+other,
             create.expression(StandardOperator.Not,
                create.invokation(create.class_type(type_adt), null,"instanceof",
-                   create.invokation(create.class_type(type_adt),null,"class_"+cl.name),
+                   create.invokation(create.class_type(type_adt),null,"class_"+cl.name()),
                    create.invokation(create.class_type(type_adt),null,"class_"+other)))
         ));
       }
-      rootclasses.add(cl.name);
+      rootclasses.add(cl.name());
     } else {
       // TODO
     }

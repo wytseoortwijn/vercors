@@ -44,7 +44,7 @@ public abstract class GlobalizeStatics extends AbstractRewriter {
     switch(cl.kind){
     case Plain:{
       int N;
-      ASTClass res=create.ast_class(cl.name,ClassKind.Plain,null,null,null);
+      ASTClass res=create.ast_class(cl.name(), ClassKind.Plain,null,null,null);
       N=cl.getStaticCount();
       prefix=new ClassName(cl.getFullName()).toString("_");
       processing_static=true;
@@ -73,9 +73,9 @@ public abstract class GlobalizeStatics extends AbstractRewriter {
     if (prefix!=null){
       String save=prefix;
       prefix=null;
-      result=create.field_decl(save+"_"+s.getName(),
+      result=create.field_decl(save + "_" + s.name(),
            rewrite(s.getType()), 
-           rewrite(s.getInit()));
+           rewrite(s.init()));
       prefix=save;
     } else {
       super.visit(s);
@@ -100,7 +100,7 @@ public abstract class GlobalizeStatics extends AbstractRewriter {
 
   @Override
   public void visit(StructValue v){
-    if (v.type instanceof ClassType){
+    if (v.type() instanceof ClassType){
       Abort("illegal use of struct value for constructor call");
     }
     /*

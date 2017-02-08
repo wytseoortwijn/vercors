@@ -94,8 +94,8 @@ public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
   }
   @Override
   public void visit(TupleType t) {
-    for(int i=0;i<t.types.length;i++){
-      t.types[i].accept(this);
+    for(int i=0;i<t.nrOfTypes();i++){
+      t.getType(i).accept(this);
     }
   }
 
@@ -109,10 +109,10 @@ public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
 
   @Override
   public void visit(RecordType t) {
-    int N=t.getFieldCount();
-    for(int i=0;i<N;i++){
-      t.getFieldType(i).accept(this);
-    }    
+    int n = t.fieldCount();
+    for (int i = 0; i < n; i++) {
+      t.fieldType(i).accept(this);
+    }
   }
 
   @Override
@@ -164,14 +164,14 @@ public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
 
   @Override
   public void visit(AssignmentStatement s) {
-    s.getLocation().accept(this);
-    s.getExpression().accept(this);
+    s.location().accept(this);
+    s.expression().accept(this);
   }
 
   @Override
   public void visit(DeclarationStatement s) {
     s.getType().accept(this);
-    dispatch(s.getInit());
+    dispatch(s.init());
   }
 
   @Override
@@ -255,25 +255,25 @@ public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
   }
   
   @Override
-  public void visit(Lemma l){
-    l.getBlock().accept(this);
+  public void visit(Lemma lemma) {
+    lemma.block().accept(this);
   }
   
   public void visit(ParallelAtomic pa){
-    for(ASTNode n:pa.sync_list){
+    for(ASTNode n:pa.synclist()){
       dispatch(n);
     }
-    dispatch(pa.block);
+    dispatch(pa.block());
   }
   
   public void visit(ParallelInvariant inv){
-    dispatch(inv.inv);
-    dispatch(inv.block);
+    dispatch(inv.inv());
+    dispatch(inv.block());
   }
 
   public void visit(ParallelBarrier pb){
-    dispatch(pb.contract);
-    dispatch(pb.body);
+    dispatch(pb.contract());
+    dispatch(pb.body());
   }
 
   public void visit(ParallelBlock pb){
@@ -283,8 +283,8 @@ public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
   }
   
   public void visit(ParallelRegion region){
-    dispatch(region.contract);
-    dispatch(region.blocks);
+    dispatch(region.contract());
+    dispatch(region.blocks());
   }
 
   public void visit(Contract c){
@@ -334,8 +334,8 @@ public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
 
   @Override
   public void visit(TryCatchBlock tcb) {
-    dispatch(tcb.main);
-    for(CatchClause c:tcb.catches){
+    dispatch(tcb.main());
+    for (CatchClause c : tcb.catches()) {
       enter(c.block());
       dispatch(c.decl());
       for(ASTNode S:c.block()){
@@ -343,7 +343,7 @@ public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
       }
       leave(c.block());
     }
-    dispatch(tcb.after);
+    dispatch(tcb.after());
   }
 
   @Override
@@ -358,14 +358,14 @@ public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
   
   @Override
   public void visit(StructValue v) {
-    dispatch(v.type);
-    dispatch(v.values);
+    dispatch(v.type());
+    dispatch(v.values());
   }
 
   @Override
   public void visit(VectorBlock v) {
-    dispatch(v.iter);
-    dispatch(v.block);
+    dispatch(v.iter());
+    dispatch(v.block());
   }
 
   @Override

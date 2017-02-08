@@ -30,7 +30,7 @@ public class BoogiePrinter extends AbstractBoogiePrinter {
     String next="";
     for(int i=0;i<N;i++){
       if (args[i].isValidFlag(ASTFlags.OUT_ARG)&&args[i].getFlag(ASTFlags.OUT_ARG)) continue;
-      out.printf("%s%s: ",next,args[i].getName());
+      out.printf("%s%s: ", next,args[i].name());
       args[i].getType().accept(this);
       next=",";
     }
@@ -38,7 +38,7 @@ public class BoogiePrinter extends AbstractBoogiePrinter {
     next="";
     for(int i=0;i<args.length;i++){
       if (args[i].isValidFlag(ASTFlags.OUT_ARG)&&args[i].getFlag(ASTFlags.OUT_ARG)) {
-        out.printf("%s%s: ",next,args[i].getName());
+        out.printf("%s%s: ", next,args[i].name());
         args[i].getType().accept(this);
         next=",";
       }

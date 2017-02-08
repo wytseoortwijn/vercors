@@ -59,11 +59,11 @@ public class CPrinter extends AbstractPrinter {
 	    out.printf("...");
 	  } else {
   	  t.accept(this);
-  		out.printf(" %s",decl.getName());
-  		if (decl.getInit()!=null){
+  		out.printf(" %s", decl.name());
+  		if (decl.init() != null) {
   			out.printf("=");
   			nextExpr();
-  			decl.getInit().accept(this);
+  			decl.init().accept(this);
   		}
 	  }
 		if (current_method()==null) {
@@ -114,7 +114,7 @@ public class CPrinter extends AbstractPrinter {
 		      out.printf(") ");
 		      s.getStatement(0).accept(this);
 		      for(int i=1;i<N;i++){
-		        if (i==N-1 && s.getGuard(i)==IfStatement.else_guard){
+		        if (i==N-1 && s.getGuard(i)==IfStatement.elseGuard()){
 		          out.printf(" else ");
 		        } else {
 		          out.printf(" else if (");
@@ -129,10 +129,10 @@ public class CPrinter extends AbstractPrinter {
 
 	public void visit(AssignmentStatement s){
 		nextExpr();
-		s.getLocation().accept(this);
+		s.location().accept(this);
 		out.printf("=");
 		nextExpr();
-		s.getExpression().accept(this);
+		s.expression().accept(this);
 		if (in_expr){
 			out.printf(";%n");
 		}

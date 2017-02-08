@@ -88,9 +88,9 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
     if (contract!=null){
       for(DeclarationStatement decl:contract.given){
         if (decl.getType().isPrimitive(Sort.Class)){
-          if (!classParameters.contains(decl.getName())){
-            classParameters.add(decl.getName());
-            out.lnprintf("class %s { }",decl.getName());
+          if (!classParameters.contains(decl.name())){
+            classParameters.add(decl.name());
+            out.lnprintf("class %s { }", decl.name());
           }
         }
       }
@@ -122,7 +122,7 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
     String next="";
     for(int i=0;i<args.length;i++){
       if (args[i].isValidFlag(ASTFlags.OUT_ARG)&&args[i].getFlag(ASTFlags.OUT_ARG)) continue;
-      out.printf("%s%s: ",next,args[i].getName());
+      out.printf("%s%s: ",next,args[i].name());
         if (i==args.length-1 && m.usesVarArgs() && function){
           out.print("seq<");
         }
@@ -134,7 +134,7 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
     }
     if (c!=null){
       for(int i=0;i<c.given.length;i++){
-        out.printf("%s%s: ",next,c.given[i].getName());
+        out.printf("%s%s: ",next,c.given[i].name());
         c.given[i].getType().accept(this);
         next=",";
       }      
@@ -154,14 +154,14 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
       }
       for(int i=0;i<args.length;i++){
         if (args[i].isValidFlag(ASTFlags.OUT_ARG)&&args[i].getFlag(ASTFlags.OUT_ARG)) {
-          out.printf("%s%s: ",next,args[i].getName());
+          out.printf("%s%s: ",next,args[i].name());
           args[i].getType().accept(this);
           next=",";
         }
       }
       if (c!=null){
         for(int i=0;i<c.yields.length;i++){
-          out.printf("%s%s: ",next,c.yields[i].getName());
+          out.printf("%s%s: ",next,c.yields[i].name());
           c.yields[i].getType().accept(this);
           next=",";          
         }
@@ -402,20 +402,20 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
   }
 
   @Override
-  public void visit(StructValue v){
-    if (v.type instanceof PrimitiveType){
-      PrimitiveType t=(PrimitiveType)v.type;
+  public void visit(StructValue v) {
+    if (v.type() instanceof PrimitiveType) {
+      PrimitiveType t = (PrimitiveType)v.type();
       if (t.sort==Sort.Sequence){
-        if (v.values.length==0){
+        if (v.values().length==0) {
           out.print("nil<");
           t.getArg(0).accept(this);
           out.print(">");
         } else {
           String sep="[";
-          for(int i=0;i<v.values.length;i++){
+          for(int i=0;i<v.values().length;i++){
             out.print(sep);
             sep=",";
-            v.values[i].accept(this);
+            v.value(i).accept(this);
           }
           out.print(" ]");
         }

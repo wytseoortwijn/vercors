@@ -207,8 +207,8 @@ public abstract class ASTFrame<T> {
       switch(action){
       case ENTER:
         variables.enter();
-        for(DeclarationStatement decl:adt.getParameters()){
-          variables.add(decl.getName(),new VariableInfo(decl,NameExpression.Kind.Argument));
+        for (DeclarationStatement decl : adt.parameters()) {
+          variables.add(decl.name(), new VariableInfo(decl, NameExpression.Kind.Argument));
         }
         break;
       case LEAVE:
@@ -283,7 +283,7 @@ public abstract class ASTFrame<T> {
       case ENTER:
         DeclarationStatement decl=(DeclarationStatement)node;
         if (decl.getParent() instanceof BlockStatement || decl.getParent()==null){
-          variables.add(decl.getName(),new VariableInfo(decl,NameExpression.Kind.Local));
+          variables.add(decl.name(), new VariableInfo(decl,NameExpression.Kind.Local));
         }
         break;
       case LEAVE:
@@ -334,7 +334,7 @@ public abstract class ASTFrame<T> {
         Contract contract=((ASTClass)node).getContract();
         if (contract!=null){
           for (DeclarationStatement decl:contract.given){
-            variables.add(decl.getName(),new VariableInfo(decl,NameExpression.Kind.Field));
+            variables.add(decl.name(), new VariableInfo(decl, NameExpression.Kind.Field));
           }
         }
         break;
@@ -353,8 +353,8 @@ public abstract class ASTFrame<T> {
       case ENTER:
         method_stack.push(node);
         variables.enter();
-        for(DeclarationStatement decl:(node).getArgs()){
-          variables.add(decl.getName(),new VariableInfo(decl,NameExpression.Kind.Argument));
+        for (DeclarationStatement decl:(node).getArgs()) {
+          variables.add(decl.name(), new VariableInfo(decl, NameExpression.Kind.Argument));
         }
         add_contract_vars(node);
         break;
@@ -404,7 +404,7 @@ public abstract class ASTFrame<T> {
         }
         if (loop.getInitBlock() instanceof DeclarationStatement){
           DeclarationStatement decl=(DeclarationStatement)loop.getInitBlock();
-          variables.add(decl.getName(),new VariableInfo(decl,NameExpression.Kind.Local));
+          variables.add(decl.name(), new VariableInfo(decl,NameExpression.Kind.Local));
         }
         if (loop.getInitBlock() instanceof BlockStatement){
           BlockStatement block=(BlockStatement)loop.getInitBlock();
@@ -412,7 +412,7 @@ public abstract class ASTFrame<T> {
           for(int i=0;i<N;i++){
             if (block.getStatement(i) instanceof DeclarationStatement){
               DeclarationStatement decl=(DeclarationStatement)block.getStatement(i);
-              variables.add(decl.getName(),new VariableInfo(decl,NameExpression.Kind.Local));
+              variables.add(decl.name(), new VariableInfo(decl,NameExpression.Kind.Local));
             }         
           }
         }
@@ -432,7 +432,7 @@ public abstract class ASTFrame<T> {
         variables.enter();
         ForEachLoop loop=(ForEachLoop)node;
         for(DeclarationStatement decl:loop.decls){
-          variables.add(decl.getName(),new VariableInfo(decl,NameExpression.Kind.Local));
+          variables.add(decl.name(), new VariableInfo(decl,NameExpression.Kind.Local));
         }
         break;
       case LEAVE:
@@ -449,7 +449,7 @@ public abstract class ASTFrame<T> {
       case ENTER:
         variables.enter();
         for(DeclarationStatement decl:((BindingExpression)node).getDeclarations()){
-          variables.add(decl.getName(),new VariableInfo(decl,NameExpression.Kind.Local));
+          variables.add(decl.name(), new VariableInfo(decl,NameExpression.Kind.Local));
         }
         break;
       case LEAVE:
@@ -466,7 +466,7 @@ public abstract class ASTFrame<T> {
       case ENTER:
         variables.enter();
         for(DeclarationStatement decl:pb.iters){
-          variables.add(decl.getName(),new VariableInfo(decl,NameExpression.Kind.Local));
+          variables.add(decl.name(), new VariableInfo(decl,NameExpression.Kind.Local));
         }
         break;
       case LEAVE:
@@ -481,7 +481,7 @@ public abstract class ASTFrame<T> {
       switch(action){
       case ENTER:
         variables.enter();
-        variables.add(pb.iter.getName(),new VariableInfo(pb.iter,NameExpression.Kind.Local));
+        variables.add(pb.iter().name(), new VariableInfo(pb.iter(), NameExpression.Kind.Local));
         break;
       case LEAVE:
         variables.leave();
@@ -511,10 +511,10 @@ public abstract class ASTFrame<T> {
       }
     }
     for(DeclarationStatement decl:cl.dynamicFields()){
-      variables.add(decl.getName(),new VariableInfo(decl,NameExpression.Kind.Field));
+      variables.add(decl.name(),new VariableInfo(decl,NameExpression.Kind.Field));
     }
     for(DeclarationStatement decl:cl.staticFields()){
-      variables.add(decl.getName(),new VariableInfo(decl,NameExpression.Kind.Field));
+      variables.add(decl.name(),new VariableInfo(decl,NameExpression.Kind.Field));
     }
   }
 
@@ -523,11 +523,11 @@ public abstract class ASTFrame<T> {
     Contract c=m.getContract();
     if (c==null) return;
     for(DeclarationStatement decl:c.given){
-      variables.add(decl.getName(),new VariableInfo(decl,NameExpression.Kind.Argument));
+      variables.add(decl.name(),new VariableInfo(decl,NameExpression.Kind.Argument));
     }
     scan_labels(c.pre_condition);
     for(DeclarationStatement decl:c.yields){
-      variables.add(decl.getName(),new VariableInfo(decl,NameExpression.Kind.Argument));
+      variables.add(decl.name(),new VariableInfo(decl,NameExpression.Kind.Argument));
     }
     scan_labels(c.post_condition);
   }

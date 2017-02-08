@@ -49,7 +49,7 @@ public abstract class AbstractBoogiePrinter extends AbstractPrinter {
     }
     for(int i=args.length;i<types.length;i++){
       if (i<types.length&&types[i].isValidFlag(ASTFlags.OUT_ARG)&&types[i].getFlag(ASTFlags.OUT_ARG)) {
-        out.printf("%s%s_%s",next,tag,types[i].getName());
+        out.printf("%s%s_%s", next,tag,types[i].name());
         next=",";
       }
     }
@@ -63,8 +63,8 @@ public abstract class AbstractBoogiePrinter extends AbstractPrinter {
           ASTNode s=block.getStatement(i);
           if (s instanceof AssignmentStatement){
             AssignmentStatement a=(AssignmentStatement)s;
-            ASTNode loc=a.getLocation();
-            ASTNode val=a.getExpression();
+            ASTNode loc=a.location();
+            ASTNode val=a.expression();
             if (val instanceof NameExpression && loc instanceof NameExpression){
               yield_map.put(((NameExpression)val).getName(),loc);
             }
@@ -72,7 +72,7 @@ public abstract class AbstractBoogiePrinter extends AbstractPrinter {
         }
       }
       for(int i=0;i<c.yields.length;i++){
-        String name=c.yields[i].getName();
+        String name = c.yields[i].name();
         ASTNode loc=yield_map.get(name);
         if (loc==null){
           out.printf("%s%s_%s",next,tag,name);
@@ -96,7 +96,7 @@ public abstract class AbstractBoogiePrinter extends AbstractPrinter {
     HashMap<String,ASTNode> map=new HashMap<String,ASTNode>();
     for(int i=0;i<args.length;i++){
       if (args[i].labels()>0) {
-        if (i>=types.length || types[i].getInit()!=null){
+        if (i>=types.length || types[i].init() != null) {
           map.put(args[i].getLabel(0).getName(),args[i]);
           continue;
         }
@@ -108,11 +108,11 @@ public abstract class AbstractBoogiePrinter extends AbstractPrinter {
     }
     for(int i=args.length;i<types.length;i++){
       if (types[i].isValidFlag(ASTFlags.OUT_ARG)&&types[i].getFlag(ASTFlags.OUT_ARG)) continue;
-      if (types[i].getInit()==null){
+      if (types[i].init() == null) {
         Fail("Missing argument without default at %s",e.getOrigin());
       }
       out.printf("%s",next);
-      types[i].getInit().accept(this);
+      types[i].init().accept(this);
       next=",";
     }
     if (c!=null){
@@ -123,13 +123,13 @@ public abstract class AbstractBoogiePrinter extends AbstractPrinter {
           ASTNode item=before.getStatement(i);
           if (item instanceof AssignmentStatement){
             AssignmentStatement arg=(AssignmentStatement)item;
-            map.put(((NameExpression)arg.getLocation()).getName(),arg.getExpression());
+            map.put(((NameExpression)arg.location()).getName(),arg.expression());
           }
         }
       }
       for(int i=0;i<c.given.length;i++){
-        ASTNode arg=map.get(c.given[i].getName());
-        if (arg==null) Fail("parameter %s is not given at %s",c.given[i].getName(),e.getOrigin());
+        ASTNode arg=map.get(c.given[i].name());
+        if (arg==null) Fail("parameter %s is not given at %s", c.given[i].name(), e.getOrigin());
         out.printf("%s",next);
         arg.accept(this);
         next=",";
@@ -145,10 +145,10 @@ public abstract class AbstractBoogiePrinter extends AbstractPrinter {
           ASTNode item=after.getStatement(i);
           if (item instanceof AssignmentStatement){
             AssignmentStatement hint=(AssignmentStatement)item;
-            ASTNode loc=hint.getLocation();
+            ASTNode loc=hint.location();
             if (!(loc instanceof NameExpression)){
               loc.accept(this);
-              out.lnprintf(" := %s_%s;",tag,((NameExpression)hint.getExpression()).getName());
+              out.lnprintf(" := %s_%s;",tag,((NameExpression)hint.expression()).getName());
             }
           }
         }        
@@ -158,10 +158,10 @@ public abstract class AbstractBoogiePrinter extends AbstractPrinter {
   public void visit(AssignmentStatement s){
     if (in_expr) throw new Error("assignment is a statement in chalice");
     nextExpr();
-    s.getLocation().accept(this);
+    s.location().accept(this);
     out.printf(" := ");
     nextExpr();
-    s.getExpression().accept(this);
+    s.expression().accept(this);
     out.lnprintf(";");
   }
  
@@ -237,7 +237,7 @@ public abstract class AbstractBoogiePrinter extends AbstractPrinter {
   }
 
   public void visit(DeclarationStatement s){
-    out.printf("var %s : ",s.getName());
+    out.printf("var %s : ", s.name());
     nextExpr();
     s.getType().accept(this);
     out.lnprintf(";");
@@ -253,7 +253,7 @@ public abstract class AbstractBoogiePrinter extends AbstractPrinter {
         nextExpr();
         g.accept(this);
         out.lnprintf(")");
-      } else if (i==N-1 && g==IfStatement.else_guard) {
+      } else if (i==N-1 && g==IfStatement.elseGuard()) {
         out.lnprintf("else");
       } else {
         out.printf("else if(");
@@ -391,7 +391,7 @@ public abstract class AbstractBoogiePrinter extends AbstractPrinter {
       Abort("multi variable quatification is future work");
     }
     DeclarationStatement decl=e.getDeclaration(0);
-    out.printf("%s : ",decl.getName());
+    out.printf("%s : ", decl.name());
     decl.getType().accept(this);
     out.printf("::((");
     if (e.select!=null){
