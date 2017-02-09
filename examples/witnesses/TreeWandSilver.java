@@ -11,7 +11,7 @@
     The expected result is Pass.
 */
 
-class Tree {
+final class Tree {
   public int data;
   public Tree left;
   public Tree right;

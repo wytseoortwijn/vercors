@@ -1,12 +1,9 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 //:: case TestFuturePerms
 //:: tool silicon
-//:: option --check-history --skip bad1,bad2,bad3,bad4,bad5,bad6,bad7
-
-//:: case TestFuturePermsErr
-//:: tool silicon
 //:: option --check-history
-//:: fail Test__bad1 Test__bad2 Test__bad3 Test__bad4 Test__bad5 Test__bad6 Test__bad7
+//:: pass any
+//:: fail Test.bad1 Test.bad2 Test.bad3 Test.bad4 Test.bad5 Test.bad6 Test.bad7
 
 class Future {
   int x;

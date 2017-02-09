@@ -1,8 +1,8 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 //:: cases ForkPVL
 //:: tools silicon
-//:: pass Test__run Test__test1
-//:: fail Test__test2 Test__test3
+//:: pass Test.run Test.test1
+//:: fail Test.test2 Test.test3
 
 class Test {
 

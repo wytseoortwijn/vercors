@@ -10,6 +10,7 @@ import vct.col.ast.Method.Kind;
  * This rewriter converts a program with classes into
  * a program with records.
  * 
+ * It should no longer be needed in combination with the Viper back ends.
  * 
  * @author Stefan Blom
  *

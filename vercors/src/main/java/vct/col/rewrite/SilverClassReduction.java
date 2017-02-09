@@ -6,11 +6,13 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Stack;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import vct.antlr4.parser.Parsers;
 import vct.col.ast.*;
+import vct.col.ast.Method.Kind;
 import vct.col.ast.PrimitiveType.Sort;
 import vct.col.util.ASTUtils;
 import vct.util.Configuration;
@@ -165,10 +167,27 @@ public class SilverClassReduction extends AbstractRewriter {
     if (e.isReserved(ASTReserved.OptionNone)){
       Type t=rewrite(e.getType());
       result=create.invokation(t, null, "VCTNone");
+    } else if (e.isReserved(ASTReserved.This)){
+      if (constructor_this.peek()){
+        if (in_requires){
+          e.getOrigin().report("error","pre-condition of constructor may not refer to this");
+          Fail("fatal error");
+        }
+        result=create.reserved_name(ASTReserved.Result);
+      } else {
+        result=create.unresolved_name(THIS);
+      }
     } else {
       super.visit(e);
     }
   }
+
+  private Stack<Boolean> constructor_this=new Stack<Boolean>();
+  {
+    constructor_this.push(false);
+  }
+  
+  public static final String THIS="diz";
   
   private boolean options=false;
   
@@ -203,18 +222,45 @@ public class SilverClassReduction extends AbstractRewriter {
     }    
   }
   
+  // multidim_index_2 is a generated function, of which one copy suffices.
+  // TODO: fix this problem properly.
+  private boolean multidim_index_2=false;
+  
   @Override
   public void visit(ASTClass cl){
-    if (cl.getStaticCount()>0){
-      Fail("class conversion cannot be used for static entries yet.");
+    for(ASTNode n:cl.staticMembers()){
+      if (n instanceof Method){
+        Method m=(Method)n;
+        if (m.name().equals("multidim_index_2")){
+          if (multidim_index_2) continue;
+          multidim_index_2=true;
+        }
+        target().add(rewrite(n));
+      } else if (n instanceof DeclarationStatement) {
+        Fail("Illegal static field %s",n);
+      } else if(n.isSpecial(ASTSpecial.Kind.Comment)) {
+        target().add(rewrite(n));
+      } else {
+        Fail("Illegal static member %s",n);
+      }
     }
-    for(DeclarationStatement decl:cl.dynamicFields()){
-      create.enter();
-      create.setOrigin(decl.getOrigin());
-      DeclarationStatement res=create.field_decl(cl.name() + SEP + decl.name(),
-          rewrite(decl.getType()), rewrite(decl.init()));
-      create.leave();
-      ref_class.add(res);
+    for(ASTNode n:cl.dynamicMembers()){
+      if (n instanceof DeclarationStatement){
+        ref_class.add(rewrite(n));
+      } else if (n instanceof Method){
+        Method m=(Method)n;
+        if (m.name().equals("multidim_index_2")){
+          if (multidim_index_2) continue;
+          multidim_index_2=true;
+        }
+        ASTNode res=rewrite(n);
+        res.setStatic(true);
+        target().add(res);
+      } else if(n.isSpecial(ASTSpecial.Kind.Comment)) {
+        target().add(rewrite(n));
+      } else {
+        Fail("Illegal dynamic member %s",n);
+      }
     }
   }
   
@@ -231,7 +277,7 @@ public class SilverClassReduction extends AbstractRewriter {
   public void visit(Dereference e){
     if (e.object().getType()==null){
       Fail("untyped object %s at %s", e.object(), e.object().getOrigin());
-      result=create.dereference(rewrite(e.object()), "????"+SEP+e.field());
+      result=create.dereference(rewrite(e.object()), e.field());
       return;
     }
     Type t=e.object().getType();
@@ -242,7 +288,7 @@ public class SilverClassReduction extends AbstractRewriter {
       ref_items.add(type);
       result=create.dereference(rewrite(e.object()), name+SEP+e.field());
     } else {
-      result=create.dereference(rewrite(e.object()), ((ClassType)t).getName()+SEP+e.field());
+      result=create.dereference(rewrite(e.object()), e.field());
     }
   }
   
@@ -344,7 +390,7 @@ public class SilverClassReduction extends AbstractRewriter {
       //NameExpression f=create.field_name("A__x");
       //f.setSite(ref_class);
       for(DeclarationStatement field:cl.dynamicFields()){
-        args.add(create.dereference(create.class_type("Ref"),cl.name() + SEP + field.name()));
+        args.add(create.dereference(create.class_type("Ref"),field.name()));
       }
       result=create.expression(StandardOperator.NewSilver,args.toArray(new ASTNode[0]));
       break;
@@ -392,9 +438,32 @@ public class SilverClassReduction extends AbstractRewriter {
   public void visit(Method m){
     String name=m.getName();
     ContractBuilder cb=new ContractBuilder();
-    DeclarationStatement args[]=rewrite(m.getArgs());
+    ArrayList<DeclarationStatement> args=new ArrayList<DeclarationStatement>();
+    ASTNode body=m.getBody();
+    if (!m.isStatic() && m.kind!=Kind.Constructor){
+      args.add(create.field_decl(THIS, ref_type));
+      ASTNode nonnull=create.expression(StandardOperator.NEQ,
+        create.local_name(THIS),
+        create.reserved_name(ASTReserved.Null));
+      if (m.kind!=Method.Kind.Predicate){
+         cb.requires(nonnull);
+      } else {
+        if (body != null) {
+          body=create.expression(StandardOperator.Star,nonnull,body);
+        }
+      }
+    }
+    if (m.kind==Kind.Constructor){
+      cb.ensures(create.expression(StandardOperator.NEQ,
+          create.reserved_name(ASTReserved.Result),
+          create.reserved_name(ASTReserved.Null)));
+    }
+    for(DeclarationStatement d:m.getArgs()){
+      args.add(rewrite(d));
+    }
     Contract c=m.getContract();
     if (c!=null){
+      constructor_this.push(m.kind==Kind.Constructor);
       cb.given(rewrite(c.given));
       cb.yields(rewrite(c.yields));
       if (c.modifies!=null) cb.modifies(rewrite(c.modifies)); 
@@ -418,12 +487,34 @@ public class SilverClassReduction extends AbstractRewriter {
       if (c.signals!=null) for(DeclarationStatement decl:c.signals){
         cb.signals((ClassType)rewrite(decl.getType()),decl.name(),rewrite(decl.init()));      
       }
+      constructor_this.pop();
     }
-    Method.Kind kind=m.kind;
-    Type rt=rewrite(m.getReturnType());
-    c=cb.getContract();
+    Method.Kind kind;
+    Type rt;
+    if(m.kind==Kind.Constructor){
+      kind=Kind.Plain;
+      rt=ref_type;
+    } else {
+      kind=m.kind;
+      rt=rewrite(m.getReturnType());
+    }
     currentContractBuilder=null;
-    ASTNode body=rewrite(m.getBody());
+    body=rewrite(body);
+    if (m.kind==Method.Kind.Constructor){
+      ASTClass cl=(ASTClass)m.getParent();
+      if (body!=null){
+        body=create.block(
+          create.field_decl(THIS,ref_type),
+          create.assignment(
+              create.local_name(THIS),
+              rewrite(create.new_record(new ClassType(cl.getFullName())))
+          ),
+          body,
+          create.return_statement(create.local_name(THIS))
+        );
+      }   
+    }
+    c=cb.getContract();
     result=create.method_kind(kind, rt, c, name, args, m.usesVarArgs(), body);
 
   }
@@ -474,6 +565,69 @@ public class SilverClassReduction extends AbstractRewriter {
         create.leave();
       }
     }
+    HashSet<String> names=new HashSet<String>();
+    for(ASTNode n:res){
+      if (n instanceof ASTDeclaration){
+        ASTDeclaration d=(ASTDeclaration)n;
+        if (names.contains(d.name())){
+          Warning("name %s declared more than once",d.name());
+        }
+        names.add(d.name());
+      }
+    }
     return res;
   }
+  
+  
+  @Override
+  public void visit(MethodInvokation s){
+    String method;
+    ArrayList<ASTNode> args=new ArrayList<ASTNode>();
+    Method def=s.getDefinition();
+    ClassType dispatch=s.dispatch;
+    if (def.kind==Kind.Constructor){
+      dispatch=null;
+    }
+    ASTNode object=null;
+    if (def.getParent()==null){
+      method=s.method;
+    } else if (s.object instanceof ClassType){
+      if (s.method.equals(Method.JavaConstructor)){
+        method=s.dispatch.getName()+SEP+s.dispatch.getName();
+        dispatch=null;
+      } else if (def.getParent() instanceof AxiomaticDataType){
+        method=s.method;
+        object=copy_rw.rewrite(s.object);
+      } else {
+        method=s.method;
+      }
+    } else if (s.object==null){
+      if (s.method.equals(Method.JavaConstructor)){
+        method=s.dispatch.getName()+SEP+s.dispatch.getName();
+        dispatch=null;
+      } else {
+        method=s.method;
+      }
+    } else {
+      method=s.method;
+      if (method.equals("<<adt>>") || def.getParent() instanceof AxiomaticDataType){
+        method=s.method;
+      } else {
+        if (!def.isStatic()){
+          args.add(rewrite(s.object));
+        }
+        if (def.kind==Kind.Predicate && !s.object.isReserved(ASTReserved.This) && (!fold_unfold) ){
+          //extra=create.expression(StandardOperator.NEQ,rewrite(s.object),create.reserved_name(ASTReserved.Null));
+        }
+      }      
+    }
+    for(ASTNode arg :s.getArgs()){
+      args.add(rewrite(arg));
+    }
+    MethodInvokation res=create.invokation(object, dispatch, method, args.toArray(new ASTNode[0]));
+    res.set_before(rewrite(s.get_before()));
+    res.set_after(rewrite(s.get_after()));
+    result=res;
+  }
+
 }

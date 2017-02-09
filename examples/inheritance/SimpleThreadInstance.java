@@ -1,16 +1,17 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 //:: cases SimpleThread
-public class Instance extends Thread {
+public class SimpleThreadInstance extends SimpleThread {
 
   /*@
     ensures preFork() ** Value(this.input) ** this.input==input;
   @*/
-  public Instance(int input){
+  public SimpleThreadInstance(int input){
     this.input=input;
-    //@ fold preFork@Instance();
+    //@ fold preFork@SimpleThread();
+    //@ fold preFork@SimpleThreadInstance();
   }
 
-  //@ public resource joinToken()=joinToken@Thread();
+  //@ public resource joinToken()=true;
 
   //@ public resource preFork()=Value(input)**Perm(output,write);
 
@@ -21,9 +22,9 @@ public class Instance extends Thread {
   int output;
   
   public void run(){
-    //@ unfold preFork@Instance();
+    //@ unfold preFork@SimpleThreadInstance();
     output=input+1;
-    //@ fold postJoin@Instance();
+    //@ fold postJoin@SimpleThreadInstance();
   }
  
 }

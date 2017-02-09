@@ -32,6 +32,7 @@ public class FeatureScanner extends RecursiveVisitor<Object> {
   private boolean has_dynamics=false;
   private boolean has_doubles=false;
   private boolean has_longs=false;
+  private boolean has_processes=false;
   private boolean has_inheritance=false;
   private boolean has_kernels=false;
   private boolean has_iteration_contracts=false;
@@ -73,6 +74,10 @@ public class FeatureScanner extends RecursiveVisitor<Object> {
     return has_longs;
   }
   
+  public boolean usesProcesses(){
+    return has_processes;
+  }
+  
   public boolean hasStaticItems(){
     return has_statics;
   }
@@ -99,6 +104,7 @@ public class FeatureScanner extends RecursiveVisitor<Object> {
     if (t!=null){
       if (t.isDouble()) has_doubles=true;
       if (t.isPrimitive(Sort.Long)) has_longs=true;
+      if (t.isPrimitive(Sort.Process)) has_processes=true;
     }
     nodes.add(node.getClass());
   }

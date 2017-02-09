@@ -16,7 +16,7 @@
   The expected result is Pass.
 */
 
-class List {
+final class List {
 
   public int val;
   public List next;

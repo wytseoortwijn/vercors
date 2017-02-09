@@ -376,6 +376,9 @@ public abstract class ASTNode implements ASTFlags {
             case Public:
               Debug("ignoring public");
               continue;
+            case Final:
+              setFlag(ASTFlags.FINAL,true);
+              continue;
           default:
             break;
           }

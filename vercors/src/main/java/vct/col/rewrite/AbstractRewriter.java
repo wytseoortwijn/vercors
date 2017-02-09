@@ -206,6 +206,14 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
     return cb.getContract();
   }
 
+  public <E extends ASTNode> ArrayList<E> rewrite(ArrayList<E> list){
+    ArrayList<E> res=new ArrayList<E>();
+    for(E item:list){
+      res.add(rewrite(item));
+    }
+    return res;
+  }
+  
   @SuppressWarnings("unchecked")
   public <E extends ASTNode> E rewrite(E node){
     if (node==null) return null;
@@ -466,10 +474,10 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
     for(int i=0;i<N;i++){
       args[i]=e.arg(i).apply(this);
     }
-    OperatorExpression res = OperatorExpression.construct(op, args);
+    OperatorExpression res = create.expression(op, args);
+    //res.setOrigin(e.getOrigin());
     res.set_before(rewrite(e.get_before()));
     res.set_after(rewrite(e.get_after()));
-    res.setOrigin(e.getOrigin());
     result=res;
   }
 
@@ -507,6 +515,10 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
     result=res;
   }
 
+  /**
+   * Rewrite all source elements, respecting inheritance order.
+   * @return The result of the rewrite.
+   */
   public ProgramUnit rewriteAll() {
     for(ASTDeclaration n:source().get()){
         ASTNode tmp=rewrite(n);
@@ -535,6 +547,10 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
     }
   }
 
+  /**
+   * Rewrite all source elements, respecting inheritance order.
+   * @return The result of the rewrite.
+   */
   public ProgramUnit rewriteOrdered() {
     HashSet<ASTClass> done=new HashSet<ASTClass>();
     for(ASTNode n:source().get()){
@@ -796,7 +812,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   @Override
   public void visit(Switch s){
     ASTNode expr=rewrite(s.expr);
-    ArrayList<Case> case_list=new ArrayList();
+    ArrayList<Case> case_list=new ArrayList<Case>();
     for (Case c:s.cases){
       Case rwc=new Case();
       for(ASTNode n:c.cases) rwc.cases.add(rewrite(n));
