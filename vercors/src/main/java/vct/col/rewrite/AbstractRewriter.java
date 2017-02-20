@@ -379,12 +379,12 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
 
   public void visit(FunctionType t){
     //checkPermission(t);
-    int N=t.getArity();
+    int N=t.arity();
     Type args[]=new Type[N];
     for(int i=0;i<N;i++){
-      args[i]=(Type)t.getArgument(i).apply(this);
+      args[i]=(Type)t.param(i).apply(this);
     }
-    Type result_type=(Type)t.getResult().apply(this);
+    Type result_type=(Type)t.result().apply(this);
     ASTNode res=new FunctionType(args,result_type);
     if (t.getOrigin()!=null) res.setOrigin(t);
     result=res;

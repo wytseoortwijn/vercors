@@ -50,11 +50,11 @@ public class Method extends ASTDeclaration {
 
   public Method(Kind kind, String name,String args[],boolean many,FunctionType t){
     super(name);
-    this.return_type=t.getResult();
+    this.return_type = t.result();
     this.args=new DeclarationStatement[args.length];
     this.var_args=many;
     for(int i=0;i<args.length;i++){
-      this.args[i]=new DeclarationStatement(args[i],t.getArgument(i));
+      this.args[i]=new DeclarationStatement(args[i], t.param(i));
       this.args[i].setParent(this);
       this.args[i].setOrigin(new MessageOrigin("dummy origin for argument "+i));
     }

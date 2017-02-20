@@ -457,15 +457,15 @@ public class JavaPrinter extends AbstractPrinter {
     }
   }
   public void visit(FunctionType t){
-    int N=t.getArity();
+    int N=t.arity();
     N--;
     for(int i=0;i<N;i++){
-      t.getArgument(i).accept(this);
+      t.param(i).accept(this);
       out.print(",");
     }
-    t.getArgument(N).accept(this);
+    t.param(N).accept(this);
     out.print("->");
-    t.getResult().accept(this);
+    t.result().accept(this);
   }
 
   public void visit(BindingExpression e){
