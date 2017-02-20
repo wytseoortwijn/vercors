@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.NoSuchElementException;
@@ -282,17 +283,27 @@ public class CommandLineTesting {
         if (tr.res.verdict.toString().equals(tr.test.verdict)){
           boolean ok=true;
           for(String method:tr.test.pass_methods){
-            if (!tr.res.pass_methods.contains(method)){
+            if (method.equals("any")) continue;
+            if (!contains_method(tr.res.pass_methods,method)){
               failures.put(tr.name+"/"+tr.tool+"/"+method,String.format(
                 "method did not pass"));
               ok=false;
             }
           }
           for(String method:tr.test.fail_methods){
-            if (!tr.res.fail_methods.contains(method)){
+            if (!contains_method(tr.res.fail_methods,method)){
               failures.put(tr.name+"/"+tr.tool+"/"+method,String.format(
                   "method did not fail"));
               ok=false;
+            }
+          }
+          if (tr.test.pass_methods.contains("any")){
+            for (String failed:tr.res.fail_methods){
+              if (!allowed_method(tr.test.fail_methods,failed)){
+                failures.put(tr.name+"/"+tr.tool+"/"+failed,String.format(
+                    "method failed unexpectedly"));
+                ok=false;
+              }
             }
           }
           if (ok) {
@@ -376,6 +387,30 @@ public class CommandLineTesting {
     } else {
       System.exit(1);
     }
+  }
+
+  private static boolean allowed_method(HashSet<String> fail_methods,String failed) {
+    for(String m:fail_methods){
+      String tmp[]=m.split("\\.");
+      String coded="";
+      for(int i=0;i<tmp.length;i++){
+        coded+="_"+tmp[i];
+      }
+      if (failed.contains(coded)) return true;
+    }
+    return false;
+  }
+
+  private static boolean contains_method(HashSet<String> pass_methods,String method){
+    String tmp[]=method.split("\\.");
+    String coded="";
+    for(int i=0;i<tmp.length;i++){
+      coded+="_"+tmp[i];
+    }
+    for(String s:pass_methods){
+      if (s.contains(coded)) return true;
+    }
+    return false;
   }
 
   private static void check(VCTResult res,String tool,String test) {

@@ -1,7 +1,6 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 //:: cases HistoryLoop
 //:: tools silicon
-//:: options --check-history
 
 class Application {
 

@@ -495,5 +495,40 @@ public class ASTClass extends ASTDeclaration implements ASTSequence<ASTClass> {
     }
     return null;
   }
+
+  public Boolean isOverloaded(String name) {
+    boolean found=false;
+    for(DeclarationStatement decl:fields()){
+      if (decl.name().equals(name)){
+        if(found){
+          return true;
+        } else {
+          found=true;
+        }
+      }
+    }
+    for(Method m:methods()){
+      if (m.name().equals(name)){
+        if(found){
+          return true;
+        } else {
+          found=true;
+        }
+      }
+    }
+    for(ClassType parent:this.super_classes){
+      ASTClass cl = root().find(parent);
+      Boolean temp=cl.isOverloaded(name);
+      if (temp!=null){
+        if (temp || found) return true; // may detect overriding instead of overloading...
+        found=true;
+      }
+    }
+    if (found) {
+      return false;
+    } else {
+      return null;
+    }
+  }
 }
 

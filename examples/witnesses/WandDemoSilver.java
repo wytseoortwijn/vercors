@@ -8,7 +8,7 @@
   
   The expected result is Pass.
 */
-class WandDemo {
+final class WandDemo {
   int x;
 
   /*@

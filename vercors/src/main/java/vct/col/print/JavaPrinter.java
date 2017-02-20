@@ -997,7 +997,7 @@ public class JavaPrinter extends AbstractPrinter {
       for(ASTNode n:c.cases){
         out.printf("case ");
         nextExpr();
-        s.expr.accept(this);
+        n.accept(this);
         out.println(":");
       }
       out.incrIndent();

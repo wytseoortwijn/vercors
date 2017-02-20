@@ -28,8 +28,9 @@ case class ClassType(val names:List[String], val _args:List[ASTNode]) extends Ty
   
   def getName = this.names.last
   def getNameFull = this.names.toArray
-  def getFullName = this.names mkString "."
-  def setDefinition(decl:ASTDeclaration) = { definition = decl }
+  def getFullName(separator:String) = this.names mkString separator
+  def getFullName : String = getFullName(".")
+  def setDefinition(decl:ASTDeclaration) = definition = decl
 
   /**
    * Checks if any of `foundClass`'s super classes (of implemented classes) is a supertype of `this`,

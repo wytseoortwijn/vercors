@@ -482,10 +482,22 @@ public class ParallelBlockEncoder extends AbstractRewriter {
           Fail("Could not find an invariant labeled %s",name);
         }
       }
-      block.prepend(create.special(ASTSpecial.Kind.Unfold,create.invokation(rewrite(node),null,"csl_invariant")));
-      block.prepend(create.special(ASTSpecial.Kind.Inhale,create.invokation(rewrite(node),null,"csl_invariant")));
-      block.append(create.special(ASTSpecial.Kind.Fold,create.invokation(rewrite(node),null,"csl_invariant")));
-      block.append(create.special(ASTSpecial.Kind.Exhale,create.invokation(rewrite(node),null,"csl_invariant")));
+      ClassType ct=(ClassType)node.getType();
+      ASTClass cl=source().find(ct);
+      String name="csl_invariant";
+      ArrayList<ASTNode> args=new ArrayList<ASTNode>();
+      for(Method m:cl.dynamicMethods()){
+        if (m.name().endsWith("csl_invariant")){
+          name=m.name();
+          for(DeclarationStatement d:m.getArgs()){
+            args.add(create.local_name(d.name()));
+          }
+        }
+      }
+      block.prepend(create.special(ASTSpecial.Kind.Unfold,create.invokation(rewrite(node),null,name,args)));
+      block.prepend(create.special(ASTSpecial.Kind.Inhale,create.invokation(rewrite(node),null,name,args)));
+      block.append(create.special(ASTSpecial.Kind.Fold,create.invokation(rewrite(node),null,name,args)));
+      block.append(create.special(ASTSpecial.Kind.Exhale,create.invokation(rewrite(node),null,name,args)));
     }
     result=block;
   }

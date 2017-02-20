@@ -10,7 +10,7 @@ import vct.util.ClassName
  * @param _type The type of the declared variable, e.g. "{@code int}".
  * @param init The expression that determines the (initial) value of the declared variable, e.g. "{@code 2+4}".
  */
-class DeclarationStatement(private[this] val _name:String, private[this] val _type:Type, val init:ASTNode) extends ASTDeclaration(_name) with VisitorHelper {
+class DeclarationStatement(private[this] val _name:String, private[this] val _type:Type,private[this] val init:ASTNode) extends ASTDeclaration(_name) with VisitorHelper {
   /**
    * Initialises a new AST node that represents a declaration statement without 
    * initial value, e.g. "{@code int test;}".
@@ -22,6 +22,9 @@ class DeclarationStatement(private[this] val _name:String, private[this] val _ty
   
   /** Yields the declaration type */
   override def getType() = _type
+
+  def getInit() = init
+  def init():ASTNode = init
 
   /** Yields the full name of the declared variable (including the package name). */
   override def getDeclName() = {

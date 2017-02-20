@@ -6,8 +6,8 @@ import java.util.Arrays;
 public class Switch extends ASTNode {
 
   public static class Case {
-    public final ArrayList<ASTNode> cases=new ArrayList();
-    public final ArrayList<ASTNode> stats=new ArrayList();
+    public final ArrayList<ASTNode> cases=new ArrayList<ASTNode>();
+    public final ArrayList<ASTNode> stats=new ArrayList<ASTNode>();
   }
   
   @Override

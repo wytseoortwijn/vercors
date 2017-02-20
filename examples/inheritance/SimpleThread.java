@@ -1,12 +1,12 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 //:: cases SimpleThread
-public class Thread {
+public class SimpleThread {
 
   //@ public resource joinToken();
 
-  //@ public resource preFork();
+  //@ public resource preFork()=true;
 
-  //@ public resource postJoin();
+  //@ public resource postJoin()=true;
   
   /*@
     requires preFork();

@@ -1,5 +1,6 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 //:: cases IncrThread
+//:: suite skip-travis
 //:: tool silicon
 //:: verdict Pass
 /* To verify this example:

@@ -1,5 +1,6 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 //:: cases SimpleThread
+//:: suite skip-travis
 //:: tools chalice silicon
 //:: verdict Pass
 
@@ -11,23 +12,23 @@ public class Main {
 
 
   public void direct(){
-    Instance i=new Instance(7);
+    SimpleThreadInstance i=new SimpleThreadInstance(7);
     //@ assert i.input==7;
     i.run();
     //@ assert i.input==7;
-    //@ open i.postJoin@Instance();
-    //@ unfold i.postJoin@Instance();
+    //@ open i.postJoin@SimpleThreadInstance();
+    //@ unfold i.postJoin@SimpleThreadInstance();
     //@ assert i.output==8;
   }
   
   public void forkjoin(){
-    Instance i=new Instance(7);
+    SimpleThreadInstance i=new SimpleThreadInstance(7);
     //@ assert i.input==7;
     i.start();
     i.joinWith();
     //@ assert i.input==7;
-    //@ open i.postJoin@Instance();
-    //@ unfold i.postJoin@Instance();
+    //@ open i.postJoin@SimpleThreadInstance();
+    //@ unfold i.postJoin@SimpleThreadInstance();
     //@ assert i.output==8;
   }
 

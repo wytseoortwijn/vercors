@@ -1,8 +1,8 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 //:: cases InvariantBlockTest
 //:: tools silicon
-//:: pass Main__good
-//:: fail Main__problem1 Main__problem2
+//:: pass Main.good
+//:: fail Main.problem1 Main.problem2
 
 class Main {
   int x,y,z;

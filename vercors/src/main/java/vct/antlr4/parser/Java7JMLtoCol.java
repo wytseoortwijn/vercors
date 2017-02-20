@@ -2,7 +2,6 @@ package vct.antlr4.parser;
 
 import static hre.lang.System.Abort;
 import static hre.lang.System.Debug;
-import hre.lang.HREError;
 
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -510,9 +509,7 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
   }
 
   @Override
-  public ASTNode visitClassOrInterfaceModifier(
-      ClassOrInterfaceModifierContext ctx) {
-    
+  public ASTNode visitClassOrInterfaceModifier(ClassOrInterfaceModifierContext ctx) {
     return null;
   }
 
@@ -1327,7 +1324,7 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
     }
     if (match(0,true, ctx,"switch",null,"{")){
       ASTNode expr=convert(ctx,1);
-      ArrayList<Case> case_list=new ArrayList();
+      ArrayList<Case> case_list=new ArrayList<Case>();
       Case c=new Case();
       int G=ctx.getChildCount()-1;
       for(int i=3;i<G;i++){
@@ -1462,8 +1459,12 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
 
   @Override
   public ASTNode visitTypeDeclaration(TypeDeclarationContext ctx) {
-    
-    return null;
+    int N=ctx.getChildCount();
+    ASTNode res=convert(ctx.getChild(N-1));
+    for(int i=0;i<N-1;i++){
+      res.attach(convert(ctx,i));
+    }
+    return res;
   }
 
   @Override

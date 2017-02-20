@@ -34,7 +34,7 @@ abstract class Type(val args:List[ASTNode]) extends ASTNode {
   def isResource = false
 
   def zero : ASTNode = {
-    Abort(s"zero unimplemented for ${getClass()}")
+    Abort(s"zero is unimplemented for ${getClass()}")
     null
   }
   
@@ -46,10 +46,7 @@ abstract class Type(val args:List[ASTNode]) extends ASTNode {
   
   def comparableWith(context:ProgramUnit, t:Type) = {
     if (isNumeric) t.isNumeric
-    else if (equals(t)) true
-    else if (supertypeof(context, t)) true
-    else if (t.supertypeof(context, this)) true
-    else false
+    else equals(t) || supertypeof(context, t) || t.supertypeof(context, this)
   }
   
   /** Yields a comma-separated string of type arguments */

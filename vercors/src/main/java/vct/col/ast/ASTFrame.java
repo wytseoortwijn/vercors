@@ -145,8 +145,27 @@ public abstract class ASTFrame<T> {
 
 
   public void enter_before(ASTNode node){
+    /* Might be needed or not:
+    variables.enter();
+    if (node.getParent() instanceof MethodInvokation){
+      MethodInvokation mi=(MethodInvokation)node.getParent();
+      Contract c=null;
+      if (mi.getDefinition()!=null){
+        c=mi.getDefinition().getContract();
+      }
+      if (c!=null){
+        for(DeclarationStatement decl:c.given){
+          variables.add(decl.getName(),new VariableInfo(decl,NameExpression.Kind.Argument));
+        }
+        scan_labels(c.pre_condition);
+      }
+    }
+    */
   }
   public void leave_before(ASTNode node){
+    /* must match enter! 
+    variables.leave();
+    */
   }
   public void enter_after(ASTNode node){
     if (scope!=null) scope.enter_after(node);
