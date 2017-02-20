@@ -1025,7 +1025,7 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
       t2=e.arg(2).getType();
       if (t2==null) Fail("type of upto argument unknown at "+e.getOrigin());
       if (!t2.isInteger()) Fail("type of upto argument should be integer at "+e.getOrigin());
-      e.setType(new PrimitiveType(Sort.Sequence,((PrimitiveType)t).getArgs()));
+      e.setType(new PrimitiveType(Sort.Sequence,((PrimitiveType)t).argsToArray()));
       break;
     }
     case ITE:

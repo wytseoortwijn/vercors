@@ -3,14 +3,14 @@ package vct.col.ast
 import vct.col.util.VisitorHelper
 
 /**
-  Simple class that wraps a {@code StandardOperator} as an AST node.
+  Simple class that wraps a `StandardOperator` as an AST node.
   Included in the design to support a future extension into functional languages: 
   
-  {@code OperatorExpression(op, args) == ApplyExpression(StandardProcedure(op), args)}
+  `OperatorExpression(op, args) == ApplyExpression(StandardProcedure(op), args)`
   
-  @param operator The (standard) operator that is wrapped.
+  @param `operator` The (standard) operator that is wrapped.
  */
-class StandardProcedure(val operator:StandardOperator) extends ASTNode with VisitorHelper {
+case class StandardProcedure(val operator:StandardOperator) extends ASTNode with VisitorHelper {
   override def accept_simple[T,A](m:ASTMapping1[T,A], arg:A) = m.map(this, arg)
   override def accept_simple[T](v:ASTVisitor[T]) = handle_standard(() => v.visit(this))
   override def accept_simple[T](m:ASTMapping[T]) = handle_standard(() => m.map(this))

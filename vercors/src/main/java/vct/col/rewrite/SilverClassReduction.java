@@ -211,7 +211,7 @@ public class SilverClassReduction extends AbstractRewriter {
     case Option:
     {
       options=true;
-      ASTNode args[]=rewrite(((PrimitiveType)t).getArgs());
+      ASTNode args[]=rewrite(((PrimitiveType)t).argsToArray());
       args[0].addLabel(create.label("T"));
       result=create.class_type("VCTOption",args);
       break;

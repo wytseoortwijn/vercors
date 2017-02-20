@@ -445,14 +445,13 @@ public class JavaPrinter extends AbstractPrinter {
   @Override
   public void visit(ClassType t){
     out.print(t.getFullName());
-    ASTNode args[]=t.getArgs();
-    if (args.length>0){
+    if (t.getArgCount() > 0) {
       setExpr();
       out.print("<");
-      args[0].accept(this);
-      for(int i=1;i<args.length;i++){
+      t.getArg(0).accept(this);
+      for(int i=1;i<t.getArgCount();i++){
         out.print(",");
-        args[i].accept(this);
+        t.getArg(i).accept(this);
       }
       out.print(">");
     }

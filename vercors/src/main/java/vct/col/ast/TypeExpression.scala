@@ -8,7 +8,7 @@ class TypeExpression(val operator:TypeOperator, val types:Array[Type]) extends T
   def getType(i:Int) = types.apply(i)
   
   override def isNumeric = operator match {
-    case TypeOperator.Local | TypeOperator.Global | TypeOperator.Long => types.head.isNumeric()
+    case TypeOperator.Local | TypeOperator.Global | TypeOperator.Long => types.head.isNumeric
     case _ => false
   }
   

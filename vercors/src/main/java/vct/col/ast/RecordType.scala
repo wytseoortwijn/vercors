@@ -1,27 +1,29 @@
 package vct.col.ast
 
+import hre.lang.System.Abort
 import vct.col.util.VisitorHelper
 
 /** A single type entry of a record type (only used in `RecordType`). */
-case class RecordTypeEntry(val variableName:String, val variableType:Type)
+case class RecordTypeEntry(val fieldName:String, val fieldType:Type)
 
 /**
  * AST node that represents record types, that is, pairs of variable names (identifiers)
- * and their types. 
+ * and their types.
  */
 case class RecordType(val types:List[RecordTypeEntry]) extends Type with VisitorHelper {
-  /** Instantiates a new record type from separate lists of `names` and `types`. */
-  def this(names:List[String], types:List[Type]) = 
-    this((names, types).zipped map (new RecordTypeEntry(_,_)))
+  if (types.isEmpty) Abort("record types must have at least one field entry.")
+  
+  /** Instantiates a record type out of separate lists of `names` and `types`. */
+  def this(names:List[String], types:List[Type]) = this((names, types).zipped map (new RecordTypeEntry(_,_)))
   
   /** @return The number of fields in this record. */
-  def fieldCount = types.length
+  def fieldCount : Int = types.length
   
   /** @return The name of the {@code i}-th record field. */
-  def fieldName(i:Int) = types.apply(i).variableName
+  def fieldName(i:Int) : String = types.apply(i).fieldName
   
   /** @return The type of the {@code i}-th record field. */
-  def fieldType(i:Int) = types.apply(i).variableType
+  def fieldType(i:Int) : Type = types.apply(i).fieldType
   
   /** @return Always `false`: no type can extend (inherit from) a record type. */
   override def supertypeof(context:ProgramUnit, t:Type) = false

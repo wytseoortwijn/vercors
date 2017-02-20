@@ -1,5 +1,6 @@
 package vct.ast
 
+import hre.lang.HREExitException
 import org.scalatest._
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.JavaConverters._
@@ -7,7 +8,7 @@ import vct.col.ast._
 
 class TupleTypeSpec extends FlatSpec with Matchers {
   
-  "A Tuple Type" should "yield the correct type when queried for one" in {
+  "A tuple type" should "yield the correct type when queried for one" in {
     var inttype = new PrimitiveType(PrimitiveType.Sort.Integer)
     var booltype = new PrimitiveType(PrimitiveType.Sort.Boolean)
     var tupletype = new TupleType(Array[Type](inttype, booltype))
@@ -71,9 +72,16 @@ class TupleTypeSpec extends FlatSpec with Matchers {
     tupletype.supertypeof(null, inttype) should be (false)
   }
   
-  it should "be able to accept no (or empty) type arguments" in {
-    var tupletype = new TupleType(Array[Type]())
-    tupletype.types.size should be (0)
+  it should "not be able to accept an empty type array" in {
+    a [HREExitException] should be thrownBy {
+      var tupletype = new TupleType(Array[Type]())
+    }
+  }
+  
+  it should "not be able to accept an empty type list" in {
+    a [HREExitException] should be thrownBy {
+      var tupletype = new TupleType(List[Type]())
+    }
   }
   
   it should "yield a type list of equal size as the one provided when queried for it" in {

@@ -1,12 +1,13 @@
 package vct.ast
 
+import hre.lang.HREExitException
 import org.scalatest._
 import scala.collection.JavaConverters._
 import vct.col.ast._
 
 class RecordTypeSpec extends FlatSpec with Matchers {
   
-  "A Record Type" should "successfully instantiate after invoking the default constructor" in {
+  "A record type" should "successfully instantiate after invoking the default constructor" in {
     var record = new RecordType(List(
       new RecordTypeEntry("field1", new PrimitiveType(PrimitiveType.Sort.Integer)),
       new RecordTypeEntry("field2", new PrimitiveType(PrimitiveType.Sort.Boolean))
@@ -46,5 +47,19 @@ class RecordTypeSpec extends FlatSpec with Matchers {
     var record = new RecordType(names, types)
     
     record.types.size should be (2)
+  }
+  
+  it should "not accept instantiation with an empty list" in {
+    a [HREExitException] should be thrownBy {
+      var record = new RecordType(List())
+    }
+  }
+  
+  it should "not accept instantiation with too few field entries" in {
+    var names = List("field1", "field2")
+        
+    a [HREExitException] should be thrownBy {
+      var record = new RecordType(names, List())
+    }
   }
 }
