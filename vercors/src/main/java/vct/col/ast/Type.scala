@@ -10,7 +10,8 @@ import vct.col.ast.PrimitiveType.Sort
  * Types need to be both manipulated in special ways (hence this class)
  * and treated as any AST node (hence we extend ASTNode).
  *  
- * @author sccblom
+ * @param args A list of type arguments (e.g. class parameters)
+ * @author sccblom, whmoortwijn
  */
 abstract class Type(val args:List[ASTNode]) extends ASTNode {
   def this(args:Array[ASTNode]) = this(args.toList)

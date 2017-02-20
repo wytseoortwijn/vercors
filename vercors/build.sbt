@@ -1,4 +1,4 @@
-name := "Vercors Verification Toolset"
+name := "Vercors"
 organization  := "University of Twente"
 version := "0.1-SNAPSHOT"
 scalaVersion := "2.11.8"
@@ -41,7 +41,3 @@ sourceGenerators in Compile <+= sourceManaged in Compile map { dir =>
   IO.write(file, """object Test extends App { println("Hi") }""")
   Seq(file)
 }
-
-
-
-

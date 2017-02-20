@@ -17,7 +17,14 @@ object ClassType {
     name == nullType.names || name == labelType.names
 }
 
-case class ClassType(val names:List[String], val _args:List[ASTNode]) extends Type(_args) with VisitorHelper {
+/**
+ * AST node that represents the type of classes (including their class parameters).
+ * 
+ * @param names A list of name parts that together constitute the full class name (including package name)
+ * @param params A list of AST nodes representing the types of the class parameters
+ * @author sccblom, whmoortwijn
+ */
+case class ClassType(val names:List[String], val params:List[ASTNode]) extends Type(params) with VisitorHelper {
   if (names.isEmpty) Abort("class types must have a name (at least one name part).")
   
   var definition : ASTDeclaration = null
