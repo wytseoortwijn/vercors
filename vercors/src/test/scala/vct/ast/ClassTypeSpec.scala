@@ -53,11 +53,11 @@ class ClassTypeSpec extends FlatSpec with Matchers {
   }
   
   it should "have a default label type name <<label>>" in {
-    ClassType.label_type.getName should be ("<<label>>")
+    ClassType.labelType.getName should be ("<<label>>")
   }
   
   it should "have a default null type name <<null>>" in {
-    ClassType.null_type.getName should be ("<<null>>")
+    ClassType.nullType.getName should be ("<<null>>")
   }
   
   it should "always be a supertype of java.lang.Object" in {
@@ -77,13 +77,13 @@ class ClassTypeSpec extends FlatSpec with Matchers {
   it should "always be the supertype of the default <<label>> type" in {
     var classtype = new ClassType("TestClass")
     var somecontext = new ProgramUnit
-    classtype.supertypeof(somecontext, ClassType.label_type) should be (true)
+    classtype.supertypeof(somecontext, ClassType.labelType) should be (true)
   }
   
   it should "always be the supertype of the default <<null>> type" in {
     var classtype = new ClassType("TestClass")
     var somecontext = new ProgramUnit
-    classtype.supertypeof(somecontext, ClassType.null_type) should be (true)
+    classtype.supertypeof(somecontext, ClassType.nullType) should be (true)
   }
   
   it should "not be the supertype of any type that is not a class type" in {
@@ -115,8 +115,7 @@ class ClassTypeSpec extends FlatSpec with Matchers {
     var nameparts = Array("java", "lang", "TestClass")
     var inttype = new PrimitiveType(PrimitiveType.Sort.Integer)
     var booltype = new PrimitiveType(PrimitiveType.Sort.Boolean)
-    var classtype = new ClassType(nameparts, inttype, booltype)
-    
+    var classtype = new ClassType(nameparts, Array[ASTNode](inttype, booltype))
     classtype.toString should be ("java.lang.TestClass<Integer,Boolean>")
   }
 }

@@ -8,6 +8,7 @@ libraryDependencies += "com.google.code.gson" % "gson" % "2.8.0"
 libraryDependencies += "org.apache.commons" % "commons-lang3" % "3.1"
 libraryDependencies += "org.scalactic" %% "scalactic" % "3.0.1"
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.1" % "test"
+libraryDependencies += "org.scalamock" %% "scalamock-scalatest-support" % "3.4.2" % Test
 
 scalacOptions += "-deprecation"
 scalacOptions += "-feature"

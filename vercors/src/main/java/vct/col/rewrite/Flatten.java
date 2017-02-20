@@ -152,8 +152,8 @@ public class Flatten extends AbstractRewriter {
     ASTNode loc=s.location();
     ASTNode val=s.expression();
     if (loc instanceof Dereference
-    && !val.getType().equals(ClassType.null_type)
-    && !val.getType().equals(ClassType.label_type)){
+    && !val.getType().equals(ClassType.nullType())
+    && !val.getType().equals(ClassType.labelType())){
       loc=rewrite(loc);
       val=add_as_var(val);      
     } else {

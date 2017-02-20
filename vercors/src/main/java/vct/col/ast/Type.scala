@@ -34,7 +34,7 @@ abstract class Type(val args:List[ASTNode]) extends ASTNode {
   def isResource = false
 
   def zero : ASTNode = {
-    Abort("zero unimplemented for %s", getClass())
+    Abort(s"zero unimplemented for ${getClass()}")
     null
   }
   
@@ -50,6 +50,18 @@ abstract class Type(val args:List[ASTNode]) extends ASTNode {
     else if (supertypeof(context, t)) true
     else if (t.supertypeof(context, this)) true
     else false
+  }
+  
+  /** Yields a comma-separated string of type arguments */
+  def argsCommaSeparated = args mkString ","
+  
+  /**
+   * Yields a string "<`a_1,...,a_n`>" of the list `args` of arguments `a_i`, 
+   * provided that `args` has at least one element.
+   */
+  override def toString = args.isEmpty match {
+    case false => s"<$argsCommaSeparated>"
+    case true => ""
   }
   
   def supertypeof(unit:ProgramUnit, t:Type) : Boolean
