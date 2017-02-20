@@ -260,7 +260,7 @@ public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
   }
   
   public void visit(ParallelAtomic pa){
-    for(ASTNode n:pa.synclist()){
+    for (ASTNode n : pa.synclistAsArray()) {
       dispatch(n);
     }
     dispatch(pa.block());

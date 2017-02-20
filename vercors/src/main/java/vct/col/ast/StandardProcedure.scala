@@ -9,6 +9,7 @@ import vct.col.util.VisitorHelper
   `OperatorExpression(op, args) == ApplyExpression(StandardProcedure(op), args)`
   
   @param `operator` The (standard) operator that is wrapped.
+  @author sccblom, whmoortwijn
  */
 case class StandardProcedure(val operator:StandardOperator) extends ASTNode with VisitorHelper {
   override def accept_simple[T,A](m:ASTMapping1[T,A], arg:A) = m.map(this, arg)

@@ -461,7 +461,7 @@ public class ParallelBlockEncoder extends AbstractRewriter {
   @Override
   public void visit(ParallelAtomic pa){
     BlockStatement block=rewrite(pa.block());
-    for(ASTNode node:pa.synclist()){
+    for (ASTNode node : pa.synclistAsArray()) {
       if (node instanceof NameExpression){
         NameExpression name=(NameExpression)node;
         if (name.getKind()==NameExpression.Kind.Label){

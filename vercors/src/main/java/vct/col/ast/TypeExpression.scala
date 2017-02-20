@@ -2,10 +2,13 @@ package vct.col.ast
 
 import vct.col.util.VisitorHelper
 
-class TypeExpression(val operator:TypeOperator, val types:Array[Type]) extends Type with VisitorHelper {
+case class TypeExpression(val operator:TypeOperator, val types:List[Type]) extends Type with VisitorHelper {
+  def this(operator:TypeOperator, types:Array[Type]) = this(operator, types.toList)
+  
   def firstType = types.head
-  def nrOfTypes = types.length
   def getType(i:Int) = types.apply(i)
+  def nrOfTypes = types.length
+  def typesAsArray = types.toArray
   
   override def isNumeric = operator match {
     case TypeOperator.Local | TypeOperator.Global | TypeOperator.Long => types.head.isNumeric

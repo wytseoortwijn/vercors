@@ -584,7 +584,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   
   @Override
   public void visit(ParallelAtomic pa){
-    result = create.csl_atomic(rewrite(pa.block()), rewrite(pa.synclist().toArray(new ASTNode[0])));
+    result = create.csl_atomic(rewrite(pa.block()), rewrite(pa.synclistAsArray()));
   }
   
   @Override
@@ -765,7 +765,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   
   @Override
   public void visit(TypeExpression te){
-    result = create.type_expression(te.operator(), rewrite(te.types()));
+    result = create.type_expression(te.operator(), rewrite(te.typesAsArray()));
   }
   
   @Override
