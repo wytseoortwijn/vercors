@@ -188,18 +188,18 @@ public class JavaEncoder extends AbstractRewriter {
   @Override
   public void visit(Dereference d){
     if (d.field().equals("length")){
-      if (d.object().getType().isPrimitive(Sort.Array)){
-        result=create.expression(StandardOperator.Length,rewrite(d.object()));
+      if (d.obj().getType().isPrimitive(Sort.Array)){
+        result=create.expression(StandardOperator.Length,rewrite(d.obj()));
       } else {
-        result=create.expression(StandardOperator.Size,rewrite(d.object()));
+        result=create.expression(StandardOperator.Size,rewrite(d.obj()));
       }
       return;
     }
     ClassType t;
-    if (d.object() instanceof ClassType){
-      t=(ClassType)d.object();
+    if (d.obj() instanceof ClassType){
+      t=(ClassType)d.obj();
     } else {
-      Type tmp=d.object().getType();
+      Type tmp=d.obj().getType();
       if (tmp.isPrimitive(Sort.Location)){
         tmp=(Type)tmp.getArg(0);
       }
@@ -211,7 +211,7 @@ public class JavaEncoder extends AbstractRewriter {
     if (decl.isStatic()){
       object=create.local_name("globals");
     } else {
-      object=rewrite(d.object());
+      object=rewrite(d.obj());
     }
     String field=create_field_name((ASTClass)decl.getParent(),d.field());
     result=create.dereference(object,field);

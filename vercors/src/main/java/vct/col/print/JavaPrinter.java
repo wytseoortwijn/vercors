@@ -951,7 +951,7 @@ public class JavaPrinter extends AbstractPrinter {
       case Wrap:{
         out.print("(");
         String sep="";
-        for(ASTNode arg:e.args()){
+        for (ASTNode arg : e.argsArray()) {
           out.print(sep);
           sep=",";
           arg.accept(this);
@@ -1182,7 +1182,7 @@ public class JavaPrinter extends AbstractPrinter {
   }
 
   public void visit(Dereference e){
-    e.object().accept(this);
+    e.obj().accept(this);
     out.printf(".%s", e.field());
   }
   

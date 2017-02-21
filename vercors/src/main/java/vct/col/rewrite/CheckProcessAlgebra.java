@@ -323,13 +323,13 @@ public class CheckProcessAlgebra extends AbstractRewriter {
     switch(e.operator()){
     case Or:
       if(e.getType().isPrimitive(Sort.Process)){
-        result=create.invokation(null, null, "p_merge", rewrite(e.args()));
+        result=create.invokation(null, null, "p_merge", rewrite(e.argsArray()));
         return;
       }
       break;
     case Mult:
       if(e.getType().isPrimitive(Sort.Process)){
-        result=create.invokation(null, null, "p_seq", rewrite(e.args()));
+        result=create.invokation(null, null, "p_seq", rewrite(e.argsArray()));
         return;
       }
       break;

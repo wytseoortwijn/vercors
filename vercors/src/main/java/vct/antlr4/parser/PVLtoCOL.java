@@ -739,7 +739,7 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
     ASTNode args[]=getTuple((ParserRuleContext)ctx.children.get(ofs+1));
     if (f instanceof Dereference){
       Dereference fd=(Dereference) f;
-      return create.invokation(fd.object(), null, fd.field(), args);
+      return create.invokation(fd.obj(), null, fd.field(), args);
     } else if (f instanceof NameExpression){
       return create.invokation(null,null,((NameExpression)f).getName(),args);
     } else {

@@ -113,7 +113,7 @@ public class RewriteArrayRef extends AbstractRewriter {
 		  case Values:{
         Type t=(Type)((PrimitiveType)e.getType()).getArg(0);
         array_values.add(t);
-        result=create.invokation(null,null,"array_values_"+t,rewrite(e.args()));
+        result=create.invokation(null,null,"array_values_"+t,rewrite(e.argsArray()));
         break;
 		  }
 		  case NewArray:{
@@ -130,8 +130,8 @@ public class RewriteArrayRef extends AbstractRewriter {
   @Override
 	public void visit(Dereference e){
 	  if (e.field().equals("length")){
-	    ASTNode res=rewrite(e.object());
-	    if (e.object().getType().isPrimitive(Sort.Array)){
+	    ASTNode res=rewrite(e.obj());
+	    if (e.obj().getType().isPrimitive(Sort.Array)){
   	    res=create.expression(StandardOperator.OptionGet,res);
 	    }
       result=create.expression(StandardOperator.Size,res);

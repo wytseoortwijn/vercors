@@ -611,19 +611,19 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
     }
     case Or:
       if(e.getType().isPrimitive(Sort.Process)){
-        result=create.domain_call("Process","p_merge",rewrite(e.args()));
+        result=create.domain_call("Process","p_merge",rewrite(e.argsArray()));
         return;
       }
       break;
     case Plus:
       if(e.getType().isPrimitive(Sort.Process)){
-        result=create.domain_call("Process","p_choice",rewrite(e.args()));
+        result=create.domain_call("Process","p_choice",rewrite(e.argsArray()));
         return;
       }
       break;
     case Mult:
       if(e.getType().isPrimitive(Sort.Process)){
-        result=create.domain_call("Process","p_seq",rewrite(e.args()));
+        result=create.domain_call("Process","p_seq",rewrite(e.argsArray()));
         return;
       }
       break;

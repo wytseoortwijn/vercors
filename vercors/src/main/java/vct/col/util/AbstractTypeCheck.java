@@ -679,7 +679,7 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
       return;
     }
     super.visit(e);
-    ASTNode argss[]=e.args();
+    ASTNode argss[]=e.argsArray();
     Type tt[]=new Type[argss.length];
     for(int i=0;i<argss.length;i++){
       if (argss[i] instanceof Type) continue;
@@ -1297,7 +1297,7 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
       break;
     }
     case Wrap:{
-      ASTNode args[]=e.args();
+      ASTNode args[]=e.argsArray();
       switch(args.length){
       case 0:
         e.setType(new PrimitiveType(Sort.Void));      
@@ -1402,7 +1402,7 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
         //force_frac(e.getArg(0));
         break;
       default:
-        for(ASTNode n:e.args()){
+        for(ASTNode n:e.argsArray()){
           force_frac(n);
         }
         break;
@@ -1412,7 +1412,7 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
 
   public void visit(Dereference e){
     super.visit(e);
-    Type object_type=e.object().getType();
+    Type object_type=e.obj().getType();
     if (object_type==null) Fail("type of object unknown at "+e.getOrigin());
     if (object_type.isPrimitive(Sort.Location)){
       object_type=(Type)object_type.getArg(0);

@@ -470,7 +470,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
     //checkPermission(e);
     StandardOperator op=e.operator();
     int N=op.arity();
-    if(N<0) N=e.args().length;
+    if(N<0) N=e.nrOfArgs();
     ASTNode args[]=new ASTNode[N];
     for(int i=0;i<N;i++){
       args[i]=e.arg(i).apply(this);
@@ -569,7 +569,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
 
   @Override
   public void visit(Dereference e) {
-    result = create.dereference(e.object().apply(this), e.field());
+    result = create.dereference(e.obj().apply(this), e.field());
   }
   
   @Override

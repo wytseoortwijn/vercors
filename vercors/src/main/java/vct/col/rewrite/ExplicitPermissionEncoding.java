@@ -607,7 +607,7 @@ class PredicateClassGenerator extends AbstractRewriter {
           ASTNode tmp=e.arg(0);
           if (tmp instanceof Dereference){
             Dereference field=(Dereference)tmp;
-            tmp=field.object();
+            tmp=field.obj();
             /*
             if (tmp instanceof NameExpression && ((NameExpression)tmp).getName().equals("this")){
               String name=field.field;

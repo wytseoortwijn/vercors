@@ -367,7 +367,7 @@ public BlockStatement block(Origin origin, ASTNode ... args) {
   public OperatorExpression expression(Origin origin,StandardOperator op, ASTNode ... args){
     if (op==null) Abort("null operator at %s",origin);
     if (args==null) Abort("null arguments at %s",origin);
-    OperatorExpression res = OperatorExpression.construct(op, args);
+    OperatorExpression res = new OperatorExpression(op, args);
     res.setOrigin(origin);
     res.accept_if(post);
     return res;

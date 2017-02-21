@@ -237,7 +237,7 @@ public class Method extends ASTDeclaration {
     if (node instanceof ConstantExpression) return false;
     if (node instanceof OperatorExpression){
       OperatorExpression expr=(OperatorExpression)node;
-      for(ASTNode child:expr.args()){
+      for (ASTNode child : expr.argsArray()) {
         if (find(target,scanned,child)) return true;
       }
       return false;
@@ -253,7 +253,7 @@ public class Method extends ASTDeclaration {
     }
     if (node instanceof Dereference){
       Dereference expr = (Dereference)node;
-      return find(target,scanned, expr.object());
+      return find(target,scanned, expr.obj());
     }
     if (node instanceof BindingExpression){
       BindingExpression abs=(BindingExpression)node;

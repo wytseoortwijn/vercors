@@ -105,7 +105,7 @@ public class SilverClassReduction extends AbstractRewriter {
     public void visit(OperatorExpression e){
       switch(e.operator()){
       case RangeSeq:
-        result=create.domain_call("VectorIndex","vrange",e.args());
+        result=create.domain_call("VectorIndex","vrange",e.argsArray());
         break;
       default:
         result=e;
@@ -119,7 +119,7 @@ public class SilverClassReduction extends AbstractRewriter {
     public void visit(OperatorExpression e){
       switch(e.operator()){
       case Mult:
-        result=create.domain_call("MatrixIndex","product",index.rewrite(e.args()));
+        result=create.domain_call("MatrixIndex","product",index.rewrite(e.argsArray()));
         break;
       default:
         result=e;
@@ -275,20 +275,20 @@ public class SilverClassReduction extends AbstractRewriter {
   }
   @Override
   public void visit(Dereference e){
-    if (e.object().getType()==null){
-      Fail("untyped object %s at %s", e.object(), e.object().getOrigin());
-      result=create.dereference(rewrite(e.object()), e.field());
+    if (e.obj().getType()==null){
+      Fail("untyped object %s at %s", e.obj(), e.obj().getOrigin());
+      result=create.dereference(rewrite(e.obj()), e.field());
       return;
     }
-    Type t=e.object().getType();
+    Type t=e.obj().getType();
     if (t.isPrimitive(Sort.Cell)){
       PrimitiveType tt=(PrimitiveType)t;
       Type type=(Type)rewrite(tt.getArg(0));
       String name=type.toString();
       ref_items.add(type);
-      result=create.dereference(rewrite(e.object()), name+SEP+e.field());
+      result=create.dereference(rewrite(e.obj()), name+SEP+e.field());
     } else {
-      result=create.dereference(rewrite(e.object()), e.field());
+      result=create.dereference(rewrite(e.obj()), e.field());
     }
   }
   
@@ -312,26 +312,26 @@ public class SilverClassReduction extends AbstractRewriter {
     case VectorRepeat:{
       floats=true;
       Type t=VectorExpression(rewrite(e.getType()));
-      result=create.invokation(t,null,"vrep",rewrite(e.args()));
+      result=create.invokation(t,null,"vrep",rewrite(e.argsArray()));
       break;
     }
     case VectorCompare:{
       floats=true;
       Type t=VectorExpression(rewrite((Type)((PrimitiveType)e.getType()).getArg(0)));
-      result=create.invokation(t,null,"vcmp",rewrite(e.args()));
+      result=create.invokation(t,null,"vcmp",rewrite(e.argsArray()));
       break;
     }
     case MatrixRepeat:{
       floats=true;
       Type t=MatrixExpression(rewrite(e.getType()));
-      result=create.invokation(t,null,"mrep",rewrite(e.args()));
+      result=create.invokation(t,null,"mrep",rewrite(e.argsArray()));
       break;
     }
     case MatrixCompare:{
       floats=true;
       Type t=(Type)((PrimitiveType)e.getType()).getArg(0);
       t=VectorExpression(rewrite((Type)((PrimitiveType)t).getArg(0)));
-      result=create.invokation(t,null,"mcmp",rewrite(e.args()));
+      result=create.invokation(t,null,"mcmp",rewrite(e.argsArray()));
       break;
     }
     case MatrixSum:{
@@ -364,7 +364,7 @@ public class SilverClassReduction extends AbstractRewriter {
     }
     case Plus:{
       if (e.getType().isPrimitive(Sort.Float)){
-        result=create.domain_call("VCTFloat", "fadd", rewrite(e.args()));
+        result=create.domain_call("VCTFloat", "fadd", rewrite(e.argsArray()));
       } else {
         super.visit(e); 
       }
@@ -373,14 +373,14 @@ public class SilverClassReduction extends AbstractRewriter {
     case OptionSome:{
       options=true;
       Type t=rewrite(e.getType());
-      result=create.invokation(t, null,"VCTSome",rewrite(e.args()));
+      result=create.invokation(t, null,"VCTSome",rewrite(e.argsArray()));
       break;
     }
     case OptionGet:{
       options=true;
       Type t=rewrite(e.arg(0).getType());
       String method=optionGet(t);
-      result=create.invokation(null, null,method,rewrite(e.args()));
+      result=create.invokation(null, null,method,rewrite(e.argsArray()));
       break;
     }
     case New:{
