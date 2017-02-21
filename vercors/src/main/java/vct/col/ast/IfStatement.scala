@@ -8,12 +8,14 @@ object IfStatement {
   val elseGuard = new ConstantExpression(true, new MessageOrigin("else guard"))
 }
 
+case class IfStatementCase(var guard:ASTNode, var effect:ASTNode)
+
 class IfStatement extends ASTNode with VisitorHelper  {
-  private[this] val cases = new ArrayBuffer[(ASTNode,ASTNode)]()
+  private[this] val cases = new ArrayBuffer[IfStatementCase]()
   
   def getCount = cases.size
-  def getGuard(i:Int) = cases.apply(i)._1
-  def getStatement(i:Int) = cases.apply(i)._2
+  def getGuard(i:Int) = cases.apply(i).guard
+  def getStatement(i:Int) = cases.apply(i).effect
   
   def this(cond:ASTNode, truebranch:ASTNode, falsebranch:ASTNode) = {
     this()
@@ -24,7 +26,7 @@ class IfStatement extends ASTNode with VisitorHelper  {
   def addClause(guard:ASTNode, stmt:ASTNode) : Unit = {
     stmt.setParent(this)
     if (guard != IfStatement.elseGuard) guard.setParent(this)
-    cases += new Tuple2(guard, stmt)
+    cases += new IfStatementCase(guard, stmt)
   }
   
   override def accept_simple[T,A](m:ASTMapping1[T,A], arg:A) = m.map(this, arg)
