@@ -407,13 +407,13 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
     if (v.type() instanceof PrimitiveType) {
       PrimitiveType t = (PrimitiveType)v.type();
       if (t.sort==PrimitiveSort.Sequence){
-        if (v.values().length==0) {
+        if (v.valuesLength() == 0) {
           out.print("nil<");
           t.getArg(0).accept(this);
           out.print(">");
         } else {
           String sep="[";
-          for(int i=0;i<v.values().length;i++){
+          for(int i = 0; i < v.valuesLength(); i++) {
             out.print(sep);
             sep=",";
             v.value(i).accept(this);

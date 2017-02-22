@@ -8,6 +8,8 @@ case class TypeExpression(val operator:TypeOperator, val types:List[Type]) exten
   def firstType = types.head
   def getType(i:Int) = types.apply(i)
   def nrOfTypes = types.length
+  
+  @deprecated("this method will be removed", "soon")
   def typesAsArray = types.toArray
   
   override def isNumeric = operator match {

@@ -2,7 +2,7 @@ package vct.col.ast
 
 import vct.col.util.VisitorHelper
 
-class TypeVariable(val name:String) extends Type with VisitorHelper {
+case class TypeVariable(val name:String) extends Type with VisitorHelper {
   override def isNumeric() = false
   override def hashCode() = name.hashCode();
   override def supertypeof(context:ProgramUnit, t:Type) = false

@@ -1341,8 +1341,8 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
         Fail("type without arguments: %s in %s",t,v);
       }
       t=(Type)t.getArg(0);
-      for(int i=0;i<v.values().length;i++){
-        Type t2=v.values()[i].getType();
+      for (int i = 0; i < v.valuesLength(); i++) {
+        Type t2=v.value(i).getType();
         if (t2==null){
           Fail("untyped build argument %d",i);
         }

@@ -1017,7 +1017,7 @@ public class JavaPrinter extends AbstractPrinter {
     }
     out.print("{");
     String sep="";
-    for (int i=0;i<v.values().length;i++) {
+    for (int i = 0; i < v.valuesLength(); i++) {
       out.print(sep);
       sep=",";
       v.value(i).accept(this);

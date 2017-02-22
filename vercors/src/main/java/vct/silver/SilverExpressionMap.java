@@ -472,7 +472,7 @@ public class SilverExpressionMap<T,E> implements ASTMapping<E>{
   public E map(StructValue v) {
     Origin o = v.getOrigin();
     ArrayList<E> elems = new ArrayList<E>();
-    for (int i=0;i<v.values().length;i++) {
+    for (int i = 0; i < v.valuesLength(); i++) {
       elems.add(v.value(i).apply(this));
     }
     T t=((Type)((Type)v.type()).getArg(0)).apply(type);
