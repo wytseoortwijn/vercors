@@ -6,7 +6,6 @@ import java.util.HashSet;
 import hre.ast.Origin;
 import hre.ast.TrackingOutput;
 import vct.col.ast.*;
-import vct.col.ast.PrimitiveType.Sort;
 import vct.col.util.ASTUtils;
 
 /**
@@ -89,7 +88,7 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
     Contract contract=c.getContract();
     if (contract!=null){
       for(DeclarationStatement decl:contract.given){
-        if (decl.getType().isPrimitive(Sort.Class)){
+        if (decl.getType().isPrimitive(PrimitiveSort.Class)){
           if (!classParameters.contains(decl.name())){
             classParameters.add(decl.name());
             out.lnprintf("class %s { }", decl.name());
@@ -147,7 +146,7 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
       out.lnprintf("");
     } else {
       out.printf(") returns (");
-      if (result_type.equals(Sort.Void)){
+      if (result_type.equals(PrimitiveSort.Void)){
         next="";
       } else {
         out.printf("__result: ");
@@ -308,7 +307,7 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
         ASTNode a0=e.arg(0);
         ASTNode a1=e.arg(1);
         //Warning("perm with %s",a1.getType());
-        if (a1.getType().isPrimitive(Sort.ZFraction)){
+        if (a1.getType().isPrimitive(PrimitiveSort.ZFraction)){
           out.print("(((");
           a1.accept(this);
           out.print(")>0)==>acc(");
@@ -407,7 +406,7 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
   public void visit(StructValue v) {
     if (v.type() instanceof PrimitiveType) {
       PrimitiveType t = (PrimitiveType)v.type();
-      if (t.sort==Sort.Sequence){
+      if (t.sort==PrimitiveSort.Sequence){
         if (v.values().length==0) {
           out.print("nil<");
           t.getArg(0).accept(this);

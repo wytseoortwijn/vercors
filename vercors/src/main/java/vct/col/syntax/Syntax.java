@@ -6,7 +6,7 @@ import vct.col.ast.ASTNode;
 import vct.col.ast.ASTReserved;
 import vct.col.ast.ASTSpecial;
 import vct.col.ast.ASTSpecial.Kind;
-import vct.col.ast.PrimitiveType.Sort;
+import vct.col.ast.PrimitiveSort;
 import vct.col.ast.ProgramUnit;
 import vct.col.ast.StandardOperator;
 import vct.col.print.AbstractPrinter;
@@ -93,7 +93,7 @@ public class Syntax {
   private Map<StandardOperator,String[]> syntax_map = new EnumMap<StandardOperator, String[]>(StandardOperator.class);
   private Map<StandardOperator,String[]> pattern_map = new EnumMap<StandardOperator, String[]>(StandardOperator.class);
   private Map<StandardOperator,Associativity> associativity_map = new EnumMap<StandardOperator, Associativity>(StandardOperator.class);
-  private Map<Sort,String> type_map = new EnumMap<Sort, String>(Sort.class);
+  private Map<PrimitiveSort,String> type_map = new EnumMap<PrimitiveSort, String>(PrimitiveSort.class);
   
   private Map<String,StandardOperator> operator_map = new HashMap<String, StandardOperator>();
   private Map<String,StandardOperator> function_map = new HashMap<String, StandardOperator>();
@@ -221,12 +221,12 @@ public class Syntax {
   }
   
   /** Add a name for a primitive type */
-  public void addPrimitiveType(Sort sort,String name){
+  public void addPrimitiveType(PrimitiveSort sort, String name){
     type_map.put(sort, name);
   }
   
   /** Get the name of a primitive type */
-  public String getPrimitiveType(Sort sort){
+  public String getPrimitiveType(PrimitiveSort sort){
     return type_map.get(sort);
   }
   

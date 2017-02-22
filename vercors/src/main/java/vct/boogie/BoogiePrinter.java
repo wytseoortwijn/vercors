@@ -24,7 +24,7 @@ public class BoogiePrinter extends AbstractBoogiePrinter {
     DeclarationStatement args[]=m.getArgs();
     int N=args.length;
     Type result_type=m.getReturnType();
-    if (!result_type.equals(PrimitiveType.Sort.Void)) Fail("illegal return type %s",result_type);
+    if (!result_type.equals(PrimitiveSort.Void)) Fail("illegal return type %s",result_type);
     String name=m.getName();
     out.printf("procedure %s(",name);
     String next="";

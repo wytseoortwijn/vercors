@@ -13,7 +13,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import vct.antlr4.parser.Parsers;
 import vct.col.ast.*;
 import vct.col.ast.Method.Kind;
-import vct.col.ast.PrimitiveType.Sort;
 import vct.col.util.ASTUtils;
 import vct.util.Configuration;
 
@@ -33,7 +32,7 @@ public class SilverClassReduction extends AbstractRewriter {
     public ASTNode post_map(ASTNode n, ASTNode res) {
       if (res==null) {
         Type t=n.getType();
-        if (t.isPrimitive(Sort.Sequence)){
+        if (t.isPrimitive(PrimitiveSort.Sequence)){
           t=VectorExpression(rewrite((Type)((PrimitiveType)t).getArg(0)));
           return create.invokation(t,null,"vseq", rewrite(n));
         }
@@ -68,7 +67,7 @@ public class SilverClassReduction extends AbstractRewriter {
     public ASTNode post_map(ASTNode n, ASTNode res) {
       if (res==null) {
         Type t=n.getType();
-        if (t.isPrimitive(Sort.Sequence)){
+        if (t.isPrimitive(PrimitiveSort.Sequence)){
           t=(Type)((PrimitiveType)t).getArg(0);
           t=MatrixExpression(rewrite((Type)((PrimitiveType)t).getArg(0)));
           return create.invokation(t,null,"mseq", rewrite(n));
@@ -281,7 +280,7 @@ public class SilverClassReduction extends AbstractRewriter {
       return;
     }
     Type t=e.obj().getType();
-    if (t.isPrimitive(Sort.Cell)){
+    if (t.isPrimitive(PrimitiveSort.Cell)){
       PrimitiveType tt=(PrimitiveType)t;
       Type type=(Type)rewrite(tt.getArg(0));
       String name=type.toString();
@@ -363,7 +362,7 @@ public class SilverClassReduction extends AbstractRewriter {
       break;      
     }
     case Plus:{
-      if (e.getType().isPrimitive(Sort.Float)){
+      if (e.getType().isPrimitive(PrimitiveSort.Float)){
         result=create.domain_call("VCTFloat", "fadd", rewrite(e.argsArray()));
       } else {
         super.visit(e); 
@@ -403,8 +402,8 @@ public class SilverClassReduction extends AbstractRewriter {
       Type t0=e.arg(1).getType();
       ASTNode object=rewrite(e.arg(1));
       Type t=(Type)e.arg(0);
-      if (t.isPrimitive(Sort.Float)){
-        if (t0.isPrimitive(Sort.Integer)){
+      if (t.isPrimitive(PrimitiveSort.Float)){
+        if (t0.isPrimitive(PrimitiveSort.Integer)){
           result=create.domain_call("VCTFloat","ffromint",object);
         } else {
           Fail("cannot convert %s to float yet.",t0);

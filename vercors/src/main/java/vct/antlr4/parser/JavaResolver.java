@@ -127,38 +127,38 @@ public class JavaResolver extends AbstractRewriter {
     if (c.isPrimitive()){
       switch(c.toString()){
       case "void":   
-        returns=create.primitive_type(PrimitiveType.Sort.Void);
+        returns=create.primitive_type(PrimitiveSort.Void);
         break;
       case "boolean":   
-        returns=create.primitive_type(PrimitiveType.Sort.Boolean);
+        returns=create.primitive_type(PrimitiveSort.Boolean);
         break;
       case "byte":   
-        returns=create.primitive_type(PrimitiveType.Sort.Byte);
+        returns=create.primitive_type(PrimitiveSort.Byte);
         break;
       case "char":   
-        returns=create.primitive_type(PrimitiveType.Sort.Char);
+        returns=create.primitive_type(PrimitiveSort.Char);
         break;
       case "double":   
-        returns=create.primitive_type(PrimitiveType.Sort.Double);
+        returns=create.primitive_type(PrimitiveSort.Double);
         break;
       case "float":   
-        returns=create.primitive_type(PrimitiveType.Sort.Float);
+        returns=create.primitive_type(PrimitiveSort.Float);
         break;
       case "int":   
-        returns=create.primitive_type(PrimitiveType.Sort.Integer);
+        returns=create.primitive_type(PrimitiveSort.Integer);
         break;
       case "long":   
-        returns=create.primitive_type(PrimitiveType.Sort.Long);
+        returns=create.primitive_type(PrimitiveSort.Long);
         break;
       case "short":   
-        returns=create.primitive_type(PrimitiveType.Sort.Short);
+        returns=create.primitive_type(PrimitiveSort.Short);
         break;
       }
     } else if (c.isArray()) {
       returns=convert_type(c.getComponentType());
-      returns=create.primitive_type(PrimitiveType.Sort.Array, returns);
+      returns=create.primitive_type(PrimitiveSort.Array, returns);
     } else if (c.getName().equals("java.lang.String")){
-      returns=create.primitive_type(PrimitiveType.Sort.String);
+      returns=create.primitive_type(PrimitiveSort.String);
     } else {
       String name[]=c.getName().split("\\.");
       if (ensures_loaded(name)){

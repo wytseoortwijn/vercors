@@ -2,7 +2,6 @@ package vct.col.ast
 
 import hre.lang.System.Abort
 import scala.collection.JavaConverters._
-import vct.col.ast.PrimitiveType.Sort
 
 /**
  * Subclass of ASTNode meant for holding all type expressions.
@@ -24,7 +23,7 @@ abstract class Type(val args:List[ASTNode]) extends ASTNode {
   def getArgCount = args.size
   def equalSize(t:Type) = false
   
-  def isPrimitive(fraction:Sort) = false
+  def isPrimitive(fraction:PrimitiveSort) = false
   def isBoolean = false
   def isInteger = false
   def isDouble = false

@@ -3,13 +3,13 @@ package vct.col.syntax;
 
 import vct.col.syntax.Syntax;
 import vct.col.ast.ASTReserved;
+import vct.col.ast.PrimitiveSort;
 import static vct.col.ast.StandardOperator.*;
 import static vct.col.ast.ASTReserved.FullPerm;
 import static vct.col.ast.ASTReserved.NoPerm;
 import static vct.col.ast.ASTReserved.ReadPerm;
 import static vct.col.ast.ASTReserved.EmptyProcess;
 import static vct.col.ast.ASTReserved.CurrentThread;
-import static vct.col.ast.PrimitiveType.Sort.*;
 
 /**
  * Defines the syntax of common types and operations of  
@@ -113,15 +113,15 @@ public class PVLSyntax {
       
       syntax.addPrimitiveType(Double,"double");
       */
-      syntax.addPrimitiveType(Integer,"int");
-      syntax.addPrimitiveType(ZFraction,"zfrac");
-      syntax.addPrimitiveType(Fraction,"frac");
+      syntax.addPrimitiveType(PrimitiveSort.Integer,"int");
+      syntax.addPrimitiveType(PrimitiveSort.ZFraction,"zfrac");
+      syntax.addPrimitiveType(PrimitiveSort.Fraction,"frac");
       //syntax.addPrimitiveType(Long,"long");
-      syntax.addPrimitiveType(Void,"void");
-      syntax.addPrimitiveType(Resource,"resource");
-      syntax.addPrimitiveType(Boolean,"boolean");
-      syntax.addPrimitiveType(Process,"process");
-      syntax.addPrimitiveType(String,"string");
+      syntax.addPrimitiveType(PrimitiveSort.Void,"void");
+      syntax.addPrimitiveType(PrimitiveSort.Resource,"resource");
+      syntax.addPrimitiveType(PrimitiveSort.Boolean,"boolean");
+      syntax.addPrimitiveType(PrimitiveSort.Process,"process");
+      syntax.addPrimitiveType(PrimitiveSort.String,"string");
       
       /*
       syntax.addPrimitiveType(Class,"classtype");

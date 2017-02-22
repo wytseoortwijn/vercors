@@ -66,7 +66,7 @@ public class ConstructorRewriter extends AbstractRewriter {
             create.constant(100)
         ));
       }
-      result=create.method_decl(create.primitive_type(PrimitiveType.Sort.Void), cb.getContract(), name, args, body);
+      result=create.method_decl(create.primitive_type(PrimitiveSort.Void), cb.getContract(), name, args, body);
     } else {
       super.visit(m);
     }

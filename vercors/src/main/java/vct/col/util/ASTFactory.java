@@ -10,7 +10,6 @@ import vct.col.ast.*;
 import vct.col.ast.ASTClass.ClassKind;
 import vct.col.ast.ASTSpecial.Kind;
 import vct.col.ast.BindingExpression.Binder;
-import vct.col.ast.PrimitiveType.Sort;
 import vct.col.ast.Switch.Case;
 import vct.col.rewrite.AbstractRewriter;
 import vct.util.ClassName;
@@ -101,7 +100,7 @@ public class ASTFactory<E> implements FrameControl {
     }
     Method cons=method_kind(
         Method.Kind.Constructor,
-        primitive_type(PrimitiveType.Sort.Void),
+        primitive_type(PrimitiveSort.Void),
         cb.getContract(),
         cl.getName(),
         new DeclarationStatement[0],
@@ -141,7 +140,7 @@ public class ASTFactory<E> implements FrameControl {
     }
     Method cons=method_kind(
         Method.Kind.Constructor,
-        primitive_type(PrimitiveType.Sort.Void),
+        primitive_type(PrimitiveSort.Void),
         cb.getContract(),
         cl.getName(),
         new DeclarationStatement[0],
@@ -500,7 +499,7 @@ public BlockStatement block(Origin origin, ASTNode ... args) {
     public BindingExpression exists(ASTNode guard, ASTNode claim, DeclarationStatement ... decl) {
       BindingExpression res=new BindingExpression(
           Binder.EXISTS,
-          primitive_type(PrimitiveType.Sort.Boolean),
+          primitive_type(PrimitiveSort.Boolean),
           decl,
           null,
           guard,
@@ -820,28 +819,28 @@ public BlockStatement block(Origin origin, ASTNode ... args) {
    * Create a predicate declaration.
    */
   public Method predicate(String name, ASTNode body,DeclarationStatement ... args) {
-    return method_kind(Method.Kind.Predicate,primitive_type(Sort.Resource),null,name,args,false,body);
+    return method_kind(Method.Kind.Predicate,primitive_type(PrimitiveSort.Resource),null,name,args,false,body);
   } 
   
   public Method predicate(String name, ASTNode body,List<DeclarationStatement> args) {
-    return method_kind(Method.Kind.Predicate,primitive_type(Sort.Resource),null,name,args,false,body);
+    return method_kind(Method.Kind.Predicate,primitive_type(PrimitiveSort.Resource),null,name,args,false,body);
   } 
   
-  public PrimitiveType primitive_type(E origin,PrimitiveType.Sort sort,ASTNode ... args){
+  public PrimitiveType primitive_type(E origin,PrimitiveSort sort,ASTNode ... args){
     return primitive_type(origin_source.create(origin),sort,args);
   }
   
   /**
    * Create a new primitive type.
    */
-  public PrimitiveType primitive_type(Origin origin,PrimitiveType.Sort sort,ASTNode ... args){
+  public PrimitiveType primitive_type(Origin origin,PrimitiveSort sort,ASTNode ... args){
     PrimitiveType res=new PrimitiveType(sort,args);
     res.setOrigin(origin);
     res.accept_if(post);
     return res;        
   }
 
- public PrimitiveType primitive_type(PrimitiveType.Sort sort,ASTNode ... args){
+ public PrimitiveType primitive_type(PrimitiveSort sort,ASTNode ... args){
   return primitive_type(origin_stack.get(),sort,args);
 }
 
@@ -928,7 +927,7 @@ public ASTSpecial special(Origin origin, vct.col.ast.ASTSpecial.Kind kind, ASTNo
     int i=decl.length-1;
     BindingExpression res=new BindingExpression(
         Binder.STAR,
-        primitive_type(PrimitiveType.Sort.Resource),
+        primitive_type(PrimitiveSort.Resource),
         new DeclarationStatement[]{decl[i]},
         null,
         guard,
@@ -940,7 +939,7 @@ public ASTSpecial special(Origin origin, vct.col.ast.ASTSpecial.Kind kind, ASTNo
       i--;
       res=new BindingExpression(
           Binder.STAR,
-          primitive_type(PrimitiveType.Sort.Resource),
+          primitive_type(PrimitiveSort.Resource),
           new DeclarationStatement[]{decl[i]},
           null,
           constant(true),
@@ -960,7 +959,7 @@ public ASTSpecial special(Origin origin, vct.col.ast.ASTSpecial.Kind kind, ASTNo
     int i=decl.length-1;
     BindingExpression res=new BindingExpression(
         Binder.FORALL,
-        primitive_type(PrimitiveType.Sort.Boolean),
+        primitive_type(PrimitiveSort.Boolean),
         new DeclarationStatement[]{decl[i]},
         new ASTNode[0][],
         guard,
@@ -972,7 +971,7 @@ public ASTSpecial special(Origin origin, vct.col.ast.ASTSpecial.Kind kind, ASTNo
       i--;
       res=new BindingExpression(
           Binder.FORALL,
-          primitive_type(PrimitiveType.Sort.Boolean),
+          primitive_type(PrimitiveSort.Boolean),
           new DeclarationStatement[]{decl[i]},
           new ASTNode[0][],
           constant(true),
@@ -991,7 +990,7 @@ public ASTSpecial special(Origin origin, vct.col.ast.ASTSpecial.Kind kind, ASTNo
     }
     BindingExpression res=new BindingExpression(
         Binder.FORALL,
-        primitive_type(PrimitiveType.Sort.Boolean),
+        primitive_type(PrimitiveSort.Boolean),
         decl,
         triggers,
         guard,

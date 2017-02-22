@@ -32,7 +32,7 @@ import vct.col.ast.ContractBuilder;
 import vct.col.ast.DeclarationStatement;
 import vct.col.ast.NameExpression;
 import vct.col.ast.PrimitiveType;
-import vct.col.ast.PrimitiveType.Sort;
+import vct.col.ast.PrimitiveSort;
 import vct.col.ast.StandardOperator;
 import vct.col.ast.Type;
 import vct.col.ast.VariableDeclaration;
@@ -409,7 +409,7 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
         if (tmp instanceof ParserRuleContext) {
           return convert(tmp);
         } else {
-          for(PrimitiveType.Sort sort:PrimitiveType.Sort.values()){
+          for(PrimitiveSort sort : PrimitiveSort.values()){
             String text=syntax.getPrimitiveType(sort);
             if (text!=null && match(ctx,text)){
               return create.primitive_type(sort);
@@ -937,7 +937,7 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
       String id=getIdentifier(ctx,0);
       ASTNode args[]=convert_list(ctx.getChild(1),"<",",",">");
       switch(id){
-        case "seq": return create.primitive_type(Sort.Sequence, args);
+        case "seq": return create.primitive_type(PrimitiveSort.Sequence, args);
         default: break;
       }
     }

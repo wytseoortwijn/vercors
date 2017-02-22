@@ -2,7 +2,7 @@ package vct.silver;
 
 import hre.ast.MessageOrigin;
 import vct.col.ast.ClassType;
-import vct.col.ast.PrimitiveType.Sort;
+import vct.col.ast.PrimitiveSort;
 import vct.col.ast.Type;
 import vct.col.ast.TypeVariable;
 import vct.col.util.ASTFactory;
@@ -19,12 +19,12 @@ public class VerCorsTypeFactory implements
 
   @Override
   public Type Bag(Type t) {
-    return create.primitive_type(Sort.Bag,t);
+    return create.primitive_type(PrimitiveSort.Bag,t);
   }
 
   @Override
   public Type Bool() {
-    Type res=create.primitive_type(Sort.Boolean);
+    Type res=create.primitive_type(PrimitiveSort.Boolean);
     return res;
   }
   
@@ -39,17 +39,17 @@ public class VerCorsTypeFactory implements
 
   @Override
   public Type Int() {
-    return create.primitive_type(Sort.Integer);
+    return create.primitive_type(PrimitiveSort.Integer);
   }
 
   @Override
   public Type List(Type t) {
-    return create.primitive_type(Sort.Sequence,t);
+    return create.primitive_type(PrimitiveSort.Sequence,t);
   }
 
   @Override
   public Type Perm() {
-    Type res=create.primitive_type(Sort.ZFraction);
+    Type res=create.primitive_type(PrimitiveSort.ZFraction);
     return res;
   }
   
@@ -64,7 +64,7 @@ public class VerCorsTypeFactory implements
   @Override
   public Type Set(Type t) {
     //enter(null);
-    Type res=create.primitive_type(Sort.Set,t);
+    Type res=create.primitive_type(PrimitiveSort.Set,t);
     //leave();
     return res;
   }

@@ -3,9 +3,9 @@ package vct.col.syntax;
 import hre.ast.TrackingOutput;
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTReserved;
+import vct.col.ast.PrimitiveSort;
 import vct.col.print.CPrinter;
 import static vct.col.ast.StandardOperator.*;
-import static vct.col.ast.PrimitiveType.Sort.*;
 
 public class CSyntax extends Syntax{
   private static Syntax c_syntax;
@@ -75,16 +75,16 @@ public class CSyntax extends Syntax{
 
     syntax.addFunction(SizeOf, "sizeof");
     
-    syntax.addPrimitiveType(Double,"double");
-    syntax.addPrimitiveType(Integer,"int");
+    syntax.addPrimitiveType(PrimitiveSort.Double,"double");
+    syntax.addPrimitiveType(PrimitiveSort.Integer,"int");
     //syntax.addPrimitiveType(Fraction,"frac");
-    syntax.addPrimitiveType(Long,"long");
-    syntax.addPrimitiveType(Void,"void");
+    syntax.addPrimitiveType(PrimitiveSort.Long,"long");
+    syntax.addPrimitiveType(PrimitiveSort.Void,"void");
     //syntax.addPrimitiveType(Resource,"resource");
-    syntax.addPrimitiveType(Boolean,"bool");
+    syntax.addPrimitiveType(PrimitiveSort.Boolean,"bool");
     //syntax.addPrimitiveType(Class,"classtype");
-    syntax.addPrimitiveType(Char,"char");
-    syntax.addPrimitiveType(Float,"float");
+    syntax.addPrimitiveType(PrimitiveSort.Char,"char");
+    syntax.addPrimitiveType(PrimitiveSort.Float,"float");
     
     syntax.addReserved(ASTReserved.Null, "NULL");
     

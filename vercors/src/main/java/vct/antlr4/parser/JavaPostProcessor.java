@@ -1,6 +1,5 @@
 package vct.antlr4.parser;
 
-
 import java.util.HashMap;
 
 import vct.col.ast.ASTClass;
@@ -15,8 +14,8 @@ import vct.col.ast.Method;
 import vct.col.ast.MethodInvokation;
 import vct.col.ast.NameExpression;
 import vct.col.ast.OperatorExpression;
+import vct.col.ast.PrimitiveSort;
 import vct.col.ast.PrimitiveType;
-import vct.col.ast.PrimitiveType.Sort;
 import vct.col.ast.ProgramUnit;
 import vct.col.ast.StandardOperator;
 import vct.col.ast.Type;
@@ -56,22 +55,22 @@ public class JavaPostProcessor extends AbstractRewriter {
     if (name.length==1){
       switch(name[0]){
       case "String":
-        result=create.primitive_type(PrimitiveType.Sort.String);
+        result=create.primitive_type(PrimitiveSort.String);
         return;
       case "seq":
-        result=create.primitive_type(PrimitiveType.Sort.Sequence,rewrite(t.argsToArray()));
+        result=create.primitive_type(PrimitiveSort.Sequence,rewrite(t.argsToArray()));
         return;
       case "set":
-        result=create.primitive_type(PrimitiveType.Sort.Set,rewrite(t.argsToArray()));
+        result=create.primitive_type(PrimitiveSort.Set,rewrite(t.argsToArray()));
         return;
       case "loc":
-        result=create.primitive_type(PrimitiveType.Sort.Location,rewrite(t.argsToArray()));
+        result=create.primitive_type(PrimitiveSort.Location,rewrite(t.argsToArray()));
         return;
       case "bag":
-        result=create.primitive_type(PrimitiveType.Sort.Bag,rewrite(t.argsToArray()));
+        result=create.primitive_type(PrimitiveSort.Bag,rewrite(t.argsToArray()));
         return;
       case "process":
-        result=create.primitive_type(PrimitiveType.Sort.Process);
+        result=create.primitive_type(PrimitiveSort.Process);
         return;
       default:
         super.visit(t);
@@ -95,7 +94,7 @@ public class JavaPostProcessor extends AbstractRewriter {
 
   @Override
   public void visit(Method m){
-    if (m.getReturnType().isPrimitive(PrimitiveType.Sort.Resource)){
+    if (m.getReturnType().isPrimitive(PrimitiveSort.Resource)){
       result=create.predicate(m.getName(), rewrite(m.getBody()), rewrite(m.getArgs()));
     } else {
       super.visit(m);
@@ -143,7 +142,7 @@ public class JavaPostProcessor extends AbstractRewriter {
       wildcard_count++;
       String name="wildcard_"+wildcard_count;
       if (currentContractBuilder==null) Abort("no contract builder set");
-      currentContractBuilder.given(create.field_decl(name, create.primitive_type(Sort.Class),create.class_type("Object")));
+      currentContractBuilder.given(create.field_decl(name, create.primitive_type(PrimitiveSort.Class),create.class_type("Object")));
       result=create.unresolved_name(name);
       return;
     } else {
@@ -172,7 +171,7 @@ public class JavaPostProcessor extends AbstractRewriter {
           wildcard_count++;
           String name="wildcard_"+wildcard_count;
           if (currentContractBuilder==null) Abort("no contract builder set");
-          currentContractBuilder.given(create.field_decl(name, create.primitive_type(Sort.Class),deftype));
+          currentContractBuilder.given(create.field_decl(name, create.primitive_type(PrimitiveSort.Class),deftype));
           currentContractBuilder.requires(create.expression(e.operator(),create.unresolved_name(name),rewrite(e.arg(1))));
           result=create.unresolved_name(name);
           return;

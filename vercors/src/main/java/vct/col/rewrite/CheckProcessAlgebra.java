@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Hashtable;
 
-import vct.col.ast.PrimitiveType.Sort;
 import vct.col.ast.*;
 import vct.col.util.ASTUtils;
 import vct.util.Configuration;
@@ -30,7 +29,7 @@ public class CheckProcessAlgebra extends AbstractRewriter {
     process_map=new Hashtable<String,Method>();
     HashSet<NameExpression> hist_set=new HashSet<NameExpression>();
     for(Method m:cl.dynamicMethods()){
-      if (!m.getReturnType().isPrimitive(Sort.Process)) continue;
+      if (!m.getReturnType().isPrimitive(PrimitiveSort.Process)) continue;
       ASTNode body=m.getBody();
       process_map.put(m.name(), m);
       for(ASTNode n:m.getContract().modifies){
@@ -102,7 +101,7 @@ public class CheckProcessAlgebra extends AbstractRewriter {
   @Override
   public void visit(MethodInvokation e){
     Method m=e.getDefinition();
-    if (m.getReturnType().isPrimitive(Sort.Process)){
+    if (m.getReturnType().isPrimitive(PrimitiveSort.Process)){
       result=create.invokation(null,null, "p_"+e.method,rewrite(e.getArgs()));
     } else {
       super.visit(e);
@@ -111,7 +110,7 @@ public class CheckProcessAlgebra extends AbstractRewriter {
   
   @Override
   public void visit(Method m){
-    if (m.getReturnType().isPrimitive(Sort.Process)){
+    if (m.getReturnType().isPrimitive(PrimitiveSort.Process)){
       Contract c=m.getContract();
       ContractBuilder cb = new ContractBuilder();
       for (ASTNode v:c.modifies){
@@ -138,7 +137,7 @@ public class CheckProcessAlgebra extends AbstractRewriter {
           arg_names[i]=create.local_name(m.getArgument(i));
         }
       }
-      result=create.method_decl(create.primitive_type(Sort.Void), cb.getContract(), m.name(), args, body);
+      result=create.method_decl(create.primitive_type(PrimitiveSort.Void), cb.getContract(), m.name(), args, body);
     } else {
       //super.visit(m);
       result=null;
@@ -159,7 +158,7 @@ public class CheckProcessAlgebra extends AbstractRewriter {
 
   @Override
   public void visit(PrimitiveType t){
-    if (t.sort==Sort.Process){
+    if (t.sort==PrimitiveSort.Process){
       Fail("illegal use of process type");
     } else {
       super.visit(t);
@@ -322,13 +321,13 @@ public class CheckProcessAlgebra extends AbstractRewriter {
   public void visit(OperatorExpression e){
     switch(e.operator()){
     case Or:
-      if(e.getType().isPrimitive(Sort.Process)){
+      if(e.getType().isPrimitive(PrimitiveSort.Process)){
         result=create.invokation(null, null, "p_merge", rewrite(e.argsArray()));
         return;
       }
       break;
     case Mult:
-      if(e.getType().isPrimitive(Sort.Process)){
+      if(e.getType().isPrimitive(PrimitiveSort.Process)){
         result=create.invokation(null, null, "p_seq", rewrite(e.argsArray()));
         return;
       }

@@ -28,7 +28,7 @@ public class VerCorsDesugar extends AbstractRewriter {
         res=create.starall(
               create.expression(StandardOperator.Member,create.local_name(name),range.get(i)),
               res,
-              create.field_decl(name, create.primitive_type(PrimitiveType.Sort.Integer)));
+              create.field_decl(name, create.primitive_type(PrimitiveSort.Integer)));
       }
       result=res;
       break;

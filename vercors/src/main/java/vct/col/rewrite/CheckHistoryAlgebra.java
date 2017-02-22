@@ -6,10 +6,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import vct.col.ast.*;
 import vct.col.ast.ASTSpecial.Kind;
 import vct.col.ast.BindingExpression.Binder;
-import vct.col.ast.PrimitiveType.Sort;
-import vct.col.ast.*;
 import vct.logging.ErrorMapping;
 import vct.logging.VerCorsError.ErrorCode;
 import vct.util.Configuration;
@@ -44,7 +43,7 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
   public void visit(ASTClass cl){
     boolean is_algebra=false;
     for(Method m:cl.dynamicMethods()){
-      is_algebra|=m.getReturnType().isPrimitive(Sort.Process);
+      is_algebra|=m.getReturnType().isPrimitive(PrimitiveSort.Process);
     }
     if (is_algebra){
       boolean is_history = cl.name().equals("History");
@@ -52,7 +51,7 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
       adt_type=create.class_type("Process");
       DeclarationStatement proc_p1=create.field_decl("p1", adt_type);
       DeclarationStatement proc_p2=create.field_decl("p2", adt_type);
-      adt.add_cons(create.function_decl(create.primitive_type(Sort.Boolean),null,"p_is_choice",
+      adt.add_cons(create.function_decl(create.primitive_type(PrimitiveSort.Boolean),null,"p_is_choice",
           new DeclarationStatement[]{proc_p1,proc_p2},null));
       adt.add_cons(create.function_decl(adt_type,null,"p_empty",
           new DeclarationStatement[]{},null));
@@ -98,7 +97,7 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
       adt.add_axiom(create.axiom("choice_L",
           create.binder(
               Binder.FORALL,
-              create.primitive_type(Sort.Boolean),
+              create.primitive_type(PrimitiveSort.Boolean),
               new DeclarationStatement[]{
                  create.field_decl("p1", adt_type)
                 ,create.field_decl("p2", adt_type)},
@@ -115,7 +114,7 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
       adt.add_axiom(create.axiom("choice_R",
           create.binder(
               Binder.FORALL,
-              create.primitive_type(Sort.Boolean),
+              create.primitive_type(PrimitiveSort.Boolean),
               new DeclarationStatement[]{
                  create.field_decl("p1", adt_type)
                 ,create.field_decl("p2", adt_type)},
@@ -132,7 +131,7 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
       adt.add_axiom(create.axiom("choice_dist",
           create.binder(
               Binder.FORALL,
-              create.primitive_type(Sort.Boolean),
+              create.primitive_type(PrimitiveSort.Boolean),
               new DeclarationStatement[]{
                  create.field_decl("p1", adt_type)
                 ,create.field_decl("p2", adt_type)
@@ -154,7 +153,7 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
       adt.add_axiom(create.axiom("seq_assoc",
           create.binder(
               Binder.FORALL,
-              create.primitive_type(Sort.Boolean),
+              create.primitive_type(PrimitiveSort.Boolean),
               new DeclarationStatement[]{
                  create.field_decl("p1", adt_type)
                 ,create.field_decl("p2", adt_type)
@@ -184,9 +183,9 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
         for(Method m:cl.dynamicMethods()){
           if (m.getKind()==Method.Kind.Constructor){
             continue;
-          } else if (m.getReturnType().isPrimitive(Sort.Process)){
+          } else if (m.getReturnType().isPrimitive(PrimitiveSort.Process)){
             add_process_to_adt(m);
-          } else if (m.getReturnType().isPrimitive(Sort.Resource)) {
+          } else if (m.getReturnType().isPrimitive(PrimitiveSort.Resource)) {
             // drop predicate.
           } else {
             res.add_dynamic(rewrite(m));
@@ -200,12 +199,12 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
         for(Method m:cl.dynamicMethods()){
           if (m.getKind()==Method.Kind.Constructor){
             hist_class.add_dynamic(rewrite(m));
-          } else if (m.getReturnType().isPrimitive(Sort.Process)){
+          } else if (m.getReturnType().isPrimitive(PrimitiveSort.Process)){
             add_process_to_adt(m);
             if (m.getBody()==null) {
               add_begin_and_commit_to_class(m,is_history);
             }
-          } else if (m.getReturnType().isPrimitive(Sort.Resource)) {
+          } else if (m.getReturnType().isPrimitive(PrimitiveSort.Resource)) {
             hist_class.add(rewrite(m));
           } else {
             add_lemma_to_adt(m);
@@ -226,7 +225,7 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
         add_split_merge_methods(cl);
 
         DeclarationStatement args[]=new DeclarationStatement[2];
-        args[0]=create.field_decl("frac",create.primitive_type(Sort.Fraction));
+        args[0]=create.field_decl("frac",create.primitive_type(PrimitiveSort.Fraction));
         args[1]=create.field_decl("proc",adt_type);
         hist_class.add(create.predicate("hist_idle", null, args));
         result=hist_class;
@@ -248,7 +247,7 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
     hist_set_cb.ensures(create.expression(PointsTo,var,full,val));
     hist_set_cb.ensures(create.expression(Perm,wr,full));
     cl.add_dynamic(create.method_decl(
-        create.primitive_type(Sort.Void),
+        create.primitive_type(PrimitiveSort.Void),
         hist_set_cb.getContract(),
         "hist_set_"+name,
         new DeclarationStatement[]{create.field_decl("value", type)},
@@ -295,7 +294,7 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
     );
     if (hist){ cb.ensures(tmp); } else { cb.requires(tmp); }
     begin_hist=create.method_decl(
-        create.primitive_type(Sort.Void),
+        create.primitive_type(PrimitiveSort.Void),
         cb.getContract(),
         hist?"begin_hist":"end_future",
         new DeclarationStatement[0],
@@ -308,9 +307,9 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
 
   protected void add_split_merge_methods(ASTClass cl) {
     DeclarationStatement args[]=new DeclarationStatement[4];
-    args[0]=create.field_decl("frac1",create.primitive_type(Sort.Fraction));
+    args[0]=create.field_decl("frac1",create.primitive_type(PrimitiveSort.Fraction));
     args[1]=create.field_decl("proc1",adt_type);
-    args[2]=create.field_decl("frac2",create.primitive_type(Sort.Fraction));
+    args[2]=create.field_decl("frac2",create.primitive_type(PrimitiveSort.Fraction));
     args[3]=create.field_decl("proc2",adt_type);
     
     ASTNode split1=create.invokation(null, null, "hist_idle",
@@ -335,14 +334,14 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
     merge_cb.ensures(merge);
     
     hist_class.add(create.method_decl(
-        create.primitive_type(Sort.Void),
+        create.primitive_type(PrimitiveSort.Void),
         split_cb.getContract(),
         "split",
         args,
         null
     ));
     hist_class.add(create.method_decl(
-        create.primitive_type(Sort.Void),
+        create.primitive_type(PrimitiveSort.Void),
         merge_cb.getContract(),
         "merge",
         args,
@@ -352,7 +351,7 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
   }
     
   private void add_begin_and_commit_to_class(Method m,boolean is_history) {
-    Type returns=create.primitive_type(Sort.Void);
+    Type returns=create.primitive_type(PrimitiveSort.Void);
     Contract c=m.getContract();
     int N=m.getArity();
     int K=c.accesses==null?0:c.accesses.length;
@@ -360,7 +359,7 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
     DeclarationStatement args_long[]=new DeclarationStatement[2+K+N];
     ASTNode do_args[]=new ASTNode[2+K];
     ASTNode args[]=new ASTNode[N];
-    args_short[0]=args_long[0]=create.field_decl("frac",create.primitive_type(Sort.Fraction));
+    args_short[0]=args_long[0]=create.field_decl("frac",create.primitive_type(PrimitiveSort.Fraction));
     args_short[1]=args_long[1]=create.field_decl("proc",adt_type);
     String access_name[]=new String[K];
     do_args[0]=create.local_name("frac");
@@ -368,7 +367,7 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
     for(int i=0;i<K;i++){
       access_name[i]=((FieldAccess)c.accesses[i]).name() + "_frac";
       do_args[2+i]=create.local_name(access_name[i]);
-      args_short[2+i]=args_long[2+i]=create.field_decl(access_name[i],create.primitive_type(Sort.ZFraction));
+      args_short[2+i]=args_long[2+i]=create.field_decl(access_name[i],create.primitive_type(PrimitiveSort.ZFraction));
     }
     for(int i=0;i<N;i++){
       args_long[i+2+K]=create.field_decl(m.getArgument(i),m.getArgType(i));
@@ -466,7 +465,7 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
     }
     eq=create.binder(
           Binder.FORALL,
-          create.primitive_type(Sort.Boolean),
+          create.primitive_type(PrimitiveSort.Boolean),
           rewrite(create.field_decl("p",adt_type),m.getArgs()),
           new ASTNode[][]{new ASTNode[]{lhs}},
           create.constant(true),
@@ -497,7 +496,7 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
         }
         eq=create.binder(
           Binder.FORALL,
-          create.primitive_type(Sort.Boolean),
+          create.primitive_type(PrimitiveSort.Boolean),
           copy_rw.rewrite(m.getArgs()),
           new ASTNode[][]{new ASTNode[]{trigger}},
           create.constant(true),
@@ -513,7 +512,7 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
           create.domain_call("Process","p_seq",tmp,create.domain_call("Process","p_empty")));
       ASTNode eq=create.binder(
           Binder.FORALL,
-          create.primitive_type(Sort.Boolean),
+          create.primitive_type(PrimitiveSort.Boolean),
           copy_rw.rewrite(create.field_decl("p",adt_type),m.getArgs()),
           new ASTNode[][]{new ASTNode[]{lhs}},
           create.constant(true),
@@ -527,7 +526,7 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
   @Override
   public void visit(MethodInvokation e){
     Method m=e.getDefinition();
-    if (m.getReturnType().isPrimitive(Sort.Process)){
+    if (m.getReturnType().isPrimitive(PrimitiveSort.Process)){
       result=create.domain_call("Process", "p_"+e.method,rewrite(e.getArgs()));
     } else {
       ASTNode in_args[]=e.getArgs();
@@ -572,7 +571,7 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
   
   @Override
   public void visit(PrimitiveType t){
-    if (t.sort==Sort.Process){
+    if (t.sort==PrimitiveSort.Process){
       result=adt_type;
     } else {
       super.visit(t);
@@ -610,19 +609,19 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
       return;
     }
     case Or:
-      if(e.getType().isPrimitive(Sort.Process)){
+      if(e.getType().isPrimitive(PrimitiveSort.Process)){
         result=create.domain_call("Process","p_merge",rewrite(e.argsArray()));
         return;
       }
       break;
     case Plus:
-      if(e.getType().isPrimitive(Sort.Process)){
+      if(e.getType().isPrimitive(PrimitiveSort.Process)){
         result=create.domain_call("Process","p_choice",rewrite(e.argsArray()));
         return;
       }
       break;
     case Mult:
-      if(e.getType().isPrimitive(Sort.Process)){
+      if(e.getType().isPrimitive(PrimitiveSort.Process)){
         result=create.domain_call("Process","p_seq",rewrite(e.argsArray()));
         return;
       }
@@ -747,7 +746,7 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
       String name="f_"+((FieldAccess)n).name();
       names.add(create.local_name(name));
       args.add(create.local_name(name));
-      res.add(create.field_decl(name, create.primitive_type(Sort.Fraction)));
+      res.add(create.field_decl(name, create.primitive_type(PrimitiveSort.Fraction)));
       res.add(create.special(Kind.Fresh,create.local_name(name)));
     }
     BlockStatement body=create.block();
@@ -925,7 +924,7 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
 
     
     end_hist=create.method_decl(
-        create.primitive_type(Sort.Void),
+        create.primitive_type(PrimitiveSort.Void),
         cb.getContract(),
         name,
         rewrite(def.getArgs()),

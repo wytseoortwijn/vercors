@@ -6,7 +6,7 @@ import vct.col.ast.AssignmentStatement;
 import vct.col.ast.Contract;
 import vct.col.ast.DeclarationStatement;
 import vct.col.ast.Method;
-import vct.col.ast.PrimitiveType.Sort;
+import vct.col.ast.PrimitiveSort;
 import vct.col.ast.RecursiveVisitor;
 
 public class DefinitionScanner extends RecursiveVisitor<Object> {
@@ -53,7 +53,7 @@ public class DefinitionScanner extends RecursiveVisitor<Object> {
   }
 
   public void visit(DeclarationStatement s){
-    if (s.getType().isPrimitive(Sort.Class)){
+    if (s.getType().isPrimitive(PrimitiveSort.Class)){
       current.addNested(s.name());
     } else {
       current.addField(s.name(), static_context);
@@ -68,5 +68,4 @@ public class DefinitionScanner extends RecursiveVisitor<Object> {
     current.addMethod(m.getName());
     // TODO: scan body for nested classes.
   }
-  
 }

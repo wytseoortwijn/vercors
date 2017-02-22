@@ -16,7 +16,7 @@ import vct.col.ast.Contract;
 import vct.col.ast.Dereference;
 import vct.col.ast.Method.Kind;
 import vct.col.ast.PrimitiveType;
-import vct.col.ast.PrimitiveType.Sort;
+import vct.col.ast.PrimitiveSort;
 import vct.col.ast.StandardOperator;
 import vct.col.ast.Type;
 import vct.col.ast.ASTNode;
@@ -39,7 +39,7 @@ public class JavaEncoder extends AbstractRewriter {
   }
   
   private String create_type_name(Type t){
-    if (t.isPrimitive(Sort.Array)) {
+    if (t.isPrimitive(PrimitiveSort.Array)) {
       return create_type_name((Type)t.getArg(0))+ARRAY_SUFFIX;
     } else if (t instanceof PrimitiveType){
       PrimitiveType pt=(PrimitiveType)t;
@@ -188,7 +188,7 @@ public class JavaEncoder extends AbstractRewriter {
   @Override
   public void visit(Dereference d){
     if (d.field().equals("length")){
-      if (d.obj().getType().isPrimitive(Sort.Array)){
+      if (d.obj().getType().isPrimitive(PrimitiveSort.Array)){
         result=create.expression(StandardOperator.Length,rewrite(d.obj()));
       } else {
         result=create.expression(StandardOperator.Size,rewrite(d.obj()));
@@ -200,7 +200,7 @@ public class JavaEncoder extends AbstractRewriter {
       t=(ClassType)d.obj();
     } else {
       Type tmp=d.obj().getType();
-      if (tmp.isPrimitive(Sort.Location)){
+      if (tmp.isPrimitive(PrimitiveSort.Location)){
         tmp=(Type)tmp.getArg(0);
       }
       t=(ClassType)tmp;

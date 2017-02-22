@@ -11,7 +11,6 @@ import java.util.Map.Entry;
 import org.apache.commons.lang3.StringEscapeUtils;
 
 import vct.col.ast.*;
-import vct.col.ast.PrimitiveType.Sort;
 import vct.col.ast.Switch.Case;
 import vct.col.syntax.JavaDialect;
 import vct.col.syntax.JavaSyntax;
@@ -570,7 +569,7 @@ public class JavaPrinter extends AbstractPrinter {
       String sep="<";
       for(DeclarationStatement d:cl.parameters){
         out.print(sep);
-        if(d.getType().isPrimitive(Sort.Class)){
+        if(d.getType().isPrimitive(PrimitiveSort.Class)){
           out.print(d.name());
         } else {
           d.accept(this);

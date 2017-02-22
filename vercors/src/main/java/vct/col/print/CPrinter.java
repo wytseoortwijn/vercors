@@ -3,7 +3,6 @@ package vct.col.print;
 import java.io.PrintStream;
 
 import vct.col.ast.*;
-import vct.col.ast.PrimitiveType.Sort;
 import vct.col.syntax.CSyntax;
 import hre.ast.TrackingOutput;
 import hre.ast.TrackingTree;
@@ -55,7 +54,7 @@ public class CPrinter extends AbstractPrinter {
 	
 	public void visit(DeclarationStatement decl){
 	  Type t=decl.getType();
-	  if (t.isPrimitive(Sort.CVarArgs)){
+	  if (t.isPrimitive(PrimitiveSort.CVarArgs)){
 	    out.printf("...");
 	  } else {
   	  t.accept(this);

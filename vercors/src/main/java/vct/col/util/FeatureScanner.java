@@ -15,7 +15,7 @@ import vct.col.ast.Method;
 import vct.col.ast.OperatorExpression;
 import vct.col.ast.ParallelBlock;
 import vct.col.ast.ParallelInvariant;
-import vct.col.ast.PrimitiveType.Sort;
+import vct.col.ast.PrimitiveSort;
 import vct.col.ast.RecursiveVisitor;
 import vct.col.ast.StandardOperator;
 import vct.col.ast.Type;
@@ -103,8 +103,8 @@ public class FeatureScanner extends RecursiveVisitor<Object> {
     Type t=node.getType();
     if (t!=null){
       if (t.isDouble()) has_doubles=true;
-      if (t.isPrimitive(Sort.Long)) has_longs=true;
-      if (t.isPrimitive(Sort.Process)) has_processes=true;
+      if (t.isPrimitive(PrimitiveSort.Long)) has_longs=true;
+      if (t.isPrimitive(PrimitiveSort.Process)) has_processes=true;
     }
     nodes.add(node.getClass());
   }

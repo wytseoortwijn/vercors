@@ -4,8 +4,6 @@ package vct.col.ast;
 import hre.ast.MessageOrigin;
 
 import java.util.*;
-
-import vct.col.ast.PrimitiveType.Sort;
 import vct.col.rewrite.MultiSubstitution;
 import vct.util.ClassName;
 import static hre.lang.System.Abort;
@@ -155,7 +153,7 @@ public class Method extends ASTDeclaration {
       }
       Debug("building map...");
       for (int i = 0; i < c.given.length && i<object_type.getArgCount(); i++) {
-        if (c.given[i].getType().isPrimitive(Sort.Class)){
+        if (c.given[i].getType().isPrimitive(PrimitiveSort.Class)){
           Debug("%s = %s", c.given[i].name(), object_type.getArg(i));
           map.put(c.given[i].name(), (Type)object_type.getArg(i));
         } else {

@@ -25,7 +25,7 @@ public class AddTypeADT extends AbstractRewriter {
     ClassType adt_type=create.class_type(type_adt);
     adt.add_cons(create.function_decl(create.class_type(type_adt),null,"class_Object",new DeclarationStatement[0],null));
     adt.add_map(create.function_decl(
-        create.primitive_type(PrimitiveType.Sort.Boolean),
+        create.primitive_type(PrimitiveSort.Boolean),
         null,
         "instanceof",
         new DeclarationStatement[]{

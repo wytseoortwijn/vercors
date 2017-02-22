@@ -9,40 +9,9 @@ public final class PrimitiveType extends Type {
   public <R,A> R accept_simple(ASTMapping1<R,A> map,A arg){
     return map.map(this,arg);
   }
-  public static enum Sort {
-    Boolean,
-    Byte,
-    Short,
-    Integer,
-    Long,
-    UByte,
-    UShort,
-    UInteger,
-    ULong,
-    Float,
-    Double,
-    Char,
-    /** non-zero fraction */
-    Fraction,
-    /** possibly zero fraction */
-    ZFraction,
-    Void,
-    String,
-    Class,
-    Resource,
-    Cell,
-    Sequence,
-    Set,
-    Bag,
-    Array,
-    Location,
-    Process,
-    Pointer,
-    CVarArgs,
-    Option};
 
-  public final Sort sort;
-  public PrimitiveType(Sort sort,ASTNode ... args){
+  public final PrimitiveSort sort;
+  public PrimitiveType(PrimitiveSort sort,ASTNode ... args){
     super(args);
     int N=args.length;
     switch(sort){
@@ -75,7 +44,7 @@ public final class PrimitiveType extends Type {
         if (!getArg(i).equals(t.getArg(i))) return false;
       }
       return true;
-    } else if (o instanceof Sort) {
+    } else if (o instanceof PrimitiveSort) {
       if (getArgCount() > 0) return false;
       return o==sort;
     } else {
@@ -84,19 +53,19 @@ public final class PrimitiveType extends Type {
   }
   
   public boolean isBoolean() {
-    return sort==Sort.Boolean;
+    return sort==PrimitiveSort.Boolean;
   }
   public boolean isResource() {
-    return sort==Sort.Resource || sort==Sort.Boolean;
+    return sort==PrimitiveSort.Resource || sort==PrimitiveSort.Boolean;
   }
   public boolean isDouble() {
-    return sort==Sort.Double;
+    return sort==PrimitiveSort.Double;
   }
   public boolean isInteger() {
-    return sort==Sort.Integer;
+    return sort==PrimitiveSort.Integer;
   }
   public boolean isVoid() {
-    return sort==Sort.Void;
+    return sort==PrimitiveSort.Void;
   }
 
   
@@ -250,12 +219,12 @@ public final class PrimitiveType extends Type {
       case Double:
         break;
       case Pointer:
-        if (t.isPrimitive(Sort.String)){
+        if (t.isPrimitive(PrimitiveSort.String)){
           Type tt=((Type)getArg(0));
-          if (tt.isPrimitive(Sort.Char)) return true;
+          if (tt.isPrimitive(PrimitiveSort.Char)) return true;
           if (tt instanceof TypeExpression){
             TypeExpression te=(TypeExpression)tt;
-            if (te.operator() == TypeOperator.Const && te.firstType().isPrimitive(Sort.Char)) return true;
+            if (te.operator() == TypeOperator.Const && te.firstType().isPrimitive(PrimitiveSort.Char)) return true;
           }
           Fail("missing case in PrimitiveType.supertypeof (%s/%s)",this.sort,pt.sort);
         }
@@ -268,8 +237,8 @@ public final class PrimitiveType extends Type {
   }
   
   @Override
-  public boolean isPrimitive(Sort sort) {
-    if(sort==Sort.String && this.sort==Sort.Pointer && ((Type)getArg(0)).isPrimitive(Sort.Char)) return true;
+  public boolean isPrimitive(PrimitiveSort sort) {
+    if(sort==PrimitiveSort.String && this.sort==PrimitiveSort.Pointer && ((Type)getArg(0)).isPrimitive(PrimitiveSort.Char)) return true;
     return this.sort==sort;
   }
 
@@ -328,7 +297,7 @@ public final class PrimitiveType extends Type {
   }
   
   public boolean isNumeric() {
-    return isIntegerType() || isFloatType() || sort==Sort.Fraction || sort==Sort.ZFraction ;
+    return isIntegerType() || isFloatType() || sort==PrimitiveSort.Fraction || sort==PrimitiveSort.ZFraction ;
   }
   private boolean isFloatType() {
     switch(sort){
@@ -339,6 +308,4 @@ public final class PrimitiveType extends Type {
         return false;
     }
   }
-
-
 }

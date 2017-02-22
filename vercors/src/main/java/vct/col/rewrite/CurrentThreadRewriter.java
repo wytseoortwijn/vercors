@@ -6,7 +6,6 @@ import hre.ast.WrappingOrigin;
 import java.util.ArrayList;
 
 import vct.col.ast.*;
-import vct.col.ast.PrimitiveType.Sort;
 import vct.col.util.OriginWrapper;
 
 class IllegalThreadLocalOrigin extends WrappingOrigin {
@@ -67,7 +66,7 @@ public class CurrentThreadRewriter extends AbstractRewriter {
         Type returns=rewrite(m.getReturnType());
         ContractBuilder cb=new ContractBuilder();
         ArrayList<DeclarationStatement> args=new ArrayList<DeclarationStatement>();
-        args.add(create.field_decl(ctname, create.primitive_type(PrimitiveType.Sort.Integer)));
+        args.add(create.field_decl(ctname, create.primitive_type(PrimitiveSort.Integer)));
         for(DeclarationStatement d:m.getArgs()){
           args.add(rewrite(d));
         }
@@ -87,7 +86,7 @@ public class CurrentThreadRewriter extends AbstractRewriter {
    * @param m
    */
   private boolean affected(Method m){
-    if (m.getReturnType().isPrimitive(Sort.Process)) return false;
+    if (m.getReturnType().isPrimitive(PrimitiveSort.Process)) return false;
     switch(m.kind){
       case Constructor:
       case Plain:

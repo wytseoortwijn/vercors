@@ -11,7 +11,7 @@ import vct.col.ast.ASTNode;
 import vct.col.ast.ASTReserved;
 import vct.col.ast.DeclarationStatement;
 import vct.col.ast.MethodInvokation;
-import vct.col.ast.PrimitiveType.Sort;
+import vct.col.ast.PrimitiveSort;
 import vct.col.ast.StandardOperator;
 import vct.col.ast.Type;
 import vct.col.util.ASTFactory;
@@ -126,7 +126,7 @@ public class VerCorsExpressionFactory implements
   public ASTNode current_perm(Origin o, ASTNode expr){
     enter(o);
     ASTNode res=create.expression(StandardOperator.CurrentPerm,expr);
-    res.setType(create.primitive_type(Sort.Resource));
+    res.setType(create.primitive_type(PrimitiveSort.Resource));
     leave();
     return res;
   }
@@ -200,7 +200,7 @@ public class VerCorsExpressionFactory implements
   @Override
   public ASTNode explicit_bag(Origin o, Type t,  java.util.List<ASTNode> elems) {
     enter(o);
-    t=create.primitive_type(Sort.Bag,t);
+    t=create.primitive_type(PrimitiveSort.Bag,t);
     ASTNode res=create.struct_value(t , null , elems );
     res.setType(t);
     leave();
@@ -210,7 +210,7 @@ public class VerCorsExpressionFactory implements
   @Override
   public ASTNode explicit_seq(Origin o, Type t, java.util.List<ASTNode>  elems) {
     enter(o);
-    t=create.primitive_type(Sort.Sequence,t);
+    t=create.primitive_type(PrimitiveSort.Sequence,t);
     ASTNode res=create.struct_value(t , null , elems );
     res.setType(t);
     leave();
@@ -220,7 +220,7 @@ public class VerCorsExpressionFactory implements
   @Override
   public ASTNode explicit_set(Origin o, Type t, java.util.List<ASTNode> elems) {
     enter(o);
-    t=create.primitive_type(Sort.Set, t);
+    t=create.primitive_type(PrimitiveSort.Set, t);
     ASTNode res=create.struct_value(t , null , elems );
     res.setType(t);
     leave();
@@ -231,7 +231,7 @@ public class VerCorsExpressionFactory implements
   public ASTNode field_access(Origin o, ASTNode e1, ASTNode e2) {
     enter(o);
     ASTNode res=create.expression(StandardOperator.Perm,e1,e2);
-    res.setType(create.primitive_type(Sort.Resource));
+    res.setType(create.primitive_type(PrimitiveSort.Resource));
     leave();
     return res;
   }
@@ -302,7 +302,7 @@ public class VerCorsExpressionFactory implements
     enter(o);
     ASTNode res=create.expression(StandardOperator.Implies, e1,e2);
     if (e1.getType()!=null || e2.getType()!=null){
-      res.setType(create.primitive_type(Sort.Resource));
+      res.setType(create.primitive_type(PrimitiveSort.Resource));
     }
     leave();
     return res;
@@ -452,7 +452,7 @@ public class VerCorsExpressionFactory implements
   public ASTNode scale_access(Origin o, ASTNode e1, ASTNode e2) {
     enter(o);
     ASTNode res=create.expression(StandardOperator.Scale, e2,e1);
-    res.setType(create.primitive_type(Sort.Resource));
+    res.setType(create.primitive_type(PrimitiveSort.Resource));
     leave();
     return res;
  }
