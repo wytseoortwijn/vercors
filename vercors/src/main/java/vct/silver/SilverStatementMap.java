@@ -376,7 +376,6 @@ public class SilverStatementMap<T,E,S> implements ASTMapping<S>{
     return null;
   }
   
-  
   private <F extends ASTNode> ArrayList<E> do_names(F args[]){
     ArrayList<E> names=new ArrayList<E>();
     for(ASTNode n:args){
@@ -387,7 +386,7 @@ public class SilverStatementMap<T,E,S> implements ASTMapping<S>{
 
   @Override
   public S map(Constraining c) {
-    return create.constraining(c.getOrigin(), do_names(c.vars()), c.block().apply(this));
+    return create.constraining(c.getOrigin(), do_names(c.varsArray()), c.block().apply(this));
   }
 
   @Override

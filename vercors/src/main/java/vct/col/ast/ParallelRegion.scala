@@ -6,6 +6,7 @@ case class ParallelRegion (val contract:Contract, val blocks:List[ParallelBlock]
   def this(contract:Contract, blocks:Array[ParallelBlock]) = this(contract, blocks.toList)
   
   /** Gives a copy of the blocks list (as an `Array`) for Java interoperability */
+  @deprecated("this method will be removed", "soon")
   def blocksArray = blocks.toArray
   
   override def accept_simple[T,A](m:ASTMapping1[T,A], arg:A) = m.map(this, arg)

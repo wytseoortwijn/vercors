@@ -1405,12 +1405,15 @@ public class JavaPrinter extends AbstractPrinter {
   public void visit(Constraining c){
     out.print("constraining(");
     String sep = "";
-    for (NameExpression n : c.vars()) {
+    
+    for (int i = 0; i < c.varsLength(); i++) {
+      NameExpression n = c.getVar(i);
       out.print(sep);
       nextExpr();
       n.accept(this);
       sep=",";
     }
+    
     out.print(")");
     c.block().accept(this);
   }

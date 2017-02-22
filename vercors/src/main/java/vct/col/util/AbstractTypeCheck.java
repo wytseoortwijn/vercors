@@ -1671,7 +1671,9 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
   
   @Override
   public void visit(Constraining c){
-    for (NameExpression var : c.vars()){
+	  
+	for (int i = 0; i < c.varsLength(); i++) {
+	  NameExpression var = c.getVar(i);
       var.apply(this);
       Type t=var.getType();
       if (t==null){

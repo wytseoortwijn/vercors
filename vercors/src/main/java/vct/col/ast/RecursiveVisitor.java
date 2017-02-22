@@ -370,7 +370,7 @@ public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
 
   @Override
   public void visit(Constraining c) {
-    dispatch(c.vars());
+    dispatch(c.varsArray());
     dispatch(c.block());
   }
 
