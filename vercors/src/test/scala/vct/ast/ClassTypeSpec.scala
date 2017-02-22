@@ -63,14 +63,14 @@ class ClassTypeSpec extends FlatSpec with Matchers {
   it should "always be a supertype of java.lang.Object" in {
     var classtype = new ClassType(Array("java", "lang", "Object"))
     var someunit = new ProgramUnit
-    var sometype = new PrimitiveType(PrimitiveType.Sort.Boolean)
+    var sometype = new PrimitiveType(PrimitiveSort.Boolean)
     classtype.supertypeof(someunit, sometype) should be (true)
   }
   
   it should "always be a supertype of java_DOT_lang_DOT_Object" in {
     var classtype = new ClassType("java_DOT_lang_DOT_Object")
     var someunit = new ProgramUnit
-    var sometype = new PrimitiveType(PrimitiveType.Sort.Boolean)
+    var sometype = new PrimitiveType(PrimitiveSort.Boolean)
     classtype.supertypeof(someunit, sometype) should be (true)
   }
   
@@ -89,7 +89,7 @@ class ClassTypeSpec extends FlatSpec with Matchers {
   it should "not be the supertype of any type that is not a class type" in {
     var classtype = new ClassType("TestClass")
     var somecontext = new ProgramUnit
-    var sometype = new PrimitiveType(PrimitiveType.Sort.Boolean)
+    var sometype = new PrimitiveType(PrimitiveSort.Boolean)
     classtype.supertypeof(somecontext, sometype) should be (false)
   }
   
@@ -107,14 +107,14 @@ class ClassTypeSpec extends FlatSpec with Matchers {
   
   it should "not be equal to anything that is not a class type" in {
     var classtype1 = new ClassType(Array("java", "lang", "TestClass"))
-    var sometype = new PrimitiveType(PrimitiveType.Sort.Boolean)
+    var sometype = new PrimitiveType(PrimitiveSort.Boolean)
     classtype1.equals(sometype) should be (false)
   }
   
   it should "return the full type name when calling toString without args" in {
     var nameparts = Array("java", "lang", "TestClass")
-    var inttype = new PrimitiveType(PrimitiveType.Sort.Integer)
-    var booltype = new PrimitiveType(PrimitiveType.Sort.Boolean)
+    var inttype = new PrimitiveType(PrimitiveSort.Integer)
+    var booltype = new PrimitiveType(PrimitiveSort.Boolean)
     var classtype = new ClassType(nameparts, Array[ASTNode](inttype, booltype))
     classtype.toString should be ("java.lang.TestClass<Integer,Boolean>")
   }

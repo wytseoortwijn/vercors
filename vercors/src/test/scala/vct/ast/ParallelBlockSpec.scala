@@ -31,17 +31,17 @@ class ParallelBlockSpec extends FlatSpec with Matchers {
     parblock.depsLength should be (1)
   }
   
-  it should "successfully instantiate when the deps array is given null (with an iters list)" in {
+  it should "not be able to instantiate when the deps array is given null (with an iters list)" in {
     val label = "block1"
     val builder = new ContractBuilder
     val contract = builder.getContract
     val iters = List[DeclarationStatement](new DeclarationStatement("iter1", null))
     val block = new BlockStatement
     val deps : Array[ASTNode] = null
-    var parblock = new ParallelBlock(label, contract, iters, block, deps)
     
-    parblock.itersLength should be (1)
-    parblock.depsLength should be (0)
+    a [IllegalArgumentException] should be thrownBy {
+      var parblock = new ParallelBlock(label, contract, iters, block, deps)
+    }
   }
   
   it should "successfully instantiate when the deps array is given null (with an iters array)" in {
@@ -51,9 +51,9 @@ class ParallelBlockSpec extends FlatSpec with Matchers {
     val iters = Array[DeclarationStatement](new DeclarationStatement("iter1", null))
     val block = new BlockStatement
     val deps : Array[ASTNode] = null
-    var parblock = new ParallelBlock(label, contract, iters, block, deps)
     
-    parblock.itersLength should be (1)
-    parblock.depsLength should be (0)
+    a [IllegalArgumentException] should be thrownBy {
+      var parblock = new ParallelBlock(label, contract, iters, block, deps)
+    }
   }
 }

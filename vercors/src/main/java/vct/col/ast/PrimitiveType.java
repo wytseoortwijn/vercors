@@ -262,7 +262,7 @@ public final class PrimitiveType extends Type {
     case Sequence:
     case Set:
     case Bag:
-      return new StructValue(this,null);
+      return new StructValue(this);
     case Option:
       return new NameExpression(ASTReserved.OptionNone);
     default:

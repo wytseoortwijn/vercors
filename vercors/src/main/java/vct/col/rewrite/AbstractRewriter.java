@@ -797,7 +797,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   
   @Override
   public void visit(StructValue v) {
-    result = create.struct_value(rewrite(v.type()), v.map(), rewrite(v.valuesArray()));
+    result = create.struct_value(rewrite(v.type()), v.mapJava(), rewrite(v.valuesArray()));
   }
   
   @Override

@@ -12,8 +12,8 @@ class TypeSpec extends FlatSpec with Matchers {
   }
   
   it should "yield a string representing all argument types when calling toString" in {
-    var inttype = new PrimitiveType(PrimitiveType.Sort.Integer)
-    var booltype = new PrimitiveType(PrimitiveType.Sort.Boolean)
+    var inttype = new PrimitiveType(PrimitiveSort.Integer)
+    var booltype = new PrimitiveType(PrimitiveSort.Boolean)
     var tupletype = new TypeMock(List[ASTNode](inttype, booltype))
     tupletype.toString should be ("<Integer,Boolean>")
   }

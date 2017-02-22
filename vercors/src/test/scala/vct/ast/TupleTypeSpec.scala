@@ -9,8 +9,8 @@ import vct.col.ast._
 class TupleTypeSpec extends FlatSpec with Matchers {
   
   "A tuple type" should "yield the correct type when queried for one" in {
-    var inttype = new PrimitiveType(PrimitiveType.Sort.Integer)
-    var booltype = new PrimitiveType(PrimitiveType.Sort.Boolean)
+    var inttype = new PrimitiveType(PrimitiveSort.Integer)
+    var booltype = new PrimitiveType(PrimitiveSort.Boolean)
     var tupletype = new TupleType(Array[Type](inttype, booltype))
     
     tupletype.getType(0) should be (inttype)
@@ -18,7 +18,7 @@ class TupleTypeSpec extends FlatSpec with Matchers {
   }
   
   it should "throw out-of-bounds when accessing a non-existing type" in {
-    var inttype = new PrimitiveType(PrimitiveType.Sort.Integer)
+    var inttype = new PrimitiveType(PrimitiveSort.Integer)
     var tupletype = new TupleType(Array[Type](inttype))
     
     a [IndexOutOfBoundsException] should be thrownBy {
@@ -28,8 +28,8 @@ class TupleTypeSpec extends FlatSpec with Matchers {
 
   it should "be immune to additions to the types array given to the constructor" in {
     var types = new ArrayBuffer[Type]()
-    var inttype = new PrimitiveType(PrimitiveType.Sort.Integer)
-    var booltype = new PrimitiveType(PrimitiveType.Sort.Boolean)
+    var inttype = new PrimitiveType(PrimitiveSort.Integer)
+    var booltype = new PrimitiveType(PrimitiveSort.Boolean)
     
     types += inttype
     var tupletype = new TupleType(types.toArray)
@@ -42,8 +42,8 @@ class TupleTypeSpec extends FlatSpec with Matchers {
   
   it should "be immune to updates to the types array given to the constructor" in {
     var types = new ArrayBuffer[Type]()
-    var inttype = new PrimitiveType(PrimitiveType.Sort.Integer)
-    var booltype = new PrimitiveType(PrimitiveType.Sort.Boolean)
+    var inttype = new PrimitiveType(PrimitiveSort.Integer)
+    var booltype = new PrimitiveType(PrimitiveSort.Boolean)
     
     types += inttype
     var tupletype = new TupleType(types.toArray)
@@ -54,8 +54,8 @@ class TupleTypeSpec extends FlatSpec with Matchers {
   
   it should "also be immune to type updates from a Java array (after conversion)" in {
     var types = new java.util.ArrayList[Type]()
-    var inttype = new PrimitiveType(PrimitiveType.Sort.Integer)
-    var booltype = new PrimitiveType(PrimitiveType.Sort.Boolean)
+    var inttype = new PrimitiveType(PrimitiveSort.Integer)
+    var booltype = new PrimitiveType(PrimitiveSort.Boolean)
 
     types.add(inttype)
     var tupletype = new TupleType(types.asScala.toArray)
@@ -67,7 +67,7 @@ class TupleTypeSpec extends FlatSpec with Matchers {
   }
   
   it should "(always) yield false when queried for a subtype" in {
-    var inttype = new PrimitiveType(PrimitiveType.Sort.Integer)
+    var inttype = new PrimitiveType(PrimitiveSort.Integer)
     var tupletype = new TupleType(Array[Type](inttype))
     tupletype.supertypeof(null, inttype) should be (false)
   }
@@ -85,8 +85,8 @@ class TupleTypeSpec extends FlatSpec with Matchers {
   }
   
   it should "yield a type list of equal size as the one provided when queried for it" in {
-    var inttype = new PrimitiveType(PrimitiveType.Sort.Integer)
-    var booltype = new PrimitiveType(PrimitiveType.Sort.Boolean)
+    var inttype = new PrimitiveType(PrimitiveSort.Integer)
+    var booltype = new PrimitiveType(PrimitiveSort.Boolean)
     var tupletype = new TupleType(Array[Type](inttype, booltype))
     
     tupletype.types.size should be (2)
@@ -94,8 +94,8 @@ class TupleTypeSpec extends FlatSpec with Matchers {
   
   it should "make the types getter immune for type updates" in {
     var types = new ArrayBuffer[Type]()
-    var inttype = new PrimitiveType(PrimitiveType.Sort.Integer)
-    var booltype = new PrimitiveType(PrimitiveType.Sort.Boolean)
+    var inttype = new PrimitiveType(PrimitiveSort.Integer)
+    var booltype = new PrimitiveType(PrimitiveSort.Boolean)
 
     types += inttype
     var tupletype = new TupleType(types.toArray)
@@ -106,8 +106,8 @@ class TupleTypeSpec extends FlatSpec with Matchers {
   
   it should "prevent that updates to the internal types arrays reflect to the array given to the constructor" in {
     var types = new ArrayBuffer[Type]()
-    var inttype = new PrimitiveType(PrimitiveType.Sort.Integer)
-    var booltype = new PrimitiveType(PrimitiveType.Sort.Boolean)
+    var inttype = new PrimitiveType(PrimitiveSort.Integer)
+    var booltype = new PrimitiveType(PrimitiveSort.Boolean)
 
     types += inttype
     var tupletype = new TupleType(types.toArray)

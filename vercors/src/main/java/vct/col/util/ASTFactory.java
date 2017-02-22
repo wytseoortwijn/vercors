@@ -1281,6 +1281,9 @@ public Axiom axiom(String name,ASTNode exp){
   }
   
   public StructValue struct_value(Origin o,Type type,Map<String, Integer> map, ASTNode ... values) {
+	if (map == null) {
+	  map = new java.util.Hashtable<String, Integer>();
+	}
     StructValue res=new StructValue(type,map,values);
     res.setOrigin(o);
     res.accept_if(post);    
