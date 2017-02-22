@@ -68,8 +68,8 @@ public class ControlFlowAnalyzer extends RecursiveVisitor<Set<ASTNode>> {
   public void visit(ParallelBlock pb){
     Set<ASTNode> res=new HashSet<ASTNode>();
     res.add(pb);
-    pb.block.setPredecessor(pb);
-    pb.block.accept(this);
+    pb.block().setPredecessor(pb);
+    pb.block().accept(this);
     result=res;
   }
   

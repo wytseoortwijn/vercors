@@ -1571,7 +1571,9 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
 
   @Override
   public void visit(ParallelBlock pb){
-    for(DeclarationStatement decl:pb.iters){
+	for (int i = 0; i < pb.itersLength(); i++) {
+	  DeclarationStatement decl = pb.iteration(i);
+	
       if (!decl.getType().isPrimitive(Sort.Integer)){
         Fail("type of iteration variable must be integer");
       }
@@ -1581,8 +1583,12 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
       }
       init.apply(this);
     }
-    if (pb.contract!=null) pb.contract.apply(this);
-    pb.block.apply(this);
+	
+    if (pb.contract() != null) {
+      pb.contract().apply(this);
+    }
+    
+    pb.block().apply(this);
   }
   
   @Override

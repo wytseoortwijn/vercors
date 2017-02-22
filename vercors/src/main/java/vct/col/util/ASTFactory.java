@@ -806,7 +806,11 @@ public BlockStatement block(Origin origin, ASTNode ... args) {
     BlockStatement block,
     ASTNode deps[]
   ){
-    ParallelBlock res=new ParallelBlock(label,contract, iters, block, deps);
+	if (deps == null) {
+	  deps = new ASTNode[0]; 
+	}
+	  
+    ParallelBlock res = new ParallelBlock(label,contract, iters, block, deps);
     res.setOrigin(origin);
     res.accept_if(post);
     return res;

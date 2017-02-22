@@ -595,11 +595,11 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   @Override
   public void visit(ParallelBlock pb){
     ParallelBlock res=create.parallel_block(
-        pb.label,
-        rewrite(pb.contract),
-        rewrite(pb.iters),
-        rewrite(pb.block),
-        rewrite(pb.deps)
+        pb.label(),
+        rewrite(pb.contract()),
+        rewrite(pb.itersArray()),
+        rewrite(pb.block()),
+        rewrite(pb.deps())
     );
     result=res;
   }
