@@ -2,7 +2,7 @@ package vct.col.ast
 
 import vct.col.util.VisitorHelper
 
-class ParallelBlock (val label:String, val contract:Contract, val iters:List[DeclarationStatement], val block:BlockStatement, val deps:Array[ASTNode]) extends ASTNode with VisitorHelper {
+case class ParallelBlock (val label:String, val contract:Contract, val iters:List[DeclarationStatement], val block:BlockStatement, val deps:Array[ASTNode]) extends ASTNode with VisitorHelper {
   require(deps != null, "dependency array is null")
   require(iters != null, "iteration list is null")
   
