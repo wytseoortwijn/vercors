@@ -191,8 +191,8 @@ public class JavaPostProcessor extends AbstractRewriter {
         } else {
           res=create.expression(e.operator(),arg0,arg1);
         }
-        res.set_before(null);
-        res.set_after(null);
+        res.clearBefore();
+        res.clearAfter();
         result=process_with_then(res,e);
         return;
       }
@@ -201,8 +201,8 @@ public class JavaPostProcessor extends AbstractRewriter {
     }
     super.visit(e);
     OperatorExpression res=(OperatorExpression) result;
-    res.set_before(null);
-    res.set_after(null);
+    res.clearBefore();
+    res.clearAfter();
     result=process_with_then(res,e);
   }
   
