@@ -5,8 +5,13 @@ import vct.col.util.VisitorHelper
 case class TypeExpression(val operator:TypeOperator, val types:List[Type]) extends Type with VisitorHelper {
   def this(operator:TypeOperator, types:Array[Type]) = this(operator, types.toList)
   
+  @deprecated("this method will be removed", "soon")
   def firstType = types.head
+  
+  @deprecated("this method will be removed", "soon")
   def getType(i:Int) = types.apply(i)
+  
+  @deprecated("this method will be removed", "soon")
   def nrOfTypes = types.length
   
   @deprecated("this method will be removed", "soon")

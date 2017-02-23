@@ -15,12 +15,17 @@ case class StructValue(val `type`:Type, val map:Map[String,Integer], val values:
   def this(t:Type, map:java.util.Map[String,Integer]) = this(t, map, Array[ASTNode]())
   def this(t:Type) = this(t, Map[String,Integer]())
   
+  @deprecated("this method will be removed", "soon")
   def valuesLength = values.length
-  def value(i:Int) = values.apply(i)
-  def mapJava = map.asJava
   
   @deprecated("this method will be removed", "soon")
+  def value(i:Int) = values.apply(i)
+
+  @deprecated("this method will be removed", "soon")
   def valuesArray = values.toArray
+  
+  /** Provides a Java wrapper (as `java.util.Map`) for `map` */
+  def mapJava = map.asJava
 
   override def accept_simple[T,A](m:ASTMapping1[T,A], arg:A) = m.map(this, arg)
   override def accept_simple[T](v:ASTVisitor[T]) = handle_standard(() => v.visit(this))

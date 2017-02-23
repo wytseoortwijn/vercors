@@ -18,12 +18,15 @@ case class TupleType(val types:List[Type]) extends Type with VisitorHelper {
   def this(types:Array[Type]) = this(types.toList)
   
   /** Gives a (copy of) the `types` list converted to an array (e.g for Java interoperability). */
+  @deprecated("this method will be removed", "soon")
   def typesToArray = types.toArray
 
   /** Yields the type "`T_i`" of the `i`-th tuple element. */
+  @deprecated("this method will be removed", "soon")
   def getType(i:Int) = types.apply(i)
   
   /** Gives the number of types represented by this AST node. */
+  @deprecated("this method will be removed", "soon")
   def nrOfTypes = types.size
 
   /** @return Always `false`: no type can extend (inherit from) a tuple type. */

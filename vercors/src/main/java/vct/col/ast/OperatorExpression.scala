@@ -4,7 +4,7 @@ import hre.ast.FileOrigin
 import hre.lang.System.Abort
 import vct.col.util.VisitorHelper
 
-case class OperatorExpression (val operator:StandardOperator, val args:List[ASTNode]) extends ExpressionNode with VisitorHelper {
+case class OperatorExpression(val operator:StandardOperator, val args:List[ASTNode]) extends ExpressionNode with VisitorHelper {
   require(args != null, "The argument list is null")
   require(operator.arity < 0 || args.length == operator.arity, "Wrong number of arguments for $operator: got ${args.length}, but expected ${operator.arity}")
   
@@ -12,15 +12,19 @@ case class OperatorExpression (val operator:StandardOperator, val args:List[ASTN
   def this(operator:StandardOperator, args:Array[ASTNode]) = this(operator, args.toList)
   
   /** Yields a copy of the argument list as an array (for Java interoperability) */
+  @deprecated("this method will be removed", "soon")
   def argsArray = args.toArray
   
   /** Yields the number of arguments */
+  @deprecated("this method will be removed", "soon")
   def nrOfArgs = args.length
   
   /** Either yields the `i`-th argument, or `None` if there is no such argument  */
+  @deprecated("this method will be removed", "soon")
   def argOption(i:Int) = args.lift(i)
   
   /** Yields the `i`-th argument, or throws an exception if there is no such argument */
+  @deprecated("this method will be removed", "soon")
   def arg(i:Int) = argOption(i) match {
     case None => throw new Error("the operator $operator does not have an argument $i.")
     case Some(argument) => argument
