@@ -472,19 +472,19 @@ public class JavaPrinter extends AbstractPrinter {
   public void visit(BindingExpression e){
     String binder=null;
     switch(e.binder){
-      case FORALL:
+      case Forall:
         binder="\\forall";
         break;
-      case EXISTS:
+      case Exists:
         binder="\\exists";
         break;
-      case STAR:
+      case Star:
         binder="\\forall*";
         break;
-      case LET:
+      case Let:
         binder="\\let";
         break;
-      case SUM:
+      case Sum:
         binder="\\sum";
         break;
       default:
@@ -1268,12 +1268,14 @@ public class JavaPrinter extends AbstractPrinter {
   public void visit(ParallelAtomic pa){
     out.printf("atomic (");
     String sep="";
-    for (ASTNode s : pa.synclistAsArray()) {
-      out.printf("%s",sep);
-      sep=",";
+    
+    for (ASTNode item : pa.synclistJava()) {
+      out.printf("%s", sep);
+      sep = ",";
       nextExpr();
-      s.apply(this);
-    }
+      item.apply(this);
+    };
+    
     out.printf(")");
     visit(pa.block());
   }
@@ -1420,4 +1422,3 @@ public class JavaPrinter extends AbstractPrinter {
     c.block().accept(this);
   }
 }
-

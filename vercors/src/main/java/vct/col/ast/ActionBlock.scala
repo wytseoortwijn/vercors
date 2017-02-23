@@ -23,8 +23,8 @@ case class ActionBlock(val history:ASTNode, val fraction:ASTNode, val process:AS
   def this(history:ASTNode, fraction:ASTNode, process:ASTNode, action:ASTNode, map:java.util.Map[String,ASTNode], block:ASTNode) = 
     this(history, fraction, process, action, map.toMap, block)
     
-  /** Iterates over all key/value pairs in `map` */
-  def foreach(f : (String,ASTNode) => Unit) = map.foreach { case (k,v) => f(k,v) }
+  /** Iterates over all key/value pairs in `map` and applies `f` on each pair */
+  def foreach(f:(String,ASTNode)=>Unit) = map.foreach { case (k,v) => f(k,v) }
   
   override def accept_simple[T,A](m:ASTMapping1[T,A], arg:A) = m.map(this, arg)
   override def accept_simple[T](v:ASTVisitor[T]) = handle_standard(() => v.visit(this))

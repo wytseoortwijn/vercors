@@ -440,7 +440,7 @@ class MatchSubstitution extends AbstractRewriter {
       }
       decls[i]=create.field_decl(dref.name(), rewrite(dref.getType()), rewrite(decls[i].init()));
     }
-    if (e.binder==BindingExpression.Binder.LET){
+    if (e.binder==Binder.Let){
       HashMap<NameExpression, ASTNode> map=new HashMap<NameExpression, ASTNode>();
       for(int i=0;i<decls.length;i++){
         map.put(create.local_name(decls[i].name()), rewrite(decls[i].init()));

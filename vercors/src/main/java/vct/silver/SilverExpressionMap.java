@@ -292,8 +292,8 @@ public class SilverExpressionMap<T,E> implements ASTMapping<E>{
   @Override
   public E map(BindingExpression e) {
     Origin o = e.getOrigin();
-    switch(e.binder){
-    case STAR:
+    switch (e.binder) {
+    case Star:
       if ((e.main instanceof BindingExpression)||e.getDeclarations().length>1){
         hre.lang.System.Warning("Simplification failure:%n%s",e);
         failure=true;
@@ -315,7 +315,7 @@ public class SilverExpressionMap<T,E> implements ASTMapping<E>{
           hre.lang.System.Warning("Possible simplification failure: %n%s",e);
         }
       }
-    case FORALL:
+    case Forall:
       E expr;
       if (e.select.isConstant(true)){
         expr=e.main.apply(this);
@@ -333,9 +333,9 @@ public class SilverExpressionMap<T,E> implements ASTMapping<E>{
         }
       }
       return create.forall(o, convert(e.getDeclarations()),triggers ,expr);
-    case EXISTS:
+    case Exists:
       return create.exists(o, convert(e.getDeclarations()),create.and(o, e.select.apply(this), e.main.apply(this)));
-    case LET:{
+    case Let:{
       DeclarationStatement decls[]=e.getDeclarations();
       E res=e.main.apply(this);
       for(int i=decls.length-1;i>=0;i--){

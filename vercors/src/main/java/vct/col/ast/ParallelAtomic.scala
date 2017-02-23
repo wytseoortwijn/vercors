@@ -1,12 +1,16 @@
 package vct.col.ast
 
+import scala.collection.JavaConverters._
 import vct.col.util.VisitorHelper
 
-case class ParallelAtomic (val block:BlockStatement, val synclist:List[ASTNode]) extends ASTNode with VisitorHelper {
-  def this(block:BlockStatement, synclist:Array[ASTNode]) = this(block, synclist.toList)
+case class ParallelAtomic(val block:BlockStatement, val synclist:List[ASTNode]) extends ASTNode with VisitorHelper {
+  require(synclist != null, "The list of synchronisation elements is null")
   
-  /** Yields a copy (as an array) of the sync list (for Java interoperability) */
-  def synclistAsArray = synclist.toArray
+  /** Constructs a parallel atomic block from an array of synchronisation elements */
+  def this(block:BlockStatement, syncarray:Array[ASTNode]) = this(block, syncarray.toList)
+  
+  /** Yields a Java wrapper (for `java.util.List`) over the `synclist` collection  */
+  def synclistJava = synclist.asJava
   
   override def accept_simple[T,A](m:ASTMapping1[T,A], arg:A) = m.map(this, arg)
   override def accept_simple[T](v:ASTVisitor[T]) = handle_standard(() => v.visit(this))

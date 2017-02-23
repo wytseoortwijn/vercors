@@ -9,7 +9,7 @@ import java.util.Map.Entry;
 import vct.col.ast.*;
 import vct.col.ast.ASTClass.ClassKind;
 import vct.col.ast.ASTSpecial.Kind;
-import vct.col.ast.BindingExpression.Binder;
+import vct.col.ast.Binder;
 import vct.col.ast.Switch.Case;
 import vct.col.rewrite.AbstractRewriter;
 import vct.util.ClassName;
@@ -498,7 +498,7 @@ public BlockStatement block(Origin origin, ASTNode ... args) {
           
     public BindingExpression exists(ASTNode guard, ASTNode claim, DeclarationStatement ... decl) {
       BindingExpression res=new BindingExpression(
-          Binder.EXISTS,
+          Binder.Exists,
           primitive_type(PrimitiveSort.Boolean),
           decl,
           null,
@@ -512,7 +512,7 @@ public BlockStatement block(Origin origin, ASTNode ... args) {
     public BindingExpression summation(ASTNode guard, ASTNode claim, DeclarationStatement ... decl) {
       int i=decl.length-1;
       BindingExpression res=new BindingExpression(
-          Binder.SUM,
+          Binder.Sum,
           null,
           new DeclarationStatement[]{decl[i]},
           null,
@@ -524,7 +524,7 @@ public BlockStatement block(Origin origin, ASTNode ... args) {
       while(i>0){
         i--;
         res=new BindingExpression(
-            Binder.SUM,
+            Binder.Sum,
             null,
             new DeclarationStatement[]{decl[i]},
             null,
@@ -538,7 +538,7 @@ public BlockStatement block(Origin origin, ASTNode ... args) {
     }
   public BindingExpression let_expr(DeclarationStatement decl,ASTNode in) {
     BindingExpression res=new BindingExpression(
-        Binder.LET,
+        Binder.Let,
         null,
         new DeclarationStatement[]{decl},
         null,
@@ -926,7 +926,7 @@ public ASTSpecial special(Origin origin, vct.col.ast.ASTSpecial.Kind kind, ASTNo
     }
     int i=decl.length-1;
     BindingExpression res=new BindingExpression(
-        Binder.STAR,
+        Binder.Star,
         primitive_type(PrimitiveSort.Resource),
         new DeclarationStatement[]{decl[i]},
         null,
@@ -938,7 +938,7 @@ public ASTSpecial special(Origin origin, vct.col.ast.ASTSpecial.Kind kind, ASTNo
     while(i>0){
       i--;
       res=new BindingExpression(
-          Binder.STAR,
+          Binder.Star,
           primitive_type(PrimitiveSort.Resource),
           new DeclarationStatement[]{decl[i]},
           null,
@@ -958,7 +958,7 @@ public ASTSpecial special(Origin origin, vct.col.ast.ASTSpecial.Kind kind, ASTNo
     }
     int i=decl.length-1;
     BindingExpression res=new BindingExpression(
-        Binder.FORALL,
+        Binder.Forall,
         primitive_type(PrimitiveSort.Boolean),
         new DeclarationStatement[]{decl[i]},
         new ASTNode[0][],
@@ -970,7 +970,7 @@ public ASTSpecial special(Origin origin, vct.col.ast.ASTSpecial.Kind kind, ASTNo
     while(i>0){
       i--;
       res=new BindingExpression(
-          Binder.FORALL,
+          Binder.Forall,
           primitive_type(PrimitiveSort.Boolean),
           new DeclarationStatement[]{decl[i]},
           new ASTNode[0][],
@@ -989,7 +989,7 @@ public ASTSpecial special(Origin origin, vct.col.ast.ASTSpecial.Kind kind, ASTNo
       return expression(StandardOperator.Implies,guard,claim);
     }
     BindingExpression res=new BindingExpression(
-        Binder.FORALL,
+        Binder.Forall,
         primitive_type(PrimitiveSort.Boolean),
         decl,
         triggers,

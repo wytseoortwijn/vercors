@@ -1526,10 +1526,10 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
       Abort("Binding expression without type.");
     }
     switch(e.binder){
-    case LET:
+    case Let:
       e.setType(t);
       break;
-    case STAR:{
+    case Star:{
       Type res=new PrimitiveType(PrimitiveSort.Resource);
       if (!res.supertypeof(source(), t)){
         Fail("main argument of %s quantifier must be resource",e.binder);
@@ -1537,8 +1537,8 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
       e.setType(res);
       break;
     }
-    case EXISTS:
-    case FORALL:{
+    case Exists:
+    case Forall:{
       Type res=new PrimitiveType(PrimitiveSort.Boolean);
       if (!res.supertypeof(source(), t)) {
         Fail("main argument of %s quantifier must be boolean",e.binder);
@@ -1546,7 +1546,7 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
       e.setType(res);
       break;
     }
-    case SUM:
+    case Sum:
       e.setType(t);
       break;
     }

@@ -375,11 +375,11 @@ public abstract class AbstractBoogiePrinter extends AbstractPrinter {
     String connect=null;
     out.printf("(");
     switch(e.binder){
-    case FORALL:
+    case Forall:
       out.printf("forall ");
       connect=")==>(";
       break;
-    case EXISTS:
+    case Exists:
       out.printf("exists ");
       connect=")&&(";
       break;

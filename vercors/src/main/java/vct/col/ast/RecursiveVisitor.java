@@ -1,6 +1,7 @@
 package vct.col.ast;
 
 import vct.col.ast.Switch.Case;
+import vct.col.util.LambdaHelper;
 
 public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
 
@@ -259,10 +260,10 @@ public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
     lemma.block().accept(this);
   }
   
-  public void visit(ParallelAtomic pa){
-    for (ASTNode n : pa.synclistAsArray()) {
-      dispatch(n);
-    }
+  public void visit(ParallelAtomic pa) {
+	for (ASTNode item : pa.synclistJava()) {
+	  dispatch(item);
+	}
     dispatch(pa.block());
   }
   

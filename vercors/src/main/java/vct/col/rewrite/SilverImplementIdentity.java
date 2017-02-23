@@ -2,7 +2,6 @@ package vct.col.rewrite;
 
 import hre.ast.MessageOrigin;
 import vct.col.ast.*;
-import vct.col.ast.BindingExpression.Binder;
 
 public class SilverImplementIdentity extends AbstractRewriter {
 
@@ -20,7 +19,7 @@ public class SilverImplementIdentity extends AbstractRewriter {
   private String name=null;
   
   public void visit(BindingExpression e){
-    if(e.binder==Binder.STAR){
+    if (e.binder == Binder.Star) {
       name = e.getDeclaration(0).name();
       super.visit(e);
       name=null;
