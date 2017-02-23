@@ -11,7 +11,7 @@ case class StructValue(val `type`:Type, val map:Map[String,Integer], val values:
 
   def this(t:Type, map:Map[String,Integer], values:Array[ASTNode]) = this(t, map, values.toList)
   def this(t:Type, map:Map[String,Integer]) = this(t, map, Array[ASTNode]())
-  def this(t:Type, map:java.util.Map[String,Integer], values:Array[ASTNode]) = this(t, Map(map.toSeq:_*), values.toList)
+  def this(t:Type, map:java.util.Map[String,Integer], values:Array[ASTNode]) = this(t, map.toMap, values.toList)
   def this(t:Type, map:java.util.Map[String,Integer]) = this(t, map, Array[ASTNode]())
   def this(t:Type) = this(t, Map[String,Integer]())
   

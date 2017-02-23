@@ -15,6 +15,7 @@ import vct.col.ast.ASTSpecial.Kind;
 import vct.col.ast.Switch.Case;
 import vct.col.util.ASTFactory;
 import vct.col.util.ASTUtils;
+import vct.col.util.LambdaHelper;
 import vct.col.util.NameScanner;
 
 /**
@@ -691,19 +692,18 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
 
   @Override
   public void visit(ActionBlock ab) {
+	// rewrite `ab.map`, resulting in the hashtable `map`
     Map<String,ASTNode> map = new HashMap<String,ASTNode>();
-    
-    for (Entry<String, ASTNode> e : ab.mapAsJava().entrySet()) {
-      map.put(e.getKey(), rewrite(e.getValue()));
-    }
-    
-    result=create.action_block(
-        rewrite(ab.history()),
-        rewrite(ab.fraction()),
-        rewrite(ab.process()),
-        rewrite(ab.action()),
-        map,
-        rewrite(ab.block())
+    ab.foreach(LambdaHelper.fun((key,val) -> map.put(key, rewrite(val))));
+
+    // rewrite all other components of `ab`
+    result = create.action_block(
+      rewrite(ab.history()),
+      rewrite(ab.fraction()),
+      rewrite(ab.process()),
+      rewrite(ab.action()),
+      map,
+      rewrite(ab.block())
     );
   }
   

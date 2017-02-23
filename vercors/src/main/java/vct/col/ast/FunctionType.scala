@@ -22,7 +22,7 @@ case class FunctionType(val params:List[Type], val result:Type) extends Type wit
   def param(i:Int) = params(i)
   
   override def equals(other:Any) = other match {
-    case FunctionType(pars, res) => params == pars && result == res
+    case FunctionType(`params`, `result`) => true
     case _ => false
   }
   

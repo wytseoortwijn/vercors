@@ -15,6 +15,7 @@ import vct.col.ast.Switch.Case;
 import vct.col.syntax.JavaDialect;
 import vct.col.syntax.JavaSyntax;
 import vct.col.util.ASTUtils;
+import vct.col.util.LambdaHelper;
 import vct.util.*;
 
 /** 
@@ -105,11 +106,12 @@ public class JavaPrinter extends AbstractPrinter {
     out.printf(",");
     nextExpr(); ab.action().accept(this);
     
-    for (Entry<String, ASTNode> e : ab.mapAsJava().entrySet()) {
-      out.printf(", %s, ", e.getKey());
+    // visit all (key/value) entries in `ab.map` (via a lambda)
+    ab.foreach(LambdaHelper.fun((key,val) -> {
+      out.printf(", %s, ", key);
       nextExpr();
-      e.getValue().accept(this);
-    }
+      val.accept(this);
+    }));
     
     out.printf(")");
     ab.block().accept(this);
