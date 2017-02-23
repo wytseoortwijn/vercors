@@ -15,7 +15,7 @@ import vct.col.ast.MethodInvokation;
 import vct.col.ast.NameExpression.Kind;
 import vct.col.ast.OperatorExpression;
 import vct.col.ast.PrimitiveType;
-import vct.col.ast.PrimitiveType.Sort;
+import vct.col.ast.PrimitiveSort;
 import vct.col.ast.ProgramUnit;
 import vct.col.ast.StandardOperator;
 import vct.col.ast.Type;
@@ -54,7 +54,7 @@ public class ChalicePreProcess extends AbstractRewriter {
       }
       Hashtable<String,Type> vars=free_vars(s.args[0]);
       currentTargetClass.add(create.method_decl(
-          create.primitive_type(Sort.Void),
+          create.primitive_type(PrimitiveSort.Void),
           cb.getContract(),
           name,
           gen_pars(vars),
@@ -70,7 +70,7 @@ public class ChalicePreProcess extends AbstractRewriter {
   
   @Override
   public void visit(ConstantExpression e){
-    if (e.getType().isPrimitive(Sort.Fraction)){
+    if (e.getType().isPrimitive(PrimitiveSort.Fraction)){
       int v = ((IntegerValue)(e.value())).value();
       if (v==1){
         result=create.reserved_name(ASTReserved.FullPerm);
@@ -94,7 +94,7 @@ public class ChalicePreProcess extends AbstractRewriter {
   
   @Override
   public void visit(MethodInvokation e){
-    if (e.method.equals("length") && e.object.getType().isPrimitive(PrimitiveType.Sort.Sequence)){
+    if (e.method.equals("length") && e.object.getType().isPrimitive(PrimitiveSort.Sequence)){
       result=create.expression(StandardOperator.Size,rewrite(e.object));
     } else {
       super.visit(e);
@@ -103,8 +103,8 @@ public class ChalicePreProcess extends AbstractRewriter {
   
   @Override
   public void visit(Dereference e){
-    if (e.field().equals("length") && e.object().getType().isPrimitive(PrimitiveType.Sort.Sequence)){
-      result=create.expression(StandardOperator.Size,rewrite(e.object()));
+    if (e.field().equals("length") && e.obj().getType().isPrimitive(PrimitiveSort.Sequence)){
+      result=create.expression(StandardOperator.Size,rewrite(e.obj()));
     } else {
       super.visit(e);
     }    
@@ -112,7 +112,7 @@ public class ChalicePreProcess extends AbstractRewriter {
   
   @Override
   public void visit(PrimitiveType t){
-    if (t.sort==PrimitiveType.Sort.Cell){
+    if (t.sort==PrimitiveSort.Cell){
       String sort="cell_of_"+t.getArg(0);
       cell_types.put((Type)t.getArg(0),sort);
       result=create.class_type(sort);
@@ -126,10 +126,10 @@ public class ChalicePreProcess extends AbstractRewriter {
     switch(e.operator()){
       case Minus:{
         super.visit(e);
-        if (e.arg(0).getType().isPrimitive(Sort.Fraction) ||
-            e.arg(0).getType().isPrimitive(Sort.ZFraction) ||
-            e.arg(1).getType().isPrimitive(Sort.Fraction) ||
-            e.arg(1).getType().isPrimitive(Sort.ZFraction) )
+        if (e.arg(0).getType().isPrimitive(PrimitiveSort.Fraction) ||
+            e.arg(0).getType().isPrimitive(PrimitiveSort.ZFraction) ||
+            e.arg(1).getType().isPrimitive(PrimitiveSort.Fraction) ||
+            e.arg(1).getType().isPrimitive(PrimitiveSort.ZFraction) )
         {
           ASTNode temp=result;
           result=create.expression(StandardOperator.ITE,
@@ -137,13 +137,13 @@ public class ChalicePreProcess extends AbstractRewriter {
               create.constant(0),
               temp
           );
-          result.setType(new PrimitiveType(Sort.ZFraction));
+          result.setType(new PrimitiveType(PrimitiveSort.ZFraction));
         }
         break;
       }
       case Plus:{
-        if (e.getType().isPrimitive(Sort.Sequence)){
-          result = create.expression(StandardOperator.Append, rewrite(e.args()));
+        if (e.getType().isPrimitive(PrimitiveSort.Sequence)){
+          result = create.expression(StandardOperator.Append, rewrite(e.argsArray()));
         } else {
           super.visit(e);
         }
@@ -166,7 +166,7 @@ public class ChalicePreProcess extends AbstractRewriter {
       ASTNode guard;
       if (s.getGuard(i).isReserved(ASTReserved.Any)){
         int id=if_any_count.incrementAndGet();
-        currentBlock.add(create.field_decl("if_any_bool"+id,create.primitive_type(Sort.Boolean)));
+        currentBlock.add(create.field_decl("if_any_bool"+id,create.primitive_type(PrimitiveSort.Boolean)));
         ASTNode name=create.name(Kind.Local,null,"if_any_bool"+id);
         MethodInvokation rnd=create.invokation(create.reserved_name(ASTReserved.This),null,"if_any_random",name);
         rnd.setDefinition(if_any_method);
@@ -187,8 +187,8 @@ public class ChalicePreProcess extends AbstractRewriter {
   public void visit(ASTClass cl){
     if_any_count=new AtomicInteger(0);
     DeclarationStatement args[]=new DeclarationStatement[1];
-    args[0]=create.field_decl("random_bool", create.primitive_type(Sort.Boolean));    
-    if_any_method=create.method_decl(create.primitive_type(Sort.Void), null, "if_any_random", args, null);
+    args[0]=create.field_decl("random_bool", create.primitive_type(PrimitiveSort.Boolean));    
+    if_any_method=create.method_decl(create.primitive_type(PrimitiveSort.Void), null, "if_any_random", args, null);
     super.visit(cl);
     if (if_any_count.get()>0){
       cl=(ASTClass)result;

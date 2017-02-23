@@ -11,7 +11,7 @@ import vct.col.ast.OperatorExpression;
 import vct.col.ast.ProgramUnit;
 import vct.col.ast.StandardOperator;
 import vct.col.ast.ASTSpecial.Kind;
-import vct.col.ast.PrimitiveType.Sort;
+import vct.col.ast.PrimitiveSort;
 import vct.col.util.FeatureScanner;
 
 /**
@@ -104,7 +104,7 @@ public class PVLEncoder extends AbstractRewriter {
       cb.requires(create.invokation(null,null,"idleToken"));
       cb.ensures(create.invokation(null,null,"joinToken"));
       Method fork=create.method_decl(
-          create.primitive_type(Sort.Void),
+          create.primitive_type(PrimitiveSort.Void),
           cb.getContract(),
           "forkOperator",
           new DeclarationStatement[0],
@@ -116,7 +116,7 @@ public class PVLEncoder extends AbstractRewriter {
       cb.ensures(create.invokation(null,null,"idleToken"));
       cb.ensures(rewrite(c.post_condition));
       Method join=create.method_decl(
-          create.primitive_type(Sort.Void),
+          create.primitive_type(PrimitiveSort.Void),
           cb.getContract(),
           "joinOperator",
           new DeclarationStatement[0],

@@ -15,6 +15,7 @@ import vct.col.ast.ASTSpecial.Kind;
 import vct.col.ast.Switch.Case;
 import vct.col.util.ASTFactory;
 import vct.col.util.ASTUtils;
+import vct.col.util.LambdaHelper;
 import vct.col.util.NameScanner;
 
 /**
@@ -379,12 +380,12 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
 
   public void visit(FunctionType t){
     //checkPermission(t);
-    int N=t.getArity();
+    int N=t.arity();
     Type args[]=new Type[N];
     for(int i=0;i<N;i++){
-      args[i]=(Type)t.getArgument(i).apply(this);
+      args[i]=(Type)t.param(i).apply(this);
     }
-    Type result_type=(Type)t.getResult().apply(this);
+    Type result_type=(Type)t.result().apply(this);
     ASTNode res=new FunctionType(args,result_type);
     if (t.getOrigin()!=null) res.setOrigin(t);
     result=res;
@@ -470,7 +471,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
     //checkPermission(e);
     StandardOperator op=e.operator();
     int N=op.arity();
-    if(N<0) N=e.args().length;
+    if(N<0) N=e.nrOfArgs();
     ASTNode args[]=new ASTNode[N];
     for(int i=0;i<N;i++){
       args[i]=e.arg(i).apply(this);
@@ -569,7 +570,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
 
   @Override
   public void visit(Dereference e) {
-    result = create.dereference(e.object().apply(this), e.field());
+    result = create.dereference(e.obj().apply(this), e.field());
   }
   
   @Override
@@ -584,7 +585,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   
   @Override
   public void visit(ParallelAtomic pa){
-    result = create.csl_atomic(rewrite(pa.block()), rewrite(pa.synclist().toArray(new ASTNode[0])));
+    result = create.csl_atomic(rewrite(pa.block()), rewrite(pa.synclistAsArray()));
   }
   
   @Override
@@ -595,18 +596,18 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   @Override
   public void visit(ParallelBlock pb){
     ParallelBlock res=create.parallel_block(
-        pb.label,
-        rewrite(pb.contract),
-        rewrite(pb.iters),
-        rewrite(pb.block),
-        rewrite(pb.deps)
+        pb.label(),
+        rewrite(pb.contract()),
+        rewrite(pb.itersArray()),
+        rewrite(pb.block()),
+        rewrite(pb.deps())
     );
     result=res;
   }
   
   @Override
   public void visit(ParallelRegion region){
-    result = create.region(rewrite(region.contract()), rewrite(region.blocks()));
+    result = create.region(rewrite(region.contract()), rewrite(region.blocksArray()));
   }
   
   @Override
@@ -691,19 +692,18 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
 
   @Override
   public void visit(ActionBlock ab) {
+	// rewrite `ab.map`, resulting in the hashtable `map`
     Map<String,ASTNode> map = new HashMap<String,ASTNode>();
-    
-    for (Entry<String, ASTNode> e : ab.mapAsJava().entrySet()) {
-      map.put(e.getKey(), rewrite(e.getValue()));
-    }
-    
-    result=create.action_block(
-        rewrite(ab.history()),
-        rewrite(ab.fraction()),
-        rewrite(ab.process()),
-        rewrite(ab.action()),
-        map,
-        rewrite(ab.block())
+    ab.foreach(LambdaHelper.fun((key,val) -> map.put(key, rewrite(val))));
+
+    // rewrite all other components of `ab`
+    result = create.action_block(
+      rewrite(ab.history()),
+      rewrite(ab.fraction()),
+      rewrite(ab.process()),
+      rewrite(ab.action()),
+      map,
+      rewrite(ab.block())
     );
   }
   
@@ -765,7 +765,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   
   @Override
   public void visit(TypeExpression te){
-    result = create.type_expression(te.operator(), rewrite(te.types()));
+    result = create.type_expression(te.operator(), rewrite(te.typesAsArray()));
   }
   
   @Override
@@ -797,7 +797,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   
   @Override
   public void visit(StructValue v) {
-    result = create.struct_value(rewrite(v.type()), v.map(), rewrite(v.values()));
+    result = create.struct_value(rewrite(v.type()), v.mapJava(), rewrite(v.valuesArray()));
   }
   
   @Override
@@ -807,7 +807,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   
   @Override
   public void visit(Constraining c){
-    result = create.constraining(rewrite(c.block()) ,rewrite(c.vars()));
+    result = create.constraining(rewrite(c.block()), rewrite(c.varsArray()));
   }
   
   @Override

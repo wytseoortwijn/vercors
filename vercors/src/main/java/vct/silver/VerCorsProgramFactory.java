@@ -21,7 +21,7 @@ import vct.col.ast.ContractBuilder;
 import vct.col.ast.DeclarationStatement;
 import vct.col.ast.Method;
 import vct.col.ast.PrimitiveType;
-import vct.col.ast.PrimitiveType.Sort;
+import vct.col.ast.PrimitiveSort;
 import vct.col.ast.ProgramUnit;
 import vct.col.ast.StandardOperator;
 import vct.col.ast.Type;
@@ -53,7 +53,7 @@ public class VerCorsProgramFactory implements
     enter(o);
     DeclarationStatement decls[]=new DeclarationStatement[pars.size()];
     for(int i=0;i<decls.length;i++){
-      decls[i]=create.field_decl(pars.get(i),create.primitive_type(Sort.Class));
+      decls[i]=create.field_decl(pars.get(i),create.primitive_type(PrimitiveSort.Class));
     }
     AxiomaticDataType adt=create.adt(name,decls);
     for(Method m:funs) adt.add_cons(m);
@@ -118,7 +118,7 @@ public class VerCorsProgramFactory implements
       block.append(body);
     }
     Method m=create.method_decl(
-        create.primitive_type(PrimitiveType.Sort.Void),
+        create.primitive_type(PrimitiveSort.Void),
         cb.getContract(),
         name,
         args.toArray(new DeclarationStatement[0]),

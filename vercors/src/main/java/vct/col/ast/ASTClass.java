@@ -8,7 +8,6 @@ import hre.util.Function;
 import java.util.*;
 
 import vct.col.ast.Method.Kind;
-import vct.col.ast.PrimitiveType.Sort;
 import vct.col.rewrite.MultiSubstitution;
 import vct.col.util.DeclarationFilter;
 import vct.col.util.MethodFilter;
@@ -285,7 +284,7 @@ public class ASTClass extends ASTDeclaration implements ASTSequence<ASTClass> {
               }
               Type m_idx_t=sigma.rewrite(m.getArgType(idx));
               if (!m_idx_t.supertypeof(root(), type[i])){
-                if (m_idx_t.isPrimitive(Sort.Location)){
+                if (m_idx_t.isPrimitive(PrimitiveSort.Location)){
                   Type lt=(Type)m_idx_t.getArg(0);
                   if (!lt.supertypeof(root(), type[i])){
                     continue node;

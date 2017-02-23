@@ -122,17 +122,20 @@ public class NameScanner extends RecursiveVisitor<Object> {
   
   @Override
   public void visit(ParallelBlock pb){
-    Type oldi[]=new Type[pb.iters.length];
-    for(int i=0;i<pb.iters.length;i++){
-      oldi[i] = vars.get(pb.iters[i].name());
-      safe_decls.add(pb.iters[i]);
+    Type oldi[] = new Type[pb.itersLength()];
+    
+    for(int i = 0; i < pb.itersLength(); i++) {
+      oldi[i] = vars.get(pb.iteration(i).name());
+      safe_decls.add(pb.iteration(i));
     }
+    
     super.visit(pb);
-    auto_before_after=false;
-    for(int i=0;i<pb.iters.length;i++){
-      vars.remove(pb.iters[i].name());
-      if(oldi[i]!=null){
-        vars.put(pb.iters[i].name(), oldi[i]);
+    auto_before_after = false;
+    
+    for (int i = 0; i < pb.itersLength(); i++) {
+      vars.remove(pb.iteration(i).name());
+      if (oldi[i]!=null){
+        vars.put(pb.iteration(i).name(), oldi[i]);
       }      
     }
   }

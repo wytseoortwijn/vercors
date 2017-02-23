@@ -7,6 +7,7 @@ import vct.col.ast.ASTNode;
 import vct.col.ast.Contract;
 import vct.col.ast.DeclarationStatement;
 import vct.col.ast.Method;
+import vct.col.ast.PrimitiveSort;
 import vct.col.ast.PrimitiveType;
 import vct.col.ast.Type;
 
@@ -38,7 +39,7 @@ public class DafnyPrinter extends AbstractBoogiePrinter {
     DeclarationStatement args[]=m.getArgs();
     int N=args.length;
     Type result_type=m.getReturnType();
-    if (!result_type.equals(PrimitiveType.Sort.Void)) Fail("illegal return type %s",result_type);
+    if (!result_type.equals(PrimitiveSort.Void)) Fail("illegal return type %s",result_type);
     String name=m.getName();
     out.printf("method %s(",name);
     String next="";

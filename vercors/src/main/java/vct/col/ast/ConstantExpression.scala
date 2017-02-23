@@ -1,7 +1,6 @@
 package vct.col.ast
 
 import hre.ast.Origin
-import vct.col.ast.PrimitiveType.Sort
 import vct.col.util.VisitorHelper
 
 /**
@@ -13,11 +12,11 @@ import vct.col.util.VisitorHelper
 class ConstantExpression(val value:Value) extends ASTNode with VisitorHelper {
   def this(v:Value, t:Type) = { this(v); setType(t) }
   def this(v:Value, t:Type, origin:Origin) = { this(v, t); setOrigin(origin) }
-  def this(i:Int) = this(new IntegerValue(i), new PrimitiveType(Sort.Integer))
-  def this(b:Boolean) = this(new BooleanValue(b), new PrimitiveType(Sort.Boolean))
-  def this(s:String) = this(new StringValue(s), new PrimitiveType(Sort.String))
-  def this(l:Long) = this(new LongValue(l), new PrimitiveType(Sort.Long))
-	def this(d:Double) = this(new DoubleValue(d), new PrimitiveType(Sort.Double))
+  def this(i:Int) = this(new IntegerValue(i), new PrimitiveType(PrimitiveSort.Integer))
+  def this(b:Boolean) = this(new BooleanValue(b), new PrimitiveType(PrimitiveSort.Boolean))
+  def this(s:String) = this(new StringValue(s), new PrimitiveType(PrimitiveSort.String))
+  def this(l:Long) = this(new LongValue(l), new PrimitiveType(PrimitiveSort.Long))
+	def this(d:Double) = this(new DoubleValue(d), new PrimitiveType(PrimitiveSort.Double))
 	
   def this(i:Int, origin:Origin) = { this(i); setOrigin(origin) }
   def this(b:Boolean, origin:Origin) = { this(b); setOrigin(origin) }

@@ -8,6 +8,7 @@ import vct.col.ast.Method;
 import vct.col.ast.MethodInvokation;
 import vct.col.ast.NameExpression;
 import vct.col.ast.PrimitiveType;
+import vct.col.ast.PrimitiveSort;
 import vct.col.ast.OperatorExpression;
 import vct.col.ast.ProgramUnit;
 import vct.col.ast.StandardOperator;
@@ -33,7 +34,7 @@ public class Standardize extends AbstractRewriter {
 
   @Override
   public void visit(Method m){
-    if (m.kind == Method.Kind.Pure && m.getReturnType().isPrimitive(PrimitiveType.Sort.Resource)){
+    if (m.kind == Method.Kind.Pure && m.getReturnType().isPrimitive(PrimitiveSort.Resource)){
       result=create.predicate(m.getName(), rewrite(m.getBody()), rewrite(m.getArgs()));
     } else {
       super.visit(m);

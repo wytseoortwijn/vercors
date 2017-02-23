@@ -17,7 +17,7 @@ import vct.col.ast.DeclarationStatement;
 import vct.col.ast.Method;
 import vct.col.ast.MethodInvokation;
 import vct.col.ast.NameExpression;
-import vct.col.ast.PrimitiveType.Sort;
+import vct.col.ast.PrimitiveSort;
 import vct.col.ast.ProgramUnit;
 import vct.col.ast.Type;
 import static vct.col.ast.ASTReserved.*;
@@ -300,7 +300,7 @@ public class DynamicStaticInheritance extends AbstractRewriter {
         cb.requires(create.invokation(null,null,"is_a_"+class_name).labeled("class_of"));
         cb.ensures(create.invokation(null,null,m.getName()+AT_STRING+class_name,names).labeled("member"));
         Method open=create.method_decl(
-            create.primitive_type(Sort.Void),
+            create.primitive_type(PrimitiveSort.Void),
             cb.getContract(),
             "open_"+m.getName()+AT_STRING+class_name,
             rewrite(m.getArgs()),

@@ -21,7 +21,7 @@ import vct.col.ast.LoopStatement;
 import vct.col.ast.Method;
 import vct.col.ast.NameExpression;
 import vct.col.ast.ParallelBarrier;
-import vct.col.ast.PrimitiveType.Sort;
+import vct.col.ast.PrimitiveSort;
 import vct.col.ast.ProgramUnit;
 import vct.col.ast.RecursiveVisitor;
 import vct.col.ast.StandardOperator;
@@ -150,7 +150,7 @@ public class KernelRewriter extends AbstractRewriter {
       Stack<ASTNode> resource_stack=new Stack<ASTNode>();
       // check and keep resources.
       for (ASTNode clause : ASTUtils.conjuncts(pb.contract().pre_condition, StandardOperator.Star)) {
-        if (clause.getType().isPrimitive(Sort.Resource)){
+        if (clause.getType().isPrimitive(PrimitiveSort.Resource)){
           resource_stack.push(clause);
         } else {
           currentBlock.add(create.special(Kind.Assert,rewrite(clause)));
@@ -186,7 +186,7 @@ public class KernelRewriter extends AbstractRewriter {
         ));
       }
       for (ASTNode clause : ASTUtils.conjuncts(pb.contract().post_condition,StandardOperator.Star)) {
-        if (clause.getType().isPrimitive(Sort.Resource)){
+        if (clause.getType().isPrimitive(PrimitiveSort.Resource)){
           add(resources,barrier_no,clause);
         } else {
           add(barrier_post,barrier_no,clause);
@@ -250,14 +250,14 @@ public class KernelRewriter extends AbstractRewriter {
         kernel_main_invariant.add(create.expression(StandardOperator.Value,create.field_name(global.name())));
         base_inv.add(create.expression(StandardOperator.Value,create.field_name(global.name())));
         Type t=global.getType();
-        if (t.isPrimitive(Sort.Array)){
+        if (t.isPrimitive(PrimitiveSort.Array)){
           ASTNode tmp=create.expression(StandardOperator.EQ,
               create.dereference(create.field_name(global.name()),"length"),
               rewrite(t.getArg(1))
           );
           kernel_main_invariant.add(tmp);
           base_inv.add(tmp);
-          t=create.primitive_type(Sort.Array,rewrite(t.getArg(0)));          
+          t=create.primitive_type(PrimitiveSort.Array,rewrite(t.getArg(0)));          
         } else {
           t=rewrite(t);
         }
@@ -270,14 +270,14 @@ public class KernelRewriter extends AbstractRewriter {
         kernel_main_invariant.add(create.expression(StandardOperator.Value,create.field_name(local.name())));
         base_inv.add(create.expression(StandardOperator.Value,create.field_name(local.name())));
         Type t=local.getType();
-        if (t.isPrimitive(Sort.Array)){
+        if (t.isPrimitive(PrimitiveSort.Array)){
           ASTNode tmp=create.expression(StandardOperator.EQ,
               create.dereference(create.field_name(local.name()),"length"),
               rewrite(t.getArg(1))
           );
           kernel_main_invariant.add(tmp);
           base_inv.add(tmp);
-          t=create.primitive_type(Sort.Array,rewrite(t.getArg(0)));          
+          t=create.primitive_type(PrimitiveSort.Array,rewrite(t.getArg(0)));          
         } else {
           t=rewrite(t);
         }
@@ -306,7 +306,7 @@ public class KernelRewriter extends AbstractRewriter {
         }
         group_inv=new ArrayList<ASTNode>(base_inv);
         if (m.getArity()!=0) Fail("TODO: kernel argument support");
-        Type returns=create(m).primitive_type(Sort.Void);
+        Type returns=create(m).primitive_type(PrimitiveSort.Void);
         Contract contract=m.getContract();
         if (contract==null) Fail("kernel without contract");
         base_name=m.getName();
@@ -321,7 +321,7 @@ public class KernelRewriter extends AbstractRewriter {
         thread_cb.ensures(create.fold(StandardOperator.Star, constraint));
         for(ASTNode clause:ASTUtils.conjuncts(contract.pre_condition,StandardOperator.Star)){
           thread_cb.requires(clause);
-          if(clause.getType().isPrimitive(Sort.Resource)){
+          if(clause.getType().isPrimitive(PrimitiveSort.Resource)){
             add(resources,0,clause);
           } else if (!ASTUtils.find_name(clause,"tid")
                   && !ASTUtils.find_name(clause,"lid")) {
@@ -332,18 +332,18 @@ public class KernelRewriter extends AbstractRewriter {
           thread_cb.ensures(clause);
         }        
         DeclarationStatement args[]=new DeclarationStatement[]{
-            create.field_decl("tcount", create.primitive_type(Sort.Integer)),
-            create.field_decl("gsize", create.primitive_type(Sort.Integer)),
-            create.field_decl("tid", create.primitive_type(Sort.Integer)),
-            create.field_decl("gid", create.primitive_type(Sort.Integer)),
-            create.field_decl("lid", create.primitive_type(Sort.Integer))            
+            create.field_decl("tcount", create.primitive_type(PrimitiveSort.Integer)),
+            create.field_decl("gsize", create.primitive_type(PrimitiveSort.Integer)),
+            create.field_decl("tid", create.primitive_type(PrimitiveSort.Integer)),
+            create.field_decl("gid", create.primitive_type(PrimitiveSort.Integer)),
+            create.field_decl("lid", create.primitive_type(PrimitiveSort.Integer))            
         };
         private_decls = new ArrayList<DeclarationStatement>();
         private_args = new ArrayList<ASTNode>();
         BlockStatement orig_block=(BlockStatement)m.getBody();
         BlockStatement block=create.block();
         int K=orig_block.getLength();
-        block.addStatement(create.field_decl("__last_barrier",create.primitive_type(Sort.Integer),create.constant(0)));
+        block.addStatement(create.field_decl("__last_barrier",create.primitive_type(PrimitiveSort.Integer),create.constant(0)));
         for(int i=0;i<K;i++){
           ASTNode s=orig_block.getStatement(i);
           if (s instanceof DeclarationStatement){
@@ -393,20 +393,20 @@ public class KernelRewriter extends AbstractRewriter {
         barrier_cb.ensures(create.fold(StandardOperator.Star, constraint),false);
         barrier_cb.ensures(create.fold(StandardOperator.Star, kernel_main_invariant),false);
         ArrayList<DeclarationStatement> barrier_decls=new ArrayList<DeclarationStatement>();
-        barrier_decls.add(create.field_decl("tcount", create.primitive_type(Sort.Integer)));
-        barrier_decls.add(create.field_decl("gsize", create.primitive_type(Sort.Integer)));
-        barrier_decls.add(create.field_decl("tid", create.primitive_type(Sort.Integer)));
-        barrier_decls.add(create.field_decl("gid", create.primitive_type(Sort.Integer)));
-        barrier_decls.add(create.field_decl("lid", create.primitive_type(Sort.Integer)));
-        barrier_decls.add(create.field_decl("this_barrier", create.primitive_type(Sort.Integer)));
-        barrier_decls.add(create.field_decl("last_barrier", create.primitive_type(Sort.Integer)));
+        barrier_decls.add(create.field_decl("tcount", create.primitive_type(PrimitiveSort.Integer)));
+        barrier_decls.add(create.field_decl("gsize", create.primitive_type(PrimitiveSort.Integer)));
+        barrier_decls.add(create.field_decl("tid", create.primitive_type(PrimitiveSort.Integer)));
+        barrier_decls.add(create.field_decl("gid", create.primitive_type(PrimitiveSort.Integer)));
+        barrier_decls.add(create.field_decl("lid", create.primitive_type(PrimitiveSort.Integer)));
+        barrier_decls.add(create.field_decl("this_barrier", create.primitive_type(PrimitiveSort.Integer)));
+        barrier_decls.add(create.field_decl("last_barrier", create.primitive_type(PrimitiveSort.Integer)));
         for(DeclarationStatement d:private_decls){
           barrier_decls.add(copy_rw.rewrite(d));
         }
         if (Configuration.auto_barrier.get()){
           // auto barrier uses this method, while manual barrier uses in/ex-hale.
           res.add_dynamic(create.method_decl(
-              create.primitive_type(Sort.Integer),
+              create.primitive_type(PrimitiveSort.Integer),
               barrier_cb.getContract(),
               base_name+"_barrier",
               barrier_decls.toArray(args),
@@ -449,13 +449,13 @@ public class KernelRewriter extends AbstractRewriter {
                 resource_cb.requires(create.starall(
                     copy_rw.rewrite(local_guard),
                     copy_rw.rewrite(claim),
-                    create.field_decl("lid", create.primitive_type(Sort.Integer))
+                    create.field_decl("lid", create.primitive_type(PrimitiveSort.Integer))
                 ));
               } else {
                 resource_cb.requires(create.starall(
                     copy_rw.rewrite(guard),
                     copy_rw.rewrite(claim),
-                    create.field_decl("tid", create.primitive_type(Sort.Integer))
+                    create.field_decl("tid", create.primitive_type(PrimitiveSort.Integer))
                 ));
               }
             }
@@ -466,13 +466,13 @@ public class KernelRewriter extends AbstractRewriter {
                   resource_cb.requires(create.forall(
                       copy_rw.rewrite(local_guard),
                       copy_rw.rewrite(claim),
-                      create.field_decl("lid", create.primitive_type(Sort.Integer))
+                      create.field_decl("lid", create.primitive_type(PrimitiveSort.Integer))
                   ));
                 } else if (ASTUtils.find_name(claim,"tid")){
                   resource_cb.requires(create.forall(
                       copy_rw.rewrite(guard),
                       copy_rw.rewrite(claim),
-                      create.field_decl("tid", create.primitive_type(Sort.Integer))
+                      create.field_decl("tid", create.primitive_type(PrimitiveSort.Integer))
                   ));
                 } else {
                   resource_cb.requires(copy_rw.rewrite(claim));
@@ -482,13 +482,13 @@ public class KernelRewriter extends AbstractRewriter {
                   resource_cb.requires(create.starall(
                       copy_rw.rewrite(local_guard),
                       copy_rw.rewrite(claim),
-                      create.field_decl("lid", create.primitive_type(Sort.Integer))
+                      create.field_decl("lid", create.primitive_type(PrimitiveSort.Integer))
                   ));
                 } else {
                   resource_cb.requires(create.starall(
                       copy_rw.rewrite(guard),
                       copy_rw.rewrite(claim),
-                      create.field_decl("tid", create.primitive_type(Sort.Integer))
+                      create.field_decl("tid", create.primitive_type(PrimitiveSort.Integer))
                   ));
                 }                
               }
@@ -500,19 +500,19 @@ public class KernelRewriter extends AbstractRewriter {
             resource_cb.ensures(create.starall(
                 copy_rw.rewrite(guard),
                 copy_rw.rewrite(claim),
-                create.field_decl("tid", create.primitive_type(Sort.Integer))
+                create.field_decl("tid", create.primitive_type(PrimitiveSort.Integer))
             ));
           }
           ArrayList<DeclarationStatement> resource_decls=new ArrayList<DeclarationStatement>();
-          resource_decls.add(create.field_decl("tcount", create.primitive_type(Sort.Integer)));
-          resource_decls.add(create.field_decl("gsize", create.primitive_type(Sort.Integer)));
-          resource_decls.add(create.field_decl("gid", create.primitive_type(Sort.Integer)));
+          resource_decls.add(create.field_decl("tcount", create.primitive_type(PrimitiveSort.Integer)));
+          resource_decls.add(create.field_decl("gsize", create.primitive_type(PrimitiveSort.Integer)));
+          resource_decls.add(create.field_decl("gid", create.primitive_type(PrimitiveSort.Integer)));
           for(DeclarationStatement d:private_decls){
             resource_decls.add(copy_rw.rewrite(d));
           }
           if (Configuration.enable_resource_check.get()){
             res.add_dynamic(create.method_decl(
-              create.primitive_type(Sort.Void),
+              create.primitive_type(PrimitiveSort.Void),
               resource_cb.getContract(),
               base_name+"_resources_of_"+i,
               resource_decls.toArray(new DeclarationStatement[0]),
@@ -524,11 +524,11 @@ public class KernelRewriter extends AbstractRewriter {
         for (int i=1;i<=barrier_no;i++){
           ContractBuilder cb=new ContractBuilder();
           ArrayList<DeclarationStatement> post_check_decls=new ArrayList<DeclarationStatement>();
-          post_check_decls.add(create.field_decl("tcount", create.primitive_type(Sort.Integer)));
-          post_check_decls.add(create.field_decl("gsize", create.primitive_type(Sort.Integer)));
-          post_check_decls.add(create.field_decl("tid", create.primitive_type(Sort.Integer)));
-          post_check_decls.add(create.field_decl("gid", create.primitive_type(Sort.Integer)));
-          post_check_decls.add(create.field_decl("lid", create.primitive_type(Sort.Integer)));
+          post_check_decls.add(create.field_decl("tcount", create.primitive_type(PrimitiveSort.Integer)));
+          post_check_decls.add(create.field_decl("gsize", create.primitive_type(PrimitiveSort.Integer)));
+          post_check_decls.add(create.field_decl("tid", create.primitive_type(PrimitiveSort.Integer)));
+          post_check_decls.add(create.field_decl("gid", create.primitive_type(PrimitiveSort.Integer)));
+          post_check_decls.add(create.field_decl("lid", create.primitive_type(PrimitiveSort.Integer)));
           for(DeclarationStatement d:private_decls){
             post_check_decls.add(copy_rw.rewrite(d));
           }
@@ -569,13 +569,13 @@ public class KernelRewriter extends AbstractRewriter {
               cb.requires(create.starall(
                   copy_rw.rewrite(local_guard),
                   sigma.rewrite(claim),
-                  create.field_decl("_x_lid", create.primitive_type(Sort.Integer))
+                  create.field_decl("_x_lid", create.primitive_type(PrimitiveSort.Integer))
               ));
             } else {
               cb.requires(create.starall(
                   copy_rw.rewrite(guard),
                   sigma.rewrite(claim),
-                  create.field_decl("_x_tid", create.primitive_type(Sort.Integer))
+                  create.field_decl("_x_tid", create.primitive_type(PrimitiveSort.Integer))
               ));
             }
           }
@@ -594,13 +594,13 @@ public class KernelRewriter extends AbstractRewriter {
                 cb.requires(create.forall(
                     copy_rw.rewrite(local_guard),
                     sigma.rewrite(claim),
-                    create.field_decl("_x_lid", create.primitive_type(Sort.Integer))
+                    create.field_decl("_x_lid", create.primitive_type(PrimitiveSort.Integer))
                 ));
               } else if (ASTUtils.find_name(claim,"tid")){
                 cb.requires(create.forall(
                     copy_rw.rewrite(guard),
                     sigma.rewrite(claim),
-                    create.field_decl("_x_tid", create.primitive_type(Sort.Integer))
+                    create.field_decl("_x_tid", create.primitive_type(PrimitiveSort.Integer))
                 ));
               } else {
             	cb.requires(copy_rw.rewrite(claim));
@@ -612,7 +612,7 @@ public class KernelRewriter extends AbstractRewriter {
           if (barrier_post.get(i)!=null) cb.ensures(create.fold(StandardOperator.Star, barrier_post.get(i)));
           if(Configuration.enable_post_check.get()){
             res.add_dynamic(create.method_decl(
-              create.primitive_type(Sort.Void),
+              create.primitive_type(PrimitiveSort.Void),
               cb.getContract(),
               base_name+"_post_check_"+i,
               post_check_decls.toArray(new DeclarationStatement[0]),

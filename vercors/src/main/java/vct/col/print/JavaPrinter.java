@@ -11,11 +11,11 @@ import java.util.Map.Entry;
 import org.apache.commons.lang3.StringEscapeUtils;
 
 import vct.col.ast.*;
-import vct.col.ast.PrimitiveType.Sort;
 import vct.col.ast.Switch.Case;
 import vct.col.syntax.JavaDialect;
 import vct.col.syntax.JavaSyntax;
 import vct.col.util.ASTUtils;
+import vct.col.util.LambdaHelper;
 import vct.util.*;
 
 /** 
@@ -106,11 +106,12 @@ public class JavaPrinter extends AbstractPrinter {
     out.printf(",");
     nextExpr(); ab.action().accept(this);
     
-    for (Entry<String, ASTNode> e : ab.mapAsJava().entrySet()) {
-      out.printf(", %s, ", e.getKey());
+    // visit all (key/value) entries in `ab.map` (via a lambda)
+    ab.foreach(LambdaHelper.fun((key,val) -> {
+      out.printf(", %s, ", key);
       nextExpr();
-      e.getValue().accept(this);
-    }
+      val.accept(this);
+    }));
     
     out.printf(")");
     ab.block().accept(this);
@@ -457,15 +458,15 @@ public class JavaPrinter extends AbstractPrinter {
     }
   }
   public void visit(FunctionType t){
-    int N=t.getArity();
+    int N=t.arity();
     N--;
     for(int i=0;i<N;i++){
-      t.getArgument(i).accept(this);
+      t.param(i).accept(this);
       out.print(",");
     }
-    t.getArgument(N).accept(this);
+    t.param(N).accept(this);
     out.print("->");
-    t.getResult().accept(this);
+    t.result().accept(this);
   }
 
   public void visit(BindingExpression e){
@@ -570,7 +571,7 @@ public class JavaPrinter extends AbstractPrinter {
       String sep="<";
       for(DeclarationStatement d:cl.parameters){
         out.print(sep);
-        if(d.getType().isPrimitive(Sort.Class)){
+        if(d.getType().isPrimitive(PrimitiveSort.Class)){
           out.print(d.name());
         } else {
           d.accept(this);
@@ -951,7 +952,7 @@ public class JavaPrinter extends AbstractPrinter {
       case Wrap:{
         out.print("(");
         String sep="";
-        for(ASTNode arg:e.args()){
+        for (ASTNode arg : e.argsArray()) {
           out.print(sep);
           sep=",";
           arg.accept(this);
@@ -1018,7 +1019,7 @@ public class JavaPrinter extends AbstractPrinter {
     }
     out.print("{");
     String sep="";
-    for (int i=0;i<v.values().length;i++) {
+    for (int i = 0; i < v.valuesLength(); i++) {
       out.print(sep);
       sep=",";
       v.value(i).accept(this);
@@ -1182,7 +1183,7 @@ public class JavaPrinter extends AbstractPrinter {
   }
 
   public void visit(Dereference e){
-    e.object().accept(this);
+    e.obj().accept(this);
     out.printf(".%s", e.field());
   }
   
@@ -1267,7 +1268,7 @@ public class JavaPrinter extends AbstractPrinter {
   public void visit(ParallelAtomic pa){
     out.printf("atomic (");
     String sep="";
-    for (ASTNode s : pa.synclist()) {
+    for (ASTNode s : pa.synclistAsArray()) {
       out.printf("%s",sep);
       sep=",";
       nextExpr();
@@ -1279,24 +1280,24 @@ public class JavaPrinter extends AbstractPrinter {
 
   @Override
   public void visit(ParallelBlock pb){
-    out.printf("parallel %s(",pb.label);
-    for(int i=0;i<pb.iters.length;i++){
-      pb.iters[i].accept(this);
-      if(i>0) out.printf(",");
+    out.printf("parallel %s(",pb.label());
+    for (int i = 0; i < pb.itersLength(); i++) {
+      pb.iteration(i).accept(this);
+      if (i > 0) out.printf(",");
     }
-    if (pb.deps.length > 0){
+    if (pb.depsLength() > 0){
       out.printf(";");
-      pb.deps[0].accept(this);
-      for(int i=1;i<pb.deps.length;i++){
+      pb.dependency(0).accept(this);
+      for (int i = 1; i < pb.depsLength(); i++) {
         out.printf(",");
-        pb.deps[i].accept(this);
+        pb.dependency(i).accept(this);
       }
     }
     out.println(")");
-    if(pb.contract!=null){
-      visit(pb.contract);
+    if (pb.contract() != null) {
+      visit(pb.contract());
     }
-    pb.block.accept(this);
+    pb.block().accept(this);
   }
 
   @Override
@@ -1334,7 +1335,7 @@ public class JavaPrinter extends AbstractPrinter {
     } else {
       out.println("parallel {");
     }
-    for (ParallelBlock pb : region.blocks()) {
+    for (ParallelBlock pb : region.blocksArray()) {
       out.incrIndent();
       pb.accept(this);
       out.println("");
@@ -1406,12 +1407,15 @@ public class JavaPrinter extends AbstractPrinter {
   public void visit(Constraining c){
     out.print("constraining(");
     String sep = "";
-    for (NameExpression n : c.vars()) {
+    
+    for (int i = 0; i < c.varsLength(); i++) {
+      NameExpression n = c.getVar(i);
       out.print(sep);
       nextExpr();
       n.accept(this);
       sep=",";
     }
+    
     out.print(")");
     c.block().accept(this);
   }

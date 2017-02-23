@@ -42,7 +42,7 @@ public class Parenthesize extends AbstractRewriter {
   @Override
   public void visit(OperatorExpression e){
     StandardOperator op=e.operator();
-    ASTNode args[]=rewrite(e.args());
+    ASTNode args[] = rewrite(e.argsArray());
     if (syntax.isOperator(op)){
       for(int i=0;i<args.length;i++){
         if (args[i] instanceof OperatorExpression){

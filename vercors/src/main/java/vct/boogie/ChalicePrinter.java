@@ -6,7 +6,6 @@ import java.util.HashSet;
 import hre.ast.Origin;
 import hre.ast.TrackingOutput;
 import vct.col.ast.*;
-import vct.col.ast.PrimitiveType.Sort;
 import vct.col.util.ASTUtils;
 
 /**
@@ -89,7 +88,7 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
     Contract contract=c.getContract();
     if (contract!=null){
       for(DeclarationStatement decl:contract.given){
-        if (decl.getType().isPrimitive(Sort.Class)){
+        if (decl.getType().isPrimitive(PrimitiveSort.Class)){
           if (!classParameters.contains(decl.name())){
             classParameters.add(decl.name());
             out.lnprintf("class %s { }", decl.name());
@@ -147,7 +146,7 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
       out.lnprintf("");
     } else {
       out.printf(") returns (");
-      if (result_type.equals(Sort.Void)){
+      if (result_type.equals(PrimitiveSort.Void)){
         next="";
       } else {
         out.printf("__result: ");
@@ -262,8 +261,8 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
   }
   
   public void visit(Dereference e){
-    if (e.object() instanceof NameExpression){
-      NameExpression arg1=(NameExpression)e.object();
+    if (e.obj() instanceof NameExpression){
+      NameExpression arg1=(NameExpression)e.obj();
       if (arg1.getKind()==NameExpression.Kind.Unresolved){
         Abort("unresolved name %s",arg1.getName());
       }
@@ -308,7 +307,7 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
         ASTNode a0=e.arg(0);
         ASTNode a1=e.arg(1);
         //Warning("perm with %s",a1.getType());
-        if (a1.getType().isPrimitive(Sort.ZFraction)){
+        if (a1.getType().isPrimitive(PrimitiveSort.ZFraction)){
           out.print("(((");
           a1.accept(this);
           out.print(")>0)==>acc(");
@@ -407,14 +406,14 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
   public void visit(StructValue v) {
     if (v.type() instanceof PrimitiveType) {
       PrimitiveType t = (PrimitiveType)v.type();
-      if (t.sort==Sort.Sequence){
-        if (v.values().length==0) {
+      if (t.sort==PrimitiveSort.Sequence){
+        if (v.valuesLength() == 0) {
           out.print("nil<");
           t.getArg(0).accept(this);
           out.print(">");
         } else {
           String sep="[";
-          for(int i=0;i<v.values().length;i++){
+          for(int i = 0; i < v.valuesLength(); i++) {
             out.print(sep);
             sep=",";
             v.value(i).accept(this);

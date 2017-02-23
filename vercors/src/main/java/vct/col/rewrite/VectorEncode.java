@@ -5,7 +5,6 @@ import hre.ast.MessageOrigin;
 import java.util.ArrayList;
 import java.util.HashSet;
 import vct.col.ast.*;
-import vct.col.ast.PrimitiveType.Sort;
 import static vct.col.rewrite.VectorEncode.Type.*;
 import static vct.col.rewrite.VectorEncode.Op.*;
 
@@ -66,15 +65,15 @@ public class VectorEncode extends AbstractRewriter {
       vct.col.ast.Type t=null;
       switch(op.e2){
       case Int:
-        t=create.primitive_type(Sort.Integer);
+        t=create.primitive_type(PrimitiveSort.Integer);
         break;
       case Float:
-        t=create.primitive_type(Sort.Float);
+        t=create.primitive_type(PrimitiveSort.Float);
         break;
       }
-      args.add(create.field_decl("ar", create.primitive_type(Sort.Array,t)));
-      args.add(create.field_decl("from", create.primitive_type(Sort.Integer)));
-      args.add(create.field_decl("upto", create.primitive_type(Sort.Integer)));
+      args.add(create.field_decl("ar", create.primitive_type(PrimitiveSort.Array,t)));
+      args.add(create.field_decl("from", create.primitive_type(PrimitiveSort.Integer)));
+      args.add(create.field_decl("upto", create.primitive_type(PrimitiveSort.Integer)));
       cb.context(neq(create.local_name("ar"),create.reserved_name(ASTReserved.Null)));
       cb.context(create.expression(StandardOperator.LTE,create.constant(0),create.local_name("from")));
       cb.context(create.expression(StandardOperator.LTE,create.local_name("from"),create.local_name("upto")));
@@ -84,7 +83,7 @@ public class VectorEncode extends AbstractRewriter {
           create.expression(StandardOperator.LTE,create.local_name("from"),create.local_name("i")),
           create.expression(StandardOperator.LT,create.local_name("i"),create.local_name("upto"))
       );
-      DeclarationStatement decl=create.field_decl("i",create.primitive_type(Sort.Integer));
+      DeclarationStatement decl=create.field_decl("i",create.primitive_type(PrimitiveSort.Integer));
       ASTNode ari=create.expression(StandardOperator.Subscript,
           create.local_name("ar"),create.local_name("i"));
       cb.context(create.starall(range,create.expression(StandardOperator.Perm,ari,create.constant(1)), decl));
@@ -95,8 +94,8 @@ public class VectorEncode extends AbstractRewriter {
             create.expression(StandardOperator.EQ,ari,create.local_name("c")), decl));
         break;
       case Add:
-        args.add(create.field_decl("e1",create.primitive_type(Sort.Sequence,t)));
-        args.add(create.field_decl("e2",create.primitive_type(Sort.Sequence,t)));
+        args.add(create.field_decl("e1",create.primitive_type(PrimitiveSort.Sequence,t)));
+        args.add(create.field_decl("e2",create.primitive_type(PrimitiveSort.Sequence,t)));
         ASTNode len=create.expression(StandardOperator.Minus,create.local_name("upto"),create.local_name("from"));
         cb.context(create.expression(StandardOperator.EQ,
             create.expression(StandardOperator.Size,create.local_name("e1")),len));
@@ -112,7 +111,7 @@ public class VectorEncode extends AbstractRewriter {
         break;
       }
       Method header=create.method_decl(
-          create.primitive_type(Sort.Void), cb.getContract(), name(op), args, null);
+          create.primitive_type(PrimitiveSort.Void), cb.getContract(), name(op), args, null);
       vector_lib.add_static(header);
     }
     create.leave();
@@ -134,7 +133,7 @@ public class VectorEncode extends AbstractRewriter {
         detect(D.getType()); // check for valid type.
         DeclarationStatement decl=create.field_decl(
             D.name(),
-            create.primitive_type(Sort.Array,D.getType()),
+            create.primitive_type(PrimitiveSort.Array,D.getType()),
             create.new_array(D.getType(), upto));
         res.add(decl);
         locals.add(D.name());
@@ -213,7 +212,7 @@ public class VectorEncode extends AbstractRewriter {
   
   private Type detect(vct.col.ast.Type type) {
     if (type.isInteger()) return Int;
-    if (type.isPrimitive(Sort.Float)) return Float;
+    if (type.isPrimitive(PrimitiveSort.Float)) return Float;
     Fail("type %s is invalid in vector blocks",type);
     return null;
   }

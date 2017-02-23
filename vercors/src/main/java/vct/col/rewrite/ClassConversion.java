@@ -130,7 +130,7 @@ public class ClassConversion extends AbstractRewriter {
       Abort("struct value used for constructor call");
       // If this is actually a constructor call.
       String method = v.type() + SEP + v.type();
-      MethodInvokation res=create.invokation(null, null, method, rewrite(v.values()));
+      MethodInvokation res=create.invokation(null, null, method, rewrite(v.valuesArray()));
       res.set_before(rewrite(v.get_before()));
       res.set_after(rewrite(v.get_after()));
       result=res;

@@ -12,7 +12,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import vct.col.ast.*;
 import vct.col.ast.ASTSpecial.Kind;
 import vct.col.ast.BindingExpression.Binder;
-import vct.col.ast.PrimitiveType.Sort;
 import vct.col.util.ASTUtils;
 import vct.col.util.NameScanner;
 import vct.col.util.OriginWrapper;
@@ -52,7 +51,7 @@ public class ParallelBlockEncoder extends AbstractRewriter {
  
   @Override
   public void visit(ParallelBlock pb){
-    Contract c=pb.contract;
+    Contract c=pb.contract();
     if (c==null){
       Fail("parallel block without a contract");
     }
@@ -71,7 +70,7 @@ public class ParallelBlockEncoder extends AbstractRewriter {
     Hashtable<NameExpression,ASTNode> map=new Hashtable();
     Substitution sigma=new Substitution(source(),map);
     */
-    DeclarationStatement iter_decls[] = new DeclarationStatement[pb.iters.length];
+    DeclarationStatement iter_decls[] = new DeclarationStatement[pb.itersLength()];
     //iter_decls_prime = new DeclarationStatement[pb.iters.length];
     ArrayList<ASTNode> guard_list=new ArrayList<ASTNode>();
     /*
@@ -79,10 +78,10 @@ public class ParallelBlockEncoder extends AbstractRewriter {
     ArrayList<ASTNode> guard_prime_list_after=new ArrayList();
     Hashtable<NameExpression,ASTNode> prime=new Hashtable();
     */
-    for(int i=0;i<iter_decls.length;i++){
-      iter_decls[i]=create.field_decl(pb.iters[i].name(), pb.iters[i].getType());
+    for (int i = 0; i < iter_decls.length; i++) {
+      iter_decls[i] = create.field_decl(pb.iteration(i).name(), pb.iteration(i).getType());
       //iter_decls_prime[i]=create.field_decl(pb.iters[i].name+"__prime", pb.iters[i].getType());
-      ASTNode tmp=create.expression(StandardOperator.Member, create.local_name(pb.iters[i].name()), pb.iters[i].init());
+      ASTNode tmp = create.expression(StandardOperator.Member, create.local_name(pb.iteration(i).name()), pb.iteration(i).init());
       guard_list.add(tmp);
       /*
       check_cb.requires(tmp);
@@ -132,7 +131,7 @@ public class ParallelBlockEncoder extends AbstractRewriter {
     Contract res=main_cb.getContract();
     */
     
-    ASTNode res=do_block(new ForEachLoop(iter_decls,iters_guard, pb.block).setContract(pb.contract),true);
+    ASTNode res=do_block(new ForEachLoop(iter_decls, iters_guard, pb.block()).setContract(pb.contract()), true);
     
     blocks.pop();
     result=res;
@@ -150,7 +149,7 @@ public class ParallelBlockEncoder extends AbstractRewriter {
     Hashtable<String,Type> check_vars=new Hashtable<String, Type>(main_vars);
     ParallelBlock blk=null;
     for(ParallelBlock b:blocks){
-      if (b.label.equals(pb.label())) {
+      if (b.label().equals(pb.label())) {
         blk=b;
       }
     }
@@ -159,7 +158,9 @@ public class ParallelBlockEncoder extends AbstractRewriter {
     }
     ArrayList<ASTNode> guard_list=new ArrayList<ASTNode>();
     ArrayList<DeclarationStatement> guard_decls=new ArrayList<DeclarationStatement>();
-    for(DeclarationStatement decl:blk.iters){
+    
+    for (int i = 0; i < blk.itersLength(); i++) {
+      DeclarationStatement decl = blk.iteration(i);
       ASTNode tmp = create.expression(StandardOperator.Member, create.unresolved_name(decl.name()), decl.init());
       guard_list.add(tmp);
       tmp=create.expression(StandardOperator.Size,decl.init());
@@ -202,14 +203,14 @@ public class ParallelBlockEncoder extends AbstractRewriter {
       }
     }
     currentTargetClass.add(create.method_decl(
-        create.primitive_type(Sort.Void),
+        create.primitive_type(PrimitiveSort.Void),
         check_cb.getContract(),
         check_name,
         gen_pars(check_vars),
         res
     ));
     currentTargetClass.add(create.method_decl(
-        create.primitive_type(Sort.Void),
+        create.primitive_type(PrimitiveSort.Void),
         main_cb.getContract(),
         main_name,
         gen_pars(main_vars),
@@ -223,10 +224,10 @@ public class ParallelBlockEncoder extends AbstractRewriter {
     count++;
     String main_name = "parrallel_region_main_" + count;
     ContractBuilder main_cb=new ContractBuilder();
-    Hashtable<String,Type> main_vars=free_vars(region.blocks());
+    Hashtable<String,Type> main_vars=free_vars(region.blocksArray());
     BlockStatement body;
     if (region.contract() == null) {
-      for (ParallelBlock pb : region.blocks()) {
+      for (ParallelBlock pb : region.blocksArray()) {
         Contract c=(Contract)rewrite((ASTNode)pb);
         if (c!=null){
           main_cb.requires(c.invariant);
@@ -241,13 +242,13 @@ public class ParallelBlockEncoder extends AbstractRewriter {
     } else {
       rewrite(region.contract(), main_cb);
       body=create.block();
-      for (ParallelBlock pb : region.blocks()) {
+      for (ParallelBlock pb : region.blocksArray()) {
         String block_name="block_check_"+(++count);
         Hashtable<String,Type> block_vars=free_vars(pb);
         
         Contract c=(Contract)rewrite((ASTNode)pb);     
         currentTargetClass.add(create.method_decl(
-            create.primitive_type(Sort.Void),
+            create.primitive_type(PrimitiveSort.Void),
             c,
             block_name,
             gen_pars(block_vars),
@@ -258,36 +259,36 @@ public class ParallelBlockEncoder extends AbstractRewriter {
       HashMap<String,ParallelBlock> blocks=new HashMap<String, ParallelBlock>();
       HashMap<String,HashSet<String>> may_deps=new HashMap<String, HashSet<String>>();
       HashMap<String,HashSet<String>> must_deps=new HashMap<String, HashSet<String>>();
-      for (ParallelBlock pb : region.blocks()) {
+      for (ParallelBlock pb : region.blocksArray()) {
         /* before is a set of blocks that are guaranteed
          * not to run concurrently with the current block.
          */
         HashSet<String> may=new HashSet<String>();
-        may.add(pb.label);
+        may.add(pb.label());
         HashSet<String> must=new HashSet<String>();
-        must.add(pb.label);
-        for(int i=0;i<pb.deps.length;i++){
-          ASTNode d=pb.deps[i];
+        must.add(pb.label());
+        for (int i = 0; i < pb.depsLength(); i++) {
+          ASTNode d=pb.dependency(i);
           if (d instanceof NameExpression){
             String dep=d.toString();
             HashSet<String> trans=may_deps.get(dep);
             if (trans==null) {
-              Fail("dependency %s of %s is unknown",dep,pb.label);
+              Fail("dependency %s of %s is unknown",dep,pb.label());
             }
             may.addAll(trans);
             must.addAll(must_deps.get(dep));
             ParallelBlock pb2=blocks.get(dep);
-            ASTNode args[]=new ASTNode[pb2.iters.length];
+            ASTNode args[]=new ASTNode[pb2.itersLength()];
             for(int j=0;j<args.length;j++){
               args[j]=create.reserved_name(ASTReserved.Any);
             }
-            pb.deps[i]=create.invokation(null,null,dep, args);
+            pb.dependency(i, create.invokation(null,null,dep, args));
           } else if (d instanceof MethodInvokation){
             MethodInvokation e=(MethodInvokation)d;
             String dep=e.method;
             HashSet<String> trans=must_deps.get(dep);
             if (trans==null) {
-              Fail("dependency %s of %s is unknown",dep,pb.label);
+              Fail("dependency %s of %s is unknown",dep,pb.label());
             }
             boolean add=true;
             for(ASTNode a:e.getArgs()){
@@ -311,48 +312,58 @@ public class ParallelBlockEncoder extends AbstractRewriter {
               ParallelBlock pb2=blocks.get(d);
               ArrayList<ASTNode> conds=new ArrayList<ASTNode>();
               ArrayList<DeclarationStatement> decls=new ArrayList<DeclarationStatement>();
-              for(DeclarationStatement decl:pb2.iters){
-                decls.add(create.field_decl("x_"+decl.name(), decl.getType()));
+              
+              for (int i = 0; i < pb2.itersLength(); i++) {
+                DeclarationStatement decl = pb2.iteration(i);
+            	decls.add(create.field_decl("x_"+decl.name(), decl.getType()));
               }
+
               HashMap<NameExpression, ASTNode> map=new HashMap<NameExpression, ASTNode>();
               Substitution sigma=new Substitution(source(),map);
-              for(DeclarationStatement decl:pb.iters){
+              
+              for (int i = 0; i < pb.itersLength(); i++) {
+                DeclarationStatement decl = pb.iteration(i);
                 decls.add(create.field_decl("y_"+decl.name(), decl.getType()));
-                map.put(create.unresolved_name(decl.name()), create.unresolved_name("y_"+decl.name()));  
+                map.put(create.unresolved_name(decl.name()), create.unresolved_name("y_"+decl.name())); 
               }
-              for(ASTNode dep_tmp:pb.deps){
+              
+              for (int i = 0; i < pb.depsLength(); i++) {
+                ASTNode dep_tmp = pb.dependency(i);
                 MethodInvokation dep=(MethodInvokation)dep_tmp;
                 String dname=dep.method;
-                if (pb2.label.equals(dname)){
+                if (pb2.label().equals(dname)){
                   ArrayList<ASTNode> parts=new ArrayList<ASTNode>();
-                  for(int i=0;i<pb2.iters.length;i++){
-                    if (!dep.getArg(i).isReserved(ASTReserved.Any)){
+                  for (int j = 0; j < pb2.itersLength(); j++) {
+                    if (!dep.getArg(j).isReserved(ASTReserved.Any)){
                       parts.add(create.expression(StandardOperator.EQ,
-                        create.argument_name("x_"+pb2.iters[i].name()),
-                        sigma.rewrite(dep.getArg(i))
+                        create.argument_name("x_"+pb2.iteration(j).name()),
+                        sigma.rewrite(dep.getArg(j))
                       ));
                     }
                   }
                   conds.add(create.fold(StandardOperator.And,parts));
                 } else {
                   ParallelBlock pb1=blocks.get(dname);
-                  if (must_deps.get(dname).contains(pb2.label)){
+                  if (must_deps.get(dname).contains(pb2.label())){
                     conds.add(create.constant(true));
                     break;
                   }
                   ArrayList<DeclarationStatement> exists=new ArrayList<DeclarationStatement>();
-                  ASTNode args[]=new ASTNode[pb2.iters.length+pb1.iters.length];
-                  for(int i=0;i<pb2.iters.length;i++){
-                    args[i]=create.argument_name("x_"+pb2.iters[i].name());
+                  ASTNode args[]=new ASTNode[pb2.itersLength() + pb1.itersLength()];
+                  
+                  for (int j = 0; j < pb2.itersLength(); j++){
+                    args[j] = create.argument_name("x_" + pb2.iteration(j).name());
                   }
-                  for(int i=0;i<pb1.iters.length;i++){
-                    if (dep.getArg(i).isReserved(ASTReserved.Any)){
-                      args[pb2.iters.length+i]=create.unresolved_name("z_"+i);
+                  
+                  for (int j = 0; j < pb1.itersLength(); j++) {
+                    if (dep.getArg(j).isReserved(ASTReserved.Any)) {
+                      args[pb2.itersLength() + j] = create.unresolved_name("z_" + j);
                     } else {
-                      args[pb2.iters.length+i]=sigma.rewrite(dep.getArg(i));
+                      args[pb2.itersLength() + j] = sigma.rewrite(dep.getArg(j));
                     }
                   }
-                  ASTNode cond=create.invokation(null,null,"before_" + pb2.label + "_" + pb1.label, args);
+                  
+                  ASTNode cond = create.invokation(null,null,"before_" + pb2.label() + "_" + pb1.label(), args);
                   if (exists.size()>0){
                     cond=create.exists(create.constant(true),cond,exists.toArray(new DeclarationStatement[0]));
                   }
@@ -361,22 +372,22 @@ public class ParallelBlockEncoder extends AbstractRewriter {
               }
               ASTNode cond=create.fold(StandardOperator.Or, conds);
               currentTargetClass.add(create.function_decl(
-                  create.primitive_type(Sort.Boolean),
+                  create.primitive_type(PrimitiveSort.Boolean),
                   null,
-                  "before_"+pb2.label+"_"+pb.label,
+                  "before_"+pb2.label()+"_"+pb.label(),
                   decls.toArray(new DeclarationStatement[0]),
                   cond
               ));
             }
           }
         }
-        may_deps.put(pb.label,may);
-        must_deps.put(pb.label,must);
-        blocks.put(pb.label,pb);
+        may_deps.put(pb.label(),may);
+        must_deps.put(pb.label(),must);
+        blocks.put(pb.label(),pb);
       }
     }
     currentTargetClass.add(create.method_decl(
-        create.primitive_type(Sort.Void),
+        create.primitive_type(PrimitiveSort.Void),
         main_cb.getContract(),
         main_name,
         gen_pars(main_vars),
@@ -399,7 +410,9 @@ public class ParallelBlockEncoder extends AbstractRewriter {
     Hashtable<String,Type> main_vars=free_vars(pre_condition);
     ArrayList<ASTNode> list=new ArrayList<ASTNode>();
     int N=0;
-    for(DeclarationStatement decl:pb1.iters){
+    
+    for (int i = 0; i < pb1.itersLength(); i++) {
+      DeclarationStatement decl = pb1.iteration(i);
       String name="x"+(++N);
       main_vars.put(name,decl.getType());
       map1.put(create.unresolved_name(decl.name()),create.unresolved_name(name));
@@ -411,7 +424,9 @@ public class ParallelBlockEncoder extends AbstractRewriter {
           StandardOperator.LT,create.unresolved_name(name),rewrite(range.arg(1)))
       );
     }
-    for(DeclarationStatement decl:pb2.iters){
+    
+    for (int i = 0; i < pb2.itersLength(); i++) {
+      DeclarationStatement decl = pb2.iteration(i);
       String name="x"+(++N);
       main_vars.put(name,decl.getType());
       map2.put(create.unresolved_name(decl.name()),create.unresolved_name(name));
@@ -423,16 +438,17 @@ public class ParallelBlockEncoder extends AbstractRewriter {
           StandardOperator.LT,create.unresolved_name(name),rewrite(range.arg(1)))
       );
     }
+    
     ASTNode args[]=new ASTNode[N];
     for(int i=0;i<N;){
       args[i]=create.argument_name("x"+(++i));
     }
-    for(ASTNode clause:ASTUtils.conjuncts(pb1.contract.pre_condition,StandardOperator.Star)){
+    for(ASTNode clause:ASTUtils.conjuncts(pb1.contract().pre_condition,StandardOperator.Star)){
       if(clause.getType().isResource()){
         list.add(sigma1.rewrite(clause));
       }
     }
-    for(ASTNode clause:ASTUtils.conjuncts(pb2.contract.pre_condition,StandardOperator.Star)){
+    for(ASTNode clause:ASTUtils.conjuncts(pb2.contract().pre_condition,StandardOperator.Star)){
       if(clause.getType().isResource()){
         list.add(sigma2.rewrite(clause));
       }      
@@ -440,16 +456,16 @@ public class ParallelBlockEncoder extends AbstractRewriter {
     ASTNode body=create.special(ASTSpecial.Kind.Assert,create.fold(StandardOperator.Star, list));
     if (guard) {
       body=create.ifthenelse(create.expression(StandardOperator.Not,
-              create.invokation(null, null, "before_"+pb1.label+"_"+pb2.label , args)),
+              create.invokation(null, null, "before_"+pb1.label()+"_"+pb2.label(), args)),
             create.block(
               body
             )
           );
     }
     currentTargetClass.add(create.method_decl(
-        create.primitive_type(Sort.Void),
+        create.primitive_type(PrimitiveSort.Void),
         cb.getContract(),
-        "check_"+pb1.label+"_"+pb2.label,
+        "check_"+pb1.label()+"_"+pb2.label(),
         gen_pars(main_vars),
         create.block(
           body
@@ -461,7 +477,7 @@ public class ParallelBlockEncoder extends AbstractRewriter {
   @Override
   public void visit(ParallelAtomic pa){
     BlockStatement block=rewrite(pa.block());
-    for(ASTNode node:pa.synclist()){
+    for (ASTNode node : pa.synclistAsArray()) {
       if (node instanceof NameExpression){
         NameExpression name=(NameExpression)node;
         if (name.getKind()==NameExpression.Kind.Label){
@@ -604,7 +620,7 @@ public class ParallelBlockEncoder extends AbstractRewriter {
       cb.requires(copy_rw.rewrite(e.getArg(0))); //update new contract
   
       Method send_body=create.method_decl(
-              create.primitive_type(PrimitiveType.Sort.Void),
+              create.primitive_type(PrimitiveSort.Void),
               cb.getContract(), //method contract 
               send_name,
               send_decl.toArray(new DeclarationStatement[0]),
@@ -664,7 +680,7 @@ public class ParallelBlockEncoder extends AbstractRewriter {
       cb.ensures(copy_rw.rewrite(e.getArg(0))); //update new contract
       
       Method recv_body=create.method_decl(
-              create.primitive_type(PrimitiveType.Sort.Void),
+              create.primitive_type(PrimitiveSort.Void),
               cb.getContract(), //method contract 
               recv_name,
               recv_decl.toArray(new DeclarationStatement[0]),
@@ -810,7 +826,7 @@ public class ParallelBlockEncoder extends AbstractRewriter {
     } else {
       DeclarationStatement main_pars[]=gen_pars(main_vars);
       currentTargetClass.add(create.method_decl(
-          create.primitive_type(Sort.Void),
+          create.primitive_type(PrimitiveSort.Void),
           main_cb.getContract(),
           main_name,
           main_pars,
@@ -885,7 +901,7 @@ public class ParallelBlockEncoder extends AbstractRewriter {
     
     DeclarationStatement body_pars[]=gen_pars(body_vars);
     currentTargetClass.add(create.method_decl(
-        create.primitive_type(Sort.Void),
+        create.primitive_type(PrimitiveSort.Void),
         body_cb.getContract(),
         body_name,
         body_pars,
@@ -954,7 +970,7 @@ public class ParallelBlockEncoder extends AbstractRewriter {
           cb.ensures(shift.rewrite(g));
         }
         Method guard_method=create.method_decl(
-            create.primitive_type(PrimitiveType.Sort.Void),
+            create.primitive_type(PrimitiveSort.Void),
             cb.getContract(),
             String.format("guard_check_%s_%s",S,R),
             body_decl,
@@ -985,7 +1001,7 @@ public class ParallelBlockEncoder extends AbstractRewriter {
         }
         cb.ensures(copy_rw.rewrite(recv.getArg(0)));
         Method resource_method=create.method_decl(
-            create.primitive_type(PrimitiveType.Sort.Void),
+            create.primitive_type(PrimitiveSort.Void),
             cb.getContract(),
             String.format("resource_check_%s_%s",S,R),
             body_decl,

@@ -20,7 +20,6 @@ import org.apache.commons.lang3.StringEscapeUtils;
 
 import vct.col.ast.*;
 import vct.col.ast.ASTSpecial.Kind;
-import vct.col.ast.PrimitiveType.Sort;
 import vct.col.syntax.JavaDialect;
 import vct.col.syntax.JavaSyntax;
 import vct.col.syntax.Syntax;
@@ -67,7 +66,7 @@ public class Java8JMLtoCol extends ANTLRtoCOL implements Java8JMLVisitor<ASTNode
     int ofs=0;
     while(ofs<N){
       if (match(ofs,true,ctx,"[","]")){
-        t=create.primitive_type(PrimitiveType.Sort.Array,t);
+        t=create.primitive_type(PrimitiveSort.Array,t);
         ofs+=2;
       } else {
         throw Failure("unimplemented dims");
@@ -114,7 +113,7 @@ public class Java8JMLtoCol extends ANTLRtoCOL implements Java8JMLVisitor<ASTNode
     if (tree instanceof ParserRuleContext) {
       ParserRuleContext ctx=(ParserRuleContext)tree;
       if (instance(ctx,"TypeParameter")){
-        decl=create.field_decl(getIdentifier(ctx,0),create.primitive_type(Sort.Class));
+        decl=create.field_decl(getIdentifier(ctx,0),create.primitive_type(PrimitiveSort.Class));
         decl.setGhost(false);
       //} else if (match(ctx,"")){
         
@@ -300,7 +299,7 @@ public class Java8JMLtoCol extends ANTLRtoCOL implements Java8JMLVisitor<ASTNode
       }
       if (match(rest_ctx,"[","]","ArrayInitializer")){
         ASTNode vals[]=convert_list((ParserRuleContext)rest_ctx.getChild(2), "{", ",", "}");
-        return create.struct_value(create.primitive_type(Sort.Array,basetype),null,vals);
+        return create.struct_value(create.primitive_type(PrimitiveSort.Array,basetype),null,vals);
       }
     }
     Debug("no class creator");
@@ -335,7 +334,7 @@ public class Java8JMLtoCol extends ANTLRtoCOL implements Java8JMLVisitor<ASTNode
         object=null;
         method=((NameExpression)om).getName();
       } else if (om instanceof Dereference){
-        object=((Dereference)om).object();
+        object=((Dereference)om).obj();
         method=((Dereference)om).field();
       } else {
         throw hre.lang.System.Failure("could not convert %s to object/method at %s",om.getClass(),om.getOrigin());
@@ -459,7 +458,7 @@ public class Java8JMLtoCol extends ANTLRtoCOL implements Java8JMLVisitor<ASTNode
     }
     Type t;
     if (match(N-2,true,ctx,"void")){
-      t=create.primitive_type(Sort.Void);
+      t=create.primitive_type(PrimitiveSort.Void);
     } else {
       t=checkType(convert(ctx,N-2));
     }
@@ -601,17 +600,17 @@ public class Java8JMLtoCol extends ANTLRtoCOL implements Java8JMLVisitor<ASTNode
 
   public ASTNode getType(ParserRuleContext ctx) {
     if (match(ctx,"seq","<",null,">")){
-      return create.primitive_type(Sort.Sequence, checkType(convert(ctx,0)));
+      return create.primitive_type(PrimitiveSort.Sequence, checkType(convert(ctx,0)));
     }
     if (match(ctx,"bag","<",null,">")){
-      return create.primitive_type(Sort.Bag, checkType(convert(ctx,0)));
+      return create.primitive_type(PrimitiveSort.Bag, checkType(convert(ctx,0)));
     }
     if (match(ctx,"set","<",null,">")){
-      return create.primitive_type(Sort.Set, checkType(convert(ctx,0)));
+      return create.primitive_type(PrimitiveSort.Set, checkType(convert(ctx,0)));
     }
   
     if (match(ctx,null,"[","]")){
-      return create.primitive_type(Sort.Array, checkType(convert(ctx,0)));
+      return create.primitive_type(PrimitiveSort.Array, checkType(convert(ctx,0)));
     }
     if (match(ctx,null,"->",null)){
       Type left=checkType(convert(ctx,0));
@@ -773,7 +772,7 @@ public class Java8JMLtoCol extends ANTLRtoCOL implements Java8JMLVisitor<ASTNode
     while(pkg instanceof Dereference){
       Dereference d=(Dereference)pkg;
       list.add(0,d.field());
-      pkg=d.object();
+      pkg=d.obj();
     }
     list.add(0,pkg.toString());
     return list.toArray(new String[0]);
@@ -1154,7 +1153,7 @@ public class Java8JMLtoCol extends ANTLRtoCOL implements Java8JMLVisitor<ASTNode
       args=getFormalParameters(cons_ctx.getChild(2),new AtomicBoolean());
     }
     ASTNode body=convert(ctx,N-1);
-    Type returns=create.primitive_type(Sort.Void);
+    Type returns=create.primitive_type(PrimitiveSort.Void);
     Method res=create.method_kind(Method.Kind.Constructor, returns ,null, name, args, body);
     for(int i=0;i<base;i++){
       res.attach(convert(ctx,i));
@@ -2251,7 +2250,7 @@ public class Java8JMLtoCol extends ANTLRtoCOL implements Java8JMLVisitor<ASTNode
     int ofs=0;
     int N=dims.getChildCount();
     while(match(ofs,true,dims,"[","]")){
-      t=create.primitive_type(Sort.Array,t);
+      t = create.primitive_type(PrimitiveSort.Array, t);
       ofs+=2;
     }
     if (ofs!=N){

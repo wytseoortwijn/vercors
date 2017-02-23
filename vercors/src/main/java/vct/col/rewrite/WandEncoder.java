@@ -19,7 +19,7 @@ import vct.col.ast.Lemma;
 import vct.col.ast.Method;
 import vct.col.ast.MethodInvokation;
 import vct.col.ast.OperatorExpression;
-import vct.col.ast.PrimitiveType.Sort;
+import vct.col.ast.PrimitiveSort;
 import vct.col.ast.ProgramUnit;
 import vct.col.ast.StandardOperator;
 import vct.col.ast.Type;
@@ -145,7 +145,7 @@ public class WandEncoder extends AbstractRewriter {
       cb.ensures(post());
       Hashtable<String,Type> vars=free_vars(block);
       currentTargetClass.add(create.method_decl(
-          create.primitive_type(Sort.Void),
+          create.primitive_type(PrimitiveSort.Void),
           cb.getContract(),
           name,
           gen_pars(vars),

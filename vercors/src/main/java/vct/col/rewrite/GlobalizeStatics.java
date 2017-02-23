@@ -175,10 +175,10 @@ public abstract class GlobalizeStatics extends AbstractRewriter {
       return;
     }
     ClassType t;
-    if (e.object() instanceof ClassType){
-      t=(ClassType)e.object();
+    if (e.obj() instanceof ClassType){
+      t=(ClassType)e.obj();
     } else {
-      t=(ClassType)e.object().getType();
+      t=(ClassType)e.obj().getType();
     }
     String s=t.toString();
     if (s.equals("<<label>>")){

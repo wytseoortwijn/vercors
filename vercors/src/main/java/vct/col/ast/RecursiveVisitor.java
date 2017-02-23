@@ -63,7 +63,7 @@ public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
   
   @Override
   public void visit(OperatorExpression e) {
-    for(ASTNode arg:e.args()){
+    for (ASTNode arg : e.argsArray()) {
       arg.accept(this);
     }    
   }
@@ -80,10 +80,10 @@ public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
 
   @Override
   public void visit(FunctionType t) {
-    t.getResult().accept(this);
-    int N=t.getArity();
+    t.result().accept(this);
+    int N = t.arity();
     for(int i=0;i<N;i++){
-      t.getArgument(i).accept(this);
+      t.param(i).accept(this);
     }
   }
   @Override
@@ -251,7 +251,7 @@ public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
 
   @Override
   public void visit(Dereference e){
-    e.object().accept(this);
+    e.obj().accept(this);
   }
   
   @Override
@@ -260,7 +260,7 @@ public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
   }
   
   public void visit(ParallelAtomic pa){
-    for(ASTNode n:pa.synclist()){
+    for (ASTNode n : pa.synclistAsArray()) {
       dispatch(n);
     }
     dispatch(pa.block());
@@ -277,14 +277,14 @@ public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
   }
 
   public void visit(ParallelBlock pb){
-    dispatch(pb.contract);
-    dispatch(pb.iters);
-    dispatch(pb.block);
+    dispatch(pb.contract());
+    dispatch(pb.itersArray());
+    dispatch(pb.block());
   }
   
   public void visit(ParallelRegion region){
     dispatch(region.contract());
-    dispatch(region.blocks());
+    dispatch(region.blocksArray());
   }
 
   public void visit(Contract c){
@@ -359,7 +359,7 @@ public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
   @Override
   public void visit(StructValue v) {
     dispatch(v.type());
-    dispatch(v.values());
+    dispatch(v.valuesArray());
   }
 
   @Override
@@ -370,7 +370,7 @@ public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
 
   @Override
   public void visit(Constraining c) {
-    dispatch(c.vars());
+    dispatch(c.varsArray());
     dispatch(c.block());
   }
 

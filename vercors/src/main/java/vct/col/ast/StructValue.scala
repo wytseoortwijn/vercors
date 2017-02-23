@@ -1,16 +1,27 @@
 package vct.col.ast
 
-import java.util.HashMap
+import scala.collection.JavaConversions.mapAsScalaMap
 import scala.collection.JavaConverters._
+import scala.collection.immutable.Map
 import vct.col.util.VisitorHelper
 
-class StructValue(val `type`:Type, private[this] val _map:java.util.Map[String,Integer], private[this] val _values:Array[ASTNode]) extends ExpressionNode with VisitorHelper {
-  val map = if (_map != null) new HashMap[String,Integer](_map) else null
-  val values = _values.clone()
+case class StructValue(val `type`:Type, val map:Map[String,Integer], val values:List[ASTNode]) extends ExpressionNode with VisitorHelper {
+  require(values != null, "The StructValue value list cannot be null")
+  require(map != null, "The StructValue map cannot be null")
+
+  def this(t:Type, map:Map[String,Integer], values:Array[ASTNode]) = this(t, map, values.toList)
+  def this(t:Type, map:Map[String,Integer]) = this(t, map, Array[ASTNode]())
+  def this(t:Type, map:java.util.Map[String,Integer], values:Array[ASTNode]) = this(t, map.toMap, values.toList)
+  def this(t:Type, map:java.util.Map[String,Integer]) = this(t, map, Array[ASTNode]())
+  def this(t:Type) = this(t, Map[String,Integer]())
   
-  def this(t:Type, m:java.util.Map[String,Integer]) = this(t, m, Array())
+  def valuesLength = values.length
   def value(i:Int) = values.apply(i)
+  def mapJava = map.asJava
   
+  @deprecated("this method will be removed", "soon")
+  def valuesArray = values.toArray
+
   override def accept_simple[T,A](m:ASTMapping1[T,A], arg:A) = m.map(this, arg)
   override def accept_simple[T](v:ASTVisitor[T]) = handle_standard(() => v.visit(this))
   override def accept_simple[T](m:ASTMapping[T]) = handle_standard(() => m.map(this))

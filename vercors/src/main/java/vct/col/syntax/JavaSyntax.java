@@ -7,10 +7,10 @@ import hre.lang.HREError;
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTReserved;
 import vct.col.ast.ASTSpecial;
+import vct.col.ast.PrimitiveSort;
 import vct.col.print.JavaPrinter;
 import vct.col.rewrite.Parenthesize;
 import static vct.col.ast.StandardOperator.*;
-import static vct.col.ast.PrimitiveType.Sort.*;
 import static vct.col.ast.ASTReserved.*;
 
 /**
@@ -167,20 +167,20 @@ public class JavaSyntax extends Syntax {
     syntax.addRightFix(ShrAssign,">>=",10);
     syntax.addRightFix(SShrAssign,">>>=",10);
     
-    syntax.addPrimitiveType(Double,"double");
-    syntax.addPrimitiveType(Integer,"int");
-    syntax.addPrimitiveType(Long,"long");
-    syntax.addPrimitiveType(Void,"void");
-    syntax.addPrimitiveType(Boolean,"boolean");
-    syntax.addPrimitiveType(Char,"char");
-    syntax.addPrimitiveType(Byte,"byte");
-    syntax.addPrimitiveType(Float,"float");
-    syntax.addPrimitiveType(UInteger,"/*unsigned*/ int");
-    syntax.addPrimitiveType(ULong,"/*unsigned*/ long");
-    syntax.addPrimitiveType(UShort,"/*unsigned*/ short");
-    syntax.addPrimitiveType(Short,"short");
-    syntax.addPrimitiveType(Process,"process");
-    syntax.addPrimitiveType(String,"String");
+    syntax.addPrimitiveType(PrimitiveSort.Double,"double");
+    syntax.addPrimitiveType(PrimitiveSort.Integer,"int");
+    syntax.addPrimitiveType(PrimitiveSort.Long,"long");
+    syntax.addPrimitiveType(PrimitiveSort.Void,"void");
+    syntax.addPrimitiveType(PrimitiveSort.Boolean,"boolean");
+    syntax.addPrimitiveType(PrimitiveSort.Char,"char");
+    syntax.addPrimitiveType(PrimitiveSort.Byte,"byte");
+    syntax.addPrimitiveType(PrimitiveSort.Float,"float");
+    syntax.addPrimitiveType(PrimitiveSort.UInteger,"/*unsigned*/ int");
+    syntax.addPrimitiveType(PrimitiveSort.ULong,"/*unsigned*/ long");
+    syntax.addPrimitiveType(PrimitiveSort.UShort,"/*unsigned*/ short");
+    syntax.addPrimitiveType(PrimitiveSort.Short,"short");
+    syntax.addPrimitiveType(PrimitiveSort.Process,"process");
+    syntax.addPrimitiveType(PrimitiveSort.String,"String");
     
 
     syntax.addReserved(Public,"public");

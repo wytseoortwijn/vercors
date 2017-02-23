@@ -102,9 +102,9 @@ public class ContractBuilder {
     } else {
       ASTNode tmp=post_condition;
       if (at_end){
-        post_condition = OperatorExpression.construct(StandardOperator.Star, post_condition, condition);
+        post_condition = new OperatorExpression(StandardOperator.Star, new ASTNode[] { post_condition, condition });
       } else {
-        post_condition = OperatorExpression.construct(StandardOperator.Star, condition, post_condition);
+        post_condition = new OperatorExpression(StandardOperator.Star, new ASTNode[] { condition, post_condition });
       }
       post_condition.setOrigin(new CompositeOrigin(tmp.getOrigin(),condition.getOrigin()));
     }
@@ -120,9 +120,9 @@ public class ContractBuilder {
     } else {
       ASTNode tmp=post_condition;
       if (at_end){
-        pre_condition = OperatorExpression.construct(StandardOperator.Star, pre_condition, condition);
+        pre_condition = new OperatorExpression(StandardOperator.Star, new ASTNode[] { pre_condition, condition });
       } else {
-        pre_condition = OperatorExpression.construct(StandardOperator.Star, condition, pre_condition);
+        pre_condition = new OperatorExpression(StandardOperator.Star, new ASTNode[] { condition, pre_condition });
       }
       pre_condition.setOrigin(new CompositeOrigin(tmp.getOrigin(),condition.getOrigin()));
     }
@@ -135,7 +135,7 @@ public class ContractBuilder {
       invariant=condition;
     } else {
       ASTNode tmp=invariant;
-      invariant = OperatorExpression.construct(StandardOperator.Star, invariant, condition);
+      invariant = new OperatorExpression(StandardOperator.Star, new ASTNode[] { invariant, condition });
       invariant.setOrigin(new CompositeOrigin(tmp.getOrigin(),condition.getOrigin()));
     }
   }
@@ -147,7 +147,7 @@ public class ContractBuilder {
       invariant=condition;
     } else {
       ASTNode tmp=invariant;
-      invariant = OperatorExpression.construct(StandardOperator.Star, condition, invariant);
+      invariant = new OperatorExpression(StandardOperator.Star, new ASTNode[] { condition, invariant });
       invariant.setOrigin(new CompositeOrigin(tmp.getOrigin(),condition.getOrigin()));
     }
   }

@@ -12,7 +12,7 @@ public class RandomizedIf extends AbstractRewriter {
   @Override
   public void visit(ASTClass cl){
     DeclarationStatement args[]=new DeclarationStatement[0];
-    Method if_any_method=create.method_decl(create.primitive_type(PrimitiveType.Sort.Boolean), null, "if_any_random", args, null);
+    Method if_any_method=create.method_decl(create.primitive_type(PrimitiveSort.Boolean), null, "if_any_random", args, null);
     super.visit(cl);
     cl=(ASTClass)result;
     cl.add(if_any_method);
@@ -28,7 +28,7 @@ public class RandomizedIf extends AbstractRewriter {
       DeclarationStatement[] args=rewrite(m.getArgs());
       BlockStatement body=create.block(
           create.field_decl("if_any_bool",
-          create.primitive_type(PrimitiveType.Sort.Boolean))
+          create.primitive_type(PrimitiveSort.Boolean))
       );
       BlockStatement tmp=currentBlock;
       currentBlock=body;

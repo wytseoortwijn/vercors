@@ -14,6 +14,7 @@ import vct.col.ast.Contract;
 import vct.col.ast.DeclarationStatement;
 import vct.col.ast.Method;
 import vct.col.ast.OperatorExpression;
+import vct.col.ast.PrimitiveSort;
 import vct.col.ast.PrimitiveType;
 import vct.col.ast.ProgramUnit;
 import vct.col.ast.RecursiveVisitor;
@@ -130,7 +131,7 @@ public class BoogieFOL {
     ASTNode assertion=create.special(Kind.Assert,formula.apply(copy_rw));
     BlockStatement body=create.block(assertion);
     program.add_static(create.method_decl(
-        create.primitive_type(PrimitiveType.Sort.Void),
+        create.primitive_type(PrimitiveSort.Void),
         null,
         "formula",
         new DeclarationStatement[0],

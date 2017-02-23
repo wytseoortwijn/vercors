@@ -7,7 +7,6 @@ import java.util.List;
 import hre.ast.Origin;
 import hre.lang.HREError;
 import vct.col.ast.*;
-import vct.col.ast.PrimitiveType.Sort;
 import static hre.lang.System.Abort;
 import viper.api.*;
 
@@ -47,7 +46,7 @@ public class SilverExpressionMap<T,E> implements ASTMapping<E>{
   public E map(ConstantExpression e) {
     if (e.value() instanceof IntegerValue){
       int v = ((IntegerValue)e.value()).value();
-      if (e.getType().isPrimitive(Sort.Fraction)){
+      if (e.getType().isPrimitive(PrimitiveSort.Fraction)){
         switch(v){
           case 0 : return create.no_perm(e.getOrigin());
           case 1 : return create.write_perm(e.getOrigin());
@@ -98,7 +97,7 @@ public class SilverExpressionMap<T,E> implements ASTMapping<E>{
     case Drop: return create.drop(o,e1,e2);
     case Take: return create.take(o,e1,e2);
     case Member: {
-      if (e.arg(1).getType().isPrimitive(Sort.Sequence)){
+      if (e.arg(1).getType().isPrimitive(PrimitiveSort.Sequence)){
         return create.seq_contains(o,e1,e2);
       } else {
         return create.any_set_contains(o,e1,e2);
@@ -116,15 +115,15 @@ public class SilverExpressionMap<T,E> implements ASTMapping<E>{
     case NEQ: return create.neq(o,e1,e2);
 
     case Mult:{
-      if (e.getType().isPrimitive(Sort.Set) || e.getType().isPrimitive(Sort.Bag)){
+      if (e.getType().isPrimitive(PrimitiveSort.Set) || e.getType().isPrimitive(PrimitiveSort.Bag)){
         return create.any_set_intersection(o,e1,e2);
       } else {
         return create.mult(o,e1,e2);
       }
     }
     case Div:{
-      if (e.getType().isPrimitive(PrimitiveType.Sort.Fraction)||
-          e.getType().isPrimitive(PrimitiveType.Sort.ZFraction)){
+      if (e.getType().isPrimitive(PrimitiveSort.Fraction)||
+          e.getType().isPrimitive(PrimitiveSort.ZFraction)){
         return create.frac(o,e1,e2);
       } else {
         return create.div(o,e1,e2);
@@ -132,16 +131,16 @@ public class SilverExpressionMap<T,E> implements ASTMapping<E>{
     }
     case Mod: return create.mod(o,e1,e2);
     case Plus:{
-      if (e.getType().isPrimitive(Sort.Sequence)){
+      if (e.getType().isPrimitive(PrimitiveSort.Sequence)){
         return create.append(o,e1,e2);
-      } else if (e.getType().isPrimitive(Sort.Set) || e.getType().isPrimitive(Sort.Bag)){
+      } else if (e.getType().isPrimitive(PrimitiveSort.Set) || e.getType().isPrimitive(PrimitiveSort.Bag)){
         return create.union(o,e1,e2);
       } else {
         return create.add(o,e1,e2);
       }
     }
     case Minus: {
-      if (e.getType().isPrimitive(Sort.Set) || e.getType().isPrimitive(Sort.Bag)){
+      if (e.getType().isPrimitive(PrimitiveSort.Set) || e.getType().isPrimitive(PrimitiveSort.Bag)){
         return create.any_set_minus(o,e1,e2);
       } else {
         return create.sub(o,e1,e2);
@@ -305,7 +304,7 @@ public class SilverExpressionMap<T,E> implements ASTMapping<E>{
         } else if (e.main.isa(StandardOperator.Perm)||e.main.isa(StandardOperator.Value)){
           ASTNode loc=((OperatorExpression)e.main).arg(0);
           while (loc instanceof Dereference){
-            loc=((Dereference)loc).object();
+            loc=((Dereference)loc).obj();
           }
           if (loc.isa(StandardOperator.Subscript)){
             loc=((OperatorExpression)loc).arg(1);
@@ -366,7 +365,7 @@ public class SilverExpressionMap<T,E> implements ASTMapping<E>{
 
   @Override
   public E map(Dereference e) {
-    return create.FieldAccess(e.getOrigin(), e.object().apply(this), e.field(), e.getType().apply(type));
+    return create.FieldAccess(e.getOrigin(), e.obj().apply(this), e.field(), e.getType().apply(type));
   }
 
   @Override
@@ -473,7 +472,7 @@ public class SilverExpressionMap<T,E> implements ASTMapping<E>{
   public E map(StructValue v) {
     Origin o = v.getOrigin();
     ArrayList<E> elems = new ArrayList<E>();
-    for (int i=0;i<v.values().length;i++) {
+    for (int i = 0; i < v.valuesLength(); i++) {
       elems.add(v.value(i).apply(this));
     }
     T t=((Type)((Type)v.type()).getArg(0)).apply(type);

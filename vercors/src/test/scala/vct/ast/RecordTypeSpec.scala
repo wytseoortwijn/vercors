@@ -1,6 +1,5 @@
 package vct.ast
 
-import hre.lang.HREExitException
 import org.scalatest._
 import scala.collection.JavaConverters._
 import vct.col.ast._
@@ -9,8 +8,8 @@ class RecordTypeSpec extends FlatSpec with Matchers {
   
   "A record type" should "successfully instantiate after invoking the default constructor" in {
     var record = new RecordType(List(
-      new RecordTypeEntry("field1", new PrimitiveType(PrimitiveType.Sort.Integer)),
-      new RecordTypeEntry("field2", new PrimitiveType(PrimitiveType.Sort.Boolean))
+      new RecordTypeEntry("field1", new PrimitiveType(PrimitiveSort.Integer)),
+      new RecordTypeEntry("field2", new PrimitiveType(PrimitiveSort.Boolean))
     ))
     
     record.types.size should be (2)
@@ -20,7 +19,7 @@ class RecordTypeSpec extends FlatSpec with Matchers {
   
   it should "successfully instantiate after calling the alternative constructor (with expected input)" in {
     var names = List("field1", "field2")
-    var types = List(new PrimitiveType(PrimitiveType.Sort.Integer), new PrimitiveType(PrimitiveType.Sort.Boolean))
+    var types = List(new PrimitiveType(PrimitiveSort.Integer), new PrimitiveType(PrimitiveSort.Boolean))
     var record = new RecordType(names, types)
     
     record.types.size should be (2)
@@ -30,7 +29,7 @@ class RecordTypeSpec extends FlatSpec with Matchers {
   
   it should "successfully instantiate after providing too many names" in {
     var names = List("field1", "field2", "field3")
-    var types = List(new PrimitiveType(PrimitiveType.Sort.Integer), new PrimitiveType(PrimitiveType.Sort.Boolean))
+    var types = List(new PrimitiveType(PrimitiveSort.Integer), new PrimitiveType(PrimitiveSort.Boolean))
     var record = new RecordType(names, types)
     
     record.types.size should be (2)
@@ -41,16 +40,16 @@ class RecordTypeSpec extends FlatSpec with Matchers {
   it should "successfully instantiate after providing too many types" in {
     var names = List("field1", "field2")
     var types = List(
-        new PrimitiveType(PrimitiveType.Sort.Integer), 
-        new PrimitiveType(PrimitiveType.Sort.Boolean), 
-        new PrimitiveType(PrimitiveType.Sort.Integer))
+        new PrimitiveType(PrimitiveSort.Integer), 
+        new PrimitiveType(PrimitiveSort.Boolean), 
+        new PrimitiveType(PrimitiveSort.Integer))
     var record = new RecordType(names, types)
     
     record.types.size should be (2)
   }
   
   it should "not accept instantiation with an empty list" in {
-    a [HREExitException] should be thrownBy {
+    a [IllegalArgumentException] should be thrownBy {
       var record = new RecordType(List())
     }
   }
@@ -58,7 +57,7 @@ class RecordTypeSpec extends FlatSpec with Matchers {
   it should "not accept instantiation with too few field entries" in {
     var names = List("field1", "field2")
         
-    a [HREExitException] should be thrownBy {
+    a [IllegalArgumentException] should be thrownBy {
       var record = new RecordType(names, List())
     }
   }

@@ -45,7 +45,7 @@ public class PropagateInvariants extends AbstractRewriter {
       for(ASTNode inv:invariants) { cb.prependInvariant(inv); }
       rewrite(region.contract(), cb);
       invariants.push(region.contract().invariant);
-      ParallelBlock blocks[] = rewrite(region.blocks());
+      ParallelBlock blocks[] = rewrite(region.blocksArray());
       invariants.pop();
       result=create.region(cb.getContract(),blocks);
     } else {
@@ -72,13 +72,13 @@ public class PropagateInvariants extends AbstractRewriter {
   public void visit(ParallelBlock pb){
     ContractBuilder cb=new ContractBuilder();
     for(ASTNode inv:invariants) { cb.prependInvariant(inv); }
-    rewrite(pb.contract,cb);
+    rewrite(pb.contract(), cb);
     ParallelBlock res=create.parallel_block(
-        pb.label,
+        pb.label(),
         cb.getContract(),
-        rewrite(pb.iters),
-        rewrite(pb.block),
-        rewrite(pb.deps)
+        rewrite(pb.itersArray()),
+        rewrite(pb.block()),
+        rewrite(pb.deps())
     );
     result=res;
 

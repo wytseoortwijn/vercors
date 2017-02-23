@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 import vct.col.ast.*;
-import vct.col.ast.PrimitiveType.Sort;
 
 public class RecognizeMultiDim extends AbstractRewriter {
 
@@ -14,7 +13,7 @@ public class RecognizeMultiDim extends AbstractRewriter {
   }
 
   private static Type get_basetype(Type t){
-    while(t.isPrimitive(Sort.Array)){
+    while(t.isPrimitive(PrimitiveSort.Array)){
       PrimitiveType tt=(PrimitiveType)t;
       t=(Type)tt.getArg(0);
     }
@@ -23,7 +22,7 @@ public class RecognizeMultiDim extends AbstractRewriter {
 
   private static ASTNode[] get_dimensions(Type t){
     ArrayList<ASTNode> list=new ArrayList<ASTNode>();
-    while(t.isPrimitive(Sort.Array)){
+    while(t.isPrimitive(PrimitiveSort.Array)){
       PrimitiveType tt=(PrimitiveType)t;
       if (tt.getArgCount()==2){
         list.add(tt.getArg(1));
@@ -55,7 +54,7 @@ public class RecognizeMultiDim extends AbstractRewriter {
       if (dims!=null){
         Debug("Looks like %s is a multi-dimensional array",arg);
         args[i]=create.field_decl(arg,create.primitive_type(
-            Sort.Array,
+        		PrimitiveSort.Array,
             rewrite(get_basetype(t)),
             create.fold(StandardOperator.Mult,dims)
         ));
@@ -103,8 +102,8 @@ public class RecognizeMultiDim extends AbstractRewriter {
         cb.requires(create.expression(StandardOperator.LTE,create.constant(0),create.local_name("i"+i)));
         cb.requires(create.expression(StandardOperator.LT,create.local_name("i"+i),create.local_name("N"+i)));
         cb.requires(create.expression(StandardOperator.LTE,create.constant(0),create.local_name("N"+i)));
-        args[i]=create.field_decl("N"+i,create.primitive_type(Sort.Integer));
-        args[N+i]=create.field_decl("i"+i,create.primitive_type(Sort.Integer));
+        args[i]=create.field_decl("N"+i,create.primitive_type(PrimitiveSort.Integer));
+        args[N+i]=create.field_decl("i"+i,create.primitive_type(PrimitiveSort.Integer));
       }
       ASTNode result=create.local_name("i0");
       ASTNode max=create.local_name("N0");
@@ -130,7 +129,7 @@ public class RecognizeMultiDim extends AbstractRewriter {
         //));
       }
       Method idx=create.function_decl(
-          create.primitive_type(Sort.Integer),
+          create.primitive_type(PrimitiveSort.Integer),
           cb.getContract(),
           "multidim_index_"+N ,
           args,

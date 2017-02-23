@@ -12,7 +12,7 @@ import vct.col.ast.MethodInvokation;
 import vct.col.ast.ProgramUnit;
 import vct.col.ast.StandardOperator;
 import vct.col.ast.Type;
-import vct.col.ast.PrimitiveType.Sort;
+import vct.col.ast.PrimitiveSort;
 import vct.col.util.ASTUtils;
 
 class KernelBodyRewriter extends AbstractRewriter {
@@ -44,19 +44,19 @@ class KernelBodyRewriter extends AbstractRewriter {
   public void visit(Method m){
     ArrayList<DeclarationStatement> decls=new ArrayList<DeclarationStatement>();
     DeclarationStatement inner_decl=create.field_decl(
-        "opencl_lid",create.primitive_type(Sort.Integer),
+        "opencl_lid",create.primitive_type(PrimitiveSort.Integer),
         create.expression(StandardOperator.RangeSeq,
             create.constant(0),create.local_name("opencl_gsize")));
     DeclarationStatement outer_decl=create.field_decl(
-        "opencl_gid",create.primitive_type(Sort.Integer),
+        "opencl_gid",create.primitive_type(PrimitiveSort.Integer),
         create.expression(StandardOperator.RangeSeq,
             create.constant(0),create.local_name("opencl_gcount")));
     ContractBuilder icb=new ContractBuilder(); // thread contract
     ContractBuilder gcb=new ContractBuilder(); // group contract
     gcb.requires(create.constant(true));
     ContractBuilder kcb=new ContractBuilder(); // kernel contract
-    kcb.given(create.field_decl("opencl_gcount",create.primitive_type(Sort.Integer)));
-    kcb.given(create.field_decl("opencl_gsize",create.primitive_type(Sort.Integer)));
+    kcb.given(create.field_decl("opencl_gcount",create.primitive_type(PrimitiveSort.Integer)));
+    kcb.given(create.field_decl("opencl_gsize",create.primitive_type(PrimitiveSort.Integer)));
     Type returns=rewrite(m.getReturnType());
     for(DeclarationStatement d:m.getArgs()){
       decls.add(rewrite(d));
@@ -74,7 +74,7 @@ class KernelBodyRewriter extends AbstractRewriter {
                   create.constant(0),create.local_name("opencl_gsize"))
           ),
           clause,
-          create.field_decl("opencl_lid",create.primitive_type(Sort.Integer)));
+          create.field_decl("opencl_lid",create.primitive_type(PrimitiveSort.Integer)));
       gcb.requires(group);
       kcb.requires(create.starall(
           create.expression(StandardOperator.Member,
@@ -83,7 +83,7 @@ class KernelBodyRewriter extends AbstractRewriter {
                   create.constant(0),create.local_name("opencl_gcount"))
           ),
           group,
-          create.field_decl("opencl_gid",create.primitive_type(Sort.Integer))));
+          create.field_decl("opencl_gid",create.primitive_type(PrimitiveSort.Integer))));
     }
     BlockStatement body=(BlockStatement)rewrite(m.getBody());
     //body.prepend(create.field_decl("opencl_tid",create.primitive_type(Sort.Integer),

@@ -4,8 +4,6 @@ package vct.col.ast;
 import hre.ast.MessageOrigin;
 
 import java.util.*;
-
-import vct.col.ast.PrimitiveType.Sort;
 import vct.col.rewrite.MultiSubstitution;
 import vct.util.ClassName;
 import static hre.lang.System.Abort;
@@ -50,11 +48,11 @@ public class Method extends ASTDeclaration {
 
   public Method(Kind kind, String name,String args[],boolean many,FunctionType t){
     super(name);
-    this.return_type=t.getResult();
+    this.return_type = t.result();
     this.args=new DeclarationStatement[args.length];
     this.var_args=many;
     for(int i=0;i<args.length;i++){
-      this.args[i]=new DeclarationStatement(args[i],t.getArgument(i));
+      this.args[i]=new DeclarationStatement(args[i], t.param(i));
       this.args[i].setParent(this);
       this.args[i].setOrigin(new MessageOrigin("dummy origin for argument "+i));
     }
@@ -155,7 +153,7 @@ public class Method extends ASTDeclaration {
       }
       Debug("building map...");
       for (int i = 0; i < c.given.length && i<object_type.getArgCount(); i++) {
-        if (c.given[i].getType().isPrimitive(Sort.Class)){
+        if (c.given[i].getType().isPrimitive(PrimitiveSort.Class)){
           Debug("%s = %s", c.given[i].name(), object_type.getArg(i));
           map.put(c.given[i].name(), (Type)object_type.getArg(i));
         } else {
@@ -237,7 +235,7 @@ public class Method extends ASTDeclaration {
     if (node instanceof ConstantExpression) return false;
     if (node instanceof OperatorExpression){
       OperatorExpression expr=(OperatorExpression)node;
-      for(ASTNode child:expr.args()){
+      for (ASTNode child : expr.argsArray()) {
         if (find(target,scanned,child)) return true;
       }
       return false;
@@ -253,7 +251,7 @@ public class Method extends ASTDeclaration {
     }
     if (node instanceof Dereference){
       Dereference expr = (Dereference)node;
-      return find(target,scanned, expr.object());
+      return find(target,scanned, expr.obj());
     }
     if (node instanceof BindingExpression){
       BindingExpression abs=(BindingExpression)node;

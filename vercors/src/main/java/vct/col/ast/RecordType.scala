@@ -11,7 +11,8 @@ case class RecordTypeEntry(val fieldName:String, val fieldType:Type)
  * and their types.
  */
 case class RecordType(val types:List[RecordTypeEntry]) extends Type with VisitorHelper {
-  if (types.isEmpty) Abort("record types must have at least one field entry.")
+  require(types != null, "The record type is null")
+  require(!types.isEmpty, "Record types must have at least one field entry.")
   
   /** Instantiates a record type out of separate lists of `names` and `types`. */
   def this(names:List[String], types:List[Type]) = this((names, types).zipped map (new RecordTypeEntry(_,_)))

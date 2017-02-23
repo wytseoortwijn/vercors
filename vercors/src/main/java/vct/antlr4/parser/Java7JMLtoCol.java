@@ -17,7 +17,6 @@ import org.apache.commons.lang3.StringEscapeUtils;
 import vct.col.ast.*;
 import vct.col.ast.ASTClass.ClassKind;
 import vct.col.ast.ASTSpecial.Kind;
-import vct.col.ast.PrimitiveType.Sort;
 import vct.col.ast.Switch.Case;
 import vct.col.syntax.JavaDialect;
 import vct.col.syntax.JavaSyntax;
@@ -86,7 +85,7 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
     if (tree instanceof ParserRuleContext) {
       ParserRuleContext ctx=(ParserRuleContext)tree;
       if (instance(ctx,"TypeParameter")){
-        decl=create.field_decl(getIdentifier(ctx,0),create.primitive_type(Sort.Class));
+        decl=create.field_decl(getIdentifier(ctx,0),create.primitive_type(PrimitiveSort.Class));
         decl.setGhost(false);
       //} else if (match(ctx,"")){
         
@@ -214,7 +213,7 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
           method=((NameExpression)om).getName();
         }
       } else if (om instanceof Dereference){
-        object=((Dereference)om).object();
+        object=((Dereference)om).obj();
         method=((Dereference)om).field();
       } else {
         throw hre.lang.System.Failure("could not convert %s to object/method at %s",om.getClass(),om.getOrigin());
@@ -269,7 +268,7 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
     int N=ctx.getChildCount();
     Type t;
     if (match(0,true,ctx,"void")){
-      t=create.primitive_type(Sort.Void);
+      t=create.primitive_type(PrimitiveSort.Void);
     } else {
       t=checkType(convert(ctx,0));
     }
@@ -299,7 +298,7 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
 
   public ASTNode getType(ParserRuleContext ctx) {
     if (match(ctx,null,"[","]")){
-      return create.primitive_type(Sort.Array, checkType(convert(ctx,0)));
+      return create.primitive_type(PrimitiveSort.Array, checkType(convert(ctx,0)));
     }
     if (match(ctx,null,"->",null)){
       Type left=checkType(convert(ctx,0));
@@ -344,7 +343,7 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
     String name=getIdentifier(ctx,0);
     Type t=create.class_type(name);
     if (match(ctx,null,"[","]")){
-      t=create.primitive_type(PrimitiveType.Sort.Array,t);
+      t=create.primitive_type(PrimitiveSort.Array,t);
     }
     return create.field_decl(name, t);
   }
@@ -368,7 +367,7 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
     while(pkg instanceof Dereference){
       Dereference d=(Dereference)pkg;
       list.add(0,d.field());
-      pkg=d.object();
+      pkg = d.obj();
     }
     list.add(0,pkg.toString());
     return list.toArray(new String[0]);
@@ -603,7 +602,7 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
     String name=getIdentifier(ctx,0);
     AtomicBoolean varargs=new AtomicBoolean();
     DeclarationStatement args[]=getFormalParameters(ctx.getChild(1),varargs);
-    Type returns=create.primitive_type(Sort.Void);
+    Type returns=create.primitive_type(PrimitiveSort.Void);
     ASTNode body;
     if (ctx.getChildCount()==3){
       body=convert(ctx,2);
@@ -662,7 +661,7 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
       }
       if (match(rest_ctx,"[","]","ArrayInitializer")){
         ASTNode vals[]=convert_list((ParserRuleContext)rest_ctx.getChild(2), "{", ",", "}");
-        return create.struct_value(create.primitive_type(Sort.Array,basetype),null,vals);
+        return create.struct_value(create.primitive_type(PrimitiveSort.Array,basetype),null,vals);
       }
     }
     Debug("no class creator");
@@ -738,7 +737,7 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
       elements=convert_list((ParserRuleContext)ctx.getChild(3), ",");
     }
     ASTClass res=create.ast_class(name, ClassKind.Plain, null, null, null);
-    Type t=create.primitive_type(Sort.Sequence,create.class_type(name));
+    Type t=create.primitive_type(PrimitiveSort.Sequence, create.class_type(name));
     ASTNode vals=create.struct_value(t, null, elements);
     res.add(create.field_decl(name,t,vals));
     return res;

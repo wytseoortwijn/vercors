@@ -11,9 +11,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 import vct.antlr4.parser.OMPParser;
 import vct.antlr4.parser.OMPoption;
 import vct.antlr4.parser.OMPpragma;
+
 import vct.col.ast.*;
 import vct.col.ast.ASTSpecial.Kind;
-import vct.col.ast.PrimitiveType.Sort;
 import vct.col.util.ASTUtils;
 import vct.col.util.FeatureScanner;
 
@@ -395,13 +395,13 @@ public class OpenMPtoPVL extends AbstractRewriter {
       hi=create.expression(StandardOperator.Div,hi,create.constant(simd_len));
       String par_var_name="par_"+var_name;
       DeclarationStatement range=create.field_decl(par_var_name,
-          create.primitive_type(Sort.Integer),
+          create.primitive_type(PrimitiveSort.Integer),
           create.expression(StandardOperator.RangeSeq,lo,hi));
       ASTNode pv=create.local_name(par_var_name);
       ASTNode pv1=create.expression(StandardOperator.Plus,pv,create.constant(1));
       ASTNode len=create.constant(simd_len);
       DeclarationStatement vec_range=create.field_decl(var_name,
-          create.primitive_type(Sort.Integer),
+          create.primitive_type(PrimitiveSort.Integer),
           create.expression(StandardOperator.RangeSeq
               ,create.expression(StandardOperator.Mult,pv,len)
               ,create.expression(StandardOperator.Mult,pv1,len)
@@ -423,7 +423,7 @@ public class OpenMPtoPVL extends AbstractRewriter {
       return new PPLParallel(options,cb.getContract(),body,range);
     } else {
       DeclarationStatement range=create.field_decl(var_name,
-          create.primitive_type(Sort.Integer),
+          create.primitive_type(PrimitiveSort.Integer),
           create.expression(StandardOperator.RangeSeq,lo,hi));
       BlockStatement body=(BlockStatement)rewrite(loop.getBody());
       return new PPLParallel(options,rewrite(loop.getContract()),body,range);

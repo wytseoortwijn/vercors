@@ -15,7 +15,6 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 import vct.col.ast.*;
 import vct.col.ast.ASTClass.ClassKind;
 import vct.col.ast.ASTSpecial.Kind;
-import vct.col.ast.PrimitiveType.Sort;
 import vct.col.syntax.CSyntax;
 import vct.col.syntax.Syntax;
 import vct.antlr4.generated.*;
@@ -59,7 +58,7 @@ public class CMLtoCOL extends ANTLRtoCOL implements CMLVisitor<ASTNode> {
 
   protected void convert_parameters(ArrayList<DeclarationStatement> args, ParserRuleContext arg_ctx) throws Failure {
     if (match(arg_ctx,null,",","...")){
-      args.add(create.field_decl("va_args", create.primitive_type(Sort.CVarArgs)));
+      args.add(create.field_decl("va_args", create.primitive_type(PrimitiveSort.CVarArgs)));
     }
     arg_ctx=(ParserRuleContext)arg_ctx.getChild(0);
     while(match(arg_ctx,null,",",null)){
@@ -95,11 +94,11 @@ public class CMLtoCOL extends ANTLRtoCOL implements CMLVisitor<ASTNode> {
 
   private Type getPointer(Type t,ParserRuleContext ctx){
     if(match(ctx,"*")){
-      return create.primitive_type(Sort.Pointer,t);
+      return create.primitive_type(PrimitiveSort.Pointer,t);
     }
     if(match(ctx,"*",null)){
       t=getPointer(t,(ParserRuleContext)ctx.getChild(1));
-      return create.primitive_type(Sort.Pointer,t);
+      return create.primitive_type(PrimitiveSort.Pointer,t);
     }
     return null;
   }
@@ -278,7 +277,7 @@ public class CMLtoCOL extends ANTLRtoCOL implements CMLVisitor<ASTNode> {
           hre.lang.System.Debug("\"class:\" %s",sclass);
           switch(sclass){
           case "typedef":
-            return create.field_decl(name,create.primitive_type(Sort.Class) ,type);
+            return create.field_decl(name,create.primitive_type(PrimitiveSort.Class) ,type);
           case "extern":
             type=create.__extern(type);
           case "static":
@@ -413,14 +412,14 @@ public class CMLtoCOL extends ANTLRtoCOL implements CMLVisitor<ASTNode> {
       boolean varargs=false;
       if (args.size()>0){
         Type t=args.get(args.size()-1).getType();
-        varargs=t.isPrimitive(Sort.CVarArgs);
+        varargs=t.isPrimitive(PrimitiveSort.CVarArgs);
       }
       return create.method_kind(Method.Kind.Plain, VariableDeclaration.common_type, null, name, args, varargs, null);
     }
     if (match(ctx,null,"[","]")){
       DeclarationStatement d=(DeclarationStatement)convert(ctx,0);
       Type t=d.getType();
-      t=create.primitive_type(PrimitiveType.Sort.Array,t);
+      t=create.primitive_type(PrimitiveSort.Array,t);
       return create.field_decl(d.name(), t);
     }
     int N=ctx.getChildCount();
@@ -430,7 +429,7 @@ public class CMLtoCOL extends ANTLRtoCOL implements CMLVisitor<ASTNode> {
       if (N>4) {
         hre.lang.System.Warning("ignoring %d modifiers in declaration",N-4);
       }
-      t=create.primitive_type(PrimitiveType.Sort.Array,t,convert(ctx,N-2));
+      t=create.primitive_type(PrimitiveSort.Array,t,convert(ctx,N-2));
       return create.field_decl(d.name(), t);
     }
     return null;
@@ -523,7 +522,7 @@ public class CMLtoCOL extends ANTLRtoCOL implements CMLVisitor<ASTNode> {
     int ofs;
     Type t;
     if (match(0,true,ctx,"DeclaratorContext")) {
-      t=create.primitive_type(Sort.Integer);
+      t=create.primitive_type(PrimitiveSort.Integer);
       ofs=0;
     } else {
       t=(Type)convert(ctx,0);
@@ -627,7 +626,7 @@ public class CMLtoCOL extends ANTLRtoCOL implements CMLVisitor<ASTNode> {
   public ASTNode visitInitializer(InitializerContext ctx) {
     if (match(ctx,"{","InitializerList","}")){
       ASTNode values[]=convert_linked_list((ParserRuleContext)ctx.getChild(1),",");
-      Type t=create.primitive_type(Sort.Array,create.primitive_type(Sort.Integer));
+      Type t=create.primitive_type(PrimitiveSort.Array, create.primitive_type(PrimitiveSort.Integer));
       return create.struct_value(t,null,values);
     }
     return null;

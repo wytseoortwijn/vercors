@@ -1,9 +1,7 @@
 package vct.col.rewrite;
 
 import hre.util.SingleNameSpace;
-
 import vct.col.ast.*;
-import vct.col.ast.PrimitiveType.Sort;
 
 public class GenericPass1 extends AbstractRewriter {
 
@@ -23,7 +21,7 @@ public class GenericPass1 extends AbstractRewriter {
       return;
     }
     for(DeclarationStatement decl:c.given){
-      if (decl.getType().isPrimitive(Sort.Class)){
+      if (decl.getType().isPrimitive(PrimitiveSort.Class)){
         map.put(decl.name(), (Type)decl.init());
       }
     }

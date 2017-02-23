@@ -12,6 +12,7 @@ import vct.col.ast.DeclarationStatement;
 import vct.col.ast.Method;
 import vct.col.ast.MethodInvokation;
 import vct.col.ast.NameExpression;
+import vct.col.ast.PrimitiveSort;
 import vct.col.ast.PrimitiveType;
 import vct.col.ast.ProgramUnit;
 import vct.col.ast.ReturnStatement;
@@ -57,7 +58,7 @@ public class VoidCalls extends AbstractRewriter {
         args[i+1]=rewrite(m_args[i]);
       }
       result=create.method_decl(
-          create.primitive_type(PrimitiveType.Sort.Void),
+          create.primitive_type(PrimitiveSort.Void),
           rewrite(m.getContract()),
           m.getName(),
           args,

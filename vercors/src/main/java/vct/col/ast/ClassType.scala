@@ -1,6 +1,5 @@
 package vct.col.ast
 
-import hre.lang.System.Abort
 import hre.lang.System.Debug
 import vct.col.util.VisitorHelper
 
@@ -17,8 +16,15 @@ object ClassType {
     name == nullType.names || name == labelType.names
 }
 
-case class ClassType(val names:List[String], val _args:List[ASTNode]) extends Type(_args) with VisitorHelper {
-  if (names.isEmpty) Abort("class types must have a name (at least one name part).")
+/**
+ * AST node that represents the type of classes (including their class parameters).
+ * 
+ * @param names A list of name parts that together constitute the full class name (including package name)
+ * @param params A list of AST nodes representing the types of the class parameters
+ * @author sccblom, whmoortwijn
+ */
+case class ClassType(val names:List[String], val params:List[ASTNode]) extends Type(params) with VisitorHelper {
+  require(!names.isEmpty, "class types must have a name (at least one name part).")
   
   var definition : ASTDeclaration = null
   
@@ -36,7 +42,7 @@ case class ClassType(val names:List[String], val _args:List[ASTNode]) extends Ty
    * Checks if any of `foundClass`'s super classes (of implemented classes) is a supertype of `this`,
    * in the given program context (`context`).
    */
-  private def searchClassForSupertype(unit:ProgramUnit, foundClass:Option[ASTClass]) = foundClass match {
+  private def searchContextForSupertype(unit:ProgramUnit, foundClass:Option[ASTClass]) = foundClass match {
     case None => Debug("class not found."); false
     case Some(cl:ASTClass) => {
       cl.super_classes.exists { parent => searchForSupertype(Some(unit), parent) } ||
@@ -51,7 +57,7 @@ case class ClassType(val names:List[String], val _args:List[ASTNode]) extends Ty
   private def searchForSupertype(context:Option[ProgramUnit], ct:ClassType) : Boolean = {
     Debug(s"checking if $this is a supertype of $ct.")
     if (ct.names == this.names) true else context match {
-      case Some(unit:ProgramUnit) => searchClassForSupertype(unit, Option(unit.find(ct)))
+      case Some(unit:ProgramUnit) => searchContextForSupertype(unit, Option(unit.find(ct)))
       case None => Debug("missing program context."); false
     }
   }

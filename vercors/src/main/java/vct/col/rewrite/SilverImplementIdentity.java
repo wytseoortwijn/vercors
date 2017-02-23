@@ -10,7 +10,7 @@ public class SilverImplementIdentity extends AbstractRewriter {
     super(source);
     create.enter();
     create.setOrigin(new MessageOrigin("identity implementation"));
-    Type int_t=create.primitive_type(PrimitiveType.Sort.Integer);
+    Type int_t=create.primitive_type(PrimitiveSort.Integer);
     Method id=create.function_decl(int_t,null,"id",
         new DeclarationStatement[]{create.field_decl("x",int_t)}, create.local_name("x"));
     create.leave();

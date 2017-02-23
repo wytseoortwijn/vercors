@@ -20,7 +20,7 @@ import vct.col.ast.MethodInvokation;
 import vct.col.ast.NameExpression;
 import vct.col.ast.OperatorExpression;
 import vct.col.ast.PrimitiveType;
-import vct.col.ast.PrimitiveType.Sort;
+import vct.col.ast.PrimitiveSort;
 import vct.col.ast.ProgramUnit;
 import vct.col.ast.StandardOperator;
 import vct.col.ast.Type;
@@ -390,11 +390,11 @@ class PredicateClassGenerator extends AbstractRewriter {
     // Add arguments as fields:
     for (int i=0;i<args.length;i++){
       pred_class.add_dynamic(args[i].apply(copy_rw));
-      if (args[i].getType().isPrimitive(PrimitiveType.Sort.Fraction)){
+      if (args[i].getType().isPrimitive(PrimitiveSort.Fraction)){
         cons_req.add(less(constant(0),name(args[i])));
         cons_req.add(lte(name(args[i]),constant(100)));
       }
-      if (args[i].getType().isPrimitive(PrimitiveType.Sort.ZFraction)){
+      if (args[i].getType().isPrimitive(PrimitiveSort.ZFraction)){
         cons_req.add(lte(constant(0),name(args[i])));
         cons_req.add(lte(name(args[i]),constant(100)));
       }
@@ -448,7 +448,7 @@ class PredicateClassGenerator extends AbstractRewriter {
     }
     // Add check function;
     pred_class.add_dynamic(create.function_decl(
-        create.primitive_type(Sort.Boolean),
+        create.primitive_type(PrimitiveSort.Boolean),
         cb.getContract(),
         "check",
         check_decls,
@@ -515,7 +515,7 @@ class PredicateClassGenerator extends AbstractRewriter {
         create.invokation(create.reserved_name(This),null, ("valid"), new ASTNode[0])));
     if (Configuration.witness_constructors.get()){
       pred_class.add_dynamic(create.method_kind(Method.Kind.Constructor,
-          create.primitive_type(Sort.Void),
+          create.primitive_type(PrimitiveSort.Void),
           cb.getContract(),
           pred_class_name,
           cons_decls.toArray(new DeclarationStatement[0]),
@@ -607,7 +607,7 @@ class PredicateClassGenerator extends AbstractRewriter {
           ASTNode tmp=e.arg(0);
           if (tmp instanceof Dereference){
             Dereference field=(Dereference)tmp;
-            tmp=field.object();
+            tmp=field.obj();
             /*
             if (tmp instanceof NameExpression && ((NameExpression)tmp).getName().equals("this")){
               String name=field.field;

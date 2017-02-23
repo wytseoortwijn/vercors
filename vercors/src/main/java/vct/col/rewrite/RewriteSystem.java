@@ -75,8 +75,8 @@ class MatchLinear implements ASTMapping1<Boolean,ASTNode> {
     }
     if (a.isa(e1.operator())){
       OperatorExpression e2=(OperatorExpression)a;
-      ASTNode[] args1=e1.args();
-      ASTNode[] args2=e2.args();
+      ASTNode[] args1=e1.argsArray();
+      ASTNode[] args2=e2.argsArray();
       if (args1.length!=args2.length) return false;
       for(int i=0;i<args1.length;i++){
         if (!args1[i].apply(this,args2[i])){
@@ -226,7 +226,7 @@ class MatchLinear implements ASTMapping1<Boolean,ASTNode> {
   public Boolean map(Dereference e1, ASTNode a) {
     if (!(a instanceof Dereference)) return false;
     Dereference e2=(Dereference)a;
-    return e1.field().equals(e2.field()) && e1.object().apply(this,e2.object());
+    return e1.field().equals(e2.field()) && e1.obj().apply(this,e2.obj());
   }
 
   @Override
