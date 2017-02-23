@@ -1,6 +1,5 @@
 package vct.ast
 
-import hre.lang.HREExitException
 import org.scalatest._
 import scala.collection.JavaConverters._
 import vct.col.ast._
@@ -13,7 +12,6 @@ class FunctionTypeSpec extends FlatSpec with Matchers  {
     var result = new ClassType(Array("Bool"))
     var ft = new FunctionType(Array[Type](param1, param2), result)
     ft.arity should be (2)
-    
   }
   
   it should "be constructable with arity 0" in {
@@ -22,10 +20,18 @@ class FunctionTypeSpec extends FlatSpec with Matchers  {
     ft.arity should be (0)
   }
   
+  it should "not be constructable when the input parameter list is null" in {
+    var params : List[Type] = null
+    var result = new ClassType(Array("Bool"))
+    a [IllegalArgumentException] should be thrownBy {
+      var ft = new FunctionType(params, result)
+    }
+  }
+  
   it should "not be constructable when the return type is null" in {
     var param1 = new ClassType(Array("Int"))
     var param2 = new ClassType(Array("Bool"))
-    a [HREExitException] should be thrownBy {
+    a [IllegalArgumentException] should be thrownBy {
       var ft = new FunctionType(Array[Type](param1, param2), null)
     }
   }

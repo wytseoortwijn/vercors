@@ -1,4 +1,4 @@
-package vct.col.ast;
+package vct.col.util;
 
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -13,7 +13,7 @@ import scala.runtime.BoxedUnit;
 public class LambdaHelper {
 	/**
 	 * Converts a unary Java lambda procedure (a consumer) `f` to an equivalent
-	 * lambda procedure for Scala.
+	 * lambda procedure for Scala, returning `Unit` (i.e. `void`).
 	 * @param f The lambda procedure to convert
 	 * @return The converted procedure
 	 */

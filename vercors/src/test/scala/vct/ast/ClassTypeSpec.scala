@@ -1,6 +1,5 @@
 package vct.ast
 
-import hre.lang.HREExitException
 import org.scalatest._
 import scala.collection.JavaConverters._
 import vct.col.ast._
@@ -8,7 +7,7 @@ import vct.col.ast._
 class ClassTypeSpec extends FlatSpec with Matchers {
  
   "A class type" should "reject definitions without name" in {
-    a [HREExitException] should be thrownBy {
+    a [IllegalArgumentException] should be thrownBy {
       var classtype = new ClassType(Array[String]())
     }
   }

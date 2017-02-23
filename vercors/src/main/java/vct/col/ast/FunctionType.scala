@@ -1,6 +1,5 @@
 package vct.col.ast
 
-import hre.lang.System.Abort
 import vct.col.util.VisitorHelper
 
 /**
@@ -10,7 +9,8 @@ import vct.col.util.VisitorHelper
  * @author sccblom, whmoortwijn
  */
 case class FunctionType(val params:List[Type], val result:Type) extends Type with VisitorHelper {
-  if (result == null) Abort("function types should have a result type")
+  require(params != null, "The parameter list is null")
+  require(result != null, "Function types should have a result type")
   
   /** Constructs a new function type from an array of input parameter types */
   def this(params:Array[Type], result:Type) = this(params.toList, result)

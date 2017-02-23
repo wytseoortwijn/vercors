@@ -1,6 +1,5 @@
 package vct.ast
 
-import hre.lang.HREExitException
 import org.scalatest._
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.JavaConverters._
@@ -12,7 +11,6 @@ class TupleTypeSpec extends FlatSpec with Matchers {
     var inttype = new PrimitiveType(PrimitiveSort.Integer)
     var booltype = new PrimitiveType(PrimitiveSort.Boolean)
     var tupletype = new TupleType(Array[Type](inttype, booltype))
-    
     tupletype.getType(0) should be (inttype)
     tupletype.getType(1) should be (booltype)
   }
@@ -73,13 +71,13 @@ class TupleTypeSpec extends FlatSpec with Matchers {
   }
   
   it should "not be able to accept an empty type array" in {
-    a [HREExitException] should be thrownBy {
+    a [IllegalArgumentException] should be thrownBy {
       var tupletype = new TupleType(Array[Type]())
     }
   }
   
   it should "not be able to accept an empty type list" in {
-    a [HREExitException] should be thrownBy {
+    a [IllegalArgumentException] should be thrownBy {
       var tupletype = new TupleType(List[Type]())
     }
   }
@@ -88,7 +86,6 @@ class TupleTypeSpec extends FlatSpec with Matchers {
     var inttype = new PrimitiveType(PrimitiveSort.Integer)
     var booltype = new PrimitiveType(PrimitiveSort.Boolean)
     var tupletype = new TupleType(Array[Type](inttype, booltype))
-    
     tupletype.types.size should be (2)
   }
   

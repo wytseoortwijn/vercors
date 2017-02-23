@@ -5,9 +5,8 @@ import hre.lang.System.Abort
 import vct.col.util.VisitorHelper
 
 case class OperatorExpression (val operator:StandardOperator, val args:List[ASTNode]) extends ExpressionNode with VisitorHelper {
-  if (operator.arity >= 0 && args.length != operator.arity) {
-    Abort("wrong number of arguments for $operator: got ${args.length}, but expected ${operator.arity}.")
-  }
+  require(args != null, "The argument list is null")
+  require(operator.arity < 0 || args.length == operator.arity, "Wrong number of arguments for $operator: got ${args.length}, but expected ${operator.arity}")
   
   /** Constructs a new operator expression from an array of arguments */
   def this(operator:StandardOperator, args:Array[ASTNode]) = this(operator, args.toList)
@@ -43,8 +42,8 @@ case class OperatorExpression (val operator:StandardOperator, val args:List[ASTN
     case _ => false
   }
   
-  override def isa(op:StandardOperator) = op == operator
   override def accept_simple[T,A](m:ASTMapping1[T,A], arg:A) = m.map(this, arg)
   override def accept_simple[T](v:ASTVisitor[T]) = handle_standard(() => v.visit(this))
   override def accept_simple[T](m:ASTMapping[T]) = handle_standard(() => m.map(this))
+  override def isa(op:StandardOperator) = op == operator
 }
