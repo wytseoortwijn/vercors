@@ -17,8 +17,6 @@ case class StructValue(val `type`:Type, val map:Map[String,Integer], val values:
   
   def valuesLength = values.length
   def value(i:Int) = values.apply(i)
-  
-  /** @note Although `map` is an immutable collection, via `mapJava` it is possible to alter its contents. */
   def mapJava = map.asJava
   
   @deprecated("this method will be removed", "soon")
