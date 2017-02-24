@@ -163,13 +163,17 @@ public class Method extends ASTDeclaration {
     } else if(parent instanceof AxiomaticDataType) {
       AxiomaticDataType adt=(AxiomaticDataType)parent;
       Debug("%s: computing substitution (%s)...",object_type.getOrigin(), adt.name());
-      DeclarationStatement decl[] = adt.parameters();
-      for(int i=0;i<decl.length;i++){
-        if (i < object_type.getArgCount()) {
-          Debug("%s -> %s",decl[i].name(), (Type)object_type.getArg(i));
-          map.put(decl[i].name(), (Type)object_type.getArg(i));          
+
+      // wytse: this part can probably be nicely rewritten when refactoring object_type
+      int i = 0;
+      for (DeclarationStatement decl : adt.parametersJava()) {
+    	if (i < object_type.getArgCount()) {
+          Debug("%s -> %s",decl.name(), (Type)object_type.getArg(i));
+          map.put(decl.name(), (Type)object_type.getArg(i));          
         }
+    	i++;
       }
+      
     }
     return sigma;
   }

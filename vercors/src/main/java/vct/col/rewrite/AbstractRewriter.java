@@ -648,14 +648,15 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   
   @Override
   public void visit(AxiomaticDataType adt){
-    AxiomaticDataType res = create.adt(adt.name(), rewrite(adt.parameters()));
-    for (Method c : adt.constructors()) {
+	DeclarationStatement[] decls = rewrite(adt.parametersJava()).toArray(new DeclarationStatement[0]);
+    AxiomaticDataType res = create.adt(adt.name(), decls);
+    for (Method c : adt.constructorsJava()) {
       res.add_cons(rewrite(c));
     }
-    for(Method m:adt.mappings()){
+    for(Method m:adt.mappingsJava()){
       res.add_cons(rewrite(m));
     }
-    for(Axiom ax:adt.axioms()){
+    for(Axiom ax:adt.axiomsJava()){
       res.add_axiom(rewrite(ax));
     }
     result=res;

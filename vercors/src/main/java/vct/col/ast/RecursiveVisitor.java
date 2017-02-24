@@ -313,7 +313,7 @@ public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
 
   @Override
   public void visit(AxiomaticDataType adt){
-    for(Axiom ax:adt.axioms()){
+    for(Axiom ax:adt.axiomsJava()){
       dispatch(ax);
     }
   }

@@ -6,9 +6,11 @@ case class Constraining(val block:BlockStatement, val vars:List[NameExpression])
   def this(block:BlockStatement, vars:Array[NameExpression]) = this(block, vars.toList)
   
   /** Gives the number of variables in this constraining block */
+  @deprecated("this method will be removed", "soon")
   def varsLength = vars.length
   
   /** Yields the `i`-th variable of this constraining block */
+  @deprecated("this method will be removed", "soon")
   def getVar(i:Int) = vars(i)
   
   /** Gives a copy of the vars list for Java interoperability */
