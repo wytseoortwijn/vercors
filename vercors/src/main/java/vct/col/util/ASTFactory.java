@@ -1056,13 +1056,6 @@ public LoopStatement while_loop(ASTNode test,ASTNode body,Contract contract){
   return res;    
 }
 
-public Type arrow_type(Type src, Type tgt) {
-  Type res=new FunctionType(new Type[]{src},tgt);
-  res.setOrigin(origin_stack.get());
-  res.accept_if(post);
-  return res;
-}
-
 public Type tuple_type(Type ... t) {
   Type res=new TupleType(t);
   res.setOrigin(origin_stack.get());
@@ -1070,8 +1063,22 @@ public Type tuple_type(Type ... t) {
   return res;
 }
 
+public Type arrow_type(Type src, Type tgt) {
+  Type res=new FunctionType(src, tgt);
+  res.setOrigin(origin_stack.get());
+  res.accept_if(post);
+  return res;
+}
+
 public Type arrow_type(Type[] types, Type tgt) {
   Type res=new FunctionType(types,tgt);
+  res.setOrigin(origin_stack.get());
+  res.accept_if(post);
+  return res;
+}
+
+public Type arrow_type(List<Type> types, Type tgt) {
+  Type res=new FunctionType(types, tgt);
   res.setOrigin(origin_stack.get());
   res.accept_if(post);
   return res;

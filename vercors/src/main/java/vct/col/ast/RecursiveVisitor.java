@@ -97,9 +97,9 @@ public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
   
   @Override
   public void visit(TupleType t) {
-    for(int i=0;i<t.nrOfTypes();i++){
-      t.getType(i).accept(this);
-    }
+	for (Type type : t.typesJava()) {
+	  type.accept(this);
+	}
   }
 
   @Override
