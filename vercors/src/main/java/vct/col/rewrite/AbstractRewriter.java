@@ -389,20 +389,22 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
     result=res; return ;
   }
 
-  public void visit(FunctionType t){
-    //checkPermission(t);
-    int N=t.arity();
-    Type args[]=new Type[N];
-    for(int i=0;i<N;i++){
-      args[i]=(Type)t.param(i).apply(this);
+  public void visit(FunctionType t) {
+	// visit all parameter types in `t`
+    List<Type> types = new ArrayList<Type>();
+    for (Type type : t.paramsJava()) {
+      types.add((Type)type.apply(this));
     }
-    Type result_type=(Type)t.result().apply(this);
-    ASTNode res=new FunctionType(args,result_type);
-    if (t.getOrigin()!=null) res.setOrigin(t);
-    result=res;
+    
+    // visit the result type of `t`
+    Type resultType = (Type)t.result().apply(this);
+    
+    // configure a new function type
+    result = new FunctionType(types, resultType);
+    if (t.getOrigin() != null) {
+      result.setOrigin(t);
+    }
   }
-  
-
 
   @Override
   public void visit(IfStatement s) {

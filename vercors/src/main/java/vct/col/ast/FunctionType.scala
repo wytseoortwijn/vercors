@@ -25,14 +25,6 @@ case class FunctionType(val params:List[Type], val result:Type) extends Type wit
   /** Provides a Java wrapper (as `java.util.List`) for the list of parameter types. */
   def paramsJava = params.asJava
   
-  /** Yields the arity of the function type */
-  @deprecated("this method will be removed", "soon")
-  def arity = params.length
-  
-  /** Yields the type of the `i`-th parameter */
-  @deprecated("this method will be removed", "soon")
-  def param(i:Int) = params(i)
-  
   override def equals(other:Any) = other match {
     case FunctionType(`params`, `result`) => true
     case _ => false

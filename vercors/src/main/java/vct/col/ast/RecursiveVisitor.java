@@ -81,11 +81,10 @@ public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
 
   @Override
   public void visit(FunctionType t) {
-    t.result().accept(this);
-    int N = t.arity();
-    for(int i=0;i<N;i++){
-      t.param(i).accept(this);
+    for (Type type : t.paramsJava()) {
+      type.accept(this);
     }
+    t.result().accept(this);
   }
   
   @Override

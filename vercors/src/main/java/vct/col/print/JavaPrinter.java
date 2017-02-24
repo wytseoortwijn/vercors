@@ -6,6 +6,7 @@ import hre.ast.TrackingTree;
 import hre.lang.HREError;
 
 import java.io.PrintStream;
+import java.util.List;
 import java.util.Map.Entry;
 
 import org.apache.commons.lang3.StringEscapeUtils;
@@ -457,14 +458,16 @@ public class JavaPrinter extends AbstractPrinter {
       out.print(">");
     }
   }
+  
   public void visit(FunctionType t){
-    int N=t.arity();
-    N--;
-    for(int i=0;i<N;i++){
-      t.param(i).accept(this);
+	Type[] types = t.paramsJava().toArray(new Type[0]);
+	  
+    for (int i=0;i<types.length-1;i++) {
+    	types[i].accept(this);
       out.print(",");
     }
-    t.param(N).accept(this);
+    types[types.length].accept(this);
+    
     out.print("->");
     t.result().accept(this);
   }

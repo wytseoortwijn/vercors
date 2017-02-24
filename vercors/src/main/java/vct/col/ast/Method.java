@@ -46,16 +46,20 @@ public class Method extends ASTDeclaration {
     this(Kind.Plain,name,return_type,contract,args,varArgs,body);
   }
 
-  public Method(Kind kind, String name,String args[],boolean many,FunctionType t){
+  public Method(Kind kind, String name, String args[], boolean many, FunctionType t) {
     super(name);
     this.return_type = t.result();
     this.args=new DeclarationStatement[args.length];
     this.var_args=many;
-    for(int i=0;i<args.length;i++){
-      this.args[i]=new DeclarationStatement(args[i], t.param(i));
+    
+    int i = 0;
+    for (Type type : t.paramsJava()) {
+      this.args[i] = new DeclarationStatement(args[i], type);
       this.args[i].setParent(this);
-      this.args[i].setOrigin(new MessageOrigin("dummy origin for argument "+i));
+      this.args[i].setOrigin(new MessageOrigin("dummy origin for argument " + i));
+      i++;
     }
+    
     this.kind=kind;
   }
   
