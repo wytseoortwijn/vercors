@@ -16,9 +16,11 @@ case class FunctionType(val params:List[Type], val result:Type) extends Type wit
   def this(params:Array[Type], result:Type) = this(params.toList, result)
   
   /** Yields the arity of the function type */
+  @deprecated("this method will be removed", "soon")
   def arity = params.length
   
   /** Yields the type of the `i`-th parameter */
+  @deprecated("this method will be removed", "soon")
   def param(i:Int) = params(i)
   
   override def equals(other:Any) = other match {

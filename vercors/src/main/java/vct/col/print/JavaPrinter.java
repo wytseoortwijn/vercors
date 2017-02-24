@@ -977,11 +977,11 @@ public class JavaPrinter extends AbstractPrinter {
     switch (t.operator()) {
     case Extends:
       out.printf("? extends ");
-      t.getType(0).accept(this);
+      t.firstType().accept(this);
       return;
     case Super:
       out.printf("? super ");
-      t.getType(0).accept(this);
+      t.firstType().accept(this);
       return;
     default:
       super.visit(t);

@@ -5,6 +5,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -226,10 +228,19 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
     }
   }
   
+  public <E extends ASTNode> List<E> rewrite(List<E> items) {
+	List<E> result = new LinkedList<E>();
+    for (E item : items) {
+      result.add(rewrite(item));
+    }
+    return result;
+  }
+  
   @SafeVarargs
   private final <E extends ASTNode> E[] glue(E... args){
     return Arrays.copyOf(args,args.length);
   }
+  
   public <E extends ASTNode> E[] rewrite(E head,E[] tail){
     E[] res;
     if (tail==null) {
@@ -771,7 +782,8 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   
   @Override
   public void visit(TypeExpression te){
-    result = create.type_expression(te.operator(), rewrite(te.typesAsArray()));
+	Type[] types = rewrite(te.typesJava()).toArray(new Type[0]);
+    result = create.type_expression(te.operator(), types);
   }
   
   @Override
