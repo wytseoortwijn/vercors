@@ -9,13 +9,13 @@ Installation Instructions
 The VerCors toolset can be installed and used on MacOS X, Linux, and Windows (via Cygwin). When using Windows make sure that the environment variable `JAVA_HOME` is configured. A basic installation requires:
 
 - Java Development Kit (JDK), version 8
-- Git (on Windows you need Git Bash, see https://git-scm.com/downloads)
+- Git (on Windows you need Git Bash, see <https://git-scm.com/downloads>)
 
 All other dependencies are included in the repository and do not have to be installed for basic use of VerCors. However, if you aim to develop or extend VerCors the following dependencies need to be installed additionally:
 
-- Apache Ant, version 1.9.9 (see http://ant.apache.org for instructions)
-- Apache Commons (from https://commons.apache.org/proper/commons-lang/)
-- Scala SBT (see http://www.scala-sbt.org for instructions)
+- Apache Ant, version 1.9.9 (see <http://ant.apache.org> for instructions)
+- Apache Commons (from <https://commons.apache.org/proper/commons-lang/>)
+- Scala SBT (see <http://www.scala-sbt.org> for instructions)
 
 ### Building
 
@@ -27,12 +27,28 @@ For a basic build of VerCors the following steps should be taken:
 
 The last command tests the VerCors installation by verifying a large collection of examples (from the `./examples` directory). This command should eventually report that `all ? tests passed`.
 
-If you do not wish to use the built-in Ant distribution, you could perform the following steps after cloning:
+If you do not wish to use the built-in Ant distribution, you could perform the following steps instead after cloning the repository:
 
 1. Run `ant clean` (to clean previous build attempts)
 2. Run `ant` (to build the VerCors project)
 
-Finally, you can build the documentation by running `./unix/bin/vct-ant doc`.
+Finally, the documentation can be built by running `./unix/bin/vct-ant doc`.
+
+Usage instructions
+-------------
+
+VerCors verifies programs that are annotated with JML-style specifications (the underlying theory uses separation logic with permission accounting). Details on the specification language can be found on the VerCors [Wiki pages](https://github.com/utwente-fmt/vercors/wiki). Furthermore, a large collection of example programs can be found (and verified) in the `./examples` directory.
+
+The VerCors toolset can be used from the main directory by running `./unix/bin/vct --silver=silicon <filepath>`, with `<filepath>` the path of the (Java, C, or PVL) file to verify.
+
+## Contact
+
+- For questions and support, email to <w.h.m.oortwijn@utwente.nl>.
+- For bug reports and feature requests, visit <https://github.com/utwente-fmt/vercors/issues>.
+
+## Related papers
+
+A complete list of papers on the VerCors project is given [here](http://eprints.eemcs.utwente.nl/view/project/VerCors.html). 
 
 ## License
 
