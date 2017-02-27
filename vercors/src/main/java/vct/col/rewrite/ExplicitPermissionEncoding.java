@@ -65,7 +65,7 @@ public class ExplicitPermissionEncoding extends AbstractRewriter {
     }
     t=(Type)tmp;
     String name = s.name();
-    ASTNode init = s.init();
+    ASTNode init = s.initJava();
     if (init!=null) init=init.apply(this);
     DeclarationStatement res=new DeclarationStatement(name,t,init);
     res.setOrigin(s.getOrigin());

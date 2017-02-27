@@ -211,7 +211,7 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
           }
         }
         for(DeclarationStatement m:cl.dynamicFields()){
-          hist_class.add_dynamic(create.field_decl(m.name() + "_hist_value",m.getType(),rewrite(m.init())));
+          hist_class.add_dynamic(create.field_decl(m.name() + "_hist_value",m.getType(), rewrite(m.initJava())));
           hist_class.add_dynamic(create.field_decl(m.name() + "_hist_init",m.getType()));
           hist_class.add_dynamic(create.field_decl(m.name() + "_hist_act",m.getType()));
           hist_class.add_dynamic(create.field_decl(m.name() + "_hist_write",m.getType()));

@@ -59,10 +59,10 @@ public class CPrinter extends AbstractPrinter {
 	  } else {
   	  t.accept(this);
   		out.printf(" %s", decl.name());
-  		if (decl.init() != null) {
+  		if (decl.initJava() != null) {
   			out.printf("=");
   			nextExpr();
-  			decl.init().accept(this);
+  			decl.initJava().accept(this);
   		}
 	  }
 		if (current_method()==null) {

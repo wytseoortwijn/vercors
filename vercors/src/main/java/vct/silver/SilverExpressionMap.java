@@ -343,7 +343,7 @@ public class SilverExpressionMap<T,E> implements ASTMapping<E>{
             o,
             decls[i].name(),
             decls[i].getType().apply(type),
-            decls[i].init().apply(this),
+            decls[i].initJava().apply(this),
             res
         );
       }

@@ -9,7 +9,7 @@ import vct.col.util.VisitorHelper
  * @author sccblom, whmoortwijn
  * @param value The constant value that is wrapped by this node.
  */
-class ConstantExpression(val value:Value) extends ASTNode with VisitorHelper {
+case class ConstantExpression(val value:Value) extends ASTNode with VisitorHelper {
   def this(v:Value, t:Type) = { this(v); setType(t) }
   def this(v:Value, t:Type, origin:Origin) = { this(v, t); setOrigin(origin) }
   def this(i:Int) = this(new IntegerValue(i), new PrimitiveType(PrimitiveSort.Integer))

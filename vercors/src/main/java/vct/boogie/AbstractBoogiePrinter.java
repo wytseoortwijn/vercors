@@ -112,7 +112,7 @@ public abstract class AbstractBoogiePrinter extends AbstractPrinter {
         Fail("Missing argument without default at %s",e.getOrigin());
       }
       out.printf("%s",next);
-      types[i].init().accept(this);
+      types[i].initJava().accept(this);
       next=",";
     }
     if (c!=null){

@@ -81,7 +81,7 @@ public class ParallelBlockEncoder extends AbstractRewriter {
     for (int i = 0; i < iter_decls.length; i++) {
       iter_decls[i] = create.field_decl(pb.iteration(i).name(), pb.iteration(i).getType());
       //iter_decls_prime[i]=create.field_decl(pb.iters[i].name+"__prime", pb.iters[i].getType());
-      ASTNode tmp = create.expression(StandardOperator.Member, create.local_name(pb.iteration(i).name()), pb.iteration(i).init());
+      ASTNode tmp = create.expression(StandardOperator.Member, create.local_name(pb.iteration(i).name()), pb.iteration(i).initJava());
       guard_list.add(tmp);
       /*
       check_cb.requires(tmp);
@@ -161,9 +161,9 @@ public class ParallelBlockEncoder extends AbstractRewriter {
     
     for (int i = 0; i < blk.itersLength(); i++) {
       DeclarationStatement decl = blk.iteration(i);
-      ASTNode tmp = create.expression(StandardOperator.Member, create.unresolved_name(decl.name()), decl.init());
+      ASTNode tmp = create.expression(StandardOperator.Member, create.unresolved_name(decl.name()), decl.initJava());
       guard_list.add(tmp);
-      tmp=create.expression(StandardOperator.Size,decl.init());
+      tmp=create.expression(StandardOperator.Size,decl.initJava());
       tmp=create.expression(StandardOperator.GT,tmp,create.constant(0));
       check_cb.requires(tmp);
       check_cb.ensures(tmp);
@@ -416,7 +416,7 @@ public class ParallelBlockEncoder extends AbstractRewriter {
       String name="x"+(++N);
       main_vars.put(name,decl.getType());
       map1.put(create.unresolved_name(decl.name()),create.unresolved_name(name));
-      OperatorExpression range=(OperatorExpression)decl.init();
+      OperatorExpression range=(OperatorExpression)decl.initJava();
       cb.requires(create.expression(
           StandardOperator.LTE,rewrite(range.arg(0)),create.unresolved_name(name))
       );
@@ -430,7 +430,7 @@ public class ParallelBlockEncoder extends AbstractRewriter {
       String name="x"+(++N);
       main_vars.put(name,decl.getType());
       map2.put(create.unresolved_name(decl.name()),create.unresolved_name(name));
-      OperatorExpression range=(OperatorExpression)decl.init();
+      OperatorExpression range=(OperatorExpression)decl.initJava();
       cb.requires(create.expression(
           StandardOperator.LTE,rewrite(range.arg(0)),create.unresolved_name(name))
       );

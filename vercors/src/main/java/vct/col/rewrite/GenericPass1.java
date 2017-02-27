@@ -22,7 +22,7 @@ public class GenericPass1 extends AbstractRewriter {
     }
     for(DeclarationStatement decl:c.given){
       if (decl.getType().isPrimitive(PrimitiveSort.Class)){
-        map.put(decl.name(), (Type)decl.init());
+        map.put(decl.name(), (Type)decl.initJava());
       }
     }
     super.visit(cl);

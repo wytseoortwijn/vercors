@@ -8,28 +8,31 @@ import vct.util.ClassName
  * AST node that represents a declaration statement, for example "`int test := 2+4;`". 
  * 
  * @author sccblom, whmoortwijn
- * @param _name The name of the declared variable, e.g. "`test`".
- * @param _type The type of the declared variable, e.g. "`int`".
- * @param init The expression that determines the initial value of the declared variable, e.g. "`2+4`".
+ * @param name The name of the declared variable, e.g. "`test`".
+ * @param type The type of the declared variable, e.g. "`int`".
+ * @param init Optionally, an expression that determines the initial value of the declared variable, e.g. "`2+4`".
  */
-class DeclarationStatement(private[this] val _name:String, private[this] val _type:Type,private[this] val init:ASTNode) extends ASTDeclaration(_name) with VisitorHelper {
+case class DeclarationStatement(override val name:String, val `type`:Type, val init:Option[ASTNode]) extends ASTDeclaration(name) with VisitorHelper {
   /**
    * Initialises a new AST node that represents a declaration statement without 
    * initial value, for example "`int test;`".
-   * 
-   * @param name The name of the declared variable, e.g. "`test`".
-   * @param t The type of the declared variable, e.g. "`int`".
    */
-  def this(name:String, t:Type) = this(name, t, null)
+  def this(name:String, t:Type) = this(name, t, None)
+  
+  /** Builds a new declaration from an initial expression (`init`) that is possibly `null`. */
+  def this(name:String, t:Type, init:ASTNode) = this(name, t, Option(init))
   
   /** Yields the declaration type */
-  override def getType() = _type
-
-  def getInit() = init
-  def init():ASTNode = init
+  override def getType = `type`
+  
+  /** Java wrapper over the initial expression, which may return `null` (in case `init` equals `None`).  */
+  def initJava = init match {
+    case Some(node) => node
+    case None => null
+  }
 
   /** Yields the full name of the declared variable, including package name. */
-  override def getDeclName() = {
+  override def getDeclName = {
     Debug(s"$packageName.$name")
     new ClassName(packageName, name)
   }

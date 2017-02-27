@@ -183,7 +183,7 @@ public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
   @Override
   public void visit(DeclarationStatement s) {
     s.getType().accept(this);
-    dispatch(s.init());
+    dispatch(s.initJava());
   }
 
   @Override

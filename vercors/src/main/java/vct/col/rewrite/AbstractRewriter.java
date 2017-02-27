@@ -201,7 +201,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
     }
     in_ensures=false;
     if (c.signals!=null) for(DeclarationStatement decl:c.signals){
-      cb.signals((ClassType)rewrite(decl.getType()), decl.name(), rewrite(decl.init()));      
+      cb.signals((ClassType)rewrite(decl.getType()), decl.name(), rewrite(decl.initJava()));      
     }
     //cb.requires(rewrite(c.pre_condition));
     //cb.ensures(rewrite(c.post_condition));
@@ -386,7 +386,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
       throw new Error("type AST rewrote to non-type AST");
     }
     String name = s.name();
-    ASTNode init = s.init();
+    ASTNode init = s.initJava();
     if (init!=null) init=init.apply(this);
     DeclarationStatement res=new DeclarationStatement(name,t,init);
     res.setOrigin(s.getOrigin());

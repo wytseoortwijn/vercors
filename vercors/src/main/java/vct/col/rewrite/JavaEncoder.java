@@ -174,7 +174,7 @@ public class JavaEncoder extends AbstractRewriter {
       String field=create_field_name(cls,decl.name());
       DeclarationStatement res=create.field_decl(field,
           rewrite(decl.getType()),
-          rewrite(decl.getInit()));
+          rewrite(decl.initJava()));
       if (decl.isStatic()){
         globals.add(res);
       } else {
