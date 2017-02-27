@@ -1340,7 +1340,7 @@ public class JavaPrinter extends AbstractPrinter {
     } else {
       out.println("parallel {");
     }
-    for (ParallelBlock pb : region.blocksArray()) {
+    for (ParallelBlock pb : region.blocksJava()) {
       out.incrIndent();
       pb.accept(this);
       out.println("");

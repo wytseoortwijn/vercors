@@ -1,6 +1,7 @@
 package vct.col.rewrite;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Stack;
 
 import vct.col.ast.*;
@@ -45,7 +46,7 @@ public class PropagateInvariants extends AbstractRewriter {
       for(ASTNode inv:invariants) { cb.prependInvariant(inv); }
       rewrite(region.contract(), cb);
       invariants.push(region.contract().invariant);
-      ParallelBlock blocks[] = rewrite(region.blocksArray());
+      ParallelBlock blocks[] = rewrite(region.blocksJava()).toArray(new ParallelBlock[0]);
       invariants.pop();
       result=create.region(cb.getContract(),blocks);
     } else {

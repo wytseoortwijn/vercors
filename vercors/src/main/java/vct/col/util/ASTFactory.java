@@ -1225,12 +1225,23 @@ public Axiom axiom(String name,ASTNode exp){
   public ParallelRegion region(Contract c,ParallelBlock ... blocks) {
     return region(origin_stack.get(),c,blocks);
   }
+  
+  public ParallelRegion region(Contract c, List<ParallelBlock> blocks) {
+    return region(origin_stack.get(), c, blocks);
+  }
 
   public ParallelRegion region(Origin origin,Contract c,ParallelBlock ... blocks) {
     ParallelRegion res=new ParallelRegion(c,blocks);
     res.setOrigin(origin);
     res.accept_if(post);
     return res;
+  }
+  
+  public ParallelRegion region(Origin origin, Contract c, List<ParallelBlock> blocks) {
+    ParallelRegion res=new ParallelRegion(c, blocks);
+	res.setOrigin(origin);
+	res.accept_if(post);
+	return res;
   }
 
   public ASTNode region(Contract c,ArrayList<ParallelBlock> res) {

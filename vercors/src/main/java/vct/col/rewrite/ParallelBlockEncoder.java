@@ -224,10 +224,10 @@ public class ParallelBlockEncoder extends AbstractRewriter {
     count++;
     String main_name = "parrallel_region_main_" + count;
     ContractBuilder main_cb=new ContractBuilder();
-    Hashtable<String,Type> main_vars=free_vars(region.blocksArray());
+    Hashtable<String,Type> main_vars=free_vars(region.blocksJava());
     BlockStatement body;
     if (region.contract() == null) {
-      for (ParallelBlock pb : region.blocksArray()) {
+      for (ParallelBlock pb : region.blocksJava()) {
         Contract c=(Contract)rewrite((ASTNode)pb);
         if (c!=null){
           main_cb.requires(c.invariant);
@@ -242,7 +242,7 @@ public class ParallelBlockEncoder extends AbstractRewriter {
     } else {
       rewrite(region.contract(), main_cb);
       body=create.block();
-      for (ParallelBlock pb : region.blocksArray()) {
+      for (ParallelBlock pb : region.blocksJava()) {
         String block_name="block_check_"+(++count);
         Hashtable<String,Type> block_vars=free_vars(pb);
         
@@ -259,7 +259,7 @@ public class ParallelBlockEncoder extends AbstractRewriter {
       HashMap<String,ParallelBlock> blocks=new HashMap<String, ParallelBlock>();
       HashMap<String,HashSet<String>> may_deps=new HashMap<String, HashSet<String>>();
       HashMap<String,HashSet<String>> must_deps=new HashMap<String, HashSet<String>>();
-      for (ParallelBlock pb : region.blocksArray()) {
+      for (ParallelBlock pb : region.blocksJava()) {
         /* before is a set of blocks that are guaranteed
          * not to run concurrently with the current block.
          */

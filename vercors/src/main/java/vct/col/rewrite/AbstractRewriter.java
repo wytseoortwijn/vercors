@@ -29,13 +29,17 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
 
   private static ThreadLocal<AbstractRewriter> tl=new ThreadLocal<AbstractRewriter>();
 
-  public static Hashtable<String,Type> free_vars(ASTNode ... nodes) {
-    Hashtable<String,Type> vars=new Hashtable<String,Type>();
-    NameScanner scanner=new NameScanner(vars);
-    for(ASTNode n:nodes){
+  public static <R extends ASTNode> Hashtable<String,Type> free_vars(List<R> nodes) {
+    Hashtable<String,Type> vars = new Hashtable<String,Type>();
+    NameScanner scanner = new NameScanner(vars);
+    for (R n : nodes) {
       n.accept(scanner);
     }
     return vars;
+  }
+  
+  public static Hashtable<String,Type> free_vars(ASTNode ... nodes) {
+	return free_vars(Arrays.asList(nodes));
   }
 
   public final AbstractRewriter copy_rw;
@@ -626,7 +630,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   
   @Override
   public void visit(ParallelRegion region){
-    result = create.region(rewrite(region.contract()), rewrite(region.blocksArray()));
+    result = create.region(rewrite(region.contract()), rewrite(region.blocksJava()));
   }
   
   @Override

@@ -1,5 +1,7 @@
 package vct.col.ast;
 
+import java.util.List;
+
 import vct.col.ast.Switch.Case;
 import vct.col.util.LambdaHelper;
 
@@ -136,6 +138,14 @@ public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
     for(ASTNode object:objects){
       if(object!=null){
         object.accept(this);
+      }
+    }
+  }
+  
+  private <R extends ASTNode> void dispatch(List<R> nodes) {
+    for (R node : nodes) {
+      if (node != null) {
+        node.accept(this);
       }
     }
   }
@@ -286,7 +296,7 @@ public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
   
   public void visit(ParallelRegion region){
     dispatch(region.contract());
-    dispatch(region.blocksArray());
+    dispatch(region.blocksJava());
   }
 
   public void visit(Contract c){
