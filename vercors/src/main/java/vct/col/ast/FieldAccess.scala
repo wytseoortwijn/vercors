@@ -11,7 +11,7 @@ import vct.util.ClassName
  * @param name The name of the field to be accessed, e.g. "{@code fieldname}".
  * @param value This field is non-{@code null} for a write and {@code null} for a read.
  */
-class FieldAccess(val classname:ClassName, val `object`:ASTNode, val name:String, val value:ASTNode) extends ASTNode {
+case class FieldAccess(val classname:ClassName, val `object`:ASTNode, val name:String, val value:ASTNode) extends ASTNode {
   override def accept_simple[T,A](map:ASTMapping1[T,A], arg:A) = map.map(this, arg)
   override def accept_simple[T](visitor:ASTVisitor[T]) = visitor.visit(this)
   override def accept_simple[T](map:ASTMapping[T]) = map.map(this)

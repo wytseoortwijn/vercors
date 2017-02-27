@@ -6,6 +6,7 @@ import hre.ast.TrackingTree;
 import hre.lang.HREError;
 
 import java.io.PrintStream;
+import java.util.List;
 import java.util.Map.Entry;
 
 import org.apache.commons.lang3.StringEscapeUtils;
@@ -149,22 +150,22 @@ public class JavaPrinter extends AbstractPrinter {
   public void visit(AxiomaticDataType adt){
     out.printf("ADT %s [", adt.name());
     String sep="";
-    for (DeclarationStatement d : adt.parameters()) {
+    for (DeclarationStatement d : adt.parametersJava()) {
       out.printf("%s%s", sep, d.name());
       sep=", ";
     }
     out.println("] {");
     out.incrIndent();
     out.println("//constructors");
-    for (Method f : adt.constructors()) {
+    for (Method f : adt.constructorsJava()) {
       f.accept(this);
     }
     out.println("//mappings");
-    for(Method f:adt.mappings()){
+    for(Method f:adt.mappingsJava()){
       f.accept(this);
     }
     out.println("//axioms");
-    for(Axiom ax:adt.axioms()){
+    for(Axiom ax:adt.axiomsJava()){
       ax.accept(this);
     }
     out.decrIndent();
@@ -457,14 +458,16 @@ public class JavaPrinter extends AbstractPrinter {
       out.print(">");
     }
   }
+  
   public void visit(FunctionType t){
-    int N=t.arity();
-    N--;
-    for(int i=0;i<N;i++){
-      t.param(i).accept(this);
+	Type[] types = t.paramsJava().toArray(new Type[0]);
+	  
+    for (int i=0;i<types.length-1;i++) {
+    	types[i].accept(this);
       out.print(",");
     }
-    t.param(N).accept(this);
+    types[types.length].accept(this);
+    
     out.print("->");
     t.result().accept(this);
   }
@@ -472,19 +475,19 @@ public class JavaPrinter extends AbstractPrinter {
   public void visit(BindingExpression e){
     String binder=null;
     switch(e.binder){
-      case FORALL:
+      case Forall:
         binder="\\forall";
         break;
-      case EXISTS:
+      case Exists:
         binder="\\exists";
         break;
-      case STAR:
+      case Star:
         binder="\\forall*";
         break;
-      case LET:
+      case Let:
         binder="\\let";
         break;
-      case SUM:
+      case Sum:
         binder="\\sum";
         break;
       default:
@@ -498,9 +501,9 @@ public class JavaPrinter extends AbstractPrinter {
       DeclarationStatement decl=e.getDeclaration(i);
       decl.getType().accept(this);
       out.printf(" %s", decl.name());
-      if (decl.init() != null) {
+      if (decl.initJava() != null) {
         out.printf("= ");
-        decl.init().accept(this);
+        decl.initJava().accept(this);
       }
     }
     if (e.triggers!=null){
@@ -646,7 +649,7 @@ public class JavaPrinter extends AbstractPrinter {
         d.getType().accept(this);
         out.printf(" %s) ",d.name());
         nextExpr();
-        d.init().accept(this);
+        d.initJava().accept(this);
         out.lnprintf(";");
       }      
       if (contract.modifies!=null){
@@ -685,7 +688,7 @@ public class JavaPrinter extends AbstractPrinter {
   }
 
   public void visit(DeclarationStatement s){
-    ASTNode expr = s.init();
+    ASTNode expr = s.initJava();
     nextExpr();
     s.getType().accept(this);
     out.printf(" %s", s.name());
@@ -977,11 +980,11 @@ public class JavaPrinter extends AbstractPrinter {
     switch (t.operator()) {
     case Extends:
       out.printf("? extends ");
-      t.getType(0).accept(this);
+      t.firstType().accept(this);
       return;
     case Super:
       out.printf("? super ");
-      t.getType(0).accept(this);
+      t.firstType().accept(this);
       return;
     default:
       super.visit(t);
@@ -1268,12 +1271,14 @@ public class JavaPrinter extends AbstractPrinter {
   public void visit(ParallelAtomic pa){
     out.printf("atomic (");
     String sep="";
-    for (ASTNode s : pa.synclistAsArray()) {
-      out.printf("%s",sep);
-      sep=",";
+    
+    for (ASTNode item : pa.synclistJava()) {
+      out.printf("%s", sep);
+      sep = ",";
       nextExpr();
-      s.apply(this);
-    }
+      item.apply(this);
+    };
+    
     out.printf(")");
     visit(pa.block());
   }
@@ -1335,7 +1340,7 @@ public class JavaPrinter extends AbstractPrinter {
     } else {
       out.println("parallel {");
     }
-    for (ParallelBlock pb : region.blocksArray()) {
+    for (ParallelBlock pb : region.blocksJava()) {
       out.incrIndent();
       pb.accept(this);
       out.println("");
@@ -1363,7 +1368,7 @@ public class JavaPrinter extends AbstractPrinter {
       if (dd instanceof DeclarationStatement){
         DeclarationStatement d = (DeclarationStatement)dd;
         d.getType().accept(this);
-        ASTNode init = d.init();
+        ASTNode init = d.initJava();
         if (init!=null){
           out.print("=");
           init.accept(this);
@@ -1408,8 +1413,7 @@ public class JavaPrinter extends AbstractPrinter {
     out.print("constraining(");
     String sep = "";
     
-    for (int i = 0; i < c.varsLength(); i++) {
-      NameExpression n = c.getVar(i);
+    for (NameExpression n : c.varsJava()) {
       out.print(sep);
       nextExpr();
       n.accept(this);
@@ -1420,4 +1424,3 @@ public class JavaPrinter extends AbstractPrinter {
     c.block().accept(this);
   }
 }
-

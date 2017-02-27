@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import vct.col.ast.*;
 import vct.col.ast.ASTSpecial.Kind;
-import vct.col.ast.BindingExpression.Binder;
+import vct.col.ast.Binder;
 import vct.col.util.ASTUtils;
 import vct.col.util.NameScanner;
 import vct.col.util.OriginWrapper;
@@ -81,7 +81,7 @@ public class ParallelBlockEncoder extends AbstractRewriter {
     for (int i = 0; i < iter_decls.length; i++) {
       iter_decls[i] = create.field_decl(pb.iteration(i).name(), pb.iteration(i).getType());
       //iter_decls_prime[i]=create.field_decl(pb.iters[i].name+"__prime", pb.iters[i].getType());
-      ASTNode tmp = create.expression(StandardOperator.Member, create.local_name(pb.iteration(i).name()), pb.iteration(i).init());
+      ASTNode tmp = create.expression(StandardOperator.Member, create.local_name(pb.iteration(i).name()), pb.iteration(i).initJava());
       guard_list.add(tmp);
       /*
       check_cb.requires(tmp);
@@ -161,9 +161,9 @@ public class ParallelBlockEncoder extends AbstractRewriter {
     
     for (int i = 0; i < blk.itersLength(); i++) {
       DeclarationStatement decl = blk.iteration(i);
-      ASTNode tmp = create.expression(StandardOperator.Member, create.unresolved_name(decl.name()), decl.init());
+      ASTNode tmp = create.expression(StandardOperator.Member, create.unresolved_name(decl.name()), decl.initJava());
       guard_list.add(tmp);
-      tmp=create.expression(StandardOperator.Size,decl.init());
+      tmp=create.expression(StandardOperator.Size,decl.initJava());
       tmp=create.expression(StandardOperator.GT,tmp,create.constant(0));
       check_cb.requires(tmp);
       check_cb.ensures(tmp);
@@ -224,10 +224,10 @@ public class ParallelBlockEncoder extends AbstractRewriter {
     count++;
     String main_name = "parrallel_region_main_" + count;
     ContractBuilder main_cb=new ContractBuilder();
-    Hashtable<String,Type> main_vars=free_vars(region.blocksArray());
+    Hashtable<String,Type> main_vars=free_vars(region.blocksJava());
     BlockStatement body;
     if (region.contract() == null) {
-      for (ParallelBlock pb : region.blocksArray()) {
+      for (ParallelBlock pb : region.blocksJava()) {
         Contract c=(Contract)rewrite((ASTNode)pb);
         if (c!=null){
           main_cb.requires(c.invariant);
@@ -242,7 +242,7 @@ public class ParallelBlockEncoder extends AbstractRewriter {
     } else {
       rewrite(region.contract(), main_cb);
       body=create.block();
-      for (ParallelBlock pb : region.blocksArray()) {
+      for (ParallelBlock pb : region.blocksJava()) {
         String block_name="block_check_"+(++count);
         Hashtable<String,Type> block_vars=free_vars(pb);
         
@@ -259,7 +259,7 @@ public class ParallelBlockEncoder extends AbstractRewriter {
       HashMap<String,ParallelBlock> blocks=new HashMap<String, ParallelBlock>();
       HashMap<String,HashSet<String>> may_deps=new HashMap<String, HashSet<String>>();
       HashMap<String,HashSet<String>> must_deps=new HashMap<String, HashSet<String>>();
-      for (ParallelBlock pb : region.blocksArray()) {
+      for (ParallelBlock pb : region.blocksJava()) {
         /* before is a set of blocks that are guaranteed
          * not to run concurrently with the current block.
          */
@@ -416,7 +416,7 @@ public class ParallelBlockEncoder extends AbstractRewriter {
       String name="x"+(++N);
       main_vars.put(name,decl.getType());
       map1.put(create.unresolved_name(decl.name()),create.unresolved_name(name));
-      OperatorExpression range=(OperatorExpression)decl.init();
+      OperatorExpression range=(OperatorExpression)decl.initJava();
       cb.requires(create.expression(
           StandardOperator.LTE,rewrite(range.arg(0)),create.unresolved_name(name))
       );
@@ -430,7 +430,7 @@ public class ParallelBlockEncoder extends AbstractRewriter {
       String name="x"+(++N);
       main_vars.put(name,decl.getType());
       map2.put(create.unresolved_name(decl.name()),create.unresolved_name(name));
-      OperatorExpression range=(OperatorExpression)decl.init();
+      OperatorExpression range=(OperatorExpression)decl.initJava();
       cb.requires(create.expression(
           StandardOperator.LTE,rewrite(range.arg(0)),create.unresolved_name(name))
       );
@@ -477,7 +477,8 @@ public class ParallelBlockEncoder extends AbstractRewriter {
   @Override
   public void visit(ParallelAtomic pa){
     BlockStatement block=rewrite(pa.block());
-    for (ASTNode node : pa.synclistAsArray()) {
+    
+    for (ASTNode node : pa.synclistJava()) {
       if (node instanceof NameExpression){
         NameExpression name=(NameExpression)node;
         if (name.getKind()==NameExpression.Kind.Label){
@@ -767,7 +768,7 @@ public class ParallelBlockEncoder extends AbstractRewriter {
             copy_rw.rewrite(expr.arg(0)),
             create.reserved_name(ASTReserved.FullPerm)
         ));  
-      } else if(is_a_quantified(clause,Binder.STAR,StandardOperator.ReducibleSum)){
+      } else if(is_a_quantified(clause,Binder.Star,StandardOperator.ReducibleSum)){
         BindingExpression bclause=(BindingExpression)clause;
         OperatorExpression expr=(OperatorExpression)bclause.main;
         main_cb.requires(create.starall(
@@ -796,7 +797,7 @@ public class ParallelBlockEncoder extends AbstractRewriter {
             plus(create.expression(StandardOperator.Old,copy_rw.rewrite(expr.arg(0))),
                  create.summation(copy_rw.rewrite(s.guard), rewrite(expr.arg(1)) , iter_decls))
         ));
-      } else if(is_a_quantified(clause,Binder.STAR,StandardOperator.Contribution)){
+      } else if(is_a_quantified(clause,Binder.Star,StandardOperator.Contribution)){
         BindingExpression bclause=(BindingExpression)clause;
         OperatorExpression expr=(OperatorExpression)bclause.main;
         main_cb.ensures(create.starall(
@@ -844,7 +845,7 @@ public class ParallelBlockEncoder extends AbstractRewriter {
             create.reserved_name(ASTReserved.FullPerm),
             create.expression(StandardOperator.Cast,expr.arg(0).getType(),create.constant(0))
         ));
-      } else if(is_a_quantified(clause,Binder.STAR,StandardOperator.ReducibleSum)){
+      } else if(is_a_quantified(clause,Binder.Star,StandardOperator.ReducibleSum)){
         BindingExpression bclause=(BindingExpression)clause;
         OperatorExpression expr=(OperatorExpression)bclause.main;
         body_cb.requires(create.starall(
@@ -875,7 +876,7 @@ public class ParallelBlockEncoder extends AbstractRewriter {
             create.reserved_name(ASTReserved.FullPerm),
             rewrite(expr.arg(1))
         ));       
-      } else if(is_a_quantified(clause,Binder.STAR,StandardOperator.Contribution)){
+      } else if(is_a_quantified(clause,Binder.Star,StandardOperator.Contribution)){
         BindingExpression bclause=(BindingExpression)clause;
         OperatorExpression expr=(OperatorExpression)bclause.main;
         body_cb.ensures(create.starall(

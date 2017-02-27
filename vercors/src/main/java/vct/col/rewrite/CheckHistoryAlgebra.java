@@ -8,7 +8,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import vct.col.ast.*;
 import vct.col.ast.ASTSpecial.Kind;
-import vct.col.ast.BindingExpression.Binder;
+import vct.col.ast.Binder;
 import vct.logging.ErrorMapping;
 import vct.logging.VerCorsError.ErrorCode;
 import vct.util.Configuration;
@@ -96,7 +96,7 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
       ));
       adt.add_axiom(create.axiom("choice_L",
           create.binder(
-              Binder.FORALL,
+              Binder.Forall,
               create.primitive_type(PrimitiveSort.Boolean),
               new DeclarationStatement[]{
                  create.field_decl("p1", adt_type)
@@ -113,7 +113,7 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
       ));
       adt.add_axiom(create.axiom("choice_R",
           create.binder(
-              Binder.FORALL,
+              Binder.Forall,
               create.primitive_type(PrimitiveSort.Boolean),
               new DeclarationStatement[]{
                  create.field_decl("p1", adt_type)
@@ -130,7 +130,7 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
       ));
       adt.add_axiom(create.axiom("choice_dist",
           create.binder(
-              Binder.FORALL,
+              Binder.Forall,
               create.primitive_type(PrimitiveSort.Boolean),
               new DeclarationStatement[]{
                  create.field_decl("p1", adt_type)
@@ -152,7 +152,7 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
       ));
       adt.add_axiom(create.axiom("seq_assoc",
           create.binder(
-              Binder.FORALL,
+              Binder.Forall,
               create.primitive_type(PrimitiveSort.Boolean),
               new DeclarationStatement[]{
                  create.field_decl("p1", adt_type)
@@ -211,7 +211,7 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
           }
         }
         for(DeclarationStatement m:cl.dynamicFields()){
-          hist_class.add_dynamic(create.field_decl(m.name() + "_hist_value",m.getType(),rewrite(m.init())));
+          hist_class.add_dynamic(create.field_decl(m.name() + "_hist_value",m.getType(), rewrite(m.initJava())));
           hist_class.add_dynamic(create.field_decl(m.name() + "_hist_init",m.getType()));
           hist_class.add_dynamic(create.field_decl(m.name() + "_hist_act",m.getType()));
           hist_class.add_dynamic(create.field_decl(m.name() + "_hist_write",m.getType()));
@@ -464,7 +464,7 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
       arg_names[i]=create.local_name(m.getArgument(i));
     }
     eq=create.binder(
-          Binder.FORALL,
+          Binder.Forall,
           create.primitive_type(PrimitiveSort.Boolean),
           rewrite(create.field_decl("p",adt_type),m.getArgs()),
           new ASTNode[][]{new ASTNode[]{lhs}},
@@ -495,7 +495,7 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
           trigger=create.domain_call("Process","p_" + m.name(), arg_names);
         }
         eq=create.binder(
-          Binder.FORALL,
+          Binder.Forall,
           create.primitive_type(PrimitiveSort.Boolean),
           copy_rw.rewrite(m.getArgs()),
           new ASTNode[][]{new ASTNode[]{trigger}},
@@ -511,7 +511,7 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
       ASTNode rhs=create.domain_call("Process","p_seq",create.local_name("p"),
           create.domain_call("Process","p_seq",tmp,create.domain_call("Process","p_empty")));
       ASTNode eq=create.binder(
-          Binder.FORALL,
+          Binder.Forall,
           create.primitive_type(PrimitiveSort.Boolean),
           copy_rw.rewrite(create.field_decl("p",adt_type),m.getArgs()),
           new ASTNode[][]{new ASTNode[]{lhs}},

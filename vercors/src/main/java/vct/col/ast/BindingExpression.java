@@ -11,8 +11,6 @@ public class BindingExpression extends ExpressionNode {
   public <R,A> R accept_simple(ASTMapping1<R,A> map,A arg){
     return map.map(this,arg);
   }
-
-  public static enum Binder {LAMBDA,FORALL,EXISTS,SUM,PRODUCT,STAR,LET};
   
   public final Binder binder;
   public final ASTNode select;
@@ -56,7 +54,6 @@ public class BindingExpression extends ExpressionNode {
     return decls.toArray(new DeclarationStatement[0]);
   }
   
-  
   @Override
   public <T> void accept_simple(ASTVisitor<T> visitor){
     try {
@@ -82,6 +79,4 @@ public class BindingExpression extends ExpressionNode {
       throw t;
     }
   }
- 
-
 }

@@ -2,7 +2,7 @@ package vct.col.ast
 
 import hre.ast.MessageOrigin
 
-class AssignmentStatement(val location:ASTNode, val expression:ASTNode) extends ASTNode {
+case class AssignmentStatement(val location:ASTNode, val expression:ASTNode) extends ASTNode {
   
   def this(name:String, expression:ASTNode) = {
     this(new NameExpression(name), expression)

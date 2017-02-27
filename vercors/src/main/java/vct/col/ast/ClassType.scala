@@ -32,9 +32,9 @@ case class ClassType(val names:List[String], val params:List[ASTNode]) extends T
   def this(names:Array[String]) = this(names, Array[ASTNode]())
   def this(name:String) = this(Array(name))
   
-  def getName = this.names.last
-  def getNameFull = this.names.toArray
-  def getFullName(separator:String) = this.names mkString separator
+  def getName = names.last
+  def getNameFull = names.toArray
+  def getFullName(separator:String) = names mkString separator
   def getFullName : String = getFullName(".")
   def setDefinition(decl:ASTDeclaration) = definition = decl
 
@@ -42,22 +42,22 @@ case class ClassType(val names:List[String], val params:List[ASTNode]) extends T
    * Checks if any of `foundClass`'s super classes (of implemented classes) is a supertype of `this`,
    * in the given program context (`context`).
    */
-  private def searchContextForSupertype(unit:ProgramUnit, foundClass:Option[ASTClass]) = foundClass match {
+  private def searchContextForSupertype(context:ProgramUnit, foundClass:Option[ASTClass]) = foundClass match {
     case None => Debug("class not found."); false
     case Some(cl:ASTClass) => {
-      cl.super_classes.exists { parent => searchForSupertype(Some(unit), parent) } ||
-      cl.implemented_classes.exists { parent => searchForSupertype(Some(unit), parent) }
+      cl.super_classes.exists(parent => searchForSupertype(Some(context), parent)) ||
+      cl.implemented_classes.exists(parent => searchForSupertype(Some(context), parent))
     }
   }
   
   /**
    * Checks if the type of this object (i.e. `this`) is a supertype of `ct` in the 
-   * given program context (`context`).
+   * given program context (`unit`).
    */
-  private def searchForSupertype(context:Option[ProgramUnit], ct:ClassType) : Boolean = {
+  private def searchForSupertype(unit:Option[ProgramUnit], ct:ClassType) : Boolean = {
     Debug(s"checking if $this is a supertype of $ct.")
-    if (ct.names == this.names) true else context match {
-      case Some(unit:ProgramUnit) => searchContextForSupertype(unit, Option(unit.find(ct)))
+    if (ct.names == this.names) true else unit match {
+      case Some(context:ProgramUnit) => searchContextForSupertype(context, Option(context.find(ct)))
       case None => Debug("missing program context."); false
     }
   }

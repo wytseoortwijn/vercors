@@ -86,7 +86,7 @@ public class SilverReorder extends AbstractRewriter {
       DeclarationStatement res=create.field_decl(
           name+"__"+count,
           rewrite(d.getType()),
-          rewrite(d.init()));
+          rewrite(d.initJava()));
       Debug("mapping %s",name);
       locals.add(name,name+"__"+count);
       if (main_block!=null){

@@ -207,7 +207,7 @@ public abstract class ASTFrame<T> {
       switch(action){
       case ENTER:
         variables.enter();
-        for (DeclarationStatement decl : adt.parameters()) {
+        for (DeclarationStatement decl : adt.parametersJava()) {
           variables.add(decl.name(), new VariableInfo(decl, NameExpression.Kind.Argument));
         }
         break;

@@ -112,7 +112,7 @@ public abstract class AbstractBoogiePrinter extends AbstractPrinter {
         Fail("Missing argument without default at %s",e.getOrigin());
       }
       out.printf("%s",next);
-      types[i].init().accept(this);
+      types[i].initJava().accept(this);
       next=",";
     }
     if (c!=null){
@@ -375,11 +375,11 @@ public abstract class AbstractBoogiePrinter extends AbstractPrinter {
     String connect=null;
     out.printf("(");
     switch(e.binder){
-    case FORALL:
+    case Forall:
       out.printf("forall ");
       connect=")==>(";
       break;
-    case EXISTS:
+    case Exists:
       out.printf("exists ");
       connect=")&&(";
       break;

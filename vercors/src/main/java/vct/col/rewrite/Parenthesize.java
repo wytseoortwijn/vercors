@@ -30,7 +30,7 @@ public class Parenthesize extends AbstractRewriter {
     cb.requires(rewrite(c.pre_condition));
     cb.ensures(rewrite(c.post_condition));
     if (c.signals!=null) for(DeclarationStatement decl:c.signals){
-      cb.signals((ClassType)rewrite(decl.getType()),decl.name(), rewrite(decl.init()));      
+      cb.signals((ClassType)rewrite(decl.getType()),decl.name(), rewrite(decl.initJava()));      
     }
   }
 

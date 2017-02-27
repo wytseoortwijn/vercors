@@ -9,7 +9,7 @@ import java.util.Map.Entry;
 import vct.col.ast.*;
 import vct.col.ast.ASTClass.ClassKind;
 import vct.col.ast.ASTSpecial.Kind;
-import vct.col.ast.BindingExpression.Binder;
+import vct.col.ast.Binder;
 import vct.col.ast.Switch.Case;
 import vct.col.rewrite.AbstractRewriter;
 import vct.util.ClassName;
@@ -498,7 +498,7 @@ public BlockStatement block(Origin origin, ASTNode ... args) {
           
     public BindingExpression exists(ASTNode guard, ASTNode claim, DeclarationStatement ... decl) {
       BindingExpression res=new BindingExpression(
-          Binder.EXISTS,
+          Binder.Exists,
           primitive_type(PrimitiveSort.Boolean),
           decl,
           null,
@@ -512,7 +512,7 @@ public BlockStatement block(Origin origin, ASTNode ... args) {
     public BindingExpression summation(ASTNode guard, ASTNode claim, DeclarationStatement ... decl) {
       int i=decl.length-1;
       BindingExpression res=new BindingExpression(
-          Binder.SUM,
+          Binder.Sum,
           null,
           new DeclarationStatement[]{decl[i]},
           null,
@@ -524,7 +524,7 @@ public BlockStatement block(Origin origin, ASTNode ... args) {
       while(i>0){
         i--;
         res=new BindingExpression(
-            Binder.SUM,
+            Binder.Sum,
             null,
             new DeclarationStatement[]{decl[i]},
             null,
@@ -538,7 +538,7 @@ public BlockStatement block(Origin origin, ASTNode ... args) {
     }
   public BindingExpression let_expr(DeclarationStatement decl,ASTNode in) {
     BindingExpression res=new BindingExpression(
-        Binder.LET,
+        Binder.Let,
         null,
         new DeclarationStatement[]{decl},
         null,
@@ -926,7 +926,7 @@ public ASTSpecial special(Origin origin, vct.col.ast.ASTSpecial.Kind kind, ASTNo
     }
     int i=decl.length-1;
     BindingExpression res=new BindingExpression(
-        Binder.STAR,
+        Binder.Star,
         primitive_type(PrimitiveSort.Resource),
         new DeclarationStatement[]{decl[i]},
         null,
@@ -938,7 +938,7 @@ public ASTSpecial special(Origin origin, vct.col.ast.ASTSpecial.Kind kind, ASTNo
     while(i>0){
       i--;
       res=new BindingExpression(
-          Binder.STAR,
+          Binder.Star,
           primitive_type(PrimitiveSort.Resource),
           new DeclarationStatement[]{decl[i]},
           null,
@@ -958,7 +958,7 @@ public ASTSpecial special(Origin origin, vct.col.ast.ASTSpecial.Kind kind, ASTNo
     }
     int i=decl.length-1;
     BindingExpression res=new BindingExpression(
-        Binder.FORALL,
+        Binder.Forall,
         primitive_type(PrimitiveSort.Boolean),
         new DeclarationStatement[]{decl[i]},
         new ASTNode[0][],
@@ -970,7 +970,7 @@ public ASTSpecial special(Origin origin, vct.col.ast.ASTSpecial.Kind kind, ASTNo
     while(i>0){
       i--;
       res=new BindingExpression(
-          Binder.FORALL,
+          Binder.Forall,
           primitive_type(PrimitiveSort.Boolean),
           new DeclarationStatement[]{decl[i]},
           new ASTNode[0][],
@@ -989,7 +989,7 @@ public ASTSpecial special(Origin origin, vct.col.ast.ASTSpecial.Kind kind, ASTNo
       return expression(StandardOperator.Implies,guard,claim);
     }
     BindingExpression res=new BindingExpression(
-        Binder.FORALL,
+        Binder.Forall,
         primitive_type(PrimitiveSort.Boolean),
         decl,
         triggers,
@@ -1056,13 +1056,6 @@ public LoopStatement while_loop(ASTNode test,ASTNode body,Contract contract){
   return res;    
 }
 
-public Type arrow_type(Type src, Type tgt) {
-  Type res=new FunctionType(new Type[]{src},tgt);
-  res.setOrigin(origin_stack.get());
-  res.accept_if(post);
-  return res;
-}
-
 public Type tuple_type(Type ... t) {
   Type res=new TupleType(t);
   res.setOrigin(origin_stack.get());
@@ -1070,8 +1063,22 @@ public Type tuple_type(Type ... t) {
   return res;
 }
 
+public Type arrow_type(Type src, Type tgt) {
+  Type res=new FunctionType(src, tgt);
+  res.setOrigin(origin_stack.get());
+  res.accept_if(post);
+  return res;
+}
+
 public Type arrow_type(Type[] types, Type tgt) {
   Type res=new FunctionType(types,tgt);
+  res.setOrigin(origin_stack.get());
+  res.accept_if(post);
+  return res;
+}
+
+public Type arrow_type(List<Type> types, Type tgt) {
+  Type res=new FunctionType(types, tgt);
   res.setOrigin(origin_stack.get());
   res.accept_if(post);
   return res;
@@ -1218,12 +1225,23 @@ public Axiom axiom(String name,ASTNode exp){
   public ParallelRegion region(Contract c,ParallelBlock ... blocks) {
     return region(origin_stack.get(),c,blocks);
   }
+  
+  public ParallelRegion region(Contract c, List<ParallelBlock> blocks) {
+    return region(origin_stack.get(), c, blocks);
+  }
 
   public ParallelRegion region(Origin origin,Contract c,ParallelBlock ... blocks) {
     ParallelRegion res=new ParallelRegion(c,blocks);
     res.setOrigin(origin);
     res.accept_if(post);
     return res;
+  }
+  
+  public ParallelRegion region(Origin origin, Contract c, List<ParallelBlock> blocks) {
+    ParallelRegion res=new ParallelRegion(c, blocks);
+	res.setOrigin(origin);
+	res.accept_if(post);
+	return res;
   }
 
   public ASTNode region(Contract c,ArrayList<ParallelBlock> res) {

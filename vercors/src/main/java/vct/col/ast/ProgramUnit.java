@@ -159,11 +159,11 @@ public class ProgramUnit implements ASTSequence<ProgramUnit> {
     }
     if (n instanceof AxiomaticDataType) {
       AxiomaticDataType adt=(AxiomaticDataType)n;
-      for(Method m:adt.constructors()){
+      for(Method m:adt.constructorsJava()){
         Debug("putting adt entry %s",m.getDeclName().toString("."));
         adt_map.put(m.getDeclName().prepend(prefix),m);
       }
-      for(Method m:adt.mappings()){
+      for(Method m:adt.mappingsJava()){
         adt_map.put(m.getDeclName().prepend(prefix),m);
       }
     }    

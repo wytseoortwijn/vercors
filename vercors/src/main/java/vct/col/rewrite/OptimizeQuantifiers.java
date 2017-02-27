@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 import vct.col.ast.ASTNode;
 import vct.col.ast.BindingExpression;
-import vct.col.ast.BindingExpression.Binder;
+import vct.col.ast.Binder;
 import vct.col.ast.DeclarationStatement;
 import vct.col.ast.OperatorExpression;
 import vct.col.ast.ProgramUnit;
@@ -42,7 +42,7 @@ public class OptimizeQuantifiers extends AbstractRewriter {
   }
   
   public void visit(BindingExpression e){
-    if (e.binder==Binder.FORALL && (e.triggers==null || e.triggers.length==0)){
+    if (e.binder==Binder.Forall && (e.triggers==null || e.triggers.length==0)){
       ArrayList<DeclarationStatement> decls=new ArrayList<DeclarationStatement>();
       ArrayList<ASTNode> cond=new ArrayList<ASTNode>();
       ASTNode body=strip(decls,cond,e);

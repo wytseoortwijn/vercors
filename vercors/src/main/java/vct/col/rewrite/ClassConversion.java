@@ -52,7 +52,7 @@ public class ClassConversion extends AbstractRewriter {
       String name=cl.name() + SEP + decl.name();
       create.enter();
       create(decl);
-      target().add(create.field_decl(name, rewrite(decl.getType()), rewrite(decl.init())));
+      target().add(create.field_decl(name, rewrite(decl.getType()), rewrite(decl.initJava())));
       create.leave();
     }
     for(DeclarationStatement decl:cl.dynamicFields()){

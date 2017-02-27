@@ -62,7 +62,7 @@ public class InlineMethod extends Substitution {
     String new_name = prefix + name;
     NameExpression n = create.local_name(decl.name());
     map.put(n, create.local_name(new_name));
-    result = create.field_decl(new_name, rewrite(decl.getType()), rewrite(decl.init()));
+    result = create.field_decl(new_name, rewrite(decl.getType()), rewrite(decl.initJava()));
   }
 
   @Override

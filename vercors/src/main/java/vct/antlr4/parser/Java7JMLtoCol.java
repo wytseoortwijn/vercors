@@ -303,7 +303,7 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
     if (match(ctx,null,"->",null)){
       Type left=checkType(convert(ctx,0));
       if(left instanceof TupleType){
-        return create.arrow_type(((TupleType)left).typesToArray(),checkType(convert(ctx,2)));
+        return create.arrow_type(((TupleType)left).typesJava(), checkType(convert(ctx,2)));
       } else {
         return create.arrow_type(left,checkType(convert(ctx,2)));
       }
@@ -327,7 +327,7 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
         tmp=create.field_decl(name,create.class_type(name));
       } else if (vars[i] instanceof DeclarationStatement) {
         DeclarationStatement d=(DeclarationStatement)vars[i];
-        tmp = create.field_decl(d.name(), d.getType(), d.init());
+        tmp = create.field_decl(d.name(), d.getType(), d.initJava());
       } else {
         throw hre.lang.System.Failure("unexpected %s in variable list at %s",vars[i].getClass(),create.getOrigin());
       }

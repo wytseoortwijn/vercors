@@ -9,6 +9,8 @@ case class RecordTypeEntry(val fieldName:String, val fieldType:Type)
 /**
  * AST node that represents record types, that is, pairs of variable names (identifiers)
  * and their types.
+ * 
+ * @todo I think `types` should be an immutable map
  */
 case class RecordType(val types:List[RecordTypeEntry]) extends Type with VisitorHelper {
   require(types != null, "The record type is null")

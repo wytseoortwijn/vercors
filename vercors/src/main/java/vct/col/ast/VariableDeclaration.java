@@ -126,7 +126,7 @@ public class VariableDeclaration extends ASTNode {
         map.put(name,basetype);
         Type fulltype=rw.rewrite(d.getType());
         map.remove(name);
-        DeclarationStatement tmp=rw.create.field_decl(name,fulltype, rw.copy_rw.rewrite(d.init()));
+        DeclarationStatement tmp=rw.create.field_decl(name,fulltype, rw.copy_rw.rewrite(d.initJava()));
         if (isValidFlag(ASTFlags.STATIC)){
           tmp.setStatic(isStatic());
         }

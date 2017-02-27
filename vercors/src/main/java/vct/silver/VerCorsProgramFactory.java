@@ -291,14 +291,14 @@ public class VerCorsProgramFactory implements
       } else if (entry instanceof AxiomaticDataType) {
         AxiomaticDataType adt=(AxiomaticDataType)entry;
         ArrayList<DFunc> funcs=new ArrayList<DFunc>();
-        for(Method m:adt.constructors()){
+        for(Method m:adt.constructorsJava()){
           List<Triple<Origin,String,T>> args=new ArrayList<Triple<Origin,String,T>>();
           for(DeclarationStatement decl:m.getArgs()){
             args.add(new Triple<Origin,String,T>(decl.getOrigin(),decl.name(),decl.getType().apply(type)));
           }
           funcs.add(api.prog.dfunc(m.getOrigin(), m.name(), args,m.getReturnType().apply(type), adt.name()));
         }
-        for(Method m:adt.mappings()){
+        for(Method m:adt.mappingsJava()){
           List<Triple<Origin,String,T>> args=new ArrayList<Triple<Origin,String,T>>();
           for(DeclarationStatement decl:m.getArgs()){
             args.add(new Triple<Origin,String,T>(decl.getOrigin(),decl.name(),decl.getType().apply(type)));
@@ -306,11 +306,11 @@ public class VerCorsProgramFactory implements
           funcs.add(api.prog.dfunc(m.getOrigin(), m.name(), args, m.getReturnType().apply(type), adt.name()));
         }
         ArrayList<DAxiom> axioms=new ArrayList<DAxiom>();
-        for(Axiom axiom:adt.axioms()){
+        for (Axiom axiom : adt.axiomsJava()) {
           axioms.add(api.prog.daxiom(axiom.getOrigin(),axiom.name(), axiom.rule().apply(expr), adt.name()));
         }
         ArrayList<String> pars=new ArrayList<String>();
-        for (DeclarationStatement decl : adt.parameters()) {
+        for (DeclarationStatement decl : adt.parametersJava()) {
           pars.add(decl.name());
         }
         api.prog.add_adt(program,adt.getOrigin(), adt.name(), funcs,axioms,pars);

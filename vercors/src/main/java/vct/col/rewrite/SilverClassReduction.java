@@ -484,7 +484,7 @@ public class SilverClassReduction extends AbstractRewriter {
       }
       in_ensures=false;
       if (c.signals!=null) for(DeclarationStatement decl:c.signals){
-        cb.signals((ClassType)rewrite(decl.getType()),decl.name(),rewrite(decl.init()));      
+        cb.signals((ClassType)rewrite(decl.getType()), decl.name(), rewrite(decl.initJava()));      
       }
       constructor_this.pop();
     }

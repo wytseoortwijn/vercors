@@ -7,6 +7,7 @@ import vct.col.ast.ASTClass;
 import vct.col.ast.ASTNode;
 import vct.col.ast.ASTSpecial;
 import vct.col.ast.ASTSpecial.Kind;
+import vct.col.ast.Binder;
 import vct.col.ast.BindingExpression;
 import vct.col.ast.Contract;
 import vct.col.ast.ForEachLoop;
@@ -39,7 +40,7 @@ public class FeatureScanner extends RecursiveVisitor<Object> {
   private boolean uses_csl=false;
   private EnumSet<StandardOperator> ops_used=EnumSet.noneOf(StandardOperator.class);
   private EnumSet<ASTSpecial.Kind> specials_used=EnumSet.noneOf(ASTSpecial.Kind.class);
-  private EnumSet<BindingExpression.Binder> binders_used=EnumSet.noneOf(BindingExpression.Binder.class);
+  private EnumSet<Binder> binders_used=EnumSet.noneOf(Binder.class);
   
   private HashSet<Class<? extends ASTNode>> nodes=new HashSet<Class<? extends ASTNode>>();
   
@@ -67,7 +68,7 @@ public class FeatureScanner extends RecursiveVisitor<Object> {
   }
   
   public boolean usesSummation(){
-    return binders_used.contains(BindingExpression.Binder.SUM);
+    return binders_used.contains(Binder.Sum);
   }
   
   public boolean usesLongs(){

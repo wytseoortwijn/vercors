@@ -17,9 +17,13 @@ abstract class Type(val args:List[ASTNode]) extends ASTNode {
   def this() = this(List())
   
   /** @return The arguments list as an array (for Java interoperability). */
+  @deprecated("this method will be removed", "soon")
   def argsToArray = args.toArray
   
+  @deprecated("this method will be removed", "soon")
   def getArg(i:Int) = args.apply(i)
+  
+  @deprecated("this method will be removed", "soon")
   def getArgCount = args.size
   def equalSize(t:Type) = false
   

@@ -1,6 +1,9 @@
 package vct.col.ast;
 
+import java.util.List;
+
 import vct.col.ast.Switch.Case;
+import vct.col.util.LambdaHelper;
 
 public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
 
@@ -80,23 +83,24 @@ public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
 
   @Override
   public void visit(FunctionType t) {
-    t.result().accept(this);
-    int N = t.arity();
-    for(int i=0;i<N;i++){
-      t.param(i).accept(this);
+    for (Type type : t.paramsJava()) {
+      type.accept(this);
     }
+    t.result().accept(this);
   }
+  
   @Override
   public void visit(TypeExpression t) {
-    for(int i = 0; i < t.nrOfTypes(); i++) {
-      t.getType(i).accept(this);
-    }
+	for (Type type : t.typesJava()) {
+	  type.accept(this);
+	}
   }
+  
   @Override
   public void visit(TupleType t) {
-    for(int i=0;i<t.nrOfTypes();i++){
-      t.getType(i).accept(this);
-    }
+	for (Type type : t.typesJava()) {
+	  type.accept(this);
+	}
   }
 
   @Override
@@ -137,6 +141,14 @@ public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
       }
     }
   }
+  
+  private <R extends ASTNode> void dispatch(List<R> nodes) {
+    for (R node : nodes) {
+      if (node != null) {
+        node.accept(this);
+      }
+    }
+  }
 
   @Override
   public void visit(BlockStatement s) {
@@ -171,7 +183,7 @@ public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
   @Override
   public void visit(DeclarationStatement s) {
     s.getType().accept(this);
-    dispatch(s.init());
+    dispatch(s.initJava());
   }
 
   @Override
@@ -259,10 +271,10 @@ public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
     lemma.block().accept(this);
   }
   
-  public void visit(ParallelAtomic pa){
-    for (ASTNode n : pa.synclistAsArray()) {
-      dispatch(n);
-    }
+  public void visit(ParallelAtomic pa) {
+	for (ASTNode item : pa.synclistJava()) {
+	  dispatch(item);
+	}
     dispatch(pa.block());
   }
   
@@ -284,7 +296,7 @@ public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
   
   public void visit(ParallelRegion region){
     dispatch(region.contract());
-    dispatch(region.blocksArray());
+    dispatch(region.blocksJava());
   }
 
   public void visit(Contract c){
@@ -310,7 +322,7 @@ public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
 
   @Override
   public void visit(AxiomaticDataType adt){
-    for(Axiom ax:adt.axioms()){
+    for(Axiom ax:adt.axiomsJava()){
       dispatch(ax);
     }
   }
@@ -370,7 +382,7 @@ public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
 
   @Override
   public void visit(Constraining c) {
-    dispatch(c.varsArray());
+    dispatch(c.varsJava());
     dispatch(c.block());
   }
 

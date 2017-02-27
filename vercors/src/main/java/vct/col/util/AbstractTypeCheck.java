@@ -437,9 +437,9 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
   
   public void visit(DeclarationStatement s){
     super.visit(s);
-    Type t=s.getType();
-    ASTNode e=s.getInit();
-    if (e!=null) {
+    Type t = s.getType();
+    ASTNode e = s.initJava();
+    if (e != null) {
       check_loc_val(t,e);
     }
   }
@@ -1526,10 +1526,10 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
       Abort("Binding expression without type.");
     }
     switch(e.binder){
-    case LET:
+    case Let:
       e.setType(t);
       break;
-    case STAR:{
+    case Star:{
       Type res=new PrimitiveType(PrimitiveSort.Resource);
       if (!res.supertypeof(source(), t)){
         Fail("main argument of %s quantifier must be resource",e.binder);
@@ -1537,8 +1537,8 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
       e.setType(res);
       break;
     }
-    case EXISTS:
-    case FORALL:{
+    case Exists:
+    case Forall:{
       Type res=new PrimitiveType(PrimitiveSort.Boolean);
       if (!res.supertypeof(source(), t)) {
         Fail("main argument of %s quantifier must be boolean",e.binder);
@@ -1546,7 +1546,7 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
       e.setType(res);
       break;
     }
-    case SUM:
+    case Sum:
       e.setType(t);
       break;
     }
@@ -1559,7 +1559,7 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
     if (!pb.iter().getType().isPrimitive(PrimitiveSort.Integer)){
       Fail("type of iteration variable must be integer");
     }
-    ASTNode init=pb.iter().getInit();
+    ASTNode init=pb.iter().initJava();
     if (!init.isa(StandardOperator.RangeSeq)){
       Fail("value for iteration variable must be a range");
     }
@@ -1576,7 +1576,7 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
       if (!decl.getType().isPrimitive(PrimitiveSort.Integer)){
         Fail("type of iteration variable must be integer");
       }
-      ASTNode init=decl.getInit();
+      ASTNode init=decl.initJava();
       if (!init.isa(StandardOperator.RangeSeq)){
         Fail("value for iteration variable must be a range");
       }
@@ -1670,10 +1670,8 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
   }
   
   @Override
-  public void visit(Constraining c){
-	  
-	for (int i = 0; i < c.varsLength(); i++) {
-	  NameExpression var = c.getVar(i);
+  public void visit(Constraining c) {
+	for (NameExpression var : c.varsJava()) {
       var.apply(this);
       Type t=var.getType();
       if (t==null){

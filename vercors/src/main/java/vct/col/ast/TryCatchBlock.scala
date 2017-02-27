@@ -7,17 +7,13 @@ import vct.col.util.VisitorHelper
 /**
  * AST node that represents a try-catch-finally block.
  * 
+ * @author sccblom, whmoortwijn
  * @param main The body of the "try" clause.
  * @param after The body of the "finally" clause.
  * @param catchClauses An (ordered) list of "catch" clauses.
  */
 class TryCatchBlock(val main:BlockStatement, val after:BlockStatement, private[this] val catchClauses:ArrayBuffer[CatchClause]) extends ASTNode with VisitorHelper {
-  /**
-   * Initialises a try-catch-finally block without any catch-clauses.
-   * 
-   * @param main The body of the "try" clause.
-   * @param after The body of the "finally" clause.
-   */
+  /** Initialises a try-catch-finally block without any catch-clauses. */
   def this(main:BlockStatement, after:BlockStatement) = this(main, after, new ArrayBuffer[CatchClause]())
   
   /** Yields the catch-clauses attached to this try-catch-block as a Java iterator. */

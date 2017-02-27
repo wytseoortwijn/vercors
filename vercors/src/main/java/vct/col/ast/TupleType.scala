@@ -1,6 +1,6 @@
 package vct.col.ast
 
-import hre.lang.System.Abort
+import scala.collection.JavaConverters._
 import vct.col.util.VisitorHelper
 
 /**
@@ -17,14 +17,8 @@ case class TupleType(val types:List[Type]) extends Type with VisitorHelper {
   /** Instantiates a tuple type from an array of types. */
   def this(types:Array[Type]) = this(types.toList)
   
-  /** Gives a (copy of) the `types` list converted to an array (e.g for Java interoperability). */
-  def typesToArray = types.toArray
-
-  /** Yields the type "`T_i`" of the `i`-th tuple element. */
-  def getType(i:Int) = types.apply(i)
-  
-  /** Gives the number of types represented by this AST node. */
-  def nrOfTypes = types.size
+  /** Provides a Java wrapper (as `java.util.List`) for the list of parameter types. */
+  def typesJava = types.asJava
 
   /** @return Always `false`: no type can extend (inherit from) a tuple type. */
   override def supertypeof(context:ProgramUnit, t:Type) = false

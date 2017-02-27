@@ -1,19 +1,16 @@
 package vct.col.ast
 
+import scala.collection.JavaConverters._
 import vct.col.util.VisitorHelper
 
 case class Constraining(val block:BlockStatement, val vars:List[NameExpression]) extends ASTNode with VisitorHelper {
+  require(vars != null, "The list of (constraining) vars is null.")
+  
+  /** Constructs a new constraining block from an array of variables.  */
   def this(block:BlockStatement, vars:Array[NameExpression]) = this(block, vars.toList)
   
-  /** Gives the number of variables in this constraining block */
-  def varsLength = vars.length
-  
-  /** Yields the `i`-th variable of this constraining block */
-  def getVar(i:Int) = vars(i)
-  
-  /** Gives a copy of the vars list for Java interoperability */
-  @deprecated("this method will be removed", "soon")
-  def varsArray = vars.toArray
+  /** Gives a Java wrapper (over `java.util.List`) for the variable list. */
+  def varsJava = vars.asJava
   
   override def accept_simple[T,A](m:ASTMapping1[T,A], arg:A) = m.map(this, arg)
   override def accept_simple[T](v:ASTVisitor[T]) = handle_standard(() => v.visit(this))

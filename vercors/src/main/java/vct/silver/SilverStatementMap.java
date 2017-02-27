@@ -1,7 +1,10 @@
 package vct.silver;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 
 import hre.ast.Origin;
 import hre.lang.HREError;
@@ -376,17 +379,21 @@ public class SilverStatementMap<T,E,S> implements ASTMapping<S>{
     return null;
   }
   
-  private <F extends ASTNode> ArrayList<E> do_names(F args[]){
-    ArrayList<E> names=new ArrayList<E>();
-    for(ASTNode n:args){
+  private <F extends ASTNode> ArrayList<E> do_names(List<F> args){
+    ArrayList<E> names = new ArrayList<E>();
+    for (ASTNode n : args) {
       names.add(n.apply(expr));
     }
     return names;
   }
+  
+  private <F extends ASTNode> ArrayList<E> do_names(F args[]){
+	return do_names(Arrays.asList(args));
+  }
 
   @Override
   public S map(Constraining c) {
-    return create.constraining(c.getOrigin(), do_names(c.varsArray()), c.block().apply(this));
+    return create.constraining(c.getOrigin(), do_names(c.varsJava()), c.block().apply(this));
   }
 
   @Override

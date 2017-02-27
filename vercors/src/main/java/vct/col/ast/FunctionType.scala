@@ -1,5 +1,6 @@
 package vct.col.ast
 
+import scala.collection.JavaConverters._
 import vct.col.util.VisitorHelper
 
 /**
@@ -12,14 +13,17 @@ case class FunctionType(val params:List[Type], val result:Type) extends Type wit
   require(params != null, "The parameter list is null")
   require(result != null, "Function types should have a result type")
   
-  /** Constructs a new function type from an array of input parameter types */
+  /** Constructs a new function type from an array of parameter types */
   def this(params:Array[Type], result:Type) = this(params.toList, result)
   
-  /** Yields the arity of the function type */
-  def arity = params.length
+  /** Constructs a new function type from Java constructs (for Java interoperability) */
+  def this(params:java.util.List[Type], result:Type) = this(params.asScala.toList, result)
   
-  /** Yields the type of the `i`-th parameter */
-  def param(i:Int) = params(i)
+  /** Constructs a new unary function type */
+  def this(param:Type, result:Type) = this(List(param), result)
+  
+  /** Provides a Java wrapper (as `java.util.List`) for the list of parameter types. */
+  def paramsJava = params.asJava
   
   override def equals(other:Any) = other match {
     case FunctionType(`params`, `result`) => true

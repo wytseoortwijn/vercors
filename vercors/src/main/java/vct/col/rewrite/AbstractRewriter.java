@@ -5,6 +5,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -27,13 +29,17 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
 
   private static ThreadLocal<AbstractRewriter> tl=new ThreadLocal<AbstractRewriter>();
 
-  public static Hashtable<String,Type> free_vars(ASTNode ... nodes) {
-    Hashtable<String,Type> vars=new Hashtable<String,Type>();
-    NameScanner scanner=new NameScanner(vars);
-    for(ASTNode n:nodes){
+  public static <R extends ASTNode> Hashtable<String,Type> free_vars(List<R> nodes) {
+    Hashtable<String,Type> vars = new Hashtable<String,Type>();
+    NameScanner scanner = new NameScanner(vars);
+    for (R n : nodes) {
       n.accept(scanner);
     }
     return vars;
+  }
+  
+  public static Hashtable<String,Type> free_vars(ASTNode ... nodes) {
+	return free_vars(Arrays.asList(nodes));
   }
 
   public final AbstractRewriter copy_rw;
@@ -195,7 +201,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
     }
     in_ensures=false;
     if (c.signals!=null) for(DeclarationStatement decl:c.signals){
-      cb.signals((ClassType)rewrite(decl.getType()), decl.name(), rewrite(decl.init()));      
+      cb.signals((ClassType)rewrite(decl.getType()), decl.name(), rewrite(decl.initJava()));      
     }
     //cb.requires(rewrite(c.pre_condition));
     //cb.ensures(rewrite(c.post_condition));
@@ -226,10 +232,19 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
     }
   }
   
+  public <E extends ASTNode> List<E> rewrite(List<E> items) {
+	List<E> result = new LinkedList<E>();
+    for (E item : items) {
+      result.add(rewrite(item));
+    }
+    return result;
+  }
+  
   @SafeVarargs
   private final <E extends ASTNode> E[] glue(E... args){
     return Arrays.copyOf(args,args.length);
   }
+  
   public <E extends ASTNode> E[] rewrite(E head,E[] tail){
     E[] res;
     if (tail==null) {
@@ -371,27 +386,29 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
       throw new Error("type AST rewrote to non-type AST");
     }
     String name = s.name();
-    ASTNode init = s.init();
+    ASTNode init = s.initJava();
     if (init!=null) init=init.apply(this);
     DeclarationStatement res=new DeclarationStatement(name,t,init);
     res.setOrigin(s.getOrigin());
     result=res; return ;
   }
 
-  public void visit(FunctionType t){
-    //checkPermission(t);
-    int N=t.arity();
-    Type args[]=new Type[N];
-    for(int i=0;i<N;i++){
-      args[i]=(Type)t.param(i).apply(this);
+  public void visit(FunctionType t) {
+	// visit all parameter types in `t`
+    List<Type> types = new ArrayList<Type>();
+    for (Type type : t.paramsJava()) {
+      types.add((Type)type.apply(this));
     }
-    Type result_type=(Type)t.result().apply(this);
-    ASTNode res=new FunctionType(args,result_type);
-    if (t.getOrigin()!=null) res.setOrigin(t);
-    result=res;
+    
+    // visit the result type of `t`
+    Type resultType = (Type)t.result().apply(this);
+    
+    // configure a new function type
+    result = new FunctionType(types, resultType);
+    if (t.getOrigin() != null) {
+      result.setOrigin(t);
+    }
   }
-  
-
 
   @Override
   public void visit(IfStatement s) {
@@ -585,7 +602,13 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   
   @Override
   public void visit(ParallelAtomic pa){
-    result = create.csl_atomic(rewrite(pa.block()), rewrite(pa.synclistAsArray()));
+	// rewrite all elements of pa.synclist
+	ArrayList<ASTNode> synclist = new ArrayList<ASTNode>();
+	for (ASTNode item : pa.synclistJava()) {
+	  synclist.add(rewrite(item));
+	}
+	
+    result = create.csl_atomic(rewrite(pa.block()), synclist.toArray(new ASTNode[0]));
   }
   
   @Override
@@ -607,7 +630,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   
   @Override
   public void visit(ParallelRegion region){
-    result = create.region(rewrite(region.contract()), rewrite(region.blocksArray()));
+    result = create.region(rewrite(region.contract()), rewrite(region.blocksJava()));
   }
   
   @Override
@@ -631,14 +654,15 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   
   @Override
   public void visit(AxiomaticDataType adt){
-    AxiomaticDataType res = create.adt(adt.name(), rewrite(adt.parameters()));
-    for (Method c : adt.constructors()) {
+	DeclarationStatement[] decls = rewrite(adt.parametersJava()).toArray(new DeclarationStatement[0]);
+    AxiomaticDataType res = create.adt(adt.name(), decls);
+    for (Method c : adt.constructorsJava()) {
       res.add_cons(rewrite(c));
     }
-    for(Method m:adt.mappings()){
+    for(Method m:adt.mappingsJava()){
       res.add_cons(rewrite(m));
     }
-    for(Axiom ax:adt.axioms()){
+    for(Axiom ax:adt.axiomsJava()){
       res.add_axiom(rewrite(ax));
     }
     result=res;
@@ -765,7 +789,8 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   
   @Override
   public void visit(TypeExpression te){
-    result = create.type_expression(te.operator(), rewrite(te.typesAsArray()));
+	Type[] types = rewrite(te.typesJava()).toArray(new Type[0]);
+    result = create.type_expression(te.operator(), types);
   }
   
   @Override
@@ -807,7 +832,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   
   @Override
   public void visit(Constraining c){
-    result = create.constraining(rewrite(c.block()), rewrite(c.varsArray()));
+    result = create.constraining(rewrite(c.block()), rewrite(c.varsJava()));
   }
   
   @Override

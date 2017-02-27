@@ -8,7 +8,7 @@ case class Dereference(val obj:ASTNode, val field:String) extends ASTNode with V
   override def accept_simple[T](m:ASTMapping[T]) = handle_standard(() => m.map(this))
   
   override def `match`(ast:ASTNode) = ast match {
-    case Dereference(o, f) => (obj `match` o) && field == f
+    case Dereference(o, `field`) => o `match` obj
     case h:Hole => h `match` this
     case _ => false
   }

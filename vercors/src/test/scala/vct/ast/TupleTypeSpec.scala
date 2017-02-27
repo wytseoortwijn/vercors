@@ -11,8 +11,8 @@ class TupleTypeSpec extends FlatSpec with Matchers {
     var inttype = new PrimitiveType(PrimitiveSort.Integer)
     var booltype = new PrimitiveType(PrimitiveSort.Boolean)
     var tupletype = new TupleType(Array[Type](inttype, booltype))
-    tupletype.getType(0) should be (inttype)
-    tupletype.getType(1) should be (booltype)
+    tupletype.types(0) should be (inttype)
+    tupletype.types(1) should be (booltype)
   }
   
   it should "throw out-of-bounds when accessing a non-existing type" in {
@@ -20,7 +20,7 @@ class TupleTypeSpec extends FlatSpec with Matchers {
     var tupletype = new TupleType(Array[Type](inttype))
     
     a [IndexOutOfBoundsException] should be thrownBy {
-      tupletype.getType(1) should be (inttype)
+      tupletype.types(1) should be (inttype)
     }
   }
 
@@ -34,7 +34,7 @@ class TupleTypeSpec extends FlatSpec with Matchers {
     types += booltype
     
     a [IndexOutOfBoundsException] should be thrownBy {
-      tupletype.getType(1) should be (booltype)
+      tupletype.types(1) should be (booltype)
     }
   }
   
@@ -47,7 +47,7 @@ class TupleTypeSpec extends FlatSpec with Matchers {
     var tupletype = new TupleType(types.toArray)
     types(0) = booltype
     
-    tupletype.getType(0) should be (inttype)
+    tupletype.types(0) should be (inttype)
   }
   
   it should "also be immune to type updates from a Java array (after conversion)" in {
@@ -60,7 +60,7 @@ class TupleTypeSpec extends FlatSpec with Matchers {
     types.add(booltype)
     
     a [IndexOutOfBoundsException] should be thrownBy {
-      tupletype.getType(1) should be (booltype)
+      tupletype.types(1) should be (booltype)
     }
   }
   
@@ -105,11 +105,11 @@ class TupleTypeSpec extends FlatSpec with Matchers {
     var types = new ArrayBuffer[Type]()
     var inttype = new PrimitiveType(PrimitiveSort.Integer)
     var booltype = new PrimitiveType(PrimitiveSort.Boolean)
-
     types += inttype
     var tupletype = new TupleType(types.toArray)
-    tupletype.typesToArray.update(0, booltype)
     
-    types(0) should be (inttype)
+    a [UnsupportedOperationException] should be thrownBy {
+      tupletype.typesJava.set(0, booltype)
+    }
   }
 }

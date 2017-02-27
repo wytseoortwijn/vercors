@@ -120,7 +120,7 @@ public class VectorEncode extends AbstractRewriter {
 
   @Override
   public void visit(VectorBlock v){
-    OperatorExpression init = (OperatorExpression)v.iter().init();
+    OperatorExpression init = (OperatorExpression)v.iter().initJava();
     ASTNode from=rewrite(init.arg(0));
     ASTNode upto=rewrite(init.arg(1));
     ivar = v.iter().name();
