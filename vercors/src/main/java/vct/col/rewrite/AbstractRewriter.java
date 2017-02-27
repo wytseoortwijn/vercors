@@ -832,7 +832,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   
   @Override
   public void visit(Constraining c){
-    result = create.constraining(rewrite(c.block()), rewrite(c.varsArray()));
+    result = create.constraining(rewrite(c.block()), rewrite(c.varsJava()));
   }
   
   @Override

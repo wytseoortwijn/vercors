@@ -1413,8 +1413,7 @@ public class JavaPrinter extends AbstractPrinter {
     out.print("constraining(");
     String sep = "";
     
-    for (int i = 0; i < c.varsLength(); i++) {
-      NameExpression n = c.getVar(i);
+    for (NameExpression n : c.varsJava()) {
       out.print(sep);
       nextExpr();
       n.accept(this);
