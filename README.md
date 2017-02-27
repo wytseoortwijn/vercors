@@ -11,40 +11,57 @@ The VerCors toolset can be installed and used on MacOS X, Linux, and Windows (vi
 - Java Development Kit (JDK), version 8
 - Git (on Windows you need Git Bash, see https://git-scm.com/downloads)
 
-All other dependencies are included in the repository and do not have to be installed for basic use of VerCors. However, if you aim to develop or extend VerCors the following dependencies need to be installed:
+All other dependencies are included in the repository and do not have to be installed for basic use of VerCors. However, if you aim to develop or extend VerCors the following dependencies need to be installed additionally:
 
-- Apache Ant 
-- SBT
+- Apache Ant, version 1.9.9 (see http://ant.apache.org for instructions)
+- Apache Commons (from https://commons.apache.org/proper/commons-lang/)
+- Scala SBT (see http://www.scala-sbt.org for instructions)
 
-pre-requisites
--------------
+### Building
 
-For a basic installation of the VerCors toolset you need:
+For a basic build of VerCors the following steps should be taken:
 
-- Java version 7 or 8 JDK.
-- Especically on Windows, the environment variable JAVA_HOME must be set. Without it, ant is unable to find the Java compiler.
-- git (On Windows you need git bash, see https://git-scm.com/downloads).
+1. Clone the VerCors repository using `git clone https://github.com/utwente-fmt/vercors.git` and move into the cloned directory, `cd vercors`.
+2. Build VerCors using the built-int Ant distribution by running `./unix/bin/vct-ant`.
+3. Test whether the build was successful by running `./unix/bin/vct --test=examples/manual --tool=silicon --lang=pvl,java`.
 
-Advanced installation topics are covered in the manual and the developers guide.
+The last command tests the VerCors installation by verifying a large collection of examples (from the `./examples` directory). This command should eventually report that `all ? tests passed`.
 
-installation
-------------
+If you do not wish to use the built-in Ant distribution, you could perform the following steps after cloning:
 
-1. Open a new terminal window or git bash window.
-2. cd to the directory where VerCors should be installed.
-3. Issues the following commands
+1. Run `ant clean` (to clean previous build attempts)
+2. Run `ant` (to build the VerCors project)
 
-```
-git clone https://github.com/utwente-fmt/vercors.git
-cd vercors
-./unix/bin/vct-ant
-./unix/bin/vct --test=examples/manual --tool=silicon --lang=pvl,java
-```
+Finally, you can build the documentation by running `./unix/bin/vct-ant doc`.
 
-The last command should report that `all ??? tests passed`.
+## License
 
-Optionally, you can build the documentation with the command
-```
-./unix/bin/vct-ant doc
-```
+Copyright (c) 2008 - 2017 Formal Methods and Tools, University of Twente
+All rights reserved.
 
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+  * Redistributions of source code must retain the above copyright
+    notice, this list of conditions and the following disclaimer.
+
+  * Redistributions in binary form must reproduce the above copyright
+    notice, this list of conditions and the following disclaimer in the
+    documentation and/or other materials provided with the distribution.
+
+  * Neither the name of the University of Twente nor the names of its
+    contributors may be used to endorse or promote products derived from
+    this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
