@@ -104,7 +104,7 @@ public class SilverClassReduction extends AbstractRewriter {
     public void visit(OperatorExpression e){
       switch(e.operator()){
       case RangeSeq:
-        result=create.domain_call("VectorIndex","vrange",e.argsArray());
+        result=create.domain_call("VectorIndex","vrange",e.argsJava());
         break;
       default:
         result=e;
@@ -118,7 +118,7 @@ public class SilverClassReduction extends AbstractRewriter {
     public void visit(OperatorExpression e){
       switch(e.operator()){
       case Mult:
-        result=create.domain_call("MatrixIndex","product",index.rewrite(e.argsArray()));
+        result=create.domain_call("MatrixIndex","product",index.rewrite(e.argsJava()));
         break;
       default:
         result=e;
@@ -311,26 +311,26 @@ public class SilverClassReduction extends AbstractRewriter {
     case VectorRepeat:{
       floats=true;
       Type t=VectorExpression(rewrite(e.getType()));
-      result=create.invokation(t,null,"vrep",rewrite(e.argsArray()));
+      result=create.invokation(t,null,"vrep",rewrite(e.argsJava()));
       break;
     }
     case VectorCompare:{
       floats=true;
       Type t=VectorExpression(rewrite((Type)((PrimitiveType)e.getType()).getArg(0)));
-      result=create.invokation(t,null,"vcmp",rewrite(e.argsArray()));
+      result=create.invokation(t,null,"vcmp",rewrite(e.argsJava()));
       break;
     }
     case MatrixRepeat:{
       floats=true;
       Type t=MatrixExpression(rewrite(e.getType()));
-      result=create.invokation(t,null,"mrep",rewrite(e.argsArray()));
+      result=create.invokation(t,null,"mrep",rewrite(e.argsJava()));
       break;
     }
     case MatrixCompare:{
       floats=true;
       Type t=(Type)((PrimitiveType)e.getType()).getArg(0);
       t=VectorExpression(rewrite((Type)((PrimitiveType)t).getArg(0)));
-      result=create.invokation(t,null,"mcmp",rewrite(e.argsArray()));
+      result=create.invokation(t,null,"mcmp",rewrite(e.argsJava()));
       break;
     }
     case MatrixSum:{
@@ -363,7 +363,7 @@ public class SilverClassReduction extends AbstractRewriter {
     }
     case Plus:{
       if (e.getType().isPrimitive(PrimitiveSort.Float)){
-        result=create.domain_call("VCTFloat", "fadd", rewrite(e.argsArray()));
+        result=create.domain_call("VCTFloat", "fadd", rewrite(e.argsJava()));
       } else {
         super.visit(e); 
       }
@@ -372,14 +372,14 @@ public class SilverClassReduction extends AbstractRewriter {
     case OptionSome:{
       options=true;
       Type t=rewrite(e.getType());
-      result=create.invokation(t, null,"VCTSome",rewrite(e.argsArray()));
+      result=create.invokation(t, null,"VCTSome",rewrite(e.argsJava()));
       break;
     }
     case OptionGet:{
       options=true;
       Type t=rewrite(e.arg(0).getType());
       String method=optionGet(t);
-      result=create.invokation(null, null,method,rewrite(e.argsArray()));
+      result=create.invokation(null, null,method,rewrite(e.argsJava()));
       break;
     }
     case New:{

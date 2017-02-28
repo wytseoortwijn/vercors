@@ -678,7 +678,7 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
       return;
     }
     super.visit(e);
-    ASTNode argss[]=e.argsArray();
+    ASTNode argss[]=e.argsJava().toArray(new ASTNode[0]);
     Type tt[]=new Type[argss.length];
     for(int i=0;i<argss.length;i++){
       if (argss[i] instanceof Type) continue;
@@ -1296,7 +1296,7 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
       break;
     }
     case Wrap:{
-      ASTNode args[]=e.argsArray();
+      ASTNode args[]=e.argsJava().toArray(new ASTNode[0]);
       switch(args.length){
       case 0:
         e.setType(new PrimitiveType(PrimitiveSort.Void));      
@@ -1401,7 +1401,7 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
         //force_frac(e.getArg(0));
         break;
       default:
-        for(ASTNode n:e.argsArray()){
+        for(ASTNode n:e.argsJava()){
           force_frac(n);
         }
         break;

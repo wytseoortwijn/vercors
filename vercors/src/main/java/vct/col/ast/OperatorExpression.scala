@@ -1,7 +1,7 @@
 package vct.col.ast
 
 import hre.ast.FileOrigin
-import hre.lang.System.Abort
+import scala.collection.JavaConverters._
 import vct.col.util.VisitorHelper
 
 case class OperatorExpression(val operator:StandardOperator, val args:List[ASTNode]) extends ExpressionNode with VisitorHelper {
@@ -11,10 +11,11 @@ case class OperatorExpression(val operator:StandardOperator, val args:List[ASTNo
   /** Constructs a new operator expression from an array of arguments */
   def this(operator:StandardOperator, args:Array[ASTNode]) = this(operator, args.toList)
   
-  /** Yields a copy of the argument list as an array (for Java interoperability) */
-  @deprecated("this method will be removed", "soon")
-  def argsArray = args.toArray
-  
+  def argsJava = args.asJava
+  def first = args(0)
+  def second = args(1)
+  def third = args(2)
+
   /** Yields the number of arguments */
   @deprecated("this method will be removed", "soon")
   def nrOfArgs = args.length

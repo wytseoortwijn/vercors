@@ -75,8 +75,8 @@ class MatchLinear implements ASTMapping1<Boolean,ASTNode> {
     }
     if (a.isa(e1.operator())){
       OperatorExpression e2=(OperatorExpression)a;
-      ASTNode[] args1=e1.argsArray();
-      ASTNode[] args2=e2.argsArray();
+      ASTNode[] args1 = e1.argsJava().toArray(new ASTNode[0]);
+      ASTNode[] args2 = e2.argsJava().toArray(new ASTNode[0]);
       if (args1.length!=args2.length) return false;
       for(int i=0;i<args1.length;i++){
         if (!args1[i].apply(this,args2[i])){

@@ -174,7 +174,7 @@ public class AbstractPrinter extends AbstractVisitor<Object> {
       throw new Error("no syntax defined for "+op+" operation");
     }
     int N=op.arity();
-    ASTNode args[]=e.argsArray();
+    ASTNode args[]=e.argsJava().toArray(new ASTNode[0]);
     setExpr();    
     if (N<0){
       out.print(op_syntax[0]);

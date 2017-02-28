@@ -955,7 +955,7 @@ public class JavaPrinter extends AbstractPrinter {
       case Wrap:{
         out.print("(");
         String sep="";
-        for (ASTNode arg : e.argsArray()) {
+        for (ASTNode arg : e.argsJava()) {
           out.print(sep);
           sep=",";
           arg.accept(this);

@@ -548,7 +548,7 @@ public abstract class ASTFrame<T> {
       }
     //}
     if (node instanceof OperatorExpression){
-      for (ASTNode arg : ((OperatorExpression)node).argsArray()) {
+      for (ASTNode arg : ((OperatorExpression)node).argsJava()) {
         scan_labels(arg);
       }
     }

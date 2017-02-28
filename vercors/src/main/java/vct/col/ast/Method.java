@@ -243,7 +243,7 @@ public class Method extends ASTDeclaration {
     if (node instanceof ConstantExpression) return false;
     if (node instanceof OperatorExpression){
       OperatorExpression expr=(OperatorExpression)node;
-      for (ASTNode child : expr.argsArray()) {
+      for (ASTNode child : expr.argsJava()) {
         if (find(target,scanned,child)) return true;
       }
       return false;

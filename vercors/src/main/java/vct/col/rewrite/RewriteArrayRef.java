@@ -113,7 +113,7 @@ public class RewriteArrayRef extends AbstractRewriter {
 		  case Values:{
         Type t=(Type)((PrimitiveType)e.getType()).getArg(0);
         array_values.add(t);
-        result=create.invokation(null,null,"array_values_"+t,rewrite(e.argsArray()));
+        result=create.invokation(null,null,"array_values_"+t,rewrite(e.argsJava()));
         break;
 		  }
 		  case NewArray:{
