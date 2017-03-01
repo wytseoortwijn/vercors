@@ -11,14 +11,14 @@ case class OperatorExpression(val operator:StandardOperator, val args:List[ASTNo
   /** Constructs a new operator expression from an array of arguments */
   def this(operator:StandardOperator, args:Array[ASTNode]) = this(operator, args.toList)
   
+  /** Gives a Java wrapper (as a `java.util.List`) for the list of arguments. */
   def argsJava = args.asJava
   def first = args(0)
   def second = args(1)
   def third = args(2)
-
-  /** Yields the number of arguments */
-  @deprecated("this method will be removed", "soon")
-  def nrOfArgs = args.length
+  
+  /** Yields the number of arguments. Beware, `argslength` takes linear time, not constant time. */
+  def argslength = args.length
   
   /** Either yields the `i`-th argument, or `None` if there is no such argument  */
   @deprecated("this method will be removed", "soon")

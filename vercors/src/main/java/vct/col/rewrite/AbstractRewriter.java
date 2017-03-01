@@ -487,12 +487,12 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   public void visit(OperatorExpression e) {
     //checkPermission(e);
     StandardOperator op=e.operator();
-    int N=op.arity();
-    if(N<0) N=e.nrOfArgs();
-    ASTNode args[]=new ASTNode[N];
-    for(int i=0;i<N;i++){
-      args[i]=e.arg(i).apply(this);
+    
+    List<ASTNode> args = new LinkedList<ASTNode>();
+    for (ASTNode arg : e.argsJava()) {
+      args.add(arg.apply(this));
     }
+    
     OperatorExpression res = create.expression(op, args);
     //res.setOrigin(e.getOrigin());
     res.set_before(rewrite(e.get_before()));
