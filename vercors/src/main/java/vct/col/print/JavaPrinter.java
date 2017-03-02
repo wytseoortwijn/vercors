@@ -1286,14 +1286,18 @@ public class JavaPrinter extends AbstractPrinter {
   @Override
   public void visit(ParallelBlock pb){
     out.printf("parallel %s(",pb.label());
-    for (int i = 0; i < pb.itersLength(); i++) {
-      pb.iteration(i).accept(this);
-      if (i > 0) out.printf(",");
+    
+    int j = 0;
+    for (DeclarationStatement iter : pb.itersJava()) {
+      iter.accept(this);
+      if (j > 0) out.printf(",");
+      j++;
     }
-    if (pb.depsLength() > 0){
+    
+    if (pb.depslength() > 0){
       out.printf(";");
       pb.dependency(0).accept(this);
-      for (int i = 1; i < pb.depsLength(); i++) {
+      for (int i = 1; i < pb.depslength(); i++) {
         out.printf(",");
         pb.dependency(i).accept(this);
       }

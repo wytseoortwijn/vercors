@@ -1570,9 +1570,7 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
 
   @Override
   public void visit(ParallelBlock pb){
-	for (int i = 0; i < pb.itersLength(); i++) {
-	  DeclarationStatement decl = pb.iteration(i);
-	
+    for (DeclarationStatement decl : pb.itersJava()) {
       if (!decl.getType().isPrimitive(PrimitiveSort.Integer)){
         Fail("type of iteration variable must be integer");
       }

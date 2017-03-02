@@ -1,28 +1,26 @@
 package vct.col.ast
 
+import scala.collection.JavaConverters._
 import vct.col.util.VisitorHelper
 
 case class ParallelBlock (val label:String, val contract:Contract, val iters:List[DeclarationStatement], val block:BlockStatement, val deps:Array[ASTNode]) extends ASTNode with VisitorHelper {
   require(deps != null, "dependency array is null")
   require(iters != null, "iteration list is null")
   
-  /** Constructs a new parallel block from an array (`iters`) of iteration statements */
+  /** Constructs a new parallel block from an array (`iters`) of iteration statements. */
   def this(label:String, contract:Contract, iters:Array[DeclarationStatement], block:BlockStatement, deps:Array[ASTNode]) = this(label, contract, iters.toList, block, deps)
   
-  /** Gives a copy of the iteration list for Java interoperability */
-  @deprecated("this method will be removed", "soon")
-  def itersArray = iters.toArray
+  /** Constructs a new parallel block from Java constructs. */
+  def this(label:String, contract:Contract, iters:java.util.List[DeclarationStatement], block:BlockStatement, deps:Array[ASTNode]) = this(label, contract, iters.asScala.toList, block, deps)
   
-  /** Yields the number of iteration statements */
-  @deprecated("this method will be removed", "soon")
-  def itersLength = iters.length
+  /** Gives a Java wrapper (as `java.util.List`) over the list of iterations. */
+  def itersJava = iters.asJava
   
-  /** Gives the `i`-th iteration statement */
-  @deprecated("this method will be removed", "soon")
-  def iteration(i:Int) = iters(i)
+  /** Yields the number of iteration statements. Beware, `iterslength` takes linear time, not constant time. */
+  def iterslength = iters.length
   
   /** Yields the number of dependencies */
-  def depsLength = deps.length
+  def depslength = deps.length
 
   /** Gives the `i`-th dependency */
   def dependency(i:Int) = deps(i)

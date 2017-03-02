@@ -13,19 +13,23 @@ case class OperatorExpression(val operator:StandardOperator, val args:List[ASTNo
   
   /** Gives a Java wrapper (as a `java.util.List`) for the list of arguments. */
   def argsJava = args.asJava
-  def first = args(0)
-  def second = args(1)
-  def third = args(2)
+  
+  /** Yields the first argument, equivalent to `arg(0)`. */
+  def first = arg(0)
+  
+  /** Yields the first argument, equivalent to `arg(1)`. */
+  def second = arg(1)
+  
+  /** Yields the third argument, equivalent to `arg(2)`. */
+  def third = arg(2)
   
   /** Yields the number of arguments. Beware, `argslength` takes linear time, not constant time. */
   def argslength = args.length
   
-  /** Either yields the `i`-th argument, or `None` if there is no such argument  */
-  @deprecated("this method will be removed", "soon")
+  /** Either yields the `i`-th argument, or `None` if there is no such argument. */
   def argOption(i:Int) = args.lift(i)
   
-  /** Yields the `i`-th argument, or throws an exception if there is no such argument */
-  @deprecated("this method will be removed", "soon")
+  /** Yields the `i`-th argument, or throws an exception if there is no such argument. */
   def arg(i:Int) = argOption(i) match {
     case None => throw new Error("the operator $operator does not have an argument $i.")
     case Some(argument) => argument

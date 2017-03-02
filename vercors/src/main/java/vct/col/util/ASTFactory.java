@@ -2,6 +2,7 @@
 package vct.col.util;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -785,6 +786,17 @@ public BlockStatement block(Origin origin, ASTNode ... args) {
   ){
     return parallel_block(origin_stack.get(),label,c, iters, block, deps);
   }
+  
+  public ParallelBlock parallel_block(
+	      String label,
+	      Contract c,
+	      List<DeclarationStatement> iters,
+	      BlockStatement block,
+	      ASTNode deps[]
+	  ){
+	    return parallel_block(origin_stack.get(),label,c, iters, block, deps);
+	  }
+
   public ParallelBlock parallel_block(
       String label,
       Contract c,
@@ -805,15 +817,29 @@ public BlockStatement block(Origin origin, ASTNode ... args) {
     BlockStatement block,
     ASTNode deps[]
   ){
+	  return parallel_block(origin, label, contract, Arrays.asList(iters), block, deps);
+  }
+  
+  /**
+   * Create a new parallel block.
+   */
+ public ParallelBlock parallel_block(
+   Origin origin,
+   String label,
+   Contract contract,
+   List<DeclarationStatement> iters,
+   BlockStatement block,
+   ASTNode deps[]
+ ){
 	if (deps == null) {
 	  deps = new ASTNode[0]; 
 	}
 	  
-    ParallelBlock res = new ParallelBlock(label,contract, iters, block, deps);
-    res.setOrigin(origin);
-    res.accept_if(post);
-    return res;
-  }
+   ParallelBlock res = new ParallelBlock(label,contract, iters, block, deps);
+   res.setOrigin(origin);
+   res.accept_if(post);
+   return res;
+ }
 
   /**
    * Create a predicate declaration.

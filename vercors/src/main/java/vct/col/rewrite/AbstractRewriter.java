@@ -621,7 +621,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
     ParallelBlock res=create.parallel_block(
         pb.label(),
         rewrite(pb.contract()),
-        rewrite(pb.itersArray()),
+        rewrite(pb.itersJava()),
         rewrite(pb.block()),
         rewrite(pb.deps())
     );

@@ -290,7 +290,7 @@ public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
 
   public void visit(ParallelBlock pb){
     dispatch(pb.contract());
-    dispatch(pb.itersArray());
+    dispatch(pb.itersJava());
     dispatch(pb.block());
   }
   
