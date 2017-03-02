@@ -447,13 +447,14 @@ public class JavaPrinter extends AbstractPrinter {
   @Override
   public void visit(ClassType t){
     out.print(t.getFullName());
-    if (t.getArgCount() > 0) {
+    if (t.hasArguments()) {
       setExpr();
       out.print("<");
-      t.getArg(0).accept(this);
-      for(int i=1;i<t.getArgCount();i++){
+      ASTNode args[] = t.argsJava().toArray(new ASTNode[0]);
+      args[0].accept(this);
+      for(int i = 1; i < args.length; i++){
         out.print(",");
-        t.getArg(i).accept(this);
+        args[i].accept(this);
       }
       out.print(">");
     }
@@ -1191,72 +1192,74 @@ public class JavaPrinter extends AbstractPrinter {
   }
   
   public void visit(PrimitiveType t){
+	int nrofargs = t.nrOfArguments();
+	  
     switch(t.sort){
       case Pointer:{
-        t.getArg(0).accept(this);
+        t.firstarg().accept(this);
         out.printf("*");
         break;
       }
       case Array:
-        t.getArg(0).accept(this);
-        switch(t.getArgCount()){
+        t.firstarg().accept(this);
+        switch(nrofargs){
         case 1:
             out.printf("[]");
             return;
         case 2:
           out.printf("[/*");
-          t.getArg(1).accept(this);
+          t.secondarg().accept(this);
           out.printf("*/]");
           return;
         default:
-            Fail("Array type constructor with %d arguments instead of 1 or 2",t.getArgCount());
+            Fail("Array type constructor with %d arguments instead of 1 or 2",nrofargs);
         }
       case Cell:
-        if (t.getArgCount()==2){
+        if (nrofargs==2){
           out.printf("cell<");
-          t.getArg(0).accept(this);
+          t.firstarg().accept(this);
           out.printf(">[");
-          t.getArg(1).accept(this);
+          t.secondarg().accept(this);
           out.printf("]");
           break;
         }
-        if (t.getArgCount()!=1){
-          Fail("Cell type constructor with %d arguments instead of 1",t.getArgCount());
+        if (nrofargs!=1){
+          Fail("Cell type constructor with %d arguments instead of 1",nrofargs);
         }
         out.printf("cell<");
-        t.getArg(0).accept(this);
+        t.firstarg().accept(this);
         out.printf(">");
         break;
       case Option:
-        if (t.getArgCount()!=1){
-          Fail("Option type constructor with %d arguments instead of 1",t.getArgCount());
+        if (nrofargs!=1){
+          Fail("Option type constructor with %d arguments instead of 1",nrofargs);
         }
         out.printf("option<");
-        t.getArg(0).accept(this);
+        t.firstarg().accept(this);
         out.printf(">");
         break;
       case Sequence:
-        if (t.getArgCount()!=1){
-          Fail("Sequence type constructor with %d arguments instead of 1",t.getArgCount());
+        if (nrofargs!=1){
+          Fail("Sequence type constructor with %d arguments instead of 1",nrofargs);
         }
         out.printf("seq<");
-        t.getArg(0).accept(this);
+        t.firstarg().accept(this);
         out.printf(">");
         break;
       case Set:
-        if (t.getArgCount()!=1){
-          Fail("Set type constructor with %d arguments instead of 1",t.getArgCount());
+        if (nrofargs!=1){
+          Fail("Set type constructor with %d arguments instead of 1",nrofargs);
         }
         out.printf("set<");
-        t.getArg(0).accept(this);
+        t.firstarg().accept(this);
         out.printf(">");
         break;
       case Bag:
-        if (t.getArgCount()!=1){
-          Fail("Bag type constructor with %d arguments instead of 1",t.getArgCount());
+        if (nrofargs!=1){
+          Fail("Bag type constructor with %d arguments instead of 1",nrofargs);
         }
         out.printf("bag<");
-        t.getArg(0).accept(this);
+        t.firstarg().accept(this);
         out.printf(">");
         break;
       case CVarArgs:

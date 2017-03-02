@@ -32,8 +32,7 @@ public class SilverTypeMap<T> implements TypeMapping<T> {
       Map<String,Type> map,
       ClassType t
   ){
-    ASTNode args[]=t.argsToArray();
-    for(ASTNode a:args){
+    for (ASTNode a : t.argsJava()) {
       String s=a.getLabel(0).toString();
       if( s.equals(a.toString())){
         // System.err.printf("detected type var %s%n",s);
@@ -51,8 +50,7 @@ public class SilverTypeMap<T> implements TypeMapping<T> {
 
   
   public T domain_type(HashMap<String,T> map,ClassType t){
-    ASTNode args[]=t.argsToArray();
-    for(ASTNode a:args){
+    for (ASTNode a : t.argsJava()) {
       String s=a.getLabel(0).toString();
       if( s.toString().equals(a.toString())){
         // System.err.printf("detected type var %s%n",s);
@@ -99,11 +97,11 @@ public class SilverTypeMap<T> implements TypeMapping<T> {
       case Fraction:
         return create.Perm();
       case Sequence:
-        return create.List(map(t.getArg(0)));
+        return create.List(map(t.firstarg()));
       case Set:
-        return create.Set(map(t.getArg(0)));
+        return create.Set(map(t.firstarg()));
       case Bag:
-        return create.Bag(map(t.getArg(0)));
+        return create.Bag(map(t.firstarg()));
       case String:
         return create.List(create.Int());
       default:
@@ -130,5 +128,4 @@ public class SilverTypeMap<T> implements TypeMapping<T> {
   public T map(TypeVariable v) {
     return create.type_var(v.name());
   }
-
 }

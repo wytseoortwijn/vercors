@@ -6,6 +6,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Stack;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -33,7 +34,7 @@ public class SilverClassReduction extends AbstractRewriter {
       if (res==null) {
         Type t=n.getType();
         if (t.isPrimitive(PrimitiveSort.Sequence)){
-          t=VectorExpression(rewrite((Type)((PrimitiveType)t).getArg(0)));
+          t=VectorExpression(rewrite((Type)((PrimitiveType)t).firstarg()));
           return create.invokation(t,null,"vseq", rewrite(n));
         }
         Fail("cannot map vector expression %s",n);
@@ -53,7 +54,7 @@ public class SilverClassReduction extends AbstractRewriter {
       }
       case VectorCompare:{
         floats=true;
-        Type t=VectorExpression(rewrite((Type)((PrimitiveType)e.getType()).getArg(0)));
+        Type t=VectorExpression(rewrite((Type)((PrimitiveType)e.getType()).firstarg()));
         return create.invokation(t,null,"vcmp",e.arg(0).apply(this),e.arg(1).apply(this));
       }
       default:
@@ -68,8 +69,8 @@ public class SilverClassReduction extends AbstractRewriter {
       if (res==null) {
         Type t=n.getType();
         if (t.isPrimitive(PrimitiveSort.Sequence)){
-          t=(Type)((PrimitiveType)t).getArg(0);
-          t=MatrixExpression(rewrite((Type)((PrimitiveType)t).getArg(0)));
+          t=(Type)((PrimitiveType)t).firstarg();
+          t=MatrixExpression(rewrite((Type)((PrimitiveType)t).firstarg()));
           return create.invokation(t,null,"mseq", rewrite(n));
         }
         Fail("cannot map vector expression %s",n);
@@ -89,8 +90,8 @@ public class SilverClassReduction extends AbstractRewriter {
       }
       case MatrixCompare:{
         floats=true;
-        Type t=(Type)((PrimitiveType)e.getType()).getArg(0);
-        t=MatrixExpression(rewrite((Type)((PrimitiveType)t).getArg(0)));
+        Type t=(Type)((PrimitiveType)e.getType()).firstarg();
+        t=MatrixExpression(rewrite((Type)((PrimitiveType)t).firstarg()));
         return create.invokation(t,null,"mcmp",e.arg(0).apply(this),e.arg(1).apply(this));
       }
       default:
@@ -199,7 +200,7 @@ public class SilverClassReduction extends AbstractRewriter {
   public void visit(PrimitiveType t){
     switch(t.sort){
     case Cell:
-      ref_items.add((Type)rewrite(t.getArg(0)));
+      ref_items.add((Type)rewrite(t.firstarg()));
       result=ref_type;
       break;
     case Double:
@@ -210,8 +211,8 @@ public class SilverClassReduction extends AbstractRewriter {
     case Option:
     {
       options=true;
-      ASTNode args[]=rewrite(((PrimitiveType)t).argsToArray());
-      args[0].addLabel(create.label("T"));
+      List<ASTNode> args = rewrite(((PrimitiveType)t).argsJava());
+      args.get(0).addLabel(create.label("T"));
       result=create.class_type("VCTOption",args);
       break;
     }
@@ -282,7 +283,7 @@ public class SilverClassReduction extends AbstractRewriter {
     Type t=e.obj().getType();
     if (t.isPrimitive(PrimitiveSort.Cell)){
       PrimitiveType tt=(PrimitiveType)t;
-      Type type=(Type)rewrite(tt.getArg(0));
+      Type type=(Type)rewrite(tt.firstarg());
       String name=type.toString();
       ref_items.add(type);
       result=create.dereference(rewrite(e.obj()), name+SEP+e.field());
@@ -316,7 +317,7 @@ public class SilverClassReduction extends AbstractRewriter {
     }
     case VectorCompare:{
       floats=true;
-      Type t=VectorExpression(rewrite((Type)((PrimitiveType)e.getType()).getArg(0)));
+      Type t=VectorExpression(rewrite((Type)((PrimitiveType)e.getType()).firstarg()));
       result=create.invokation(t,null,"vcmp",rewrite(e.argsJava()));
       break;
     }
@@ -328,8 +329,8 @@ public class SilverClassReduction extends AbstractRewriter {
     }
     case MatrixCompare:{
       floats=true;
-      Type t=(Type)((PrimitiveType)e.getType()).getArg(0);
-      t=VectorExpression(rewrite((Type)((PrimitiveType)t).getArg(0)));
+      Type t=(Type)((PrimitiveType)e.getType()).firstarg();
+      t=VectorExpression(rewrite((Type)((PrimitiveType)t).firstarg()));
       result=create.invokation(t,null,"mcmp",rewrite(e.argsJava()));
       break;
     }
@@ -549,7 +550,7 @@ public class SilverClassReduction extends AbstractRewriter {
         create.enter();
         create.setOrigin(new MessageOrigin("Generated OptionGet code"));
         Type t=rewrite(entry.getKey());
-        Type returns=(Type)((ClassType)t).getArg(0);
+        Type returns=(Type)((ClassType)t).firstarg();
         String name=entry.getValue();
         ContractBuilder cb=new ContractBuilder();
         cb.requires(neq(create.local_name("x"),create.invokation(t,null,"VCTNone")));

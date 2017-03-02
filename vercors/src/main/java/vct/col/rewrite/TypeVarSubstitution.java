@@ -27,7 +27,7 @@ public class TypeVarSubstitution extends AbstractRewriter {
   }
 
   public void visit(ClassType c) {
-    if (c.getArgCount()==0){
+    if (c.hasArguments()) {
       Type t=map.get(c.getFullName());
       if (t!=null) {
         Warning("type variable %s encoded as class type",c.getFullName());

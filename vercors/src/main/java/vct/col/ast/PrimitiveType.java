@@ -3,6 +3,8 @@ package vct.col.ast;
 import static hre.lang.System.Abort;
 import static hre.lang.System.Fail;
 
+import java.util.List;
+
 public final class PrimitiveType extends Type {
 
   @Override
@@ -32,21 +34,23 @@ public final class PrimitiveType extends Type {
     }
     this.sort=sort;
   }
+  
+  public PrimitiveType(PrimitiveSort sort, List<ASTNode> args){
+	  this(sort, args.toArray(new ASTNode[0]));
+  }
+  
   public int hashCode(){
     return sort.hashCode();
   }
+  
   public boolean equals(Object o){
     if (o instanceof PrimitiveType) {
-      PrimitiveType t=(PrimitiveType)o;
-      if (sort!=t.sort) return false;
-      if (getArgCount() != t.getArgCount()) return false;
-      for (int i = 0; i < getArgCount(); i++){
-        if (!getArg(i).equals(t.getArg(i))) return false;
-      }
-      return true;
+      PrimitiveType t = (PrimitiveType)o;
+      if (sort != t.sort) return false;
+      return this.argsJava().equals(t.argsJava());
     } else if (o instanceof PrimitiveSort) {
-      if (getArgCount() > 0) return false;
-      return o==sort;
+      if (this.hasArguments()) return false;
+      return o == sort;
     } else {
       return false;
     }
@@ -109,16 +113,7 @@ public final class PrimitiveType extends Type {
   }
 
   public String toString(){
-    String res=sort.toString();
-    if (getArgCount() > 0) {
-      res+="<";
-      res+=getArg(0);
-      for(int i = 1; i < getArgCount(); i++) {
-        res+=","+getArg(i);
-      }
-      res+=">";
-    }
-    return res;
+    return sort.toString() + super.toString();
   }
   
   @SuppressWarnings("incomplete-switch")
@@ -130,7 +125,7 @@ public final class PrimitiveType extends Type {
       return true;
     case Array:
       if (t.isPrimitive(this.sort)){
-        return getArg(0).equals(((PrimitiveType)t).getArg(0));
+        return firstarg().equals(((PrimitiveType)t).firstarg());
       }
     case Sequence:
     case Cell:
@@ -220,7 +215,7 @@ public final class PrimitiveType extends Type {
         break;
       case Pointer:
         if (t.isPrimitive(PrimitiveSort.String)){
-          Type tt=((Type)getArg(0));
+          Type tt=((Type)firstarg());
           if (tt.isPrimitive(PrimitiveSort.Char)) return true;
           if (tt instanceof TypeExpression){
             TypeExpression te=(TypeExpression)tt;
@@ -238,7 +233,7 @@ public final class PrimitiveType extends Type {
   
   @Override
   public boolean isPrimitive(PrimitiveSort sort) {
-    if(sort==PrimitiveSort.String && this.sort==PrimitiveSort.Pointer && ((Type)getArg(0)).isPrimitive(PrimitiveSort.Char)) return true;
+    if(sort==PrimitiveSort.String && this.sort==PrimitiveSort.Pointer && ((Type)firstarg()).isPrimitive(PrimitiveSort.Char)) return true;
     return this.sort==sort;
   }
 

@@ -16,7 +16,7 @@ case class ParallelBlock (val label:String, val contract:Contract, val iters:Lis
   /** Gives a Java wrapper (as `java.util.List`) over the list of iterations. */
   def itersJava = iters.asJava
   
-  /** Yields the number of iteration statements. Beware, `iterslength` takes linear time, not constant time. */
+  /** Yields the number of iteration statements. But beware, `iterslength` takes linear time, not constant time. */
   def iterslength = iters.length
   
   /** Yields the number of dependencies */

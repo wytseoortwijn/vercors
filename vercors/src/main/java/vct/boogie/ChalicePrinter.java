@@ -50,14 +50,14 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
       Abort("cannot deal with class name of length %d", name.length);
     }
     
-    if (t.getArgCount() > 1) {
+    if (t.hasArguments(2)) {
       Abort("more than one type parameter is illegal");
     }
     
     out.print(t.getName());
-    if (t.getArgCount() == 1) {
+    if (t.nrOfArguments() == 1) {
       out.print("<");
-      t.getArg(0).accept(this);
+      t.firstarg().accept(this);
       out.print(">");
     }
   }
@@ -65,7 +65,7 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
     switch (t.sort){
     case Sequence:
       out.print("seq<");
-      t.getArg(0).accept(this);
+      t.firstarg().accept(this);
       out.print(">");
       break;
     case ZFraction:
@@ -409,7 +409,7 @@ public class ChalicePrinter extends AbstractBoogiePrinter {
       if (t.sort==PrimitiveSort.Sequence){
         if (v.valuesLength() == 0) {
           out.print("nil<");
-          t.getArg(0).accept(this);
+          t.firstarg().accept(this);
           out.print(">");
         } else {
           String sep="[";

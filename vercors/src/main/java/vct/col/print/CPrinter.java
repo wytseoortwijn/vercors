@@ -31,7 +31,7 @@ public class CPrinter extends AbstractPrinter {
 	public void visit(PrimitiveType t){
 	  switch(t.sort){
 	  case Pointer:
-	    t.getArg(0).accept(this);
+	    t.firstarg().accept(this);
 	    out.printf("*");
 	    break;
 	  default:

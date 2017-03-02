@@ -140,7 +140,7 @@ public class Method extends ASTDeclaration {
       Debug("missing object type");
       return sigma;      
     }
-    if (object_type.getArgCount() == 0){
+    if (!object_type.hasArguments()){
       Debug("object type has no arguments");
       return sigma;
     }
@@ -156,24 +156,29 @@ public class Method extends ASTDeclaration {
         return sigma;
       }
       Debug("building map...");
-      for (int i = 0; i < c.given.length && i<object_type.getArgCount(); i++) {
-        if (c.given[i].getType().isPrimitive(PrimitiveSort.Class)){
-          Debug("%s = %s", c.given[i].name(), object_type.getArg(i));
-          map.put(c.given[i].name(), (Type)object_type.getArg(i));
-        } else {
-          Debug("skipping %s", c.given[i].name());
-        }
+      
+      int i = 0;
+      for (ASTNode arg : object_type.argsJava()) {
+    	if (i >= c.given.length) break;
+    	if (c.given[i].getType().isPrimitive(PrimitiveSort.Class)){
+            Debug("%s = %s", c.given[i].name(), arg);
+            map.put(c.given[i].name(), (Type)arg);
+          } else {
+            Debug("skipping %s", c.given[i].name());
+          }
+        i++;
       }
+      
     } else if(parent instanceof AxiomaticDataType) {
       AxiomaticDataType adt=(AxiomaticDataType)parent;
       Debug("%s: computing substitution (%s)...",object_type.getOrigin(), adt.name());
 
-      // wytse: this part can probably be nicely rewritten when refactoring object_type
       int i = 0;
+      ASTNode args[] = object_type.argsJava().toArray(new ASTNode[0]);
       for (DeclarationStatement decl : adt.parametersJava()) {
-    	if (i < object_type.getArgCount()) {
-          Debug("%s -> %s",decl.name(), (Type)object_type.getArg(i));
-          map.put(decl.name(), (Type)object_type.getArg(i));          
+    	if (i < args.length) {
+          Debug("%s -> %s",decl.name(), (Type)args[i]);
+          map.put(decl.name(), (Type)args[i]);          
         }
     	i++;
       }

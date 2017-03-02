@@ -48,14 +48,16 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
   
   public void visit(PrimitiveType t){
     super.visit(t);
-    int N=t.getArgCount();
-    for(int i=0;i<N;i++){
-      if (t.getArg(i)==null){
-        Abort("argument %d not typed",i);
-      }
+    
+    int i = 0;
+    for (ASTNode arg : t.argsJava()) {
+      if (arg == null) Abort("argument %d not typed", i);
+      i++;
     }
+    
     t.setType(new PrimitiveType(PrimitiveSort.Class));
   }
+  
   public void visit(ClassType t){
     super.visit(t);
     Debug("class type %s",t);
@@ -244,7 +246,7 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
       if (!ti.supertypeof(source(), arg.getType())){
         if (ti.isPrimitive(PrimitiveSort.Location)
           && (arg instanceof Dereference)
-          && ((Type)ti.getArg(0)).supertypeof(source(), arg.getType())
+          && ((Type)ti.firstarg()).supertypeof(source(), arg.getType())
         ){
           // OK
         } else {
@@ -721,8 +723,8 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
     }
     case MatrixSum:{
       Type t=e.arg(1).getType();
-      t = (Type)((PrimitiveType) t).getArg(0);
-      t = (Type)((PrimitiveType) t).getArg(0);
+      t = (Type)((PrimitiveType) t).firstarg();
+      t = (Type)((PrimitiveType) t).firstarg();
       e.setType(t);
       break;
     }
@@ -730,7 +732,7 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
     {
       Type t=e.arg(0).getType();
       if (t.isPrimitive(PrimitiveSort.Sequence)){
-        t = (Type)((PrimitiveType) t).getArg(0);
+        t = (Type)((PrimitiveType) t).firstarg();
         if (!t.isPrimitive(PrimitiveSort.Integer)){
           Fail("first argument of summation must be a sequence of integers");
         }
@@ -739,7 +741,7 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
       }      
       t=e.arg(1).getType();
       if (t.isPrimitive(PrimitiveSort.Sequence)){
-        t = (Type)((PrimitiveType) t).getArg(0);
+        t = (Type)((PrimitiveType) t).firstarg();
       } else {
         Fail("argument of summation must be a sequence");
       }
@@ -835,7 +837,7 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
     case Member:
     {
       if (t2.isPrimitive(PrimitiveSort.Sequence)||t2.isPrimitive(PrimitiveSort.Set)||t2.isPrimitive(PrimitiveSort.Bag)){
-        if (!t1.equals(t2.getArg(0))){
+        if (!t1.equals(t2.firstarg())){
           Fail("%s cannot be a member of %s",t1,t2);
         }
       } else {
@@ -992,8 +994,8 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
       }
       if (t1.isPrimitive(PrimitiveSort.Option)) {
         // TODO: use type inference instead of this quick fix
-        Type tt1=(Type)t1.getArg(0);
-        Type tt2=(Type)t2.getArg(0);
+        Type tt1=(Type)t1.firstarg();
+        Type tt2=(Type)t2.firstarg();
         if (tt1.toString().equals("<<null>>")) {
           e.arg(0).setType(t2);
         }
@@ -1024,7 +1026,7 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
       t2=e.arg(2).getType();
       if (t2==null) Fail("type of upto argument unknown at "+e.getOrigin());
       if (!t2.isInteger()) Fail("type of upto argument should be integer at "+e.getOrigin());
-      e.setType(new PrimitiveType(PrimitiveSort.Sequence,((PrimitiveType)t).argsToArray()));
+      e.setType(new PrimitiveType(PrimitiveSort.Sequence,((PrimitiveType)t).argsJava()));
       break;
     }
     case ITE:
@@ -1074,7 +1076,7 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
       if (!t.isPrimitive(PrimitiveSort.Option)){
         Fail("argument of option get is %s rather than option<?>",t);
       }
-      e.setType((Type)((PrimitiveType)t).getArg(0));
+      e.setType((Type)((PrimitiveType)t).firstarg());
       break;
     }
     case Identity:
@@ -1130,8 +1132,8 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
     {
       // handle cartesian product meaning of *
       if (t1.isPrimitive(PrimitiveSort.Sequence) && t2.isPrimitive(PrimitiveSort.Sequence)){
-        t1=(Type)((PrimitiveType)t1).getArg(0);
-        t2=(Type)((PrimitiveType)t2).getArg(0);
+        t1=(Type)((PrimitiveType)t1).firstarg();
+        t2=(Type)((PrimitiveType)t2).firstarg();
         e.setType(new PrimitiveType(PrimitiveSort.Sequence,new TupleType(new Type[] { t1, t2 })));
         break;
       }
@@ -1242,7 +1244,7 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
         case Sequence:
         case Array:
         {
-          t1=(Type)t.getArg(0);
+          t1=(Type)t.firstarg();
           break;
         }
         default: Fail("base must be array or sequence type.");
@@ -1257,7 +1259,7 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
       Type t=e.arg(0).getType();
       if (t==null) Fail("type of argument is unknown at %s",e.getOrigin());
       if (!t.isPrimitive(PrimitiveSort.Sequence)) Fail("argument of head is not a sequence");
-      e.setType((Type)t.getArg(0));      
+      e.setType((Type)t.firstarg());      
       break;      
     }
     case Tail:{
@@ -1289,7 +1291,7 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
     {
       if (!t1.isPrimitive(PrimitiveSort.Sequence)) Fail("argument of size is not a sequence");
       if (!t2.isPrimitive(PrimitiveSort.Sequence)) Fail("argument of size is not a sequence");
-      if (!t1.getArg(0).equals(t2.getArg(0))){
+      if (!t1.firstarg().equals(t2.firstarg())){
         Fail("different sequence types in append"); 
       }
       e.setType(t1);
@@ -1337,10 +1339,10 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
     if (t instanceof ClassType){
       Abort("constructor encoded as struct value");
     } else {
-      if (t.getArgCount()==0){
+      if (t.hasArguments()){
         Fail("type without arguments: %s in %s",t,v);
       }
-      t=(Type)t.getArg(0);
+      t=(Type)t.firstarg();
       for (int i = 0; i < v.valuesLength(); i++) {
         Type t2=v.value(i).getType();
         if (t2==null){
@@ -1414,7 +1416,7 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
     Type object_type=e.obj().getType();
     if (object_type==null) Fail("type of object unknown at "+e.getOrigin());
     if (object_type.isPrimitive(PrimitiveSort.Location)){
-      object_type=(Type)object_type.getArg(0);
+      object_type=(Type)object_type.firstarg();
     }
     if (object_type instanceof PrimitiveType){
       if (e.field().equals("length")){
@@ -1422,7 +1424,7 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
         return;
       }
       if (e.field().equals("item")){
-        e.setType((Type)object_type.getArg(0));
+        e.setType((Type)object_type.firstarg());
         return;
       }
       Fail("%s is not a pseudo field of (%s).",e.field(),object_type);

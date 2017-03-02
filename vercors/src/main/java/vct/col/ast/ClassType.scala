@@ -1,6 +1,7 @@
 package vct.col.ast
 
 import hre.lang.System.Debug
+import scala.collection.JavaConverters._
 import vct.col.util.VisitorHelper
 
 object ClassType {
@@ -26,11 +27,17 @@ object ClassType {
 case class ClassType(val names:List[String], val params:List[ASTNode]) extends Type(params) with VisitorHelper {
   require(!names.isEmpty, "class types must have a name (at least one name part).")
   
-  var definition : ASTDeclaration = null
+  /** Constructs a new class type from Java constructs. */
+  def this(names:List[String], params:java.util.List[ASTNode]) = this(names, params.asScala.toList)
   
+  /** Constructs a new class type from Java constructs. */
+  def this(names:Array[String], params:java.util.List[ASTNode]) = this(names.toList, params)
+
   def this(names:Array[String], args:Array[ASTNode]) = this(names.toList, args.toList)
   def this(names:Array[String]) = this(names, Array[ASTNode]())
   def this(name:String) = this(Array(name))
+  
+  var definition : ASTDeclaration = null
   
   def getName = names.last
   def getNameFull = names.toArray

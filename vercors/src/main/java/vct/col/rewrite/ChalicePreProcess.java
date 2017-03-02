@@ -113,8 +113,8 @@ public class ChalicePreProcess extends AbstractRewriter {
   @Override
   public void visit(PrimitiveType t){
     if (t.sort==PrimitiveSort.Cell){
-      String sort="cell_of_"+t.getArg(0);
-      cell_types.put((Type)t.getArg(0),sort);
+      String sort="cell_of_"+t.firstarg();
+      cell_types.put((Type)t.firstarg(),sort);
       result=create.class_type(sort);
     } else {
       super.visit(t);

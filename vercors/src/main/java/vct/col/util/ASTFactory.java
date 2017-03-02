@@ -240,19 +240,34 @@ public BlockStatement block(Origin origin, ASTNode ... args) {
     res.accept_if(post);
     return res;
   }
+  
+  public ClassType class_type(Origin origin, String name[], List<ASTNode> args){
+    ClassType res = new ClassType(name, args);
+    res.setOrigin(origin);
+    res.accept_if(post);
+    return res;
+  }
 
   public ClassType class_type(Origin origin,String name,ASTNode ... args){
     String tmp[]=new String[1];
     tmp[0]=name;
-    return class_type(origin,tmp,args);
+    return class_type(origin, tmp, args);
   }
-
+  
+  public ClassType class_type(Origin origin,String name, List<ASTNode> args){
+    String tmp[]=new String[1];
+    tmp[0]=name;
+    return class_type(origin, tmp, args);
+  }
   
   public ClassType class_type(String name[],ASTNode ... args){
     return class_type(origin_stack.get(),name,args);
   }
   public ClassType class_type(String name,ASTNode ... args){
     return class_type(origin_stack.get(),name,args);
+  }
+  public ClassType class_type(String name, List<ASTNode> args){
+    return class_type(origin_stack.get(), name, args);
   }
   public ASTSpecial comment(String text) {
     return special(vct.col.ast.ASTSpecial.Kind.Comment,constant(text));
@@ -472,17 +487,21 @@ public BlockStatement block(Origin origin, ASTNode ... args) {
       return res;
     }
 
+    public LoopStatement for_loop(ASTNode init, ASTNode test, ASTNode update, ASTNode body, List<ASTNode> invariant){
+        LoopStatement res=new LoopStatement();
+        res.setEntryGuard(test);
+        res.setInitBlock(init);
+        res.setUpdateBlock(update);
+        res.setBody(body);
+        res.setOrigin(origin_stack.get());
+        for (ASTNode inv:invariant) res.appendInvariant(inv);
+        res.fixate();
+        res.accept_if(post);
+        return res;    
+      }
+    
     public LoopStatement for_loop(ASTNode init, ASTNode test, ASTNode update, ASTNode body,ASTNode ... invariant){
-      LoopStatement res=new LoopStatement();
-      res.setEntryGuard(test);
-      res.setInitBlock(init);
-      res.setUpdateBlock(update);
-      res.setBody(body);
-      res.setOrigin(origin_stack.get());
-      for (ASTNode inv:invariant) res.appendInvariant(inv);
-      res.fixate();
-      res.accept_if(post);
-      return res;    
+      return for_loop(init, test, update, body, Arrays.asList(invariant));
     }
           
     public LoopStatement for_loop(ASTNode init, ASTNode test, ASTNode update, ASTNode body,Contract contract){
@@ -865,8 +884,19 @@ public BlockStatement block(Origin origin, ASTNode ... args) {
     res.accept_if(post);
     return res;        
   }
+  
+  public PrimitiveType primitive_type(Origin origin,PrimitiveSort sort, List<ASTNode> args){
+    PrimitiveType res=new PrimitiveType(sort,args);
+    res.setOrigin(origin);
+    res.accept_if(post);
+    return res;        
+  }
 
  public PrimitiveType primitive_type(PrimitiveSort sort,ASTNode ... args){
+  return primitive_type(origin_stack.get(),sort,args);
+}
+ 
+ public PrimitiveType primitive_type(PrimitiveSort sort, List<ASTNode> args){
   return primitive_type(origin_stack.get(),sort,args);
 }
 

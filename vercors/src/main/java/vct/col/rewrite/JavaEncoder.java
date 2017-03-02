@@ -40,18 +40,18 @@ public class JavaEncoder extends AbstractRewriter {
   
   private String create_type_name(Type t){
     if (t.isPrimitive(PrimitiveSort.Array)) {
-      return create_type_name((Type)t.getArg(0))+ARRAY_SUFFIX;
+      return create_type_name((Type)t.firstarg())+ARRAY_SUFFIX;
     } else if (t instanceof PrimitiveType){
       PrimitiveType pt=(PrimitiveType)t;
       switch(pt.sort){
       case Sequence:
-        return "Sequence$"+create_type_name((Type)t.getArg(0))+"$";
+        return "Sequence$"+create_type_name((Type)t.firstarg())+"$";
       case Set:
-        return "Set$"+create_type_name((Type)t.getArg(0))+"$";
+        return "Set$"+create_type_name((Type)t.firstarg())+"$";
       case Bag:
-        return "Bag$"+create_type_name((Type)t.getArg(0))+"$";
+        return "Bag$"+create_type_name((Type)t.firstarg())+"$";
         case Array:
-          return create_type_name((Type)t.getArg(0))+ARRAY_SUFFIX;
+          return create_type_name((Type)t.firstarg())+ARRAY_SUFFIX;
         default:
           return t.toString();
       }
@@ -201,7 +201,7 @@ public class JavaEncoder extends AbstractRewriter {
     } else {
       Type tmp=d.obj().getType();
       if (tmp.isPrimitive(PrimitiveSort.Location)){
-        tmp=(Type)tmp.getArg(0);
+        tmp=(Type)tmp.firstarg();
       }
       t=(ClassType)tmp;
     }

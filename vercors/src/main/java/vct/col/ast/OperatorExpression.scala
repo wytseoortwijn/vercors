@@ -46,7 +46,7 @@ case class OperatorExpression(val operator:StandardOperator, val args:List[ASTNo
   }
   
   override def `match`(ast:ASTNode) = ast match {
-    case OperatorExpression(op, a) => (this isa op) && (args corresponds a)(_ `match` _)
+    case OperatorExpression(`operator`, a) => (args corresponds a)(_ `match` _)
     case h:Hole => h `match` this
     case _ => false
   }

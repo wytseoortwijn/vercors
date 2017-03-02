@@ -66,7 +66,7 @@ public class JavaResolver extends AbstractRewriter {
         }
         if (m.isVarArgs()){
           DeclarationStatement old=args[pars.length-1];
-          args[pars.length-1] = create.field_decl(old.name(), (Type)old.getType().getArg(0));
+          args[pars.length-1] = create.field_decl(old.name(), (Type)old.getType().firstarg());
         }
         Method ast=create.method_kind(Method.Kind.Plain , returns, null, m.getName(),args, m.isVarArgs() , null);
         ast.setFlag(ASTFlags.STATIC,Modifier.isStatic(m.getModifiers()));
@@ -210,7 +210,7 @@ public class JavaResolver extends AbstractRewriter {
   public void visit(ClassType t){
     String name[]=t.getNameFull();
     if (ensures_loaded(name)){
-      result=create.class_type(ClassName.toString(name,FQN_SEP),rewrite(t.argsToArray()));
+      result=create.class_type(ClassName.toString(name,FQN_SEP),rewrite(t.argsJava()));
       return;
     }
     ClassName tmp;
@@ -218,7 +218,7 @@ public class JavaResolver extends AbstractRewriter {
       tmp=new ClassName(name);
       tmp=tmp.prepend(current_space.getDeclName().name);
       if (ensures_loaded(tmp.name)){
-        result=create.class_type(tmp.toString(FQN_SEP),rewrite(t.argsToArray()));
+        result=create.class_type(tmp.toString(FQN_SEP),rewrite(t.argsJava()));
         return;
       }
       for(int i=current_space.imports.size()-1;i>=0;i--){
@@ -228,14 +228,14 @@ public class JavaResolver extends AbstractRewriter {
           tmp=new ClassName(name);
           tmp=tmp.prepend(imp.name);
           if (ensures_loaded(tmp.name)){
-            result=create.class_type(tmp.toString(FQN_SEP),rewrite(t.argsToArray()));
+            result=create.class_type(tmp.toString(FQN_SEP),rewrite(t.argsJava()));
             return;
           }
         } else {
           String imp_name=imp.name[imp.name.length-1];
           if (name.length==1 && name[0].equals(imp_name)) {
             if (ensures_loaded(imp.name)){
-              result=create.class_type(ClassName.toString(imp.name,FQN_SEP),rewrite(t.argsToArray()));
+              result=create.class_type(ClassName.toString(imp.name,FQN_SEP),rewrite(t.argsJava()));
               return;
             }            
           }
