@@ -100,6 +100,7 @@ statement
  | invariant 'while' '(' expr ')' block
  | type identifier ('=' expr | (',' identifier)* ) ';'
  | expr ';'
+ | identifier ('++'|'--') ';'
  | block
  | lexpr '=' expr ';'
  | '{*' expr '*}'

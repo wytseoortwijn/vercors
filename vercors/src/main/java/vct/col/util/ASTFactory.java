@@ -1408,6 +1408,43 @@ public Axiom axiom(String name,ASTNode exp){
     res.accept_if(post);    
     return res;
   }
+  
+  /**
+   * Creates an AST structure for the postfix statement: `x%op%` for some unary operator `%op%`.
+   * The statement is then rewritten to `x := x %op% 1` for a binary variant of the operator `%op%`.
+   * @param varname The variable name that is subject to `%op%`.
+   * @param operator The binary operator `%op%`. 
+   * @return The AST structure that represents the incrementation.
+   */
+  private ASTNode postfix_operator(String varname, StandardOperator operator) {
+	  NameExpression location = identifier(varname);
+	  ASTNode arguments[] = new ASTNode[] { location, new ConstantExpression(1) };
+	  OperatorExpression incr = new OperatorExpression(operator, arguments);
+	  AssignmentStatement res = new AssignmentStatement(location, incr);
+	  
+	  res.setOrigin(origin_stack.get());
+	  res.accept_if(post);
+	  return res;
+  }
 
+  /**
+   * Creates an AST structure for the postfix incremental statement: `x++`. However,
+   * the statement is rewritten to `x := x + 1`.
+   * @param varname The variable name that is subject to incrementation. 
+   * @return The AST structure that represents the incrementation.
+   */
+  public ASTNode postfix_increment(String varname) {
+    return postfix_operator(varname, StandardOperator.Plus);
+  }
+  
+  /**
+   * Creates an AST structure for the postfix decremental statement: `x--`. However,
+   * the statement is rewritten to `x := x - 1`.
+   * @param varname The variable name that is subject to decrementation. 
+   * @return The AST structure that represents the decrementation.
+   */
+  public ASTNode postfix_decrement(String varname) {
+    return postfix_operator(varname, StandardOperator.Minus); 
+  }
 }
 
