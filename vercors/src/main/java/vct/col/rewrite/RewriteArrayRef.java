@@ -111,9 +111,9 @@ public class RewriteArrayRef extends AbstractRewriter {
 		    break;
 		  }
 		  case Values:{
-        Type t=(Type)((PrimitiveType)e.getType()).getArg(0);
+        Type t=(Type)((PrimitiveType)e.getType()).firstarg();
         array_values.add(t);
-        result=create.invokation(null,null,"array_values_"+t,rewrite(e.argsArray()));
+        result=create.invokation(null,null,"array_values_"+t,rewrite(e.argsJava()));
         break;
 		  }
 		  case NewArray:{
@@ -148,7 +148,7 @@ public class RewriteArrayRef extends AbstractRewriter {
 			  create.primitive_type(PrimitiveSort.Option,
 			    create.primitive_type(PrimitiveSort.Sequence,
 		          create.primitive_type(PrimitiveSort.Cell,
-			        rewrite(t.getArg(0)))));
+			        rewrite(t.firstarg()))));
 			break;
 		  default:
 		  	super.visit(t);

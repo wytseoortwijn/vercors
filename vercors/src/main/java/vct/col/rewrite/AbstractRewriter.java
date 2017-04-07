@@ -357,7 +357,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
 
   public void visit(ClassType t){
     //checkPermission(t);
-    ClassType res=new ClassType(t.getNameFull(),rewrite(t.argsToArray()));
+    ClassType res = new ClassType(t.getNameFull(), rewrite(t.argsJava()));
     res.setOrigin(t.getOrigin());
     result=res;
     return;    
@@ -487,12 +487,12 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   public void visit(OperatorExpression e) {
     //checkPermission(e);
     StandardOperator op=e.operator();
-    int N=op.arity();
-    if(N<0) N=e.nrOfArgs();
-    ASTNode args[]=new ASTNode[N];
-    for(int i=0;i<N;i++){
-      args[i]=e.arg(i).apply(this);
+    
+    List<ASTNode> args = new LinkedList<ASTNode>();
+    for (ASTNode arg : e.argsJava()) {
+      args.add(arg.apply(this));
     }
+    
     OperatorExpression res = create.expression(op, args);
     //res.setOrigin(e.getOrigin());
     res.set_before(rewrite(e.get_before()));
@@ -502,7 +502,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
 
   public void visit(PrimitiveType t){
     //checkPermission(t);
-    PrimitiveType res=new PrimitiveType(t.sort,rewrite(t.argsToArray()));
+    PrimitiveType res=new PrimitiveType(t.sort,rewrite(t.argsJava()));
     if (t.getOrigin()!=null){
       res.setOrigin(t);
     } else {
@@ -621,7 +621,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
     ParallelBlock res=create.parallel_block(
         pb.label(),
         rewrite(pb.contract()),
-        rewrite(pb.itersArray()),
+        rewrite(pb.itersJava()),
         rewrite(pb.block()),
         rewrite(pb.deps())
     );

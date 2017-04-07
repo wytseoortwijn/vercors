@@ -2,6 +2,7 @@
 package vct.col.util;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -239,19 +240,34 @@ public BlockStatement block(Origin origin, ASTNode ... args) {
     res.accept_if(post);
     return res;
   }
+  
+  public ClassType class_type(Origin origin, String name[], List<ASTNode> args){
+    ClassType res = new ClassType(name, args);
+    res.setOrigin(origin);
+    res.accept_if(post);
+    return res;
+  }
 
   public ClassType class_type(Origin origin,String name,ASTNode ... args){
     String tmp[]=new String[1];
     tmp[0]=name;
-    return class_type(origin,tmp,args);
+    return class_type(origin, tmp, args);
   }
-
+  
+  public ClassType class_type(Origin origin,String name, List<ASTNode> args){
+    String tmp[]=new String[1];
+    tmp[0]=name;
+    return class_type(origin, tmp, args);
+  }
   
   public ClassType class_type(String name[],ASTNode ... args){
     return class_type(origin_stack.get(),name,args);
   }
   public ClassType class_type(String name,ASTNode ... args){
     return class_type(origin_stack.get(),name,args);
+  }
+  public ClassType class_type(String name, List<ASTNode> args){
+    return class_type(origin_stack.get(), name, args);
   }
   public ASTSpecial comment(String text) {
     return special(vct.col.ast.ASTSpecial.Kind.Comment,constant(text));
@@ -471,17 +487,21 @@ public BlockStatement block(Origin origin, ASTNode ... args) {
       return res;
     }
 
+    public LoopStatement for_loop(ASTNode init, ASTNode test, ASTNode update, ASTNode body, List<ASTNode> invariant){
+        LoopStatement res=new LoopStatement();
+        res.setEntryGuard(test);
+        res.setInitBlock(init);
+        res.setUpdateBlock(update);
+        res.setBody(body);
+        res.setOrigin(origin_stack.get());
+        for (ASTNode inv:invariant) res.appendInvariant(inv);
+        res.fixate();
+        res.accept_if(post);
+        return res;    
+      }
+    
     public LoopStatement for_loop(ASTNode init, ASTNode test, ASTNode update, ASTNode body,ASTNode ... invariant){
-      LoopStatement res=new LoopStatement();
-      res.setEntryGuard(test);
-      res.setInitBlock(init);
-      res.setUpdateBlock(update);
-      res.setBody(body);
-      res.setOrigin(origin_stack.get());
-      for (ASTNode inv:invariant) res.appendInvariant(inv);
-      res.fixate();
-      res.accept_if(post);
-      return res;    
+      return for_loop(init, test, update, body, Arrays.asList(invariant));
     }
           
     public LoopStatement for_loop(ASTNode init, ASTNode test, ASTNode update, ASTNode body,Contract contract){
@@ -785,6 +805,17 @@ public BlockStatement block(Origin origin, ASTNode ... args) {
   ){
     return parallel_block(origin_stack.get(),label,c, iters, block, deps);
   }
+  
+  public ParallelBlock parallel_block(
+	      String label,
+	      Contract c,
+	      List<DeclarationStatement> iters,
+	      BlockStatement block,
+	      ASTNode deps[]
+	  ){
+	    return parallel_block(origin_stack.get(),label,c, iters, block, deps);
+	  }
+
   public ParallelBlock parallel_block(
       String label,
       Contract c,
@@ -805,15 +836,29 @@ public BlockStatement block(Origin origin, ASTNode ... args) {
     BlockStatement block,
     ASTNode deps[]
   ){
+	  return parallel_block(origin, label, contract, Arrays.asList(iters), block, deps);
+  }
+  
+  /**
+   * Create a new parallel block.
+   */
+ public ParallelBlock parallel_block(
+   Origin origin,
+   String label,
+   Contract contract,
+   List<DeclarationStatement> iters,
+   BlockStatement block,
+   ASTNode deps[]
+ ){
 	if (deps == null) {
 	  deps = new ASTNode[0]; 
 	}
 	  
-    ParallelBlock res = new ParallelBlock(label,contract, iters, block, deps);
-    res.setOrigin(origin);
-    res.accept_if(post);
-    return res;
-  }
+   ParallelBlock res = new ParallelBlock(label,contract, iters, block, deps);
+   res.setOrigin(origin);
+   res.accept_if(post);
+   return res;
+ }
 
   /**
    * Create a predicate declaration.
@@ -839,8 +884,19 @@ public BlockStatement block(Origin origin, ASTNode ... args) {
     res.accept_if(post);
     return res;        
   }
+  
+  public PrimitiveType primitive_type(Origin origin,PrimitiveSort sort, List<ASTNode> args){
+    PrimitiveType res=new PrimitiveType(sort,args);
+    res.setOrigin(origin);
+    res.accept_if(post);
+    return res;        
+  }
 
  public PrimitiveType primitive_type(PrimitiveSort sort,ASTNode ... args){
+  return primitive_type(origin_stack.get(),sort,args);
+}
+ 
+ public PrimitiveType primitive_type(PrimitiveSort sort, List<ASTNode> args){
   return primitive_type(origin_stack.get(),sort,args);
 }
 
@@ -1352,6 +1408,43 @@ public Axiom axiom(String name,ASTNode exp){
     res.accept_if(post);    
     return res;
   }
+  
+  /**
+   * Creates an AST structure for the postfix statement: `x%op%` for some unary operator `%op%`.
+   * The statement is then rewritten to `x := x %op% 1` for a binary variant of the operator `%op%`.
+   * @param varname The variable name that is subject to `%op%`.
+   * @param operator The binary operator `%op%`. 
+   * @return The AST structure that represents the incrementation.
+   */
+  private ASTNode postfix_operator(String varname, StandardOperator operator) {
+	  NameExpression location = identifier(varname);
+	  ASTNode arguments[] = new ASTNode[] { location, new ConstantExpression(1) };
+	  OperatorExpression incr = new OperatorExpression(operator, arguments);
+	  AssignmentStatement res = new AssignmentStatement(location, incr);
+	  
+	  res.setOrigin(origin_stack.get());
+	  res.accept_if(post);
+	  return res;
+  }
 
+  /**
+   * Creates an AST structure for the postfix incremental statement: `x++`. However,
+   * the statement is rewritten to `x := x + 1`.
+   * @param varname The variable name that is subject to incrementation. 
+   * @return The AST structure that represents the incrementation.
+   */
+  public ASTNode postfix_increment(String varname) {
+    return postfix_operator(varname, StandardOperator.Plus);
+  }
+  
+  /**
+   * Creates an AST structure for the postfix decremental statement: `x--`. However,
+   * the statement is rewritten to `x := x - 1`.
+   * @param varname The variable name that is subject to decrementation. 
+   * @return The AST structure that represents the decrementation.
+   */
+  public ASTNode postfix_decrement(String varname) {
+    return postfix_operator(varname, StandardOperator.Minus); 
+  }
 }
 

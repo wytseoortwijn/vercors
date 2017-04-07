@@ -16,15 +16,24 @@ abstract class Type(val args:List[ASTNode]) extends ASTNode {
   def this(args:Array[ASTNode]) = this(args.toList)
   def this() = this(List())
   
-  /** @return The arguments list as an array (for Java interoperability). */
-  @deprecated("this method will be removed", "soon")
-  def argsToArray = args.toArray
+  /** Provides a Java wrapper (as `java.util.List`) for the argument list. */
+  def argsJava = args.asJava
   
-  @deprecated("this method will be removed", "soon")
-  def getArg(i:Int) = args.apply(i)
+  /** Tests whether `args` has any arguments. */
+  def hasArguments = args.isEmpty
   
-  @deprecated("this method will be removed", "soon")
-  def getArgCount = args.size
+  /** Tests whether `args` has at least `n` arguments. Beware, `hasArguments` takes linear time in `n`. */
+  def hasArguments(n:Int) = args.take(n).length == n
+  
+  /** Yields the first argument in `args`. */
+  def firstarg = args(0)
+  
+  /** Yields the second argument in `args`. */
+  def secondarg = args(1)
+  
+  /** Yields the number of arguments. But beware, `nrOfArguments` takes linear time. */
+  def nrOfArguments = args.length
+  
   def equalSize(t:Type) = false
   
   def isPrimitive(fraction:PrimitiveSort) = false

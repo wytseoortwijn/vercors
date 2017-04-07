@@ -70,7 +70,8 @@ public class ParallelBlockEncoder extends AbstractRewriter {
     Hashtable<NameExpression,ASTNode> map=new Hashtable();
     Substitution sigma=new Substitution(source(),map);
     */
-    DeclarationStatement iter_decls[] = new DeclarationStatement[pb.itersLength()];
+    DeclarationStatement iters[] = pb.itersJava().toArray(new DeclarationStatement[0]);
+    DeclarationStatement iter_decls[] = new DeclarationStatement[iters.length];
     //iter_decls_prime = new DeclarationStatement[pb.iters.length];
     ArrayList<ASTNode> guard_list=new ArrayList<ASTNode>();
     /*
@@ -79,9 +80,9 @@ public class ParallelBlockEncoder extends AbstractRewriter {
     Hashtable<NameExpression,ASTNode> prime=new Hashtable();
     */
     for (int i = 0; i < iter_decls.length; i++) {
-      iter_decls[i] = create.field_decl(pb.iteration(i).name(), pb.iteration(i).getType());
+      iter_decls[i] = create.field_decl(iters[i].name(), iters[i].getType());
       //iter_decls_prime[i]=create.field_decl(pb.iters[i].name+"__prime", pb.iters[i].getType());
-      ASTNode tmp = create.expression(StandardOperator.Member, create.local_name(pb.iteration(i).name()), pb.iteration(i).initJava());
+      ASTNode tmp = create.expression(StandardOperator.Member, create.local_name(iters[i].name()), iters[i].initJava());
       guard_list.add(tmp);
       /*
       check_cb.requires(tmp);
@@ -159,8 +160,7 @@ public class ParallelBlockEncoder extends AbstractRewriter {
     ArrayList<ASTNode> guard_list=new ArrayList<ASTNode>();
     ArrayList<DeclarationStatement> guard_decls=new ArrayList<DeclarationStatement>();
     
-    for (int i = 0; i < blk.itersLength(); i++) {
-      DeclarationStatement decl = blk.iteration(i);
+    for (DeclarationStatement decl : blk.itersJava()) {
       ASTNode tmp = create.expression(StandardOperator.Member, create.unresolved_name(decl.name()), decl.initJava());
       guard_list.add(tmp);
       tmp=create.expression(StandardOperator.Size,decl.initJava());
@@ -170,6 +170,7 @@ public class ParallelBlockEncoder extends AbstractRewriter {
       guard_decls.add(create.field_decl(decl.name(), decl.getType()));
       check_vars.remove(decl.name());
     }
+    
     ASTNode iters_guard=create.fold(StandardOperator.And,guard_list);
     DeclarationStatement iters_decl[]=guard_decls.toArray(new DeclarationStatement[0]);
     for (ASTNode clause : ASTUtils.conjuncts(pb.contract().pre_condition, StandardOperator.Star)) {
@@ -267,7 +268,7 @@ public class ParallelBlockEncoder extends AbstractRewriter {
         may.add(pb.label());
         HashSet<String> must=new HashSet<String>();
         must.add(pb.label());
-        for (int i = 0; i < pb.depsLength(); i++) {
+        for (int i = 0; i < pb.depslength(); i++) {
           ASTNode d=pb.dependency(i);
           if (d instanceof NameExpression){
             String dep=d.toString();
@@ -278,7 +279,7 @@ public class ParallelBlockEncoder extends AbstractRewriter {
             may.addAll(trans);
             must.addAll(must_deps.get(dep));
             ParallelBlock pb2=blocks.get(dep);
-            ASTNode args[]=new ASTNode[pb2.itersLength()];
+            ASTNode args[]=new ASTNode[pb2.iterslength()];
             for(int j=0;j<args.length;j++){
               args[j]=create.reserved_name(ASTReserved.Any);
             }
@@ -313,34 +314,36 @@ public class ParallelBlockEncoder extends AbstractRewriter {
               ArrayList<ASTNode> conds=new ArrayList<ASTNode>();
               ArrayList<DeclarationStatement> decls=new ArrayList<DeclarationStatement>();
               
-              for (int i = 0; i < pb2.itersLength(); i++) {
-                DeclarationStatement decl = pb2.iteration(i);
+              for (DeclarationStatement decl : pb2.itersJava()) {
             	decls.add(create.field_decl("x_"+decl.name(), decl.getType()));
               }
 
               HashMap<NameExpression, ASTNode> map=new HashMap<NameExpression, ASTNode>();
               Substitution sigma=new Substitution(source(),map);
               
-              for (int i = 0; i < pb.itersLength(); i++) {
-                DeclarationStatement decl = pb.iteration(i);
+              for (DeclarationStatement decl : pb.itersJava()) {
                 decls.add(create.field_decl("y_"+decl.name(), decl.getType()));
                 map.put(create.unresolved_name(decl.name()), create.unresolved_name("y_"+decl.name())); 
               }
               
-              for (int i = 0; i < pb.depsLength(); i++) {
+              for (int i = 0; i < pb.depslength(); i++) {
                 ASTNode dep_tmp = pb.dependency(i);
                 MethodInvokation dep=(MethodInvokation)dep_tmp;
                 String dname=dep.method;
                 if (pb2.label().equals(dname)){
                   ArrayList<ASTNode> parts=new ArrayList<ASTNode>();
-                  for (int j = 0; j < pb2.itersLength(); j++) {
+                  
+                  int j = 0;
+                  for (DeclarationStatement decl : pb2.itersJava()) {
                     if (!dep.getArg(j).isReserved(ASTReserved.Any)){
                       parts.add(create.expression(StandardOperator.EQ,
-                        create.argument_name("x_"+pb2.iteration(j).name()),
+                        create.argument_name("x_" + decl.name()),
                         sigma.rewrite(dep.getArg(j))
                       ));
                     }
+                    j++;
                   }
+                  
                   conds.add(create.fold(StandardOperator.And,parts));
                 } else {
                   ParallelBlock pb1=blocks.get(dname);
@@ -349,17 +352,22 @@ public class ParallelBlockEncoder extends AbstractRewriter {
                     break;
                   }
                   ArrayList<DeclarationStatement> exists=new ArrayList<DeclarationStatement>();
-                  ASTNode args[]=new ASTNode[pb2.itersLength() + pb1.itersLength()];
                   
-                  for (int j = 0; j < pb2.itersLength(); j++){
-                    args[j] = create.argument_name("x_" + pb2.iteration(j).name());
+                  int pb1_iterslength = pb1.iterslength();
+                  int pb2_iterslength = pb2.iterslength();
+                  ASTNode args[]=new ASTNode[pb2_iterslength + pb1_iterslength];
+                  
+                  int j = 0;
+                  for (DeclarationStatement decl : pb2.itersJava()) {
+                    args[j] = create.argument_name("x_" + decl.name());
+                    j++;
                   }
                   
-                  for (int j = 0; j < pb1.itersLength(); j++) {
+                  for (j = 0; j < pb1_iterslength; j++) {
                     if (dep.getArg(j).isReserved(ASTReserved.Any)) {
-                      args[pb2.itersLength() + j] = create.unresolved_name("z_" + j);
+                      args[pb2_iterslength + j] = create.unresolved_name("z_" + j);
                     } else {
-                      args[pb2.itersLength() + j] = sigma.rewrite(dep.getArg(j));
+                      args[pb2_iterslength + j] = sigma.rewrite(dep.getArg(j));
                     }
                   }
                   
@@ -411,8 +419,7 @@ public class ParallelBlockEncoder extends AbstractRewriter {
     ArrayList<ASTNode> list=new ArrayList<ASTNode>();
     int N=0;
     
-    for (int i = 0; i < pb1.itersLength(); i++) {
-      DeclarationStatement decl = pb1.iteration(i);
+    for (DeclarationStatement decl : pb1.itersJava()) {
       String name="x"+(++N);
       main_vars.put(name,decl.getType());
       map1.put(create.unresolved_name(decl.name()),create.unresolved_name(name));
@@ -425,8 +432,7 @@ public class ParallelBlockEncoder extends AbstractRewriter {
       );
     }
     
-    for (int i = 0; i < pb2.itersLength(); i++) {
-      DeclarationStatement decl = pb2.iteration(i);
+    for (DeclarationStatement decl : pb2.itersJava()) {
       String name="x"+(++N);
       main_vars.put(name,decl.getType());
       map2.put(create.unresolved_name(decl.name()),create.unresolved_name(name));

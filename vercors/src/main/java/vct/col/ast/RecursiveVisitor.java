@@ -66,7 +66,7 @@ public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
   
   @Override
   public void visit(OperatorExpression e) {
-    for (ASTNode arg : e.argsArray()) {
+    for (ASTNode arg : e.argsJava()) {
       arg.accept(this);
     }    
   }
@@ -105,9 +105,8 @@ public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
 
   @Override
   public void visit(PrimitiveType t) {
-    int N=t.getArgCount();
-    for(int i=0;i<N;i++){
-      t.getArg(i).accept(this);
+	for (ASTNode arg : t.argsJava()) {
+      arg.accept(this);
     }          
   }
 
@@ -290,7 +289,7 @@ public class RecursiveVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
 
   public void visit(ParallelBlock pb){
     dispatch(pb.contract());
-    dispatch(pb.itersArray());
+    dispatch(pb.itersJava());
     dispatch(pb.block());
   }
   

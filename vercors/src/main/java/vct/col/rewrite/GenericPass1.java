@@ -63,7 +63,7 @@ public class GenericPass1 extends AbstractRewriter {
     Warning("rewrite %s to %s %s",old_returns,returns,m.getName());
     ContractBuilder cb=new ContractBuilder();
     rewrite(m.getContract(),cb);
-    if (old_returns.getArgCount()>0 || !returns.equals(old_returns)){
+    if (old_returns.hasArguments() || !returns.equals(old_returns)){
         cb.ensures(create.expression(StandardOperator.Instance,
                 create.reserved_name(ASTReserved.Result),
                 copy_rw.rewrite(old_returns)
@@ -93,7 +93,7 @@ public class GenericPass1 extends AbstractRewriter {
     DeclarationStatement args[]=new DeclarationStatement[old_args.length];
     for(int i=0;i<old_args.length;i++){
       args[i]=rewrite(old_args[i]);
-      if (old_args[i].getType().getArgCount()>0 ||!args[i].getType().equals(old_args[i].getType())){
+      if (old_args[i].getType().hasArguments() ||!args[i].getType().equals(old_args[i].getType())){
         cb.requires(create.expression(StandardOperator.Instance,
             create.local_name(old_args[i].name()),
             copy_rw.rewrite(old_args[i].getType())

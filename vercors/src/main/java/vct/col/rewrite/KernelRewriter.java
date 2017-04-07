@@ -253,11 +253,11 @@ public class KernelRewriter extends AbstractRewriter {
         if (t.isPrimitive(PrimitiveSort.Array)){
           ASTNode tmp=create.expression(StandardOperator.EQ,
               create.dereference(create.field_name(global.name()),"length"),
-              rewrite(t.getArg(1))
+              rewrite(t.secondarg())
           );
           kernel_main_invariant.add(tmp);
           base_inv.add(tmp);
-          t=create.primitive_type(PrimitiveSort.Array,rewrite(t.getArg(0)));          
+          t=create.primitive_type(PrimitiveSort.Array,rewrite(t.firstarg()));          
         } else {
           t=rewrite(t);
         }
@@ -273,11 +273,11 @@ public class KernelRewriter extends AbstractRewriter {
         if (t.isPrimitive(PrimitiveSort.Array)){
           ASTNode tmp=create.expression(StandardOperator.EQ,
               create.dereference(create.field_name(local.name()),"length"),
-              rewrite(t.getArg(1))
+              rewrite(t.secondarg())
           );
           kernel_main_invariant.add(tmp);
           base_inv.add(tmp);
-          t=create.primitive_type(PrimitiveSort.Array,rewrite(t.getArg(0)));          
+          t=create.primitive_type(PrimitiveSort.Array,rewrite(t.firstarg()));          
         } else {
           t=rewrite(t);
         }

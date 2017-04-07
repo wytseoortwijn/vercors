@@ -1,7 +1,7 @@
 package vct.col.ast
 
 import hre.ast.FileOrigin
-import hre.lang.System.Abort
+import scala.collection.JavaConverters._
 import vct.col.util.VisitorHelper
 
 case class OperatorExpression(val operator:StandardOperator, val args:List[ASTNode]) extends ExpressionNode with VisitorHelper {
@@ -11,20 +11,25 @@ case class OperatorExpression(val operator:StandardOperator, val args:List[ASTNo
   /** Constructs a new operator expression from an array of arguments */
   def this(operator:StandardOperator, args:Array[ASTNode]) = this(operator, args.toList)
   
-  /** Yields a copy of the argument list as an array (for Java interoperability) */
-  @deprecated("this method will be removed", "soon")
-  def argsArray = args.toArray
+  /** Gives a Java wrapper (as a `java.util.List`) for the list of arguments. */
+  def argsJava = args.asJava
   
-  /** Yields the number of arguments */
-  @deprecated("this method will be removed", "soon")
-  def nrOfArgs = args.length
+  /** Yields the first argument, equivalent to `arg(0)`. */
+  def first = arg(0)
   
-  /** Either yields the `i`-th argument, or `None` if there is no such argument  */
-  @deprecated("this method will be removed", "soon")
+  /** Yields the first argument, equivalent to `arg(1)`. */
+  def second = arg(1)
+  
+  /** Yields the third argument, equivalent to `arg(2)`. */
+  def third = arg(2)
+  
+  /** Yields the number of arguments. Beware, `argslength` takes linear time, not constant time. */
+  def argslength = args.length
+  
+  /** Either yields the `i`-th argument, or `None` if there is no such argument. */
   def argOption(i:Int) = args.lift(i)
   
-  /** Yields the `i`-th argument, or throws an exception if there is no such argument */
-  @deprecated("this method will be removed", "soon")
+  /** Yields the `i`-th argument, or throws an exception if there is no such argument. */
   def arg(i:Int) = argOption(i) match {
     case None => throw new Error("the operator $operator does not have an argument $i.")
     case Some(argument) => argument
@@ -41,7 +46,7 @@ case class OperatorExpression(val operator:StandardOperator, val args:List[ASTNo
   }
   
   override def `match`(ast:ASTNode) = ast match {
-    case OperatorExpression(op, a) => (this isa op) && (args corresponds a)(_ `match` _)
+    case OperatorExpression(`operator`, a) => (args corresponds a)(_ `match` _)
     case h:Hole => h `match` this
     case _ => false
   }

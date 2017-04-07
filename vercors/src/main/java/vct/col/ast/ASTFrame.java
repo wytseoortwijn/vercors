@@ -465,8 +465,7 @@ public abstract class ASTFrame<T> {
       switch(action){
       case ENTER:
         variables.enter();
-        for (int i = 0; i < pb.itersLength(); i++) {
-          DeclarationStatement decl = pb.iteration(i);
+        for (DeclarationStatement decl : pb.itersJava()) {
           variables.add(decl.name(), new VariableInfo(decl, NameExpression.Kind.Local));
         }
         break;
@@ -548,7 +547,7 @@ public abstract class ASTFrame<T> {
       }
     //}
     if (node instanceof OperatorExpression){
-      for (ASTNode arg : ((OperatorExpression)node).argsArray()) {
+      for (ASTNode arg : ((OperatorExpression)node).argsJava()) {
         scan_labels(arg);
       }
     }

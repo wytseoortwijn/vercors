@@ -12,11 +12,11 @@ public class ApplyOld extends AbstractRewriter {
   }
 
   @Override
-  public void visit(OperatorExpression e){
-    if (e.isa(StandardOperator.Old)){
-      result=rw_old.rewrite(e.arg(0));
+  public void visit(OperatorExpression oe){
+    if (oe.isa(StandardOperator.Old)) {
+      result = rw_old.rewrite(oe.first());
     } else {
-      super.visit(e);
+      super.visit(oe);
     }
   }
 }

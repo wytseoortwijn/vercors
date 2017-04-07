@@ -576,6 +576,17 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
       }
       return create.while_loop(convert(ctx,3),convert(ctx,5),invs);
     }
+    
+    // the (postfix) incremental statement
+    if (match(ctx, null, "++", ";")) {
+      return create.postfix_increment(getIdentifier(ctx, 0));
+    }
+    
+    // the (postfix) decremental statement
+    if (match(ctx, null, "--", ";")) {
+      return create.postfix_decrement(getIdentifier(ctx, 0));
+    }
+    
     if (match(ctx,"action",tuple,null)){
       ASTNode args[] = getTuple((ParserRuleContext)ctx.getChild(1));
       ASTNode block=convert(ctx,2);

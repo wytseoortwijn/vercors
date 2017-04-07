@@ -58,16 +58,16 @@ public class JavaPostProcessor extends AbstractRewriter {
         result=create.primitive_type(PrimitiveSort.String);
         return;
       case "seq":
-        result=create.primitive_type(PrimitiveSort.Sequence,rewrite(t.argsToArray()));
+        result=create.primitive_type(PrimitiveSort.Sequence,rewrite(t.argsJava()));
         return;
       case "set":
-        result=create.primitive_type(PrimitiveSort.Set,rewrite(t.argsToArray()));
+        result=create.primitive_type(PrimitiveSort.Set,rewrite(t.argsJava()));
         return;
       case "loc":
-        result=create.primitive_type(PrimitiveSort.Location,rewrite(t.argsToArray()));
+        result=create.primitive_type(PrimitiveSort.Location,rewrite(t.argsJava()));
         return;
       case "bag":
-        result=create.primitive_type(PrimitiveSort.Bag,rewrite(t.argsToArray()));
+        result=create.primitive_type(PrimitiveSort.Bag,rewrite(t.argsJava()));
         return;
       case "process":
         result=create.primitive_type(PrimitiveSort.Process);

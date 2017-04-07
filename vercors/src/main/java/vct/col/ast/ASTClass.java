@@ -285,7 +285,7 @@ public class ASTClass extends ASTDeclaration implements ASTSequence<ASTClass> {
               Type m_idx_t=sigma.rewrite(m.getArgType(idx));
               if (!m_idx_t.supertypeof(root(), type[i])){
                 if (m_idx_t.isPrimitive(PrimitiveSort.Location)){
-                  Type lt=(Type)m_idx_t.getArg(0);
+                  Type lt=(Type)m_idx_t.firstarg();
                   if (!lt.supertypeof(root(), type[i])){
                     continue node;
                   }

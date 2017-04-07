@@ -475,7 +475,7 @@ public class SilverExpressionMap<T,E> implements ASTMapping<E>{
     for (int i = 0; i < v.valuesLength(); i++) {
       elems.add(v.value(i).apply(this));
     }
-    T t=((Type)((Type)v.type()).getArg(0)).apply(type);
+    T t=((Type)((Type)v.type()).firstarg()).apply(type);
     switch(((PrimitiveType)v.type()).sort){
     case Sequence:
       return create.explicit_seq(o, t, elems);

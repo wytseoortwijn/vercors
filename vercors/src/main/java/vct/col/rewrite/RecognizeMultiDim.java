@@ -15,7 +15,7 @@ public class RecognizeMultiDim extends AbstractRewriter {
   private static Type get_basetype(Type t){
     while(t.isPrimitive(PrimitiveSort.Array)){
       PrimitiveType tt=(PrimitiveType)t;
-      t=(Type)tt.getArg(0);
+      t=(Type)tt.firstarg();
     }
     return t;
   }
@@ -24,9 +24,9 @@ public class RecognizeMultiDim extends AbstractRewriter {
     ArrayList<ASTNode> list=new ArrayList<ASTNode>();
     while(t.isPrimitive(PrimitiveSort.Array)){
       PrimitiveType tt=(PrimitiveType)t;
-      if (tt.getArgCount()==2){
-        list.add(tt.getArg(1));
-        t=(Type)tt.getArg(0);
+      if (tt.nrOfArguments()==2){
+        list.add(tt.secondarg());
+        t=(Type)tt.firstarg();
       } else {
         // dimension unknown.
         return null;

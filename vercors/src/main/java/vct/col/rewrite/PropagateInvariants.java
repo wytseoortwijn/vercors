@@ -77,12 +77,10 @@ public class PropagateInvariants extends AbstractRewriter {
     ParallelBlock res=create.parallel_block(
         pb.label(),
         cb.getContract(),
-        rewrite(pb.itersArray()),
+        rewrite(pb.itersJava()),
         rewrite(pb.block()),
         rewrite(pb.deps())
     );
     result=res;
-
   }
-
 }

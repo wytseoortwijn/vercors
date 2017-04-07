@@ -170,12 +170,14 @@ public class SilverStatementMap<T,E,S> implements ASTMapping<S>{
       //Configuration.getDiagSyntax().print(System.err, s);
       ArrayList<String> names=new ArrayList<String>();
       ArrayList<T> types=new ArrayList<T>();
-      ASTNode args[]=((OperatorExpression)expression).argsArray();
-      for(int i=0;i<args.length;i++){
-        Dereference d=(Dereference)args[i];
+      
+      OperatorExpression op = (OperatorExpression)expression;
+      for (ASTNode arg : op.argsJava()) {
+        Dereference d=(Dereference)arg;
         names.add(d.field());
         types.add(d.getType().apply(type));
       }
+      
       return create.new_object(origin,location.apply(expr),names,types);
     } else {
       return create.assignment(origin,location.apply(expr),expression.apply(expr));
