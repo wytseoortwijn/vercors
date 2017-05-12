@@ -1,3 +1,10 @@
+// -*- tab-width:2 ; indent-tabs-mode:nil -*-
+//:: cases LinkedList
+//:: tools
+//:: tools chalice
+//:: options --explicit
+//:: verdict Pass
+
 /** Contains helper methods for integer sequences */
 class Seq {
 	/** appends an integer `v` to the front of the sequence `s` */

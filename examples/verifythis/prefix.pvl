@@ -1,3 +1,10 @@
+// -*- tab-width:2 ; indent-tabs-mode:nil -*-
+//:: cases RelaxedPrefix
+//:: tools
+//:: tools silicon
+//:: options --explicit
+//:: verdict Pass
+
 class Relaxed {
 	
 	invariant a != null;
