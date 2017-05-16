@@ -1,9 +1,5 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 //:: cases LeastCommonPrefix
-//:: tools
-//:: tools silicon
-//:: options --explicit
-//:: verdict Pass
 
 class LCP {
 	invariant a != null;
