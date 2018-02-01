@@ -7,6 +7,8 @@ import vct.col.util.VisitorHelper
 case class OperatorExpression(val operator:StandardOperator, val args:List[ASTNode]) extends ExpressionNode with VisitorHelper {
   require(args != null, "The argument list is null")
   require(operator.arity < 0 || args.length == operator.arity, "Wrong number of arguments for $operator: got ${args.length}, but expected ${operator.arity}")
+  require(args.forall(v => v != null), "None of the ${args.length} arguments should be null")
+  
   
   /** Constructs a new operator expression from an array of arguments */
   def this(operator:StandardOperator, args:Array[ASTNode]) = this(operator, args.toList)
