@@ -1,6 +1,7 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 //:: cases PrefixSumDataRaceFree
 //:: tools silicon
+//:: suite medium
 //:: verdict Pass
 
 /*

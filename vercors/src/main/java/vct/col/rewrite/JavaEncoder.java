@@ -459,7 +459,7 @@ public class JavaEncoder extends AbstractRewriter {
           internal_mode=true;
           ASTNode body=rewrite(m.getBody());
           internal_mode=false;
-          if (!isInitial && body!=null){
+          if (!isInitial){
             ASTNode args_names[]=new ASTNode[args.size()];
             for(int i=0;i<args_names.length;i++){
               args_names[i]=create.local_name(args.get(i).name());

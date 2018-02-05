@@ -490,7 +490,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
     
     List<ASTNode> args = new LinkedList<ASTNode>();
     for (ASTNode arg : e.argsJava()) {
-    	  ASTNode aa = arg.apply(this);
+			ASTNode aa = arg.apply(this);
       args.add(aa);
     }
     
