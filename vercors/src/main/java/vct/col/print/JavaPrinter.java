@@ -451,10 +451,12 @@ public class JavaPrinter extends AbstractPrinter {
       setExpr();
       out.print("<");
       ASTNode args[] = t.argsJava().toArray(new ASTNode[0]);
-			args[0].accept(this);
-			for(int i = 1; i < args.length; i++){
-				out.print(",");
-				args[i].accept(this);
+			if (args.length>=1) {
+				args[0].accept(this);
+				for(int i = 1; i < args.length; i++){
+					out.print(",");
+					args[i].accept(this);
+				}
       }
       out.print(">");
     }
