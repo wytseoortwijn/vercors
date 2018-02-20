@@ -1,43 +1,44 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
-//:: cases forward-dep-pvl
-//:: tools
+//:: cases forward-dep
+//:: tools silicon
+//:: verdict pass
 
-// disabled due to refactoring of kernel support.
-
-kernel Ref {
-  global int[tcount] a;
-  global int[tcount] b;
-  global int[tcount] c;
-
-  requires Perm(a[tid],write);
-  requires Perm(b[tid],1/2);
-  requires Perm(c[tid],write);
-
-  requires b[tid]==tid;
-
-  ensures  Perm(a[tid],1/2);      
-  ensures  Perm(b[tid],1/2);      
-  ensures  Perm(c[tid],write);          
-  
-  ensures  a[tid]==tid+1;
-  ensures  b[tid]==tid;
-  ensures  tid>0 ==> c[tid]==tid+2;
-  
-  void main(){
-    a[tid]=b[tid]+1;
-    barrier(global){
-      requires a[tid]==tid+1;      
-      ensures  tid>0 ==> Perm(a[tid-1],1/2);
-      ensures  tid>0 ==> a[tid-1]==tid;
-       
-      ensures  Perm(a[tid],1/2);
-      ensures  Perm(b[tid],1/2);      
-      ensures  Perm(c[tid],write);
-      ensures  a[tid]==\old(a[tid]);
-      ensures  b[tid]==\old(b[tid]);
-    }
-    if (tid>0) {
-      c[tid]=a[tid-1]+2;
+class Ref {
+  invariant a != null && b != null && c != null;
+  invariant tcount >= 0;
+  context  (\forall* int i; 0 <= i && i < tcount; Perm(b[i], read));
+  context  (\forall* int i; 0 <= i && i < tcount; Perm(c[i], write));
+  requires (\forall* int i; 0 <= i && i < tcount; Perm(a[i], write));
+  ensures  (\forall* int i; 0 <= i && i < tcount; Perm(a[i], 1/2)); // Perm(a[i], read) also possible (1)
+  context  (\forall  int i; 0 <= i && i < tcount; b[i]==i);
+  ensures  (\forall  int i; 0 <= i && i < tcount; a[i]==i+1);
+  ensures  (\forall  int i; 1 <= i && i < tcount; c[i]==i+2);
+  void main(int tcount, int[tcount] a, int[tcount] b, int[tcount] c) {
+    par fwd (int tid=0..tcount)
+      context  Perm(b[tid], read);
+      context  Perm(c[tid], write);
+      requires Perm(a[tid], write);
+      ensures  Perm(a[tid], 1/2); // Perm(a[tid], read) also possible (2)
+      context  b[tid]==tid;
+      ensures  a[tid]==tid+1;
+      ensures  tid>0 ==> c[tid]==tid+2; 
+    {
+      a[tid]=b[tid]+1; 
+      barrier(fwd) {
+        // losing all permissions:
+        context  Perm(b[tid], read);
+        context  Perm(c[tid], write);
+        requires Perm(a[tid], write);
+        ensures  Perm(a[tid], 1/2); // Perm(a[tid], read) also possible (3)
+        ensures  tid>0 ==> Perm(a[tid-1], 1/2); // Perm(a[tid-1], read) also possible (4)
+        requires a[tid]==tid+1;
+        ensures  a[tid]==\old(a[tid]); // this one is necessary, due to write permission (requires) on a[tid]
+        ensures  b[tid]==\old(b[tid]); // already encapsulated by read permission (requires) on b[tid]
+        ensures  tid>0 ==> a[tid-1]==tid;        
+      }
+      if (tid>0) {
+        c[tid]=a[tid-1]+2;
+      }
     }
   }
 }
