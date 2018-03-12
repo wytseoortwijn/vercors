@@ -8,11 +8,8 @@ Installation Instructions
 
 The VerCors toolset can be installed and used on MacOS X, Linux, and Windows (via Cygwin). When using Windows make sure that the environment variable `JAVA_HOME` is configured. A basic installation requires:
 
-- Java Development Kit (JDK), version 8
+- Java Development Kit (JDK), version 8 (the current version of VerCors does _not_ work with Java 9!)
 - Git (on Windows you need Git Bash, see <https://git-scm.com/downloads>)
-
-All other dependencies are included in the repository and do not have to be installed for basic use of VerCors. However, if you aim to develop or extend VerCors the following dependencies need to be installed additionally:
-
 - Apache Ant, version 1.9.9 (see <http://ant.apache.org> for instructions)
 - Apache Commons (from <https://commons.apache.org/proper/commons-lang/>)
 - Scala SBT (see <http://www.scala-sbt.org> for instructions)
@@ -22,17 +19,10 @@ All other dependencies are included in the repository and do not have to be inst
 For a basic build of VerCors the following steps should be taken:
 
 1. Clone the VerCors repository using `git clone https://github.com/utwente-fmt/vercors.git` and move into the cloned directory, `cd vercors`.
-2. Build VerCors using the built-int Ant distribution by running `./unix/bin/vct-ant`.
+2. Build VerCors with Ant by running `ant clean`, followed by `ant`.
 3. Test whether the build was successful by running `./unix/bin/vct --test=examples/manual --tool=silicon --lang=pvl,java`.
 
 The last command tests the VerCors installation by verifying a large collection of examples (from the `./examples` directory). This command should eventually report that `all ? tests passed`.
-
-If you do not wish to use the built-in Ant distribution, you could perform the following steps instead after cloning the repository:
-
-1. Run `ant clean` (to clean previous build attempts)
-2. Run `ant` (to build the VerCors project)
-
-Finally, the documentation can be built by running `./unix/bin/vct-ant doc`.
 
 Usage instructions
 -------------
@@ -52,7 +42,7 @@ A complete list of papers on the VerCors project is given [here](http://eprints.
 
 ## License
 
-Copyright (c) 2008 - 2017 Formal Methods and Tools, University of Twente
+Copyright (c) 2008 - 2018 Formal Methods and Tools, University of Twente
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
