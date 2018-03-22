@@ -1,7 +1,7 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 //:: cases forward-dep
 //:: tools silicon
-//:: verdict pass
+//:: verdict Pass
 
 class Ref {
   invariant a != null && b != null && c != null;

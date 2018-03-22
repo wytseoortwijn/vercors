@@ -1,7 +1,7 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
-//:: cases vector-add-kernel
+//:: cases vector-add
 //:: tools silicon
-//:: verdict pass
+//:: verdict Pass
 
 class Ref {
   invariant a != null && b != null && c != null;
