@@ -1,32 +1,36 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 //:: cases kernel-example-v3
-//:: tools
+//:: tools silicon
+//:: verdict Pass
 
-// disabled due to refactoring of kernel support.
-kkernel Ref {
-  global int[tcount] a;
-  global int[tcount] b;
-  global int[tcount] c;
-
-  requires Perm(a[tid],write);
-  requires Perm(b[tid],write);
-  requires Perm(c[tid],1/4) ** c[tid] > 0;
-  
-  ensures  Perm(a[tid],1/4) ** a[tid] > 0;
-  ensures  Perm(b[tid],1/4) ** b[tid] > 0;
-  ensures  Perm(c[tid],1/4) ** c[tid] > 0;
-  void main(){
-    b[tid]=c[tid];
-    barrier(global){
-      requires Perm(b[tid],1/4);
-      requires b[tid]>0;
-      ensures  tid>0 ==> Perm(b[tid-1],1/4);
-      ensures  tid>0 ==> b[tid-1]>0;
-    }
-    if(tid>0) {
-      a[tid]=b[tid-1]+b[tid];
-    } else {
-      a[tid]=b[tid];
+class Ref {
+  invariant a != null && b != null && c != null;
+  invariant tcount >= 0;
+  context  (\forall* int i; 0 <= i && i < tcount; Perm(c[i], 1/4) ** c[i] > 0); // Perm(c[i], read) also possible (1)
+  requires (\forall* int i; 0 <= i && i < tcount; Perm(a[i], write));
+  requires (\forall* int i; 0 <= i && i < tcount; Perm(b[i], write));
+  ensures  (\forall* int i; 0 <= i && i < tcount; Perm(a[i], 1/4) ** a[i] > 0); // Perm(a[i], read) also possible (1)
+  ensures  (\forall* int i; 0 <= i && i < tcount; Perm(b[i], 1/4) ** b[i] > 0); // Perm(b[i], read) also possible (1)
+  void main(int tcount, int[tcount] a, int[tcount] b, int[tcount] c) {
+    par fwd (int tid=0..tcount)
+      context  Perm(c[tid], 1/4) ** c[tid] > 0; // Perm(c[tid], read) also possible (2)
+      requires Perm(a[tid], write);
+      requires Perm(b[tid], write);
+      ensures  Perm(a[tid], 1/4) ** a[tid] > 0; // Perm(a[tid], read) also possible (2)
+      ensures  Perm(b[tid], 1/4) ** b[tid] > 0; // Perm(b[tid], read) also possible (2)
+    {
+      b[tid]=c[tid]; 
+      barrier(fwd) {
+        requires Perm(b[tid], 1/4); // Perm(b[tid], read) also possible (3)
+        ensures  tid>0 ==> Perm(b[tid-1], 1/4); // Perm(b[tid-1], read) also possible (4)
+        requires b[tid] > 0;
+        ensures  tid>0 ==> b[tid-1] > 0;        
+      }
+      if(tid>0) {
+        a[tid]=b[tid-1]+b[tid];
+      } else {
+        a[tid]=b[tid];
+      }
     }
   }
 }

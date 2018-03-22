@@ -1,27 +1,27 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
-//:: cases vector-add-kernel
-//:: tools
+//:: cases vector-add
+//:: tools silicon
+//:: verdict Pass
 
-// disabled due to refactoring of kernel support.
-
-kernel Ref {
-  global int[tcount] a;
-  global int[tcount] b;
-  global int[tcount] c;
-
-  requires Perm(a[tid],write);
-  requires Perm(b[tid],1/2);
-  requires Perm(c[tid],1/2);
-
-  ensures  Perm(a[tid],write);
-  ensures  Perm(b[tid],1/2);
-  ensures  Perm(c[tid],1/2);
-
-  ensures  b[tid]==\old(b[tid]);
-  ensures  c[tid]==\old(c[tid]);
-  ensures  a[tid]==b[tid]+c[tid];
-
-  void main(){
-    a[tid]=b[tid]+c[tid];
+class Ref {
+  invariant a != null && b != null && c != null;
+  invariant tcount >= 0;
+  context (\forall* int i; 0 <= i && i < tcount; Perm(a[i], write));
+  context (\forall* int i; 0 <= i && i < tcount; Perm(b[i], read));
+  context (\forall* int i; 0 <= i && i < tcount; Perm(c[i], read));
+  ensures (\forall  int i; 0 <= i && i < tcount; b[i]==\old(b[i])); // already encapsulated by read permission (requires) on b
+  ensures (\forall  int i; 0 <= i && i < tcount; c[i]==\old(c[i])); // already encapsulated by read permission (requires) on c
+  ensures (\forall  int i; 0 <= i && i < tcount; a[i]==b[i]+c[i]);
+  void main(int tcount, int[tcount] a, int[tcount] b, int[tcount] c) {
+    par (int tid=0..tcount) 
+      context Perm(a[tid], write);
+      context Perm(b[tid], read);
+      context Perm(c[tid], read);
+      ensures b[tid]==\old(b[tid]); // already encapsulated by read permission (requires) on b[tid]
+      ensures c[tid]==\old(c[tid]); // already encapsulated by read permission (requires) on c[tid]
+      ensures a[tid]==b[tid]+c[tid];
+    {
+      a[tid]=b[tid]+c[tid];
+    }
   }
 }
