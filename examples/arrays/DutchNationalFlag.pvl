@@ -2,6 +2,7 @@
 
 //:: cases DutchNationalFlag
 //:: tools silicon
+//:: suite medium
 //:: verdict Pass
 
 // color encoding:

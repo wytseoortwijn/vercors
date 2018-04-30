@@ -2,6 +2,7 @@
 
 //:: cases BinarySearch
 //:: tools silicon
+//:: suite medium
 //:: verdict Pass
 
 class BinarySearch {

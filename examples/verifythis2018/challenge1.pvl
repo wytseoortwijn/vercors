@@ -1,6 +1,9 @@
-// VerifyThis2018 - Challenge 1
-// Challenge is at: http://www.tertium.org/VerifyThis/MindTheGap.pdf
-// Send your solutions to: andrei@tertium.org
+// -*- tab-width:2 ; indent-tabs-mode:nil -*-
+
+//:: cases GapBuffer
+//:: tools silicon
+//:: suite medium
+//:: verdict Pass
 
 class GapBuffer {
 	int[] a;
