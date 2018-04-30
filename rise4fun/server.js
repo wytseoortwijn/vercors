@@ -24,12 +24,12 @@ app.use(bodyparser.json());
 
 // to prevent denial-of-service attacks, construct a rate limit for each incoming verification request
 app.use(new ratelimiter({
-  windowMs: 30 * 1000, // two seconds
+  windowMs: 20 * 1000, // 20 seconds
   max: 1, // limit each 1 requests per windowMs (per IP)
   delayMs: 0, // disable delaying - full speed until the max limit is reached
 	message: JSON.stringify({
 		Version: '1.0',
-		Outputs: [{ MimeType: 'text/plain', Value: 'The verification server is currently too busy (try again in 30 seconds)...' }]
+		Outputs: [{ MimeType: 'text/plain', Value: 'The verification server is currently too busy (try again in 20 seconds)...' }]
 	})
 }));
 
@@ -165,7 +165,7 @@ handle_run_vercors = function (req, res, options) {
 
 				// execute vercors on the received program (with silicon)
 				var toolpath = path.join(__dirname, '../unix/bin/vct --silicon');
-				var tooloutput = syncexec(toolpath + ' ' + info.path, 30 * 1000); // timeout: 30 seconds
+				var tooloutput = syncexec(toolpath + ' ' + info.path, 20 * 1000); // timeout: 20 seconds
 				var output = tooloutput.stdout;
 				
 				if (output == '') {
