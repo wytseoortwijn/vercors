@@ -1,28 +1,34 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 //:: cases kernel-example
-//:: tools
+//:: tools silicon
+//:: verdict Pass
 
-// disabled due to refactoring of kernel support.
-kernel Ref {
-  global int[tcount] a;
-  global int[tcount] b;
-  global int[tcount] c;
-
-  requires Perm(a[tid],write);
-  requires Perm(b[tid],write);
-  requires Perm(c[tid],1/4);
-  
-  void main(){
-    b[tid]=c[tid];
-    barrier(global){
-      ensures Perm(a[tid],write);
-      ensures Perm(b[tid],1/4);
-      ensures tid>0 ==> Perm(b[tid-1],1/4);
-    }
-    if(tid>0) {
-      a[tid]=b[tid-1]+b[tid];
-    } else {
-      a[tid]=b[tid];
+class Ref {
+  invariant a != null && b != null && c != null;
+  invariant tcount >= 0;
+  requires (\forall* int i; 0 <= i && i < tcount; Perm(a[i], write));
+  requires (\forall* int i; 0 <= i && i < tcount; Perm(b[i], write));
+  requires (\forall* int i; 0 <= i && i < tcount; Perm(c[i], 1/4)); // Perm(c[i], read) also possible (1)
+  void main(int tcount, int[tcount] a, int[tcount] b, int[tcount] c) {
+    par fwd (int tid=0..tcount)
+      requires Perm(a[tid], write);
+      requires Perm(b[tid], write);
+      requires Perm(c[tid], 1/4); // Perm(c[tid], read) also possible (2)
+    {
+      b[tid]=c[tid]; 
+      barrier(fwd) {
+        // losing all permissions:
+        context  Perm(a[tid], write);
+        requires Perm(b[tid], write);
+        requires Perm(c[tid], 1/4); // Perm(c[tid], read) also possible (3)
+        ensures  Perm(b[tid], 1/4); // Perm(b[tid], read) also possible (1)
+        ensures  tid>0 ==> Perm(b[tid-1], 1/4); // Perm(b[tid-1], read) also possible (2)
+      }
+      if(tid>0) {
+        a[tid]=b[tid-1]+b[tid];
+      } else {
+        a[tid]=b[tid];
+      }
     }
   }
 }
