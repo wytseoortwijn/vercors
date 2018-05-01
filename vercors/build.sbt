@@ -20,6 +20,7 @@ scalacOptions += "-Dscalac.patmat.analysisBudget=off"
 
 antlr4PackageName in Antlr4 := Some("vct.antlr4.generated")
 antlr4GenVisitor in Antlr4 := true
+antlr4Version in Antlr4 := "4.5.3"
 
 // Add dependency to find the Hybrid Runtime Environment.
 dependencyClasspath in Compile += new File("../hre/bin")
