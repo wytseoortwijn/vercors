@@ -1,3 +1,6 @@
+enablePlugins(PackPlugin)
+enablePlugins(Antlr4Plugin)
+
 name := "Vercors"
 organization  := "University of Twente"
 version := "0.1-SNAPSHOT"
@@ -15,9 +18,6 @@ scalacOptions += "-feature"
 scalacOptions += "-unchecked"
 scalacOptions += "-Dscalac.patmat.analysisBudget=off"
 
-packAutoSettings
-
-antlr4Settings
 antlr4PackageName in Antlr4 := Some("vct.antlr4.generated")
 antlr4GenVisitor in Antlr4 := true
 
@@ -35,7 +35,7 @@ dependencyClasspath in Test += new File("../hre/bin")
 
 publishArtifact in (Test, packageBin) := true
 
-sourceGenerators in Compile <+= sourceManaged in Compile map { dir =>
+sourceGenerators in Compile += sourceManaged in Compile map { dir =>
   System.err.printf("""generating file""");
   val file = dir / "demo" / "Test.scala"
   IO.write(file, """object Test extends App { println("Hi") }""")
