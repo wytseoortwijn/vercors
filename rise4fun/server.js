@@ -6,6 +6,9 @@ var path = require('path');
 var ratelimiter = require('express-rate-limit');
 var syncexec = require('sync-exec');
 var temp = require('temp');
+
+var memorystore = require('./memory-store');
+
 var app = express();
 
 // automatically track and cleanup temporary files
@@ -22,16 +25,24 @@ app.use(function (req, res, next) {
 app.use(express.static('public'));
 app.use(bodyparser.json());
 
+var store = new memorystore();
+
 // to prevent denial-of-service attacks, construct a rate limit for each incoming verification request
-app.use(new ratelimiter({
+var limiter = new ratelimiter({
   windowMs: 20 * 1000, // 20 seconds
   max: 1, // limit each 1 requests per windowMs (per IP)
   delayMs: 0, // disable delaying - full speed until the max limit is reached
+	keyGenerator: function (req) {
+		return 'all';
+	},
 	message: JSON.stringify({
 		Version: '1.0',
 		Outputs: [{ MimeType: 'text/plain', Value: 'The verification server is currently too busy (try again in 20 seconds)...' }]
-	})
-}));
+	}),
+	store: store
+});
+
+app.use(limiter);
 
 app.get('/', function (req, res) {
   res.send('Hi there! This is the VerCors interface for Rise4fun')
@@ -149,20 +160,22 @@ handle_run_vercors = function (req, res, options) {
 			return;
 		}
 		
-		fs.write(info.fd, req.body.Source, function (err) {
+		// close the file descriptor (directly writing with 'fs.write(info.fd, ...)' seems to be buggy.)
+		fs.close(info.fd, function (err) {
 			if (err) {
-				res.status(400).send('Error: could not write to temporary file');
+				res.status(400).send('Error: could not close the temporary file');
 				console.log(err);
 				return;
 			}
 			
-			fs.close(info.fd, function (err) {
+			// write the received code to the temp file
+			fs.writeFile(info.path, req.body.Source, function (err) {
 				if (err) {
-					res.status(400).send('Error: could not close temporary file');
+					res.status(400).send('Error: could not write to temporary file');
 					console.log(err);
 					return;
 				}
-
+				
 				// execute vercors on the received program (with silicon)
 				var toolpath = path.join(__dirname, '../unix/bin/vct --silicon');
 				var tooloutput = syncexec(toolpath + ' ' + info.path, 20 * 1000); // timeout: 20 seconds
@@ -171,7 +184,11 @@ handle_run_vercors = function (req, res, options) {
 				if (output == '') {
 					output = 'Timeout!';
 				}
-	
+				
+				setTimeout(function () {
+					store.resetAll();
+				}, 1000);
+					
 				// render the output message as JSON
 				res.setHeader('Content-Type', 'application/json');
 				res.json({
@@ -202,6 +219,11 @@ app.get('/java/language', function (req, res) {
 app.get('/pvl/language', function (req, res) {
 	res.sendFile(path.join(__dirname, '/lang/pvl.json'));
 });
+
+app.use(function (err, req, res, next) {
+  console.error(err.stack)
+  res.status(500).send('Something broke!')
+})
 
 var server = http.createServer(app, "localhost", 1);
 
