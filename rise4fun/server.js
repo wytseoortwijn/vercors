@@ -29,7 +29,7 @@ var store = new memorystore();
 
 // to prevent denial-of-service attacks, construct a rate limit for each incoming verification request
 var limiter = new ratelimiter({
-  windowMs: 20 * 1000, // 30 seconds
+  windowMs: 40 * 1000, // 30 seconds
   max: 1, // limit each 1 requests per windowMs (per IP)
   delayMs: 0, // disable delaying - full speed until the max limit is reached
 	keyGenerator: function (req) {
@@ -180,7 +180,7 @@ handle_run_vercors = function (req, res, options) {
 				try {
 					// execute vercors on the received program (with silicon)
 					var toolpath = path.join(__dirname, '../unix/bin/vct --silicon');
-					var tooloutput = syncexec(toolpath + ' ' + info.path, 5 * 1000); // timeout: 30 seconds
+					var tooloutput = syncexec(toolpath + ' ' + info.path, 40 * 1000); // timeout: 30 seconds
 					var output = tooloutput.stdout;
 				
 					if (output == '') {
