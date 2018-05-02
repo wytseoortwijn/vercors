@@ -176,25 +176,35 @@ handle_run_vercors = function (req, res, options) {
 					return;
 				}
 				
-				// execute vercors on the received program (with silicon)
-				var toolpath = path.join(__dirname, '../unix/bin/vct --silicon');
-				var tooloutput = syncexec(toolpath + ' ' + info.path, 20 * 1000); // timeout: 20 seconds
-				var output = tooloutput.stdout;
+				try {
+					// execute vercors on the received program (with silicon)
+					var toolpath = path.join(__dirname, '../unix/bin/vct --silicon');
+					var tooloutput = syncexec(toolpath + ' ' + info.path, 20 * 1000); // timeout: 20 seconds
+					var output = tooloutput.stdout;
 				
-				if (output == '') {
-					output = 'Timeout!';
+					if (output == '') {
+						output = 'Timeout!';
+					}
+									
+					// render the output message as JSON
+					res.setHeader('Content-Type', 'application/json');
+					res.json({
+						Version: "1.0",
+						Outputs: [{ MimeType: "text/plain", Value: output }]
+					});
 				}
-				
-				setTimeout(function () {
-					store.resetAll();
-				}, 1000);
-					
-				// render the output message as JSON
-				res.setHeader('Content-Type', 'application/json');
-				res.json({
-					Version: "1.0",
-					Outputs: [{ MimeType: "text/plain", Value: output }]
-				});
+				catch (ex) {
+					res.setHeader('Content-Type', 'application/json');
+					res.json({
+						Version: "1.0",
+						Outputs: [{ MimeType: "text/plain", Value: 'Timeout!' }]
+					});
+				}
+				finally {
+					setTimeout(function () {
+						store.resetAll();
+					}, 1000);
+				}
 			});
 		});
 	});
