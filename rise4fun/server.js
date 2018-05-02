@@ -29,7 +29,7 @@ var store = new memorystore();
 
 // to prevent denial-of-service attacks, construct a rate limit for each incoming verification request
 var limiter = new ratelimiter({
-  windowMs: 30 * 1000, // 30 seconds
+  windowMs: 20 * 1000, // 30 seconds
   max: 1, // limit each 1 requests per windowMs (per IP)
   delayMs: 0, // disable delaying - full speed until the max limit is reached
 	keyGenerator: function (req) {
@@ -43,10 +43,6 @@ var limiter = new ratelimiter({
 });
 
 app.use(limiter);
-
-app.get('/', function (req, res) {
-  res.send('Hi there! This is the VerCors interface for Rise4fun')
-});
 
 // returns standard (generic) Rise4fun metadata 
 standard_metadata = function (req) {
@@ -94,6 +90,7 @@ populate_examples = function(metadata, samples) {
 	}
 }
 
+/*
 app.get('/java/metadata', function (req, res) {
 	// configure metadata
 	var metadata = standard_metadata(req);
@@ -135,6 +132,7 @@ app.get('/c/metadata', function (req, res) {
 	// render metadata as JSON
 	res.json(metadata);
 });
+*/
 
 // handles '/run' requests made by Rise4fun by executing VerCors on the received program and sending back a result message.
 handle_run_vercors = function (req, res, options) {
@@ -157,6 +155,7 @@ handle_run_vercors = function (req, res, options) {
 		if (err) {
 			res.status(400).send('Error: could not create a temporary file');
 			console.log(err);
+			setTimeout(store.resetAll, 1000);
 			return;
 		}
 		
@@ -165,6 +164,7 @@ handle_run_vercors = function (req, res, options) {
 			if (err) {
 				res.status(400).send('Error: could not close the temporary file');
 				console.log(err);
+				setTimeout(store.resetAll, 1000);
 				return;
 			}
 			
@@ -173,13 +173,14 @@ handle_run_vercors = function (req, res, options) {
 				if (err) {
 					res.status(400).send('Error: could not write to temporary file');
 					console.log(err);
+					setTimeout(store.resetAll, 1000);
 					return;
 				}
 				
 				try {
 					// execute vercors on the received program (with silicon)
 					var toolpath = path.join(__dirname, '../unix/bin/vct --silicon');
-					var tooloutput = syncexec(toolpath + ' ' + info.path, 30 * 1000); // timeout: 30 seconds
+					var tooloutput = syncexec(toolpath + ' ' + info.path, 5 * 1000); // timeout: 30 seconds
 					var output = tooloutput.stdout;
 				
 					if (output == '') {
@@ -201,9 +202,7 @@ handle_run_vercors = function (req, res, options) {
 					});
 				}
 				finally {
-					setTimeout(function () {
-						store.resetAll();
-					}, 1000);
+					setTimeout(store.resetAll, 1000);
 				}
 			});
 		});
@@ -222,12 +221,28 @@ app.post('/c/run', function (req, res) {
 	handle_run_vercors(req, res, { suffix: '.c' });
 });
 
+/*
 app.get('/java/language', function (req, res) {
 	res.sendFile(path.join(__dirname, '/lang/java.json'));
 });
 
 app.get('/pvl/language', function (req, res) {
 	res.sendFile(path.join(__dirname, '/lang/pvl.json'));
+});
+*/
+
+app.get('*', function (req, res) {
+  res.send('Hi there! This is the VerCors interface for Rise4fun');
+	store.resetAll();
+});
+
+app.post('*', function (req, res) {
+	res.setHeader('Content-Type', 'application/json');
+	res.json({
+		Version: "1.0",
+		Outputs: [{ MimeType: "text/plain", Value: 'The online interface currently does not support handling of this language...' }]
+	});
+	store.resetAll();
 });
 
 app.use(function (err, req, res, next) {

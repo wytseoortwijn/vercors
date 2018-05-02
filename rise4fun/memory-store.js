@@ -26,7 +26,8 @@ function MemoryStore() {
 
   // export an API to allow hits from one IP to be reset
   this.resetKey = function(key) {
-      delete hits[key];
+		hits[key] = 0;
+      //delete hits[key];
   };
 }
 
