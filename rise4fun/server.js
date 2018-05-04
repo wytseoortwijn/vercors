@@ -41,28 +41,35 @@ app.use(new ratelimiter({
 	store: store
 }));
 
+// removes the block on incoming requests in 1000ms after calling 'unblock'
+unblock = function () {
+	setTimeout(store.resetAll, 1000);
+}
+
 // handles '/run' requests made by Rise4fun by executing VerCors on the received program and sending back a result message.
 handle_run_vercors = function (req, res, options) {
 	// is the content actually parsed with the built-in JSON parser?
 	if (req.body == undefined) {
 		res.status(400).send('Error: expecting JSON content');
+		unblock();
 		return;
 	}
 	
 	// does the parsed JSON object has the right format?
 	if (req.body.Version == undefined || req.body.Source == undefined) {
 		res.status(400).send('Error: incorrect JSON content');
+		unblock();
 		return;
 	}
 	
-	console.log('INFO - connection accepted')
+	console.log('INFO - connection accepted');
 
 	// create a temporary file for the received program
 	temp.open({ prefix: 'vercors-rise4fun', suffix: options.suffix }, function (err, info) {
 		if (err) {
 			res.status(400).send('Error: could not create a temporary file');
-			setTimeout(store.resetAll, 1000);
 			console.log(err);
+			unblock();
 			return;
 		}
 		
@@ -70,8 +77,8 @@ handle_run_vercors = function (req, res, options) {
 		fs.close(info.fd, function (err) {
 			if (err) {
 				res.status(400).send('Error: could not close the temporary file');
-				setTimeout(store.resetAll, 1000);
 				console.log(err);
+				unblock();
 				return;
 			}
 			
@@ -79,8 +86,8 @@ handle_run_vercors = function (req, res, options) {
 			fs.writeFile(info.path, req.body.Source, function (err) {
 				if (err) {
 					res.status(400).send('Error: could not write to temporary file');
-					setTimeout(store.resetAll, 1000);
 					console.log(err);
+					unblock();
 					return;
 				}
 				
@@ -109,7 +116,7 @@ handle_run_vercors = function (req, res, options) {
 					});
 				}
 				finally {
-					setTimeout(store.resetAll, 1000);
+					unblock();
 				}
 			});
 		});
@@ -128,11 +135,6 @@ app.post('/c/run', function (req, res) {
 	handle_run_vercors(req, res, { suffix: '.c' });
 });
 
-app.get('*', function (req, res) {
-  res.send('Hi there! This is the VerCors interface for Rise4fun');
-	store.resetAll();
-});
-
 app.post('*', function (req, res) {
 	res.setHeader('Content-Type', 'application/json');
 	res.json({
@@ -142,6 +144,11 @@ app.post('*', function (req, res) {
 	store.resetAll();
 });
 
+app.all('*', function (req, res) {
+  res.send('Hi there! This is the online interface to VerCors.');
+	store.resetAll();
+});
+
 app.listen(8080, function () {
-	console.log('vercors-rise4fun interface is active and listening on port 8080')
+	console.log('The VerCors online interface is active and listening on port 8080')
 });
