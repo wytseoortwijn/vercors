@@ -1,3 +1,10 @@
+// -*- tab-width:2 ; indent-tabs-mode:nil -*-
+
+//:: cases ColoredTiles
+//:: tools silicon
+//:: suite medium
+//:: verdict Pass
+
 class ColoredTiles {
 
   pure boolean validSequence(seq<boolean> s, int n)
