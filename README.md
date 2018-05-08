@@ -10,9 +10,9 @@ The VerCors toolset can be installed and used on MacOS X, Linux, and Windows (vi
 
 - Java Development Kit (JDK), version 8 (the current version of VerCors does _not_ work with Java 9!)
 - Git (on Windows you need Git Bash, see <https://git-scm.com/downloads>)
-- Apache Ant, version 1.9.9 (see <http://ant.apache.org> for instructions)
+- Apache Ant, version 1.10.3 (see <http://ant.apache.org> for instructions)
 - Apache Commons (from <https://commons.apache.org/proper/commons-lang/>)
-- Scala SBT (see <http://www.scala-sbt.org> for instructions)
+- Scala SBT, version 1.1.4 (see <http://www.scala-sbt.org> for instructions)
 - clang (see <https://clang.llvm.org/>)
 
 ### Building
