@@ -13,6 +13,7 @@ The VerCors toolset can be installed and used on MacOS X, Linux, and Windows (vi
 - Apache Ant, version 1.9.9 (see <http://ant.apache.org> for instructions)
 - Apache Commons (from <https://commons.apache.org/proper/commons-lang/>)
 - Scala SBT (see <http://www.scala-sbt.org> for instructions)
+- clang (see <https://clang.llvm.org/>)
 
 ### Building
 
