@@ -279,6 +279,20 @@ class TermToSMTLib2Converter
   protected def renderNAryOp(op: String, terms: Term*) =
     parens(text(op) <> nest(defaultIndent, group(line <> ssep((terms map render).to[collection.immutable.Seq], line))))
 
+  @inline
+  protected def renderApp(functionName: String, args: Seq[Term], outSort: Sort) = {
+    val inSorts = args map (_.sort)
+    val id = Identifier(functionName)
+
+    val docAppNoParens =
+      text(sanitize(functionName)) <+> ssep((args map render).to[collection.immutable.Seq], space)
+
+    if (args.nonEmpty)
+      parens(docAppNoParens)
+    else
+      parens(text("as") <+> docAppNoParens <+> render(outSort))
+  }
+
   protected def render(q: Quantifier): Cont = q match {
     case Forall => "forall"
     case Exists => "exists"
