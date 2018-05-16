@@ -27,7 +27,7 @@ class CarbonVerifier[O,Err](o:OriginFactory[O]) extends SilverImplementation[O,E
         "--z3Exe",z3_exe,
         "--boogieExe",boogie_exe,
         "-"))
-    carbon.config.initialize{case _ =>}
+    //carbon.config.initialize{case _ =>}
     carbon.start()
     carbon
   }

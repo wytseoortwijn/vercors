@@ -7,7 +7,7 @@
 package viper.carbon.modules.impls
 
 import viper.carbon.modules._
-import viper.carbon.modules.components.{DefinednessComponent, ExhaleComponent, InhaleComponent, SimpleStmtComponent}
+import viper.carbon.modules.components.{DefinednessComponent, InhaleComponent, SimpleStmtComponent}
 import viper.silver.ast.utility.Expressions
 import viper.silver.components.StatefulComponent
 import viper.silver.{ast => sil}
@@ -16,6 +16,7 @@ import viper.carbon.boogie.Implicits._
 import viper.silver.verifier.{PartialVerificationError, reasons}
 import viper.carbon.verifier.Verifier
 import viper.silver.ast.NullLit
+import viper.silver.ast.utility.QuantifiedPermissions.QuantifiedPermissionAssertion
 
 /**
  * The default implementation of a [[viper.carbon.modules.HeapModule]].
@@ -52,10 +53,10 @@ class DefaultHeapModule(val verifier: Verifier)
   override def fieldTypeOf(t: Type) = NamedType(fieldTypeName, Seq(normalFieldType, t))
   override def fieldType = NamedType(fieldTypeName, Seq(TypeVar("A"), TypeVar("B")))
   override def predicateVersionFieldTypeOf(p: sil.Predicate) =
-    NamedType(fieldTypeName, Seq(predicateMetaTypeOf(p), Int))
+    NamedType(fieldTypeName, Seq(predicateMetaTypeOf(p), funcPredModule.predicateVersionType))
   private def predicateMetaTypeOf(p: sil.Predicate) = NamedType("PredicateType_" + p.name)
   override def predicateVersionFieldType(genericT: String = "A") =
-    NamedType(fieldTypeName, Seq(TypeVar(genericT), Int))
+    NamedType(fieldTypeName, Seq(TypeVar(genericT), funcPredModule.predicateVersionType))
   override def predicateMaskFieldType: Type =
     NamedType(fieldTypeName, Seq(TypeVar("A"), pmaskType))
   override def predicateMaskFieldTypeOf(p: sil.Predicate): Type =
@@ -128,7 +129,7 @@ class DefaultHeapModule(val verifier: Verifier)
       // frame all locations with direct permission
       MaybeCommentedDecl("Frame all locations with direct permissions", Axiom(Forall(
         vars ++ Seq(obj, field),
-        Trigger(Seq(identicalFuncApp, lookup(h.l, obj.l, field.l))) ++
+//        Trigger(Seq(identicalFuncApp, lookup(h.l, obj.l, field.l))) ++
           Trigger(Seq(identicalFuncApp, lookup(eh.l, obj.l, field.l))),
         identicalFuncApp ==>
           (staticPermissionPositive(obj.l, field.l) ==>
@@ -181,12 +182,16 @@ class DefaultHeapModule(val verifier: Verifier)
     FuncApp(isWandFieldName, Seq(f), Bool)
   }
 
-  // returns predicat Id
+  // returns predicate Id
   override def getPredicateId(f:Exp): Exp = {
     FuncApp(getPredicateIdName,Seq(f), Int)
   }
 
   override def getPredicateId(s:String): BigInt = {
+    if (!PredIdMap.contains(s)) {
+      val predId:BigInt = getNewPredId;
+      PredIdMap += (s -> predId)
+    }
     PredIdMap(s)
   }
 
@@ -204,7 +209,7 @@ class DefaultHeapModule(val verifier: Verifier)
   }
 
 
-
+// AS: Seems that many concerns here would be better addressed in / delegated to the FuncPredModule
   override def predicateGhostFieldDecl(p: sil.Predicate): Seq[Decl] = {
     val predicate = locationIdentifier(p)
     val pmField = predicateMaskIdentifer(p)
@@ -212,8 +217,7 @@ class DefaultHeapModule(val verifier: Verifier)
     val pmT = predicateMaskFieldTypeOf(p)
     val varDecls = p.formalArgs map mainModule.translateLocalVarDecl
     val vars = varDecls map (_.l)
-    val predId:BigInt = getNewPredId;
-    PredIdMap += (p.name -> predId)
+    val predId:BigInt = getPredicateId(p.name)
     val f0 = FuncApp(predicate, vars, t)
     val f1 = predicateMaskField(f0)
     val f2 = FuncApp(pmField, vars, pmT)
@@ -246,7 +250,7 @@ class DefaultHeapModule(val verifier: Verifier)
       }
   }
 
-  /** Return the identifier corresponding to a SIL location. */
+  /** Return the identifier corresponding to a Viper location. */
   private def locationIdentifier(f: sil.Location): Identifier = {
     Identifier(f.name)(fieldNamespace)
   }
@@ -346,11 +350,13 @@ class DefaultHeapModule(val verifier: Verifier)
           t =>
             Assume(validReference(t))
         }
-      case sil.Fold(sil.PredicateAccessPredicate(loc, perm)) =>
-        val newVersion = LocalVar(Identifier("freshVersion"), Int)
-        (predicateMask(loc) := zeroPMask) ++
+      case sil.Fold(sil.PredicateAccessPredicate(loc, perm)) => // AS: this should really be taken care of in the FuncPredModule (and factored out to share code with unfolding case, if possible)
+        val newVersion = LocalVar(Identifier("freshVersion"), funcPredModule.predicateVersionType)
+        val resetPredicateInfo : Stmt = (predicateMask(loc) := zeroPMask) ++
           Havoc(newVersion) ++
-          (translateLocationAccess(loc) := newVersion) ++
+          (translateLocationAccess(loc) := newVersion)
+
+          If(UnExp(Not,hasDirectPerm(loc)), resetPredicateInfo, Nil) ++
           addPermissionToPMask(loc)
       case _ => Statements.EmptyStmt
     }
@@ -358,7 +364,7 @@ class DefaultHeapModule(val verifier: Verifier)
 
   override def freeAssumptions(e: sil.Exp): Stmt = {
     e match {
-      case sil.Unfolding(sil.PredicateAccessPredicate(loc, perm), exp) if !usingOldState =>
+      case sil.Unfolding(sil.PredicateAccessPredicate(loc, _), _) if !usingOldState =>
         addPermissionToPMask(loc)
       case _ => Nil
     }
@@ -376,7 +382,10 @@ class DefaultHeapModule(val verifier: Verifier)
    */
   private def addPermissionToPMaskHelper(e: sil.Exp, loc: sil.PredicateAccess, pmask: Exp): Stmt = {
     e match {
-      case sil.utility.QuantifiedPermissions.QPForall(v,cond,recv,fld,perms,forall,fieldAccess) =>
+      case QuantifiedPermissionAssertion(forall, cond, acc: sil.FieldAccessPredicate) =>
+        val v = forall.variables.head // TODO: Generalise to multiple quantified variables
+        val fieldAccess = acc.loc
+
         // alpha renaming, to avoid clashes in context
         val vFresh = env.makeUniquelyNamed(v);
         env.define(vFresh.localVar);
