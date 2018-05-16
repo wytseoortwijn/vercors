@@ -52,10 +52,15 @@ function ::=
 	function-signature
 		precondition*
 		postcondition*
+		decreases?
 	"{" exp "}" // Semicolon not permitted
 
 precondition ::=
 	"requires" exp
+
+decreases ::=
+	"decreases *" |
+	"decreases" exp
 
 postcondition ::=
 	"ensures" exp
@@ -123,6 +128,9 @@ stmt ::=
 	fresh-statement        |
 	wand-statement         |
 	constraining-block     |
+
+	// an arbitrary block of statements
+	block
 		
 if-statement ::=
 	"if" "(" exp ")"

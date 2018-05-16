@@ -68,13 +68,13 @@ class SilverExpressionFactory[O] extends ExpressionFactory[O,Type,Exp] with Fact
       val sargs = args.asScala.toSeq
       val fp = to_decls(o,pars)
       //System.err.printf("col2sil %s %s %s %s %s %s%n",name,sargs,tm,rt,fp,domain)
-      DomainFuncApp(name,sargs.toSeq,tm)(NoPosition,new OriginInfo(o),rt,fp,domain)
+      DomainFuncApp(name,sargs.toSeq,tm)(NoPosition,new OriginInfo(o),rt,fp,domain, NoTrafos)
   }
 
   override def let(o:O,n:String,t:Type,e1:Exp,e2:Exp):Exp =
     add(Let(LocalVarDecl(n,t)(NoPosition,new OriginInfo(o)),e1,e2)_,o)
   override def function_call(o: O,name:String,args:List[Exp],rt:Type,pars:List[Triple[O,String,Type]]) : Exp = {
-    FuncApp(name,args.asScala.toSeq)(NoPosition,new OriginInfo(o),rt,to_decls(o,pars))
+    FuncApp(name,args.asScala.toSeq)(NoPosition,new OriginInfo(o),rt,to_decls(o,pars), NoTrafos)
   }
   override def result(o: O,t:Type) : Exp = Result()(t,null,new OriginInfo(o)) 
   

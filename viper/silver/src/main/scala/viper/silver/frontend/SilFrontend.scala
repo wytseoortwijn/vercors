@@ -8,20 +8,19 @@ package viper.silver.frontend
 
 import fastparse.core.Parsed
 import java.nio.file.{Path, Paths}
+
 import org.apache.commons.io.FilenameUtils
-import org.rogach.scallop.exceptions.{Help, ScallopException, Version}
-import viper.silver.ast.{AbstractSourcePosition, HasLineColumn, Position, Program, SourcePosition}
+import viper.silver.ast.{Position, SourcePosition, _}
 import viper.silver.ast.utility.Consistency
 import viper.silver.FastMessaging
+import viper.silver.ast._
 import viper.silver.parser._
+import viper.silver.plugin.SilverPluginManager
+import viper.silver.plugin.SilverPluginManager.{PluginException, PluginNotFoundException, PluginWrongTypeException}
 import viper.silver.verifier._
-import viper.silver.verifier.CliOptionError
-import viper.silver.verifier.Failure
-import viper.silver.verifier.ParseError
-import viper.silver.verifier.TypecheckerError
 
 /**
- * Common functionality to implement a command-line verifier for SIL.  This trait
+ * Common functionality to implement a command-line verifier for Viper.  This trait
  * provides code to invoke the parser, parse common command-line options and print
  * error messages in a user-friendly fashion.
  */
@@ -39,16 +38,19 @@ trait SilFrontend extends DefaultFrontend {
     */
   def configureVerifier(args: Seq[String]): SilFrontendConfig
 
-  /** The SIL verifier to be used for verification (after it has been initialized). */
+  /** The Viper verifier to be used for verification (after it has been initialized). */
   def verifier: Verifier = _ver
-  protected var _ver: Verifier = null
+  protected var _ver: Verifier = _
 
   override protected type ParserResult = PProgram
   override protected type TypecheckerResult = Program
 
   /** The current configuration. */
-  protected var _config: SilFrontendConfig = null
+  protected var _config: SilFrontendConfig = _
   def config = _config
+
+  protected var _plugins: SilverPluginManager = SilverPluginManager(None)
+  def plugins = _plugins
 
   protected var _startTime: Long = _
   def startTime = _startTime
@@ -57,40 +59,28 @@ trait SilFrontend extends DefaultFrontend {
     Consistency.resetMessages()
   }
 
-  /**
-   * Main method that parses command-line arguments, parses the input file and passes
-   * the SIL program to the verifier.  The resulting error messages (if any) will be
-   * shown in a user-friendly fashion.
-   */
-  def execute(args: Seq[String]) {
-    _startTime = System.currentTimeMillis()
+  def setVerifier(verifier:Verifier): Unit ={
+    _ver = verifier
+  }
 
-    /* Create the verifier */
-    _ver = createVerifier(args.mkString(" "))
+  def prepare(args: Seq[String]): Boolean ={
 
     /* Parse command line arguments and populate _config */
     parseCommandLine(args)
 
-    /* Must be executed before reading any value from _config!
-     * If parsing failed, _config.error should be defined afterwards.
-     */
-    initializeLazyScallopConfig()
-
     /* Handle errors occurred while parsing of command-line options */
     if (_config.error.isDefined) {
       /* The command line arguments could not be parses. Hence, we should not
-       * try to ready any arguments-related value from _config!
+       * ready any arguments-related value from _config!
        */
       printFallbackHeader()
       printErrors(CliOptionError(_config.error.get + "."))
-      println()
-      _config.printHelp()
-      return
+      return false
     } else if (_config.exit) {
       /* Parsing succeeded, but the frontend should exit immediately never the less. */
       printHeader()
       printFinishHeader()
-      return
+      return false
     }
 
     printHeader()
@@ -100,26 +90,82 @@ trait SilFrontend extends DefaultFrontend {
       val s = (_ver.dependencies map (dep => {
         s"  ${dep.name} ${dep.version}, located at ${dep.location}."
       })).mkString("\n")
-      println("The following dependencies are used:")
-      println(s)
-      println()
+      logger.info("The following dependencies are used:")
+      logger.info(s+"\n")
     }
+    return true
+  }
+
+  /**
+   * Main method that parses command-line arguments, parses the input file and passes
+   * the Viper program to the verifier.  The resulting error messages (if any) will be
+   * shown in a user-friendly fashion.
+   */
+  def execute(args: Seq[String]) {
+    setStartTime()
+
+    /* Create the verifier */
+    _ver = createVerifier(args.mkString(" "))
+
+    if (!prepare(args)) return
 
     // initialize the translator
     init(_ver)
 
     // set the file we want to verify
-    reset(Paths.get(_config.file()))
+    try {
+      reset(Paths.get(_config.file()))
+    } catch {
+      case exception: PluginException =>
+        printFallbackHeader()
+        printErrors(CliOptionError(exception.toString))
+        return
+    }
 
     // run the parser, typechecker, and verifier
     verify()
 
+    finish()
+  }
+
+
+  override def reset(input: Path): Unit = {
+    super.reset(input)
+
+    if(_config != null) {
+      // reset error messages of plugins
+      _plugins = SilverPluginManager(_config.plugin.toOption)
+    }
+  }
+
+  def setStartTime(): Unit = {
+    _startTime = System.currentTimeMillis()
+  }
+
+  protected def getVerifierName: String = {
+    val silicon_pattern = raw"""(?i)(silicon)""".r
+    val carbon_pattern = raw"""(?i)(carbon)""".r
+
+    silicon_pattern.findFirstIn(verifier.name) match {
+      case Some(_) =>
+        return "silicon"
+      case _ =>
+        carbon_pattern.findFirstIn(verifier.name) match {
+          case Some(_) => "carbon"
+          case _ => verifier.name
+        }
+    }
+  }
+
+  def finish(): Unit = {
     // print the result
     printFinishHeader()
 
-    result match {
-      case Success => printSuccess()
-      case Failure(errors) => printErrors(errors: _*)
+    _plugins.beforeFinish(result) match {
+      case Success =>
+        printSuccess()
+      case f@Failure(errors) =>
+        printErrors(errors: _*)
     }
   }
 
@@ -127,31 +173,14 @@ trait SilFrontend extends DefaultFrontend {
     _config = configureVerifier(args)
   }
 
-  protected def initializeLazyScallopConfig() {
-    _config.initialize {
-      case Version =>
-        _config.exit = true
-        println(_config.builder.vers.get)
-      case Help(_) =>
-        _config.exit = true
-        _config.printHelp()
-      case ScallopException(message) =>
-        _config.exit = true
-        _config.error = Some(message)
-    }
-  }
-
   /** Prints a header that does **not** depend on any command line argument.
     * This method is thus safe to call even if parsing the command line
     * arguments failed.
     */
   protected def printFallbackHeader() {
-    if(config.ideMode()) {
-      println(s"""{"type":"Start","backendType":"${_ver.name}"}\r\n""")
-    }else {
-      println(s"${_ver.name} ${_ver.version}")
-      println(s"${_ver.copyright}")
-      println()
+    if(config.error.isDefined) {
+      logger.info(s"${_ver.name} ${_ver.version}")
+      logger.info(s"${_ver.copyright}\n")
     }
   }
 
@@ -166,11 +195,7 @@ trait SilFrontend extends DefaultFrontend {
   protected def printFinishHeader() {
     if (!_config.exit) {
       if (_config.noTiming()) {
-        if(config.ideMode()) {
-          println(s"""{"type":"End"}\r\n""")
-        }else {
-          println(s"${_ver.name} finished.")
-        }
+        logger.info(s"${_ver.name} finished.")
       } else {
         printFinishHeaderWithTime()
       }
@@ -180,52 +205,39 @@ trait SilFrontend extends DefaultFrontend {
   protected def printFinishHeaderWithTime() {
     val timeMs = System.currentTimeMillis() - _startTime
     val time = f"${timeMs / 1000.0}%.3f seconds"
-    if(config.ideMode()) {
-      println(s"""{"type":"End","time":"${time}"}\r\n""")
-    }else {
-      println(s"${_ver.name} finished in $time.")
-    }
+    logger.info(s"${_ver.name} finished in $time.")
   }
 
   protected def printErrors(errors: AbstractError*) {
-    if (config.ideMode()) {
-      //output a JSON representation of the errors for the IDE
-      val ideModeErrors = errors.map(e => new IdeModeErrorRepresentation(e))
-      val jsonErrors = ideModeErrors.map(e => e.jsonError).mkString(",")
-      println(s"""{"type":"Error","file":"${ideModeErrors.head.shortFileStr}","errors":[$jsonErrors]}""")
-    } else {
-      println("The following errors were found:")
+    logger.info("The following errors were found:")
 
-      errors.foreach(e => println(s"  ${e.readableMessage}"))
+    errors.foreach(e => logger.info(s"  ${e.readableMessage}"))
+
+    if (config != null && config.error.nonEmpty) {
+      logger.info("")
+      logger.info("Run with --help for usage and options")
     }
   }
 
-  protected def printSuccess() {
-    if (config.ideMode()) {
-      printf("""{"type":"Success"}""")
-    } else {
-      println("No errors found.")
-    }
-  }
+  protected def printSuccess() = logger.info("No errors found.")
 
   override def doParse(input: String): Result[ParserResult] = {
     val file = _inputFile.get
-    val result = FastParser.parse(input, file)
-     result match {
-      case Parsed.Success(e@ PProgram(_, _, _, _, _, _, err_list), _) =>
-        if (err_list.isEmpty || err_list.forall{ case p => p.isInstanceOf[ParseWarning] })
-        Succ({ e.initProperties(); e })
-      else Fail(err_list)
-      case Parsed.Failure(msg, next, extra) =>
-        Fail(List(ParseError(msg.toString, SourcePosition(file, extra.line, extra.col))))
-      case ParseError(msg, pos) => Fail(List(ParseError(msg, pos)))
+    _plugins.beforeParse(input, isImported = false) match {
+      case Some(inputPlugin) =>
+        val result = FastParser.parse(inputPlugin, file, Some(_plugins))
+          result match {
+            case Parsed.Success(e@ PProgram(_, _, _, _, _, _, _, err_list), _) =>
+              if (err_list.isEmpty || err_list.forall(p => p.isInstanceOf[ParseWarning]))
+                Succ({ e.initProperties(); e })
+              else Fail(err_list)
+            case Parsed.Failure(msg, next, extra) => Fail(List(ParseError("Expected " + msg.toString, SourcePosition(file, extra.line, extra.col))))
+            case ParseError(msg, pos) => Fail(List(ParseError(msg, pos)))
+          }
 
-     }
-
+      case None => Fail(_plugins.errors)
+    }
   }
-
-
-
 
   /* TODO: Naming of doTypecheck and doTranslate isn't ideal.
            doTypecheck already translated the program, whereas doTranslate doesn't actually translate
@@ -233,57 +245,73 @@ trait SilFrontend extends DefaultFrontend {
    */
 
   override def doTypecheck(input: ParserResult): Result[TypecheckerResult] = {
-    val r = Resolver(input)
-    r.run match {
-      case Some(modifiedInput) =>
-        Translator(modifiedInput).translate match {
-          case Some(program) =>{
-            Succ(program)
-          }
+    _plugins.beforeResolve(input) match {
+      case Some(inputPlugin) =>
+        val r = Resolver(inputPlugin)
+        r.run match {
+          case Some(modifiedInput) =>
+            val enableFunctionTerminationChecks =
+              config != null && config.verified && config.enableFunctionTerminationChecks()
 
+            _plugins.beforeTranslate(modifiedInput) match {
+              case Some(modifiedInputPlugin) =>
+                Translator(modifiedInputPlugin, enableFunctionTerminationChecks).translate match {
+                  case Some(program) =>
+                    val check = program.checkTransitively
+                    if (check.isEmpty) Succ(program) else Fail(check)
 
-          case None => // then these are translation messages
-            Fail(FastMessaging.sortmessages(Consistency.messages) map (m =>
-              {
-                TypecheckerError(
-                // AS: note: m.label may not be the right field here, but I think it is - the interface changed.
+                  case None => // then there are translation messages
+                    Fail(FastMessaging.sortmessages(Consistency.messages) map (m => {
+                      TypecheckerError(
+                        m.label, m.pos match {
+                          case fp: FilePosition =>
+                            SourcePosition(fp.file, m.pos.line, m.pos.column)
+                          case _ =>
+                            SourcePosition(_inputFile.get, m.pos.line, m.pos.column)
+                        })
+                    }))
+                }
 
-                m.label, m.pos match {
-                  case fp: FilePosition =>
-                    SourcePosition(fp.file, m.pos.line, m.pos.column)
-                  case _ =>
-                    SourcePosition(_inputFile.get, m.pos.line, m.pos.column)
-                })
+              case None => Fail(_plugins.errors)
+            }
 
-              }))
+          case None =>
+            val errors = for (m <- FastMessaging.sortmessages(r.messages)) yield {
+              TypecheckerError(m.label, m.pos match {
+                case fp: FilePosition =>
+                  SourcePosition(fp.file, m.pos.line, m.pos.column)
+                case _ =>
+                  SourcePosition(_inputFile.get, m.pos.line, m.pos.column)
+              })
+            }
+            Fail(errors)
         }
 
-      case None =>
-        val errors = for (m <- FastMessaging.sortmessages(r.messages)) yield {
-          TypecheckerError(m.label, m.pos match {
-            case fp: FilePosition =>
-              SourcePosition(fp.file, m.pos.line, m.pos.column)
-            case _ =>
-              SourcePosition(_inputFile.get, m.pos.line, m.pos.column)
-          })
-        }
-        Fail(errors)
+      case None => Fail(_plugins.errors)
     }
   }
 
   override def doTranslate(input: TypecheckerResult): Result[Program] = {
-    // Filter methods according to command-line arguments.
-    val verifyMethods =
-      if (config != null && config.methods() != ":all") Seq("methods", config.methods())
-      else input.methods map (_.name)
+    _plugins.beforeMethodFilter(input) match {
+      case Some(inputPlugin) =>
+        // Filter methods according to command-line arguments.
+        val verifyMethods =
+          if (config != null && config.methods() != ":all") Seq("methods", config.methods())
+          else inputPlugin.methods map (_.name)
 
-    val methods = input.methods filter (m => verifyMethods.contains(m.name))
-    val program = Program(input.domains, input.fields, input.functions, input.predicates, methods)(input.pos, input.info)
-    Succ(program)
+        val methods = inputPlugin.methods filter (m => verifyMethods.contains(m.name))
+        val program = Program(inputPlugin.domains, inputPlugin.fields, inputPlugin.functions, inputPlugin.predicates, methods)(inputPlugin.pos, inputPlugin.info)
 
+        _plugins.beforeVerify(program) match {
+          case Some(programPlugin) => Succ(programPlugin)
+          case None => Fail(_plugins.errors)
+        }
+
+      case None => Fail(_plugins.errors)
+    }
   }
 
-  override def mapVerificationResult(in: VerificationResult) = in
+  override def mapVerificationResult(in: VerificationResult): VerificationResult = _plugins.mapVerificationResult(in)
 
   private class IdeModeErrorRepresentation(val error: AbstractError) {
     private var fileOpt: Option[Path] = None
@@ -296,24 +324,34 @@ trait SilFrontend extends DefaultFrontend {
         fileOpt = Some(abs.file)
         startOpt = Some(abs.start)
         endOpt = abs.end
-
       case hlc: HasLineColumn =>
         startOpt = Some(hlc)
-
       case _: Position => /* Position gives us nothing to work with */
     }
 
     lazy val messageStr = extractMessage(error)
-    lazy val escapedMessageStr = messageStr.replaceAll("\\\\","\\\\\\\\").replaceAll("\\\"","\\\\\"").replaceAll("\\n","\\\\n").replaceAll("\\r","\\\\r").replaceAll("\\t","\\\\t")
+    lazy val escapedMessageStr = messageStr.
+      replaceAll("\\\\","\\\\\\\\").
+      replaceAll("\\\"","\\\\\"").
+      replaceAll("\\n","\\\\n").
+      replaceAll("\\r","\\\\r").
+      replaceAll("\\t","\\\\t")
     lazy val longFileStr = fileOpt.map(_.toString).getOrElse("<unknown file>")
     lazy val shortFileStr = fileOpt.map(f => FilenameUtils.getName(f.toString)).getOrElse("<unknown file>")
     lazy val startStr = startOpt.map(toStr).getOrElse("<unknown start line>:<unknown start column>")
     lazy val endStr = endOpt.map(toStr).getOrElse("<unknown end line>:<unknown end column>")
-    
+
     lazy val consoleErrorStr = s"$shortFileStr,$startStr: $messageStr"
     lazy val fileErrorStr = s"$longFileStr,$startStr,$endStr,$messageStr"
 
-    lazy val jsonError = s"""{"tag":"${error.fullId}","message":"$escapedMessageStr","start":"$startStr","end":"$endStr"}"""
+    lazy val jsonError =
+      s"""{
+         |"cached": ${error.cached},
+         |"tag": "${error.fullId}",
+         |"message": "$escapedMessageStr",
+         |"start": "$startStr",
+         |"end": "$endStr"
+      }""".stripMargin
 
     @inline
     private def extractMessage(error: AbstractError) = {

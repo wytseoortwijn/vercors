@@ -6,7 +6,6 @@ predicate Tree_valid(self: Ref) {
 
 method callee(self: Ref)
   requires acc(Tree_valid(self), write)
-  //:: UnexpectedOutput(internal:insufficient.permission, /Carbon/issue/150/)
   requires (unfolding acc(Tree_valid(self), write) in self.Tree_height == 0)
 {
 }
@@ -16,6 +15,5 @@ method test(self: Ref)
 {
     unfold acc(Tree_valid(self), write)
     //:: ExpectedOutput(call.precondition:insufficient.permission)
-    //:: MissingOutput(call.precondition:insufficient.permission, /Carbon/issue/150/)
     callee(self)
 }
