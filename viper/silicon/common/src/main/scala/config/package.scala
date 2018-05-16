@@ -4,12 +4,9 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package viper
-package silicon
-package common
+package viper.silicon.common
 
-import java.util.Comparator
-import java.util.Scanner
+import java.util.{Comparator, Scanner}
 
 package object config {
   def wildcardToRegex(str: String) =

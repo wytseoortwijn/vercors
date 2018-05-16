@@ -1,22 +1,21 @@
 import sbt._
 import Keys._
-import sbtassembly.Plugin._
-import AssemblyKeys._
-import de.oakgrove.SbtBrand.{BrandKeys, brandSettings, Val, BrandObject}
+import sbtassembly.AssemblyPlugin.autoImport._
+import de.oakgrove.SbtBrand.{BrandKeys, brandSettings, Val}
 import de.oakgrove.SbtHgId.{HgIdKeys, hgIdSettings}
+import com.typesafe.sbt.packager.archetypes.JavaAppPackaging
 
 object SiliconBuild extends Build {
 
   /* Base settings */
 
   lazy val baseSettings = (
-       Defaults.defaultSettings
-    ++ hgIdSettings
+       hgIdSettings
     ++ brandSettings
     ++ Seq(
           organization := "viper",
           version := "1.1-SNAPSHOT",
-          scalaVersion := "2.11.7",
+          scalaVersion := "2.11.8",
           scalacOptions in Compile ++= Seq(
             "-deprecation",
             "-unchecked",
@@ -34,10 +33,9 @@ object SiliconBuild extends Build {
       base = file("."),
       settings = (
            baseSettings
-        ++ assemblySettings
         ++ Seq(
               name := "Silicon",
-              mainClass in assembly := Some("viper.silicon.Silicon"),
+              mainClass in assembly := Some("viper.silicon.SiliconRunner"),
               jarName in assembly := "silicon.jar",
               dependencyClasspath in Compile += new File("../viper-api/bin"), /* add VerCors/Viper interface */
               test in assembly := {},
@@ -98,6 +96,7 @@ object SiliconBuild extends Build {
     }
 
     p.aggregate(common)
+    p.enablePlugins(JavaAppPackaging)
   }
 
   lazy val common = Project(
@@ -118,7 +117,7 @@ object SiliconBuild extends Build {
   def internalDep = if (isBuildServer) Nil else Seq(dependencies.silSrc % "compile->compile;test->test")
 
   def externalDep = (
-       Seq(dependencies.jgrapht, dependencies.commonsIO, dependencies.scallop)
+       Seq(dependencies.jgrapht, dependencies.commonsIO, dependencies.commonsPool, dependencies.scallop)
     ++ dependencies.logging
     ++ (if (isBuildServer) Seq(dependencies.sil % "compile->compile;test->test") else Nil))
 
@@ -126,13 +125,15 @@ object SiliconBuild extends Build {
 
   object dependencies {
     lazy val logging = Seq(
-      "org.slf4s" %% "slf4s-api" % "1.7.12",
-      "org.slf4j" % "slf4j-log4j12" % "1.7.12")
+      "org.slf4j" % "slf4j-api" % "1.7.12",
+      "ch.qos.logback" % "logback-classic" % "1.1.7",
+      "com.typesafe.scala-logging" %% "scala-logging" % "3.5.0")
 
-    lazy val scallop = "org.rogach" %% "scallop" % "0.9.5"
-    lazy val jgrapht = "org.jgrapht" % "jgrapht-core" % "0.9.0"
+    lazy val scallop = "org.rogach" %% "scallop" % "2.0.7"
+    lazy val jgrapht = "org.jgrapht" % "jgrapht-core" % "0.9.1"
 
-    lazy val commonsIO = "commons-io" % "commons-io" % "2.4"
+    lazy val commonsIO = "commons-io" % "commons-io" % "2.5"
+    lazy val commonsPool = "org.apache.commons" % "commons-pool2" % "2.4.2"
 
     lazy val sil = "viper" %% "silver" %  "0.1-SNAPSHOT"
     lazy val silSrc = RootProject(new java.io.File("../silver"))

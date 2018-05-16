@@ -7,15 +7,13 @@
 package viper.silicon.decider
 
 import scala.collection.mutable
+import viper.silver.ast.pretty.FastPrettyPrinterBase
 import viper.silver.components.StatefulComponent
 import viper.silicon.interfaces.decider.TermConverter
-import viper.silicon.reporting.Bookkeeper
 import viper.silicon.state.Identifier
 import viper.silicon.state.terms._
-import viper.silicon.supporters.qps.{SummarisingFvfDefinition, SummarisingPsfDefinition }
-import viper.silver.ast.pretty.FastPrettyPrinterBase
 
-class TermToSMTLib2Converter(bookkeeper: Bookkeeper)
+class TermToSMTLib2Converter
     extends FastPrettyPrinterBase
        with TermConverter[String, String, String]
        with StatefulComponent {
@@ -40,8 +38,8 @@ class TermToSMTLib2Converter(bookkeeper: Bookkeeper)
     case sorts.Snap => "$Snap"
     case sorts.Ref => "$Ref"
     case sorts.Seq(elementSort) => text("$Seq<") <> render(elementSort) <> ">"
-    case sorts.Set(elementSort) => text("$Set<") <> render(elementSort) <> ">"
-    case sorts.Multiset(elementSort) => text("$Multiset<") <> render(elementSort) <> ">"
+    case sorts.Set(elementSort) => text("Set<") <> render(elementSort) <> ">"
+    case sorts.Multiset(elementSort) => text("Multiset<") <> render(elementSort) <> ">"
     case sorts.UserSort(id) => sanitize(id)
 
     case sorts.Unit =>
@@ -97,11 +95,11 @@ class TermToSMTLib2Converter(bookkeeper: Bookkeeper)
     case Ite(t0, t1, t2) =>
       renderNAryOp("ite", t0, t1, t2)
 
+    case x: Var =>
+      sanitize(x.id)
+
     case fapp: Application[_] =>
-      if (fapp.args.isEmpty)
-        sanitize(fapp.applicable.id)
-      else
-        parens(text(sanitize(fapp.applicable.id)) <+> ssep((fapp.args map render).to[collection.immutable.Seq], space))
+      renderApp(fapp.applicable.id.name, fapp.args, fapp.sort)
 
     /* Split axioms with more than one trigger set into multiple copies of the same
      * axiom, each with a single trigger. This can avoid incompletenesses due to Z3
@@ -113,7 +111,7 @@ class TermToSMTLib2Converter(bookkeeper: Bookkeeper)
       render(And(q.triggers.map(trg => q.copy(triggers = Vector(trg)))))
 
     /* Handle quantifiers that have at most one trigger set */
-    case Quantification(quant, vars, body, triggers, name) =>
+    case Quantification(quant, vars, body, triggers, name, _) =>
       val docVars = ssep((vars map (v => parens(text(sanitize(v.id)) <+> render(v.sort)))).to[collection.immutable.Seq], space)
       val docBody = render(body)
       val docQuant = render(quant)
@@ -140,8 +138,8 @@ class TermToSMTLib2Converter(bookkeeper: Bookkeeper)
 
     case bop: CustomEquals => bop.p0.sort match {
       case _: sorts.Seq => renderBinaryOp("$Seq.equal", bop)
-      case _: sorts.Set => renderBinaryOp("$Set.equal", bop)
-      case _: sorts.Multiset => renderBinaryOp("$Multiset.equal", bop)
+      case _: sorts.Set => renderApp("Set_equal", Seq(bop.p0, bop.p1), bop.sort)
+      case _: sorts.Multiset => renderApp("Multiset_equal", Seq(bop.p0, bop.p1), bop.sort)
       case sort => sys.error(s"Don't know how to translate equality between symbols $sort-typed terms")
     }
 
@@ -164,7 +162,7 @@ class TermToSMTLib2Converter(bookkeeper: Bookkeeper)
 
     case FullPerm() => "$Perm.Write"
     case NoPerm() => "$Perm.No"
-    case WildcardPerm(v) => render(v)
+    case FractionPermLiteral(r) => renderBinaryOp("/", renderAsReal(IntLiteral(r.numerator)), renderAsReal(IntLiteral(r.denominator)))
     case FractionPerm(n, d) => renderBinaryOp("/", renderAsReal(n), renderAsReal(d))
     case PermLess(t0, t1) => renderBinaryOp("<", render(t0), render(t1))
     case PermAtMost(t0, t1) => renderBinaryOp("<=", render(t0), render(t1))
@@ -191,30 +189,26 @@ class TermToSMTLib2Converter(bookkeeper: Bookkeeper)
 
     /* Sets */
 
-    case SingletonSet(t0) => parens(text("$Set.singleton ") <+> render(t0))
-    case bop: SetAdd => renderBinaryOp("$Set.unionone", bop)
-    case uop: SetCardinality => renderUnaryOp("$Set.card", uop)
-    case bop: SetDifference => renderBinaryOp("$Set.difference", bop)
-    case bop: SetIntersection => renderBinaryOp("$Set.intersection", bop)
-    case bop: SetUnion => renderBinaryOp("$Set.union", bop)
-    case bop: SetIn =>
-      renderBinaryOp("$Set.in", bop)
-//      val expandedTerm = SetSubset(SingletonSet(bop.p0), bop.p1)
-//      render(expandedTerm)
-//      renderBinaryOp("$Map.select", render(bop.p1), render(bop.p0))
-    case bop: SetSubset => renderBinaryOp("$Set.subset", bop)
-    case bop: SetDisjoint => renderBinaryOp("$Set.disjoint", bop)
+    case uop: SingletonSet => renderApp("Set_singleton", Seq(uop.p), uop.sort)
+    case bop: SetAdd => renderApp("Set_unionone", Seq(bop.p0, bop.p1), bop.sort)
+    case uop: SetCardinality => renderApp("Set_card", Seq(uop.p), uop.sort)
+    case bop: SetDifference => renderApp("Set_difference", Seq(bop.p0, bop.p1), bop.sort)
+    case bop: SetIntersection => renderApp("Set_intersection", Seq(bop.p0, bop.p1), bop.sort)
+    case bop: SetUnion => renderApp("Set_union", Seq(bop.p0, bop.p1), bop.sort)
+    case bop: SetIn => renderApp("Set_in", Seq(bop.p0, bop.p1), bop.sort)
+    case bop: SetSubset => renderApp("Set_subset", Seq(bop.p0, bop.p1), bop.sort)
+    case bop: SetDisjoint => renderApp("Set_disjoint", Seq(bop.p0, bop.p1), bop.sort)
 
     /* Multisets */
 
-    case SingletonMultiset(t0) => parens(text("$Multiset.singleton") <+> render(t0))
-    case bop: MultisetAdd => renderBinaryOp("$Multiset.unionone", bop)
-    case uop: MultisetCardinality => renderUnaryOp("$Multiset.card", uop)
-    case bop: MultisetDifference => renderBinaryOp("$Multiset.difference", bop)
-    case bop: MultisetIntersection => renderBinaryOp("$Multiset.intersection", bop)
-    case bop: MultisetUnion => renderBinaryOp("$Multiset.union", bop)
-    case bop: MultisetSubset => renderBinaryOp("$Multiset.subset", bop)
-    case bop: MultisetCount => renderBinaryOp("$Multiset.count", bop)
+    case uop: SingletonMultiset => renderApp("Multiset_singleton", Seq(uop.p), uop.sort)
+    case bop: MultisetAdd => renderApp("Multiset_unionone", Seq(bop.p0, bop.p1), bop.sort)
+    case uop: MultisetCardinality => renderApp("Multiset_card", Seq(uop.p), uop.sort)
+    case bop: MultisetDifference => renderApp("Multiset_difference", Seq(bop.p0, bop.p1), bop.sort)
+    case bop: MultisetIntersection => renderApp("Multiset_intersection", Seq(bop.p0, bop.p1), bop.sort)
+    case bop: MultisetUnion => renderApp("Multiset_union", Seq(bop.p0, bop.p1), bop.sort)
+    case bop: MultisetSubset => renderApp("Multiset_subset", Seq(bop.p0, bop.p1), bop.sort)
+    case bop: MultisetCount => renderApp("Multiset_count", Seq(bop.p0, bop.p1), bop.sort)
 
     /* Quantified Permissions */
 
@@ -234,18 +228,15 @@ class TermToSMTLib2Converter(bookkeeper: Bookkeeper)
 
     case PredicateDomain(id, psf) => parens(text("$PSF.domain_") <> id <+> render(psf))
 
-    case PredicateLookup(id, psf, args, formalVars) =>
-      var snap:Term = if (args.size == 1) {
-        args.apply(0).convert(sorts.Snap)
+    case PredicateLookup(id, psf, args) =>
+      val snap: Term = if (args.size == 1) {
+        args.head.convert(sorts.Snap)
       } else {
-        args.reduce((arg1:Term, arg2:Term) => Combine(arg1, arg2))
+        args.reduce((arg1: Term, arg2: Term) => Combine(arg1, arg2))
       }
 
       parens(text("$PSF.lookup_") <> id <+> render(psf) <+> render(snap))
-/*
-    case PsfAfterRelation(id, psf2, psf1) => parens("$PSF.after_" <> id <+> render(psf2) <+> render(psf1))
-=======
->>>>>>> other*/
+
     /* Other terms */
 
     case First(t) => parens(text("$Snap.first") <+> render(t))
@@ -266,14 +257,6 @@ class TermToSMTLib2Converter(bookkeeper: Bookkeeper)
 
     case _: MagicWandChunkTerm =>
       sys.error(s"Unexpected term $term cannot be translated to SMTLib code")
-/*<<<<<<< local
-
-    case fvf: SummarisingFvfDefinition =>
-      render(And(fvf.quantifiedValueDefinitions))
-    case psf: SummarisingPsfDefinition =>
-      render(And(psf.quantifiedSnapDefinitions))
-=======
->>>>>>> other*/
   }
 
   @inline
@@ -311,8 +294,8 @@ class TermToSMTLib2Converter(bookkeeper: Bookkeeper)
     case False() => "false"
     case Null() => "$Ref.null"
     case SeqNil(elementSort) => text("$Seq.empty<") <> render(elementSort) <> ">"
-    case EmptySet(elementSort) => text("$Set.empty<") <> render(elementSort) <> ">"
-    case EmptyMultiset(elementSort) => text("$Multiset.empty<") <> render(elementSort) <> ">"
+    case EmptySet(elementSort) => renderApp("Set_empty", Seq(), literal.sort)
+    case EmptyMultiset(elementSort) => renderApp("Multiset_empty", Seq(), literal.sort)
   }
 
   protected def renderAsReal(t: Term): Cont =
@@ -342,6 +325,6 @@ class TermToSMTLib2Converter(bookkeeper: Bookkeeper)
   }
 
   def stop(): Unit = {
-    sanitizedNamesCache.clear()
+    if (sanitizedNamesCache != null) sanitizedNamesCache.clear()
   }
 }
