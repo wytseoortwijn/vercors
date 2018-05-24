@@ -32,7 +32,7 @@ class SilverStatementFactory[O] extends StatementFactory[O,Type,Exp,Stmt] with F
       to_decls(o, rets), // list of return values
       Nil, // preconditions
       Nil, // postconditions
-      null // method body
+      None // method body
     )_, o)
     
     val outs = out_args.asScala.map {
