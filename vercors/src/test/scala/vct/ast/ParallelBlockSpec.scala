@@ -14,8 +14,8 @@ class ParallelBlockSpec extends FlatSpec with Matchers {
     val deps = Array[ASTNode](new DeclarationStatement("dep1", null))
     var parblock = new ParallelBlock(label, contract, iters, block, deps)
     
-    parblock.itersLength should be (1)
-    parblock.depsLength should be (1)
+    parblock.iterslength should be (1)
+    parblock.depslength should be (1)
   }
   
   it should "successfully instantiate with non-null (array) arguments" in {
@@ -27,8 +27,8 @@ class ParallelBlockSpec extends FlatSpec with Matchers {
     val deps = Array[ASTNode](new DeclarationStatement("dep1", null))
     var parblock = new ParallelBlock(label, contract, iters, block, deps)
     
-    parblock.itersLength should be (1)
-    parblock.depsLength should be (1)
+    parblock.iterslength should be (1)
+    parblock.depslength should be (1)
   }
   
   it should "not be able to instantiate when the deps array is given null (with an iters list)" in {
