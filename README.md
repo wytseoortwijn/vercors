@@ -10,12 +10,21 @@ Installation Instructions
 
 The VerCors toolset can be installed and used on MacOS X, Linux, and Windows (via Cygwin). When using Windows make sure that the environment variable `JAVA_HOME` is configured. A basic installation requires:
 
-- Java Development Kit (JDK), version 8 (the current version of VerCors does _not_ work with Java 9!)
+- Oracle Java Development Kit (JDK), version 8 (the current version of VerCors does _not_ work with Java 9!)
 - Git (on Windows you need Git Bash, see <https://git-scm.com/downloads>)
 - Apache Ant, version 1.10.3 (see <http://ant.apache.org> for instructions)
 - Apache Commons (from <https://commons.apache.org/proper/commons-lang/>)
 - Scala SBT, version 1.1.4 (see <http://www.scala-sbt.org> for instructions)
 - clang (see <https://clang.llvm.org/>)
+
+If you have these requirements, proceed to ['Building'](#building). On MacOS X, the easiest way to get them is:
+
+0. Be sure to have installed [Homebrew](https://brew.sh)
+1. brew tap homebrew/cask-versions
+2. brew cask install java8
+3. brew install ant
+4. Rest of the instructions [below](#building)
+
 
 ### Building
 
