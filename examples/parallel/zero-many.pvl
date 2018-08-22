@@ -2,6 +2,7 @@
 //:: cases ZeroMultiple
 //:: tools silicon
 //:: verdict Pass
+
 class ZeroMany {
   int x;
 

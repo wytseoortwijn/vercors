@@ -16,4 +16,3 @@ __kernel void simpleAdd(int veclen, int c[])
  
   c[index] = c[index] + 1;
 }
-

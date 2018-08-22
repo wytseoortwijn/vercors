@@ -10,6 +10,7 @@ float res;
   given seq<float> as;
   invariant ar!=NULL;
   invariant N>0;
+  invariant |as| == N;
   context Perm(res,write);
   context (\forall* int k ; 0 <= k && k < N ; PointsTo(ar[k],1/2,as[k]));
   ensures  res==(\sum int k ; 0 <= k && k < N ; as[k] );

@@ -1,9 +1,13 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 //:: cases ZeroMultiple
+//:: tools silicon
+//:: verdict Pass
+
 class ZeroMixedArray {
-  invariant ar != null ** N>0 ** M > 0 ;
-  context   (\forall* int i;0 <= i && i < M*N ; Perm(ar[i],write));
-  ensures   (\forall int i;0 <= i && i < M*N ; ar[i]==0);
+  invariant ar != null ** N>0 ** M > 0;
+	invariant ar.length == M * N;
+  context (\forall* int i;0 <= i && i < M*N ; Perm(ar[i],write));
+  ensures (\forall int i;0 <= i && i < M*N ; ar[i]==0);
   void vector(int M, int N, int[M*N] ar){
     par outer (int i = 0 .. M)
       context (\forall* int k; N*i <= k && k < N*(i+1) ; Perm(ar[k],write));

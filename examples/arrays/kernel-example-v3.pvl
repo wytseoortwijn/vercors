@@ -5,6 +5,7 @@
 
 class Ref {
   invariant a != null && b != null && c != null;
+	invariant a.length == tcount && b.length == tcount && c.length == tcount; // TODO REMOVE
   invariant tcount >= 0;
   context  (\forall* int i; 0 <= i && i < tcount; Perm(c[i], 1/4) ** c[i] > 0); // Perm(c[i], read) also possible (1)
   requires (\forall* int i; 0 <= i && i < tcount; Perm(a[i], write));

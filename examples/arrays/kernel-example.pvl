@@ -17,6 +17,7 @@ class Ref {
     {
       b[tid]=c[tid]; 
       barrier(fwd) {
+				context 0 <= tid && tid < tcount;
         // losing all permissions:
         context  Perm(a[tid], write);
         requires Perm(b[tid], write);
