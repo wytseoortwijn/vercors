@@ -1,12 +1,11 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 //:: cases ZeroMultiple
-//:: tools silicon
-//:: verdict Pass
 
 class ZeroMany {
   int x;
 
   invariant ar != null && matrix != null && M>=0 && N>=0;
+	invariant ar.length == N && matrix.length == M * N;
   context Perm(x,1);
   context (\forall* int i;0 <= i && i < N ; Perm(ar[i],write));
   context (\forall* int i1 ; 0 <= i1 && i1 < M ;
