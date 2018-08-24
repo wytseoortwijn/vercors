@@ -1,6 +1,6 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 //:: case OpenCLincr
-//:: tools silicon
+// tools silicon
 
 #include <opencl.h>
 
