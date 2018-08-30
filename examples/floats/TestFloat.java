@@ -1,7 +1,7 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 //:: cases TestFloat
-//:: tools silicon
-//:: verdict Pass TestFloat.main TestFloat.add TestFloat.prefixsum
+// tools silicon
+// verdict Pass TestFloat.main TestFloat.add TestFloat.prefixsum
 
 class TestFloat {
 
