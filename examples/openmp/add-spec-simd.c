@@ -1,7 +1,7 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 //:: case OpenMPaddSimd
-//:: suite puptol
-//:: tools silicon
+// suite puptol
+// tools silicon
 
 /*
  * Trivial for-simd example.
