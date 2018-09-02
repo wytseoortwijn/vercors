@@ -8,6 +8,8 @@
 /*@
   given seq<seq<int> > data;
   invariant M>0 && N > 0 && P > 0 && \matrix(matrix,M,N) && \array(hist,P);
+	invariant |data| == M;
+	invariant (\forall int d; 0 <= d && d < M; |data[d]| == N);
   context (\forall* int i1=0 .. M ; (\forall* int j1=0 .. N ; Perm(matrix[i1][j1],1/2)));
   context (\forall int i1=0 .. M ; (\forall int j1=0 .. N ; matrix[i1][j1] == data[i1][j1] ));
   context (\forall int i1=0 .. M ; (\forall int j1=0 .. N ; 0 <= matrix[i1][j1] < P));
