@@ -11,12 +11,15 @@ import viper.silver.ast._
 
 /** Utility methods for triggers */
 object Triggers {
+  /** Attention: The trigger generator is *not* thread-safe, because its super class
+    * [[GenericTriggerGenerator]] is not.
+    */
   object TriggerGeneration extends GenericTriggerGenerator[Node, Type, Exp, LocalVar, QuantifiedExp] {
     protected def hasSubnode(root: Node, child: Node) = root.hasSubnode(child)
     protected def visit[A](root: Node)(f: PartialFunction[Node, A]) = root.visit(f)
     protected def deepCollect[A](root: Node)(f: PartialFunction[Node, A]) = root.deepCollect(f)
     protected def reduceTree[A](root: Node)(f: (Node, Seq[A]) => A) = root.reduceTree(f)
-    protected def transform[N <: Node](root: N)(f: PartialFunction[Node, Node]) = root.transform(f)()
+    protected def transform[N <: Node](root: N)(f: PartialFunction[Node, Node]) = root.transform(f)
     protected def Quantification_vars(q: QuantifiedExp) = q.variables map (_.localVar)
     protected def Exp_typ(exp: Exp) = exp.typ
     protected def Trigger_exps(t: Trigger) = t.exps
@@ -50,6 +53,9 @@ object Triggers {
     }
   }
 
+  /** Attention: The axiom rewriter is *not* thread-safe, because it makes use of the
+    * [[TriggerGeneration]], which is not thread-safe.
+    */
   object AxiomRewriter extends GenericAxiomRewriter[Type, Exp, LocalVar, Forall, EqCmp, And, Implies, Add, Sub,
                                                     Trigger] {
 
@@ -78,7 +84,7 @@ object Triggers {
     protected def Quantification_body(q: Forall) = q.exp
 
     protected def Quantification_copy(q: Forall, vars: Seq[LocalVar], body: Exp, triggers: Seq[Trigger]) =
-      q.copy(variables = vars.map(v => LocalVarDecl(v.name, v.typ)(v.pos, v.info)), exp = body, triggers = triggers)(q.pos, q.info)
+      q.copy(variables = vars.map(v => LocalVarDecl(v.name, v.typ)(v.pos, v.info, v.errT)), exp = body, triggers = triggers)(q.pos, q.info, q.errT)
 
     protected def Trigger_exps(t: Trigger) = t.exps
     protected def Trigger(exps: Seq[Exp]) = ast.Trigger(exps)()

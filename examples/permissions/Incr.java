@@ -5,8 +5,8 @@
 
 //:: case IncrSilicon
 //:: tools silicon
-//:: pass Incr.incr_n_ok Incr.incr_ok
-//:: fail Incr.incr_n_badinv
+//:: verdict Pass Incr.incr_n_ok Incr.incr_ok
+//:: verdict Fail Incr.incr_n_badinv
 
 class Incr {
   int val;

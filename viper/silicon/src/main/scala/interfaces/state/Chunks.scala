@@ -6,19 +6,31 @@
 
 package viper.silicon.interfaces.state
 
-import viper.silicon.state.terms.Term
+import viper.silicon.resources.ResourceID
+import viper.silicon.state.terms.{Term, Var}
 
 trait Chunk
 
-trait GenericPermissionChunk[CH <: GenericPermissionChunk[CH]] extends Chunk {
+trait ChunkIdentifer
+
+trait GeneralChunk extends Chunk {
+  val resourceID: ResourceID
+  val id: ChunkIdentifer
   val perm: Term
-  def +(perm: Term): CH
-  def -(perm: Term): CH
-  def \(perm: Term): CH
+  def withPerm(perm: Term): GeneralChunk
 }
 
-/* [2015-08-29 Malte] This trait is only defined because I couldn't get
- * the code (in particular, all consume and withChunk methods) to compile
- * with type parameters such as CH <: PermissionChunk[CH].
- */
-trait PermissionChunk extends GenericPermissionChunk[PermissionChunk]
+trait NonQuantifiedChunk extends GeneralChunk {
+  val args: Seq[Term]
+  val snap: Term
+  override def withPerm(perm: Term): NonQuantifiedChunk
+  def withSnap(snap: Term): NonQuantifiedChunk
+}
+
+trait QuantifiedChunk extends GeneralChunk {
+  val quantifiedVars: Seq[Var]
+  def snapshotMap: Term
+  def valueAt(arguments: Seq[Term]): Term
+  override def withPerm(perm: Term): QuantifiedChunk
+  def withSnapshotMap(snap: Term): QuantifiedChunk
+}

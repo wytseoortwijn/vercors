@@ -1,7 +1,7 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 //:: cases TreeWandSilver
-//:: suite puptol
-//:: tools silicon
+// suite puptol
+// tools silicon
 /*
     This file demonstrates how a magic wand can be used to prove
     that the deletion of a node from a binary search tree is sound.

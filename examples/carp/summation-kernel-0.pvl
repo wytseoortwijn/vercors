@@ -6,24 +6,36 @@
 
 class Ref {
   int res;
+	
+	requires 0 < n;
+	requires a <= b;
+	ensures \result;
+	ensures a*n <= b*n;
+	pure boolean lemma_mult_n(int a, int b, int n) = true;
 
-//begin(all)
   invariant ar != null ** N > 0 ** M > 0 ** \array(ar,M*N);
   context Perm(res,write) ** (\forall* int i;0 <= i && i < M*N ; Perm(ar[i],1/2));
   requires res==0;
   void do_sum(int M,int N, int[M*N] ar){
+		
     invariant outer( Perm(res,write) ){
       par kern(int g = 0 .. M)
+				context lemma_mult_n(g+1, M, N);
         context (\forall* int k ; 0 <= k && k < N ; Perm(ar[g*N+k],1/4));
       {
         int[1] temp=new int[1]; temp[0]=0;
         invariant inner( \array(temp,1) ** Perm(temp[0],write) ){
           par workgroup(int t = 0 .. N)
+						invariant 0 <= g && g < M;
+						context lemma_mult_n(g+1, M, N);
             requires Perm(ar[g*N+t],1/4);
             ensures t==0 ==> (\forall* int k; 0 <= k && k < N ; Perm(ar[g*N+k],1/4));
           {
             atomic(inner){ temp[0]=temp[0]+ar[g*N+t]; }
             barrier(workgroup){
+							context 0 <= g && g < M;
+							context 0 <= t && t < N; // TODO REMOVE??
+							context lemma_mult_n(g+1, M, N);
               requires Perm(ar[g*N+t],1/4);
               ensures  t==0 ==> (\forall* int k; 0 <= k && k < N ; Perm(ar[g*N+k],1/4));
             }
@@ -31,5 +43,4 @@ class Ref {
               atomic(inner){ tmp=temp[0]; }
               atomic(outer){ res=res+tmp; }
   } } } } } }
-//end(all)
 }

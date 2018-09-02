@@ -6,10 +6,11 @@
 class Ref {
   invariant a != null && b != null && c != null;
   invariant tcount >= 0;
+	invariant a.length == tcount && b.length == tcount && c.length == tcount;
   requires (\forall* int i; 0 <= i && i < tcount; Perm(a[i], write));
   requires (\forall* int i; 0 <= i && i < tcount; Perm(b[i], write));
   requires (\forall* int i; 0 <= i && i < tcount; Perm(c[i], 1/4)); // Perm(c[i], read) also possible (1)
-  void main(int tcount, int[tcount] a, int[tcount] b, int[tcount] c) {
+  void main(int tcount, int[] a, int[] b, int[] c) {
     par fwd (int tid=0..tcount)
       requires Perm(a[tid], write);
       requires Perm(b[tid], write);
@@ -17,6 +18,7 @@ class Ref {
     {
       b[tid]=c[tid]; 
       barrier(fwd) {
+				context 0 <= tid && tid < tcount;
         // losing all permissions:
         context  Perm(a[tid], write);
         requires Perm(b[tid], write);

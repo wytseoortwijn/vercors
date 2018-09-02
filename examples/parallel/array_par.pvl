@@ -6,6 +6,7 @@ class Ref {
   int x;
   
   invariant ar != null && N>0;
+	invariant ar.length == N;
   context Perm(x,1);
   context (\forall* int i;0 <= i && i < N ; Perm(ar[i],write));
   ensures (\forall int i;0 <= i && i < N ; ar[i]==0);
@@ -21,6 +22,7 @@ class Ref {
       {
         if (i==0) { assert x==0; }
         barrier(main ; inv)
+					context 0 <= i && i < N;
           requires i==0 ==> Perm(x,1/2) ** x==0;
           ensures  Perm(ar[i],write);
           ensures  i==0 ==> Perm(x,1/2) ** x==1;

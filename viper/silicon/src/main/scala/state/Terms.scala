@@ -8,10 +8,9 @@ package viper.silicon.state.terms
 
 import scala.reflect.ClassTag
 import viper.silver.ast.utility.Visitor
-import viper.silicon.{Map, Set, toMap}
-import viper.silicon.state
-import viper.silicon.state.{MagicWandChunk, Identifier}
-
+import viper.silicon.common.collections.immutable.InsertionOrderedSet
+import viper.silicon.{Map, Stack, state, toMap}
+import viper.silicon.state.{Identifier, MagicWandChunk}
 
 sealed trait Node
 
@@ -34,17 +33,17 @@ object sorts {
   object Unit extends Sort { val id = Identifier("()");   override val toString = id.toString }
 
   case class Seq(elementsSort: Sort) extends Sort {
-    val id = Identifier("Seq[%s]".format(elementsSort))
+    val id = Identifier(s"Seq[$elementsSort]")
     override val toString = id.toString
   }
 
   case class Set(elementsSort: Sort) extends Sort {
-    val id = Identifier("Set[%s]".format(elementsSort))
+    val id = Identifier(s"Set[$elementsSort]")
     override val toString = id.toString
   }
 
   case class Multiset(elementsSort: Sort) extends Sort {
-    val id = Identifier("Multiset[%s]".format(elementsSort))
+    val id = Identifier(s"Multiset[$elementsSort]")
     override val toString = id.toString
   }
 
@@ -53,12 +52,12 @@ object sorts {
   }
 
   case class FieldValueFunction(codomainSort: Sort) extends Sort {
-    val id = Identifier("FVF[%s]".format(codomainSort))
+    val id = Identifier(s"FVF[$codomainSort]")
     override val toString = id.toString
   }
 
   case class PredicateSnapFunction(codomainSort: Sort) extends Sort {
-    val id = Identifier("PSF[%s]".format(codomainSort))
+    val id = Identifier(s"PSF[$codomainSort]")
     override val toString = id.toString
   }
 
@@ -75,7 +74,7 @@ case class FunctionDecl(func: Function) extends Decl
 case class SortWrapperDecl(from: Sort, to: Sort) extends Decl
 case class MacroDecl(id: Identifier, args: Seq[Var], body: Term) extends Decl
 
-object ConstDecl extends (Var => Decl) {
+object ConstDecl extends (Var => Decl) { /* TODO: Inconsistent naming - Const vs Var */
   def apply(v: Var) = FunctionDecl(v)
 }
 
@@ -258,9 +257,7 @@ sealed trait Term extends Node {
   def transform(pre: PartialFunction[Term, Term] = PartialFunction.empty)
                (recursive: Term => Boolean = !pre.isDefinedAt(_),
                 post: PartialFunction[Term, Term] = PartialFunction.empty)
-               : this.type =
-
-    state.utils.transform[this.type](this, pre)(recursive, post)
+               : this.type =  state.utils.transform[this.type](this, pre)(recursive, post)
 
   def replace(original: Term, replacement: Term): Term =
     if (original == replacement)
@@ -268,15 +265,46 @@ sealed trait Term extends Node {
     else
       this.transform{case `original` => replacement}()
 
-  def replace[T <: Term : ClassTag](replacements: Map[T, Term]): Term = {
-    this.transform{case t: T if replacements.contains(t) => replacements(t)}()
-  }
+  def replace[T <: Term : ClassTag](replacements: Map[T, Term]): Term =
+    if (replacements.isEmpty)
+      this
+    else
+      this.transform{case t: T if replacements.contains(t) => replacements(t)}()
 
   def replace(originals: Seq[Term], replacements: Seq[Term]): Term = {
-    this.replace(toMap(originals.zip(replacements)))
+    //    assert(originals.length == replacements.length)
+
+    if (originals.isEmpty)
+      this
+    else
+      this.replace(toMap(originals.zip(replacements)))
   }
 
   def contains(t: Term): Boolean = this.existsDefined{case `t` =>}
+
+  lazy val freeVariables =
+    this.reduceTree((t: Term, freeVarsChildren: Seq[Set[Var]]) => {
+      val freeVars: InsertionOrderedSet[Var] = InsertionOrderedSet(freeVarsChildren.flatten)
+
+      t match {
+        case q: Quantification =>
+          freeVars filterNot q.vars.contains
+        case l: Let =>
+          val lvars = l.bindings.keySet
+          freeVars diff lvars
+        case v: Var =>
+          freeVars + v
+        case _ =>
+          freeVars
+      }
+    })
+
+  lazy val topLevelConjuncts: Seq[Term] = {
+    this match {
+      case and: And => and.subterms flatMap (_.topLevelConjuncts)
+      case other => Vector(other)
+    }
+  }
 }
 
 trait UnaryOp[E] {
@@ -294,7 +322,7 @@ trait BinaryOp[E] {
   def p0: E
   def p1: E
 
-  override def toString = "%s %s %s".format(p0, op, p1)
+  override def toString = s"$p0 $op $p1"
 }
 
 trait StructuralEqualityUnaryOp[E] extends UnaryOp[E] {
@@ -383,6 +411,9 @@ case object Forall extends Quantifier {
   def apply(qvar: Var, tBody: Term, trigger: Trigger, name: String) =
     Quantification(Forall, qvar :: Nil, tBody, trigger :: Nil, name)
 
+  def apply(qvar: Var, tBody: Term, trigger: Trigger, name: String, isGlobal: Boolean) =
+    Quantification(Forall, qvar :: Nil, tBody, trigger :: Nil, name, isGlobal)
+
   def apply(qvar: Var, tBody: Term, triggers: Seq[Trigger]): Quantification =
     apply(qvar, tBody, triggers, "")
 
@@ -395,16 +426,20 @@ case object Forall extends Quantifier {
   def apply(qvars: Seq[Var], tBody: Term, trigger: Trigger, name: String) =
     Quantification(Forall, qvars, tBody, trigger :: Nil, name)
 
+  def apply(qvars: Seq[Var], tBody: Term, trigger: Trigger, name: String, isGlobal: Boolean) =
+    Quantification(Forall, qvars, tBody, trigger :: Nil, name, isGlobal)
+
   def apply(qvars: Seq[Var], tBody: Term, triggers: Seq[Trigger]): Quantification =
     apply(qvars, tBody, triggers, "")
 
   def apply(qvars: Seq[Var], tBody: Term, triggers: Seq[Trigger], name: String) =
     Quantification(Forall, qvars, tBody, triggers, name)
 
-  def unapply(q: Quantification) = q match {
-    case Quantification(Forall, qvars, tBody, triggers, name) => Some((qvars, tBody, triggers, name))
-    case _ => None
-  }
+  def apply(qvars: Seq[Var], tBody: Term, triggers: Seq[Trigger], name: String, isGlobal: Boolean) =
+    Quantification(Forall, qvars, tBody, triggers, name, isGlobal)
+
+  def unapply(q: Quantification): Option[(Seq[Var], Term, Seq[Trigger], String, Boolean)] =
+    Some(q.vars, q.body, q.triggers, q.name, q.isGlobal)
 
   override val toString = "QA"
 }
@@ -422,28 +457,14 @@ object Exists extends Quantifier {
   override val toString = "QE"
 }
 
-class Quantification private[terms] (val q: Quantifier,
+class Quantification private[terms] (val q: Quantifier, /* TODO: Rename */
                                      val vars: Seq[Var],
                                      val body: Term,
                                      val triggers: Seq[Trigger],
-                                     val name: String)
+                                     val name: String,
+                                     val isGlobal: Boolean)
     extends BooleanTerm
        with StructuralEquality {
-
-  lazy val autoTrigger: Quantification = {
-    if (triggers.nonEmpty) {
-      /* Triggers were given explicitly */
-      this
-    } else {
-      TriggerGenerator.generateTriggerSetGroup(vars, body) match {
-        case Some((generatedTriggerSets, extraVariables)) =>
-          val generatedTriggers = generatedTriggerSets.map(set => Trigger(set.exps))
-          Quantification(q, vars ++ extraVariables, body, generatedTriggers, name)
-        case _ =>
-          this
-      }
-    }
-  }
 
   val equalityDefiningMembers = q :: vars :: body :: triggers :: Nil
 
@@ -451,9 +472,10 @@ class Quantification private[terms] (val q: Quantifier,
            vars: Seq[Var] = vars,
            body: Term = body,
            triggers: Seq[Trigger] = triggers,
-           name: String = name) = {
+           name: String = name,
+           isGlobal: Boolean = isGlobal) = {
 
-    Quantification(q, vars, body, triggers, name)
+    Quantification(q, vars, body, triggers, name, isGlobal)
   }
 
   lazy val stringRepresentation = s"$q ${vars.mkString(",")} :: $body"
@@ -466,25 +488,43 @@ class Quantification private[terms] (val q: Quantifier,
     else stringRepresentation
 }
 
-object Quantification extends ((Quantifier, Seq[Var], Term, Seq[Trigger], String) => Quantification) {
+object Quantification
+    extends ((Quantifier, Seq[Var], Term, Seq[Trigger], String, Boolean) => Quantification) {
+
   def apply(q: Quantifier, vars: Seq[Var], tBody: Term, triggers: Seq[Trigger]): Quantification =
     apply(q, vars, tBody, triggers, "")
 
-  def apply(q: Quantifier, vars: Seq[Var], tBody: Term, triggers: Seq[Trigger], name: String) = {
+  def apply(q: Quantifier, vars: Seq[Var], tBody: Term, triggers: Seq[Trigger], name: String)
+           : Quantification = {
+
+    apply(q, vars, tBody, triggers, "", false)
+  }
+
+  def apply(q: Quantifier,
+            vars: Seq[Var],
+            tBody: Term,
+            triggers: Seq[Trigger],
+            name: String,
+            isGlobal: Boolean)
+           : Quantification = {
 //    assert(vars.distinct.length == vars.length, s"Found duplicate vars: $vars")
 //    assert(triggers.distinct.length == triggers.length, s"Found duplicate triggers: $triggers")
 
     /* TODO: If we optimise away a quantifier, we cannot, for example, access
      *       autoTrigger on the returned object.
      */
-    new Quantification(q, vars, tBody, triggers, name)
+    new Quantification(q, vars, tBody, triggers, name, isGlobal)
 //    tBody match {
 //    case True() | False() => tBody
 //    case _ => new Quantification(q, vars, tBody, triggers)
 //  }
   }
 
-  def unapply(q: Quantification) = Some((q.q, q.vars, q.body, q.triggers, q.name))
+  def unapply(q: Quantification)
+             : Option[(Quantifier, Seq[Var], Term, Seq[Trigger], String, Boolean)] = {
+
+    Some((q.q, q.vars, q.body, q.triggers, q.name, q.isGlobal))
+  }
 }
 
 /* Arithmetic expression terms */
@@ -541,8 +581,8 @@ object Times extends ((Term, Term) => Term) {
   import predef.{Zero, One}
 
   def apply(e0: Term, e1: Term) = (e0, e1) match {
-    case (t0, Zero) => Zero
-    case (Zero, t1) => Zero
+    case (_, Zero) => Zero
+    case (Zero, _) => Zero
     case (t0, One) => t0
     case (One, t1) => t1
     case (IntLiteral(n0), IntLiteral(n1)) => IntLiteral(n0 * n1)
@@ -683,10 +723,6 @@ object Implies extends ((Term, Term) => Term) {
   def unapply(e: Implies) = Some((e.p0, e.p1))
 }
 
-object Implied extends ((Term, Term) => Term) {
-  def apply(e0: Term, e1: Term): Term = Implies(e1, e0)
-}
-
 class Iff(val p0: Term, val p1: Term) extends BooleanTerm
     with StructuralEqualityBinaryOp[Term] {
 
@@ -708,13 +744,11 @@ class Ite(val t0: Term, val t1: Term, val t2: Term)
     extends Term with StructuralEquality {
 
   assert(t0.sort == sorts.Bool && t1.sort == t2.sort, /* @elidable */
-      "Ite term Ite(%s, %s, %s) is not well-sorted: %s, %s, %s"
-      .format(t0, t1, t2, t0.sort, t1.sort, t2.sort))
-
+         s"Ite term Ite($t0, $t1, $t2) is not well-sorted: ${t0.sort}, ${t1.sort}, ${t2.sort}")
 
   val equalityDefiningMembers = t0 :: t1 :: t2 :: Nil
   val sort = t1.sort
-  override val toString = "(%s ? %s : %s)".format(t0, t1, t2)
+  override val toString = s"($t0 ? $t1 : $t2)"
 }
 
 object Ite extends ((Term, Term, Term) => Term) {
@@ -739,8 +773,7 @@ sealed trait Equals extends ComparisonTerm with BinaryOp[Term] { override val op
 object Equals extends ((Term, Term) => BooleanTerm) {
   def apply(e0: Term, e1: Term) = {
     assert(e0.sort == e1.sort,
-           "Expected both operands to be of the same sort, but found %s (%s) and %s (%s)."
-           .format(e0.sort, e0, e1.sort, e1))
+           s"Expected both operands to be of the same sort, but found ${e0.sort} ($e0) and ${e1.sort} ($e1).")
 
     if (e0 == e1)
       True()
@@ -750,16 +783,15 @@ object Equals extends ((Term, Term) => BooleanTerm) {
           (e0, e1) match {
             case (sw1: SortWrapper, sw2: SortWrapper) if sw1.t.sort != sw2.t.sort =>
               assert(false, s"Equality '(Snap) $e0 == (Snap) $e1' is not allowed")
-            case (c1: Combine, sw2: SortWrapper) =>
+            case (_: Combine, _: SortWrapper) =>
               assert(false, s"Equality '$e0 == (Snap) $e1' is not allowed")
-            case (sw1: SortWrapper, c2: Combine) =>
+            case (_: SortWrapper, _: Combine) =>
               assert(false, s"Equality '(Snap) $e0 == $e1' is not allowed")
             case _ => /* Ok */
           }
 
           new BuiltinEquals(e0, e1)
 
-        case sorts.Perm => BuiltinEquals.forPerm(e0, e1)
         case _: sorts.Seq | _: sorts.Set | _: sorts.Multiset => new CustomEquals(e0, e1)
         case _ => new BuiltinEquals(e0, e1)
       }
@@ -770,29 +802,25 @@ object Equals extends ((Term, Term) => BooleanTerm) {
 
 /* Represents built-in equality, e.g., '=' in SMT-LIB */
 class BuiltinEquals private[terms] (val p0: Term, val p1: Term) extends Equals
-    with StructuralEqualityBinaryOp[Term] {
-}
+    with StructuralEqualityBinaryOp[Term]
 
-object BuiltinEquals {
-  def forPerm(t1: Term, t2: Term) = (t1, t2) match {
-    case (FullPerm(), NoPerm()) | (NoPerm(), FullPerm()) => False()
-    case (NoPerm(), fp: FractionPerm) if fp.isDefinitelyPositive => False()
-    case (fp: FractionPerm, NoPerm()) if fp.isDefinitelyPositive => False()
-    case (FullPerm(), fp: FractionPerm) if fp.isLiteral => False()
-    case (fp: FractionPerm, FullPerm()) if fp.isLiteral => False()
+object BuiltinEquals extends ((Term, Term) => BooleanTerm) {
+  def apply(t1: Term, t2: Term) = (t1, t2) match {
+    case (p0: PermLiteral, p1: PermLiteral) => if (p0.literal == p1.literal) True() else False()
     case _ => new BuiltinEquals(t1, t2)
   }
-
-  def apply(t1: Term, t2: Term) = new BuiltinEquals(t1, t2)
 
   def unapply(e: BuiltinEquals) = Some((e.p0, e.p1))
 }
 
 /* Custom equality that (potentially) needs to be axiomatised. */
 class CustomEquals private[terms] (val p0: Term, val p1: Term) extends Equals
-    with StructuralEqualityBinaryOp[Term]
+    with StructuralEqualityBinaryOp[Term] {
 
-object CustomEquals {
+  override val op = "==="
+}
+
+object CustomEquals extends ((Term, Term) => BooleanTerm) {
   def apply(t1: Term, t2: Term) = new CustomEquals(t1, t2)
   def unapply(e: CustomEquals) = Some((e.p0, e.p1))
 }
@@ -801,8 +829,7 @@ class Less(val p0: Term, val p1: Term) extends ComparisonTerm
     with StructuralEqualityBinaryOp[Term] {
 
   assert(p0.sort == p1.sort,
-    "Expected both operands to be of the same sort, but found %s (%s) and %s (%s)."
-      .format(p0.sort, p0, p1.sort, p1))
+         s"Expected both operands to be of the same sort, but found ${p0.sort} ($p0) and ${p1.sort} ($p1).")
 
   override val op = "<"
 }
@@ -866,6 +893,49 @@ object AtLeast extends /* OptimisingBinaryArithmeticOperation with */ ((Term, Te
 }
 
 /*
+  Helper class for permissions
+ */
+
+final class Rational(n: BigInt, d: BigInt) extends Ordered[Rational] {
+  require(d != 0, "Denominator of Rational must not be 0.")
+
+  private val g = n.gcd(d)
+  val numerator: BigInt = n / g * d.signum
+  val denominator: BigInt = d.abs / g
+
+  def +(that: Rational): Rational = {
+    val newNum = this.numerator * that.denominator + that.numerator * this.denominator
+    val newDen = this.denominator * that.denominator
+    Rational(newNum, newDen)
+  }
+  def -(that: Rational): Rational = this + (-that)
+  def unary_- = Rational(-numerator, denominator)
+  def abs = Rational(numerator.abs, denominator)
+  def signum = Rational(numerator.signum, 1)
+
+  def *(that: Rational): Rational = Rational(this.numerator * that.numerator, this.denominator * that.denominator)
+  def /(that: Rational): Rational = this * that.inverse
+  def inverse = Rational(denominator, numerator)
+
+  def compare(that: Rational) = (this.numerator * that.denominator - that.numerator * this.denominator).signum
+
+  override def equals(obj: Any) = obj match {
+    case that: Rational => this.numerator == that.numerator && this.denominator == that.denominator
+    case _ => false
+  }
+
+  override def toString = s"$numerator/$denominator"
+}
+
+object Rational extends ((BigInt, BigInt) => Rational) {
+  val zero = Rational(0, 1)
+  val one = Rational(1, 1)
+
+  def apply(numer: BigInt, denom: BigInt) = new Rational(numer, denom)
+  def unapply(r: Rational) = Some(r.numerator, r.denominator)
+}
+
+/*
  * Permissions
  */
 
@@ -873,35 +943,42 @@ sealed trait Permissions extends Term {
   val sort = sorts.Perm
 }
 
-case class NoPerm() extends Permissions { override val toString = "Z" }
-case class FullPerm() extends Permissions { override val toString = "W" }
-case class WildcardPerm(v: Var) extends Permissions { override val toString = v.toString }
+sealed abstract class PermLiteral(val literal: Rational) extends Permissions
+
+case class NoPerm() extends PermLiteral(Rational.zero) { override val toString = "Z" }
+case class FullPerm() extends PermLiteral(Rational.one) { override val toString = "W" }
+
+class FractionPermLiteral(r: Rational) extends PermLiteral(r) {
+  override def equals(obj: Any) = obj match {
+    case p: FractionPermLiteral => literal == p.literal
+    case _ => false
+  }
+  override val toString = literal.toString
+}
+
+object FractionPermLiteral extends (Rational => Permissions) {
+  def apply(r: Rational) = r match {
+    case Rational(n, _) if n == 0 => NoPerm()
+    case Rational(n, d) if n == d => FullPerm()
+    case _ => new FractionPermLiteral(r)
+  }
+
+  def unapply(t: FractionPermLiteral) = Some(t.literal)
+}
 
 class FractionPerm(val n: Term, val d: Term)
     extends Permissions
        with StructuralEquality {
-
-  lazy val isDefinitelyPositive = literal match {
-    case Some((i1, i2)) => 0 < i1 * i2
-    case None => false
-  }
-
-  lazy val isLiteral = literal.nonEmpty
-
-  lazy val literal = (n, d) match {
-    case (IntLiteral(i1), IntLiteral(i2)) => Some((i1, i2))
-    case _ => None
-  }
 
   val equalityDefiningMembers = n :: d :: Nil
   override val toString = s"$n/$d"
 }
 
 object FractionPerm extends ((Term, Term) => Permissions) {
-  def apply(n: Term, d: Term) =
-    if (n == predef.Zero) NoPerm()
-    else if (n == d) FullPerm()
-    else new FractionPerm(n, d)
+  def apply(n: Term, d: Term) = (n, d) match {
+    case (IntLiteral(i1), IntLiteral(i2)) if i2 != 0 => FractionPermLiteral(Rational(i1, i2))
+    case _ => new FractionPerm(n, d)
+  }
 
   def unapply(fp: FractionPerm) = Some((fp.n, fp.d))
 }
@@ -927,6 +1004,7 @@ object PermTimes extends ((Term, Term) => Term) {
     case (t, FullPerm()) => t
     case (NoPerm(), _) => NoPerm()
     case (_, NoPerm()) => NoPerm()
+    case (p0: PermLiteral, p1: PermLiteral) => FractionPermLiteral(p0.literal * p1.literal)
     case (_, _) => new PermTimes(t0, t1)
   }
 
@@ -945,23 +1023,42 @@ object IntPermTimes extends ((Term, Term) => Term) {
   import predef.{Zero, One}
 
   def apply(t0: Term, t1: Term) = (t0, t1) match {
-    case (Zero, t) => NoPerm()
+    case (Zero, _) => NoPerm()
     case (One, t) => t
     case (_, NoPerm()) => NoPerm()
+    case (IntLiteral(i), p: PermLiteral) => FractionPermLiteral(Rational(i, 1) * p.literal)
     case (_, _) => new IntPermTimes(t0, t1)
   }
 
   def unapply(pt: IntPermTimes) = Some((pt.p0, pt.p1))
 }
 
-case class PermIntDiv(p0: Term, p1: Term)
+class PermIntDiv(val p0: Term, val p1: Term)
     extends Permissions
-       with BinaryOp[Term] {
-//    with commonnodes.StructuralEqualityBinaryOp[Term]
+       with BinaryOp[Term]
+       with StructuralEqualityBinaryOp[Term] {
 
   utils.assertSort(p1, "Second term", sorts.Int)
 
   override val op = "/"
+}
+
+object PermIntDiv extends ((Term, Term) => Term) {
+  import predef.One
+
+  def apply(t0: Term, t1: Term) = (t0, t1) match {
+    case (t, One) => t
+    case (p: PermLiteral, IntLiteral(i)) if i != 0 => FractionPermLiteral(p.literal / Rational(i, 1))
+    case (_, _) => new PermIntDiv(t0, t1)
+  }
+
+  def unapply(t: PermIntDiv) = Some((t.p0, t.p1))
+}
+
+object PermDiv extends ((Term, Term) => Term) {
+  import predef.One
+
+  def apply(t0: Term, t1: Term) = PermTimes(t0, FractionPerm(One, t1))
 }
 
 class PermPlus(val p0: Term, val p1: Term)
@@ -976,6 +1073,7 @@ object PermPlus extends ((Term, Term) => Term) {
   def apply(t0: Term, t1: Term) = (t0, t1) match {
     case (NoPerm(), _) => t1
     case (_, NoPerm()) => t0
+    case (p0: PermLiteral, p1: PermLiteral) => FractionPermLiteral(p0.literal + p1.literal)
     case (FractionPerm(n1, d1), FractionPerm(n2, d2)) if d1 == d2 => FractionPerm(Plus(n1, n2), d1)
     case (PermMinus(t00, t01), _) if t01 == t1 => t00
     case (_, PermMinus(t10, t11)) if t11 == t0 => t10
@@ -1003,6 +1101,7 @@ object PermMinus extends ((Term, Term) => Term) {
   def apply(t0: Term, t1: Term) = (t0, t1) match {
     case (_, NoPerm()) => t0
     case (p0, p1) if p0 == p1 => NoPerm()
+    case (p0: PermLiteral, p1: PermLiteral) => FractionPermLiteral(p0.literal - p1.literal)
     case (p0, PermMinus(p1, p2)) if p0 == p1 => p2
     case (PermPlus(p0, p1), p2) if p0 == p2 => p1
     case (PermPlus(p0, p1), p2) if p1 == p2 => p0
@@ -1017,7 +1116,7 @@ class PermLess(val p0: Term, val p1: Term)
        with BinaryOp[Term]
        with StructuralEqualityBinaryOp[Term] {
 
-  override val toString = "(%s) < (%s)".format(p0, p1)
+  override val toString = s"($p0) < ($p1)"
 
   override val op = "<"
 }
@@ -1026,8 +1125,7 @@ object PermLess extends ((Term, Term) => Term) {
   def apply(t0: Term, t1: Term): Term = {
     (t0, t1) match {
       case _ if t0 == t1 => False()
-      case (NoPerm(), FullPerm()) => True()
-      case (FullPerm(), _: WildcardPerm) => False()
+      case (p0: PermLiteral, p1: PermLiteral) => if (p0.literal < p1.literal) True() else False()
 
       case (`t0`, Ite(tCond, tIf, tElse)) =>
         /* The pattern p0 < b ? p1 : p2 arises very often in the context of quantified permissions.
@@ -1050,8 +1148,7 @@ class PermAtMost(val p0: Term, val p1: Term) extends ComparisonTerm
 
 object PermAtMost extends ((Term, Term) => Term) {
   def apply(e0: Term, e1: Term) = (e0, e1) match {
-    case (NoPerm(), FullPerm()) => True()
-    case (NoPerm(), fp: FractionPerm) if fp.isDefinitelyPositive => True()
+    case (p0: PermLiteral, p1: PermLiteral) => if (p0.literal <= p1.literal) True() else False()
     case (t0, t1) if t0 == t1 => True()
     case _ => new PermAtMost(e0, e1)
   }
@@ -1059,13 +1156,24 @@ object PermAtMost extends ((Term, Term) => Term) {
   def unapply(e: PermAtMost) = Some((e.p0, e.p1))
 }
 
-case class PermMin(p0: Term, p1: Term) extends Permissions
-    with BinaryOp[Term] {
+class PermMin(val p0: Term, val p1: Term) extends Permissions
+    with BinaryOp[Term]
+    with StructuralEqualityBinaryOp[Term] {
 
   utils.assertSort(p0, "Permission 1st", sorts.Perm)
   utils.assertSort(p1, "Permission 2nd", sorts.Perm)
 
   override val toString = s"min ($p0, $p1)"
+}
+
+object PermMin extends ((Term, Term) => Term) {
+  def apply(e0: Term, e1: Term) = (e0, e1) match {
+    case (t0, t1) if t0 == t1 => t0
+    case (p0: PermLiteral, p1: PermLiteral) => if (p0.literal > p1.literal) p1 else p0
+    case _ => new PermMin(e0, e1)
+  }
+
+  def unapply(e: PermMin) = Some((e.p0, e.p1))
 }
 
 /* Sequences */
@@ -1082,7 +1190,7 @@ case class SeqRanged(p0: Term, p1: Term) extends SeqTerm /* with BinaryOp[Term] 
   val elementsSort = sorts.Int
   val sort = sorts.Seq(elementsSort)
 
-  override val toString = "[%s..%s]".format(p0, p1)
+  override val toString = s"[$p0..$p1]"
 }
 
 case class SeqNil(elementsSort: Sort) extends SeqTerm with Literal {
@@ -1094,7 +1202,7 @@ case class SeqSingleton(p: Term) extends SeqTerm /* with UnaryOp[Term] */ {
   val elementsSort = p.sort
   val sort = sorts.Seq(elementsSort)
 
-  override val toString = "[" + p + "]"
+  override val toString = s"[$p]"
 }
 
 class SeqAppend(val p0: Term, val p1: Term) extends SeqTerm
@@ -1157,7 +1265,7 @@ class SeqLength(val p: Term) extends Term
     with StructuralEqualityUnaryOp[Term] {
 
   val sort = sorts.Int
-  override val toString = "|" + p + "|"
+  override val toString = s"|$p|"
 }
 
 object SeqLength {
@@ -1174,7 +1282,7 @@ class SeqAt(val p0: Term, val p1: Term) extends Term
 
   val sort = p0.sort.asInstanceOf[sorts.Seq].elementsSort
 
-  override val toString = p0 + "[" + p1 + "]"
+  override val toString = s"$p0[$p1]"
 }
 
 object SeqAt extends ((Term, Term) => Term) {
@@ -1190,7 +1298,7 @@ object SeqAt extends ((Term, Term) => Term) {
 class SeqIn(val p0: Term, val p1: Term) extends BooleanTerm
     with StructuralEqualityBinaryOp[Term] {
 
-  override val toString = "%s in %s".format(p1, p0)
+  override val toString = s"$p1 in $p0"
 }
 
 object SeqIn extends ((Term, Term) => BooleanTerm) {
@@ -1248,7 +1356,7 @@ case class SingletonSet(p: Term) extends SetTerm /* with UnaryOp[Term] */ {
   val elementsSort = p.sort
   val sort = sorts.Set(elementsSort)
 
-  override val toString = "{" + p + "}"
+  override val toString = s"{$p}"
 }
 
 class SetAdd(val p0: Term, val p1: Term) extends SetTerm
@@ -1357,7 +1465,7 @@ class SetCardinality(val p: Term) extends Term
     with StructuralEqualityUnaryOp[Term] {
 
   val sort = sorts.Int
-  override val toString = "|" + p + "|"
+  override val toString = s"|$p|"
 }
 
 object SetCardinality extends (Term => SetCardinality) {
@@ -1392,7 +1500,7 @@ case class SingletonMultiset(p: Term) extends MultisetTerm /* with UnaryOp[Term]
   val elementsSort = p.sort
   val sort = sorts.Multiset(elementsSort)
 
-  override val toString = "{" + p + "}"
+  override val toString = s"{$p}"
 }
 
 class MultisetAdd(val p0: Term, val p1: Term) extends MultisetTerm
@@ -1471,7 +1579,7 @@ class MultisetCardinality(val p: Term) extends Term
     with StructuralEqualityUnaryOp[Term] {
 
   val sort = sorts.Int
-  override val toString = "|" + p + "|"
+  override val toString = s"|$p|"
 }
 
 object MultisetCardinality extends (Term => MultisetCardinality) {
@@ -1514,7 +1622,7 @@ class Combine(val p0: Term, val p1: Term) extends SnapshotTerm
   override val toString = s"($p0, $p1)"
 }
 
-object Combine {
+object Combine extends ((Term, Term) => Term) {
   def apply(t0: Term, t1: Term) = new Combine(t0.convert(sorts.Snap), t1.convert(sorts.Snap))
 
   def unapply(c: Combine) = Some((c.p0, c.p1))
@@ -1570,11 +1678,8 @@ case class Domain(field: String, fvf: Term) extends SetTerm /*with PossibleTrigg
 
 
 /* Quantified predicates */
-case class PredicateLookup(predname: String, psf: Term, args: Seq[Term], formalVars: Seq[Var]) extends Term {
+case class PredicateLookup(predname: String, psf: Term, args: Seq[Term]) extends Term {
   utils.assertSort(psf, "predicate snap function", "PredicateSnapFunction", _.isInstanceOf[sorts.PredicateSnapFunction])
-  for (i <- args.indices) {
-    utils.assertSort(args.apply(i), "predicate argument i", formalVars.apply(i).sort)
-  }
 
   val sort = psf.sort.asInstanceOf[sorts.PredicateSnapFunction].codomainSort
 }
@@ -1626,9 +1731,37 @@ object SortWrapper {
 
 /* Magic wands */
 
+case class MagicWandSnapshot(abstractLhs: Term, rhsSnapshot: Term) extends Combine(abstractLhs, rhsSnapshot) {
+
+  utils.assertSort(abstractLhs, "abstract lhs", sorts.Snap)
+  utils.assertSort(rhsSnapshot, "rhs", sorts.Snap)
+
+  override val toString = s"wandSnap(lhs = $abstractLhs, rhs = $rhsSnapshot)"
+
+  def merge(other: MagicWandSnapshot, branchConditions: Stack[Term]): MagicWandSnapshot = {
+    assert(this.abstractLhs == other.abstractLhs)
+    val condition = And(branchConditions)
+    MagicWandSnapshot(this.abstractLhs, if (this.rhsSnapshot == other.rhsSnapshot)
+      this.rhsSnapshot
+    else
+      Ite(condition, other.rhsSnapshot, this.rhsSnapshot))
+  }
+}
+
+object MagicWandSnapshot {
+  def apply(snapshot: Term): MagicWandSnapshot = {
+    assert(snapshot.sort == sorts.Snap)
+    snapshot match {
+      case snap: MagicWandSnapshot => snap
+      case _ =>
+        MagicWandSnapshot(First(snapshot), Second(snapshot))
+    }
+  }
+}
+
 case class MagicWandChunkTerm(chunk: MagicWandChunk) extends Term {
   override val sort = sorts.Unit /* TODO: Does this make sense? */
-  override val toString = s"wand@${chunk.ghostFreeWand.pos}}"
+  override val toString = s"wand@${chunk.id.ghostFreeWand.pos}}"
 }
 
 /* Other terms */
@@ -1640,7 +1773,7 @@ class Distinct(val ts: Set[Symbol]) extends BooleanTerm with StructuralEquality 
   override val toString = s"Distinct($ts)"
 }
 
-object Distinct {
+object Distinct extends (Set[Symbol] => Term) {
   def apply(ts: Set[Symbol]): Term =
     if (ts.nonEmpty) new Distinct(ts)
     else True()
@@ -1682,35 +1815,30 @@ object predef {
 /* Convenience functions */
 
 object perms {
-  def IsNonNegative(p: Term) =
+  def IsNonNegative(p: Term): Term =
     Or(p === NoPerm(), IsPositive(p))
       /* All basic static simplifications should be covered by Equals,
        * IsPositive and or
        */
 
-  def IsPositive(p: Term) = p match {
-    case _: NoPerm => False()
-    case _: FullPerm | _: WildcardPerm => True()
-    case fp: FractionPerm if fp.isDefinitelyPositive => True()
+  def IsPositive(p: Term): Term = p match {
+    case p: PermLiteral => if (p.literal > Rational.zero) True() else False()
     case _ => PermLess(NoPerm(), p)
   }
 
-  def IsNoAccess(p: Term) = p match {
-    case _: NoPerm => True()
-    case  _: PermPlus | PermMinus(_, _: WildcardPerm) => False()
-      /* ATTENTION: This is only sound if both plus operands and the left minus operand are positive! */
+  def IsNonPositive(p: Term): Term = p match {
+    case p: PermLiteral => if (p.literal <= Rational.zero) True() else False()
     case _ => Or(p === NoPerm(), PermLess(p, NoPerm()))
   }
+
+  def BigPermSum(it: Iterable[Term], f: Term => Term = t => t): Term =
+    viper.silicon.utils.mapReduceLeft(it, f, PermPlus, NoPerm())
 }
 
 /* Utility functions */
 
 object utils {
-  def BigPermSum(it: Iterable[Term], f: Term => Term = t => t): Term =
-    viper.silicon.utils.mapReduceLeft(it, f, PermPlus, NoPerm())
-
-  def consumeExactRead(fp: Term, constrainableARPs: Set[Term]): Boolean = fp match {
-    case _: WildcardPerm => false
+  def consumeExactRead(fp: Term, constrainableARPs: InsertionOrderedSet[Var]): Boolean = fp match {
     case v: Var => !constrainableARPs.contains(v)
     case PermPlus(t0, t1) => consumeExactRead(t0, constrainableARPs) || consumeExactRead(t1, constrainableARPs)
     case PermMinus(t0, t1) => consumeExactRead(t0, constrainableARPs) || consumeExactRead(t1, constrainableARPs)
@@ -1724,20 +1852,17 @@ object utils {
 
   @scala.annotation.elidable(level = scala.annotation.elidable.ASSERTION)
   def assertSort(t: Term, desc: String, s: Sort) {
-    assert(t.sort == s,
-           "Expected %s %s to be of sort %s, but found %s.".format(desc, t, s, t.sort))
+    assert(t.sort == s, s"Expected $desc $t to be of sort $s, but found ${t.sort}.")
   }
 
   @scala.annotation.elidable(level = scala.annotation.elidable.ASSERTION)
   def assertSort(t: Term, desc: String, xs: Seq[Sort]) {
-    assert(xs.contains(t.sort),
-           "Expected %s %s to be one of sorts %s, but found %s.".format(desc, t, xs, t.sort))
+    assert(xs.contains(t.sort), s"Expected $desc $t to be one of sorts $xs, but found ${t.sort}.")
   }
 
   @scala.annotation.elidable(level = scala.annotation.elidable.ASSERTION)
   def assertSort(t: Term, desc: String, sortDesc: String, f: Sort => Boolean) {
-    assert(f(t.sort),
-      "Expected %s %s to be of sort %s, but found %s.".format(desc, t, sortDesc, t.sort))
+    assert(f(t.sort), s"Expected $desc $t to be of sort $sortDesc, but found ${t.sort}.")
   }
 
   @scala.annotation.elidable(level = scala.annotation.elidable.ASSERTION)
@@ -1749,8 +1874,8 @@ object utils {
         case (s0: S, s1: S) if s0.productIterator.sameElements(s1.productIterator) => true
         case _ => false
       },
-      s"Expected both operands to be of sort ${clazz.getSimpleName}(S1,S2,...), but found %s (%s) and %s (%s)"
-          .format(t0, t0.sort, t1, t1.sort))
+      s"Expected both operands to be of sort ${clazz.getSimpleName}(S1,S2,...), " +
+        s"but found $t0 (${t0.sort}) and $t1 (${t1.sort})")
   }
 
   @scala.annotation.elidable(level = scala.annotation.elidable.ASSERTION)

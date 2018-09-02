@@ -1,15 +1,27 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 //:: cases ZeroMultiple
+
+
 class ZeroMixedArray {
-  invariant ar != null ** N>0 ** M > 0 ;
-  context   (\forall* int i;0 <= i && i < M*N ; Perm(ar[i],write));
-  ensures   (\forall int i;0 <= i && i < M*N ; ar[i]==0);
-  void vector(int M, int N, int[M*N] ar){
+	requires 0 < n;
+	requires a <= b;
+	ensures \result;
+	ensures a*n <= b*n;
+	pure boolean lemma_mult_n(int a, int b, int n) = true;
+	
+  invariant ar != null ** N>0 ** M > 0;
+	invariant ar.length == M * N;
+  context (\forall* int i;0 <= i && i < M*N ; Perm(ar[i],write));
+  ensures (\forall int i;0 <= i && i < M*N ; ar[i]==0);
+  void vector(int M, int N, int[M*N] ar) {
     par outer (int i = 0 .. M)
+			context lemma_mult_n(i+1, M, N);
       context (\forall* int k; N*i <= k && k < N*(i+1) ; Perm(ar[k],write));
       ensures (\forall int k; N*i <= k && k < N*(i+1) ; ar[k]==0 );
     {
       par inner (int j= N*i .. N*(i+1))
+				context 0 <= i && i < M;
+				context lemma_mult_n(i+1, M, N);
         context Perm(ar[j],write);
         ensures ar[j]==0;
       {

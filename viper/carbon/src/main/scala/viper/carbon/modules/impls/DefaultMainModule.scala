@@ -13,12 +13,14 @@ import viper.carbon.boogie._
 import viper.carbon.boogie.Implicits._
 import java.text.SimpleDateFormat
 import java.util.Date
+
 import viper.carbon.boogie.CommentedDecl
 import viper.carbon.boogie.Procedure
 import viper.carbon.boogie.Program
 import viper.carbon.verifier.Environment
 import viper.silver.verifier.errors
 import viper.carbon.verifier.Verifier
+import viper.silver.ast.utility.Rewriter.Traverse
 
 /**
  * The default implementation of a [[viper.carbon.modules.MainModule]].
@@ -48,10 +50,9 @@ class DefaultMainModule(val verifier: Verifier) extends MainModule with Stateles
   override def translate(p: sil.Program): Program = {
 
     verifier.replaceProgram(
-      p.transform({
-        case f: sil.Forall =>
-          f.autoTrigger
-      })((_) => true)
+      p.transform(
+        { case f: sil.Forall => f.autoTrigger },
+        Traverse.TopDown)
     )
 
     val output = verifier.program match {
@@ -76,7 +77,7 @@ class DefaultMainModule(val verifier: Verifier) extends MainModule with Stateles
         val deps = verifier.dependencyDescs map ("  " + _)
         val header = Seq(
           "",
-          s"Translation of SIL program.",
+          s"Translation of Viper program.",
           "",
           "Date:         " + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()),
           "Tool:         " + verifier.toolDesc) ++
@@ -93,14 +94,13 @@ class DefaultMainModule(val verifier: Verifier) extends MainModule with Stateles
   def translateMethodDecl(m: sil.Method): Seq[Decl] = {
     env = Environment(verifier, m)
         val res = m match {
-          case sil.Method(name, formalArgs, formalReturns, pres, posts, locals, b) =>
+          case method @ sil.Method(name, formalArgs, formalReturns, pres, posts, _) =>
             val initOldStateComment = "Initializing of old state"
             val ins: Seq[LocalVarDecl] = formalArgs map translateLocalVarDecl
             val outs: Seq[LocalVarDecl] = formalReturns map translateLocalVarDecl
             val init = MaybeCommentBlock("Initializing the state", stateModule.initBoogieState ++ assumeAllFunctionDefinitions)
             val initOld = MaybeCommentBlock("Initializing the old state", stateModule.initOldState)
             val paramAssumptions = m.formalArgs map (a => allAssumptionsAboutValue(a.typ, translateLocalVarDecl(a), true))
-            val localAssumptions = m.locals map (a => allAssumptionsAboutValue(a.typ, translateLocalVarDecl(a), true))
             val inhalePre = translateMethodDeclPre(pres)
             val checkPost: Stmt = if (posts.nonEmpty) {
               translateMethodDeclCheckPosts(posts)
@@ -108,11 +108,11 @@ class DefaultMainModule(val verifier: Verifier) extends MainModule with Stateles
             else Nil
             val postsWithErrors = posts map (p => (p, errors.PostconditionViolated(p, m)))
             val exhalePost = MaybeCommentBlock("Exhaling postcondition", exhale(postsWithErrors))
-            val body: Stmt = translateStmt(b)
+            val body: Stmt = translateStmt(method.bodyOrAssumeFalse)
+              /* TODO: Might be worth special-casing on methods with empty bodies */
             val proc = Procedure(Identifier(name), ins, outs,
               Seq(init,
                 MaybeCommentBlock("Assumptions about method arguments", paramAssumptions),
-                MaybeCommentBlock("Assumptions about local variables", localAssumptions),
                 inhalePre,
             MaybeCommentBlock(initOldStateComment, initOld), checkPost,
             body, exhalePost))
@@ -127,7 +127,7 @@ class DefaultMainModule(val verifier: Verifier) extends MainModule with Stateles
 
     val reset = stateModule.resetBoogieState
 
-    // note that the order here matters - onlyExhalePosts should be computed with respect ot the reset state
+    // note that the order here matters - onlyExhalePosts should be computed with respect to the reset state
     val onlyExhalePosts: Seq[Stmt] = checkDefinednessOfExhaleSpecAndInhale(
     posts, {
       errors.ContractNotWellformed(_)
@@ -142,14 +142,14 @@ class DefaultMainModule(val verifier: Verifier) extends MainModule with Stateles
         errors.ContractNotWellformed(_)
       })
 
-      NondetIf(
-        MaybeComment("Checked inhaling of postcondition to check definedness",
-          MaybeCommentBlock("Do welldefinedness check of the inhale part.",
-            NondetIf(onlyInhalePosts ++ Assume(FalseLit()))) ++
-            MaybeCommentBlock("Normally inhale the exhale part.",
-              onlyExhalePosts)
-        ) ++
-          MaybeComment("Stop execution", Assume(FalseLit()))
+          NondetIf(
+          MaybeComment("Checked inhaling of postcondition to check definedness",
+            MaybeCommentBlock("Do welldefinedness check of the inhale part.",
+              NondetIf(onlyInhalePosts ++ Assume(FalseLit()))) ++
+              MaybeCommentBlock("Normally inhale the exhale part.",
+                onlyExhalePosts)
+          ) ++
+            MaybeComment("Stop execution", Assume(FalseLit()))
       )
     }
     else {

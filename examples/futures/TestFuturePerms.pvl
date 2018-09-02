@@ -2,8 +2,8 @@
 //:: case TestFuturePerms
 //:: tool silicon
 //:: option --check-history
-//:: pass any
-//:: fail Test.bad1 Test.bad2 Test.bad3 Test.bad4 Test.bad5 Test.bad6 Test.bad7
+//:: verdict Pass any
+//:: verdict Fail Test.bad1 Test.bad2 Test.bad3 Test.bad4 Test.bad5 Test.bad6 Test.bad7
 
 class Future {
   int x;

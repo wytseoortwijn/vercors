@@ -23,6 +23,7 @@ class DefaultExhaleModule(val verifier: Verifier) extends ExhaleModule {
   import expModule._
   import permModule._
   import heapModule._
+  import mainModule._
 
   def name = "Exhale module"
 
@@ -34,7 +35,7 @@ class DefaultExhaleModule(val verifier: Verifier) extends ExhaleModule {
     register(this)
   }
 
-  override def exhale(exps: Seq[(sil.Exp, PartialVerificationError)], havocHeap: Boolean = true): Stmt = {
+  override def exhale(exps: Seq[(sil.Exp, PartialVerificationError)], havocHeap: Boolean = true, isAssert: Boolean = false): Stmt = {
     val originalPhaseId = currentPhaseId // needed to get nested exhales (e.g. from unfolding expressions) correct
     val phases = for (phase <- 1 to numberOfPhases) yield {
       currentPhaseId = phase - 1
@@ -50,8 +51,9 @@ class DefaultExhaleModule(val verifier: Verifier) extends ExhaleModule {
 
     currentPhaseId = originalPhaseId
 
-    if ((exps map (_._1.isPure) forall identity) || !havocHeap) {
+    if ((exps map (_._1.isPure) forall identity) || !havocHeap || isAssert) {
       // if all expressions are pure, then there is no need for heap copies
+      // if this is a translation of an Assert statement, there is also no need for heap copies
       phases ++ assumptions
     } else {
       beginExhale ++
@@ -63,7 +65,7 @@ class DefaultExhaleModule(val verifier: Verifier) extends ExhaleModule {
   }
 
   /**
-   * Exhales SIL expression connectives (such as logical and/implication) and forwards the
+   * Exhales Viper expression connectives (such as logical and/implication) and forwards the
    * translation of other expressions to the exhale components.
    */
   private def exhaleConnective(e: sil.Exp, error: PartialVerificationError, phase: Int): Stmt = {
@@ -76,6 +78,17 @@ class DefaultExhaleModule(val verifier: Verifier) extends ExhaleModule {
         If(translateExp(e1), exhaleConnective(e2, error, phase), Statements.EmptyStmt)
       case sil.CondExp(c, e1, e2) =>
         If(translateExp(c), exhaleConnective(e1, error, phase), exhaleConnective(e2, error, phase))
+      case sil.Let(declared,boundTo,body) if !body.isPure =>
+      {
+        val u = env.makeUniquelyNamed(declared) // choose a fresh binder
+        env.define(u.localVar)
+        Assign(translateLocalVar(u.localVar),translateExp(boundTo)) ::
+          exhaleConnective(body.replace(declared.localVar, u.localVar),error,phase) ::
+          {
+            env.undefine(u.localVar)
+            Nil
+          }
+      }
       case _ if isInPhase(e, phase) =>
         components map (_.exhaleExp(e, error))
       case _ =>

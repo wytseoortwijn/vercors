@@ -26,6 +26,8 @@ antlr4Version in Antlr4 := "4.5.3"
 dependencyClasspath in Compile += new File("../hre/bin")
 dependencyClasspath in Compile += new File("../parsers/bin")
 dependencyClasspath in Compile += new File("../viper/viper-api/bin")
+dependencyClasspath in Compile += new File("../viper/silicon/target/scala-2.11")
+dependencyClasspath in Compile += new File("../viper/silicon/target/scala-2.11/classes")
 
 dependencyClasspath in Test += new File("../hre/bin")
 

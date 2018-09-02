@@ -8,18 +8,30 @@ package viper.silicon.supporters.functions
 
 import viper.silver.ast
 import viper.silver.ast.utility.Functions
-import viper.silicon._
+import viper.silicon.common.collections.immutable.InsertionOrderedSet
 import viper.silicon.interfaces.FatalResult
-import viper.silicon.state.{IdentifierFactory, SymbolConvert}
+import viper.silicon.rules.{InverseFunctions, SnapshotMapDefinition, functionSupporter}
 import viper.silicon.state.terms._
 import viper.silicon.state.terms.predef._
+import viper.silicon.state.{IdentifierFactory, SymbolConverter}
 import viper.silicon.supporters.PredicateData
+import viper.silicon.{Config, Map, toMap}
 
+/* TODO: Refactor FunctionData!
+ *       Separate computations from "storing" the final results and sharing
+ *       them with other components. Computations should probably be moved to the
+ *       FunctionVerificationUnit.
+ */
 class FunctionData(val programFunction: ast.Function,
                    val height: Int,
-                   val quantifiedFields: Set[ast.Field],
+                   val quantifiedFields: InsertionOrderedSet[ast.Field],
                    val program: ast.Program)
-                  (symbolConverter: SymbolConvert,
+                  /* Note: Holding references to fixed symbol converter, identifier factory, ...
+                   *       (instead of going through a verifier) is only safe if these are
+                   *       either effectively independent of verifiers or if they are not used
+                   *       with/in the context of different verifiers.
+                   */
+                  (symbolConverter: SymbolConverter,
                    expressionTranslator: HeapAccessReplacingExpressionTranslator,
                    identifierFactory: IdentifierFactory,
                    predicateData: ast.Predicate => PredicateData,
@@ -32,15 +44,15 @@ class FunctionData(val programFunction: ast.Function,
    */
 
   val function: HeapDepFun = symbolConverter.toFunction(programFunction)
-  val limitedFunction = FunctionSupporter.limitedVersion(function)
-  val statelessFunction = FunctionSupporter.statelessVersion(function)
+  val limitedFunction = functionSupporter.limitedVersion(function)
+  val statelessFunction = functionSupporter.statelessVersion(function)
 
   val formalArgs: Map[ast.AbstractLocalVar, Var] = toMap(
     for (arg <- programFunction.formalArgs;
-         v = arg.localVar)
+         x = arg.localVar)
     yield
-      v -> Var(identifierFactory.fresh(v.name),
-               symbolConverter.toSort(v.typ)))
+      x -> Var(identifierFactory.fresh(x.name),
+               symbolConverter.toSort(x.typ)))
 
   val formalResult = Var(identifierFactory.fresh(programFunction.result.name),
                          symbolConverter.toSort(programFunction.result.typ))
@@ -59,22 +71,27 @@ class FunctionData(val programFunction: ast.Function,
   val triggerAxiom =
     Forall(arguments, triggerFunctionApplication, Trigger(limitedFunctionApplication))
 
-  val fvfGenerators: Map[ast.Field, Fun] = toMap(
-    quantifiedFields map (field => {
-        val fvfSort = sorts.FieldValueFunction(symbolConverter.toSort(field.typ))
-        val id = function.id.rename(name => s"${name}_fvfgen_${field.name}")
-
-        field -> Fun(id, function.argSorts, fvfSort) }))
-
   /*
    * Data collected during phases 1 (well-definedness checking) and 2 (verification)
+   */
+
+  /* TODO: Analogous to fresh FVFs, Nadja records PSFs in the FunctionRecorder,
+   *       but they are never used. My guess is, that QP assertions over predicates
+   *       are currently not really supported (incomplete? unsound?)
    */
 
   private[functions] var verificationFailures: Seq[FatalResult] = Vector.empty
   private[functions] var locToSnap: Map[ast.LocationAccess, Term] = Map.empty
   private[functions] var fappToSnap: Map[ast.FuncApp, Term] = Map.empty
-  private[this] var freshFvfs: Set[(ast.Field, Var)] = Set.empty
-  private[this] var qpTerms: Set[Term] = Set.empty
+  private[this] var freshFvfsAndDomains: InsertionOrderedSet[SnapshotMapDefinition] = InsertionOrderedSet.empty
+  private[this] var freshFieldInvs: InsertionOrderedSet[InverseFunctions] = InsertionOrderedSet.empty
+  private[this] var freshArps: InsertionOrderedSet[(Var, Term)] = InsertionOrderedSet.empty
+  private[this] var freshSnapshots: InsertionOrderedSet[Function] = InsertionOrderedSet.empty
+  private[this] var freshSymbolsAcrossAllPhases: InsertionOrderedSet[Function] = InsertionOrderedSet.empty
+
+  private[functions] def getFreshFieldInvs: InsertionOrderedSet[InverseFunctions] = freshFieldInvs
+  private[functions] def getFreshArps: InsertionOrderedSet[Var] = freshArps.map(_._1)
+  private[functions] def getFreshSymbolsAcrossAllPhases: InsertionOrderedSet[Function] = freshSymbolsAcrossAllPhases
 
   private[functions] def advancePhase(recorders: Seq[FunctionRecorder]): Unit = {
     assert(0 <= phase && phase <= 1, s"Cannot advance from phase $phase")
@@ -87,43 +104,32 @@ class FunctionData(val programFunction: ast.Function,
 
     locToSnap = mergedFunctionRecorder.locToSnap
     fappToSnap = mergedFunctionRecorder.fappToSnap
-    freshFvfs = mergedFunctionRecorder.freshFvfs.asInstanceOf[Set[(ast.Field, Var)]]
+    freshFvfsAndDomains = mergedFunctionRecorder.freshFvfsAndDomains
+    freshFieldInvs = mergedFunctionRecorder.freshFieldInvs
+    freshArps = mergedFunctionRecorder.freshArps
+    freshSnapshots = mergedFunctionRecorder.freshSnapshots
 
-    setQpTerms(mergedFunctionRecorder)
+    freshSymbolsAcrossAllPhases ++= freshArps.map(_._1)
+
+    freshSymbolsAcrossAllPhases ++= freshSnapshots
+
+    freshSymbolsAcrossAllPhases ++= freshFieldInvs.flatMap(_.inverses)
+
+    freshSymbolsAcrossAllPhases ++= freshFvfsAndDomains map (fvfDef =>
+      fvfDef.sm match {
+        case x: Var => x
+        case App(f: Function, _) => f
+        case other => sys.error(s"Unexpected SM $other of type ${other.getClass.getSimpleName}")
+      })
 
     phase += 1
   }
 
-  private[this] def setQpTerms(mergedFunctionRecorder: FunctionRecorder): Unit = {
-    /* TODO: Reconsider which qp-terms are actually needed.
-     *       Have a look at unionfind.sil - it is the only example where additionalQVars is
-     *       not empty. The corresponding fvf is most likely not relevant for the function
-     *       axiom.
-     *
-     * TODO: Reconsider if/when qp-related definitions (such as those of inverse functions or fvfs)
-     *       that are declared when evaluating expressions under quantifiers need to depend
-     *       on the quantified variables, i.e. take them as additional arguments.
-     *       See also examples/qps_function.sil from my thesis.
-     */
-    qpTerms = mergedFunctionRecorder.qpTerms.map { case (qvars, guards, ts) =>
-      val body = Implies(True()/*And(guards)*/, And(ts))
-      val additionalQVars = qvars filterNot arguments.contains
-
-      if (true/*additionalQVars.isEmpty*/)
-        body
-      else {
-        val q1 = Forall(additionalQVars, body, Seq[Trigger]())
-        if (config.disableISCTriggers()) q1 else q1.autoTrigger
-      }
-    }
-  }
-
-  private[this] def bindSymbols(innermostBody: Term): Term = {
-    var bindings = Map(formalResult -> limitedFunctionApplication)
-    bindings ++= toMap(freshFvfs.map { case (field, fvf) => fvf -> App(fvfGenerators(field), arguments) })
-
-    Let(toMap(bindings), innermostBody)
-  }
+  private def generateNestedDefinitionalAxioms: InsertionOrderedSet[Term] = (
+       freshFieldInvs.flatMap(_.definitionalAxioms)
+    ++ freshFvfsAndDomains.flatMap (fvfDef => fvfDef.domainDefinitions ++ fvfDef.valueDefinitions)
+    ++ freshArps.map(_._2)
+  )
 
   /*
    * Properties resulting from phase 1 (well-definedness checking)
@@ -143,8 +149,9 @@ class FunctionData(val programFunction: ast.Function,
         expressionTranslator.translatePostcondition(program, programFunction.posts, this)
 
       val pre = And(translatedPres)
-      val innermostBody = And(qpTerms ++ List(Implies(pre, And(posts))))
-      val body = bindSymbols(innermostBody)
+      val innermostBody = And(generateNestedDefinitionalAxioms ++ List(Implies(pre, And(posts))))
+      val bodyBindings: Map[Var, Term] = Map(formalResult -> limitedFunctionApplication)
+      val body = Let(toMap(bodyBindings), innermostBody)
 
       Some(Forall(arguments, body, Trigger(limitedFunctionApplication)))
     } else
@@ -192,8 +199,10 @@ class FunctionData(val programFunction: ast.Function,
 
     optBody.map(translatedBody => {
       val pre = And(translatedPres)
-      val innermostBody = And(qpTerms ++ List(Implies(pre, And(functionApplication === translatedBody))))
-      val body = bindSymbols(innermostBody)
+      val nestedDefinitionalAxioms = generateNestedDefinitionalAxioms
+      val innermostBody = And(nestedDefinitionalAxioms ++ List(Implies(pre, And(functionApplication === translatedBody))))
+      val bodyBindings: Map[Var, Term] = Map(formalResult -> limitedFunctionApplication)
+      val body = Let(toMap(bodyBindings), innermostBody)
       val allTriggers = (
            Seq(Trigger(functionApplication))
         ++ predicateTriggers.values.map(pt => Trigger(Seq(triggerFunctionApplication, pt))))

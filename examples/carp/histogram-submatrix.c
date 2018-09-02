@@ -1,11 +1,7 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 //:: cases HistogramSubMatrix
-//:: tools silicon
-//:: verdict Pass
-
-/*
-  vct --silver=silicon_qp histogram-submatrix.c
-*/
+// tools silicon
+// verdict Pass
 
 /*@
   given seq<seq<int> > data;
@@ -38,18 +34,18 @@ void histogram(int M,int N,int step,int matrix[M][step],int P,int hist[P]){
     hist[k]=0;
   }
 
-  for(int i=0;i<M;i++){
-    for(int j=0;j<N;j++)
+  for(int ii=0;ii<M;ii++){
+    for(int jj=0;jj<N;jj++)
       /*@
         requires (\forall* int k; 0 <= k && k < P ; Reducible(hist[k],+));
-        context  Perm(matrix[i][j],p);
-        context  0 <= matrix[i][j] ** matrix[i][j] < P ; // can be proven.
-        //context 0 <= matrix[i][j] && matrix[i][j] < P ; // equivalent but cannot be proven.
-        context  matrix[i][j]==data[i][j];
-        ensures  (\forall* int k; 0 <= k && k < P ; Contribution(hist[k],data[i][j]==k?1:0));
+        context  Perm(matrix[ii][jj],p);
+        context  0 <= matrix[ii][jj] ** matrix[ii][jj] < P ; // can be proven.
+        //context 0 <= matrix[ii][jj] && matrix[ii][jj] < P ; // equivalent but cannot be proven.
+        context  matrix[ii][jj]==data[ii][jj];
+        ensures  (\forall* int k; 0 <= k && k < P ; Contribution(hist[k],data[ii][jj]==k?1:0));
       @*/
     {
-      hist[matrix[i][j]]+=1;
+      hist[matrix[ii][jj]]+=1;
     }
   }
 }
