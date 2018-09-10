@@ -372,7 +372,7 @@ class simplify_quant_pass1 {
         (\forall* int j;( j \memberof ([ (e4 + e1) * e3 .. (e4 + e2) * e3 )) ); r1 ))
    }
    */
-    
+   
 	// SJ Question: Why the requirement that e2 and e3 should not contain i? 
 	axiom lin1 {
 	    (\forall* int i;( i \memberof [ e1 * (e2!i) * (e3!i) .. e4 )) ; r1 )

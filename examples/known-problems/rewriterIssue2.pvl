@@ -1,10 +1,13 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 
-//:: cases FunctionProblemFull
-//:: suite problem-fail
+//:: cases RW2
+//:: suite problem-fixed
 //:: tools silicon
-//:: verdict Pass
+//:: verdict Fail
 
+// this test shows an example of a bug in VerCors. It is (to be) included in the test-suite to make sure we don't prove any nonsense
+// The listed verdict is what sound behavior should be.
+// The comments indicate what the bug is (or used to be).
 
 class rewriterIssue {
   int x;
