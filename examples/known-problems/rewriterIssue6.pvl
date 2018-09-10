@@ -1,0 +1,18 @@
+// -*- tab-width:2 ; indent-tabs-mode:nil -*-
+
+//:: cases FunctionProblemFull
+//:: suite problem-fail
+//:: tools silicon
+//:: verdict Error
+
+
+class rewriterIssue {
+  int x;
+
+  // assume something identical to what we ensure
+  context (\forall int y;(i + 1) * i <= y && y < (i+1) * (i+1);y == i);
+  // yet it fails
+  void m(int i){
+  }
+}
+
