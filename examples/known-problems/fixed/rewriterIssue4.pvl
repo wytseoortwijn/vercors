@@ -1,7 +1,7 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 
 //:: cases RW4
-//:: suite problem-fixed
+//:: suite skip-travis
 //:: tools silicon
 //:: verdict Fail
 
