@@ -129,7 +129,7 @@ class simplify_quant_pass1 {
   }
   
 /*
-// can make it harder to solve things
+// the more generic version of the above can make it harder to solve things
   axiom A1 {
     (\forall int i; b1 ; (b2!i))
     ==
