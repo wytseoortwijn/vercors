@@ -8,6 +8,7 @@ package viper.silver.ast.utility
 
 import scala.reflect.ClassTag
 import viper.silver.ast._
+import viper.silver.ast.utility.Rewriter.Traverse
 import viper.silver.ast.utility.Triggers.TriggerGeneration
 
 /** Utility methods for expressions. */
@@ -17,14 +18,12 @@ object Expressions {
          | _: MagicWand
          => false
 
-    case lv: AbstractLocalVar if lv.typ == Wand => false
-
     case UnExp(e0) => isPure(e0)
     case InhaleExhaleExp(in, ex) => isPure(in) && isPure(ex)
     case BinExp(e0, e1) => isPure(e0) && isPure(e1)
     case CondExp(cnd, thn, els) => isPure(cnd) && isPure(thn) && isPure(els)
     case unf: Unfolding => isPure(unf.body)
-    case gop: GhostOperation => false
+    case app: Applying => isPure(app.body)
     case QuantifiedExp(_, e0) => isPure(e0)
     case Let(_, _, body) => isPure(body)
 
@@ -52,19 +51,19 @@ object Expressions {
   def asBooleanExp(e: Exp): Exp = {
     e.transform({
       case _: AccessPredicate | _: MagicWand => TrueLit()()
-      case QuantifiedPermissions.QPForall(_, _, _, _, _, _, _) => TrueLit()()
-      case QuantifiedPermissions.QPPForall(_, _, _, _, _, _, _) => TrueLit()()
+      case fa@Forall(vs,ts,body) => Forall(vs,ts,asBooleanExp(body))(fa.pos,fa.info)
       case Unfolding(predicate, exp) => asBooleanExp(exp)
-    })()
+      case Applying(_, exp) => asBooleanExp(exp)
+    })
   }
 
-  def whenInhaling(e: Exp) = e.transform()(post = {
+  def whenInhaling(e: Exp) = e.transform({
     case InhaleExhaleExp(in, _) => in
-  })
+  }, Traverse.BottomUp)
 
-  def whenExhaling(e: Exp) = e.transform()(post = {
+  def whenExhaling(e: Exp) = e.transform({
     case InhaleExhaleExp(_, ex) => ex
-  })
+  }, Traverse.BottomUp)
 
   def contains[T <: Node : ClassTag](expressions: Seq[Exp]) = {
     expressions.exists(_.contains[T])
@@ -72,8 +71,8 @@ object Expressions {
 
   /** In an expression, rename a list (domain) of variables with given (range) variables. */
   def renameVariables[E <: Exp]
-  (exp: E, domain: Seq[AbstractLocalVar], range: Seq[AbstractLocalVar])
-  : E = {
+                     (exp: E, domain: Seq[AbstractLocalVar], range: Seq[AbstractLocalVar])
+                     : E = {
 
     val argNames = (domain map (_.name)).zipWithIndex
 
@@ -86,7 +85,7 @@ object Expressions {
     val res = exp.transform {
       case AbstractLocalVar(name) if actualArg(name).isDefined => actualArg(name).get
       case orig@LocalVarDecl(name,typ) if actualArg(name).isDefined => LocalVarDecl(actualArg(name).get.name,typ)(orig.pos,orig.info)
-    }()
+    }
     res
   }
 
@@ -105,7 +104,7 @@ object Expressions {
 
     val res = exp.transform {
       case AbstractLocalVar(name) if actualArg(name).isDefined => actualArg(name).get
-    }()
+    }
     res
   }
 
@@ -211,7 +210,7 @@ object Expressions {
     leftConds ++ guardedRightConds
   }
 
-  /** See [[TriggerGeneration.generateTriggerSetGroups]] */
+  /** See [[viper.silver.ast.utility.Triggers.TriggerGeneration.generateTriggerSetGroups]] */
   def generateTriggerGroups(exp: QuantifiedExp): Seq[(Seq[TriggerGeneration.TriggerSet], Seq[LocalVarDecl])] = {
     TriggerGeneration.generateTriggerSetGroups(exp.variables map (_.localVar), exp.exp)
                      .map{case (triggers, vars) => (triggers, vars map (v => LocalVarDecl(v.name, v.typ)()))}
@@ -243,5 +242,11 @@ object Expressions {
       }
     else
       None
+  }
+
+  /** Returns the top-level conjuncts of the given expression. */
+  def topLevelConjuncts(e: Exp): Seq[Exp] = e match {
+    case And(e1, e2) => topLevelConjuncts(e1) ++ topLevelConjuncts(e2)
+    case _ => Seq(e)
   }
 }

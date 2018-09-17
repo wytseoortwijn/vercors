@@ -7,17 +7,18 @@
 package viper.silicon.tests
 
 import java.nio.file.Path
-import viper.silver.testing.{MissingOutput, UnexpectedOutput, LocatedAnnotation, SilSuite}
-import viper.silver.verifier.{Verifier,AbstractError,Success => SilSuccess, Failure => SilFailure,
-VerificationResult => SilVerificationResult}
-import viper.silicon.{Silicon, SiliconFrontend}
-import viper.silicon.SymbExLogger
+
+import viper.silver.testing.{LocatedAnnotation, MissingOutput, SilSuite, UnexpectedOutput}
+import viper.silver.verifier.{AbstractError, Verifier, Failure => SilFailure, Success => SilSuccess, VerificationResult => SilVerificationResult}
+import viper.silicon.{Silicon, SiliconFrontend, SymbExLogger}
 import viper.silver.frontend.TranslatorState
+import viper.silver.logger.SilentLogger
+import viper.silver.reporter.NoopReporter
 
 class SiliconTests extends SilSuite {
-  private val siliconTestDirectories = List("consistency")
-  private val silTestDirectories = List("all", "quantifiedpermissions", "wands","examples", "quantifiedpredicates" ,"quantifiedcombinations")
-  override def testDirectories = siliconTestDirectories ++ silTestDirectories
+  private val siliconTestDirectories = Seq("consistency")
+  private val silTestDirectories = Seq("all", "quantifiedpermissions", "wands", "examples", "quantifiedpredicates" ,"quantifiedcombinations")
+  val testDirectories = siliconTestDirectories ++ silTestDirectories
 
   override def frontend(verifier: Verifier, files: Seq[Path]) = {
     require(files.length == 1, "tests should consist of exactly one file")
@@ -29,7 +30,7 @@ class SiliconTests extends SilSuite {
     SymbExLogger.reset()
     SymbExLogger.filePath = files.head
     SymbExLogger.initUnitTestEngine()
-    val fe = new SiliconFrontendWithUnitTesting()
+    val fe = new SiliconFrontend(NoopReporter)//SiliconFrontendWithUnitTesting()
     fe.init(verifier)
     fe.reset(files.head)
     fe
@@ -38,24 +39,28 @@ class SiliconTests extends SilSuite {
   override def annotationShouldLeadToTestCancel(ann: LocatedAnnotation) = {
     ann match {
       case UnexpectedOutput(_, _, _, _, _, _) => true
-      case MissingOutput(_, _, _, _, _, issue) =>
-        issue != 34
+      case MissingOutput(_, _, _, _, _, issue) => issue != 34
       case _ => false
     }
   }
 
   lazy val verifiers = List(createSiliconInstance())
 
+  val commandLineArguments: Seq[String] = Seq.empty
+
   private def createSiliconInstance() = {
-    val args = Silicon.optionsFromScalaTestConfigMap(prefixSpecificConfigMap.getOrElse("silicon", Map()))
+    val args =
+      commandLineArguments ++
+      Silicon.optionsFromScalaTestConfigMap(prefixSpecificConfigMap.getOrElse("silicon", Map()))
+    val reporter = NoopReporter
     val debugInfo = ("startedBy" -> "viper.silicon.SiliconTests") :: Nil
-    val silicon = Silicon.fromPartialCommandLineArguments(args, debugInfo)
+    val silicon = Silicon.fromPartialCommandLineArguments(args, reporter, debugInfo)
 
     silicon
   }
 }
 
-class SiliconFrontendWithUnitTesting extends SiliconFrontend {
+class SiliconFrontendWithUnitTesting extends SiliconFrontend(NoopReporter) {
   /** Is overridden only to append SymbExLogging-UnitTesting-Errors to the Result. **/
   override def result: SilVerificationResult = {
     if(_state < TranslatorState.Verified) super.result

@@ -13,9 +13,8 @@ import viper.carbon.verifier.Verifier
 import viper.silver.verifier.{PartialVerificationError, reasons}
 import viper.carbon.boogie.Implicits._
 import viper.carbon.modules.components.DefinednessComponent
-import viper.silver.ast.{LocationAccess, QuantifiedExp}
+import viper.silver.ast.{LocationAccess}
 import viper.silver.ast.utility.Expressions
-import viper.silver.ast.utility.Expressions._
 
 /**
  * The default implementation of [[viper.carbon.modules.ExpModule]].
@@ -32,7 +31,6 @@ class DefaultExpModule(val verifier: Verifier) extends ExpModule with Definednes
   import inhaleModule._
   import funcPredModule._
   import exhaleModule._
-  import stateModule.StateSnapshot
 
   override def start() {
     register(this)
@@ -60,6 +58,7 @@ class DefaultExpModule(val verifier: Verifier) extends ExpModule with Definednes
         translateLocationAccess(p)
       case sil.Unfolding(acc, exp) =>
         translateExp(exp)
+      case sil.Applying(wand, exp) => ???
       case sil.Old(exp) =>
         val prevState = stateModule.state
         stateModule.replaceState(stateModule.oldState)
@@ -98,8 +97,10 @@ class DefaultExpModule(val verifier: Verifier) extends ExpModule with Definednes
           val v1 = env.makeUniquelyNamed(v); env.define(v1.localVar); v1
         });
         val renaming = (e: sil.Exp) => Expressions.instantiateVariables(e, (vars map (_.localVar)), renamedVars map (_.localVar))
-        val ts = triggers map (t => Trigger(t.exps map { e => verifier.funcPredModule.toTriggers(translateExp(renaming(e))) }))
-
+        val ts : Seq[Trigger] = (triggers map
+          (t => (funcPredModule.toExpressionsUsedInTriggers(t.exps map (e => translateExp(renaming(e)))))
+            map (Trigger(_)) // build a trigger for each sequence element returned (in general, one original trigger can yield multiple alternative new triggers)
+            )).flatten
         val res = Forall(renamedVars map translateLocalVarDecl, ts, translateExp(renaming(exp)))
         renamedVars map (v => env.undefine(v.localVar))
         res
@@ -114,7 +115,7 @@ class DefaultExpModule(val verifier: Verifier) extends ExpModule with Definednes
         val perLocFilter: sil.Location => (Exp, Trigger) = loc => {
           val locAccess: LocationAccess = loc match {
             case f: sil.Field => sil.FieldAccess(renamedVar.localVar, f)(loc.pos, loc.info)
-            case p: sil.Predicate => sil.PredicateAccess(Seq(renamedVar.localVar), p)(loc.pos, loc.info)
+            case p: sil.Predicate => sil.PredicateAccess(Seq(renamedVar.localVar), p)(loc.pos, loc.info, loc.errT)
           }
           (hasDirectPerm(locAccess), Trigger(permissionLookup(locAccess)))
         }
@@ -292,8 +293,16 @@ class DefaultExpModule(val verifier: Verifier) extends ExpModule with Definednes
         checkDefinednessWand(w, error, makeChecks = makeChecks)
       case l@sil.Let(v, e, body) =>
         checkDefinednessImpl(e, error, makeChecks = makeChecks) ::
-          checkDefinednessImpl(body.replace(v.localVar, e), error, makeChecks = makeChecks) ::
-          Nil
+        {
+          val u = env.makeUniquelyNamed(v) // choose a fresh "v" binder
+          env.define(u.localVar)
+          Assign(translateLocalVar(u.localVar),translateExp(e)) ::
+          checkDefinednessImpl(body.replace(v.localVar, u.localVar), error, makeChecks = makeChecks) ::
+            {
+              env.undefine(u.localVar)
+              Nil
+            }
+        }
       case _ =>
         def translate: Seqn = {
           val checks = components map (_.partialCheckDefinedness(e, error, makeChecks = makeChecks))
@@ -325,7 +334,7 @@ class DefaultExpModule(val verifier: Verifier) extends ExpModule with Definednes
             val bound_var = eAsForallRef.variable
             val perLocFilter: sil.Location => LocationAccess = loc => loc match {
               case f: sil.Field => sil.FieldAccess(bound_var.localVar, f)(loc.pos, loc.info)
-              case p: sil.Predicate => sil.PredicateAccess(Seq(bound_var.localVar), p)(loc.pos, loc.info)
+              case p: sil.Predicate => sil.PredicateAccess(Seq(bound_var.localVar), p)(loc.pos, loc.info, loc.errT)
             }
             val filter: Exp = eAsForallRef.accessList.foldLeft[Exp](BoolLit(false))((soFar, loc) => BinExp(soFar, Or, hasDirectPerm(perLocFilter(loc))))
 

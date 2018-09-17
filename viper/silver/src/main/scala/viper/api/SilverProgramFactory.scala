@@ -25,8 +25,18 @@ class SilverProgramFactory[O,Err] extends ProgramFactory[O,Err,Type,Exp,Stmt,
       out:List[Triple[O,String,Type]],
       local:List[Triple[O,String,Type]],
       body:Stmt) {
-    p.methods.add(Method(name, to_decls(o,in), to_decls(o,out),
-        pres.asScala, posts.asScala, to_decls(o,local) , body )(NoPosition,new OriginInfo(o)))
+    
+    // TODO : not quite sure if the method body 'body' and the 'locals' are currently handled like this..
+    val b = if (body==null) None else Some(Seqn(Seq(body), to_decls(o,local))(NoPosition, new OriginInfo(o), NoTrafos))
+    
+    p.methods.add(Method(
+      name, // method name
+      to_decls(o, in), // list of arguments
+      to_decls(o, out), // list of return values
+      pres.asScala, // list of preconditions
+      posts.asScala, // list of postconditions
+      b // method body
+    )(NoPosition,new OriginInfo(o), NoTrafos))
   }
   
   override def add_field(p:Prog,o:O,name:String,t:Type)={
@@ -39,8 +49,17 @@ class SilverProgramFactory[O,Err] extends ProgramFactory[O,Err,Type,Exp,Stmt,
   }
   
   override def add_function(p:Prog,o:O,name:String,args:List[Triple[O,String,Type]],t:Type,pres:List[Exp],posts:List[Exp],body:Exp)={
-    val b=if(body==null) None else Some(body)
-    p.functions.add(Function(name,to_decls(o,args),t,pres.asScala,posts.asScala,b)(NoPosition,new OriginInfo(o)))
+    val b = if (body==null) None else Some(body)
+    
+    p.functions.add(Function(
+      name, // function name
+      to_decls(o, args), // argument declarations
+      t, // function type
+      pres.asScala, // sequence of preconditions
+      posts.asScala, // sequence of postconditions
+      None, // decreases clause (optional)
+      b // function body
+    )(NoPosition, new OriginInfo(o), NoTrafos))
   }
   
   override def dfunc(o:O,name:String,args:List[Triple[O,String,Type]],t:Type,domain:String)={
@@ -82,6 +101,10 @@ class SilverProgramFactory[O,Err] extends ProgramFactory[O,Err,Type,Exp,Stmt,
         case _ => null.asInstanceOf[OO]
       }
     }
+  }
+  
+  private def filter_local_decls(xs : Seq[Declaration]) : Seq[LocalVarDecl] = xs.collect {
+    case decl : LocalVarDecl => decl
   }
 
   override def convert [Err2, T2, E2, S2, DFunc2, DAxiom2, P2](
@@ -130,17 +153,24 @@ class SilverProgramFactory[O,Err] extends ProgramFactory[O,Err,Type,Exp,Stmt,
      }   
     }
     in_prog.methods.asScala.toList foreach {
-      m => {
+      m : Method => {
+        // TODO : not quite sure if the local declarations are handled correctly like this...
+        val body : Seqn = m.body match {
+          case None => Seqn(Seq[Stmt](), Seq[Declaration]())(m.pos, m.info, m.errT) // empty body
+          case Some(b) => b
+        }
+        
         api.prog.add_method(
-            out_prog,
-            get_info(m.info,m.pos,api.origin),
-            m.name,
-            map_expr(api,m.pres),
-            map_expr(api,m.posts),
-            map_decls(api,m.formalArgs),
-            map_decls(api,m.formalReturns),
-            map_decls(api,m.locals),
-            map_stat(api,m.body))
+          out_prog, // program
+          get_info(m.info,m.pos,api.origin), // origin
+          m.name, // method name
+          map_expr(api,m.pres), // method preconditions
+          map_expr(api,m.posts), // method postconditions
+          map_decls(api,m.formalArgs), // input argument declarations
+          map_decls(api,m.formalReturns), // output argument declarations (i.e. return values)
+          map_decls(api, filter_local_decls(body.scopedDecls)), // list of local variables
+          map_stat(api,body) // method body
+        ) 
       } 
     }
     in_prog.predicates.asScala.toList foreach {
@@ -173,15 +203,15 @@ class SilverProgramFactory[O,Err] extends ProgramFactory[O,Err,Type,Exp,Stmt,
       S:Stmt):S2={
      val o=get_info(S.info,S.pos,api.origin)
      S match {
-       case Seqn(s) => api.stat.block(o,map_stats(api,s))
+       case Seqn(s, _) => api.stat.block(o, map_stats(api, s)) // TODO : the second argument is now ignored
        case Assert(e) => api.stat.assert_(o,map_expr(api,e))
        case LocalVarAssign(v,e) => api.stat.assignment(o, map_expr(api,v), map_expr(api,e))
        case FieldAssign(v,e) => api.stat.assignment(o, map_expr(api,v), map_expr(api,e))
-       case While(c,invs,local,body) =>
+       case While(c, invs, body) =>
          api.stat.while_loop(o,map_expr(api,c),
-             map_expr(api,invs),
-             map_decls(api,local),
-             map_stat(api,body))
+             map_expr(api, invs),
+             map_decls(api, filter_local_decls(body.scopedDecls)),
+             map_stat(api, body))
        case Fold(e) => api.stat.fold(o,map_expr(api,e))
        case Unfold(e) => api.stat.unfold(o,map_expr(api,e))
        case MethodCall(m,in,out) => api.stat.method_call(o,m,
@@ -207,9 +237,14 @@ class SilverProgramFactory[O,Err] extends ProgramFactory[O,Err,Type,Exp,Stmt,
          }
          api.stat.new_object(o,map_expr(api,v),names.asJava,types.asJava)
        }
+       
+       // TODO implement these
+       case LocalVarDeclStmt(e) =>
+         throw new Error("'local-var-decl-stmt' not implemented");
+
        case Apply(_) =>
          throw new Error("apply not implemented");
-       case Package(_) =>
+       case Package(_, _) =>
          throw new Error("package not implemented");
      }
   }
@@ -340,7 +375,7 @@ class SilverProgramFactory[O,Err] extends ProgramFactory[O,Err,Type,Exp,Stmt,
         new viper.api.Triple[O,String,T2](o,d.name,map_type(verifier,d.typ))
     }.asJava
   }
-  
+
   private def map_type[Err2, T2, E2, S2, DFunc2, DAxiom2, P2](
       verifier:viper.api.ViperAPI[O,Err2,T2,E2,S2,DFunc2,DAxiom2,P2],
       t:Type):T2={

@@ -5,6 +5,7 @@
 
 /*@
   invariant matrix != NULL;
+	invariant \length(matrix) == M * step;
   requires M > 0 && N > 0 && step >= N ;
   requires (\forall* int i1 ; 0 <= i1 && i1 < M ;
              (\forall* int j1 ; 0 <= j1 && j1 < N ;

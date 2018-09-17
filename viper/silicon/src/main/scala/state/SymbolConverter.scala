@@ -9,8 +9,7 @@ package viper.silicon.state
 import viper.silver.ast
 import viper.silicon.state.terms.{Sort, sorts}
 
-/* TODO: Move to interfaces package */
-trait SymbolConvert {
+trait SymbolConverter {
   def toSort(typ: ast.Type): Sort
 
   def toSortSpecificId(name: String, sorts: Seq[Sort]): Identifier
@@ -21,7 +20,7 @@ trait SymbolConvert {
   def toFunction(function: ast.Function): terms.HeapDepFun
 }
 
-class DefaultSymbolConvert extends SymbolConvert {
+class DefaultSymbolConverter extends SymbolConverter with Immutable {
   def toSort(typ: ast.Type): Sort = typ match {
     case ast.Bool => sorts.Bool
     case ast.Int => sorts.Int
@@ -58,7 +57,7 @@ class DefaultSymbolConvert extends SymbolConvert {
 
     val inSorts = sorts.init
     val outSort = sorts.last
-    val id = toSortSpecificId(function.name, sorts)
+    val id = Identifier(function.name)
 
     terms.DomainFun(id, inSorts, outSort)
   }

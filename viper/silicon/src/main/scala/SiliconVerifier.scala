@@ -28,10 +28,13 @@ class SiliconVerifier[O,Err](o:OriginFactory[O]) extends SilverImplementation[O,
         "--z3Exe",z3_exe,
         "--z3ConfigArgs",z3_config,
         "-"))
+				
+	  /*
     silicon.config.initialize {
-    case _ =>
-       silicon.config.initialized = true
+    	case _ => silicon.config.initialized = true
     }
+		*/
+		
     silicon.start()
     silicon
   }

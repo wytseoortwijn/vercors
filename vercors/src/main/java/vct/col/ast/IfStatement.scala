@@ -10,7 +10,7 @@ object IfStatement {
 
 case class IfStatementCase(var guard:ASTNode, var effect:ASTNode)
 
-class IfStatement extends ASTNode with VisitorHelper  {
+class IfStatement extends ASTNode with VisitorHelper {
   private[this] val cases = new ArrayBuffer[IfStatementCase]()
   
   def getCount = cases.size
@@ -24,9 +24,10 @@ class IfStatement extends ASTNode with VisitorHelper  {
   }
   
   def addClause(guard:ASTNode, stmt:ASTNode) : Unit = {
-    stmt.setParent(this)
+		val body : ASTNode = if (stmt == null) new BlockStatement() else stmt;
+    body.setParent(this)
     if (guard != IfStatement.elseGuard) guard.setParent(this)
-    cases += new IfStatementCase(guard, stmt)
+    cases += new IfStatementCase(guard, body)
   }
   
   override def accept_simple[T,A](m:ASTMapping1[T,A], arg:A) = m.map(this, arg)

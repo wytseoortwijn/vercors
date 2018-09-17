@@ -7,15 +7,17 @@
 package viper.carbon.verifier
 
 import viper.silver.verifier._
+
 import sys.process._
 import java.io._
+
 import viper.carbon.boogie._
 import viper.silver.verifier.Failure
-import viper.silver.verifier.errors.PositionedNode
+import viper.silver.verifier.errors.{ErrorNode, Internal}
 import viper.silver.verifier.reasons.InternalReason
 import viper.carbon.boogie.Assert
 import viper.carbon.boogie.Program
-import viper.silver.ast.{Positioned, NoPosition, Position}
+import viper.silver.ast.{NoPosition, Position, Positioned}
 
 class BoogieDependency(_location: String) extends Dependency {
   def name = "Boogie"
@@ -29,13 +31,15 @@ class BoogieDependency(_location: String) extends Dependency {
 
 trait BoogieInterface {
 
-  def defaultOptions = Seq("/vcsCores:" + java.lang.Runtime.getRuntime.availableProcessors, "/errorTrace:0", "/z3opt:smt.qi.max_multi_patterns=1000", s"/z3exe:$z3Path")
+  def defaultOptions = Seq("/vcsCores:" + java.lang.Runtime.getRuntime.availableProcessors, "/errorTrace:0", "/errorLimit:10000000", "/noinfer", "/z3opt:smt.qi.max_multi_patterns=1000", s"/z3exe:$z3Path")
 
   /** The (resolved) path where Boogie is supposed to be located. */
   def boogiePath: String
 
   /** The (resolved) path where Z3 is supposed to be located. */
   def z3Path: String
+
+  private var _boogieProcess:Process = null
 
   var errormap: Map[Int, VerificationError] = Map()
   def invokeBoogie(program: Program, options: Seq[String]): (String,VerificationResult) = {
@@ -72,34 +76,8 @@ trait BoogieInterface {
 
     val unexpected : (String => Unit) = (msg:String) => {
       otherErrId -= 1
-
       errors += otherErrId
-      val internalError = new AbstractVerificationError {
-        protected def text: String = msg
-
-        def id: String = "boogie.unknown.output"
-
-        def reason: ErrorReason = new ErrorReason {
-          def pos: Position = NoPosition
-
-          def readableMessage: String = "?"
-
-          def id: String = "unknown"
-
-          def offendingNode = null
-
-          def withNode(offendingNode: PositionedNode = this.offendingNode) = this.clone().asInstanceOf[ErrorReason]
-        }
-
-        def offendingNode = null
-
-        override def pos = NoPosition
-
-        override def readableMessage(withId: Boolean, withPosition: Boolean) =
-          s"Internal error: $text"
-
-        def withNode(offendingNode: PositionedNode = this.offendingNode) = this.clone().asInstanceOf[ErrorMessage]
-      }
+      val internalError = Internal(InternalReason(DummyNode, msg))
       errormap += (otherErrId -> internalError)
     }
 
@@ -139,15 +117,23 @@ trait BoogieInterface {
     }
     // write program to a temporary file
     val tmp = File.createTempFile("carbon", ".bpl")
-    tmp.deleteOnExit() 
+    tmp.deleteOnExit()
     val stream = new BufferedOutputStream(new FileOutputStream(tmp))
     stream.write(input.getBytes)
     stream.close()
 
     // Note: call exitValue to block until Boogie has finished
     // Note: we call boogie with an empty input "file" on stdin and parse the output
-    (Seq(boogiePath) ++ options ++ Seq(tmp.getAbsolutePath)).run(new ProcessIO(_.close(), out, err)).exitValue()
+    _boogieProcess = (Seq(boogiePath) ++ options ++ Seq(tmp.getAbsolutePath)).run(new ProcessIO(_.close(), out, err))
+    _boogieProcess.exitValue()
     reserr + res
+  }
+
+  def stopBoogie(){
+    if(_boogieProcess!= null){
+      _boogieProcess.destroy()
+      _boogieProcess.exitValue() //TODO: this blocks if an underlying z3 instance remains running
+    }
   }
 
   // TODO: investigate why passing the program directly does not work

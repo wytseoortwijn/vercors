@@ -1,8 +1,8 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 //:: cases TestCount
 //:: tools silicon
-//:: pass TestCount.test_count_1 TestCount.test_count_2
-//:: fail TestCount.test_count_E1
+//:: verdict Pass TestCount.test_count_1 TestCount.test_count_2
+//:: verdict Fail TestCount.test_count_E1
 
 class TestCount {
 
