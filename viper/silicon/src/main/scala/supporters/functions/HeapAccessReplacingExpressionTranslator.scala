@@ -6,19 +6,18 @@
 
 package viper.silicon.supporters.functions
 
-import org.slf4s.Logging
+import com.typesafe.scalalogging.LazyLogging
 import viper.silver.ast
-import viper.silicon.{Map, Set}
-import viper.silicon.state.{SimpleIdentifier, SuffixedIdentifier, Identifier, SymbolConvert}
+import viper.silicon.Map
+import viper.silicon.rules.functionSupporter
+import viper.silicon.state.{Identifier, SimpleIdentifier, SuffixedIdentifier, SymbolConverter}
 import viper.silicon.state.terms._
 import viper.silicon.supporters.ExpressionTranslator
 
-class HeapAccessReplacingExpressionTranslator(val symbolConverter: SymbolConvert,
+class HeapAccessReplacingExpressionTranslator(symbolConverter: SymbolConverter,
                                               fresh: (String, Sort) => Var)
     extends ExpressionTranslator
-       with Logging {
-
-  private val toSort = (typ: ast.Type, _: Any) => symbolConverter.toSort(typ)
+       with LazyLogging {
 
   private var program: ast.Program = _
   private var func: ast.Function = _
@@ -45,7 +44,7 @@ class HeapAccessReplacingExpressionTranslator(val symbolConverter: SymbolConvert
 
   private def translate(exp: ast.Exp): Term = {
     /* Attention: This method is reentrant (via private translate) */
-    translate(toSort)(exp)
+    translate(symbolConverter.toSort _)(exp)
   }
 
   def translatePostcondition(program: ast.Program,
@@ -57,7 +56,7 @@ class HeapAccessReplacingExpressionTranslator(val symbolConverter: SymbolConvert
     this.data = data
     this.failed = false
 
-    posts.map(p => translate(toSort)(p.whenInhaling))
+    posts.map(p => translate(symbolConverter.toSort _)(p.whenInhaling))
   }
 
   def translatePrecondition(program: ast.Program,
@@ -70,20 +69,19 @@ class HeapAccessReplacingExpressionTranslator(val symbolConverter: SymbolConvert
     this.ignoreAccessPredicates = true
     this.failed = false
 
-    pres.map(p => translate(toSort)(p.whenExhaling))
+    pres.map(p => translate(symbolConverter.toSort _)(p.whenExhaling))
   }
 
   /* Attention: Expects some fields, e.g., `program` and `locToSnap`, to be
    * set, depending on which kind of translation is performed.
    * See public `translate` methods.
    */
-  override protected def translate(toSort: (ast.Type, Map[ast.TypeVar, ast.Type]) => Sort,
-                                   qpFields: Set[ast.Field] = data.quantifiedFields)
+  override protected def translate(toSort: ast.Type => Sort)
                                   (e: ast.Exp)
                                   : Term =
 
     e match {
-      case _: ast.AccessPredicate if ignoreAccessPredicates => True()
+      case _: ast.AccessPredicate | _: ast.MagicWand if ignoreAccessPredicates => True()
       case q: ast.Forall if !q.isPure && ignoreAccessPredicates => True()
 
       case _: ast.Result => data.formalResult
@@ -91,7 +89,7 @@ class HeapAccessReplacingExpressionTranslator(val symbolConverter: SymbolConvert
       case v: ast.AbstractLocalVar =>
         data.formalArgs.get(v) match {
           case Some(t) => t
-          case None => Var(Identifier(v.name), toSort(v.typ, Map()))
+          case None => Var(Identifier(v.name), toSort(v.typ))
         }
 
       case eQuant: ast.QuantifiedExp =>
@@ -106,18 +104,19 @@ class HeapAccessReplacingExpressionTranslator(val symbolConverter: SymbolConvert
          * occurrence of 'x@i' is replaced by 'x', for all variables 'x@i' where the prefix
          * 'x' is bound by the surrounding quantifier.
          */
-        val tQuant = super.translate(toSort, qpFields)(eQuant).asInstanceOf[Quantification]
-        val names = tQuant.vars.toSet[Var].map(_.id.name)
+        val tQuant = super.translate(symbolConverter.toSort)(eQuant).asInstanceOf[Quantification]
+        val names = tQuant.vars.map(_.id.name)
 
-        tQuant.transform { case v: Var =>
+        tQuant.transform({ case v: Var =>
           v.id match {
             case sid: SuffixedIdentifier if names.contains(sid.prefix) => Var(SimpleIdentifier(sid.prefix), v.sort)
             case _ => v
           }
-        }()
+        })()
 
-      case loc: ast.LocationAccess => getOrFail(data.locToSnap, loc, toSort(loc.typ, Map()), data.programFunction.name)
+      case loc: ast.LocationAccess => getOrFail(data.locToSnap, loc, toSort(loc.typ), data.programFunction.name)
       case ast.Unfolding(_, eIn) => translate(toSort)(eIn)
+      case ast.Applying(_, eIn) => translate(toSort)(eIn)
 
       case eFApp: ast.FuncApp =>
         val silverFunc = program.findFunction(eFApp.funcname)
@@ -132,9 +131,9 @@ class HeapAccessReplacingExpressionTranslator(val symbolConverter: SymbolConvert
         if (callerHeight < calleeHeight)
           fapp
         else
-          fapp.copy(applicable = FunctionSupporter.limitedVersion(fun))
+          fapp.copy(applicable = functionSupporter.limitedVersion(fun))
 
-      case _ => super.translate(toSort, qpFields)(e)
+      case _ => super.translate(symbolConverter.toSort)(e)
     }
 
   def getOrFail[K <: ast.Positioned](map: Map[K, Term], key: K, sort: Sort, fname: String): Term =
@@ -143,7 +142,7 @@ class HeapAccessReplacingExpressionTranslator(val symbolConverter: SymbolConvert
         s.convert(sort)
       case None =>
         if (!failed && data.verificationFailures.isEmpty)
-          log.warn(s"Could not resolve $key (${key.pos}) during the axiomatisation of function $fname")
+          logger.warn(s"Could not resolve $key (${key.pos}) during the axiomatisation of function $fname")
 
         failed = true
 

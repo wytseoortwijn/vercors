@@ -7,8 +7,8 @@
 package viper.silver.testing
 
 import java.nio.file.Path
+
 import org.scalatest.Tag
-import org.scalatest.events.TestIgnored
 
 /**
  * End-to-end test suite that extracts [[viper.silver.testing.TestAnnotations]]
@@ -44,6 +44,7 @@ abstract class AnnotationBasedTestSuite extends ResourceBasedTestSuite {
       // Match expected outputs with actual outputs
       val actualOutputs = system.run(input)
       val expectedOutputs = input.annotations.outputAnnotations
+
       val matcher = OutputMatcher(actualOutputs, expectedOutputs)
       val unexpectedAnnotations = input.annotations.outputAnnotations.filter(annotationShouldLeadToTestCancel)
       val outputErrors = matcher.errors
@@ -196,7 +197,7 @@ trait SystemUnderTest {
  * An output produced by a system under test.
  *
  * It deliberately does not reference [[viper.silver.ast.Position]],
- * such that the testing infrastructure is independent from SIL's AST.
+ * such that the testing infrastructure is independent from Viper's AST.
  *
  * Its `toString` method will be used to output an error message
  * if the output was not supposed occur.

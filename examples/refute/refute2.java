@@ -1,7 +1,7 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 //:: cases Refute2
-//:: tools chalice silicon
-//:: verdict Fail
+// tools chalice silicon
+// verdict Fail
 
 /*
  The refute statement is not reachable, therefore it is invalid.

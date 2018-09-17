@@ -6,19 +6,21 @@
 
 package viper.silver.frontend
 
-import java.io.{BufferedWriter, FileWriter}
 import java.nio.file.{Files, Path}
+import org.slf4j.LoggerFactory
+import ch.qos.logback.classic.Logger
 import scala.io.Source
-import viper.silver.ast.Program
-import viper.silver.verifier.{AbstractError, Failure, VerificationResult, Verifier}
+import viper.silver.ast._
+import viper.silver.reporter.{NoopReporter, Reporter}
+import viper.silver.verifier._
 
 
 /** Represents one phase of a frontend */
 case class Phase(name: String, action: () => Unit)
 
-/** A translator for some programming language that produces a SIL program (which then in turn can be verified using a
-  * SIL verifier).
-
+/** A translator for some programming language that produces a Viper program (which then in turn can be verified using a
+  * Viper verifier).
+  *
   */
 trait Frontend {
 
@@ -26,21 +28,32 @@ trait Frontend {
   def init(verifier: Verifier)
 
   /**
-   * Reset the translator, and set the input program. Can be called many times to verify multiple programs
-   * using the same verifier.
-   */
+    * Reset the translator, and set the input program. Can be called many times to verify multiple programs
+    * using the same verifier.
+    */
   def reset(input: Seq[Path])
 
   /**
-   * Reset any messages recorded internally (errors from previous program translations, etc.)
-   */
-  def resetMessages ()
-
+    * Reset any messages recorded internally (errors from previous program translations, etc.)
+    */
+  def resetMessages()
 
   /**
-   * Run the verification on the input and return the result.  This is equivalent to calling all the phases and then
-   * returning result.
-   */
+    * Reporter is the message interface which enables dynamic feedback from the backend.
+    *
+    * The reporter object can be passed as an argument of the Frontend implementation's constructor.
+    *
+    * The default implementation [[viper.silver.reporter.NoopReporter]] will simply swallow all
+    * received messages.
+    *
+    * See https://bitbucket.org/viperproject/viperserver/src for more details.
+    */
+  protected val reporter: Reporter = NoopReporter
+
+  /**
+    * Run the verification on the input and return the result.  This is equivalent to calling all the phases and then
+    * returning result.
+    */
   def run(): VerificationResult = {
     phases.foreach(p => p.action())
     result
@@ -50,16 +63,20 @@ trait Frontend {
   val phases: Seq[Phase]
 
   /**
-   * The result of the verification attempt (only available after parse, typecheck, translate and
-   * verify have been called).
-   */
+    * The result of the verification attempt (only available after parse, typecheck, translate and
+    * verify have been called).
+    */
   def result: VerificationResult
+
+  val logger = LoggerFactory.getLogger(getClass.getName).asInstanceOf[Logger]
+  val loggerForIde = LoggerFactory.getLogger(getClass.getName+"_IDE").asInstanceOf[Logger]
 }
 
 trait SinglePhase extends Frontend {
   val phases = List(
     Phase("singlePhase", runPhase)
   )
+
   def runPhase()
 }
 
@@ -77,10 +94,10 @@ trait DefaultPhases extends Frontend {
   /** Type-check the program. */
   def typecheck()
 
-  /** Translate the program to SIL. */
+  /** Translate the program to Viper. */
   def translate()
 
-  /** Verify the SIL program using the verifier. */
+  /** Verify the Viper program using the verifier. */
   def verify()
 
 }
@@ -99,8 +116,11 @@ trait SingleFileFrontend {
 /** A default implementation of a translator that keeps track of the state of the translator.
   */
 trait DefaultFrontend extends Frontend with DefaultPhases with SingleFileFrontend {
+
   sealed trait Result[+A]
+
   case class Succ[+A](a: A) extends Result[A]
+
   case class Fail(errors: Seq[AbstractError]) extends Result[Nothing]
 
   protected type ParserResult <: AnyRef
@@ -117,7 +137,9 @@ trait DefaultFrontend extends Frontend with DefaultPhases with SingleFileFronten
   protected var _program: Option[Program] = None
 
   def parserResult: ParserResult = _parseResult.get
+
   def typecheckerResult: TypecheckerResult = _typecheckResult.get
+
   def translatorResult: Program = _program.get
 
   def state = _state
@@ -151,6 +173,7 @@ trait DefaultFrontend extends Frontend with DefaultPhases with SingleFileFronten
   override def parse() {
     if (state < TranslatorState.InputSet) sys.error("The translator has not been initialized, or there is no input set.")
     if (state >= TranslatorState.Parsed) return
+
     doParse(_input.get) match {
       case Succ(r) => _parseResult = Some(r)
       case Fail(e) => _errors ++= e
@@ -158,7 +181,8 @@ trait DefaultFrontend extends Frontend with DefaultPhases with SingleFileFronten
     _state = TranslatorState.Parsed
   }
 
-  override def typecheck() { // typecheck and translate (if successful)
+  override def typecheck() {
+    // typecheck and translate (if successful)
     if (state >= TranslatorState.Typechecked || _errors.nonEmpty) return
     parse()
     if (_errors.nonEmpty) {
@@ -183,6 +207,7 @@ trait DefaultFrontend extends Frontend with DefaultPhases with SingleFileFronten
       case Succ(r) => _program = Some(r)
       case Fail(e) => _errors ++= e
     }
+
     _state = TranslatorState.Translated
   }
 
@@ -193,13 +218,15 @@ trait DefaultFrontend extends Frontend with DefaultPhases with SingleFileFronten
       _state = TranslatorState.Verified
       return
     }
-//    _verifier.get.start()
 
+    doVerify()
+  }
+
+  def doVerify() {
     _verificationResult = Some(mapVerificationResult(_verifier.get.verify(_program.get)))
     assert(_verificationResult != null)
 
-//    _verifier.get.stop()
-
+    //    _verifier.get.stop()
     _state = TranslatorState.Verified
   }
 

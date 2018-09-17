@@ -1,6 +1,6 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 //:: case OpenCLincr
-//:: tools silicon
+// tools silicon
 
 #include <opencl.h>
 
@@ -16,4 +16,3 @@ __kernel void simpleAdd(int veclen, int c[])
  
   c[index] = c[index] + 1;
 }
-

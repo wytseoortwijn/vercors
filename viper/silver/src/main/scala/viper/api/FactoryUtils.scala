@@ -13,15 +13,14 @@ import java.nio.file.Path
 import viper.silver.parser.PLocalVarDecl
 import scala.collection.mutable.WrappedArray
 
-
 trait FactoryUtils[O] {
-  def to_decls(o:O,map:List[Triple[O,String,Type]]):Seq[LocalVarDecl]={
+  def to_decls(o:O, map:List[Triple[O,String,Type]]) : Seq[LocalVarDecl] = {
     // This code looks silly, but the order must be preserved.
     map.asScala map {
-      t => add(LocalVarDecl(t.v2,t.v3)_,t.v1)
+      t => add(LocalVarDecl (t.v2, t.v3) _, t.v1)
     }
   }
   
-  def add[T](f:(Position,Info)=>T,o:O) = f(NoPosition,new OriginInfo(o))
+  def add[T](f : (Position, Info, ErrorTrafo) => T, o : O) =
+    f(NoPosition, new OriginInfo(o), NoTrafos)
 }
-

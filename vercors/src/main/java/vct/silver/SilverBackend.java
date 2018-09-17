@@ -52,6 +52,7 @@ public class SilverBackend {
     }
     //System.err.printf("adding jar %s to path%n",jarfile);
     Container container;
+
     if (silver_module.used()){
       container=new JarContainer(jarfile);
     } else {

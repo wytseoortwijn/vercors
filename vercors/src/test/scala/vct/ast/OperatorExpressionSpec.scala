@@ -9,14 +9,14 @@ class OperatorExpressionSpec extends FlatSpec with Matchers {
     val op = StandardOperator.Plus
     val args = Array[ASTNode](new ConstantExpression(1), new ConstantExpression(2))
     var oe = new OperatorExpression(op, args)
-    oe.nrOfArgs should be (2)
+    oe.argslength should be (2)
   }
   
   it should "successfully instantiate with valid/matching input arguments (from an list)" in {
     val op = StandardOperator.Plus
     val args = List[ASTNode](new ConstantExpression(1), new ConstantExpression(2))
     var oe = new OperatorExpression(op, args)
-    oe.nrOfArgs should be (2)
+    oe.argslength should be (2)
   }
   
   it should "not be able to instantie with invalid input (fron an array)" in {
