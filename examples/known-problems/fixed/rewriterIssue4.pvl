@@ -1,20 +1,22 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 
-//:: cases RW6
-//:: suite problem-fail
+//:: cases RW4
+//:: suite skip-travis
 //:: tools silicon
-//:: verdict Pass
+//:: verdict Fail
 
 // this test shows an example of a bug in VerCors. It is (to be) included in the test-suite to make sure we don't prove any nonsense
 // The listed verdict is what sound behavior should be.
 // The comments indicate what the bug is (or used to be).
+
 class rewriterIssue {
   int x;
 
-  // assume something identical to what we ensure
-  context (\forall int y;(i + 1) * i <= y && y < (i+1) * (i+1);y == i);
-  // yet it fails
-  void m(int i){
+  // assumes nothing
+  requires (\forall* int i; 0 <= i && i < -5 ; Perm(x,1/-5));
+  // yet ensures something
+  ensures Perm(x,1);
+  void m(boolean y){
   }
 }
 
