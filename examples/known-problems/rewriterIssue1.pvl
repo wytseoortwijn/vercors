@@ -1,0 +1,14 @@
+// -*- tab-width:2 ; indent-tabs-mode:nil -*-
+
+//:: cases FunctionProblemFull
+//:: suite problem-fail
+//:: tools silicon
+//:: verdict Pass
+
+
+class rewriterIssue {
+  requires false || true;
+  ensures false && true;
+  void m(){
+  }
+}
