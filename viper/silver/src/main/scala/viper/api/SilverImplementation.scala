@@ -35,6 +35,22 @@ class SilverImplementation[O,Err](o:OriginFactory[O])
   private def show(text: String, obj: Any) {
     println(s"$text (${obj.getClass.getSimpleName}): $obj")
   }
+  
+  private def locFromInfo(in: Info): Option[O] = {
+      in match {
+      case in: OriginInfo[O] => {
+        Some(in.asInstanceOf[OriginInfo[O]].loc)
+      }
+      case in: ConsInfo => {
+        val cin = in.asInstanceOf[ConsInfo]
+        locFromInfo(cin.head) match {
+          case Some(loc) => Some(loc)
+          case None => locFromInfo(cin.tail)
+        }
+      }
+      case _ => None
+    }
+  }
  
   override def verify(tool_home:Path,settings:Properties,prog:Prog,reachable:java.util.Set[O],
       control:VerificationControl[O]) : List[viper.api.ViperError[O]] = {
@@ -76,16 +92,9 @@ class SilverImplementation[O,Err](o:OriginFactory[O])
                 //ve match {
                  case in: viper.silver.ast.Infoed =>
                   //show("offending node's info", in.info)
-                  in.info match {
-                    case in: OriginInfo[O] => {
-                      val loc=in.asInstanceOf[OriginInfo[O]].loc
-                      //report.add(error_factory.generic_error(loc,err))
-                      new viper.api.ViperErrorImpl[O](loc,err)
-                    }
-                    case _ => {
-                      new viper.api.ViperErrorImpl[O](in.pos+": "+err)
-                      //throw new Error("info is not an origin!")
-                    }
+                  locFromInfo(in.info) match {
+                    case Some(loc) => new viper.api.ViperErrorImpl[O](loc,err)
+                    case None => new viper.api.ViperErrorImpl[O](in.pos+": "+err)
                   }
                 case _ =>
                   new viper.api.ViperErrorImpl[O](err)
