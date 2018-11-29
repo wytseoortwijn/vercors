@@ -2,6 +2,31 @@
 
 package vct.main;
 
+import static hre.lang.System.Abort;
+import static hre.lang.System.Fail;
+import static hre.lang.System.Output;
+import static hre.lang.System.Progress;
+import static hre.lang.System.Warning;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
+import java.lang.reflect.Constructor;
+import java.util.ArrayList;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingDeque;
+
 import hre.ast.FileOrigin;
 import hre.config.BooleanSetting;
 import hre.config.Option;
@@ -14,25 +39,15 @@ import hre.lang.HREError;
 import hre.lang.HREExitException;
 import hre.util.CompositeReport;
 import hre.util.TestReport;
-
-import java.io.*;
-import java.lang.reflect.Constructor;
-import java.util.ArrayList;
-import java.util.Deque;
-import java.util.Hashtable;
-import java.util.List;
-import java.util.Map.Entry;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingDeque;
-
 import vct.antlr4.parser.JavaResolver;
 import vct.antlr4.parser.Parsers;
 import vct.col.annotate.DeriveModifies;
-import vct.col.ast.*;
+import vct.col.ast.ASTClass;
+import vct.col.ast.ASTNode;
+import vct.col.ast.ASTSpecial;
+import vct.col.ast.ProgramUnit;
+import vct.col.ast.SpecificationFormat;
+import vct.col.ast.StandardOperator;
 import vct.col.rewrite.AbstractRewriter;
 import vct.col.rewrite.AccessIntroduce;
 import vct.col.rewrite.AddTypeADT;
@@ -88,13 +103,15 @@ import vct.col.syntax.Syntax;
 import vct.col.util.FeatureScanner;
 import vct.col.util.JavaTypeCheck;
 import vct.col.util.SimpleTypeCheck;
+import vct.learn.SpecialCountVisitor;
+import vct.learn.NonLinCountVisitor;
+import vct.learn.Oracle;
 import vct.logging.ErrorMapping;
 import vct.logging.ExceptionMessage;
 import vct.logging.PassReport;
 import vct.silver.ErrorDisplayVisitor;
 import vct.util.ClassName;
 import vct.util.Configuration;
-import static hre.lang.System.*;
 
 /**
  * VerCors Tool main verifier.
@@ -106,6 +123,8 @@ public class Main
   private static ProgramUnit program=new ProgramUnit();
   
   private static List<ClassName> classes;
+  
+  private static Map<String, SpecialCountVisitor> counters = new HashMap<String, SpecialCountVisitor>();
 
   static class ChaliceTask implements Callable<TestReport> {
     private ClassName class_name;
@@ -205,6 +224,9 @@ public class Main
       
       BooleanSetting sat_check=new BooleanSetting(true);
       clops.add(sat_check.getDisable("Disable checking if method pre-conditions are satisfiable"), "disable-sat");
+      
+      BooleanSetting learn = new BooleanSetting(false);
+      clops.add(learn.getEnable("Learn unit times for AST nodes."), "learn");
       
       Configuration.add_options(clops);
       
@@ -549,6 +571,10 @@ public class Main
         }
       } else {
       	Abort("no back-end or passes specified");
+      }
+      if(learn.get()) {
+        passes.addFirst("count=" + silver.get() + "_before_rewrite");
+        passes.add("learn=" + globalStart);
       }
       {
         int fatal_errs=0;
@@ -1059,6 +1085,32 @@ public class Main
     defined_passes.put("chalice-preprocess",new CompilerPass("Pre processing for chalice"){
       public ProgramUnit apply(ProgramUnit arg,String ... args){
         return new ChalicePreProcess(arg).rewriteAll();
+      }
+    });
+    defined_passes.put("count",new CompilerPass("Count nodes."){
+      public ProgramUnit apply(ProgramUnit arg,String ... args){
+        NonLinCountVisitor cv = new NonLinCountVisitor(arg);
+        cv.count();
+        if(args.length == 1) {
+          counters.put(args[0], cv);
+        } else {
+          Abort("Learn is used without an oracle");
+        }
+        return arg;
+      }
+    });
+    defined_passes.put("learn",new CompilerPass("Learn unit times from counted AST nodes."){
+      public ProgramUnit apply(ProgramUnit arg,String ... args){
+        if(args.length == 1) {
+          long start_time = Long.valueOf(args[0]);
+          long time = System.currentTimeMillis() - start_time;
+          for(Map.Entry<String, SpecialCountVisitor> entry: counters.entrySet()) {
+            Oracle.tell(entry.getKey(), entry.getValue(), time);
+          }
+        } else {
+          Abort("Learn is used without a starting time.");
+        }
+        return arg;
       }
     });
   }
