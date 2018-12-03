@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Hashtable;
 
 import vct.col.ast.*;
+import vct.col.ast.Method.Kind;
 import vct.col.util.ASTUtils;
 import vct.util.Configuration;
 
@@ -23,6 +24,27 @@ public class CheckProcessAlgebra extends AbstractRewriter {
   private Hashtable<String,String> composite_map;
   private Hashtable<String,Method> process_map;
 
+  private static ArrayList<ArrayList<String>> permutations(ArrayList<String> list) {
+    if (list.size() == 0) {
+    	ArrayList<ArrayList<String>> result = new ArrayList<ArrayList<String>>();
+      result.add(new ArrayList<String>());
+      return result;
+    }
+
+    ArrayList<ArrayList<String>> returnMe = new ArrayList<ArrayList<String>>();
+    String firstElement = list.remove(0);
+
+    ArrayList<ArrayList<String>> recursiveReturn = permutations(list);
+    for (ArrayList<String> li : recursiveReturn) {
+        for (int index = 0; index <= li.size(); index++) {
+        	ArrayList<String> temp = new ArrayList<String>(li);
+          temp.add(index, firstElement);
+          returnMe.add(temp);
+        }
+    }
+    return returnMe;
+}
+  
   @Override
   public void visit(ASTClass cl){
     composite_map=new Hashtable<String,String>();
@@ -44,19 +66,28 @@ public class CheckProcessAlgebra extends AbstractRewriter {
       }
       if (body==null) continue;
       if(body.isa(StandardOperator.Or)){
-        String composite=":";
+        ArrayList<String> compounds = new ArrayList<String>();
         for(ASTNode p:ASTUtils.conjuncts(body, StandardOperator.Or)){
-          if (p instanceof MethodInvokation){
-            composite+=((MethodInvokation)p).method+":";
+          if (p instanceof MethodInvokation) {
+          	compounds.add(((MethodInvokation)p).method);
           } else {
             Fail("misformed parallel composition");
           }
         }
+        
+        ArrayList<ArrayList<String>> allcompounds = permutations(compounds);
+        
+        for (ArrayList<String> part : allcompounds) {
+        	String composite = ":";
+        	for (String itm : part) {
+        		composite += itm + ":";
+        	}
+        	composite_map.put(composite, m.name());
+        	Warning("mapping %s to %s", composite, m.name());
+        }
+        
         // TODO: check if arguments are passed in-order.
-        // That is p(a,b)=q(a)||q(b) is allowed
-        // p(a,b)=q(b)||q(a) is forbidden.
-        composite_map.put(composite, m.name());
-        Warning("mapping %s to %s", composite, m.name());
+        // That is p(a,b)=q(a)||q(b) is allowed, while p(a,b)=q(b)||q(a) is forbidden.
       }
     }
     super.visit(cl);
@@ -138,9 +169,15 @@ public class CheckProcessAlgebra extends AbstractRewriter {
         }
       }
       result=create.method_decl(create.primitive_type(PrimitiveSort.Void), cb.getContract(), m.name(), args, body);
-    } else {
-      //super.visit(m);
-      result=null;
+    }
+    else { 	
+    	if (m.kind == Kind.Pure) {
+    		super.visit(m);
+    		//result = m;
+    	}
+    	else {
+    		result = null;
+    	}
     }
   }
 
