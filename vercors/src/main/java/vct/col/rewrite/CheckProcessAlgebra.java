@@ -1,6 +1,7 @@
 package vct.col.rewrite;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Hashtable;
 
@@ -54,7 +55,13 @@ public class CheckProcessAlgebra extends AbstractRewriter {
       if (!m.getReturnType().isPrimitive(PrimitiveSort.Process)) continue;
       ASTNode body=m.getBody();
       process_map.put(m.name(), m);
-      for(ASTNode n:m.getContract().modifies){
+
+      ASTNode[] modifies = m.getContract().modifies;
+      if (modifies == null) {
+      	modifies = new ASTNode[0];
+      }
+            
+      for(ASTNode n : modifies){
         if (n instanceof NameExpression){
           hist_set.add((NameExpression)n);
         } else if (n instanceof Dereference) {
@@ -144,7 +151,10 @@ public class CheckProcessAlgebra extends AbstractRewriter {
     if (m.getReturnType().isPrimitive(PrimitiveSort.Process)){
       Contract c=m.getContract();
       ContractBuilder cb = new ContractBuilder();
-      for (ASTNode v:c.modifies){
+      
+      ASTNode[] modifies = c.modifies == null ? new ASTNode[0] : c.modifies;
+
+      for (ASTNode v : modifies){
         create.enter();
         create.setOrigin(v.getOrigin());
         cb.requires(create.expression(StandardOperator.Perm,rewrite(v),create.reserved_name(ASTReserved.FullPerm)));
