@@ -173,7 +173,6 @@ public class CheckProcessAlgebra extends AbstractRewriter {
     else { 	
     	if (m.kind == Kind.Pure) {
     		super.visit(m);
-    		//result = m;
     	}
     	else {
     		result = null;
