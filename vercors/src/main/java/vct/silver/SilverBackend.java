@@ -48,7 +48,7 @@ public class SilverBackend {
     if (silver_module.used()){
       jarfile=Configuration.getToolHome().resolve(silver_module.get()+"/"+tool+".jar").toFile();
     } else {
-      jarfile=Configuration.getHome().resolve("viper/"+tool+"/target/scala-2.11/"+tool+".jar").toFile();
+      jarfile=Configuration.getHome().resolve("viper/"+tool+"/target/scala-2.12/"+tool+".jar").toFile();
     }
     //System.err.printf("adding jar %s to path%n",jarfile);
     Container container;
@@ -56,8 +56,8 @@ public class SilverBackend {
     if (silver_module.used()){
       container=new JarContainer(jarfile);
     } else {
-      File classdir1=Configuration.getHome().resolve("viper/silver/target/scala-2.11/classes").toFile();
-      File classdir2=Configuration.getHome().resolve("viper/"+tool+"/target/scala-2.11/classes").toFile();
+      File classdir1=Configuration.getHome().resolve("viper/silver/target/scala-2.12/classes").toFile();
+      File classdir2=Configuration.getHome().resolve("viper/"+tool+"/target/scala-2.12/classes").toFile();
       container=new UnionContainer(
           new DirContainer(classdir1),
           new DirContainer(classdir2),
