@@ -1,7 +1,6 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 //:: cases ZeroSubMatrix-C
 //:: tools silicon
-//:: verdict Pass
 
 /*@
   invariant matrix != NULL;
