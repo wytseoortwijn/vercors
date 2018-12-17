@@ -1,6 +1,7 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
-//:: case FloatDomain
-//:: tools silicon
+// case FloatDomain
+// tools silicon
+// verdict Pass
 
 domain Float {
     function zero() : Float
