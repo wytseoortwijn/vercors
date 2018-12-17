@@ -8,7 +8,7 @@ package viper.silver.testing
 
 import org.scalatest._
 import java.nio.file.{Path, Files}
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 /** A test suite for end-to-end toolchain testing that operates on source files
   * in resource directories.
@@ -50,7 +50,7 @@ abstract class ResourceBasedTestSuite extends FunSuite {
    */
   def buildTestInput(file: Path, prefix: String): InputType
 
-  val defaultTestPattern: String = ".*\\.sil"
+  val defaultTestPattern: String = ".*(\\.sil|\\.vpr)"
 
   /**
    * Recursively registers all files found in the given directory as a test.
@@ -87,7 +87,7 @@ abstract class ResourceBasedTestSuite extends FunSuite {
     assert(dir != null, "Directory must not be null")
     assert(Files.isDirectory(dir), "Path must represent a directory")
 
-    val directoryStream = Files.newDirectoryStream(dir)
+    val directoryStream = Files.newDirectoryStream(dir).asScala
     val dirContent = directoryStream.toList
     val includeFilesPattern = configMap.getOrElse("includeFiles", defaultTestPattern).toString
 

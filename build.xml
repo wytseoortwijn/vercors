@@ -43,7 +43,7 @@
 		  <fileset dir="parsers/bin">
 		  	<include name="**" />
 		  </fileset>
-		  <fileset dir="vercors/target/scala-2.11/classes">
+		  <fileset dir="vercors/target/scala-2.12/classes">
 		  	<include name="**" />
 		  </fileset>
 		  <fileset dir="viper/viper-api/bin">
@@ -169,8 +169,8 @@
       />
       <zipfileset dir="." prefix="${prefix}"
         includes="hre/hre.jar,core/vct-core.jar,main/vct-tool.jar,
-                  viper/silicon/target/scala-2.11/silicon.jar,
-                  viper/carbon/target/scala-2.11/carbon.jar"
+                  viper/silicon/target/scala-2.12/silicon.jar,
+                  viper/carbon/target/scala-2.12/carbon.jar"
       />
     </zip>
     <symlink action="delete" link="${dist}/vercors-latest.zip"/>
