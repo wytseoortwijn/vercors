@@ -58,6 +58,7 @@ with DefinednessComponent with ExhaleComponent with InhaleComponent {
    * populating the map and looking up a function height.
    */
   private var heights: Map[String, Int] = null
+  private var checkingDefinednessOfFunction: Option[String] = None // used to flag special behaviour when checking function definitions
 
   private val assumeFunctionsAboveName = Identifier("AssumeFunctionsAbove")
   private val assumeFunctionsAbove: Const = Const(assumeFunctionsAboveName)
@@ -65,6 +66,7 @@ with DefinednessComponent with ExhaleComponent with InhaleComponent {
   private val specialRef = Const(specialRefName)
   private val limitedPostfix = "'"
   private val triggerFuncPostfix = "#trigger"
+  private val triggerFuncNoHeapPostfix = "#triggerStateless"
   private val framePostfix = "#frame"
   private val frameTypeName = "FrameType"
   private val frameType = NamedType(frameTypeName)
@@ -170,7 +172,7 @@ with DefinednessComponent with ExhaleComponent with InhaleComponent {
   override def start() {
     expModule.register(this)
     inhaleModule.register(this, before = Seq(verifier.inhaleModule)) // this is because of inhaleExp definition, which tries to add extra information from executing the unfolding first
-    exhaleModule.register(this, before = Seq(verifier.exhaleModule)) // this is because of inhaleExp definition, which tries to add extra information from executing the unfolding first
+    exhaleModule.register(this, before = Seq(verifier.exhaleModule)) // this is because of exhaleExp definition, which tries to add extra information from executing the unfolding first
   }
 
   def reset() = {
@@ -196,7 +198,8 @@ with DefinednessComponent with ExhaleComponent with InhaleComponent {
         MaybeCommentedDecl("Definitional axiom", definitionalAxiom(f), size = 1)) ++
         MaybeCommentedDecl("Framing axioms", framingAxiom(f), size = 1) ++
         MaybeCommentedDecl("Postcondition axioms", postconditionAxiom(f), size = 1) ++
-        MaybeCommentedDecl("State-independent trigger function", triggerFunction(f), size = 1) ++
+        MaybeCommentedDecl("Trigger function (controlling recursive postconditions)", triggerFunction(f), size = 1) ++
+        MaybeCommentedDecl("State-independent trigger function", triggerFunctionStateless(f), size = 1) ++
         MaybeCommentedDecl("Check contract well-formedness and postcondition", checkFunctionDefinedness(f), size = 1)
       , nLines = 2)
     env = null
@@ -206,14 +209,14 @@ with DefinednessComponent with ExhaleComponent with InhaleComponent {
   private def functionDefinitions(f: sil.Function): Seq[Decl] = {
     val typ = translateType(f.typ)
     val fargs = (f.formalArgs map translateLocalVarDecl)
-    val args = heapModule.staticStateContributions ++ fargs
+    val args = heapModule.staticStateContributions(true, true) ++ fargs
     val name = Identifier(f.name)
     val func = Func(name, args, typ)
     val name2 = Identifier(f.name + limitedPostfix)
     val func2 = Func(name2, args, typ)
     val funcApp = FuncApp(name, args map (_.l), Bool)
     val funcApp2 = FuncApp(name2, args map (_.l), Bool)
-    val triggerFapp = triggerFuncApp(f , fargs map (_.l))
+    val triggerFapp = triggerFuncStatelessApp(f , fargs map (_.l))
     val dummyFuncApplication = dummyFuncApp(triggerFapp)
     func ++ func2 ++
       Axiom(Forall(args, Trigger(funcApp), funcApp === funcApp2 && dummyFuncApplication)) ++
@@ -230,16 +233,19 @@ with DefinednessComponent with ExhaleComponent with InhaleComponent {
   }
 
   private def assumeFunctionsAbove(i: Int): Exp =
-    assumeFunctionsAbove > IntLit(i)
+    assumeFunctionsAbove < IntLit(i)
+
+  def assumeFunctionsAt(i: Int): Stmt =
+    if (verifier.program.functions.isEmpty) Nil
+    else Assume(assumeFunctionsAbove === IntLit(i))
 
   def assumeAllFunctionDefinitions: Stmt = {
-    if (verifier.program.functions.isEmpty) Nil
-    else Assume(assumeFunctionsAbove(((heights map (_._2)).max) + 1))
+    assumeFunctionsAt(-1)
   }
 
   private def definitionalAxiom(f: sil.Function): Seq[Decl] = {
     val height = heights(f.name)
-    val heap = heapModule.staticStateContributions
+    val heap = heapModule.staticStateContributions(true, true)
     val args = f.formalArgs map translateLocalVarDecl
     val fapp = translateFuncApp(f.name, (heap ++ args) map (_.l), f.typ)
     val precondition : Exp = f.pres.map(p => translateExp(Expressions.asBooleanExp(p).whenExhaling)) match {
@@ -261,8 +267,8 @@ with DefinednessComponent with ExhaleComponent with InhaleComponent {
     outerUnfoldings.map{case Unfolding(PredicateAccessPredicate(predacc : PredicateAccess,perm),exp) => predicateTrigger(heap map (_.l), predacc)}
 
     Axiom(Forall(
-      stateModule.staticStateContributions ++ args,
-      Seq(Trigger(Seq(staticGoodState,fapp))) ++ (if (predicateTriggers.isEmpty) Seq()  else Seq(Trigger(Seq(staticGoodState, triggerFuncApp(f,args map (_.l))) ++ predicateTriggers))),
+      stateModule.staticStateContributions() ++ args,
+      Seq(Trigger(Seq(staticGoodState,fapp))) ++ (if (predicateTriggers.isEmpty) Seq()  else Seq(Trigger(Seq(staticGoodState, triggerFuncStatelessApp(f,args map (_.l))) ++ predicateTriggers))),
       (staticGoodState && assumeFunctionsAbove(height)) ==>
         (precondition ==> (fapp === body))
     ))
@@ -291,7 +297,7 @@ with DefinednessComponent with ExhaleComponent with InhaleComponent {
 
             // instead, we use the function frame function as the trigger:
             val frameExp : Exp = {
-              getFunctionFrame(func, recargs drop heapModule.staticStateContributions.size)._1 // the declarations will be taken care of when the function is translated
+              getFunctionFrame(func, recargs drop heapModule.staticStateContributions(true, true).size)._1 // the declarations will be taken care of when the function is translated
             }
             Some(FuncApp(Identifier(func.name + framePostfix), Seq(frameExp) ++ (recargs.tail /* drop Heap argument */ map (_.transform(transformer))), t))
 
@@ -304,7 +310,7 @@ with DefinednessComponent with ExhaleComponent with InhaleComponent {
 
   private def postconditionAxiom(f: sil.Function): Seq[Decl] = {
     val height = heights(f.name)
-    val heap = heapModule.staticStateContributions
+    val heap = heapModule.staticStateContributions(true, true)
     val args = f.formalArgs map translateLocalVarDecl
     val fapp = translateFuncApp(f.name, (heap ++ args) map (_.l), f.typ)
     val precondition : Exp = f.pres.map(p => translateExp(Expressions.asBooleanExp(p).whenExhaling)) match {
@@ -327,18 +333,26 @@ with DefinednessComponent with ExhaleComponent with InhaleComponent {
       }
       val bPost = translatedPost transform resultToFapp
       Axiom(Forall(
-        stateModule.staticStateContributions ++ args,
+        stateModule.staticStateContributions() ++ args,
         Trigger(Seq(staticGoodState, limitedFapp)),
-        (staticGoodState && assumeFunctionsAbove(height)) ==> (precondition ==> transformFuncAppsToLimitedForm(bPost, height))))
+        (staticGoodState && (assumeFunctionsAbove(height) || triggerFuncApp(f,args map (_.l)))) ==> (precondition ==> transformFuncAppsToLimitedForm(bPost, height))))
     }
   }
 
   private def triggerFunction(f: sil.Function): Seq[Decl] = {
-    Func(Identifier(f.name + triggerFuncPostfix), f.formalArgs map translateLocalVarDecl, translateType(f.typ))
+    Func(Identifier(f.name + triggerFuncPostfix), LocalVarDecl(Identifier("frame"), frameType) ++ (f.formalArgs map translateLocalVarDecl), Bool)
   }
 
   private def triggerFuncApp(func: sil.Function, args:Seq[Exp]): Exp = {
-    FuncApp(Identifier(func.name + triggerFuncPostfix), args, translateType(func.typ))
+    FuncApp(Identifier(func.name + triggerFuncPostfix), getFunctionFrame(func, args)._1 ++ args, Bool) // no need to declare auxiliary definitions; taken care of in framingAxiom below
+  }
+
+  private def triggerFunctionStateless(f: sil.Function): Seq[Decl] = {
+    Func(Identifier(f.name + triggerFuncNoHeapPostfix), f.formalArgs map translateLocalVarDecl, translateType(f.typ))
+  }
+
+  private def triggerFuncStatelessApp(func: sil.Function, args:Seq[Exp]): Exp = {
+    FuncApp(Identifier(func.name + triggerFuncNoHeapPostfix), args, translateType(func.typ))
   }
 
   private def framingAxiom(f: sil.Function): Seq[Decl] = {
@@ -349,15 +363,15 @@ with DefinednessComponent with ExhaleComponent with InhaleComponent {
     val func = Func(name, LocalVarDecl(Identifier("frame"), frameType) ++ args, typ)
     val funcFrameInfo = getFunctionFrame(f, args map (_.l))
     val funcApp = FuncApp(name, funcFrameInfo._1 ++ (args map (_.l)), typ)
-    val heap = heapModule.staticStateContributions
+    val heap = heapModule.staticStateContributions(true, true)
     val funcApp2 = translateFuncApp(f.name, (heap ++ args) map (_.l), f.typ)
     val outerUnfoldings : Seq[Unfolding] = Functions.recursiveCallsAndSurroundingUnfoldings(f).map((pair) => pair._2.headOption).flatten
     val predicateTriggers = outerUnfoldings.map{case Unfolding(PredicateAccessPredicate(predacc : PredicateAccess,perm),exp) => predicateTrigger(heap map (_.l), predacc)}
 
     Seq(func) ++
       Seq(Axiom(Forall(
-        stateModule.staticStateContributions ++ args,
-        Seq(Trigger(Seq(staticGoodState, transformFuncAppsToLimitedForm(funcApp2)))) ++ (if (predicateTriggers.isEmpty) Seq()  else Seq(Trigger(Seq(staticGoodState, triggerFuncApp(f,args map (_.l))) ++ predicateTriggers))),
+        stateModule.staticStateContributions() ++ args,
+        Seq(Trigger(Seq(staticGoodState, transformFuncAppsToLimitedForm(funcApp2)))) ++ (if (predicateTriggers.isEmpty) Seq()  else Seq(Trigger(Seq(staticGoodState, triggerFuncStatelessApp(f,args map (_.l))) ++ predicateTriggers))),
         staticGoodState ==> (transformFuncAppsToLimitedForm(funcApp2) === funcApp))) ) ++
         translateCondAxioms("function "+f.name, f.formalArgs, funcFrameInfo._2)
   }
@@ -458,7 +472,7 @@ with DefinednessComponent with ExhaleComponent with InhaleComponent {
         FuncApp(condFrameName, Seq(translatePerm(renaming(perm)),fragment),frameType)
       case QuantifiedPermissionAssertion(forall, _, _ : sil.AccessPredicate) => // works the same for fields and predicates
         qpPrecondId = qpPrecondId+1
-        val heap = heapModule.staticStateContributions
+        val heap = heapModule.staticStateContributions(true, true)
         val condName = Identifier(name + "#condqp" +qpPrecondId.toString)
         val condFunc = Func(condName, heap++args,Int)
         val res = (condFunc, forall)
@@ -504,8 +518,7 @@ with DefinednessComponent with ExhaleComponent with InhaleComponent {
 
 
 
-          val goodState1 = currentGoodState
-          val locationAccess1 = translateLocationAccess(locationAccess)
+          val locationAccess1 = translateResourceAccess(locationAccess)
           val translatedCond1 = translateExp(renamedCond) //condition just evaluated in one state
           val funApp1 = FuncApp(condFunc.name, (heap1++origArgs) map (_.l), condFunc.typ)
 
@@ -515,19 +528,18 @@ with DefinednessComponent with ExhaleComponent with InhaleComponent {
           val heap2 = heapModule.currentStateContributions
           val mask2 = permModule.currentStateContributions
 
-          val goodState2 =  currentGoodState
-          val locationAccess2 = translateLocationAccess(locationAccess)
+          val locationAccess2 = translateResourceAccess(locationAccess)
           val translatedCond2 = translateExp(renamedCond)
 
           val funApp2 = FuncApp(condFunc.name, (heap2++origArgs) map (_.l), condFunc.typ)
 
+          val triggers = if (locationAccess.contains(lvd)) Seq(Trigger(Seq(locationAccess1,locationAccess2))) else Seq() // TODO: we could (also in general) raise an error/warning if the tools fail to find triggers
 
           val res = CommentedDecl("Function used for framing of quantified permission " + qp.toString() +  " in " + originalName,
             condFunc ++
             Axiom(
-              Forall(heap1 ++ mask1 ++ heap2 ++ mask2 ++ origArgs, Seq(Trigger(Seq(funApp1, goodState1, goodState2, funApp2))),
-                (goodState1 && goodState2) ==>
-                  (Forall(Seq(translateLocalVarDecl(vFresh)), Seq(),
+              Forall(heap1 ++ heap2 ++ origArgs, Seq(Trigger(Seq(funApp1, funApp2))),
+                  (Forall(Seq(translateLocalVarDecl(vFresh)), triggers,
                     (translatedCond1 <==> translatedCond2) && (translatedCond1 ==> (locationAccess1 === locationAccess2))) ==> (funApp1 === funApp2))
                   ))
           );
@@ -540,21 +552,24 @@ with DefinednessComponent with ExhaleComponent with InhaleComponent {
   }
 
   private def checkFunctionDefinedness(f: sil.Function) = {
+    checkingDefinednessOfFunction = Some(f.name)
     val args = f.formalArgs map translateLocalVarDecl
     val res = sil.Result()(f.typ)
-    val init = MaybeCommentBlock("Initializing the state",
-      stateModule.initBoogieState ++ (f.formalArgs map (a => allAssumptionsAboutValue(a.typ,mainModule.translateLocalVarDecl(a),true))) ++ assumeAllFunctionDefinitions)
-    val initOld = MaybeCommentBlock("Initializing the old state", stateModule.initOldState)
-    val checkPre = checkFunctionPreconditionDefinedness(f)
-    val checkExp = if (f.isAbstract) MaybeCommentBlock("(no definition for abstract function)",Nil) else
+    val init : Stmt = MaybeCommentBlock("Initializing the state",
+      stateModule.initBoogieState ++ (f.formalArgs map (a => allAssumptionsAboutValue(a.typ,mainModule.translateLocalVarDecl(a),true))) ++ assumeFunctionsAt(heights(f.name)))
+    val initOld : Stmt = MaybeCommentBlock("Initializing the old state", stateModule.initOldState)
+    val checkPre : Stmt = checkFunctionPreconditionDefinedness(f)
+    val checkExp : Stmt = if (f.isAbstract) MaybeCommentBlock("(no definition for abstract function)",Nil) else
       MaybeCommentBlock("Check definedness of function body",
       expModule.checkDefinedness(f.body.get, errors.FunctionNotWellformed(f)))
-    val exp = if (f.isAbstract) MaybeCommentBlock("(no definition for abstract function)",Nil) else
+    val exp : Stmt = if (f.isAbstract) MaybeCommentBlock("(no definition for abstract function)",Nil) else
       MaybeCommentBlock("Translate function body",
       translateResult(res) := translateExp(f.body.get))
     val checkPost = checkFunctionPostconditionDefinedness(f)
-    val body = Seq(init, initOld, checkPre, checkExp, exp, checkPost)
-    Procedure(Identifier(f.name + "#definedness"), args, translateResultDecl(res), body)
+    val body : Stmt = Seq(init, initOld, checkPre, checkExp, exp, checkPost)
+    val definednessChecks = Procedure(Identifier(f.name + "#definedness"), args, translateResultDecl(res), body)
+    checkingDefinednessOfFunction = None
+    definednessChecks
   }
 
   private def checkFunctionPostconditionDefinedness(f: sil.Function): Stmt with Product with Serializable = {
@@ -649,24 +664,6 @@ with DefinednessComponent with ExhaleComponent with InhaleComponent {
   private def translateResultDecl(r: sil.Result) = LocalVarDecl(resultName, translateType(r.typ))
   override def translateResult(r: sil.Result) = translateResultDecl(r).l
 
-  override def simplePartialCheckDefinedness(e: sil.Exp, error: PartialVerificationError, makeChecks: Boolean): Stmt = {
-    if(makeChecks)
-      e match {
-        case fa@sil.FuncApp(f, args) => {
-          val funct = verifier.program.findFunction(f);
-          val pres = funct.pres map (e => Expressions.instantiateVariables(e, funct.formalArgs, args))
-          if (pres.isEmpty) Nil
-          else
-            NondetIf(
-              MaybeComment("Exhale precondition of function application", exhale(pres map (e => (e, errors.PreconditionInAppFalse(fa))))) ++
-                MaybeComment("Stop execution", Assume(FalseLit()))
-            )
-        }
-        case _ => Nil
-      }
-    else Nil
-  }
-
   private var tmpStateId = -1
   override def partialCheckDefinedness(e: sil.Exp, error: PartialVerificationError, makeChecks: Boolean): (() => Stmt, () => Stmt) = {
     e match {
@@ -682,7 +679,22 @@ with DefinednessComponent with ExhaleComponent with InhaleComponent {
           stateModule.replaceState(state)
           Nil
         }
-        (before, after)
+        (before _, after _)
+      case fa@sil.FuncApp(f, args) => {
+        (() => Nil, if(makeChecks) () => {
+        val funct = verifier.program.findFunction(f);
+        val pres = funct.pres map (e => Expressions.instantiateVariables(e, funct.formalArgs, args))
+        //if (pres.isEmpty) noStmt // even for empty pres, the assumption made below is important
+        NondetIf(
+          // This is where termination checks could/should be added
+          MaybeComment("Exhale precondition of function application", exhale(pres map (e => (e, errors.PreconditionInAppFalse(fa))))) ++
+            MaybeComment("Stop execution", Assume(FalseLit()))
+          , checkingDefinednessOfFunction match {
+            case Some(name) if name.equals(f) => MaybeComment("Enable postcondition for recursive call", Assume(triggerFuncApp(funct,args map translateExp)))
+            case _ => Nil
+          })} else () => Nil
+        )
+      }
       case _ => (() => simplePartialCheckDefinedness(e, error, makeChecks), () => Nil)
     }
   }
@@ -719,12 +731,12 @@ with DefinednessComponent with ExhaleComponent with InhaleComponent {
     val args = p.formalArgs
     val translatedArgs = p.formalArgs map translateLocalVarDecl
     val predAcc = sil.PredicateAccess(args map (_.localVar),p)(p.pos,p.info,p.errT)
-    val trigger = predicateTrigger(heapModule.staticStateContributions map (_.l), predAcc)
+    val trigger = predicateTrigger(heapModule.staticStateContributions(true, true) map (_.l), predAcc)
     val anystate = predicateTrigger(Seq(), predAcc, true)
     val framingFunctionsToDeclare = if (p.isAbstract) Nil else getPredicateFrame(p,translatedArgs map (_.l))._2 // argument parameters here are just placeholders - we want the auxiliary function definitions.
     val res = MaybeCommentedDecl(s"Translation of predicate ${p.name}",
       predicateGhostFieldDecl(p)) ++
-    Axiom(Forall(heapModule.staticStateContributions ++ translatedArgs, Seq(Trigger(trigger)), anystate)) ++
+    Axiom(Forall(heapModule.staticStateContributions(true, true) ++ translatedArgs, Seq(Trigger(trigger)), anystate)) ++
       (if (p.isAbstract) Nil else translateCondAxioms("predicate "+p.name, p.formalArgs, framingFunctionsToDeclare))
     env = null
     res
