@@ -139,7 +139,10 @@ object Consistency {
     var found = false
 
     val findPermissions = ViperStrategy.Ancestor({
-      case (acc: AccessPredicate, c) if c.parentOption.fold(true)(!_.isInstanceOf[Unfolding]) =>
+      case (acc: FieldAccessPredicate, _) =>
+        found = true
+        acc
+      case (acc: PredicateAccessPredicate, c) if c.parentOption.fold(true)(!_.isInstanceOf[Unfolding]) =>
         found = true
         acc
       case (mw: MagicWand, c) if c.parentOption.fold(true)(!_.isInstanceOf[Applying]) =>
@@ -264,10 +267,11 @@ object Consistency {
   }
 
   /** Returns true iff the given expression is a valid trigger. */
-  def validTrigger(e: Exp): Boolean = {
+  def validTrigger(e: Exp, program: Program): Boolean = {
     e match {
-      case Old(nested) => validTrigger(nested) // case corresponds to OldTrigger node
-      case _ : PossibleTrigger | _: FieldAccess => !e.existsDefined { case _: ForbiddenInTrigger => }
+      case Old(nested) => validTrigger(nested, program) // case corresponds to OldTrigger node
+      case wand: MagicWand => wand.subexpressionsToEvaluate(program).forall(e => !e.existsDefined {case _: ForbiddenInTrigger => })
+      case _ : PossibleTrigger | _: FieldAccess | _: PredicateAccess => !e.existsDefined { case _: ForbiddenInTrigger => }
       case _ => false
     }
   }
@@ -284,6 +288,11 @@ object Consistency {
     case _ => true
   }
 
+  def onlyDirectUse(v: LocalVar, e: Exp): Boolean = e match {
+    case l: LocalVar => v != l
+    case _ => e.subExps.forall(exp => onlyDirectUse(v, exp))
+  }
+
   //check all properties that need to be satisfied by the arguments of forperm expressions
   def checkForPermArguments(arg : Node) {
 
@@ -294,6 +303,35 @@ object Consistency {
 
     recordIfNot(positioned, fieldOrPredicate(positioned), "Can only use fields and predicates in 'forperm' expressions")
     recordIfNot(positioned, oneRefParam(positioned), "Can only use predicates with one Ref parameter in 'forperm' expressions")
+  }
+
+  def allVariablesUsed(vars: Seq[LocalVarDecl], resArgs: Seq[Exp]): Boolean = {
+    vars.forall(v => resArgs.exists(a => a == v.localVar ||
+      a.deepCollect[LocalVar]{case vr: LocalVar if vr == v.localVar => vr}.nonEmpty))
+  }
+
+  def checkForpermArgUse(fp: ForPerm, program: Program): Unit = {
+
+    val resArgs = fp.resource match {
+      case fa: FieldAccess => Seq(fa.rcv)
+      case pa: PredicateAccess => pa.args
+      case w: MagicWand => w.subexpressionsToEvaluate(program)
+      case other => sys.error(s"Unexpectedly found $other")
+    }
+
+    recordIfNot(fp, allVariablesUsed(fp.variables, resArgs), "All quantified variables need to be used in a resource")
+
+    for (v <- fp.variables) {
+      for (arg <- resArgs) {
+        if (!arg.isInstanceOf[LocalVar]) {
+          recordIfNot(arg, onlyDirectUse(v.localVar, arg), "Quantified arguments can only be used directly")
+        }
+      }
+    }
+  }
+
+  def checkTriggers(t: Trigger, program: Program): Unit = {
+    t.exps foreach (e => recordIfNot(t, validTrigger(e, program), s"$t is not a valid Trigger"))
   }
 
 //  def checkNoImpureConditionals(wand: MagicWand, program: Program) = {
@@ -365,7 +403,14 @@ object Consistency {
 
       case po@LabelledOld(_, FastParser.LHS_OLD_LABEL) if !c.insideWandStatus.isInside =>
         s :+= ConsistencyError("Labelled old expressions with \"lhs\" label may only occur inside wands and their proof scripts.", po.pos)
+        c
 
+      case FieldAccessPredicate(_, _) |
+           PredicateAccessPredicate(_, _) =>
+        c.copy(insideAccessPredicateStatus = true)
+
+      case wp@WildcardPerm() if !c.insideAccessPredicateStatus =>
+        s :+= ConsistencyError("\"wildcard\" can only be used in accessibility predicates", wp.pos)
         c
     })
     s
@@ -409,5 +454,6 @@ object Consistency {
   }
 
   /** Context for context dependent consistency checking. */
-  case class Context(insideWandStatus: InsideWandStatus = InsideWandStatus.No)
+  case class Context(insideWandStatus: InsideWandStatus = InsideWandStatus.No,
+                     insideAccessPredicateStatus: Boolean = false)
 }

@@ -27,7 +27,7 @@ class SilverProgramFactory[O,Err] extends ProgramFactory[O,Err,Type,Exp,Stmt,
       body:Stmt) {
     
     // TODO : not quite sure if the method body 'body' and the 'locals' are currently handled like this..
-    val b = if (body==null) None else Some(Seqn(Seq(body), to_decls(o,local))(NoPosition, new OriginInfo(o), NoTrafos))
+    val b = if (body == null) None else Some(Seqn(Seq(body), to_decls(o,local))(NoPosition, new OriginInfo(o), NoTrafos))
     
     p.methods.add(Method(
       name, // method name
@@ -36,7 +36,7 @@ class SilverProgramFactory[O,Err] extends ProgramFactory[O,Err,Type,Exp,Stmt,
       pres.asScala, // list of preconditions
       posts.asScala, // list of postconditions
       b // method body
-    )(NoPosition,new OriginInfo(o), NoTrafos))
+    )(NoPosition, new OriginInfo(o), NoTrafos))
   }
   
   override def add_field(p:Prog,o:O,name:String,t:Type)={
@@ -49,7 +49,7 @@ class SilverProgramFactory[O,Err] extends ProgramFactory[O,Err,Type,Exp,Stmt,
   }
   
   override def add_function(p:Prog,o:O,name:String,args:List[Triple[O,String,Type]],t:Type,pres:List[Exp],posts:List[Exp],body:Exp)={
-    val b = if (body==null) None else Some(body)
+    val b = if (body == null) None else Some(body)
     
     p.functions.add(Function(
       name, // function name
