@@ -37,24 +37,27 @@
         <attribute name="Main-Class" value="vct.main.Main"/>
         <attribute name="Built-By" value="${user.name}"/>
       </manifest>
-		  <fileset dir="hre/bin">
-		  	<include name="**" />
-		  </fileset>
-		  <fileset dir="parsers/bin">
-		  	<include name="**" />
-		  </fileset>
-		  <fileset dir="vercors/target/scala-2.11/classes">
-		  	<include name="**" />
-		  </fileset>
-		  <fileset dir="viper/viper-api/bin">
-		  	<include name="**" />
-		  </fileset>
-		  <zipfileset src="vercors/target/lib/antlr4-runtime-4.5.3.jar" excludes="META-INF/*" />
-		  <zipfileset src="vercors/target/lib/commons-lang3-3.1.jar" excludes="META-INF/*" />
-		  <zipfileset src="vercors/target/lib/commons-io-2.4.jar" excludes="META-INF/*" />
-		  <zipfileset src="vercors/target/lib/gson-2.8.0.jar" excludes="META-INF/*" />
-		  <zipfileset src="vercors/target/lib/scala-library-2.11.7.jar" excludes="META-INF/*" />
-		</jar>
+      <fileset dir="hre/bin">
+        <include name="**" />
+      </fileset>
+      <fileset dir="parsers/bin">
+        <include name="**" />
+      </fileset>
+      <fileset dir="vercors/target/scala-2.11/classes">
+        <include name="**" />
+      </fileset>
+      <fileset dir="viper/viper-api/bin">
+        <include name="**" />
+      </fileset>
+      <fileset dir="viper/silicon/src/main/resources">
+        <include name="**" />
+      </fileset>
+      <zipfileset src="vercors/target/lib/antlr4-runtime-4.5.3.jar" excludes="META-INF/*" />
+      <zipfileset src="vercors/target/lib/commons-lang3-3.1.jar" excludes="META-INF/*" />
+      <zipfileset src="vercors/target/lib/commons-io-2.4.jar" excludes="META-INF/*" />
+      <zipfileset src="vercors/target/lib/gson-2.8.0.jar" excludes="META-INF/*" />
+      <zipfileset src="vercors/target/lib/scala-library-2.11.8.jar" excludes="META-INF/*" />
+    </jar>
   </target>
   
   <target name="compile">
@@ -168,7 +171,7 @@
         excludes="**/*~"
       />
       <zipfileset dir="." prefix="${prefix}"
-        includes="hre/hre.jar,core/vct-core.jar,main/vct-tool.jar,
+        includes="hre/hre.jar,core/vct-core.jar,vct-tool.jar,
                   viper/silicon/target/scala-2.11/silicon.jar,
                   viper/carbon/target/scala-2.11/carbon.jar"
       />
