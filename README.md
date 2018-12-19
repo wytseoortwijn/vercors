@@ -5,6 +5,8 @@ This repository hosts VerCors, a toolset for the verification of concurrent and 
 
 A list of verified examples and case studies is maintained online and can be found [here](http://ctit-vm2.ewi.utwente.nl). This webpage also contains an online interface for VerCors and allows to try VerCors online.
 
+The latest release of VerCors (as a collection of JARs) can be downloaded [here](https://surfdrive.surf.nl/files/index.php/s/ImxHX0lJyBRgd60).
+
 Installation Instructions
 -------------
 
