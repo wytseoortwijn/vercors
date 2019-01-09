@@ -8,6 +8,8 @@ jdk:
 
 env:
  - PATH=$TRAVIS_BUILD_DIR/unix/bin:$PATH
+ global:
+   - USER_MEM_ARGS=-XX:ParallelGCThreads1-XX:CICompilerCount1
 
 #cache:
 #  directories:
@@ -37,6 +39,7 @@ addons:
       - texlive-latex-extra
 
 script:
+ - java -XX:+PrintFlagsFinal -version
 # compile the tool set
  - ant compile
 # test the back ends (skipped)
