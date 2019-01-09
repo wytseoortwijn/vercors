@@ -4,7 +4,7 @@ enablePlugins(Antlr4Plugin)
 name := "Vercors"
 organization  := "University of Twente"
 version := "0.1-SNAPSHOT"
-scalaVersion := "2.11.8"
+scalaVersion := "2.12.7"
 
 libraryDependencies += "commons-io" % "commons-io" % "2.4"
 libraryDependencies += "com.google.code.gson" % "gson" % "2.8.0"
@@ -26,8 +26,8 @@ antlr4Version in Antlr4 := "4.5.3"
 dependencyClasspath in Compile += new File("../hre/bin")
 dependencyClasspath in Compile += new File("../parsers/bin")
 dependencyClasspath in Compile += new File("../viper/viper-api/bin")
-dependencyClasspath in Compile += new File("../viper/silicon/target/scala-2.11")
-dependencyClasspath in Compile += new File("../viper/silicon/target/scala-2.11/classes")
+dependencyClasspath in Compile += new File("../viper/silicon/target/scala-2.12")
+dependencyClasspath in Compile += new File("../viper/silicon/target/scala-2.12/classes")
 
 dependencyClasspath in Test += new File("../hre/bin")
 

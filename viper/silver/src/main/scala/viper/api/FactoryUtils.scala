@@ -15,9 +15,9 @@ import scala.collection.mutable.WrappedArray
 
 trait FactoryUtils[O] {
   def to_decls(o:O, map:List[Triple[O,String,Type]]) : Seq[LocalVarDecl] = {
-    // This code looks silly, but the order must be preserved.
+    // this code looks silly, but the order must be preserved.
     map.asScala map {
-      t => add(LocalVarDecl (t.v2, t.v3) _, t.v1)
+      t : Triple[O,String,Type] => add(LocalVarDecl(t.v2, t.v3) _, t.v1)
     }
   }
   

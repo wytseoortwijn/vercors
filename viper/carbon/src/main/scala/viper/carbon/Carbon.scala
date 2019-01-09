@@ -10,19 +10,16 @@ import ch.qos.logback.classic.Logger
 import viper.silver.frontend.{SilFrontend, SilFrontendConfig}
 import viper.silver.logger.ViperStdOutLogger
 import viper.silver.reporter.{Reporter, StdIOReporter}
-import viper.silver.verifier.{Failure => SilFailure, Success => SilSuccess, Verifier => SilVerifier}
+import viper.silver.verifier.{Verifier => SilVerifier}
 
 /**
  * The main object for Carbon containing the execution start-point.
  */
-object Carbon extends CarbonFrontend(new StdIOReporter("carbon"), ViperStdOutLogger("Carbon", "INFO").get) {
+object Carbon extends CarbonFrontend(StdIOReporter("carbon_reporter"), ViperStdOutLogger("Carbon", "INFO").get) {
   def main(args: Array[String]) {
     execute(args)
-
-    sys.exit(result match {
-      case SilSuccess => 0
-      case SilFailure(errors) => 1
-    })
+    specifyAppExitCode()
+    sys.exit(appExitCode)
   }
 }
 
@@ -84,6 +81,12 @@ class CarbonConfig(args: Seq[String]) extends SilFrontendConfig(args, "Carbon") 
 
   val Z3executable = opt[String]("z3Exe",
     descr = "Manually-specified full path to Z3.exe executable (default: ${Z3_EXE})",
+    default = None,
+    noshort = true
+  )
+
+  val disableAllocEncoding = opt[Boolean]("disableAllocEncoding",
+    descr = "Disable Allocation-related assumptions (default: enabled)",
     default = None,
     noshort = true
   )

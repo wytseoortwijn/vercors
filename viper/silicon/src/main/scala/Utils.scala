@@ -25,14 +25,16 @@ package object utils {
     else
       it.map(f).reduceLeft((t1, t2) => op(t1, t2))
 
-  def conflictFreeUnion[K, V](m1: Map[K, V], m2: Map[K, V]): Either[Seq[(K, V, V)], Map[K, V]] = {
-    m1 flatMap { case (k1, v1) => m2.get(k1) match {
-      case None | Some(`v1`) => None
-      case Some(v2) => Some((k1, v1, v2))
-    }} match {
-      case Seq() => Right(m1 ++ m2)
-      case conflicts => Left(conflicts.toSeq)
-    }
+  def conflictFreeUnion[K, V](m1: Map[K, V], m2: Map[K, V]): (Map[K, V], Map[K, (V, V)]) = {
+    var union = Map.empty[K, V]
+    var conflicts = Map.empty[K, (V, V)]
+
+    m1 foreach { case (k1, v1) => m2.get(k1) match {
+      case None | Some(`v1`) => union += k1 -> v1
+      case Some(v2) => conflicts += k1 -> (v1, v2)
+    }}
+
+    (union, conflicts)
   }
 
   def append[K1,       E1,       C1 <: Iterable[E1],
@@ -195,7 +197,6 @@ package object utils {
 
     def check(program: silver.ast.Program) = (
          checkPermissions(program)
-      ++ program.members.flatMap(m => checkFieldAccessesInTriggers(m, program))
       ++ checkInhaleExhaleAssertions(program))
 
     def createUnsupportedPermissionExpressionError(offendingNode: errors.ErrorNode) = {
@@ -209,40 +210,6 @@ package object utils {
         case eps: silver.ast.EpsilonPerm => createUnsupportedPermissionExpressionError(eps) +: errors.flatten
         case _ => errors.flatten
       })
-
-    def createUnsupportedFieldAccessInTrigger(offendingNode: silver.ast.FieldAccess) = {
-      val message = (   "Silicon only supports field accesses as triggers if (1) permissions to the "
-                     +  "field come from quantified permissions, and if (2) the field access also "
-                     + s"occurs in the body of the quantification. $offendingNode is not such a "
-                     +  "field access.")
-
-      Internal(offendingNode, FeatureUnsupported(offendingNode, message))
-    }
-
-    def checkFieldAccessesInTriggers(root: silver.ast.Member, program: silver.ast.Program)
-                                    : Seq[VerificationError] = {
-
-      val quantifiedFields = silver.ast.utility.QuantifiedPermissions.quantifiedFields(root, program)
-
-      root.reduceTree[Seq[VerificationError]]((n, errors) => n match {
-        case forall: silver.ast.Forall =>
-          val qvars = forall.variables.map(_.localVar)
-
-          forall.triggers.flatMap { ts =>
-            ts.exps.flatMap(_.collect {
-              case fa: silver.ast.FieldAccess
-                   if qvars.exists(fa.contains) &&
-                      !(quantifiedFields.contains(fa.field) && forall.exp.contains(fa))
-                => fa
-            })
-          } match {
-            case Seq() => errors.flatten
-            case fas => (fas map createUnsupportedFieldAccessInTrigger) ++ errors.flatten
-          }
-
-        case _ => errors.flatten
-      })
-    }
 
     def createUnsupportedInhaleExhaleAssertion(offendingNode: silver.ast.InhaleExhaleExp) = {
       val message = (   "Silicon currently doesn't support inhale-exhale assertions in certain "
@@ -281,6 +248,14 @@ package object utils {
 
     def createUnexpectedNodeDuringDomainTranslationError(offendingNode: errors.ErrorNode) = {
       val explanation = "The expression should not occur in domain expressions."
+      val stackTrace = new Throwable().getStackTrace
+
+      Internal(offendingNode, UnexpectedNode(offendingNode, explanation, stackTrace))
+    }
+
+    def createUnexpectedNodeError(offendingNode: errors.ErrorNode, explanation: String)
+                                 : Internal = {
+
       val stackTrace = new Throwable().getStackTrace
 
       Internal(offendingNode, UnexpectedNode(offendingNode, explanation, stackTrace))
