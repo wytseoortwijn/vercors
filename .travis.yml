@@ -37,7 +37,6 @@ addons:
       - texlive-latex-extra
 
 script:
- - java -XX:+PrintFlagsFinal -version
 # compile the tool set
  - ant compile
 # test the back ends (skipped)
