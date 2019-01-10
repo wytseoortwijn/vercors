@@ -112,10 +112,10 @@ class SilverProgramFactory[O,Err] extends ProgramFactory[O,Err,Type,Exp,Stmt,
     val out_prog = api.prog.program()
     in_prog.domains.asScala.toList foreach {
       d => {
-        System.err.printf("%s%n",d.pos);
+//        System.err.printf("%s%n",d.pos);
         val o=get_info(d.info,d.pos,api.origin)
         val name=d.name
-        System.err.printf("%s%n",d.functions);
+//        System.err.printf("%s%n",d.functions);
         val functions:java.util.List[DFunc2]=(d.functions map {
           x => {
             val o=get_info(x.info,x.pos,api.origin)
@@ -124,7 +124,7 @@ class SilverProgramFactory[O,Err] extends ProgramFactory[O,Err,Type,Exp,Stmt,
             api.prog.dfunc(o,x.name,pars,res,d.name)
           }
         }).asJava
-        System.err.printf("%s%n",d.axioms);
+//        System.err.printf("%s%n",d.axioms);
         val axioms:java.util.List[DAxiom2]=d.axioms.map {
           x => api.prog.daxiom(o,x.name,map_expr(api,x.exp),d.name)
         }.asJava
