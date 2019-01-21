@@ -94,14 +94,23 @@ statement
  | 'invariant' identifier '(' expr ')' block
  | 'atomic' '(' id_list ')' block
  | invariant 'while' '(' expr ')' block
- | type identifier ('=' expr | (',' identifier)* ) ';'
- | expr ';'
- | identifier ('++'|'--') ';'
+ | invariant 'for' '(' forStatementList? ';' expr? ';' forStatementList? ')' block
  | block
- | lexpr '=' expr ';'
  | '{*' expr '*}'
  | 'goto' identifier ';'
  | 'label' identifier ';'
+ | allowedForStatement ';'
+ ;
+
+forStatementList
+ : allowedForStatement (',' allowedForStatement)*
+ ;
+
+allowedForStatement
+ : type identifier ('=' expr | (',' identifier)* )
+ | expr
+ | identifier ('++'|'--')
+ | lexpr '=' expr
  ;
 
 par_unit
