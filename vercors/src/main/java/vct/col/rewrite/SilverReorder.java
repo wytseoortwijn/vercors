@@ -110,13 +110,45 @@ public class SilverReorder extends AbstractRewriter {
   }
   
   @Override
-  public void visit(LoopStatement S){
+  public void visit(LoopStatement s){
     locals.enter();
+
     BlockStatement tmp=main_block;
     if(tmp==null){
       main_block=currentBlock;
     }
-    super.visit(S);
+
+    LoopStatement res=new LoopStatement();
+    ASTNode child;
+    child=s.getInitBlock();
+    if (child!=null) {
+      // The init block must be moved outside the loop statement and should not open a new scope, so declarations are
+      // valid for the whole LoopStatement. Therefor, we rewrite it explicitly here.
+
+      BlockStatement initBlock = (BlockStatement) child;
+      BlockStatement newInitBlock = new BlockStatement();
+      newInitBlock.setOrigin(initBlock.getOrigin());
+
+      for(int i = 0; i < initBlock.getLength(); i++) {
+        newInitBlock.addStatement(rewrite(initBlock.get(i)));
+      }
+
+      currentBlock.addStatement(newInitBlock);
+    }
+    child=s.getUpdateBlock();
+    if (child!=null) res.setUpdateBlock(child.apply(this));
+    child=s.getEntryGuard();
+    if (child!=null) res.setEntryGuard(child.apply(this));
+    child=s.getExitGuard();
+    if (child!=null) res.setExitGuard(child.apply(this));
+    res.appendContract(rewrite(s.getContract()));
+    child=s.getBody();
+    res.setBody(child.apply(this));
+    res.set_before(rewrite(s.get_before()));
+    res.set_after(rewrite(s.get_after()));
+    res.setOrigin(s.getOrigin());
+    result=res;
+
     main_block=tmp;    
     locals.leave();
   }
