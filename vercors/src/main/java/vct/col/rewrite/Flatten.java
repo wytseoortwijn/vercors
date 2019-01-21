@@ -359,7 +359,7 @@ public class Flatten extends AbstractRewriter {
     tmp=s.getInitBlock();
     if (tmp!=null) res.setInitBlock(tmp.apply(this));
     tmp=s.getUpdateBlock();
-    if (tmp!=null) res.setUpdateBlock(tmp.apply(copy_pure));
+    if (tmp!=null) res.setUpdateBlock(tmp.apply(this));
     tmp=s.getEntryGuard();
     if (tmp!=null) res.setEntryGuard(tmp.apply(copy_pure));
     tmp=s.getExitGuard();
