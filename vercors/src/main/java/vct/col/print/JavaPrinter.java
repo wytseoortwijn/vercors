@@ -9,7 +9,6 @@ import java.io.PrintStream;
 import java.util.List;
 import java.util.Map.Entry;
 
-import jdk.nashorn.internal.ir.Block;
 import org.apache.commons.lang3.StringEscapeUtils;
 
 import vct.col.ast.*;
