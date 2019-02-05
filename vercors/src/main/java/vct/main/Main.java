@@ -4,6 +4,7 @@ package vct.main;
 
 import hre.ast.FileOrigin;
 import hre.config.BooleanSetting;
+import hre.config.IntegerSetting;
 import hre.config.Option;
 import hre.config.OptionParser;
 import hre.config.StringListSetting;
@@ -35,6 +36,7 @@ import vct.col.annotate.DeriveModifies;
 import vct.col.ast.*;
 import vct.col.rewrite.AbstractRewriter;
 import vct.col.rewrite.AccessIntroduce;
+import vct.col.rewrite.AddSimpleTriggers;
 import vct.col.rewrite.AddTypeADT;
 import vct.col.rewrite.AssignmentRewriter;
 import vct.col.rewrite.CSLencoder;
@@ -68,6 +70,7 @@ import vct.col.rewrite.RandomizedIf;
 import vct.col.rewrite.RecognizeMultiDim;
 import vct.col.rewrite.ReorderAssignments;
 import vct.col.rewrite.RewriteArrayRef;
+import vct.col.rewrite.RewriteComplexUnitSubscripts;
 import vct.col.rewrite.RewriteSystem;
 import vct.col.rewrite.SatCheckRewriter;
 import vct.col.rewrite.ScaleAlways;
@@ -205,6 +208,9 @@ public class Main
       
       BooleanSetting sat_check=new BooleanSetting(true);
       clops.add(sat_check.getDisable("Disable checking if method pre-conditions are satisfiable"), "disable-sat");
+
+      IntegerSetting trigger_generation = new IntegerSetting(0);
+      clops.add(trigger_generation.getOptionalAssign("Try to simplify universal quantifiers and generate triggers for them."), "triggers");
       
       Configuration.add_options(clops);
       
@@ -476,7 +482,11 @@ public class Main
           //passes.add("class-conversion");
           //passes.add("standardize");
           //passes.add("check");
-          
+
+          if(trigger_generation.get() > 0) {
+            passes.add("simple_triggers=" + trigger_generation.get());
+            passes.add("check");
+          }
           passes.add("silver-class-reduction"); // remove the class (since all names are now unique), only one class remains
           passes.add("standardize");
           passes.add("check");
@@ -523,7 +533,7 @@ public class Main
         }
                                 
         if (silver.used()) {
-          passes.add("scale-always"); // syntax: in silicon [p]predicate() is mandatory, so change pred() to [1]pred() 
+          passes.add("scale-always"); // syntax: in silicon [p]predicate() is mandatory, so change pred() to [1]pred()
           passes.add("silver-optimize"); // rewrite to things that silver likes better
           passes.add("quant-optimize"); // some illegal-quantifier constructions need to be written differently (plus optimize) 
           passes.add("standardize-functions"); // pure methods do not need to be 'methods', try turning them into functions so silver and chalice can reason more intelligently about them. Pure methods can be used in specifications through this.
@@ -1059,6 +1069,23 @@ public class Main
     defined_passes.put("chalice-preprocess",new CompilerPass("Pre processing for chalice"){
       public ProgramUnit apply(ProgramUnit arg,String ... args){
         return new ChalicePreProcess(arg).rewriteAll();
+      }
+    });
+    defined_passes.put("simple_triggers", new CompilerPass("Add triggers to quantifiers if possible"){
+      public ProgramUnit apply(ProgramUnit arg,String ... args){
+        ProgramUnit res = arg;
+        int val = Integer.valueOf(args[0]);
+        // First gather quantified variables for quantifiers without triggers.
+        res = new OptimizeQuantifiers(res).rewriteAll();
+        // For quantifiers without triggers, and complex subscripts not containing quantified variables, add quantifier variable equal to the complex subscript.
+        if((val & 2) > 0) {
+          res = new RewriteComplexUnitSubscripts(res).rewriteAll();
+        }
+        // Try to add triggers for the now possibly simplified quantifiers.
+        if((val & 1) > 0) {
+          res = new AddSimpleTriggers(res).rewriteAll();
+        }
+        return  res;
       }
     });
   }
