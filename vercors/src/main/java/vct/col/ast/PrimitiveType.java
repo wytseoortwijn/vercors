@@ -117,23 +117,37 @@ public final class PrimitiveType extends Type {
   }
   
   @SuppressWarnings("incomplete-switch")
-  public boolean supertypeof(ProgramUnit context, Type t){
-    
-    switch(this.sort){
-    case Option:
-    case CVarArgs:
-      return true;
-    case Array:
-      if (t.isPrimitive(this.sort)){
-        return firstarg().equals(((PrimitiveType)t).firstarg());
-      }
-    case Sequence:
-    case Cell:
-      if (t instanceof ClassType) {
-        ClassType ct=(ClassType)t;
-        String name[]=ct.getNameFull();
-        if (name.length==1 && name[0].equals("<<null>>")) return true;
-      }
+  public boolean supertypeof(ProgramUnit context, Type t) {
+    switch(this.sort) {
+      case CVarArgs:
+        return true;
+      case Option:
+        if (t.isNull()) {
+        /* Java null is used for both objects (which should be COL null) and arrays (which should be COL None). Only
+           after type checking we know which null's should be replaced with None, so we permit null as a value for
+           options.
+         */
+          return true;
+        }
+
+        if (t.isPrimitive(PrimitiveSort.Option) && ((Type) t.firstarg()).isNull()) {
+          // The type derived from the None value is a valid subclass
+          return true;
+        }
+
+        return t.isPrimitive(PrimitiveSort.Option) && firstarg().equals(((PrimitiveType) t).firstarg());
+      case Cell:
+        if(firstarg().equals(t)) {
+          return true;
+        }
+        // fallthrough
+      case Sequence:
+        if (t.isNull()) {
+          return true;
+        }
+        // fallthrough
+      case Array:
+        return t.isPrimitive(this.sort) && firstarg().equals(((PrimitiveType) t).firstarg());
     }
     if (t instanceof PrimitiveType){
       PrimitiveType pt=(PrimitiveType)t;

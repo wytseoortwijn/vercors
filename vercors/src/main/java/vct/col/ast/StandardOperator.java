@@ -156,7 +156,7 @@ public enum StandardOperator {
   /** Create a new uninitialized object, Silver style. */
   NewSilver(-1),
   /** Create a new uninitialized array */
-  NewArray(2),
+  NewArray(-1),
   /** Length of an array */
   Length(1),
   /** Get the size of a container, such as a sequence. */

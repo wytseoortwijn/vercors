@@ -6,6 +6,7 @@ import java.util.Map;
 
 import vct.col.ast.*;
 import vct.col.ast.NameExpression.Kind;
+import vct.col.rewrite.ArrayNullValues;
 import vct.col.rewrite.MultiSubstitution;
 import vct.col.rewrite.TypeVarSubstitution;
 import vct.silver.SilverTypeMap;
@@ -235,6 +236,15 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
       return;
     }
 
+    for(int i = 0; i < N; i++) {
+      Type argType = m.getArgType(i);
+      ASTNode arg = e.getArg(i);
+
+      if(argType.isPrimitive(PrimitiveSort.Option)) {
+        arg.setType(argType);
+      }
+    }
+
     /**
      * The viper back-ends require integers and fractions to be distinguished.
      * Hence, we recursively force fractional arguments to be of
@@ -412,6 +422,11 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
     Type val_type=val.getType();
     if (val_type==null) Abort("Value has no type has no type.");
     if (loc_type.toString().equals("<<label>>")) return;
+
+    if(loc_type.isPrimitive(PrimitiveSort.Option)) {
+      val.setType(loc_type);
+    }
+
     if (!(loc_type.equals(val_type)
         ||loc_type.supertypeof(source(), val_type)
         ||loc_type.isNumeric()&&val_type.isNumeric()
@@ -420,9 +435,6 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
     }
     if (loc_type.isPrimitive(PrimitiveSort.Fraction)||loc_type.isPrimitive(PrimitiveSort.ZFraction)){
       force_frac(val);
-    }
-    if (loc_type.isPrimitive(PrimitiveSort.Option)){
-      val.setType(loc_type);
     }
   }
   public void visit(AssignmentStatement s){
@@ -807,9 +819,14 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
     }
     case Cast:
     {
-      ASTNode t=e.arg(0);
+      ASTNode t = e.arg(0);
+      ASTNode exp = e.arg(1);
       if (t instanceof Type) {
         e.setType((Type)t);
+
+        if(((Type) t).isPrimitive(PrimitiveSort.Option)) {
+          exp.setType((Type) t);
+        }
       } else {
         Fail("cannot cast to non-type %s",t.getClass());
       }
@@ -929,6 +946,10 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
         Fail("types of location and value (%s/%s) incomparable at %s",
             t1,t3,e.getOrigin());
       }
+
+      if(t1.isPrimitive(PrimitiveSort.Option)) {
+          e.arg(2).setType(t1);
+      }
       break;
     }
     case Contribution:
@@ -992,16 +1013,10 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
       if (t2.isPrimitive(PrimitiveSort.ZFraction) || t2.isPrimitive(PrimitiveSort.Fraction)){
         force_frac(e.arg(0));
       }
-      if (t1.isPrimitive(PrimitiveSort.Option)) {
-        // TODO: use type inference instead of this quick fix
-        Type tt1=(Type)t1.firstarg();
-        Type tt2=(Type)t2.firstarg();
-        if (tt1.toString().equals("<<null>>")) {
-          e.arg(0).setType(t2);
-        }
-        if (tt2.toString().equals("<<null>>")){
-          e.arg(1).setType(t1);
-        }
+      if(t1.isPrimitive(PrimitiveSort.Option)) {
+        t2.setType(t1.getType());
+      } else if(t2.isPrimitive(PrimitiveSort.Option)) {
+        t1.setType(t2.getType());
       }
       break;
     }
@@ -1239,6 +1254,12 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
     {
       if (!(t1 instanceof PrimitiveType)) Fail("base must be array or sequence type.");
       PrimitiveType t=(PrimitiveType)t1;
+
+      if(t.isPrimitive(PrimitiveSort.Option)) {
+        if (!(t.firstarg() instanceof PrimitiveType)) Fail("base must be array or sequence type.");
+        t = (PrimitiveType) t.firstarg();
+      }
+
       switch(t.sort){
         case Pointer:
         case Sequence:
@@ -1249,6 +1270,11 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
         }
         default: Fail("base must be array or sequence type.");
       }
+
+      if(t1.isPrimitive(PrimitiveSort.Cell)) {
+        t1 = (Type) t1.firstarg();
+      }
+
       if (!t2.isInteger()) {
         Fail("subcript has type %s rather than integer",t2);
       }
@@ -1343,14 +1369,23 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
         Fail("type without arguments: %s in %s",t,v);
       }
       t=(Type)t.firstarg();
+
+      if(t.isPrimitive(PrimitiveSort.Cell)) {
+        t = (Type) t.firstarg();
+      }
+
       for (int i = 0; i < v.valuesLength(); i++) {
         Type t2=v.value(i).getType();
         if (t2==null){
           Fail("untyped build argument %d",i);
         }
-        if (t.equals(t2)) continue;
-        if (t.supertypeof(source(), t2)) continue;
-        Abort("cannot use %s to initialize %s",t2,t);
+        if(t.equals(t2) || t.supertypeof(source(), t2)) {
+          if(t.isPrimitive(PrimitiveSort.Option)) {
+            v.value(i).setType(t);
+          }
+        } else {
+          Abort("cannot use %s to initialize %s", t2, t);
+        }
       }
     }
   }

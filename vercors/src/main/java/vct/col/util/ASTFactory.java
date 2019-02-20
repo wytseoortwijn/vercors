@@ -1292,7 +1292,11 @@ public Axiom axiom(String name,ASTNode exp){
     res.accept_if(post);
     return res;
   }
-  
+
+    public ASTNode expression(StandardOperator op, ASTNode n,java.util.List<ASTNode> ns) {
+        return expression(op,n,ns.toArray(new ASTNode[ns.size()]));
+    }
+
   public ParallelRegion region(Origin origin, Contract c, List<ParallelBlock> blocks) {
     ParallelRegion res=new ParallelRegion(c, blocks);
 	res.setOrigin(origin);
@@ -1307,10 +1311,6 @@ public Axiom axiom(String name,ASTNode exp){
   public Method function_decl(Type t, Contract contract, String name,
       java.util.List<DeclarationStatement> args, ASTNode body) {
     return function_decl(t,contract,name,args.toArray(new DeclarationStatement[args.size()]),body);
-  }
-
-  public ASTNode expression(StandardOperator op, ASTNode n,java.util.List<ASTNode> ns) {
-    return expression(op,n,ns.toArray(new ASTNode[ns.size()]));
   }
 
   public ClassType class_type(String name, Map<String, Type> args) {

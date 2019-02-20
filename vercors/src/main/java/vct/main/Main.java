@@ -46,56 +46,8 @@ import vct.col.ast.ASTSpecial;
 import vct.col.ast.ProgramUnit;
 import vct.col.ast.SpecificationFormat;
 import vct.col.ast.StandardOperator;
-import vct.col.rewrite.AbstractRewriter;
-import vct.col.rewrite.AccessIntroduce;
-import vct.col.rewrite.AddTypeADT;
-import vct.col.rewrite.AssignmentRewriter;
-import vct.col.rewrite.CSLencoder;
-import vct.col.rewrite.ChalicePreProcess;
-import vct.col.rewrite.CheckHistoryAlgebra;
+import vct.col.rewrite.*;
 import vct.col.rewrite.CheckHistoryAlgebra.Mode;
-import vct.col.rewrite.CheckProcessAlgebra;
-import vct.col.rewrite.ClassConversion;
-import vct.col.rewrite.ConstructorRewriter;
-import vct.col.rewrite.CurrentThreadRewriter;
-import vct.col.rewrite.DynamicStaticInheritance;
-import vct.col.rewrite.ExplicitPermissionEncoding;
-import vct.col.rewrite.FilterClass;
-import vct.col.rewrite.FinalizeArguments;
-import vct.col.rewrite.Flatten;
-import vct.col.rewrite.FlattenBeforeAfter;
-import vct.col.rewrite.GenericPass1;
-import vct.col.rewrite.GhostLifter;
-import vct.col.rewrite.GlobalizeStaticsParameter;
-import vct.col.rewrite.InlinePredicatesRewriter;
-import vct.col.rewrite.JavaEncoder;
-import vct.col.rewrite.KernelRewriter;
-import vct.col.rewrite.OpenMPtoPVL;
-import vct.col.rewrite.OptimizeQuantifiers;
-import vct.col.rewrite.PVLCompiler;
-import vct.col.rewrite.PVLEncoder;
-import vct.col.rewrite.ParallelBlockEncoder;
-import vct.col.rewrite.PropagateInvariants;
-import vct.col.rewrite.PureMethodsAsFunctions;
-import vct.col.rewrite.RandomizedIf;
-import vct.col.rewrite.RecognizeMultiDim;
-import vct.col.rewrite.ReorderAssignments;
-import vct.col.rewrite.RewriteArrayRef;
-import vct.col.rewrite.RewriteSimpleNestedQuant;
-import vct.col.rewrite.RewriteSystem;
-import vct.col.rewrite.SatCheckRewriter;
-import vct.col.rewrite.ScaleAlways;
-import vct.col.rewrite.SetGetIntroduce;
-import vct.col.rewrite.SilverClassReduction;
-import vct.col.rewrite.SilverImplementIdentity;
-import vct.col.rewrite.SilverReorder;
-import vct.col.rewrite.SimplifyCalls;
-import vct.col.rewrite.Standardize;
-import vct.col.rewrite.StripConstructors;
-import vct.col.rewrite.VectorEncode;
-import vct.col.rewrite.VoidCalls;
-import vct.col.rewrite.VoidCallsThrown;
-import vct.col.rewrite.WandEncoder;
 import vct.col.syntax.JavaDialect;
 import vct.col.syntax.JavaSyntax;
 import vct.col.syntax.Syntax;
@@ -279,7 +231,7 @@ public class Main
         cnt++;
       }
       System.err.printf("Parsed %d file(s) in: %dms%n",cnt,System.currentTimeMillis() - startTime);
-  
+
       if (boogie.get() || sequential_spec.get()) {
         program.setSpecificationFormat(SpecificationFormat.Sequential);
       }
@@ -358,6 +310,7 @@ public class Main
         
         passes.add("standardize");
         passes.add("java-check"); // marking function: stub
+        passes.add("array_null_values"); // rewrite null values for array types into None
         if (silver.used()){
           // The new encoding does not apply to Chalice yet.
           // Maybe it never will.
@@ -734,6 +687,11 @@ public class Main
       public ProgramUnit apply(ProgramUnit arg,String ... args){
         new SimpleTypeCheck(arg).check();
         return arg;
+      }
+    });
+    defined_passes.put("array_null_values", new CompilerPass("rewrite null values for arrays to None") {
+      public ProgramUnit apply(ProgramUnit arg, String... args) {
+          return new ArrayNullValues(arg).rewriteAll();
       }
     });
     defined_passes.put("java-check",new CompilerPass("run a Java aware type check"){
