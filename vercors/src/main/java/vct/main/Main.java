@@ -311,6 +311,7 @@ public class Main
         passes.add("standardize");
         passes.add("java-check"); // marking function: stub
         passes.add("array_null_values"); // rewrite null values for array types into None
+        passes.add("java-check");
         if (silver.used()){
           // The new encoding does not apply to Chalice yet.
           // Maybe it never will.
