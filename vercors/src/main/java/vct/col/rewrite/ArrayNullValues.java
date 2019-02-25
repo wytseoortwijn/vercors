@@ -5,15 +5,11 @@ import vct.col.ast.*;
 /**
  * Rewrite pass that rewrites null values to none where they should be converted. This happens when e.g. null is
  * assigned to an array in Java.
+ * It is not very clear in what exact situations null values should be converted, but some subset of the conversion is
+ * due to type conversion (https://docs.oracle.com/javase/specs/jls/se7/html/jls-5.html, specifically assignment,
+ * method invocation and casting). It is also induced by some types of expression (e.g. ==).
  */
 public class ArrayNullValues extends AbstractRewriter {
-    /**
-     * Marker label that is added to any AST Node which must be cast to an option via conversion:
-     * https://docs.oracle.com/javase/specs/jls/se7/html/jls-5.html
-     * Applicable are assignment, method invocation and casting conversion.
-     */
-
-
     public ArrayNullValues(ProgramUnit source) {
         super(source);
     }

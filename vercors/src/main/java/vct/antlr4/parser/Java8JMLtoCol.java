@@ -60,19 +60,32 @@ public class Java8JMLtoCol extends ANTLRtoCOL implements Java8JMLVisitor<ASTNode
     StringLiteral=getStaticInt(lexer_class,"StringLiteral");
   }
 
-  private Type add_dims(Type t, ParseTree tree) {
-    ParserRuleContext ctx=(ParserRuleContext)tree;
-    int N=ctx.getChildCount();
-    int ofs=0;
-    while(ofs<N){
-      if (match(ofs,true,ctx,"[","]")){
-        t=create.primitive_type(PrimitiveSort.Array,t);
-        ofs+=2;
-      } else {
+  private int get_dim_count(DimsContext dims) {
+    int dimCount = 0;
+
+    for(int offset = 0; offset < dims.getChildCount(); offset += 2) {
+      if(!match(offset, true, dims, "[", "]")) {
         throw Failure("unimplemented dims");
       }
+
+      dimCount++;
     }
-    return t;
+
+    return dimCount;
+  }
+
+  private Type add_dims(Type type, int dims) {
+    for(int i = 0; i < dims; i++) {
+      type = create.primitive_type(PrimitiveSort.Option,
+              create.primitive_type(PrimitiveSort.Array,
+                      create.primitive_type(PrimitiveSort.Cell, type)));
+    }
+
+    return type;
+  }
+
+  private Type add_dims(Type type, DimsContext dims) {
+    return add_dims(type, get_dim_count(dims));
   }
 
   private ASTNode convert_annotated(ParserRuleContext ctx) {
@@ -127,9 +140,50 @@ public class Java8JMLtoCol extends ANTLRtoCOL implements Java8JMLVisitor<ASTNode
     return decl;
   }
 
-  public ASTNode getArrayInitializer(ParserRuleContext ctx) {
-    ASTNode n[]=convert_list(ctx,"{",",","}");
-    return create.struct_value(null,null,n);
+  public ASTNode getArrayInitializer(VariableInitializerContext ctx, Type baseType, int dimension) {
+    if(dimension <= 0) {
+      throw new HREError("Array initializer has too many levels", ctx);
+    }
+
+    ArrayList<ASTNode> elements = new ArrayList<>();
+
+    for(int offset = 0; offset < ctx.getChildCount(); offset++) {
+      if(match(offset, true, ctx, ",")) {
+        continue;
+      } else if(match((VariableInitializerContext) ctx.getChild(offset), "Expression")) {
+        elements.add(convert(ctx, offset));
+      } else if(match((VariableInitializerContext) ctx.getChild(offset), "ArrayInitializer")) {
+        elements.add(getArrayInitializer((ArrayInitializerContext) ctx.getChild(offset), baseType, dimension-1));
+      } else {
+        Abort("missing case");
+      }
+    }
+
+    return create.expression(StandardOperator.OptionSome,
+            create.struct_value(create.primitive_type(PrimitiveSort.Array,
+                    create.primitive_type(PrimitiveSort.Cell,
+                            add_dims(baseType, dimension-1)
+                    )
+            ), null, elements)
+    );
+  }
+
+  public ASTNode getArrayInitializer(ArrayInitializerContext ctx, Type baseType, int dimension) {
+    if(dimension <= 0) {
+      throw new HREError("Array initializer has too many levels", ctx);
+    }
+
+    if(ctx.getChild(1) instanceof VariableInitializerContext) {
+      return getArrayInitializer((VariableInitializerContext) ctx.getChild(1), baseType, dimension);
+    } else {
+      // Empty array
+      return create.expression(StandardOperator.OptionSome,
+              create.struct_value(create.primitive_type(PrimitiveSort.Array,
+                      create.primitive_type(PrimitiveSort.Cell,
+                              add_dims(baseType, dimension-1)
+                      )
+              ), null));
+    }
   }
 
   private ASTNode getBasicFor(ParserRuleContext ctx){
@@ -269,41 +323,6 @@ public class Java8JMLtoCol extends ANTLRtoCOL implements Java8JMLVisitor<ASTNode
     } else {
       throw MissingCase(ctx);
     }
-  }
-
-  public ASTNode getCreator(ParserRuleContext ctx) {
-    if (match(ctx,null,"ClassCreatorRestContext")){
-      ParserRuleContext rest_ctx=(ParserRuleContext)ctx.getChild(1);
-      Type type=checkType(convert(ctx,0));
-      //String name=getIdentifier(ctx,0);
-      if (match(rest_ctx,"ArgumentsContext")){
-        ParserRuleContext args_ctx=(ParserRuleContext)rest_ctx.getChild(0);
-        ASTNode args[];
-        if (args_ctx.getChildCount()>2){
-          args=convert_list((ParserRuleContext)args_ctx.getChild(1),",");
-        } else {
-          args=new ASTNode[0];
-        }
-        BeforeAfterAnnotations res=create.new_object((ClassType)type/*create.class_type(name)*/, args);
-        scan_comments_after(res.get_before(),ctx.getChild(0));
-        scan_comments_after(res.get_after(),ctx);
-        return (ASTNode)res;
-      }
-      Debug("no arguments");
-    }
-    if (match(ctx,null,"ArrayCreatorRest")){
-      Type basetype=checkType(convert(ctx,0));
-      ParserRuleContext rest_ctx=(ParserRuleContext)ctx.getChild(1);
-      if (match(rest_ctx,"[",null,"]")){
-        return create.expression(StandardOperator.NewArray,basetype,convert(rest_ctx,1));
-      }
-      if (match(rest_ctx,"[","]","ArrayInitializer")){
-        ASTNode vals[]=convert_list((ParserRuleContext)rest_ctx.getChild(2), "{", ",", "}");
-        return create.struct_value(create.primitive_type(PrimitiveSort.Array,basetype),null,vals);
-      }
-    }
-    Debug("no class creator");
-    return null;
   }
 
   public ASTNode getExpression(ParserRuleContext ctx) {
@@ -609,8 +628,8 @@ public class Java8JMLtoCol extends ANTLRtoCOL implements Java8JMLVisitor<ASTNode
       return create.primitive_type(PrimitiveSort.Set, checkType(convert(ctx,0)));
     }
   
-    if (match(ctx,null,"[","]")){
-      return create.primitive_type(PrimitiveSort.Array, checkType(convert(ctx,0)));
+    if (match(ctx,null,"Dims")){
+      return add_dims(checkType(convert(ctx, 0)), (DimsContext) ctx.getChild(1));
     }
     if (match(ctx,null,"->",null)){
       Type left=checkType(convert(ctx,0));
@@ -668,7 +687,7 @@ public class Java8JMLtoCol extends ANTLRtoCOL implements Java8JMLVisitor<ASTNode
     String name=getIdentifier(ctx,0);
     Type t=create.class_type(name);
     if (match(ctx,null,"Dims")){
-      t=add_dims(t,ctx.getChild(1));
+      t = add_dims(t, (DimsContext) ctx.getChild(1));
     }
     return create.field_decl(name, t);
   }
@@ -850,8 +869,18 @@ public class Java8JMLtoCol extends ANTLRtoCOL implements Java8JMLVisitor<ASTNode
 
   @Override
   public ASTNode visitArrayAccess(ArrayAccessContext ctx) {
-    
-    return null;
+    ASTNode result = convert(ctx, 0);
+
+    for(int i = 1; i < ctx.getChildCount() - 2;) {
+      if(match(i, true, ctx, "[", null, "]")) {
+        result = create.expression(StandardOperator.Subscript, result, convert(ctx, i+1));
+        i += 3;
+      } else {
+        i++;
+      }
+    }
+
+    return result;
   }
 
   @Override
@@ -869,13 +898,34 @@ public class Java8JMLtoCol extends ANTLRtoCOL implements Java8JMLVisitor<ASTNode
 
   @Override
   public ASTNode visitArrayCreationExpression(ArrayCreationExpressionContext ctx) {
-    
-    return null;
+    // A new array statement may have some number of dimensions, some of which may have a defined length
+    // If no dimensions have a defined length, a value may be explicitly specified.
+    // format: new T definedDimensions undefinedDimensions?
+    //       | new T undefinedDimensions initializer
+    Type baseType = checkType(convert(ctx,1));
+
+    if(ctx.getChild(2) instanceof DimExprsContext) {
+      // We have defined dimensions, so no initializer
+      ASTNode[] knownDims = convert_all((DimExprsContext) ctx.getChild(2));
+
+      // If there are no undefined dimensions, we add no further dimensions to the base type
+      // e.g. int[3][3] -> the type for which zeroes are generated is int (so 0)
+      //      int[3][] -> the type for which zeroes are generated is int[] (so null)
+      Type zeroType = ctx.getChildCount() == 3 ? baseType : add_dims(baseType, (DimsContext) ctx.getChild(3));
+
+      return create.expression(StandardOperator.NewArray, zeroType, knownDims);
+    } else {
+      // We have no defined dimensions, so there must be an initializer
+
+      return getArrayInitializer((ArrayInitializerContext) ctx.getChild(3),
+              baseType,
+              get_dim_count((DimsContext) ctx.getChild(2)));
+    }
   }
 
   @Override
   public ASTNode visitArrayInitializer(ArrayInitializerContext ctx) {
-    return getArrayInitializer(ctx);
+    return null;
   }
 
   @Override
@@ -1187,8 +1237,7 @@ public class Java8JMLtoCol extends ANTLRtoCOL implements Java8JMLVisitor<ASTNode
 
   @Override
   public ASTNode visitDimExpr(DimExprContext ctx) {
-    
-    return null;
+    return convert(ctx.getChild(ctx.getChildCount() - 2));
   }
 
   @Override
@@ -2245,18 +2294,7 @@ public class Java8JMLtoCol extends ANTLRtoCOL implements Java8JMLVisitor<ASTNode
 
   @Override
   public ASTNode visitUnannArrayType(UnannArrayTypeContext ctx) {
-    Type t=checkType(convert(ctx,0));
-    ParserRuleContext dims=(ParserRuleContext)ctx.getChild(1);
-    int ofs=0;
-    int N=dims.getChildCount();
-    while(match(ofs,true,dims,"[","]")){
-      t = create.primitive_type(PrimitiveSort.Array, t);
-      ofs+=2;
-    }
-    if (ofs!=N){
-      hre.lang.System.Fail("unimplemented array dim variant");
-    }
-    return t;
+    return add_dims(checkType(convert(ctx,0)), (DimsContext) ctx.getChild(1));
   }
 
   @Override
