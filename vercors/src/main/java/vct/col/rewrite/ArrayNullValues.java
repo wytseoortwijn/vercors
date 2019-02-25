@@ -28,9 +28,6 @@ public class ArrayNullValues extends AbstractRewriter {
         switch(exp.operator()) {
             case Get:
                 break;
-            case Set:
-                // TODO?
-                break;
 
             case UPlus:
             case UMinus:
@@ -93,6 +90,7 @@ public class ArrayNullValues extends AbstractRewriter {
                 break;
 
             case Assign:
+            case Set:
                 if(exp.getType().isPrimitive(PrimitiveSort.Option)) {
                     exp.arg(1).setType(exp.getType());
                 }
@@ -127,7 +125,7 @@ public class ArrayNullValues extends AbstractRewriter {
                 break;
 
             case PointsTo:
-                // TODO
+                // Induces a conversion from the type check, but does not propagate it.
                 break;
 
             case StructSelect:
@@ -166,7 +164,7 @@ public class ArrayNullValues extends AbstractRewriter {
                 break;
 
             case Member:
-                // TODO?
+                // Only allowed for sequence, set or bag.
                 break;
             case AddrOf:
                 break;
@@ -227,10 +225,10 @@ public class ArrayNullValues extends AbstractRewriter {
                 break;
             case ValidArray:
             case ValidMatrix:
-                // this should probably be type-checked to be a proper array, not an option.
+                // this should probably be type-checked to be a proper Array, not an Option.
                 break;
             case Values:
-                // this is type-checked to be a proper array
+                // this is type-checked to be a proper Array
                 break;
             case FoldPlus:
                 break;
