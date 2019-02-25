@@ -73,20 +73,12 @@ public class ArrayNullValues extends AbstractRewriter {
                 break;
 
             case TypeOf:
-                // TODO?
-                break;
             case Instance:
-                // TODO?
-                break;
             case Cast:
-                // TODO?
-                break;
             case SubType:
             case SuperType:
-                // TODO?
-                break;
             case InterSect:
-                // TODO?
+                // Unsupported
                 break;
 
             case Assign:

@@ -930,8 +930,7 @@ public class Java8JMLtoCol extends ANTLRtoCOL implements Java8JMLVisitor<ASTNode
 
   @Override
   public ASTNode visitArrayType(ArrayTypeContext ctx) {
-    
-    return null;
+    return add_dims(checkType(convert(ctx,0)), (DimsContext) ctx.getChild(1));
   }
 
   @Override
@@ -2006,8 +2005,7 @@ public class Java8JMLtoCol extends ANTLRtoCOL implements Java8JMLVisitor<ASTNode
 
   @Override
   public ASTNode visitReferenceType(ReferenceTypeContext ctx) {
-    
-    return null;
+    return convert(ctx, 0);
   }
 
   @Override

@@ -56,7 +56,7 @@ public enum StandardOperator {
   ITE(3),
   /** return the type of a value */
   TypeOf(1),
-  /** Instance of test. */
+  /** 'instanceof' test. */
   Instance(2),
   /** Type Cast Expression. */
   Cast(2),
