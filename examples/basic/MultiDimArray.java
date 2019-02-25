@@ -27,14 +27,5 @@ public class MultiDimArray {
         if(x[0] == null) {
             return;
         }
-
-        Object object = null; // trivial
-        Object[] objectArray = null; // rewrite pass
-
-        Object classToClass = object; // trivial
-        Object[] optToOpt = objectArray; // trivial
-
-        Object optToClass = objectArray; // unsupported for now
-        Object[] classToOpt = (Object[]) object; // unsupported for now
     }
 }
