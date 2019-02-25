@@ -18,5 +18,10 @@ public class MultiDimArray {
 
         x[0][0] = cond ? null : null;
         x[0] = cond ? null : null;
+        x[0] = cond ? null : x[0];
+
+        if(x[0] == null) {
+            return;
+        }
     }
 }
