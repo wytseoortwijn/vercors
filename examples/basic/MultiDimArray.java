@@ -1,3 +1,7 @@
+// -*- tab-width:4 ; indent-tabs-mode:nil -*-
+//:: cases MultiDimArray
+//:: tools silicon
+//:: verdict Pass
 public class MultiDimArray {
     public static void method(int[] x) {
 
@@ -23,5 +27,14 @@ public class MultiDimArray {
         if(x[0] == null) {
             return;
         }
+
+        Object object = null; // trivial
+        Object[] objectArray = null; // rewrite pass
+
+        Object classToClass = object; // trivial
+        Object[] optToOpt = objectArray; // trivial
+
+        Object optToClass = objectArray; // unsupported for now
+        Object[] classToOpt = (Object[]) object; // unsupported for now
     }
 }
