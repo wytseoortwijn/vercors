@@ -1054,13 +1054,15 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
       if (t1==null) Fail("type of left argument unknown at "+e.getOrigin());
       t2=e.arg(2).getType();
       if (t2==null) Fail("type of right argument unknown at "+e.getOrigin());
-      if (t1.getClass()!=t2.getClass()) {
+
+      if(!t1.comparableWith(source(), t2)) {
         Fail("Types of left and right-hand side argument are uncomparable at "+e.getOrigin());
       }
+
       if (t2.supertypeof(source(), t1)) {
         //Warning("ITE type %s",t2);
         e.setType(t2);        
-      } else {
+      } else if(t1.supertypeof(source(), t2)) {
         //Warning("ITE type %s",t1);
         e.setType(t1);
       }
