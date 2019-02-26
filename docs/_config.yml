@@ -1,4 +1,5 @@
 title: VerCors Tool FMT | Utwente
+baseurl: /vercors
 markdown: kramdown
 kramdown:
   footnote_backlink: '&#x21a9;&#xfe0e;'
