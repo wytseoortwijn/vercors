@@ -1,6 +1,4 @@
-languageCode: "en-us"
 title: VerCors Tool FMT | Utwente
-url: https://vercors_fmtutwente.nl
 markdown: kramdown
 kramdown:
   footnote_backlink: '&#x21a9;&#xfe0e;'
