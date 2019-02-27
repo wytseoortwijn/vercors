@@ -478,7 +478,7 @@
 /* Header */
 
 	#header {
-		background: #333333 url("/images/Vercors_Original.jpg") no-repeat;
+		background: #333333 url("{{ "/images/Vercors_Original.jpg" | prepend: site.baseurl }}") no-repeat;
 		background-size: cover;
 		color: #fff;
 		padding: 4em 0;
