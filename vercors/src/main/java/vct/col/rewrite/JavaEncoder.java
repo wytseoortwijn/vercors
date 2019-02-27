@@ -188,9 +188,13 @@ public class JavaEncoder extends AbstractRewriter {
   @Override
   public void visit(Dereference d){
     if (d.field().equals("length")){
-      if (d.obj().getType().isPrimitive(PrimitiveSort.Array)){
+      Type objType = d.obj().getType();
+
+      if (objType.isPrimitive(PrimitiveSort.Array)){
         result=create.expression(StandardOperator.Length,rewrite(d.obj()));
-      } else {
+      } else if(objType.isPrimitive(PrimitiveSort.Sequence) ||
+              objType.isPrimitive(PrimitiveSort.Bag) ||
+              objType.isPrimitive(PrimitiveSort.Set)) {
         result=create.expression(StandardOperator.Size,rewrite(d.obj()));
       }
       return;
