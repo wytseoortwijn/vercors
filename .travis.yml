@@ -37,6 +37,8 @@ addons:
       - texlive-latex-extra
 
 script:
+# do not continue if a step fails
+ - set -e
 # compile the tool set
  - ant compile -DTRAVIS=1
 # test the back ends (skipped)
