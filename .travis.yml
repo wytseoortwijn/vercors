@@ -27,7 +27,7 @@ notifications:
 # - echo "deb http://download.mono-project.com/repo/debian wheezy-libtiff-compat main" | sudo tee -a /etc/apt/sources.list.d/mono-xamarin.list
 # - sudo apt-get update
 # - sudo apt-get install mono-devel
- 
+
 addons:
   apt:
     packages:
@@ -38,7 +38,7 @@ addons:
 
 script:
 # compile the tool set
- - ant compile
+ - ant compile -DTRAVIS=1
 # test the back ends (skipped)
 # - vct --test=""
 # test one example in a way that show all error messages
@@ -62,7 +62,4 @@ deploy:
   file: 'src/tex/manual.pdf'
   on:
     repo: utwente-fmt/vercors
-    tags: true  
-
-
-
+    tags: true
