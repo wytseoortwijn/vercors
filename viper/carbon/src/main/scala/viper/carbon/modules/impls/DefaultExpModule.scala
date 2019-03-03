@@ -13,7 +13,7 @@ import viper.carbon.verifier.Verifier
 import viper.silver.verifier.{PartialVerificationError, reasons}
 import viper.carbon.boogie.Implicits._
 import viper.carbon.modules.components.DefinednessComponent
-import viper.silver.ast.{LocationAccess}
+import viper.silver.ast.{LocationAccess, MagicWand, PredicateAccess, Ref}
 import viper.silver.ast.utility.Expressions
 
 /**
@@ -105,7 +105,20 @@ class DefaultExpModule(val verifier: Verifier) extends ExpModule with Definednes
         renamedVars map (v => env.undefine(v.localVar))
         res
       }
-      case sil.ForPerm(variable, locations, body) => {
+      case sil.ForPerm(variables, accessRes, body) => {
+
+        val variable = variables.head
+
+        if (variables.length != 1) sys.error("Carbon only supports a single quantified variable in forperm, see Carbon issue #243")
+        if (variable.typ != Ref) sys.error("Carbon only supports Ref type in forperm, see Carbon issue #243")
+        accessRes match {
+          case _: MagicWand => sys.error("Carbon does not support magic wands in forperm, see Carbon issue #243")
+          case p: PredicateAccess => if (p.loc(program).formalArgs.length != 1) sys.error("Carbon only supports predicates with a single argument in forperm, see Carbon issue #243")
+          case _ =>
+        }
+
+        val locations = Seq(accessRes.asInstanceOf[LocationAccess].loc(program))
+
         // alpha renaming, to avoid clashes in context
         val renamedVar: sil.LocalVarDecl = {
           val v1 = env.makeUniquelyNamed(variable); env.define(v1.localVar); v1
@@ -243,7 +256,7 @@ class DefaultExpModule(val verifier: Verifier) extends ExpModule with Definednes
       case setExp@sil.AnySetMinus(left, right) => translateSetExp(setExp)
       case setExp@sil.AnySetContains(left, right) => translateSetExp(setExp)
       case setExp@sil.AnySetCardinality(_) => translateSetExp(setExp)
-      case _ => sys.error("unexpected expression")
+      case _ => sys.error("Viper expression didn't match any existing case.")
     }
   }
 
@@ -331,12 +344,21 @@ class DefaultExpModule(val verifier: Verifier) extends ExpModule with Definednes
           bound_vars map (v => env.define(v.localVar))
           val res = if (e.isInstanceOf[sil.ForPerm]) {
             val eAsForallRef = e.asInstanceOf[sil.ForPerm]
-            val bound_var = eAsForallRef.variable
+
+            if (eAsForallRef.variables.length != 1) sys.error("Carbon only supports a single quantified variable in forperm, see Carbon issue #243")
+            if (eAsForallRef.variables.head.typ != Ref) sys.error("Carbon only supports Ref type in forperm, see Carbon issue #243")
+            eAsForallRef.resource match {
+              case _: MagicWand => sys.error("Carbon does not support magic wands in forperm, see Carbon issue #243")
+              case p: PredicateAccess => if (p.loc(program).formalArgs.length != 1) sys.error("Carbon only supports predicates with a single argument in forperm, see Carbon issue #243")
+              case _ =>
+            }
+
+            val bound_var = eAsForallRef.variables.head
             val perLocFilter: sil.Location => LocationAccess = loc => loc match {
               case f: sil.Field => sil.FieldAccess(bound_var.localVar, f)(loc.pos, loc.info)
               case p: sil.Predicate => sil.PredicateAccess(Seq(bound_var.localVar), p)(loc.pos, loc.info, loc.errT)
             }
-            val filter: Exp = eAsForallRef.accessList.foldLeft[Exp](BoolLit(false))((soFar, loc) => BinExp(soFar, Or, hasDirectPerm(perLocFilter(loc))))
+            val filter: Exp = hasDirectPerm(eAsForallRef.resource.asInstanceOf[LocationAccess])
 
             handleQuantifiedLocals(bound_vars, If(filter, translate, Nil))
           } else handleQuantifiedLocals(bound_vars, translate)
@@ -411,13 +433,23 @@ class DefaultExpModule(val verifier: Verifier) extends ExpModule with Definednes
           Nil
       case sil.Implies(e1, e2) =>
         checkDefinedness(e1, error) ++
-          If(translateExp(e1), checkDefinednessOfSpecAndInhale(e2, error), Statements.EmptyStmt)
+          If(cond = translateExp(e1), thn = checkDefinednessOfSpecAndInhale(e2, error), els = Statements.EmptyStmt)
       case sil.CondExp(c, e1, e2) =>
         checkDefinedness(c, error) ++
-          If(translateExp(c), checkDefinednessOfSpecAndInhale(e1, error), checkDefinednessOfSpecAndInhale(e2, error))
-      case fa@sil.Forall(vars, triggers, expr) =>
-            checkDefinedness(e, error) ++
-              inhale(e)
+          If(cond = translateExp(c), thn = checkDefinednessOfSpecAndInhale(e1, error), els = checkDefinednessOfSpecAndInhale(e2, error))
+      case l@sil.Let(v, exp, body) =>
+        checkDefinedness(exp, error, true) ::
+          {
+            val u = env.makeUniquelyNamed(v) // choose a fresh "v" binder
+            env.define(u.localVar)
+            Assign(translateLocalVar(u.localVar),translateExp(exp)) ::
+              checkDefinednessOfSpecAndInhale(body.replace(v.localVar, u.localVar), error) ::
+              {
+                env.undefine(u.localVar)
+                Nil
+              }
+          }
+      //      case fa@sil.Forall(vars, triggers, expr) => // NOTE: there's no need for a special case for QPs, since these are desugared, introducing conjunctions
       case _ =>
         checkDefinedness(e, error) ++
           inhale(e)
@@ -438,9 +470,18 @@ class DefaultExpModule(val verifier: Verifier) extends ExpModule with Definednes
           If(translateExp(c),
             checkDefinednessOfSpecAndExhale(e1, definednessError, exhaleError),
             checkDefinednessOfSpecAndExhale(e2, definednessError, exhaleError))
-      case fa@sil.Forall(vars, triggers, expr) =>
-        checkDefinedness(e, definednessError) ++
-          exhale(Seq((e, exhaleError)))
+      case l@sil.Let(v, exp, body) =>
+        checkDefinedness(exp, definednessError, true) ::
+          {
+            val u = env.makeUniquelyNamed(v) // choose a fresh "v" binder
+            env.define(u.localVar)
+            Assign(translateLocalVar(u.localVar),translateExp(exp)) ::
+              checkDefinednessOfSpecAndExhale(body.replace(v.localVar, u.localVar), definednessError, exhaleError) ::
+              {
+                env.undefine(u.localVar)
+                Nil
+              }
+          }//      case fa@sil.Forall(vars, triggers, expr) => // NOTE: there's no need for a special case for QPs, since these are desugared, introducing conjunctions
       case _ =>
         checkDefinedness(e, definednessError) ++
           exhale(Seq((e, exhaleError)))
@@ -461,6 +502,13 @@ class DefaultExpModule(val verifier: Verifier) extends ExpModule with Definednes
         e match {
           case sil.MagicWand(_,_) => Nil
           case sil.Forall(_,_,_) => Nil
+          case sil.Let(v, e, body) => {
+            val u = env.makeUniquelyNamed(v) // choose a fresh "v" binder
+            env.define(u.localVar)
+            val stmts = Assign(translateLocalVar(u.localVar),translateExp(e)) ++ allFreeAssumptions(body.replace(v.localVar,u.localVar))
+            env.undefine(u.localVar)
+            stmts
+          }
           case _ =>
             for (sub <- e.subnodes if sub.isInstanceOf[sil.Exp]) yield {
               allFreeAssumptions(sub.asInstanceOf[sil.Exp])

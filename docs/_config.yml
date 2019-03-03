@@ -1,0 +1,5 @@
+languageCode: "en-us"
+baseurl: "/vercors"
+title: "VerCors Tool FMT | Utwente"
+
+markdown: kramdown

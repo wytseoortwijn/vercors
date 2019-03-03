@@ -1,24 +1,20 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
+
 package viper.carbon.modules.impls
 
 
-import org.scalatest.GivenWhenThen
 import viper.carbon.modules._
-import viper.carbon.modules.components.{TransferComponent, DefinednessComponent}
 import viper.carbon.verifier.Verifier
 import viper.carbon.boogie._
 import viper.carbon.boogie.Implicits._
 import viper.silver.ast.utility.Expressions
-import viper.silver.ast.{FullPerm, MagicWand, MagicWandStructure}
-import viper.silver.verifier.{errors, reasons, PartialVerificationError}
+import viper.silver.ast.MagicWandStructure
+import viper.silver.verifier.{reasons, PartialVerificationError}
 import viper.silver.{ast => sil}
-
-import scala.collection.mutable.ListBuffer
-
-
-/**
- * Created by Gaurav on 06.03.2015.
- */
-
 
 class
 DefaultWandModule(val verifier: Verifier) extends WandModule {
@@ -413,7 +409,7 @@ DefaultWandModule(val verifier: Verifier) extends WandModule {
   def exhaleExt(states: List[StateRep], used:StateRep, e: sil.Exp, allStateAssms: Exp):Stmt = {
     Comment("exhale_ext of " + e.toString())
     e match {
-      case acc@sil.AccessPredicate(_,_) => transferMain(states,used, e, allStateAssms)
+      case acc@sil.AccessPredicate(_: sil.LocationAccess,_) => transferMain(states,used, e, allStateAssms)
       case acc@sil.MagicWand(_,_) => transferMain(states, used,e,allStateAssms)
       case acc@sil.And(e1,e2) => exhaleExt(states, used, e1,allStateAssms) :: exhaleExt(states,used,e2,allStateAssms) :: Nil
       case acc@sil.Implies(e1,e2) => If(expModule.translateExp(e1), exhaleExt(states,used,e2,allStateAssms),Statements.EmptyStmt)
@@ -613,6 +609,8 @@ DefaultWandModule(val verifier: Verifier) extends WandModule {
           sil.PredicateAccess(localEvalArgs, loc.predicateName)(loc.pos, loc.info, loc.errT), newPerm)(acc.pos, acc.info)
 
         (localEvalArgs, predAccTransformed, assignStmt)
+
+      case mw: sil.MagicWand => sys.error(s"Unexpectedly found magic wand $mw")
     }
 
   }
@@ -645,8 +643,7 @@ DefaultWandModule(val verifier: Verifier) extends WandModule {
         val wandRep = getWandRepresentation(w)
         //GP: maybe should store holes of wand first in local variables
         (TransferableWand(heapModule.translateNull, wandRep, permTransfer, w),Nil)
-      case _ =>
-        sys.error("unexpected permission expression")
+      case _ => sys.error("Viper expression didn't match any existing case.")
     }
   }
 

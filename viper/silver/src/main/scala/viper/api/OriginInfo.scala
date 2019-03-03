@@ -4,30 +4,25 @@ import viper.silver.ast.Info
 import viper.silver.ast.Function
 
 class OriginInfo[O](origin : O, comments : Seq[String]) extends Info {
-  
   def this(origin : O){
-    this(origin,Nil)
+    this(origin, Nil)
   }
   
-  val loc=origin
+  val loc = origin
   
-  override def comment:Seq[String] = comments
-  
-  override def toString():String = loc.toString()
-  
+  override def comment : Seq[String] = comments
+  override def isCached : Boolean = false
+  override def toString() : String = loc.toString()
 }
 
 class RefuteInfo[O](origin : O) extends OriginInfo[O](origin,Nil) {
   // This class is used to tag a Not that is the result of
   // encoding "refute x;" as "assert !x;".
-
 }
 
 object Reachable {
   var reachable = scala.collection.mutable.Set[Info]()
-  
   var gonogo : viper.api.VerificationControl[Object] = AlwaysGo;
-
 }
 
 object VControl {
