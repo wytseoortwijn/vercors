@@ -1014,9 +1014,9 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
         force_frac(e.arg(0));
       }
       if(t1.isPrimitive(PrimitiveSort.Option)) {
-        t2.setType(t1.getType());
+        e.arg(1).setType(t1);
       } else if(t2.isPrimitive(PrimitiveSort.Option)) {
-        t1.setType(t2.getType());
+        e.arg(0).setType(t2);
       }
       break;
     }
@@ -1271,10 +1271,6 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
           break;
         }
         default: Fail("base must be array or sequence type.");
-      }
-
-      if(t1.isPrimitive(PrimitiveSort.Cell)) {
-        t1 = (Type) t1.firstarg();
       }
 
       if (!t2.isInteger()) {

@@ -96,27 +96,21 @@ public class RewriteArrayRef extends AbstractRewriter {
       }
       break;
     }
-    case Length:
-      if (e.first().getType().isPrimitive(PrimitiveSort.Array)) {
-        ASTNode res = create.expression(StandardOperator.OptionGet, rewrite(e.first()));
-        result = create.expression(StandardOperator.Length, res);
-        break;
-      } else {
-        super.visit(e);
-      }
     case Subscript:
-      if (e.first().getType().isPrimitive(PrimitiveSort.Array)) {
+      Type baseType = e.first().getType();
+
+      if (baseType.isPrimitive(PrimitiveSort.Array) || baseType.isPrimitive(PrimitiveSort.Option)) {
         // Determine the (new) type to determine how to address elements in the array.
-        Type t = rewrite(e.first().getType());
+        baseType = rewrite(baseType);
         ASTNode base = rewrite(e.first());
-        if (t.isPrimitive(PrimitiveSort.Option)) {
+        if (baseType.isPrimitive(PrimitiveSort.Option)) {
           base = create.expression(StandardOperator.OptionGet, base);
-          t = (Type) t.firstarg();
+          baseType = (Type) baseType.firstarg();
         }
         ASTNode index = rewrite(e.second());
         result = create.expression(StandardOperator.Subscript, base, index);
-        t = (Type) t.firstarg();
-        if (t.isPrimitive(PrimitiveSort.Cell)) {
+        baseType = (Type) baseType.firstarg();
+        if (baseType.isPrimitive(PrimitiveSort.Cell)) {
           result = create.dereference(result, "item");
         }
       } else {
@@ -162,29 +156,6 @@ public class RewriteArrayRef extends AbstractRewriter {
       result = create.expression(StandardOperator.Length, res);
     } else {
       super.visit(e);
-    }
-  }
-  
-  @Override
-  public void visit(PrimitiveType t) {
-    switch (t.sort) {
-    case Array: {
-      // For now use the type that is most backward compatible:
-      // * Arrays are nullable.
-      // * Only the deepest level elements are actual heap references (Cell-type).
-      // This might change in the future when types are fixed in the front-end.
-      if (((Type) t.firstarg()).isPrimitive(PrimitiveSort.Array)) {
-        result = create.primitive_type(PrimitiveSort.Option,
-            create.primitive_type(PrimitiveSort.Array, rewrite(t.firstarg())));
-      } else {
-        result = create.primitive_type(PrimitiveSort.Option, create.primitive_type(PrimitiveSort.Array,
-            create.primitive_type(PrimitiveSort.Cell, rewrite(t.firstarg()))));
-      }
-      break;
-    }
-    default:
-      super.visit(t);
-      break;
     }
   }
   
