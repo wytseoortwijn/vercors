@@ -1273,6 +1273,10 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
         default: Fail("base must be array or sequence type.");
       }
 
+      if(t1.isPrimitive(PrimitiveSort.Cell)) {
+        t1 = (Type) t1.firstarg();
+      }
+
       if (!t2.isInteger()) {
         Fail("subcript has type %s rather than integer",t2);
       }
@@ -1360,7 +1364,7 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
     }
     Type t=v.type();
     v.setType(t);
-    if (t instanceof ClassType){
+    if (t instanceof ClassType && !((ClassType) t).getFullName().equals("VCTArray")){
       Abort("constructor encoded as struct value");
     } else {
       if (t.hasArguments()){
@@ -1377,7 +1381,7 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
         if (t2==null){
           Fail("untyped build argument %d",i);
         }
-        if(t.equals(t2) || t.supertypeof(source(), t2)) {
+        if(t.equals(t2) || t.supertypeof(source(), t2) || (t instanceof ClassType && ((ClassType) t).getFullName().equals("Ref"))) {
           if(t.isPrimitive(PrimitiveSort.Option)) {
             v.value(i).setType(t);
           }
@@ -1446,7 +1450,13 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
 
   public void visit(Dereference e){
     super.visit(e);
+
+    if(e.obj().isa(StandardOperator.Subscript)) {
+      e.obj().setType(new PrimitiveType(PrimitiveSort.Cell, e.obj().getType()));
+    }
+
     Type object_type=e.obj().getType();
+
     if (object_type==null) Fail("type of object unknown at "+e.getOrigin());
     if (object_type.isPrimitive(PrimitiveSort.Location)){
       object_type=(Type)object_type.firstarg();

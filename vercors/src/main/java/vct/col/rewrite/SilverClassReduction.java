@@ -3,11 +3,7 @@ package vct.col.rewrite;
 import hre.ast.MessageOrigin;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Stack;
+import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -618,7 +614,6 @@ public class SilverClassReduction extends AbstractRewriter {
     }
     return res;
   }
-  
   
   @Override
   public void visit(MethodInvokation s){

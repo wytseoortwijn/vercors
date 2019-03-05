@@ -303,6 +303,28 @@ public class Flatten extends AbstractRewriter {
     }
     result=res;
   }
+
+  public void visit(StructValue s) {
+    if(s.type().isPrimitive(PrimitiveSort.Array)) {
+      String name = "__flatten_" + (++counter);
+      Type t = s.getType();
+      ASTNode n=create.field_decl(name,t);
+      declaration_block.addStatement(n);
+
+      for(int i = 0; i < s.valuesLength(); i++) {
+        current_block.addStatement(
+                create.assignment(
+                        create.expression(StandardOperator.Subscript,
+                                create.local_name(name),
+                                create.constant(i)),
+                        rewrite(s.value(i))));
+      }
+
+      result = create.local_name(name);
+    } else {
+      super.visit(s);
+    }
+  }
   
   @Override
   public void visit(LoopStatement s) {
