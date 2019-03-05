@@ -3,10 +3,29 @@
 # to link the Viper modules and build the tool.
 
 # Link Viper modules
+# Configure Carbon
 cd vercors/viper/carbon
-ln -s ../silver silver
+if [ -d "silver" ]
+then
+	# Erroneous directory
+	rm -rf silver
+fi
+if ! [ -L "silver" ] 
+then
+	ln -s ../silver silver
+fi
+# Configure Silicon
 cd ../silicon
-ln -s ../silver silver
+if [ -d "silver" ] 
+then
+	# Erroneous directory
+	rm -rf silver
+fi
+if ! [ -L "silver" ] 
+then
+	ln -s ../silver silver
+fi
+# Return to root directory
 cd ../../..
 
 # Compile the toolset
