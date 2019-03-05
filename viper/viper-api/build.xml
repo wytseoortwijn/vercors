@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="Viper API" default="compile" basedir=".">
+  <description>Project Build Script</description>
+ 
+  <!-- targets -->
+   
+  <target name="clean" depends="init" description="Remove previous build files">
+    <delete dir="${build.dir}" includeemptydirs="true" quiet="true"/>
+    <delete dir="${build-classes.dir}"/>
+    <delete file="silver-backends.jar"/>
+  </target>
+ 
+  <target name="init">
+    <property environment="env"/>
+ 
+    <!-- check for required tools -->
+    <fail message="Missing JAVA_HOME variable in OS environment">
+      <condition><isset property="${env.JAVA_HOME}"/></condition>
+    </fail>
+ 
+    <!-- variables for paths and files -->
+    <property name="src.dir" location="${basedir}/src"/>
+    <property name="lib.dir" location="${basedir}/libs"/>
+    <property name="build.dir" location="${basedir}/build"/>
+    <property name="build-classes.dir" location="${basedir}/bin"/>
+    <property name="build-lib.dir" location="${build.dir}/lib"/>
+    <property name="build-doc.dir" location="${build.dir}/doc"/>
+    <property name="java.dir" location="${env.JAVA_HOME}"/>
+ 
+    <path id="project.classpath">
+      <pathelement location="${build-classes.dir}"/> <!-- used during recompilation -->
+    </path>
+
+    <!-- print where this project will get scala and java from -->
+    <echo message="Init project"/>
+    <echo message=" with java.dir = ${java.dir}"/>
+ 
+    <!-- check if any files has been modified since last build -->
+    <uptodate property="build.uptodate" targetfile="${build.dir}/build.done">
+      <srcfiles dir= "${src.dir}" includes="**"/>
+      <srcfiles dir= "${lib.dir}" includes="**"/>
+    </uptodate>
+  </target>
+ 
+  <target name="compile" depends="init" unless="build.uptodate">
+    <mkdir dir="${build-classes.dir}"/>
+    <javac
+      includeantruntime="false"
+      destdir="${build-classes.dir}"
+      classpathref="project.classpath"
+      encoding="utf-8">
+      <include name="**/*.java"/>
+      <src><pathelement location="${src.dir}"/></src>
+    </javac>
+  </target>
+
+</project>
+

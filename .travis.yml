@@ -38,8 +38,7 @@ addons:
 
 script:
 # compile the tool set
-# Use shell script in order to be able to link the Viper modules
-- sh travis_build.sh
+ - ant compile
 # test the back ends (skipped)
 # - vct --test=""
 # test one example in a way that show all error messages
