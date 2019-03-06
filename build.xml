@@ -11,7 +11,7 @@
     <os family="windows" />
   </condition>  
 
-  <condition property="sbtbuild" value="assembly" else="packCopyDependencies">
+  <condition property="sbtbuild" value="assembly" else="assembly">
     <os family="windows" />
   </condition>  
 
@@ -37,17 +37,7 @@
       <fileset dir="parsers/bin">
         <include name="**" />
       </fileset>
-      <fileset dir="vercors/target/scala-2.12/classes">
-        <include name="**" />
-      </fileset>
-      <fileset dir="viper/silicon/src/main/resources">
-        <include name="**" />
-      </fileset>
-      <zipfileset src="vercors/target/lib/antlr4-runtime-4.5.3.jar" excludes="META-INF/*" />
-      <zipfileset src="vercors/target/lib/commons-lang3-3.1.jar" excludes="META-INF/*" />
-      <zipfileset src="vercors/target/lib/commons-io-2.4.jar" excludes="META-INF/*" />
-      <zipfileset src="vercors/target/lib/gson-2.8.0.jar" excludes="META-INF/*" />
-      <zipfileset src="vercors/target/lib/scala-library-2.12.7.jar" excludes="META-INF/*" />
+      <zipfileset src="vercors/target/scala-2.12/Vercors-assembly-0.1-SNAPSHOT.jar" excludes="META-INF/*" />
     </jar>
   </target>
   
@@ -128,9 +118,7 @@
       
 			<!-- VerCors and Viper jars -->
 			<zipfileset dir="." prefix="${prefix}"
-        includes="vct-tool.jar,
-                  viper/silicon/target/scala-2.12/silicon.jar,
-                  viper/carbon/target/scala-2.12/carbon.jar" />
+        includes="vct-tool.jar" />
     </zip>
   </target>
 
