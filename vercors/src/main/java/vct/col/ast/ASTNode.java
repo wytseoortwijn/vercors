@@ -234,6 +234,11 @@ public abstract class ASTNode implements ASTFlags {
   public void setType(Type t){
     this.t=t;
   }
+
+  public ASTNode asType(Type t) {
+    this.setType(t);
+    return this;
+  }
   
   private ASTNode parent;
   
