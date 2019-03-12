@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import scala.collection.JavaConverters;
 import vct.col.ast.*;
 import vct.col.ast.NameExpression.Kind;
 import vct.col.rewrite.ArrayNullValues;
@@ -1366,37 +1367,53 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
   @Override
   public void visit(StructValue v){
     super.visit(v);
-    if (v.type()==null){
-      Abort("Build without type argument");
-    }
-    Type t=v.type();
-    v.setType(t);
-    if (t instanceof ClassType && !((ClassType) t).getFullName().equals("VCTArray")){
-      Abort("constructor encoded as struct value");
-    } else {
-      if (t.hasArguments()){
-        Fail("type without arguments: %s in %s",t,v);
-      }
-      t=(Type)t.firstarg();
+    // TODO: type check cannot derive a useful type from only the values
+    v.setType(v.type());
 
-      if(t.isPrimitive(PrimitiveSort.Cell)) {
-        t = (Type) t.firstarg();
+    if(v.getType().isPrimitive(PrimitiveSort.Array)) {
+      Type element = (Type) v.getType().firstarg();
+
+      if(element.isPrimitive(PrimitiveSort.Cell)) {
+        element = (Type) element.firstarg();
       }
 
-      for (int i = 0; i < v.valuesLength(); i++) {
-        Type t2=v.value(i).getType();
-        if (t2==null){
-          Fail("untyped build argument %d",i);
-        }
-        if(t.equals(t2) || t.supertypeof(source(), t2) || (t instanceof ClassType && ((ClassType) t).getFullName().equals("Ref"))) {
-          if(t.isPrimitive(PrimitiveSort.Option)) {
-            v.value(i).setType(t);
-          }
-        } else {
-          Abort("cannot use %s to initialize %s", t2, t);
+      if(element.isPrimitive(PrimitiveSort.Option)) {
+        for (ASTNode node : JavaConverters.asJavaIterable(v.values())) {
+          node.setType(element);
         }
       }
     }
+//    if (v.type()==null){
+//      Abort("Build without type argument");
+//    }
+//    Type t=v.type();
+//    v.setType(t);
+//    if (t instanceof ClassType && !((ClassType) t).getFullName().equals("VCTArray")){
+//      Abort("constructor encoded as struct value");
+//    } else {
+//      if (t.hasArguments()){
+//        Fail("type without arguments: %s in %s",t,v);
+//      }
+//      t=(Type)t.firstarg();
+//
+//      if(t.isPrimitive(PrimitiveSort.Cell)) {
+//        t = (Type) t.firstarg();
+//      }
+//
+//      for (int i = 0; i < v.valuesLength(); i++) {
+//        Type t2=v.value(i).getType();
+//        if (t2==null){
+//          Fail("untyped build argument %d",i);
+//        }
+//        if(t.equals(t2) || t.supertypeof(source(), t2) || (t instanceof ClassType && ((ClassType) t).getFullName().equals("Ref"))) {
+//          if(t.isPrimitive(PrimitiveSort.Option)) {
+//            v.value(i).setType(t);
+//          }
+//        } else {
+//          Abort("cannot use %s to initialize %s", t2, t);
+//        }
+//      }
+//    }
   }
   
   private void check_location(ASTNode arg,String what) {

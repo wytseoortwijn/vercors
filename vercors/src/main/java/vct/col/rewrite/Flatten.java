@@ -311,12 +311,31 @@ public class Flatten extends AbstractRewriter {
       ASTNode n=create.field_decl(name,t);
       declaration_block.addStatement(n);
 
+      Type elementType = t;
+
+      if(!elementType.isPrimitive(PrimitiveSort.Array)) {
+        Abort("Unknown array format");
+      }
+
+      elementType = (Type) elementType.firstarg();
+
+      if(!elementType.isPrimitive(PrimitiveSort.Cell)) {
+        Abort("Unknown array format");
+      }
+
+      elementType = (Type) elementType.firstarg();
+
+      current_block.addStatement(create.assignment(
+              create.local_name(name),
+              create.invokation(null, null, RewriteArrayRef.getArrayConstructor(elementType, 1), create.constant(s.valuesLength()))
+      ));
+
       for(int i = 0; i < s.valuesLength(); i++) {
         current_block.addStatement(
                 create.assignment(
-                        create.expression(StandardOperator.Subscript,
+                        create.dereference(create.expression(StandardOperator.Subscript,
                                 create.local_name(name),
-                                create.constant(i)),
+                                create.constant(i)), "item"),
                         rewrite(s.value(i))));
       }
 
