@@ -1,3 +1,6 @@
+os: osx
+osx_image: xcode9.3
+
 language: scala
 
 scala:
@@ -8,17 +11,6 @@ jdk:
 
 env:
  - PATH=$TRAVIS_BUILD_DIR/unix/bin:$PATH
-
-#cache:
-#  directories:
-#    - $HOME/.sbt
-
-notifications:
-  email:
-    recipients:
-      - s.c.c.blom@utwente.nl
-    on_success: change
-    on_failure: always
 
 # mono is not needed for silicon.
 #before_script:
@@ -37,10 +29,10 @@ addons:
       - texlive-latex-extra
 
 script:
+# install ant
+- brew install ant
 # compile the tool set
  - ant compile
-# test the back ends (skipped)
-# - vct --test=""
 # test one example in a way that show all error messages
  - vct --silicon $TRAVIS_BUILD_DIR/examples/manual/fibonacci.pvl
 # test the remaining examples while hiding messages
