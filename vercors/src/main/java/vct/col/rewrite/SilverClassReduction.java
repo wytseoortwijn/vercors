@@ -411,12 +411,15 @@ public class SilverClassReduction extends AbstractRewriter {
       Type t0=e.arg(1).getType();
       ASTNode object=rewrite(e.arg(1));
       Type t=(Type)e.arg(0);
-      if (t.isPrimitive(PrimitiveSort.Float)){
-        if (t0.isPrimitive(PrimitiveSort.Integer)){
-          result=create.domain_call("VCTFloat","ffromint",object);
+      if (t.isPrimitive(PrimitiveSort.Float)) {
+        if (t0.isPrimitive(PrimitiveSort.Integer)) {
+          result = create.domain_call("VCTFloat", "ffromint", object);
         } else {
-          Fail("cannot convert %s to float yet.",t0);
+          Fail("cannot convert %s to float yet.", t0);
         }
+      } else if(t.isPrimitive(PrimitiveSort.Option)) {
+        // Type marker, ignore.
+        result = rewrite(e.arg(1));
       } else {
         ASTNode condition=create.invokation(null, null,"instanceof",
             create.domain_call("TYPE","type_of",object),

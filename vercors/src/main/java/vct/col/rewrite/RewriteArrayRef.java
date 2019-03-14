@@ -3,7 +3,6 @@ package vct.col.rewrite;
 import java.util.*;
 
 import hre.ast.MessageOrigin;
-import scala.None;
 import vct.col.ast.*;
 
 public class RewriteArrayRef extends AbstractRewriter {

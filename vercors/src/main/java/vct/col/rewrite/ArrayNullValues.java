@@ -17,7 +17,7 @@ public class ArrayNullValues extends AbstractRewriter {
     @Override
     public void visit(NameExpression exp) {
         if(exp.isReserved(ASTReserved.Null) && exp.getType().isPrimitive(PrimitiveSort.Option)) {
-            result = new NameExpression(ASTReserved.OptionNone);
+            result = create.expression(StandardOperator.Cast, exp.getType(), create.reserved_name(ASTReserved.OptionNone));
         } else {
             super.visit(exp);
         }
