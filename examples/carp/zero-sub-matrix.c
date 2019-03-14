@@ -1,6 +1,7 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 //:: cases ZeroSubMatrix-C
 //:: tools silicon
+//:: suite problem-fail
 //:: verdict Pass
 
 /*@
