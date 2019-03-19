@@ -1,32 +1,16 @@
 package vct.col.rewrite;
 
-import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.*;
 
 import hre.ast.MessageOrigin;
-import vct.col.ast.ASTNode;
-import vct.col.ast.ASTReserved;
-import vct.col.ast.AssignmentStatement;
-import vct.col.ast.ConstantExpression;
-import vct.col.ast.ContractBuilder;
-import vct.col.ast.DeclarationStatement;
-import vct.col.ast.Dereference;
-import vct.col.ast.Method;
-import vct.col.ast.NameExpression;
-import vct.col.ast.OperatorExpression;
-import vct.col.ast.PrimitiveSort;
-import vct.col.ast.PrimitiveType;
-import vct.col.ast.ProgramUnit;
-import vct.col.ast.StandardOperator;
-import vct.col.ast.Type;
+import vct.col.ast.*;
 
 public class RewriteArrayRef extends AbstractRewriter {
-  
-  private HashSet<Type> new_array;
-  private HashSet<Type> array_values;
-  
   private final static String ARRAY_CONSTRUCTOR = "new_array_";
   private final static String ARRAY_VALUES = "array_values_";
+
+  private HashMap<Integer, HashSet<Type>> new_array;
+  private HashSet<Type> array_values;
   
   public RewriteArrayRef(ProgramUnit source) {
     super(source);
@@ -34,15 +18,20 @@ public class RewriteArrayRef extends AbstractRewriter {
   
   @Override
   public ProgramUnit rewriteAll() {
-    new_array = new HashSet<Type>();
-    array_values = new HashSet<Type>();
+    new_array = new HashMap<>();
+    array_values = new HashSet<>();
+
     ProgramUnit res = super.rewriteAll();
+
     create.enter();
     create.setOrigin(new MessageOrigin("Array constructors"));
-    for (Type t : new_array) {
-      res.add(arrayConstructorFor(t));
+    for(Map.Entry<Integer, HashSet<Type>> entry : new_array.entrySet()) {
+      for(Type t : entry.getValue()) {
+        res.add(arrayConstructorFor(entry.getKey(), t));
+      }
     }
     create.leave();
+
     create.enter();
     create.setOrigin(new MessageOrigin("Array values"));
     for (Type t : array_values) {
@@ -125,8 +114,15 @@ public class RewriteArrayRef extends AbstractRewriter {
     }
     case NewArray: {
       Type t = (Type) e.arg(0);
-      new_array.add(t);
-      result = create.invokation(null, null, ARRAY_CONSTRUCTOR + t, rewrite(e.arg(1)));
+      new_array.computeIfAbsent(e.argslength() - 1, k -> new HashSet<>()).add(t);
+      ArrayList<ASTNode> methodArgList = new ArrayList<>();
+
+      for(int i = 1; i < e.argslength(); i++) {
+        methodArgList.add(e.arg(i));
+      }
+
+      result = create.expression(StandardOperator.OptionSome,
+              create.invokation(null, null, getArrayConstructor(t, e.argslength() - 1), rewrite(methodArgList)));
       break;
     }
     case PointsTo: {
@@ -158,48 +154,180 @@ public class RewriteArrayRef extends AbstractRewriter {
       super.visit(e);
     }
   }
-  
+
   @Override
-  public void visit(AssignmentStatement as) {
-    // Assign OptionNone if array is an option and is assigned null.
-    if (as.location().getType().isPrimitive(PrimitiveSort.Array) && as.expression().isReserved(ASTReserved.Null)
-        && rewrite(as.location().getType()).isPrimitive(PrimitiveSort.Option)) {
-      result = create.assignment(rewrite(as.location()), create.reserved_name(ASTReserved.OptionNone));
+  public void visit(StructValue value) {
+    Type t = value.getType();
+
+    while(t.isPrimitive(PrimitiveSort.Option) || t.isPrimitive(PrimitiveSort.Cell) || t.isPrimitive(PrimitiveSort.Array)) {
+      if(t.isPrimitive(PrimitiveSort.Cell)) {
+        new_array.computeIfAbsent(1, k -> new HashSet<>()).add((Type) t.firstarg());
+      }
+
+      t = (Type) t.firstarg();
+    }
+
+    super.visit(value);
+  }
+
+  public static String getArrayConstructor(Type t, int depth) {
+    String baseName = ARRAY_CONSTRUCTOR + depth + "_" + t.toString();
+    return baseName.replace('<', '_').replace('>', '_');
+  }
+
+  private DeclarationStatement[] arrayConstructorAssertion_guardVariables(int depth) {
+    DeclarationStatement[] declarations = new DeclarationStatement[depth];
+
+    for(int i = 0; i < depth; i++) {
+      declarations[i] = create.field_decl("i" + i, create.primitive_type(PrimitiveSort.Integer));
+    }
+
+    return declarations;
+  }
+
+  private ASTNode arrayConstructorAssertion_guard(int depth) {
+    ASTNode guard = null;
+
+    for(int i = 0; i < depth; i++) {
+      // 0 <= i_n < size_n
+      ASTNode variableGuard = create.expression(StandardOperator.And,
+              create.expression(StandardOperator.LTE, create.constant(0), /*<=*/ create.local_name("i" + i)),
+              create.expression(StandardOperator.LT, create.local_name("i" + i), /*<*/ create.local_name("size" + i)));
+
+      if(guard == null) {
+        guard = variableGuard;
+      } else {
+        guard = create.expression(StandardOperator.And, guard, variableGuard);
+      }
+    }
+
+    return guard;
+  }
+
+  private ASTNode arrayConstructorAssertion_Perm(int depth, ASTNode result) {
+    DeclarationStatement[] guardVariables = arrayConstructorAssertion_guardVariables(depth);
+    ASTNode guard = arrayConstructorAssertion_guard(depth);
+
+    ASTNode item = result;
+
+    for(int i = 0; i < depth; i++) {
+      // The outermost array is not of type option, so do not OptionGet it.
+      ASTNode properArray = item == result ? item : create.expression(StandardOperator.OptionGet, item);
+
+      item = create.dereference(create.expression(StandardOperator.Subscript,
+              properArray,
+              create.local_name("i" + i)), "item");
+    }
+
+    return create.starall(guard, create.expression(StandardOperator.Perm, item, create.reserved_name(ASTReserved.FullPerm)), guardVariables);
+  }
+
+  private ASTNode arrayConstructorAssertion_Length(int depth, ASTNode result) {
+    DeclarationStatement[] guardVariables = arrayConstructorAssertion_guardVariables(depth);
+    ASTNode guard = arrayConstructorAssertion_guard(depth);
+
+    ASTNode lengthArray = result;
+
+    for(int i = 0; i < depth; i++) {
+      // OptionGet((...[i]).item)
+      lengthArray = create.expression(StandardOperator.OptionGet,
+              create.dereference(create.expression(StandardOperator.Subscript,
+                      lengthArray,
+                      create.local_name("i" + i)), "item"));
+    }
+
+    ASTNode claim = create.expression(StandardOperator.EQ, create.expression(StandardOperator.Length, lengthArray), create.local_name("size" + depth));
+
+    if(guard == null) {
+      return claim;
     } else {
-      super.visit(as);
+      return create.starall(guard, claim, guardVariables);
+    }
+  }
+
+  private ASTNode arrayConstructAssertion_None(int depth, ASTNode result) {
+    DeclarationStatement[] guardVariables = arrayConstructorAssertion_guardVariables(depth);
+    ASTNode guard = arrayConstructorAssertion_guard(depth);
+
+    ASTNode notNone = result;
+
+    for(int i = 0; i < depth; i++) {
+      // The outermost array is not of type option, so do not OptionGet it.
+      ASTNode properArray = (notNone == result) ? notNone : create.expression(StandardOperator.OptionGet, notNone);
+
+      // OptionGet(...)[i_(depth - n)].item
+      notNone = create.dereference(create.expression(StandardOperator.Subscript,
+              properArray,
+              create.local_name("i" + i)), "item");
+    }
+
+    notNone = create.expression(StandardOperator.NEQ, notNone, create.reserved_name(ASTReserved.OptionNone));
+
+    if(guard == null) {
+      return notNone;
+    } else {
+      return create.starall(guard, notNone, guardVariables);
     }
   }
   
-  private Method arrayConstructorFor(Type t) {
-    if (t.isPrimitive(PrimitiveSort.Array)) {
-      // TODO: initialization of multidim arrays.
-      return null;
-    } else {
-      Type nt = create.primitive_type(PrimitiveSort.Array, t);
-      nt = rewrite(nt);
-      Type result_type = nt;
-      ASTNode array = create.reserved_name(ASTReserved.Result);
-      ContractBuilder cb = new ContractBuilder();
-      DeclarationStatement args[] = new DeclarationStatement[] {
-          create.field_decl("len", create.primitive_type(PrimitiveSort.Integer)) };
-      NameExpression len = create.local_name("len");
-      NameExpression i = create.local_name("i");
-      ConstantExpression nul = create.constant(0);
-      if (nt.isPrimitive(PrimitiveSort.Option)) {
-        cb.ensures(neq(array, create.reserved_name(ASTReserved.OptionNone)));
-        array = create.expression(StandardOperator.OptionGet, array);
-      }
-      ASTNode length = create.expression(StandardOperator.Length, array);
-      ASTNode base = create.dereference(create.expression(StandardOperator.Subscript, array, i), "item");
-      ASTNode guard = and(lte(nul, i), less(i, length));
-      ASTNode claim = create.expression(StandardOperator.Perm, base, create.reserved_name(ASTReserved.FullPerm));
-      DeclarationStatement decl = create.field_decl("i", create.primitive_type(PrimitiveSort.Integer));
-      cb.ensures(eq(length, len));
-      cb.ensures(create.starall(guard, claim, decl));
-      Method m = create.method_decl(result_type, cb.getContract(), ARRAY_CONSTRUCTOR + t, args, null);
-      m.setStatic(true);
-      return m;
+  private Method arrayConstructorFor(int maxDepth, Type baseType) {
+    ASTNode result = create.reserved_name(ASTReserved.Result);
+    ContractBuilder resultContract = new ContractBuilder();
+
+    // For every known depth, assert:
+    //  - write permission to the elements [1..depth]
+    //  - the array is not equal to none [1..depth)
+    //  - the array length is the given size [0..depth)
+    // The assertions must be in the correct order, so e.g. the preconditions of OptionGet are satisfied.
+
+    for(int depth = 0; depth <= maxDepth; depth++) {
+      if(depth > 0) resultContract.ensures(arrayConstructorAssertion_Perm(depth, result));
+      if(depth > 0 && depth < maxDepth) resultContract.ensures(arrayConstructAssertion_None(depth, result));
+      if(depth < maxDepth) resultContract.ensures(arrayConstructorAssertion_Length(depth, result));
     }
+
+    // Finally, assert that at the last depth the item is zero
+    DeclarationStatement[] guardVariables = arrayConstructorAssertion_guardVariables(maxDepth);
+    ASTNode guard = arrayConstructorAssertion_guard(maxDepth);
+    ASTNode item = result;
+
+    for(int i = 0; i < maxDepth; i++) {
+      // The outermost array is not of type option, so do not OptionGet it.
+      ASTNode properArray = item == result ? item : create.expression(StandardOperator.OptionGet, item);
+
+      item = create.dereference(create.expression(StandardOperator.Subscript,
+              properArray,
+              create.local_name("i" + i)), "item");
+    }
+
+    resultContract.ensures(create.starall(guard, create.expression(StandardOperator.EQ, item, baseType.zero()), guardVariables));
+
+    // Now, construct the method declaration
+    // create_array_type(int size0, int size1, ...) -> result_type: Array[Cell[Option[Array[Cell[...baseType]]]]]
+    //    ensures contract
+    Type resultType = baseType;
+
+    for(int i = 0; i < maxDepth - 1; i++) {
+      resultType = create.primitive_type(PrimitiveSort.Option, create.primitive_type(PrimitiveSort.Array, create.primitive_type(PrimitiveSort.Cell, resultType)));
+    }
+
+    resultType = create.primitive_type(PrimitiveSort.Array, create.primitive_type(PrimitiveSort.Cell, resultType));
+
+    DeclarationStatement[] functionArguments = new DeclarationStatement[maxDepth];
+
+    for(int i = 0; i < maxDepth; i++) {
+      functionArguments[i] = create.field_decl("size" + i, create.primitive_type(PrimitiveSort.Integer));
+    }
+
+    Method methodDeclaration = create.method_decl(resultType,
+            resultContract.getContract(),
+            getArrayConstructor(baseType, maxDepth),
+            functionArguments,
+            null);
+
+    methodDeclaration.setStatic(true);
+
+    return methodDeclaration;
   }
   
   private Method arrayValuesFor(Type t) {

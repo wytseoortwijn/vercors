@@ -411,12 +411,15 @@ public class SilverClassReduction extends AbstractRewriter {
       Type t0=e.arg(1).getType();
       ASTNode object=rewrite(e.arg(1));
       Type t=(Type)e.arg(0);
-      if (t.isPrimitive(PrimitiveSort.Float)){
-        if (t0.isPrimitive(PrimitiveSort.Integer)){
-          result=create.domain_call("VCTFloat","ffromint",object);
+      if (t.isPrimitive(PrimitiveSort.Float)) {
+        if (t0.isPrimitive(PrimitiveSort.Integer)) {
+          result = create.domain_call("VCTFloat", "ffromint", object);
         } else {
-          Fail("cannot convert %s to float yet.",t0);
+          Fail("cannot convert %s to float yet.", t0);
         }
+      } else if(t.isPrimitive(PrimitiveSort.Option)) {
+        // Type marker, ignore.
+        result = rewrite(e.arg(1));
       } else {
         ASTNode condition=create.invokation(null, null,"instanceof",
             create.domain_call("TYPE","type_of",object),
@@ -585,8 +588,16 @@ public class SilverClassReduction extends AbstractRewriter {
       }
       for(Entry<String,String> entry:option_get.entrySet()){
         create.enter();
-        create.setOrigin(new MessageOrigin("Generated OptionGet code"));
         Type t=rewrite(option_get_type.get(entry.getKey()));
+        String extraMessage;
+
+        if(t.firstarg() instanceof ClassType && ((ClassType) t.firstarg()).getFullName().equals("VCTArray")) {
+          extraMessage = "Array access to value which may be null";
+        } else {
+          extraMessage = "Value may be None";
+        }
+
+        create.setOrigin(new MessageOrigin("Generated OptionGet code: " + extraMessage));
         Type returns=(Type)((ClassType)t).firstarg();
         String name=entry.getValue();
         ContractBuilder cb=new ContractBuilder();

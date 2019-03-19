@@ -252,6 +252,8 @@ public class Main
       	passes.add("java_resolve"); // inspect class path for retreiving signatures of called methods. Will add files necessary to understand the Java code.
         passes.add("standardize"); // a rewriter s.t. only a subset of col will have to be supported 
         passes.add("check"); // type check col. Add annotations (the types) to the ast.
+        passes.add("rewrite_arrays"); // array generation and various array-related rewrites
+        passes.add("check");
         passes.add("flatten"); // expressions that contain method calls (possibly having side-effects) are put into separate statements.
         passes.add("assign");  // '(x = y ==> assign(x,y);). Has not been merged with standardize because flatten needs to be done first.
         passes.add("finalize_args"); // declare new variables to never have to change the arguments (which isn't allowed in silver)
@@ -426,14 +428,15 @@ public class Main
           passes.add("standardize");
           passes.add("check");
         }
-        
+
+        passes.add("rewrite_arrays"); // array generation and various array-related rewrites
+        passes.add("check");
         passes.add("flatten");
         passes.add("assign");
         passes.add("reorder");
         passes.add("standardize");
         passes.add("check");
-        
-        passes.add("rewrite_arrays"); // col has a 'cell' that can be set and get and has an object data-type. Arrays become sequences of cells. Chalice & Silicon have 'sequence'.
+
         passes.add("simplify_quant");
         passes.add("standardize");
         passes.add("check");
