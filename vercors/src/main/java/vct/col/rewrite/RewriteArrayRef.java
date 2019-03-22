@@ -5,14 +5,14 @@ import java.util.*;
 import hre.ast.MessageOrigin;
 import vct.col.ast.*;
 
-public class RewriteArrayRef extends AbstractRewriter {
+class RewriteArrayRefJava extends AbstractRewriter {
   private final static String ARRAY_CONSTRUCTOR = "new_array_";
   private final static String ARRAY_VALUES = "array_values_";
 
   private HashMap<Integer, HashSet<Type>> new_array;
   private HashSet<Type> array_values;
   
-  public RewriteArrayRef(ProgramUnit source) {
+  public RewriteArrayRefJava(ProgramUnit source) {
     super(source);
   }
   
