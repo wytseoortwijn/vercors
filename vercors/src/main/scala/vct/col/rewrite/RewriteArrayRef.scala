@@ -57,9 +57,37 @@ class RewriteArrayRef(source: ProgramUnit) extends AbstractRewriter(source) {
           null, null,
           RewriteArrayRef.getArrayConstructor(operator.arg(0).asInstanceOf[Type], operator.args.length - 1),
           operator.args.tail:_*)
+      case StandardOperator.Subscript =>
+        var baseType: Type = operator.arg(0).getType()
+        var result = rewrite(operator.arg(0))
+        val subscript = rewrite(operator.arg(1))
+
+        if(baseType.isPrimitive(PrimitiveSort.Option)) {
+          result = create.expression(StandardOperator.OptionGet, result)
+          baseType = baseType.asInstanceOf[PrimitiveType].firstarg.asInstanceOf[Type]
+        }
+
+        if(!(baseType.isPrimitive(PrimitiveSort.Array) || baseType.isPrimitive(PrimitiveSort.Sequence))) {
+          Fail("Unsupported array format")
+        } else {
+          result = create.expression(StandardOperator.Subscript, result, subscript)
+          baseType = baseType.asInstanceOf[PrimitiveType].firstarg.asInstanceOf[Type]
+        }
+
+        if(baseType.isPrimitive(PrimitiveSort.Cell)) {
+          result = create.dereference(result, "item")
+          baseType = baseType.asInstanceOf[PrimitiveType].firstarg.asInstanceOf[Type]
+        }
+
+        this.result = result
       case _ =>
         super.visit(operator)
     }
+  }
+
+  override def visit(struct_value: StructValue): Unit = {
+    RewriteArrayRef.getArrayConstructor(struct_value.getType, 1)
+    super.visit(struct_value)
   }
 
   def quantify(dimension: Int, claim: ASTNode): ASTNode = {
@@ -99,7 +127,7 @@ class RewriteArrayRef(source: ProgramUnit) extends AbstractRewriter(source) {
 
     val newDimension = if(pType.sort == PrimitiveSort.Array) dimension + 1 else dimension
 
-    // If the last array dimension is accessed, only permit one final Cell type.
+    // If the last array dimension is accessed, only permit Cell types.
     if(newDimension == definedDimensions && !newType.isPrimitive(PrimitiveSort.Cell)) {
       return (newType, newValue)
     }

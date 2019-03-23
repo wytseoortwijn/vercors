@@ -20,7 +20,7 @@ public class MultiDimArray {
 
         method(null);
 
-        x[0][0] = cond ? null : null;
+//        x[0][0] = cond ? null : null;
         x[0] = cond ? null : null;
         x[0] = cond ? null : x[0];
 
