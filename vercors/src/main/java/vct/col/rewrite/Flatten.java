@@ -333,6 +333,13 @@ public class Flatten extends AbstractRewriter {
         if(derefItem) target = create.dereference(target, "item");
         current_block.addStatement(create.assignment(target, rewrite(v.value(i))));
       }
+    } else if(t.isPrimitive(PrimitiveSort.Sequence) || t.isPrimitive(PrimitiveSort.Set) || t.isPrimitive(PrimitiveSort.Bag)) {
+        // The SilverExpressionMap has separate constructs for explicit seq, set & bag expressions, so we do not rewrite
+        // it here.
+        current_block.addStatement(create.assignment(
+                create.local_name(name),
+                v
+        ));
     } else {
       Fail("Don't know how to assign a StructValue to %s", t);
     }

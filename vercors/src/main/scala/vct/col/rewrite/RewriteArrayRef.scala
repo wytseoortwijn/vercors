@@ -67,7 +67,8 @@ class RewriteArrayRef(source: ProgramUnit) extends AbstractRewriter(source) {
           baseType = baseType.asInstanceOf[PrimitiveType].firstarg.asInstanceOf[Type]
         }
 
-        if(!(baseType.isPrimitive(PrimitiveSort.Array) || baseType.isPrimitive(PrimitiveSort.Sequence))) {
+        if(!(baseType.isPrimitive(PrimitiveSort.Array) ||
+          baseType.isPrimitive(PrimitiveSort.Sequence))) {
           Fail("Unsupported array format")
         } else {
           result = create.expression(StandardOperator.Subscript, result, subscript)
