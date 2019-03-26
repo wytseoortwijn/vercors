@@ -699,7 +699,7 @@ public class Main
         if (separate_checks.get()) {
           long start=System.currentTimeMillis();
           CompositeReport res=new CompositeReport();
-          ExecutorService queue=Executors.newFixedThreadPool(4);
+          ExecutorService queue=Executors.newFixedThreadPool(1);
           ArrayList<Future<TestReport>> list=new ArrayList<Future<TestReport>>();
           for(ClassName class_name:arg.classNames()){
               Callable<TestReport> task=new ChaliceTask(arg,class_name);
