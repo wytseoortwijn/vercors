@@ -615,7 +615,7 @@ public class SilverClassReduction extends AbstractRewriter {
     }
     HashSet<String> names=new HashSet<String>();
     for(ASTNode n:res){
-      if (n instanceof ASTDeclaration){
+      if (n instanceof ASTDeclaration && !(n instanceof ASTSpecial)){
         ASTDeclaration d=(ASTDeclaration)n;
         if (names.contains(d.name())){
           Warning("name %s declared more than once",d.name());
