@@ -15,6 +15,7 @@ class NationalFlag {
 	int mid;
 	
 	context items != null;
+	context 0 <= i && i < items.length;
 	context 0 <= j && j < items.length;
 	context Perm(items[i], write) ** Perm(items[j], write);
 	ensures items[j] == \old(items[i]);
