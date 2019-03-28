@@ -6,6 +6,7 @@ class ZeroMatrixIC {
   invariant matrix != null && M>0 && N > 0;
 	invariant matrix.length == M * N;
   context  (\forall* int i1 ; 0 <= i1 && i1 < M ;
+             matrix[i1] != null ** 
              (\forall* int j1 ; 0 <= j1 && j1 < N ;
                Perm(matrix[i1][j1],write)));
   ensures  (\forall int i3 ; 0 <= i3 && i3 < M ;
@@ -13,6 +14,7 @@ class ZeroMatrixIC {
                matrix[i3][j3]==0));
   void matrix(int M,int N,int[M][N] matrix){
     par twodim(int i=0..M,int j=0..N)
+        context matrix[i] != null;
         context Perm(matrix[i][j],write);
         ensures matrix[i][j]==0;
       {

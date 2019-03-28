@@ -660,12 +660,16 @@ public BlockStatement block(Origin origin, ASTNode ... args) {
   /**
    * Create a name expression that refers to a local variable.
    */
-  public NameExpression local_name(String name) {
+  public NameExpression local_name(Origin origin, String name) {
     NameExpression res=new NameExpression(name);
     res.setKind(NameExpression.Kind.Local);
-    res.setOrigin(origin_stack.get());
+    res.setOrigin(origin);
     res.accept_if(post);
     return res;
+  }
+  
+  public NameExpression local_name(String name) {
+    return local_name(origin_stack.get(), name);
   }
 
   /**
@@ -976,7 +980,7 @@ public ASTSpecial special(Origin origin, vct.col.ast.ASTSpecial.Kind kind, ASTNo
    return special_decl(origin_stack.get(),kind,args);
  }
 
-  public ASTNode starall(ASTNode guard, ASTNode claim, DeclarationStatement ... decl) {
+  public ASTNode starall(ASTNode[][] triggers, ASTNode guard, ASTNode claim, DeclarationStatement ... decl) {
     if (decl.length==0){
       return expression(StandardOperator.Implies,guard,claim);
     }
@@ -985,7 +989,7 @@ public ASTSpecial special(Origin origin, vct.col.ast.ASTSpecial.Kind kind, ASTNo
         Binder.Star,
         primitive_type(PrimitiveSort.Resource),
         new DeclarationStatement[]{decl[i]},
-        null,
+        triggers,
         guard,
         claim
     );
@@ -1005,6 +1009,10 @@ public ASTSpecial special(Origin origin, vct.col.ast.ASTSpecial.Kind kind, ASTNo
       res.accept_if(post);
     }
     return res;
+  }
+  
+  public ASTNode starall(ASTNode guard, ASTNode claim, DeclarationStatement ... decl) {
+    return starall(null, guard, claim, decl);
   }
   
   public ASTNode forall(ASTNode guard, ASTNode claim, DeclarationStatement ... decl) {

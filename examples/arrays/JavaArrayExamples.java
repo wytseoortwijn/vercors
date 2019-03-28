@@ -34,14 +34,6 @@ class Exercise4 {
 }
 
 class JavaArrayExamples {
-	
-	/*@
-		requires 0 < n;
- 		requires a <= b;
- 		ensures \result;
- 		ensures a*n <= b*n;
- 		pure boolean lemma_mult_n(int a, int b, int n) = true;
-	@*/
 
   /*@
     invariant a != null;
@@ -88,7 +80,6 @@ class JavaArrayExamples {
   public void zero_array_nested(int ar[],int M,int N){
     for(int i=0;i<M;i++)
     /*@
-			context lemma_mult_n(i + 1, M, N);
       context (\forall* int k ; i*N <= k && k < (i+1)*N ; Perm(ar[k],write));
       ensures (\forall  int k ; i*N <= k && k < (i+1)*N ; ar[k]==0 ) ;
     @*/
@@ -96,7 +87,6 @@ class JavaArrayExamples {
       for(int j=0;j<N;j++)
       /*@
 				context 0 <= i && i < M;
-				context lemma_mult_n(i, M - 1, N);
         context Perm(ar[i*N+j],write);
         ensures  ar[i*N+j]==0;
       @*/
@@ -115,7 +105,6 @@ class JavaArrayExamples {
     for(int i=0;i<M;i++) {
       for(int j=0;j<N;j++)
       /*@
-				context lemma_mult_n(i, M - 1, N);
         context Perm(ar[i*N+j],write);
         ensures ar[i*N+j]==0;
       @*/

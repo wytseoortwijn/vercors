@@ -1,5 +1,22 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 
+domain VCTArray[CT] {
+  function loc(a: VCTArray[CT], i: Int): CT
+  function alen(a: VCTArray[CT]): Int
+  function first(r: CT): VCTArray[CT]
+  function second(r: CT): Int
+
+  axiom all_diff {
+    forall a: VCTArray[CT], i: Int :: { loc(a,i) }
+      first(loc(a,i)) == a && second(loc(a,i)) == i
+  }
+
+  axiom len_nonneg {
+    forall a: VCTArray[CT] :: { alen(a) }
+      alen(a) >= 0
+  }
+}
+
 domain VCTOption[T] {
   function VCTNone(): VCTOption[T]
   function VCTSome(t: T): VCTOption[T]
