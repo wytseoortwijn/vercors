@@ -23,7 +23,7 @@ script:
 # Install ant
 - brew install ant
 # Compile the tool
-- ant compile
+- sh travis_build.sh
 # Test one example that shows all error messages
 - vct --silicon $TRAVIS_BUILD_DIR/examples/manual/fibonacci.pvl
 # Test the remaining examples while hiding messages

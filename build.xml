@@ -11,7 +11,7 @@
     <os family="windows" />
   </condition>  
 
-  <condition property="sbtbuild" value="assembly" else="packCopyDependencies">
+  <condition property="sbtbuild" value="assembly" else="assembly">
     <os family="windows" />
   </condition>  
 
@@ -19,11 +19,7 @@
   <property environment="env"/>
 
   <target name="clean">
-    <ant antfile="build.xml" dir="${basedir}/viper/viper-api" inheritAll="false" target="clean"/>
     <exec dir="${basedir}/vercors" executable="${sbtcommand}"> <arg value="clean" /> </exec>
-    <exec dir="${basedir}/viper/silver" executable="${sbtcommand}"> <arg value="clean" /> </exec>
-    <exec dir="${basedir}/viper/silicon" executable="${sbtcommand}"> <arg value="clean" /> </exec>
-    <exec dir="${basedir}/viper/carbon" executable="${sbtcommand}"> <arg value="clean" /> </exec>
     <ant antfile="build.xml" dir="${basedir}/parsers" inheritAll="false" target="clean"/>
     <ant antfile="build.xml" dir="${basedir}/hre" inheritAll="false" target="clean"/>
     <delete dir="${basedir}/doc/api"/>
@@ -41,31 +37,14 @@
       <fileset dir="parsers/bin">
         <include name="**" />
       </fileset>
-      <fileset dir="vercors/target/scala-2.12/classes">
-        <include name="**" />
-      </fileset>
-      <fileset dir="viper/viper-api/bin">
-        <include name="**" />
-      </fileset>
-      <fileset dir="viper/silicon/src/main/resources">
-        <include name="**" />
-      </fileset>
-      <zipfileset src="vercors/target/lib/antlr4-runtime-4.5.3.jar" excludes="META-INF/*" />
-      <zipfileset src="vercors/target/lib/commons-lang3-3.1.jar" excludes="META-INF/*" />
-      <zipfileset src="vercors/target/lib/commons-io-2.4.jar" excludes="META-INF/*" />
-      <zipfileset src="vercors/target/lib/gson-2.8.0.jar" excludes="META-INF/*" />
-      <zipfileset src="vercors/target/lib/scala-library-2.12.7.jar" excludes="META-INF/*" />
+      <zipfileset src="vercors/target/scala-2.12/Vercors-assembly-0.1-SNAPSHOT.jar" excludes="META-INF/*" />
     </jar>
   </target>
   
   <target name="compile">
-    <ant antfile="build.xml" dir="${basedir}/viper/viper-api" inheritAll="false" target="compile"/>
     <ant antfile="build.xml" dir="${basedir}/hre" inheritAll="false" target="compile"/>
     <ant antfile="build.xml" dir="${basedir}/parsers" inheritAll="false" target="compile"/>
     <exec dir="${basedir}/vercors" executable="${sbtcommand}"> <arg value="${sbtbuild}" /> </exec>
-    <exec dir="${basedir}/viper/silver" executable="${sbtcommand}"> <arg value="compile" /> </exec>
-    <exec dir="${basedir}/viper/silicon" executable="${sbtcommand}"> <arg value="assembly" /> </exec>
-    <exec dir="${basedir}/viper/carbon" executable="${sbtcommand}"> <arg value="assembly" /> </exec>
   </target>
 
   <target name="doc" depends="compile">
@@ -90,7 +69,7 @@
       <fileset dir="${basedir}/vercors/src/main/java" defaultexcludes="yes">
         <include name="**/*.java"/>
       </fileset>
-      <fileset dir="${basedir}/viper/viper-api/src" defaultexcludes="yes">
+      <fileset dir="${basedir}/viper/src" defaultexcludes="yes">
         <include name="**/*.java"/>
       </fileset>
 
@@ -139,9 +118,7 @@
       
 			<!-- VerCors and Viper jars -->
 			<zipfileset dir="." prefix="${prefix}"
-        includes="vct-tool.jar,
-                  viper/silicon/target/scala-2.12/silicon.jar,
-                  viper/carbon/target/scala-2.12/carbon.jar" />
+        includes="vct-tool.jar" />
     </zip>
   </target>
 
