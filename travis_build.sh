@@ -1,5 +1,5 @@
 #!/bin/sh
-# Script that is used in order to allow Travis 
+# Script that is used in order to allow Travis
 # to link the Viper modules and build the tool.
 
 # Link Viper modules
@@ -10,18 +10,18 @@ then
 	# Erroneous directory
 	rm -rf silver
 fi
-if ! [ -L "silver" ] 
+if ! [ -L "silver" ]
 then
 	ln -s ../silver silver
 fi
 # Configure Silicon
 cd ../silicon
-if [ -d "silver" ] 
+if [ -d "silver" ]
 then
 	# Erroneous directory
 	rm -rf silver
 fi
-if ! [ -L "silver" ] 
+if ! [ -L "silver" ]
 then
 	ln -s ../silver silver
 fi

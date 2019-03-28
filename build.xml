@@ -19,11 +19,7 @@
   <property environment="env"/>
 
   <target name="clean">
-    <ant antfile="build.xml" dir="${basedir}/viper/viper-api" inheritAll="false" target="clean"/>
     <exec dir="${basedir}/vercors" executable="${sbtcommand}"> <arg value="clean" /> </exec>
-    <exec dir="${basedir}/viper/silver" executable="${sbtcommand}"> <arg value="clean" /> </exec>
-    <exec dir="${basedir}/viper/silicon" executable="${sbtcommand}"> <arg value="clean" /> </exec>
-    <exec dir="${basedir}/viper/carbon" executable="${sbtcommand}"> <arg value="clean" /> </exec>
     <ant antfile="build.xml" dir="${basedir}/parsers" inheritAll="false" target="clean"/>
     <ant antfile="build.xml" dir="${basedir}/hre" inheritAll="false" target="clean"/>
     <delete dir="${basedir}/doc/api"/>
@@ -46,13 +42,9 @@
   </target>
 
   <target name="compile">
-    <ant antfile="build.xml" dir="${basedir}/viper/viper-api" inheritAll="false" target="compile"/>
     <ant antfile="build.xml" dir="${basedir}/hre" inheritAll="false" target="compile"/>
     <ant antfile="build.xml" dir="${basedir}/parsers" inheritAll="false" target="compile"/>
     <exec dir="${basedir}/vercors" executable="${sbtcommand}"> <arg value="${sbtbuild}" /> </exec>
-    <exec dir="${basedir}/viper/silver" executable="${sbtcommand}"> <arg value="compile" /> </exec>
-    <exec dir="${basedir}/viper/silicon" executable="${sbtcommand}"> <arg value="assembly" /> </exec>
-    <exec dir="${basedir}/viper/carbon" executable="${sbtcommand}"> <arg value="assembly" /> </exec>
   </target>
 
   <target name="doc" depends="compile">
@@ -77,7 +69,7 @@
       <fileset dir="${basedir}/vercors/src/main/java" defaultexcludes="yes">
         <include name="**/*.java"/>
       </fileset>
-      <fileset dir="${basedir}/viper/viper-api/src" defaultexcludes="yes">
+      <fileset dir="${basedir}/viper/src" defaultexcludes="yes">
         <include name="**/*.java"/>
       </fileset>
 
