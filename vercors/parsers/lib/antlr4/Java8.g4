@@ -53,10 +53,6 @@ Total lexer+parser time 30844ms.
  */
 grammar Java8;
 
-@header {
-package vct.antlr4.generated;
-}
-
 /*
  * Productions from §3 (Lexical Structure)
  */
@@ -1793,10 +1789,9 @@ WS  :  [ \t\r\n\u000C]+ -> skip
     ;
 
 COMMENT
-    :   '/*' .*? '*/' -> channel(COMMENT)
+    :   '/*' .*? '*/' -> channel(1)
     ;
 
 LINE_COMMENT
-    :   '//' ~[\r\n]* -> channel(COMMENT)
+    :   '//' ~[\r\n]* -> channel(1)
     ;
-

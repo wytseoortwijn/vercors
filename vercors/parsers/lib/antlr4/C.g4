@@ -29,13 +29,9 @@
 /** C 2011 grammar built from the C11 Spec */
 grammar C;
 
-@header {
-package vct.antlr4.generated;
-}
-
 @lexer::members{
-  public final static int COMMENT=BlockComment;
-  public final static int LINEDIRECTION=LineDirective;
+  public final static int COMMENT=1;
+  public final static int LINEDIRECTION=2;
 }
 
 primaryExpression
@@ -883,19 +879,19 @@ SChar
     :   ~["\\\r\n]
     |   EscapeSequence
     ;
-    
+
 EmbeddedLatex
     : '$' ~[$\r\n]* '$' -> skip
     ;
 
 LineDirective
     :   '#' Whitespace? DecimalConstant Whitespace? StringLiteral ~[\r\n]*
-        -> channel(LineDirective)
+        -> channel(2)
     ;
 
 PragmaDirective
     :   '#' Whitespace? 'pragma' Whitespace ~[\r\n]*
-        -> channel(BlockComment)
+        -> channel(1)
     ;
 
 Whitespace
@@ -912,10 +908,10 @@ Newline
 
 BlockComment
     :   '/*' .*? '*/'
-        -> channel(BlockComment)
+        -> channel(1)
     ;
 
 LineComment
     :   '//' ~[\r\n]*
-        -> channel(BlockComment)
+        -> channel(1)
     ;

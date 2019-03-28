@@ -1,13 +1,16 @@
-grammar Java7JML;
+grammar Java8JML;
 
-import val,Java7;
+import val, Java8;
 
 identifier : javaIdentifier ;
 
 extraIdentifier : valReserved ;
 
-extraType : 'resource' | 'process' | 'frac' | 'zfrac' ;
-   
+extraType : 'resource' | 'process' | 'frac' | 'zfrac' | identifier typeArgs ;
+
+typeArgs : '<' ((expression | type) (',' (expression | type))*)? '>' ;
+
+
 extraAnnotation
     : 'pure'
     | 'inline'
@@ -28,34 +31,35 @@ extraPrimary
     | valPrimary
     ;
 
+expressionList
+    :   labeledExpression (',' labeledExpression)*
+    ;
+
+labeledExpression
+    : ( Identifier ':' )? expression
+    ;
 
 extraDeclaration
     : functionDeclaration
     | axiomDeclaration
-    | valContractClause
     ;
 
-/* We use the elements of the Java 7 grammar to define
- function and axiom declarations.
- */
- 
 functionDeclaration
-    : modifier* type Identifier formalParameters '=' expression ';' 
+    : methodModifier* methodHeader '=' expression ';'
     ;
 
 axiomDeclaration
     : 'axiom' Identifier '{' expression '==' expression '}'
     ;
 
-
-/* The current API has only one category of specifications.
- * This is the specification sequence
- */
 specificationSequence : ( classBodyDeclaration | statement )* ;
 
-/* sequence of declarations only */
-javaDeclarations : classBodyDeclaration* ;
+EmbeddedLatex
+    : '#' ~[\r\n]* '#' -> skip
+    ;
 
-/* sequence of statements only  */
-javaStatements : statement* ;
+FileName : '"' ~[\r\n"]* '"' ;
 
+LINEDIRECTION
+    :   '#' WS? IntegerLiteral WS? FileName ~[\r\n]* -> channel(2)
+    ;

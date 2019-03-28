@@ -2,13 +2,9 @@ grammar PVFull;
 
 import val;
 
-@header {
-package vct.antlr4.generated;
-}
-
 @lexer::members{
-//  public final static int COMMENT=ML_COMMENT;
-  public final static int LINEDIRECTION=Integer.MAX_VALUE;
+//  public final static int COMMENT=1;
+  public final static int LINEDIRECTION=2;
 }
 
 expression : expr ;
@@ -36,9 +32,9 @@ args : type identifier ( ',' type identifier )* | ;
 atomExpression
  : lexpr
  | identifier ':' atomExpression
- | atomExpression 'with' block 
- | atomExpression 'then' block 
- | CONTAINER '<' type '>' values  
+ | atomExpression 'with' block
+ | atomExpression 'then' block
+ | CONTAINER '<' type '>' values
  | ('!'|'-') atomExpression
  | atomExpression '^^' atomExpression
  | atomExpression ('*'|'/'|'%') atomExpression
@@ -90,13 +86,13 @@ statement
  | 'fork' expr ';'
  | 'join' expr ';'
  | 'action' tuple block
- | valStatement 
+ | valStatement
  | 'if' '(' expr ')' block ( 'else' block )?
  | 'barrier' '(' identifier ( ';' id_list )? ')' ( '{' contract '}' | contract block )
- | contract 'par' par_unit ( 'and' par_unit )* 
- | 'vec' '(' iter ')' block 
- | 'invariant' identifier '(' expr ')' block 
- | 'atomic' '(' id_list ')' block 
+ | contract 'par' par_unit ( 'and' par_unit )*
+ | 'vec' '(' iter ')' block
+ | 'invariant' identifier '(' expr ')' block
+ | 'atomic' '(' id_list ')' block
  | invariant 'while' '(' expr ')' block
  | type identifier ('=' expr | (',' identifier)* ) ';'
  | expr ';'
@@ -163,7 +159,7 @@ new_dims
  : ('[' expr ']')+
  ;
 
-gen_id : identifier | CONTAINER ; 
+gen_id : identifier | CONTAINER ;
 
 classType : identifier typeArgs?;
 
@@ -177,8 +173,8 @@ identifier : Identifier | valReserved ;
 Identifier  : ('a'..'z'|'A'..'Z') ('a'..'z'|'A'..'Z'|'0'..'9'|'_')*;
 NUMBER : ('0'..'9')+;
 
-COMMENT : '/*' .*? '*/' -> channel(COMMENT) ;
-LINE_COMMENT : '//' .*? '\n' -> channel(COMMENT) ;
+COMMENT : '/*' .*? '*/' -> channel(1) ;
+LINE_COMMENT : '//' .*? '\n' -> channel(1) ;
 
 WS  :   (   ' '
         |   '\t'

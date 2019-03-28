@@ -21,7 +21,6 @@
   <target name="clean">
     <exec dir="${basedir}/vercors" executable="${sbtcommand}"> <arg value="clean" /> </exec>
     <ant antfile="build.xml" dir="${basedir}/parsers" inheritAll="false" target="clean"/>
-    <ant antfile="build.xml" dir="${basedir}/hre" inheritAll="false" target="clean"/>
     <delete dir="${basedir}/doc/api"/>
   </target>
 
@@ -31,9 +30,6 @@
         <attribute name="Main-Class" value="vct.main.Main"/>
         <attribute name="Built-By" value="${user.name}"/>
       </manifest>
-      <fileset dir="hre/bin">
-        <include name="**" />
-      </fileset>
       <fileset dir="parsers/bin">
         <include name="**" />
       </fileset>
@@ -42,7 +38,6 @@
   </target>
 
   <target name="compile">
-    <ant antfile="build.xml" dir="${basedir}/hre" inheritAll="false" target="compile"/>
     <ant antfile="build.xml" dir="${basedir}/parsers" inheritAll="false" target="compile"/>
     <exec dir="${basedir}/vercors" executable="${sbtcommand}"> <arg value="${sbtbuild}" /> </exec>
   </target>
