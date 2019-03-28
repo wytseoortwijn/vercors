@@ -877,13 +877,7 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
         Fail("subcript has type %s rather than integer",t2);
       }
 
-      Type thisType = t1;
-
-      for(int i = 0; i < e.argslength() - 1; i++) {
-        thisType = new PrimitiveType(PrimitiveSort.Option, new PrimitiveType(PrimitiveSort.Array,new PrimitiveType(PrimitiveSort.Cell, thisType)));
-      }
-
-      e.setType(thisType);
+      e.setType(t1);
       break;
     }
     case Implies:

@@ -304,45 +304,51 @@ public class Flatten extends AbstractRewriter {
     result=res;
   }
 
-  public void visit(StructValue s) {
-    if(s.type().isPrimitive(PrimitiveSort.Array)) {
-      String name = "__flatten_" + (++counter);
-      Type t = s.getType();
-      ASTNode n=create.field_decl(name,t);
-      declaration_block.addStatement(n);
+  public ASTNode transformStructValue(Type t, StructValue v) {
+    String name = "__flatten_" + (++counter);
+    declaration_block.addStatement(create.field_decl(name, t));
 
-      Type elementType = t;
-
-      if(!elementType.isPrimitive(PrimitiveSort.Array)) {
-        Abort("Unknown array format");
-      }
-
-      elementType = (Type) elementType.firstarg();
-
-      if(!elementType.isPrimitive(PrimitiveSort.Cell)) {
-        Abort("Unknown array format");
-      }
-
-      elementType = (Type) elementType.firstarg();
+    if(t.isPrimitive(PrimitiveSort.Option)) {
+      current_block.addStatement(create.assignment(
+              create.local_name(name),
+              create.expression(StandardOperator.OptionSome, transformStructValue((Type) t.firstarg(), v))
+      ));
+    } else if(t.isPrimitive(PrimitiveSort.Array)) {
+      Type arg = (Type) t.firstarg();
 
       current_block.addStatement(create.assignment(
               create.local_name(name),
-              create.invokation(null, null, RewriteArrayRef.getArrayConstructor(elementType, 1), create.constant(s.valuesLength()))
+              create.invokation(null, null, RewriteArrayRef.getArrayConstructor(t, 1), constant(v.valuesLength()))
       ));
 
-      for(int i = 0; i < s.valuesLength(); i++) {
-        current_block.addStatement(
-                create.assignment(
-                        create.dereference(create.expression(StandardOperator.Subscript,
-                                create.local_name(name),
-                                create.constant(i)), "item"),
-                        rewrite(s.value(i))));
+      boolean derefItem = false;
+
+      if(arg.isPrimitive(PrimitiveSort.Cell)) {
+        arg = (Type) arg.firstarg();
+        derefItem = true;
       }
 
-      result = create.local_name(name);
+      for(int i = 0; i < v.valuesLength(); i++) {
+        ASTNode target = create.expression(StandardOperator.Subscript, create.local_name(name), constant(i));
+        if(derefItem) target = create.dereference(target, "item");
+        current_block.addStatement(create.assignment(target, rewrite(v.value(i))));
+      }
+    } else if(t.isPrimitive(PrimitiveSort.Sequence) || t.isPrimitive(PrimitiveSort.Set) || t.isPrimitive(PrimitiveSort.Bag)) {
+        // The SilverExpressionMap has separate constructs for explicit seq, set & bag expressions, so we do not rewrite
+        // it here.
+        current_block.addStatement(create.assignment(
+                create.local_name(name),
+                v
+        ));
     } else {
-      super.visit(s);
+      Fail("Don't know how to assign a StructValue to %s", t);
     }
+
+    return create.local_name(name);
+  }
+
+  public void visit(StructValue s) {
+    result = transformStructValue(s.getType(), s);
   }
   
   @Override
