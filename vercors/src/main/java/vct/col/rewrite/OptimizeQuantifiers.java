@@ -42,7 +42,7 @@ public class OptimizeQuantifiers extends AbstractRewriter {
   }
   
   public void visit(BindingExpression e){
-    if (e.binder==Binder.Forall && (e.triggers==null || e.triggers.length==0)){
+    if ((e.binder==Binder.Star || e.binder==Binder.Forall) && (e.triggers==null || e.triggers.length==0)){
       ArrayList<DeclarationStatement> decls=new ArrayList<DeclarationStatement>();
       ArrayList<ASTNode> cond=new ArrayList<ASTNode>();
       ASTNode body=strip(decls,cond,e);

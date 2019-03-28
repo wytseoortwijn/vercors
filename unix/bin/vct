@@ -30,15 +30,8 @@ fi
 export TOOL_HOME
 
 VCT_PATH=$VCT_HOME/hre/bin
-VCT_PATH+=$SEP$VCT_HOME/viper/viper-api/bin
 VCT_PATH+=$SEP$VCT_HOME/parsers/bin
-
-VCT_PATH+=$SEP$VCT_HOME/viper/silicon/target/scala-2.12
-VCT_PATH+=$SEP$VCT_HOME/viper/silicon/target/scala-2.12/classes
-
-VCT_PATH+=$SEP$VCT_HOME/vercors/target/scala-2.12/classes
-VCT_PATH+=$SEP$VCT_HOME/vercors/target/scala-2.12/vercors-assembly-0.1-SNAPSHOT.jar
-VCT_PATH+=$SEP$VCT_HOME/vercors/target/lib/*
+VCT_PATH+=$SEP$VCT_HOME/vercors/target/scala-2.12/Vercors-assembly-0.1-SNAPSHOT.jar
 
 VMARGS="-Xss128m"
 i=0
@@ -55,4 +48,4 @@ for arg in "$@" ; do
   esac
 done
 
-exec java $VMARGS -cp "$VCT_PATH" vct.main.Main "${args[@]}"
+exec java $VMARGS -cp "$VCT_PATH" vct.main.Main $@

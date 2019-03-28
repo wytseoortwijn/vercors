@@ -1,5 +1,7 @@
-language: scala
+os: osx
+osx_image: xcode9.3
 
+language: scala
 scala:
  - 2.12.7
 
@@ -7,27 +9,8 @@ jdk:
  - oraclejdk9
 
 env:
- - PATH=$TRAVIS_BUILD_DIR/unix/bin:$PATH
+  - PATH=$TRAVIS_BUILD_DIR/unix/bin:$PATH
 
-#cache:
-#  directories:
-#    - $HOME/.sbt
-
-notifications:
-  email:
-    recipients:
-      - s.c.c.blom@utwente.nl
-    on_success: change
-    on_failure: always
-
-# mono is not needed for silicon.
-#before_script:
-# - sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
-# - echo "deb http://download.mono-project.com/repo/debian wheezy/snapshots/3.12.0 main" | sudo tee /etc/apt/sources.list.d/mono-xamarin.list
-# - echo "deb http://download.mono-project.com/repo/debian wheezy-libtiff-compat main" | sudo tee -a /etc/apt/sources.list.d/mono-xamarin.list
-# - sudo apt-get update
-# - sudo apt-get install mono-devel
- 
 addons:
   apt:
     packages:
@@ -37,14 +20,14 @@ addons:
       - texlive-latex-extra
 
 script:
-# compile the tool set
- - ant compile
-# test the back ends (skipped)
-# - vct --test=""
-# test one example in a way that show all error messages
- - vct --silicon $TRAVIS_BUILD_DIR/examples/manual/fibonacci.pvl
-# test the remaining examples while hiding messages
- - vct --tool=silicon --exclude-suite=slow,medium,problem-fail,skip-travis --test=$TRAVIS_BUILD_DIR/examples
+# Install ant
+- brew install ant
+# Compile the tool
+- sh travis_build.sh
+# Test one example that shows all error messages
+- vct --silicon $TRAVIS_BUILD_DIR/examples/manual/fibonacci.pvl
+# Test the remaining examples while hiding messages
+- vct --tool=silicon --exclude-suite=slow,medium,problem-fail,skip-travis --test=$TRAVIS_BUILD_DIR/examples
 
 #deploy:
 #  provider: releases

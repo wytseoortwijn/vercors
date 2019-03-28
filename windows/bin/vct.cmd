@@ -15,12 +15,7 @@ rem Create class path with run time libraries
 
 set VCT_PATH=%VCT_HOME%\hre\bin
 set VCT_PATH=%VCT_PATH%;%VCT_HOME%\parsers\bin
-set VCT_PATH=%VCT_PATH%;%VCT_HOME%\viper\viper-api\bin
-set VCT_PATH=%VCT_PATH%;%VCT_HOME%\vercors\target\scala-2.11\classes
-set VCT_PATH=%VCT_PATH%;%VCT_HOME%\vercors\target\scala-2.11\vercors-assembly-0.1-SNAPSHOT.jar
-set VCT_PATH=%VCT_PATH%;%VCT_HOME%\vercors\target\lib\*
-set VCT_PATH=%VCT_PATH%;%VCT_HOME%\viper\silicon\target\scala-2.11
-set VCT_PATH=%VCT_PATH%;%VCT_HOME%\viper\silicon\target\scala-2.11\classes
+set VCT_PATH=%VCT_PATH%;%VCT_HOME%\vercors\target\scala-2.12\vercors-assembly-0.1-SNAPSHOT.jar
 
 java -Xss128M -cp "%VCT_PATH%" vct.main.Main %*
 

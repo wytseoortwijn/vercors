@@ -33,36 +33,29 @@ public class SilverBackend {
   public static StringSetting silver_module=new StringSetting(null);
   public static IntegerSetting silicon_z3_timeout=new IntegerSetting(30000);
   
-  
   public static <T,E,S,DFunc,DAxiom,Program>
   ViperAPI<Origin,VerificationError,T,E,S,DFunc,DAxiom,Program>
   getVerifier(String tool){
+    if (silver_module.used()){  
+      return getSilverModuleVerifier(tool);
+    } else {
+      return getViperVerifier(tool);
+    }
+  }
+  
+  public static <T,E,S,DFunc,DAxiom,Program>
+  ViperAPI<Origin,VerificationError,T,E,S,DFunc,DAxiom,Program>
+  getSilverModuleVerifier(String tool){
     boolean parser=tool.equals("parser");
     if (parser){
       tool="silicon";
-    } else {
-      hre.lang.System.Output("verifying with %s %s backend",
-          silver_module.used()?silver_module.get():"builtin",tool);
     }
     File jarfile;
-    if (silver_module.used()){
-      jarfile=Configuration.getToolHome().resolve(silver_module.get()+"/"+tool+".jar").toFile();
-    } else {
-      jarfile=Configuration.getHome().resolve("viper/"+tool+"/target/scala-2.12/"+tool+".jar").toFile();
-    }
+    jarfile=Configuration.getToolHome().resolve(silver_module.get()+"/"+tool+".jar").toFile();
     //System.err.printf("adding jar %s to path%n",jarfile);
     Container container;
 
-    if (silver_module.used()){
       container=new JarContainer(jarfile);
-    } else {
-      File classdir1=Configuration.getHome().resolve("viper/silver/target/scala-2.12/classes").toFile();
-      File classdir2=Configuration.getHome().resolve("viper/"+tool+"/target/scala-2.12/classes").toFile();
-      container=new UnionContainer(
-          new DirContainer(classdir1),
-          new DirContainer(classdir2),
-          new JarContainer(jarfile));
-    }
     Object obj;
     //TODO: Properties silver_props=new Properties();
     //TODO: Properties verifier_props=new Properties();
@@ -104,6 +97,26 @@ public class SilverBackend {
     return verifier;
   }
   
+  public static <T,E,S,DFunc,DAxiom,Program>
+  ViperAPI<Origin,VerificationError,T,E,S,DFunc,DAxiom,Program>
+  getViperVerifier(String tool){
+    ViperAPI<Origin,VerificationError,T,E,S,DFunc,DAxiom,Program> verifier = null;  
+    switch(tool.trim()) {
+    case "carbon":
+      verifier = new CarbonVerifier(new HREOrigins());
+      break;
+    case "silicon":
+      verifier = new SiliconVerifier(new HREOrigins());
+      break;
+    case "parser":
+      verifier = new SilverImplementation(new HREOrigins());
+      break;
+    default:
+      throw new HREError("cannot guess the main class of %s",tool);    
+    }
+    return verifier;
+  }
+  
   public static <T,E,S,Decl,DFunc,DAxiom,Program>
   PassReport TestSilicon(PassReport given, String tool) {
     //hre.System.Output("verifying with %s backend",silver_module.get());
@@ -113,6 +126,8 @@ public class SilverBackend {
     MessageFactory log=new MessageFactory(new PassAddVisitor(report));
     TaskBegin verification=log.begin("Viper verification");
     ViperAPI<Origin,VerificationError,T,E,S,DFunc,DAxiom,Program> verifier=getVerifier(tool);
+    hre.lang.System.Output("verifying with %s %s backend",
+            silver_module.used()?silver_module.get():"builtin",tool);
     //verifier.set_detail(Configuration.detailed_errors.get());
     VerCorsViperAPI vercors=VerCorsViperAPI.get();
     Program program=vercors.prog.convert(verifier,arg);
