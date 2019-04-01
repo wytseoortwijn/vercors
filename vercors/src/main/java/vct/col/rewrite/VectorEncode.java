@@ -3,6 +3,7 @@ package vct.col.rewrite;
 import hre.ast.MessageOrigin;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 
 import scala.collection.Seq;
@@ -40,6 +41,7 @@ public class VectorEncode extends AbstractRewriter {
   }
   
   private HashSet<Pair<Op,Type>> ops=new HashSet<>();
+  private HashMap<String, Type> locals;
   
   //static ProgramUnit vector_lib;
   //static {
@@ -70,7 +72,7 @@ public class VectorEncode extends AbstractRewriter {
       args.add(create.field_decl("ar", op.e2));
       args.add(create.field_decl("from", create.primitive_type(PrimitiveSort.Integer)));
       args.add(create.field_decl("upto", create.primitive_type(PrimitiveSort.Integer)));
-      cb.context(neq(create.local_name("ar"),create.reserved_name(ASTReserved.OptionNone)));
+      SequenceUtils.validSequenceUsingType(create, cb::context, t.getCompleteType(), create.local_name("ar"));
       cb.context(create.expression(StandardOperator.LTE,create.constant(0),create.local_name("from")));
       cb.context(create.expression(StandardOperator.LTE,create.local_name("from"),create.local_name("upto")));
       cb.context(create.expression(StandardOperator.LTE,create.local_name("upto"),
@@ -120,16 +122,17 @@ public class VectorEncode extends AbstractRewriter {
     ASTNode upto=rewrite(init.arg(1));
     String iterVarName = v.iter().name();
     BlockStatement res=create.block();
+    locals = new HashMap<>();
     for(ASTNode S:v.block()){
       // Turn locally declared variables into arrays.
       if (S instanceof DeclarationStatement){
         DeclarationStatement D=(DeclarationStatement)S;
-        SequenceUtils.SequenceInfo info = SequenceUtils.expectArray(D, "Expected %s to be of array type, got %s");
-        DeclarationStatement decl=create.field_decl(
-            D.name(),
-            info.getCompleteType(),
-            create.new_array(info.getCompleteType(), upto));
+        PrimitiveType elementType = expectAllowedElementType(D.getType());
+        PrimitiveType arrayType = create.primitive_type(PrimitiveSort.Array,
+                create.primitive_type(PrimitiveSort.Cell, elementType));
+        DeclarationStatement decl=create.field_decl(D.name(), arrayType, create.new_array(arrayType, upto));
         res.add(decl);
+        locals.put(D.name(), arrayType);
         continue;
       }
       
@@ -193,6 +196,11 @@ public class VectorEncode extends AbstractRewriter {
 
       if (array instanceof NameExpression && index.isName(indexName)) {
         result = new Pair<>(((NameExpression) array).getName(), array.getType());
+      }
+    } else if(expr instanceof NameExpression) {
+      NameExpression name = (NameExpression) expr;
+      if(locals.containsKey(name.getName())) {
+        result = new Pair<>(name.getName(), locals.get(name.getName()));
       }
     }
 

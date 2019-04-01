@@ -2,6 +2,8 @@ package vct.col.util;
 
 import vct.col.ast.*;
 
+import java.util.function.Consumer;
+
 import static hre.lang.System.Fail;
 
 public class SequenceUtils {
@@ -200,5 +202,20 @@ public class SequenceUtils {
         // statement is true for StandardOperator.Size/Length
 
         return create.expression(StandardOperator.Subscript, seq, index);
+    }
+
+    public static void validSequence(ASTFactory<?> create, Consumer<ASTNode> cb, ASTNode seq) {
+        validSequenceUsingType(create, cb, seq.getType(), seq);
+    }
+
+    public static void validSequenceUsingType(ASTFactory<?> create, Consumer<ASTNode> cb, Type type, ASTNode seq) {
+        SequenceInfo info = getTypeInfo(type);
+        if(info == null) {
+            Fail("Expected %s to be of a sequence type", seq);
+        }
+
+        if(info.isOpt()) {
+            cb.accept(create.expression(StandardOperator.NEQ, seq, create.reserved_name(ASTReserved.OptionNone)));
+        }
     }
 }

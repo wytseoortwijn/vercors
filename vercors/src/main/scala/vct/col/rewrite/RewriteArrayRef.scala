@@ -202,21 +202,25 @@ class RewriteArrayRef(source: ProgramUnit) extends AbstractRewriter(source) {
 
     val quantVar = name("i")
     val quantDecls = List(new DeclarationStatement("i", new PrimitiveType(PrimitiveSort.Integer))).toArray
-    var quantGuard = and(lte(from, quantVar), less(quantVar, to))
+    var quantGuardAdd = and(lte(from, quantVar), less(quantVar, to))
+    var quantGuard = and(lte(constant(0), quantVar), less(quantVar, create.expression(StandardOperator.Minus, to, from)))
 
     var quantArrayItem: ASTNode = create.expression(StandardOperator.Subscript, array, quantVar)
-    var quantSeqItem = create.expression(StandardOperator.Subscript, result, create.expression(StandardOperator.Minus, quantVar, from))
+    var quantArrayItemAdd: ASTNode = create.expression(StandardOperator.Subscript, array, create.expression(StandardOperator.Plus, quantVar, from))
+    var quantSeqItemSub = create.expression(StandardOperator.Subscript, result, create.expression(StandardOperator.Minus, quantVar, from))
+    var quantSeqItem = create.expression(StandardOperator.Subscript, result, quantVar)
 
     if(arrayType.isPrimitive(PrimitiveSort.Cell)) {
       quantArrayItem = create.dereference(quantArrayItem, "item")
+      quantArrayItemAdd = create.dereference(quantArrayItemAdd, "item")
       arrayType = arrayType.firstarg.asInstanceOf[Type]
     }
 
-    contract.requires(create.starall(quantGuard, create.expression(StandardOperator.Perm, quantArrayItem, create.reserved_name(ASTReserved.ReadPerm)), quantDecls:_*))
+    contract.requires(create.starall(quantGuardAdd, create.expression(StandardOperator.Perm, quantArrayItem, create.reserved_name(ASTReserved.ReadPerm)), quantDecls:_*))
 
     contract.ensures(eq(seqLength, create.expression(StandardOperator.Minus, to, from)))
-    quantGuard = and(lte(from, quantVar), less(quantVar, to))
-    contract.ensures(create.forall(quantGuard, eq(quantArrayItem, quantSeqItem), quantDecls:_*))
+    contract.ensures(create.forall(quantGuardAdd, eq(quantArrayItem, quantSeqItemSub), quantDecls:_*))
+    contract.ensures(create.forall(quantGuard, eq(quantArrayItemAdd, quantSeqItem), quantDecls:_*))
 
     val arguments = List(
       new DeclarationStatement("array", t),
