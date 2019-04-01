@@ -424,6 +424,8 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
     if (val_type==null) Abort("Value has no type has no type.");
     if (loc_type.toString().equals("<<label>>")) return;
 
+    System.out.println(String.format("Comparing %s with %s as %s", loc_type, val, val_type));
+
     if(loc_type.isPrimitive(PrimitiveSort.Option)) {
       val.setType(loc_type);
     }
@@ -1034,8 +1036,19 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
     }
     case Values:{
       Type t=e.arg(0).getType();
-      if (!t.isPrimitive(PrimitiveSort.Array)){
-        Abort("First argument values must be array at "+e.getOrigin());
+//      if (!t.isPrimitive(PrimitiveSort.Array)){
+//
+//      }
+      if(t.isPrimitive(PrimitiveSort.Option)) {
+        t = (Type) t.firstarg();
+      }
+      if(!t.isPrimitive(PrimitiveSort.Array)) {
+        Abort("First argument to values must be array-like at "+e.getOrigin());
+      } else {
+        t = (Type) t.firstarg();
+      }
+      if(t.isPrimitive(PrimitiveSort.Cell)) {
+        t = (Type) t.firstarg();
       }
       t1=e.arg(1).getType();
       if (t1==null) Fail("type of from argument unknown at "+e.getOrigin());
@@ -1043,7 +1056,7 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
       t2=e.arg(2).getType();
       if (t2==null) Fail("type of upto argument unknown at "+e.getOrigin());
       if (!t2.isInteger()) Fail("type of upto argument should be integer at "+e.getOrigin());
-      e.setType(new PrimitiveType(PrimitiveSort.Sequence,((PrimitiveType)t).argsJava()));
+      e.setType(new PrimitiveType(PrimitiveSort.Sequence, t));
       break;
     }
     case ITE:

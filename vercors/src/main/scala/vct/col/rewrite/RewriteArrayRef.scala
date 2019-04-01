@@ -1,6 +1,7 @@
 package vct.col.rewrite
 
 import hre.ast.MessageOrigin
+import vct.col.ast
 import vct.col.ast._
 
 import scala.collection.mutable
@@ -81,8 +82,31 @@ class RewriteArrayRef(source: ProgramUnit) extends AbstractRewriter(source) {
         }
 
         this.result = result
+      case StandardOperator.Values =>
+        val array = operator.arg(0)
+        result = create.invokation(null, null, RewriteArrayRef.getArrayValues(array.getType), operator.args:_*)
       case _ =>
         super.visit(operator)
+    }
+  }
+
+  override def visit(dereference: Dereference): Unit = {
+    if(dereference.field == "length") {
+      val objType = dereference.obj.getType
+
+      if(objType.isPrimitive(PrimitiveSort.Array)) {
+        result = create.expression(StandardOperator.Length, rewrite(dereference.obj))
+      } else if(objType.isPrimitive(PrimitiveSort.Option) && objType.firstarg.asInstanceOf[Type].isPrimitive(PrimitiveSort.Array)) {
+        result = create.expression(StandardOperator.Length, create.expression(StandardOperator.OptionGet, rewrite(dereference.obj)))
+      } else if(objType.isPrimitive(PrimitiveSort.Sequence) ||
+        objType.isPrimitive(PrimitiveSort.Bag) ||
+        objType.isPrimitive(PrimitiveSort.Set)) {
+        result = create.expression(StandardOperator.Size, rewrite(dereference.obj))
+      } else {
+        super.visit(dereference)
+      }
+    } else {
+      super.visit(dereference)
     }
   }
 
@@ -137,7 +161,7 @@ class RewriteArrayRef(source: ProgramUnit) extends AbstractRewriter(source) {
   }
 
   def arrayConstructorFor(t: Type, definedDimensions: Int, methodName: String): ASTNode = {
-    val contract = new ContractBuilder()
+    val contract = new ContractBuilder
     val result = create.reserved_name(ASTReserved.Result)
     val (elementType, elementValue) = arrayConstructorContract(contract, t, result, 0, definedDimensions)
     contract.ensures(quantify(definedDimensions, eq(elementValue, elementType.zero)))
@@ -150,6 +174,60 @@ class RewriteArrayRef(source: ProgramUnit) extends AbstractRewriter(source) {
   }
 
   def arrayValuesFor(t: Type, methodName: String): ASTNode = {
-    null
+    val contract = new ContractBuilder
+    var array = name("array")
+    val from = name("from")
+    val to = name("to")
+    var arrayType = t
+    val result = create.reserved_name(ASTReserved.Result)
+
+    if(arrayType.isPrimitive(PrimitiveSort.Option)) {
+      contract.requires(neq(array, create.reserved_name(ASTReserved.OptionNone)))
+      array = create.expression(StandardOperator.OptionGet, array)
+      arrayType = arrayType.firstarg.asInstanceOf[Type]
+    }
+
+    if(!arrayType.isPrimitive(PrimitiveSort.Array)) {
+      Fail("Unsupported array format")
+    }
+
+    arrayType = arrayType.firstarg.asInstanceOf[Type]
+
+    val arrayLength = create.expression(StandardOperator.Length, array)
+    val seqLength = create.expression(StandardOperator.Size, result)
+
+    contract.requires(lte(constant(0), from))
+    contract.requires(lte(from, to))
+    contract.requires(lte(to, arrayLength))
+
+    val quantVar = name("i")
+    val quantDecls = List(new DeclarationStatement("i", new PrimitiveType(PrimitiveSort.Integer))).toArray
+    var quantGuard = and(lte(from, quantVar), less(quantVar, to))
+
+    var quantArrayItem: ASTNode = create.expression(StandardOperator.Subscript, array, quantVar)
+    var quantSeqItem = create.expression(StandardOperator.Subscript, result, create.expression(StandardOperator.Minus, quantVar, from))
+
+    if(arrayType.isPrimitive(PrimitiveSort.Cell)) {
+      quantArrayItem = create.dereference(quantArrayItem, "item")
+      arrayType = arrayType.firstarg.asInstanceOf[Type]
+    }
+
+    contract.requires(create.starall(quantGuard, create.expression(StandardOperator.Perm, quantArrayItem, create.reserved_name(ASTReserved.ReadPerm)), quantDecls:_*))
+
+    contract.ensures(eq(seqLength, create.expression(StandardOperator.Minus, to, from)))
+    quantGuard = and(lte(from, quantVar), less(quantVar, to))
+    contract.ensures(create.forall(quantGuard, eq(quantArrayItem, quantSeqItem), quantDecls:_*))
+
+    val arguments = List(
+      new DeclarationStatement("array", t),
+      new DeclarationStatement("from", new PrimitiveType(PrimitiveSort.Integer)),
+      new DeclarationStatement("to", new PrimitiveType(PrimitiveSort.Integer)),
+    )
+
+    val resType = create.primitive_type(PrimitiveSort.Sequence, arrayType)
+
+    val declaration = create.function_decl(resType, contract.getContract, methodName, arguments.toArray, null)
+    declaration.setStatic(true)
+    declaration
   }
 }
