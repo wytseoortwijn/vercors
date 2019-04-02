@@ -680,7 +680,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   public ASTNode constant(int c){
   	return create.constant(c);
   }
-  public ASTNode name(String name){
+  public NameExpression name(String name){
   	return create.unresolved_name(name);
   }
   public ASTNode name(DeclarationStatement decl){
