@@ -3,15 +3,17 @@ package vct.col.rewrite;
 import hre.ast.MessageOrigin;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
+
+import scala.collection.Seq;
 import vct.col.ast.*;
-import static vct.col.rewrite.VectorEncode.Type.*;
+import vct.col.util.SequenceUtils;
+
 import static vct.col.rewrite.VectorEncode.Op.*;
 
 public class VectorEncode extends AbstractRewriter {
-  
-  protected static enum Type {Int,Float};
-  protected static enum Op {AssignConst,Add};
+  protected enum Op {AssignConst, Add}
   private static class Pair<E1,E2>{
     public final E1 e1;
     public final E2 e2;
@@ -38,9 +40,8 @@ public class VectorEncode extends AbstractRewriter {
     return "Vector_"+p.e1.toString()+"_"+p.e2.toString();
   }
   
-  private HashSet<Pair<Op,Type>> ops=new HashSet<Pair<Op, Type>>();
-  private String ivar;
-  private HashSet<String> locals;
+  private HashSet<Pair<Op,Type>> ops=new HashSet<>();
+  private HashMap<String, Type> locals;
   
   //static ProgramUnit vector_lib;
   //static {
@@ -60,21 +61,18 @@ public class VectorEncode extends AbstractRewriter {
     ASTClass vector_lib=create.new_class("VectorLib",null,null);
     res.add(vector_lib);
     for(Pair<Op,Type> op:ops){
-      ArrayList<DeclarationStatement> args=new ArrayList<DeclarationStatement>();
+      ArrayList<DeclarationStatement> args=new ArrayList<>();
       ContractBuilder cb=new ContractBuilder();
-      vct.col.ast.Type t=null;
-      switch(op.e2){
-      case Int:
-        t=create.primitive_type(PrimitiveSort.Integer);
-        break;
-      case Float:
-        t=create.primitive_type(PrimitiveSort.Float);
-        break;
+      SequenceUtils.SequenceInfo t = SequenceUtils.expectArrayType(op.e2, "Expected array type here, but got %s");
+
+      if(!t.isAssignable()) {
+        Fail("Target array is not assignable");
       }
-      args.add(create.field_decl("ar", create.primitive_type(PrimitiveSort.Array,t)));
+
+      args.add(create.field_decl("ar", op.e2));
       args.add(create.field_decl("from", create.primitive_type(PrimitiveSort.Integer)));
       args.add(create.field_decl("upto", create.primitive_type(PrimitiveSort.Integer)));
-      cb.context(neq(create.local_name("ar"),create.reserved_name(ASTReserved.Null)));
+      SequenceUtils.validSequenceUsingType(create, cb::context, t.getCompleteType(), create.local_name("ar"));
       cb.context(create.expression(StandardOperator.LTE,create.constant(0),create.local_name("from")));
       cb.context(create.expression(StandardOperator.LTE,create.local_name("from"),create.local_name("upto")));
       cb.context(create.expression(StandardOperator.LTE,create.local_name("upto"),
@@ -84,28 +82,27 @@ public class VectorEncode extends AbstractRewriter {
           create.expression(StandardOperator.LT,create.local_name("i"),create.local_name("upto"))
       );
       DeclarationStatement decl=create.field_decl("i",create.primitive_type(PrimitiveSort.Integer));
-      ASTNode ari=create.expression(StandardOperator.Subscript,
+      ASTNode ari = SequenceUtils.accessUsingType(create, t.getCompleteType(),
           create.local_name("ar"),create.local_name("i"));
-      cb.context(create.starall(range,create.expression(StandardOperator.Perm,ari,create.constant(1)), decl));
+      cb.context(create.starall(range,create.expression(StandardOperator.Perm,ari,create.reserved_name(ASTReserved.FullPerm)), decl));
       switch(op.e1){
       case AssignConst:
-        args.add(create.field_decl("c",t));
+        args.add(create.field_decl("c",t.getElementType()));
         cb.ensures(create.forall(range,
             create.expression(StandardOperator.EQ,ari,create.local_name("c")), decl));
         break;
       case Add:
-        args.add(create.field_decl("e1",create.primitive_type(PrimitiveSort.Sequence,t)));
-        args.add(create.field_decl("e2",create.primitive_type(PrimitiveSort.Sequence,t)));
+        Type seqType = create.primitive_type(PrimitiveSort.Sequence, t.getElementType());
+        args.add(create.field_decl("e1", seqType));
+        args.add(create.field_decl("e2", seqType));
         ASTNode len=create.expression(StandardOperator.Minus,create.local_name("upto"),create.local_name("from"));
         cb.context(create.expression(StandardOperator.EQ,
             create.expression(StandardOperator.Size,create.local_name("e1")),len));
         cb.context(create.expression(StandardOperator.EQ,
             create.expression(StandardOperator.Size,create.local_name("e2")),len));
         ASTNode idx=create.expression(StandardOperator.Minus,create.local_name("i"),create.local_name("from"));
-        ASTNode e1i=create.expression(StandardOperator.Subscript,
-            create.local_name("e1"),idx);
-        ASTNode e2i=create.expression(StandardOperator.Subscript,
-            create.local_name("e2"),idx);
+        ASTNode e1i = SequenceUtils.accessUsingType(create, seqType, create.local_name("e1"), idx);
+        ASTNode e2i = SequenceUtils.accessUsingType(create, seqType, create.local_name("e2"), idx);
         cb.ensures(create.forall(range,
             create.expression(StandardOperator.EQ,ari,create.expression(StandardOperator.Plus,e1i,e2i)), decl));
         break;
@@ -123,20 +120,19 @@ public class VectorEncode extends AbstractRewriter {
     OperatorExpression init = (OperatorExpression)v.iter().initJava();
     ASTNode from=rewrite(init.arg(0));
     ASTNode upto=rewrite(init.arg(1));
-    ivar = v.iter().name();
+    String iterVarName = v.iter().name();
     BlockStatement res=create.block();
-    locals = new HashSet<String>();
+    locals = new HashMap<>();
     for(ASTNode S:v.block()){
       // Turn locally declared variables into arrays.
       if (S instanceof DeclarationStatement){
         DeclarationStatement D=(DeclarationStatement)S;
-        detect(D.getType()); // check for valid type.
-        DeclarationStatement decl=create.field_decl(
-            D.name(),
-            create.primitive_type(PrimitiveSort.Array,D.getType()),
-            create.new_array(D.getType(), upto));
+        PrimitiveType elementType = expectAllowedElementType(D.getType());
+        PrimitiveType arrayType = create.primitive_type(PrimitiveSort.Array,
+                create.primitive_type(PrimitiveSort.Cell, elementType));
+        DeclarationStatement decl=create.field_decl(D.name(), arrayType, create.new_array(arrayType, upto));
         res.add(decl);
-        locals.add(D.name());
+        locals.put(D.name(), arrayType);
         continue;
       }
       
@@ -147,14 +143,14 @@ public class VectorEncode extends AbstractRewriter {
         ASTNode expr = A.expression();
 
         // check types.
-        Type t1=detect(loc.getType());
-        Type t2=detect(expr.getType());
-        if (t1 != t2){
+        PrimitiveType t1 = expectAllowedElementType(loc.getType());
+        PrimitiveType t2 = expectAllowedElementType(expr.getType());
+        if (!t1.equals(t2)) {
           Fail("types differ %s and %s",t1,t2);
         }
         
         // Detect array assigned to.
-        String array=detect_array(loc);
+        Pair<String, Type> array = detectArray(loc, iterVarName);
         
         // detect operation.
         ArrayList<ASTNode> args=new ArrayList<ASTNode>();
@@ -165,20 +161,20 @@ public class VectorEncode extends AbstractRewriter {
         }
         if (expr.isa(StandardOperator.Plus)){
           OperatorExpression rhs=(OperatorExpression)expr;
-          String e1=detect_array(rhs.arg(0));
-          String e2=detect_array(rhs.arg(1));
+          Pair<String, Type> left = detectArray(rhs.arg(0), iterVarName);
+          Pair<String, Type> right = detectArray(rhs.arg(1), iterVarName);
           op=Add;
-          args.add(create.expression(StandardOperator.Values,create.local_name(e1),from,upto));
-          args.add(create.expression(StandardOperator.Values,create.local_name(e2),from,upto));
+          args.add(create.expression(StandardOperator.Values,create.local_name(left.e1),from,upto));
+          args.add(create.expression(StandardOperator.Values,create.local_name(right.e1),from,upto));
         }
         if (op==null){
           Fail("unsupported RHS: %s",expr);
         }
         
-        Pair<Op,Type> kind=new Pair<Op,Type>(op,t1);
+        Pair<Op,Type> kind = new Pair<>(op, array.e2);
         ops.add(kind);
 
-        args.add(0,create.unresolved_name(array));
+        args.add(0,create.unresolved_name(array.e1));
         args.add(1,from);
         args.add(2,upto);
         res.add(create.invokation(create.class_type("VectorLib"),null,name(kind),args));
@@ -189,32 +185,37 @@ public class VectorEncode extends AbstractRewriter {
     result=res;
   }
 
-  private String detect_array(ASTNode loc){
-    String array=null;
-    if (loc instanceof NameExpression){
-      NameExpression name=(NameExpression)loc;
-      if (locals.contains(name.getName())){
-        array=name.getName();
+  private Pair<String, Type> detectArray(ASTNode expr, String indexName){
+    Pair<String, Type> result = null;
+
+    if (expr.isa(StandardOperator.Subscript)) {
+      OperatorExpression deref = (OperatorExpression)expr;
+
+      ASTNode array = deref.arg(0);
+      ASTNode index = deref.arg(1);
+
+      if (array instanceof NameExpression && index.isName(indexName)) {
+        result = new Pair<>(((NameExpression) array).getName(), array.getType());
       }
-    } else if (loc.isa(StandardOperator.Subscript)) {
-      OperatorExpression deref=(OperatorExpression)loc;
-      ASTNode ar=deref.arg(0);
-      ASTNode idx=deref.arg(1);
-      if (ar instanceof NameExpression && idx.isName(ivar)){
-        array=((NameExpression)ar).getName();
+    } else if(expr instanceof NameExpression) {
+      NameExpression name = (NameExpression) expr;
+      if(locals.containsKey(name.getName())) {
+        result = new Pair<>(name.getName(), locals.get(name.getName()));
       }
     }
-    if (array==null){
-      Fail("unsupported LHS: %s",loc);
+
+    if (result==null) {
+      Fail("unsupported LHS: %s",expr);
     }
-    return array;
+    return result;
   }
-  
-  private Type detect(vct.col.ast.Type type) {
-    if (type.isInteger()) return Int;
-    if (type.isPrimitive(PrimitiveSort.Float)) return Float;
-    Fail("type %s is invalid in vector blocks",type);
-    return null;
+
+  private PrimitiveType expectAllowedElementType(Type type) {
+    if(type.isPrimitive(PrimitiveSort.Float) || type.isPrimitive(PrimitiveSort.Integer)) {
+      return (PrimitiveType) type;
+    } else {
+      Fail("Type %s is not allowed as an array element type in a vector block", type);
+      return null;
+    }
   }
-  
 }

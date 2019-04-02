@@ -1,7 +1,9 @@
 package vct.col.rewrite
 
 import hre.ast.MessageOrigin
+import vct.col.ast
 import vct.col.ast._
+import vct.col.util.SequenceUtils
 
 import scala.collection.mutable
 
@@ -21,11 +23,11 @@ object RewriteArrayRef {
   }
 
   def getArrayConstructor(t: Type, definedDimensions: Int): String = {
-    constructorName getOrElseUpdate((t, definedDimensions), getUniqueName("new_" + t.toString))
+    constructorName getOrElseUpdate((t, definedDimensions), getUniqueName("array_new_" + t.toString))
   }
 
   def getArrayValues(t: Type): String = {
-    valuesName getOrElseUpdate(t, getUniqueName("values_" + t.toString()))
+    valuesName getOrElseUpdate(t, getUniqueName("array_values_" + t.toString))
   }
 }
 
@@ -56,9 +58,9 @@ class RewriteArrayRef(source: ProgramUnit) extends AbstractRewriter(source) {
         result = create.invokation(
           null, null,
           RewriteArrayRef.getArrayConstructor(operator.arg(0).asInstanceOf[Type], operator.args.length - 1),
-          operator.args.tail:_*)
+          rewrite(operator.args.tail.toArray):_*)
       case StandardOperator.Subscript =>
-        var baseType: Type = operator.arg(0).getType()
+        var baseType: Type = operator.arg(0).getType
         var result = rewrite(operator.arg(0))
         val subscript = rewrite(operator.arg(1))
 
@@ -81,8 +83,42 @@ class RewriteArrayRef(source: ProgramUnit) extends AbstractRewriter(source) {
         }
 
         this.result = result
+      case StandardOperator.Values =>
+        val array = operator.arg(0)
+        result = create.invokation(null, null, RewriteArrayRef.getArrayValues(array.getType), rewrite(operator.args.toArray):_*)
+      case StandardOperator.ValidArray =>
+        val t = operator.arg(0).getType
+        val array = rewrite(operator.arg(0))
+        val size = rewrite(operator.arg(1))
+        result = validArrayFor(array, t, size)
+      case StandardOperator.ValidMatrix =>
+        val t = operator.arg(0).getType
+        val matrix = rewrite(operator.arg(0))
+        val size0 = rewrite(operator.arg(1))
+        val size1 = rewrite(operator.arg(2))
+        result = validMatrixFor(matrix, t, size0, size1)
       case _ =>
         super.visit(operator)
+    }
+  }
+
+  override def visit(dereference: Dereference): Unit = {
+    if(dereference.field == "length") {
+      val objType = dereference.obj.getType
+
+      if(objType.isPrimitive(PrimitiveSort.Array)) {
+        result = create.expression(StandardOperator.Length, rewrite(dereference.obj))
+      } else if(objType.isPrimitive(PrimitiveSort.Option) && objType.firstarg.asInstanceOf[Type].isPrimitive(PrimitiveSort.Array)) {
+        result = create.expression(StandardOperator.Length, create.expression(StandardOperator.OptionGet, rewrite(dereference.obj)))
+      } else if(objType.isPrimitive(PrimitiveSort.Sequence) ||
+        objType.isPrimitive(PrimitiveSort.Bag) ||
+        objType.isPrimitive(PrimitiveSort.Set)) {
+        result = create.expression(StandardOperator.Size, rewrite(dereference.obj))
+      } else {
+        super.visit(dereference)
+      }
+    } else {
+      super.visit(dereference)
     }
   }
 
@@ -137,7 +173,7 @@ class RewriteArrayRef(source: ProgramUnit) extends AbstractRewriter(source) {
   }
 
   def arrayConstructorFor(t: Type, definedDimensions: Int, methodName: String): ASTNode = {
-    val contract = new ContractBuilder()
+    val contract = new ContractBuilder
     val result = create.reserved_name(ASTReserved.Result)
     val (elementType, elementValue) = arrayConstructorContract(contract, t, result, 0, definedDimensions)
     contract.ensures(quantify(definedDimensions, eq(elementValue, elementType.zero)))
@@ -150,6 +186,164 @@ class RewriteArrayRef(source: ProgramUnit) extends AbstractRewriter(source) {
   }
 
   def arrayValuesFor(t: Type, methodName: String): ASTNode = {
-    null
+    val contract = new ContractBuilder
+    var array: ASTNode = name("array")
+    val from = name("from")
+    val to = name("to")
+    var arrayType = t
+    val result = create.reserved_name(ASTReserved.Result)
+
+    if(arrayType.isPrimitive(PrimitiveSort.Option)) {
+      contract.requires(neq(array, create.reserved_name(ASTReserved.OptionNone)))
+      array = create.expression(StandardOperator.OptionGet, array)
+      arrayType = arrayType.firstarg.asInstanceOf[Type]
+    }
+
+    if(!arrayType.isPrimitive(PrimitiveSort.Array)) {
+      Fail("Unsupported array format")
+    }
+
+    arrayType = arrayType.firstarg.asInstanceOf[Type]
+
+    val arrayLength = create.expression(StandardOperator.Length, array)
+    val seqLength = create.expression(StandardOperator.Size, result)
+
+    contract.requires(lte(constant(0), from))
+    contract.requires(lte(from, to))
+    contract.requires(lte(to, arrayLength))
+
+    val quantVar = name("i")
+    val quantDecls = List(new DeclarationStatement("i", new PrimitiveType(PrimitiveSort.Integer))).toArray
+    var quantGuardAdd = and(lte(from, quantVar), less(quantVar, to))
+    var quantGuard = and(lte(constant(0), quantVar), less(quantVar, create.expression(StandardOperator.Minus, to, from)))
+
+    var quantArrayItem: ASTNode = create.expression(StandardOperator.Subscript, array, quantVar)
+    var quantArrayItemAdd: ASTNode = create.expression(StandardOperator.Subscript, array, create.expression(StandardOperator.Plus, quantVar, from))
+    var quantSeqItemSub = create.expression(StandardOperator.Subscript, result, create.expression(StandardOperator.Minus, quantVar, from))
+    var quantSeqItem = create.expression(StandardOperator.Subscript, result, quantVar)
+
+    if(arrayType.isPrimitive(PrimitiveSort.Cell)) {
+      quantArrayItem = create.dereference(quantArrayItem, "item")
+      quantArrayItemAdd = create.dereference(quantArrayItemAdd, "item")
+      arrayType = arrayType.firstarg.asInstanceOf[Type]
+    }
+
+    contract.requires(create.starall(quantGuardAdd, create.expression(StandardOperator.Perm, quantArrayItem, create.reserved_name(ASTReserved.ReadPerm)), quantDecls:_*))
+
+    contract.ensures(eq(seqLength, create.expression(StandardOperator.Minus, to, from)))
+    contract.ensures(create.forall(quantGuardAdd, eq(quantArrayItem, quantSeqItemSub), quantDecls:_*))
+    contract.ensures(create.forall(quantGuard, eq(quantArrayItemAdd, quantSeqItem), quantDecls:_*))
+
+    val arguments = List(
+      new DeclarationStatement("array", t),
+      new DeclarationStatement("from", new PrimitiveType(PrimitiveSort.Integer)),
+      new DeclarationStatement("to", new PrimitiveType(PrimitiveSort.Integer)),
+    )
+
+    val resType = create.primitive_type(PrimitiveSort.Sequence, arrayType)
+
+    val declaration = create.function_decl(resType, contract.getContract, methodName, arguments.toArray, null)
+    declaration.setStatic(true)
+    declaration
+  }
+
+  def validArrayFor(input: ASTNode, t: Type, size: ASTNode): ASTNode = {
+    val conditions: mutable.ListBuffer[ASTNode] = mutable.ListBuffer()
+    val seqInfo = SequenceUtils.expectArrayType(t, "Expected an array type here, but got %s")
+
+    var value = input
+
+    if(seqInfo.isOpt) {
+      conditions += neq(value, create.reserved_name(ASTReserved.OptionNone))
+      value = create.expression(StandardOperator.OptionGet, value)
+    }
+
+    conditions += eq(create.expression(StandardOperator.Length, value), size)
+
+    conditions.reduce(and _)
+  }
+
+  def validMatrixFor(input: ASTNode, t: Type, size0: ASTNode, size1: ASTNode): ASTNode = {
+    val conditions: mutable.ListBuffer[ASTNode] = mutable.ListBuffer()
+    val seqInfo0 = SequenceUtils.expectArrayType(t, "Expected a matrix type here, but got %s")
+    val seqInfo1 = SequenceUtils.expectArrayType(seqInfo0.getElementType, "The subscripts of a matrix should be of array type, but got %")
+
+    var matrix = input
+
+    if(seqInfo0.isOpt) {
+      conditions += neq(matrix, create.reserved_name(ASTReserved.OptionNone))
+      matrix = create.expression(StandardOperator.OptionGet, matrix)
+    }
+
+    conditions += eq(create.expression(StandardOperator.Length, matrix), size0)
+
+    val quantVar = name("i0")
+    // We also carry these variables through for later
+    val quantI0 = name("i0")
+    val quantI1 = name("i1")
+    val quantJ0 = name("j0")
+    val quantJ1 = name("j1")
+    val quantDecls = List(new DeclarationStatement(quantVar.getName, create.primitive_type(PrimitiveSort.Integer))).toArray
+    var quantGuard = and(lte(constant(0), quantVar), less(quantVar, size0))
+
+    var row: ASTNode = create.expression(StandardOperator.Subscript, matrix, quantVar)
+    var rowI: ASTNode = create.expression(StandardOperator.Subscript, matrix, quantI0)
+    var rowJ: ASTNode = create.expression(StandardOperator.Subscript, matrix, quantJ0)
+
+    if(seqInfo0.isCell) {
+      conditions += create.starall(quantGuard, create.expression(StandardOperator.Perm, row), quantDecls: _*)
+      row = create.dereference(row, "item")
+      rowI = create.dereference(rowI, "item")
+      rowJ = create.dereference(rowJ, "item")
+    }
+
+    if(seqInfo1.isOpt) {
+      conditions += create.forall(quantGuard, neq(row, create.reserved_name(ASTReserved.OptionNone)), quantDecls:_*)
+      row = create.expression(StandardOperator.OptionGet, row)
+      rowI = create.expression(StandardOperator.OptionGet, rowI)
+      rowJ = create.expression(StandardOperator.OptionGet, rowJ)
+    }
+
+    conditions += create.forall(quantGuard, eq(create.expression(StandardOperator.Length, row), size1), quantDecls:_*)
+
+    // Show injectivitiy: if two cells are equal, their indices are equal.
+    if(seqInfo1.isCell) {
+      // We compare matrix[i0][i1] and matrix[j0][j1]. We're just comparing the cells themselves, so no permission needed.
+      var cellI: ASTNode = rowI
+      var cellJ: ASTNode = rowJ
+
+      if(seqInfo1.isOpt) {
+        cellI = create.expression(StandardOperator.OptionGet, cellI)
+        cellJ = create.expression(StandardOperator.OptionGet, cellJ)
+      }
+
+      cellI = create.expression(StandardOperator.Subscript, cellI, quantI1)
+      cellJ = create.expression(StandardOperator.Subscript, cellJ, quantJ1)
+
+      // the second dimension is of cell types, so we've reached the cells here.
+
+      val quantDecls = Array(
+        new DeclarationStatement(quantI0.getName, create.primitive_type(PrimitiveSort.Integer)),
+        new DeclarationStatement(quantI1.getName, create.primitive_type(PrimitiveSort.Integer)),
+        new DeclarationStatement(quantJ0.getName, create.primitive_type(PrimitiveSort.Integer)),
+        new DeclarationStatement(quantJ1.getName, create.primitive_type(PrimitiveSort.Integer)),
+      )
+
+      val quantGuard = List(
+        and(lte(constant(0), quantI0), less(quantI0, size0)),
+        and(lte(constant(0), quantI1), less(quantI1, size1)),
+        and(lte(constant(0), quantJ0), less(quantJ0, size0)),
+        and(lte(constant(0), quantJ1), less(quantJ1, size1)),
+        eq(cellI, cellJ)
+      ).reduce(and)
+
+      val claim = and(eq(quantI0, quantJ0), eq(quantI1, quantJ1))
+
+      val triggers = Array(Array(cellI, cellJ))
+
+      conditions += create.starall(triggers, quantGuard, claim, quantDecls:_*)
+    }
+
+    conditions.reduce(star)
   }
 }

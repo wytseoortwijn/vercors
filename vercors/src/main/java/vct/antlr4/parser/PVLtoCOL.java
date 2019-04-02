@@ -359,7 +359,7 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
 
     for(int i = 0; i < ctx.getChildCount();) {
       if(match(i, true, ctx, "[", "Expr", "]")) {
-        type = create.primitive_type(PrimitiveSort.Array, type, convert(ctx, 1));
+        type = create.primitive_type(PrimitiveSort.Array, type);
         i += 3;
       } else if(match(i, true, ctx, "[", "]")) {
         type = create.primitive_type(PrimitiveSort.Array, type);

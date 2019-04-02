@@ -34,15 +34,15 @@ public final class PrimitiveType extends Type {
     }
     this.sort=sort;
   }
-  
+
   public PrimitiveType(PrimitiveSort sort, List<ASTNode> args){
 	  this(sort, args.toArray(new ASTNode[0]));
   }
-  
+
   public int hashCode(){
     return sort.hashCode();
   }
-  
+
   public boolean equals(Object o){
     if (o instanceof PrimitiveType) {
       PrimitiveType t = (PrimitiveType)o;
@@ -55,7 +55,7 @@ public final class PrimitiveType extends Type {
       return false;
     }
   }
-  
+
   public boolean isBoolean() {
     return sort==PrimitiveSort.Boolean;
   }
@@ -72,7 +72,7 @@ public final class PrimitiveType extends Type {
     return sort==PrimitiveSort.Void;
   }
 
-  
+
   @Override
   public <T> void accept_simple(ASTVisitor<T> visitor){
     try {
@@ -85,7 +85,7 @@ public final class PrimitiveType extends Type {
       throw t;
     }
   }
-  
+
   @Override
   public <T> T accept_simple(ASTMapping<T> map){
     try {
@@ -98,7 +98,7 @@ public final class PrimitiveType extends Type {
       throw t;
     }
   }
- 
+
   @Override
   public <T> T accept_simple(TypeMapping<T> map){
     try {
@@ -115,7 +115,7 @@ public final class PrimitiveType extends Type {
   public String toString(){
     return sort.toString() + super.toString();
   }
-  
+
   @SuppressWarnings("incomplete-switch")
   public boolean supertypeof(ProgramUnit context, Type t) {
     switch(this.sort) {
@@ -135,7 +135,7 @@ public final class PrimitiveType extends Type {
           return true;
         }
 
-        return t.isPrimitive(PrimitiveSort.Option) && firstarg().equals(((PrimitiveType) t).firstarg());
+        return t.isPrimitive(PrimitiveSort.Option) && ((Type)firstarg()).supertypeof(context, ((Type)((PrimitiveType) t).firstarg()));
       case Cell:
         if(firstarg().equals(t)) {
           return true;
@@ -180,7 +180,7 @@ public final class PrimitiveType extends Type {
         case Short:
         case Byte:
           return true;
-        }  
+        }
         break;
       case UInteger:
         switch(pt.sort){
@@ -188,7 +188,7 @@ public final class PrimitiveType extends Type {
         case UShort:
         case Byte:
           return true;
-        }        
+        }
         break;
       case Long:
         switch(pt.sort){
@@ -196,7 +196,7 @@ public final class PrimitiveType extends Type {
         case Short:
         case Byte:
           return true;
-        }  
+        }
         break;
       case ULong:
         switch(pt.sort){
@@ -213,7 +213,7 @@ public final class PrimitiveType extends Type {
         case Short:
         case Byte:
           return true;
-        }    
+        }
         break;
       case Boolean:
         break;
@@ -221,7 +221,7 @@ public final class PrimitiveType extends Type {
         switch(pt.sort){
         case Boolean:
           return true;
-        }    
+        }
         break;
       case Char:
         break;
@@ -244,7 +244,7 @@ public final class PrimitiveType extends Type {
     }
     return false;
   }
-  
+
   @Override
   public boolean isPrimitive(PrimitiveSort sort) {
     if(sort==PrimitiveSort.String && this.sort==PrimitiveSort.Pointer && ((Type)firstarg()).isPrimitive(PrimitiveSort.Char)) return true;
@@ -298,13 +298,13 @@ public final class PrimitiveType extends Type {
         return 64;
       default: return -1;
     }
-    
+
   }
-  
+
   public boolean isIntegerType() {
     return size()>0;
   }
-  
+
   public boolean isNumeric() {
     return isIntegerType() || isFloatType() || sort==PrimitiveSort.Fraction || sort==PrimitiveSort.ZFraction ;
   }
