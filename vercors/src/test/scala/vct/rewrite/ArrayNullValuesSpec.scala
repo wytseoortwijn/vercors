@@ -35,7 +35,7 @@ class ArrayNullValuesSpec extends RewriteSpec(new ArrayNullValues(null), before=
 
   it should "rewrite array comparison with null to none" in {
     var comparison = (right: ASTNode) => create expression(StandardOperator.EQ,
-      create expression(StandardOperator.NewArray, INT_TYPE, create constant 5),
+      create expression(StandardOperator.NewArray, OPT_INT_ARRAY_TYPE, create constant 5),
       right
     )
 
@@ -44,7 +44,7 @@ class ArrayNullValuesSpec extends RewriteSpec(new ArrayNullValues(null), before=
 
   it should "propagate typing of if-then-else expressions" in {
     var comparison = (right: ASTNode) => create.expression(StandardOperator.EQ,
-      create.expression(StandardOperator.NewArray, INT_TYPE, create constant 5),
+      create.expression(StandardOperator.NewArray, OPT_INT_ARRAY_TYPE, create constant 5),
       create.expression(StandardOperator.ITE,
         create constant true,
         right,
@@ -57,7 +57,7 @@ class ArrayNullValuesSpec extends RewriteSpec(new ArrayNullValues(null), before=
 
   def wrappingOperator(operator: StandardOperator): Unit = {
     var comparison = (right: ASTNode) => create.expression(StandardOperator.EQ,
-      create.expression(StandardOperator.NewArray, INT_TYPE, create constant 5),
+      create.expression(StandardOperator.NewArray, OPT_INT_ARRAY_TYPE, create constant 5),
       create.expression(operator, right)
     )
 
