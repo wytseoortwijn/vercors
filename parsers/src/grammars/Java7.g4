@@ -169,7 +169,7 @@ memberDeclaration
    for invalid return type after parsing.
  */
 methodDeclaration
-    :   (type|'void') javaIdentifier formalParameters ('[' ']')*
+    :   (type|'void') javaIdentifier formalParameters dims?
         ('throws' qualifiedNameList)?
         (   methodBody
         |   ';'
@@ -213,12 +213,12 @@ constDeclaration
     ;
 
 constantDeclarator
-    :   javaIdentifier ('[' ']')* '=' variableInitializer
+    :   javaIdentifier dims? '=' variableInitializer
     ;
 
 // see matching of [] comment in methodDeclaratorRest
 interfaceMethodDeclaration
-    :   (type|'void') javaIdentifier formalParameters ('[' ']')*
+    :   (type|'void') javaIdentifier formalParameters dims?
         ('throws' qualifiedNameList)?
         ';'
     ;
@@ -236,7 +236,7 @@ variableDeclarator
     ;
 
 variableDeclaratorId
-    :   javaIdentifier ('[' ']')*
+    :   javaIdentifier dims?
     ;
 
 variableInitializer
@@ -253,9 +253,13 @@ enumConstantName
     ;
 
 type
-    :   classOrInterfaceType ('[' ']')*
-    |   primitiveType ('[' ']')*
+    :   classOrInterfaceType dims?
+    |   primitiveType dims?
     |   extraType
+    ;
+
+dims
+    : '[' ']' ('[' ']')*
     ;
 
 classOrInterfaceType

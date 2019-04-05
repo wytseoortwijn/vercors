@@ -178,6 +178,26 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
   public ASTNode visitExpr(ExprContext ctx) {
     return doExpr(ctx);
   }
+
+  public ASTNode add_new_dims(Type type, New_dimsContext ctx) {
+    type = create.primitive_type(PrimitiveSort.Cell, type);
+    ASTNode[] newArrayArgs = new ASTNode[ctx.getChildCount() / 3];
+
+    for(int i = 0; i < ctx.getChildCount();) {
+      if(match(i, true, ctx, "[", "Expr", "]")) {
+        // The lengths are included in a bare type, but that is just a marker in order to generate the zero value of
+        // declared variables. The length has no bearing on the actual type.
+        type = create.primitive_type(PrimitiveSort.Array, type);
+        newArrayArgs[i / 3] = convert(ctx, 1);
+        i += 3;
+      } else {
+        Fail("Unknown format for dimensions after array constructor.");
+      }
+    }
+
+    type = create.primitive_type(PrimitiveSort.Option, type);
+    return create.expression(StandardOperator.NewArray, type, newArrayArgs);
+  }
   
   public ASTNode doExpr(ParserRuleContext ctx){
     if (ctx.children.size()==1){
@@ -281,10 +301,9 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
       String name=getIdentifier(ctx,1);
       return create.new_object(create.class_type(name), args);
     }
-    if (match(ctx,"new",null,"[",null,"]")){
-      Type t=checkType(convert(ctx,1));
-      ASTNode size=convert(ctx,3);
-      return create.new_array(t,size);
+    if (match(ctx,"new",null,"New_dims")){
+      Type t = checkType(convert(ctx,1));
+      return add_new_dims(t, (New_dimsContext) ctx.getChild(2));
     }
     if (match(ctx,null,":",null)){
       ASTNode res=convert(ctx,2);
@@ -327,7 +346,35 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
   }
 
   @Override
-  public ASTNode visitType(TypeContext ctx) {
+  public ASTNode visitNew_dims(New_dimsContext ctx) {
+    return null;
+  }
+
+  private ASTNode add_dims(ASTNode type, Type_dimsContext ctx) {
+    if(ctx.getChildCount() == 0) {
+      return type;
+    }
+
+    type = create.primitive_type(PrimitiveSort.Cell, type);
+
+    for(int i = 0; i < ctx.getChildCount();) {
+      if(match(i, true, ctx, "[", "Expr", "]")) {
+        type = create.primitive_type(PrimitiveSort.Array, type);
+        i += 3;
+      } else if(match(i, true, ctx, "[", "]")) {
+        type = create.primitive_type(PrimitiveSort.Array, type);
+        i += 2;
+      } else {
+        Fail("Unknown format for dimensions after type");
+      }
+    }
+
+    type = create.primitive_type(PrimitiveSort.Option, type);
+    return type;
+  }
+
+  @Override
+  public ASTNode visitNon_array_type(Non_array_typeContext ctx) {
     ASTNode res=null;
     if (match(ctx,"option","<",null,">")){
       Type t=checkType(convert(ctx,2));
@@ -369,20 +416,18 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
     } else {
       Fail("unknown type %s",ctx.toStringTree(parser));
     }
-    int N=ctx.children.size();
-    int i=1;
-    while(i<N){
-      if (match(i,true,ctx,"[","ExprContext","]")){
-        res=create.primitive_type(PrimitiveSort.Array,res,convert(ctx.children.get(i+1)));
-        i+=3;
-      } else if (match(i,true,ctx,"[","]")) {
-        res=create.primitive_type(PrimitiveSort.Array,res);
-        i+=2;
-      } else {
-        Fail("unknown type %s",ctx.toStringTree());
-      }
-    }
+
     return res;
+  }
+
+  @Override
+  public ASTNode visitType(TypeContext ctx) {
+    return add_dims(convert(ctx, 0), (Type_dimsContext) ctx.getChild(1));
+  }
+
+  @Override
+  public ASTNode visitType_dims(Type_dimsContext ctx) {
+    return null;
   }
 
   @Override
@@ -727,18 +772,25 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
   public ASTNode visitLexpr(LexprContext ctx) {
     ASTNode res=convert(ctx,0);
     int N=ctx.children.size();
-    for(int i=1;i<N;){
-      if (match(i,true,ctx,".",null)){
-        res=create.dereference(res,getGeneralizedIdentifier(ctx,i+1));
-        i+=2;
-      } else if(match(i,true,ctx,"[",null,"]")){
-        res=create.expression(StandardOperator.Subscript,res,convert(ctx,i+1));
-        i+=3;
+
+    for(int i=1; i<N; i++) {
+      Lexpr_accessContext access = (Lexpr_accessContext) ctx.getChild(i);
+
+      if (match(access,".",null)){
+        res=create.dereference(res,getGeneralizedIdentifier(access,1));
+      } else if(match(access,"[",null,"]")){
+        res=create.expression(StandardOperator.Subscript,res,convert(access,1));
       } else {
         Fail("unknown lexpr");
       }
     }
+
     return res;
+  }
+
+  @Override
+  public ASTNode visitLexpr_access(Lexpr_accessContext ctx) {
+    return null;
   }
 
   @Override
@@ -1008,5 +1060,4 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
   public ASTNode visitValPrimary(ValPrimaryContext ctx) {
     return getValPrimary(ctx);
   }
-
 }

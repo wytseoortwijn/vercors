@@ -80,10 +80,13 @@ case class ClassType(val names:List[String], val params:List[ASTNode]) extends T
   /**
    * Tests whether this class is a supertype of `otherType` (in the given `context`).
    * 
-   * @note `java.lang.Object` is a supertype of everything.
+   * @note `java.lang.Object` is a supertype of everything. However, implicit casts for anything other than class types
+   *       is not supported (e.g. boxing, array conversion, ...) so we restrict it to class types for now, in order to
+   *       generate a useful error.
    */
-  override def supertypeof(context:ProgramUnit, otherType:Type) = 
-    ClassType.isJavaLangObject(this.names) || searchForSupertype(context, otherType)
+  override def supertypeof(context:ProgramUnit, otherType:Type) =
+    (ClassType.isJavaLangObject(this.names) && otherType.isInstanceOf[ClassType]) ||
+      searchForSupertype(context, otherType)
   
   override def equals(obj:Any) = obj match {
     case other:ClassType => this.getFullName == other.getFullName

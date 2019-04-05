@@ -187,14 +187,11 @@ public class JavaEncoder extends AbstractRewriter {
   
   @Override
   public void visit(Dereference d){
-    if (d.field().equals("length")){
-      if (d.obj().getType().isPrimitive(PrimitiveSort.Array)){
-        result=create.expression(StandardOperator.Length,rewrite(d.obj()));
-      } else {
-        result=create.expression(StandardOperator.Size,rewrite(d.obj()));
-      }
+    if(d.field().equals("length")) {
+      super.visit(d);
       return;
     }
+
     ClassType t;
     if (d.obj() instanceof ClassType){
       t=(ClassType)d.obj();
