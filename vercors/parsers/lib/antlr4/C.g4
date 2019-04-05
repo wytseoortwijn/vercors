@@ -886,12 +886,12 @@ EmbeddedLatex
 
 LineDirective
     :   '#' Whitespace? DecimalConstant Whitespace? StringLiteral ~[\r\n]*
-        -> channel(2)
+        { setChannel(2000000); }
     ;
 
 PragmaDirective
     :   '#' Whitespace? 'pragma' Whitespace ~[\r\n]*
-        -> channel(1)
+        { setChannel(1000000); }
     ;
 
 Whitespace
@@ -908,10 +908,10 @@ Newline
 
 BlockComment
     :   '/*' .*? '*/'
-        -> channel(1)
+        { setChannel(1000000); }
     ;
 
 LineComment
     :   '//' ~[\r\n]*
-        -> channel(1)
+        { setChannel(1000000); }
     ;

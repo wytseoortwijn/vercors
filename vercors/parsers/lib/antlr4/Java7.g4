@@ -21,7 +21,7 @@
  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
  NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
- THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILexer.LITY, OR TORT
  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
@@ -1029,15 +1029,15 @@ EmbeddedLatex
     ;
 
 COMMENT
-    :   '/*' .*? '*/' -> channel(1)
+    :   '/*' .*? '*/' { setChannel(1); }
     ;
 
 LINE_COMMENT
-    :   '//' ~[\r\n]* -> channel(1)
+    :   '//' ~[\r\n]* { setChannel(1); }
     ;
 
 FileName : '"' ~[\r\n"]* '"' ;
 
 LINEDIRECTION
-    :   '#' WS? IntegerLiteral WS? FileName ~[\r\n]* -> channel(2)
+    :   '#' WS? IntegerLiteral WS? FileName ~[\r\n]* { setChannel(2); }
     ;
