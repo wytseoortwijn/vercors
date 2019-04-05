@@ -191,7 +191,7 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
         newArrayArgs[i / 3] = convert(ctx, 1);
         i += 3;
       } else {
-        Fail("Unknown format for dimensions after array constructor.");
+        Fail("Unimplemented: has the grammar of PVL related to arrays changed?");
       }
     }
 
@@ -365,7 +365,7 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
         type = create.primitive_type(PrimitiveSort.Array, type);
         i += 2;
       } else {
-        Fail("Unknown format for dimensions after type");
+        Fail("Unimplemented: has the grammar of PVL related to arrays changed?");
       }
     }
 

@@ -65,7 +65,7 @@ public class Java8JMLtoCol extends ANTLRtoCOL implements Java8JMLVisitor<ASTNode
 
     for(int offset = 0; offset < dims.getChildCount(); offset += 2) {
       if(!match(offset, true, dims, "[", "]")) {
-        throw Failure("unimplemented dims");
+        throw Failure("Annotated array dimensions are not yet supported by VerCors.");
       }
 
       dimCount++;
