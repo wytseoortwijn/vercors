@@ -44,7 +44,7 @@
   <target name="compile">
     <ant antfile="build.xml" dir="${basedir}/hre" inheritAll="false" target="compile"/>
     <ant antfile="build.xml" dir="${basedir}/parsers" inheritAll="false" target="compile"/>
-    <exec dir="${basedir}/vercors" executable="${sbtcommand}" failonerror="${fail_on_test}"> <arg value="${sbtbuild}" /> </exec>
+    <exec dir="${basedir}/vercors" executable="${sbtcommand}" failonerror="${fail_on_test}"> <arg value="assembly" /> </exec>
   </target>
 
   <target name="doc" depends="compile">
