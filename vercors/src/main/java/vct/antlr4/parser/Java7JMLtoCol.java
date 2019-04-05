@@ -41,19 +41,19 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
     return convert(new TempSequence(),tree,file_name,tokens,parser);
   }
 
-  
+
   public static ProgramUnit convert_tree(ParseTree tree, String file_name,BufferedTokenStream tokens,Parser parser) {
     return convert(new ProgramUnit(),tree,file_name,tokens,parser);
   }
-  
+
   private final int IntegerLiteral;
-  
+
   private final int StringLiteral;
 
   private final int CharacterLiteral;
-  
+
   private final int FloatingPointLiteral;
-  
+
   public Java7JMLtoCol(ASTSequence<?> unit,Syntax syntax, String filename, BufferedTokenStream tokens, Parser parser) {
     super(unit,true,syntax, filename, tokens, parser, Java7JMLLexer.Identifier,Java7JMLLexer.class);
     IntegerLiteral=getStaticInt(lexer_class,"IntegerLiteral");
@@ -88,7 +88,7 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
         decl=create.field_decl(getIdentifier(ctx,0),create.primitive_type(PrimitiveSort.Class));
         decl.setGhost(false);
       //} else if (match(ctx,"")){
-        
+
       } else {
         Abort("missing case %s",ctx.toStringTree(parser));
       }
@@ -232,7 +232,7 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
       return res;
     }
     if (match(ctx,"new",null)){
-      return convert(ctx,1); 
+      return convert(ctx,1);
     }
     if (match(ctx,null,"?",null,":",null)){
       return create.expression(StandardOperator.ITE,convert(ctx,0),convert(ctx,2),convert(ctx,4));
@@ -243,7 +243,7 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
     if (match(ctx,"(",null,")",null)) {
       return create.expression(StandardOperator.Cast,convert(ctx,1),convert(ctx,3));
     }
-    return null;    
+    return null;
   }
 
   protected DeclarationStatement[] getFormalParameters(ParseTree tree, AtomicBoolean varargs) {
@@ -440,65 +440,65 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
 
   @Override
   public ASTNode visitAnnotationConstantRest(AnnotationConstantRestContext ctx) {
-    
+
     return null;
   }
 
   @Override
   public ASTNode visitAnnotationMethodOrConstantRest(
       AnnotationMethodOrConstantRestContext ctx) {
-    
+
     return null;
   }
 
   @Override
   public ASTNode visitAnnotationMethodRest(AnnotationMethodRestContext ctx) {
-    
+
     return null;
   }
 
   @Override
   public ASTNode visitAnnotationName(AnnotationNameContext ctx) {
-    
+
     return null;
   }
 
   @Override
   public ASTNode visitAnnotationTypeBody(AnnotationTypeBodyContext ctx) {
-    
+
     return null;
   }
 
   @Override
   public ASTNode visitAnnotationTypeDeclaration(
       AnnotationTypeDeclarationContext ctx) {
-    
+
     return null;
   }
 
   @Override
   public ASTNode visitAnnotationTypeElementDeclaration(
       AnnotationTypeElementDeclarationContext ctx) {
-    
+
     return null;
   }
 
   @Override
   public ASTNode visitAnnotationTypeElementRest(
       AnnotationTypeElementRestContext ctx) {
-    
+
     return null;
   }
 
   @Override
   public ASTNode visitArguments(ArgumentsContext ctx) {
-    
+
     return null;
   }
 
   @Override
   public ASTNode visitArrayCreatorRest(ArrayCreatorRestContext ctx) {
-    
+
     return null;
   }
 
@@ -522,25 +522,25 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
 
   @Override
   public ASTNode visitBlockStatement(BlockStatementContext ctx) {
-    
+
     return null;
   }
 
   @Override
   public ASTNode visitCatchClause(CatchClauseContext ctx) {
-    
+
     return null;
   }
 
   @Override
   public ASTNode visitCatchType(CatchTypeContext ctx) {
-    
+
     return null;
   }
 
   @Override
   public ASTNode visitClassBody(ClassBodyContext ctx) {
-    
+
     return null;
   }
 
@@ -551,7 +551,7 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
 
   @Override
   public ASTNode visitClassCreatorRest(ClassCreatorRestContext ctx) {
-    
+
     return null;
   }
 
@@ -629,7 +629,7 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
 
   @Override
   public ASTNode visitConstantDeclarator(ConstantDeclaratorContext ctx) {
-    
+
     return null;
   }
 
@@ -640,13 +640,13 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
 
   @Override
   public ASTNode visitConstDeclaration(ConstDeclarationContext ctx) {
-    
+
     return null;
   }
 
   @Override
   public ASTNode visitConstructorBody(ConstructorBodyContext ctx) {
-    
+
     return null;
   }
 
@@ -699,7 +699,7 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
         BeforeAfterAnnotations res=create.new_object((ClassType)type, args);
         scan_comments_after(res.get_before(),ctx.getChild(0));
         scan_comments_after(res.get_after(),ctx);
-        
+
         ClassType bases[]=new ClassType[]{(ClassType)type};
         ASTClass cl=create.ast_class("__inline_ext", ClassKind.Plain ,null, bases , null );
         scan_body(cl,(ParserRuleContext)rest_ctx.getChild(1));
@@ -733,9 +733,9 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
       }
 
       if(offset >= arrayCreator.getChildCount() && !knownDims.isEmpty()) {
-        // No initializer, so pass the intended element type (which is just the base type when all dimensions are known)
+        // No initializer, so pass the intended type of the whole array
         // and the expressions for the known dimensions to generate the array.
-        return create.expression(StandardOperator.NewArray, add_dims(baseType, dimCount - knownDims.size()), knownDims);
+        return create.expression(StandardOperator.NewArray, add_dims(baseType, dimCount), knownDims);
       } else if(offset == arrayCreator.getChildCount() - 1 &&
               match(offset, true, arrayCreator, "ArrayInitializer") &&
               knownDims.isEmpty()) {
@@ -751,62 +751,62 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
 
   @Override
   public ASTNode visitDefaultValue(DefaultValueContext ctx) {
-    
+
     return null;
   }
 
   @Override
   public ASTNode visitElementValue(ElementValueContext ctx) {
-    
+
     return null;
   }
 
   @Override
   public ASTNode visitElementValueArrayInitializer(
       ElementValueArrayInitializerContext ctx) {
-    
+
     return null;
   }
 
   @Override
   public ASTNode visitElementValuePair(ElementValuePairContext ctx) {
-    
+
     return null;
   }
 
   @Override
   public ASTNode visitElementValuePairs(ElementValuePairsContext ctx) {
-    
+
     return null;
   }
 
   @Override
   public ASTNode visitEnhancedForControl(EnhancedForControlContext ctx) {
-    
+
     return null;
   }
 
   @Override
   public ASTNode visitEnumBodyDeclarations(EnumBodyDeclarationsContext ctx) {
-    
+
     return null;
   }
 
   @Override
   public ASTNode visitEnumConstant(EnumConstantContext ctx) {
-    
+
     return null;
   }
 
   @Override
   public ASTNode visitEnumConstantName(EnumConstantNameContext ctx) {
-    
+
     return null;
   }
 
   @Override
   public ASTNode visitEnumConstants(EnumConstantsContext ctx) {
-    
+
     return null;
   }
 
@@ -827,14 +827,14 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
   @Override
   public ASTNode visitExplicitGenericInvocation(
       ExplicitGenericInvocationContext ctx) {
-    
+
     return null;
   }
 
   @Override
   public ASTNode visitExplicitGenericInvocationSuffix(
       ExplicitGenericInvocationSuffixContext ctx) {
-    
+
     return null;
   }
 
@@ -845,25 +845,25 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
 
   @Override
   public ASTNode visitExpressionList(ExpressionListContext ctx) {
-    
+
     return null;
   }
 
   @Override
   public ASTNode visitExtraAnnotation(ExtraAnnotationContext ctx) {
-    
+
     return null;
   }
 
   @Override
   public ASTNode visitExtraDeclaration(ExtraDeclarationContext ctx) {
-    
+
     return null;
   }
 
   @Override
   public ASTNode visitExtraIdentifier(ExtraIdentifierContext ctx) {
-    
+
     return null;
   }
 
@@ -884,7 +884,7 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
     } else if (match(ctx,"unfold",null,";")){
       res=create.special(ASTSpecial.Kind.Unfold,convert(ctx,1));
     } else if (match(ctx,"refute",null,";")){
-      res=create.special(ASTSpecial.Kind.Refute,convert(ctx,1));    
+      res=create.special(ASTSpecial.Kind.Refute,convert(ctx,1));
     } else if (match(ctx,"assert",null,";")){
       res=create.special(ASTSpecial.Kind.Assert,convert(ctx,1));
     } else if (match(ctx,"check",null,";")){
@@ -897,11 +897,11 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
       res=create.special(ASTSpecial.Kind.Inhale,convert(ctx,1));
     } else if (match(ctx,"exhale",null,";")){
       res=create.special(ASTSpecial.Kind.Exhale,convert(ctx,1));
-    } else if (match(ctx,"send",null,"to",null,",",null,";")){//DRB       
-      res=create.special(ASTSpecial.Kind.Send,convert(ctx,1),convert(ctx,3),convert(ctx,5));   
+    } else if (match(ctx,"send",null,"to",null,",",null,";")){//DRB
+      res=create.special(ASTSpecial.Kind.Send,convert(ctx,1),convert(ctx,3),convert(ctx,5));
       res.setGhost(true);
     } else if (match(ctx,"recv",null,"from",null,",",null,";")){//DRB
-      res=create.special(ASTSpecial.Kind.Recv,convert(ctx,1),convert(ctx,3),convert(ctx,5));   
+      res=create.special(ASTSpecial.Kind.Recv,convert(ctx,1),convert(ctx,3),convert(ctx,5));
       res.setGhost(true);
     } else if (match(ctx,"assume",null,";")){
       res=create.special(ASTSpecial.Kind.Assume,convert(ctx,1));
@@ -976,7 +976,7 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
 
   @Override
   public ASTNode visitExtraType(ExtraTypeContext ctx) {
-    
+
     return null;
   }
 
@@ -987,19 +987,19 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
 
   @Override
   public ASTNode visitFinallyBlock(FinallyBlockContext ctx) {
-    
+
     return null;
   }
 
   @Override
   public ASTNode visitForControl(ForControlContext ctx) {
-    
+
     return null;
   }
 
   @Override
   public ASTNode visitForInit(ForInitContext ctx) {
-    
+
     return null;
   }
 
@@ -1024,19 +1024,19 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
 
   @Override
   public ASTNode visitFormalParameterList(FormalParameterListContext ctx) {
-    
+
     return null;
   }
 
   @Override
   public ASTNode visitFormalParameters(FormalParametersContext ctx) {
-    
+
     return null;
   }
 
   @Override
   public ASTNode visitForUpdate(ForUpdateContext ctx) {
-    
+
     return null;
   }
 
@@ -1080,27 +1080,27 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
   @Override
   public ASTNode visitGenericConstructorDeclaration(
       GenericConstructorDeclarationContext ctx) {
-    
+
     return null;
   }
 
   @Override
   public ASTNode visitGenericInterfaceMethodDeclaration(
       GenericInterfaceMethodDeclarationContext ctx) {
-    
+
     return null;
   }
-  
+
   @Override
   public ASTNode visitGenericMethodDeclaration(
       GenericMethodDeclarationContext ctx) {
-    
+
     return null;
   }
 
   @Override
   public ASTNode visitIdentifier(IdentifierContext ctx) {
-    
+
     return null;
   }
 
@@ -1114,13 +1114,13 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
 
   @Override
   public ASTNode visitInnerCreator(InnerCreatorContext ctx) {
-    
+
     return null;
   }
 
   @Override
   public ASTNode visitInterfaceBody(InterfaceBodyContext ctx) {
-    
+
     return null;
   }
 
@@ -1138,7 +1138,7 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
   @Override
   public ASTNode visitInterfaceMemberDeclaration(
       InterfaceMemberDeclarationContext ctx) {
-    
+
     return null;
   }
 
@@ -1149,7 +1149,7 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
 
   @Override
   public ASTNode visitJavaDeclarations(JavaDeclarationsContext ctx) {
-    
+
     return null;
   }
 
@@ -1165,7 +1165,7 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
 
   @Override
   public ASTNode visitJavaStatements(JavaStatementsContext ctx) {
-    
+
     return null;
   }
 
@@ -1203,7 +1203,7 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
     }
     if (t==CharacterLiteral){
       String text=tok.getText();
-      return create.constant(StringEscapeUtils.unescapeJava(text.substring(1,text.length()-1)));     
+      return create.constant(StringEscapeUtils.unescapeJava(text.substring(1,text.length()-1)));
     }
     if (match(ctx,"true")) return create.constant(true);
     if (match(ctx,"false")) return create.constant(false);
@@ -1232,13 +1232,13 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
 
   @Override
   public ASTNode visitMemberDeclaration(MemberDeclarationContext ctx) {
-    
+
     return null;
   }
 
   @Override
   public ASTNode visitMethodBody(MethodBodyContext ctx) {
-    
+
     return null;
   }
 
@@ -1249,27 +1249,27 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
 
   @Override
   public ASTNode visitModifier(ModifierContext ctx) {
-    
+
     return null;
   }
 
   @Override
   public ASTNode visitNonWildcardTypeArguments(
       NonWildcardTypeArgumentsContext ctx) {
-    
+
     return null;
   }
 
   @Override
   public ASTNode visitNonWildcardTypeArgumentsOrDiamond(
       NonWildcardTypeArgumentsOrDiamondContext ctx) {
-    
+
     return null;
   }
 
   @Override
   public ASTNode visitPackageDeclaration(PackageDeclarationContext ctx) {
-    
+
     return null;
   }
 
@@ -1280,13 +1280,13 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
 
   @Override
   public ASTNode visitPrimary(PrimaryContext ctx) {
-    
+
     return null;
   }
 
   @Override
   public ASTNode visitPrimitiveType(PrimitiveTypeContext ctx) {
-    
+
     return null;
   }
 
@@ -1304,31 +1304,31 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
 
   @Override
   public ASTNode visitQualifiedNameList(QualifiedNameListContext ctx) {
-    
+
     return null;
   }
 
   @Override
   public ASTNode visitResource(ResourceContext ctx) {
-    
+
     return null;
   }
 
   @Override
   public ASTNode visitResources(ResourcesContext ctx) {
-    
+
     return null;
   }
 
   @Override
   public ASTNode visitResourceSpecification(ResourceSpecificationContext ctx) {
-    
+
     return null;
   }
 
   @Override
   public ASTNode visitSpecificationSequence(SpecificationSequenceContext ctx) {
-    
+
     return null;
   }
 
@@ -1352,10 +1352,10 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
       return res;
     }
     if (match(ctx,"Expression",";")){
-      return create.special(ASTSpecial.Kind.Expression,convert(ctx,0)); 
+      return create.special(ASTSpecial.Kind.Expression,convert(ctx,0));
     }
     if (match(ctx,"StatementExpression",";")){
-      return create.special(ASTSpecial.Kind.Expression,convert((ParserRuleContext)ctx.getChild(0),0)); 
+      return create.special(ASTSpecial.Kind.Expression,convert((ParserRuleContext)ctx.getChild(0),0));
     }
     if (match(ctx,"while",null,null)){
       LoopStatement res=create.while_loop(convert(ctx,1),convert(ctx,2));
@@ -1420,7 +1420,7 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
           int N=group.getChildCount();
           while (k<N && match(k,true,group,"SwitchLabel")){
             if (match((ParserRuleContext)group.getChild(k),"default",":")){
-              c.cases.add(null); 
+              c.cases.add(null);
             } else {
               c.cases.add(convert((ParserRuleContext)group.getChild(k),1));
             }
@@ -1434,7 +1434,7 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
           c=new Case();
         } else if (match(i,true,ctx,"SwitchLabel")){
           if (match((ParserRuleContext)ctx.getChild(i),"default",":")){
-            c.cases.add(create.reserved_name(ASTReserved.Default)); 
+            c.cases.add(create.reserved_name(ASTReserved.Default));
           } else {
             c.cases.add(convert((ParserRuleContext)ctx.getChild(i),1));
           }
@@ -1492,20 +1492,20 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
 
   @Override
   public ASTNode visitSuperSuffix(SuperSuffixContext ctx) {
-    
+
     return null;
   }
 
   @Override
   public ASTNode visitSwitchBlockStatementGroup(
       SwitchBlockStatementGroupContext ctx) {
-    
+
     return null;
   }
 
   @Override
   public ASTNode visitSwitchLabel(SwitchLabelContext ctx) {
-    
+
     return null;
   }
 
@@ -1526,25 +1526,25 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
     }
     if (match(ctx,"?","super",null)){
       return create.type_expression(TypeOperator.Super,checkType(convert(ctx,2)));
-    }       
+    }
     return null;
   }
 
   @Override
   public ASTNode visitTypeArguments(TypeArgumentsContext ctx) {
-    
+
     return null;
   }
 
   @Override
   public ASTNode visitTypeArgumentsOrDiamond(TypeArgumentsOrDiamondContext ctx) {
-    
+
     return null;
   }
 
   @Override
   public ASTNode visitTypeBound(TypeBoundContext ctx) {
-    
+
     return null;
   }
 
@@ -1560,25 +1560,25 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
 
   @Override
   public ASTNode visitTypeList(TypeListContext ctx) {
-    
+
     return null;
   }
 
   @Override
   public ASTNode visitTypeParameter(TypeParameterContext ctx) {
-    
+
     return null;
   }
 
   @Override
   public ASTNode visitTypeParameters(TypeParametersContext ctx) {
-    
+
     return null;
   }
 
   @Override
   public ASTNode visitValContractClause(ValContractClauseContext ctx) {
-    
+
     return null;
   }
 
@@ -1589,7 +1589,7 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
 
   @Override
   public ASTNode visitValReserved(ValReservedContext ctx) {
-    
+
     return null;
   }
 
@@ -1615,19 +1615,19 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
 
   @Override
   public ASTNode visitVariableDeclarators(VariableDeclaratorsContext ctx) {
-    
+
     return null;
   }
 
   @Override
   public ASTNode visitVariableInitializer(VariableInitializerContext ctx) {
-    
+
     return null;
   }
 
   @Override
   public ASTNode visitVariableModifier(VariableModifierContext ctx) {
-    
+
     return null;
   }
 
