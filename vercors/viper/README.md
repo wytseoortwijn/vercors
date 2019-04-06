@@ -6,7 +6,7 @@ The root project contains the "viper-api" source files, for the communication be
 
 ## Linking the Viper modules
 
-In order to use the Viper modules the carbon and silicon project must have a symbolic link to the silver project. Creating symbolic links via Scala (or Java) is not supported on all platforms. Also the symbolic links for Unix systems differ from symbolic links on Windows systems. Therefore the these links must be created manually the first time the project is build.
+In order to use the Viper modules the carbon and silicon project must have a symbolic link to the silver project. Creating symbolic links via Scala (or Java) is not supported on all platforms. Also the symbolic links for Unix systems differ from symbolic links on Windows systems. Therefore these links must be created manually the first time the project is build.
 
 For Unix systems execute the following command in both the carbon and  the silicon directory:
 ''' ln -s ../silver silver '''
