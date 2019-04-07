@@ -11,11 +11,11 @@
     <os family="windows" />
   </condition>
 
-  <condition property="sbtbuild" value="assembly" else="assembly">
-    <os family="windows" />
+  <condition property="fail_on_test" value="true" else="false">
+      <isset property="TRAVIS"/>
   </condition>
 
-	<property name="dist" value="${basedir}/dist"/>
+  	<property name="dist" value="${basedir}/dist"/>
   <property environment="env"/>
 
   <target name="clean">
@@ -44,7 +44,7 @@
   <target name="compile">
     <ant antfile="build.xml" dir="${basedir}/hre" inheritAll="false" target="compile"/>
     <ant antfile="build.xml" dir="${basedir}/parsers" inheritAll="false" target="compile"/>
-    <exec dir="${basedir}/vercors" executable="${sbtcommand}"> <arg value="${sbtbuild}" /> </exec>
+    <exec dir="${basedir}/vercors" executable="${sbtcommand}" failonerror="${fail_on_test}"> <arg value="assembly" /> </exec>
   </target>
 
   <target name="doc" depends="compile">

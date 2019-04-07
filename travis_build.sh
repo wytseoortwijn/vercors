@@ -29,4 +29,4 @@ fi
 cd ../../..
 
 # Compile the toolset
-ant compile
+ant compile -DTRAVIS=1
