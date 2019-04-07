@@ -14,6 +14,7 @@
   invariant matrix != NULL && M > 0 && N > 0;
 	invariant \length(matrix) == M * N;
   context  (\forall* int i1 ; 0 <= i1 && i1 < M ;
+             matrix[i1] != NULL ** 
              (\forall* int j1 ; 0 <= j1 && j1 < N ;
                Perm(matrix[i1][j1],write)));
   ensures  (\forall int i3 ; 0 <= i3 && i3 < M ;
@@ -24,6 +25,7 @@ void zero_matrix(int M,int N,int matrix[M][N]){
   for(int i=0;i<M;i++){
     for(int j=0;j<N;j++)
       /*@
+        context matrix[i] != NULL;
         context Perm(matrix[i][j],write);
         ensures matrix[i][j]==0;
       @*/

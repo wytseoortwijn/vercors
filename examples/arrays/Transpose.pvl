@@ -18,10 +18,10 @@ class Ref {
                Perm(inp[i1][j1],1/2)));
   ensures  (\forall int i ; 0 <= i && i < M ;
              (\forall int j ; 0 <= j && j < N ;
-               out[i][j]==inp[j][i]));          
+               out[i][j]==inp[j][i]));
   ensures  (\forall int i ; 0 <= i && i < M ;
              (\forall int j ; 0 <= j && j < N ;
-               inp[j][i]==\old(inp[j][i])));          
+               inp[j][i]==\old(inp[j][i])));
   void transpose(int M,int N,int[M][N] out,int[N][M] inp){
     par(int i=0..M,int j=0..N)
         context  Perm(out[i][j],write);

@@ -303,6 +303,53 @@ public class Flatten extends AbstractRewriter {
     }
     result=res;
   }
+
+  public ASTNode transformStructValue(Type t, StructValue v) {
+    String name = "__flatten_" + (++counter);
+    declaration_block.addStatement(create.field_decl(name, t));
+
+    if(t.isPrimitive(PrimitiveSort.Option)) {
+      current_block.addStatement(create.assignment(
+              create.local_name(name),
+              create.expression(StandardOperator.OptionSome, transformStructValue((Type) t.firstarg(), v))
+      ));
+    } else if(t.isPrimitive(PrimitiveSort.Array)) {
+      Type arg = (Type) t.firstarg();
+
+      current_block.addStatement(create.assignment(
+              create.local_name(name),
+              create.invokation(null, null, RewriteArrayRef.getArrayConstructor(t, 1), constant(v.valuesLength()))
+      ));
+
+      boolean derefItem = false;
+
+      if(arg.isPrimitive(PrimitiveSort.Cell)) {
+        arg = (Type) arg.firstarg();
+        derefItem = true;
+      }
+
+      for(int i = 0; i < v.valuesLength(); i++) {
+        ASTNode target = create.expression(StandardOperator.Subscript, create.local_name(name), constant(i));
+        if(derefItem) target = create.dereference(target, "item");
+        current_block.addStatement(create.assignment(target, rewrite(v.value(i))));
+      }
+    } else if(t.isPrimitive(PrimitiveSort.Sequence) || t.isPrimitive(PrimitiveSort.Set) || t.isPrimitive(PrimitiveSort.Bag)) {
+        // The SilverExpressionMap has separate constructs for explicit seq, set & bag expressions, so we do not rewrite
+        // it here.
+        current_block.addStatement(create.assignment(
+                create.local_name(name),
+                v
+        ));
+    } else {
+      Fail("Don't know how to assign a StructValue to %s", t);
+    }
+
+    return create.local_name(name);
+  }
+
+  public void visit(StructValue s) {
+    result = transformStructValue(s.getType(), s);
+  }
   
   @Override
   public void visit(LoopStatement s) {

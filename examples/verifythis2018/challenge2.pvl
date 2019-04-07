@@ -12,7 +12,7 @@ class ColoredTiles {
    && (\forall int i;0<=i && i<n;s[i]==>
             (i >= 2            && s[i-2] && s[i-1])
          || (i >= 1 && i < n-1 && s[i-1] && s[i+1])
-         || (i <= n - 2        && s[i+1] && s[i+2])
+         || (i < n - 2        && s[i+1] && s[i+2])
       );
   
   pure boolean unique(seq<seq<boolean>> s)
@@ -20,7 +20,7 @@ class ColoredTiles {
        (\forall int j;0<=j && j<|s|; (s[i] == s[j]) ==> i == j));
        
   pure boolean has_false_in_prefix(seq<boolean> s,int k)
-   = (\exists int y;0<=y && y < k+1; s[y]==false);
+   = (\exists int y;0<=y && y < k+1 && y<|s|; s[y]==false);
   
   ensures (s1 == s2) == (prefix + s1 == prefix + s2);
   void lemma_uniqueness_prefix(seq<boolean> s1,seq<boolean> s2,seq<boolean> prefix){
@@ -39,11 +39,12 @@ class ColoredTiles {
   }
   
   requires l <= k && 0 <= l;
+  requires (\forall int z;0<=z && z<|last|; 0<=l && l<|last[z]|);
   requires (\forall int z;0<=z && z<|last|;last[z][l]==false);
   ensures (\forall int z;0<=z && z<|last|;has_false_in_prefix(last[z],k));
   void lemma_existence_of_l (seq<seq <boolean>> last,int k,int l) {
     par exf (int z=0..|last|)
-      requires last[z][l]==false && l<=k && 0 <= l;
+      requires 0<=l && l<|last[z]| && last[z][l]==false && l<=k && 0 <= l;
       ensures has_false_in_prefix(last[z],k);
     { 
     }
@@ -56,8 +57,8 @@ class ColoredTiles {
   void lemma_uniqueness_implies_unequal(seq<seq<boolean>> res,int j,seq<boolean> prefix){
     assert (\forall int y;0 <= y && y < j;!(res[y] == res[j]));
     par lemma_uiu_par (int y=0..j)
-      requires !(res[y] == res[j]);
-      ensures !(prefix + res[y] == prefix + res[j]);
+      requires j<|res| && y<|res| && !(res[y] == res[j]);
+      ensures j<|res| && y<|res| && !(prefix + res[y] == prefix + res[j]);
     {
       lemma_uniqueness_prefix(res[y],res[j],prefix);
     }
@@ -72,7 +73,7 @@ class ColoredTiles {
     seq<seq<boolean>> res = ini + seq<seq<boolean>> { elm };
     par lemma_uiu_par (int z=0..|ini|+1)
       context res == ini + seq<seq<boolean>> { elm } && |res| == |ini| + 1;
-      requires (ini[z] == elm) ==> z == |ini|;
+      requires 0<=z && z<|ini| && (ini[z] == elm) ==> z == |ini|;
       requires (\forall int y;0 <= y && y < |ini|;(ini[y] == res[z])==>y==z);
       ensures (\forall int y;0 <= y && y < |res|;(res[y] == res[z])==>y==z);
     {}
@@ -128,6 +129,7 @@ class ColoredTiles {
       loop_invariant (\forall int z;0<=z && z<n;|res[z]| == count[z]);
       loop_invariant count[n] == count[n-1];
       loop_invariant (\forall int y;0<=y && y <j;validSequence(last[y],n));
+      loop_invariant (\forall int z;0<=z && z <j;|last[z]|>0);
       loop_invariant (\forall int z;0<=z && z <j;last[z][0]==false);
       loop_invariant (\forall int z;0<=z && z<|res|;unique(res[z]));
       loop_invariant (\forall int z;0<=z && z<j;(last[z] == seq <boolean> {false} + res[n-1][z]));

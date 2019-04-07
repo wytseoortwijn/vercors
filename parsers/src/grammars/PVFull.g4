@@ -53,7 +53,7 @@ atomExpression
  | '\\owner' '(' expr ',' expr ',' expr ')'
  | 'id' '(' expr ')'
  | 'new' identifier tuple
- | 'new' type '[' expr ']'
+ | 'new' non_array_type new_dims
  | 'null'
  | 'true'
  | 'false'
@@ -146,12 +146,30 @@ fence_list : ( 'local' | 'global' )* ;
 
 invariant : ( 'loop_invariant' expr ';' )* ;
 
-lexpr : ('this' | '\\result' | identifier ) ('.' gen_id | '[' expr ']' )* ; 
+lexpr : ('this' | '\\result' | identifier ) lexpr_access* ;
 
-type
+lexpr_access
+ : '.' gen_id
+ | '[' expr ']'
+ ;
+
+non_array_type
  : CONTAINER '<' type '>'
  | 'option' '<' type '>'
- | ( 'string' | 'process' | 'int' | 'boolean' | 'zfrac' | 'frac' | 'resource' | 'void' | classType ) ('[' expr? ']')*
+ | ( 'string' | 'process' | 'int' | 'boolean' | 'zfrac' | 'frac' | 'resource' | 'void' | classType )
+ ;
+
+type
+ : non_array_type type_dims
+ ;
+
+type_dims
+ : ('[' expr ']')*
+ | ('[' ']')*
+ ;
+
+new_dims
+ : ('[' expr ']')+
  ;
 
 gen_id : identifier | CONTAINER ; 

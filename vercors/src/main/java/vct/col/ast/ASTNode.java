@@ -234,6 +234,11 @@ public abstract class ASTNode implements ASTFlags {
   public void setType(Type t){
     this.t=t;
   }
+
+  public ASTNode asType(Type t) {
+    this.setType(t);
+    return this;
+  }
   
   private ASTNode parent;
   
@@ -305,6 +310,16 @@ public abstract class ASTNode implements ASTFlags {
   public NameExpression getLabel(int i){
     return labelset.get(i);
   }
+  
+  public boolean hasLabel(String lbl) {
+    for(NameExpression ne: labelset) {
+      if(ne.isName(lbl)) {
+        return true;
+      }
+    }
+    return false;
+  }
+  
   public int labels() {
     return labelset.size();
   }

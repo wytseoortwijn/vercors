@@ -46,56 +46,8 @@ import vct.col.ast.ASTSpecial;
 import vct.col.ast.ProgramUnit;
 import vct.col.ast.SpecificationFormat;
 import vct.col.ast.StandardOperator;
-import vct.col.rewrite.AbstractRewriter;
-import vct.col.rewrite.AccessIntroduce;
-import vct.col.rewrite.AddTypeADT;
-import vct.col.rewrite.AssignmentRewriter;
-import vct.col.rewrite.CSLencoder;
-import vct.col.rewrite.ChalicePreProcess;
-import vct.col.rewrite.CheckHistoryAlgebra;
+import vct.col.rewrite.*;
 import vct.col.rewrite.CheckHistoryAlgebra.Mode;
-import vct.col.rewrite.CheckProcessAlgebra;
-import vct.col.rewrite.ClassConversion;
-import vct.col.rewrite.ConstructorRewriter;
-import vct.col.rewrite.CurrentThreadRewriter;
-import vct.col.rewrite.DynamicStaticInheritance;
-import vct.col.rewrite.ExplicitPermissionEncoding;
-import vct.col.rewrite.FilterClass;
-import vct.col.rewrite.FinalizeArguments;
-import vct.col.rewrite.Flatten;
-import vct.col.rewrite.FlattenBeforeAfter;
-import vct.col.rewrite.GenericPass1;
-import vct.col.rewrite.GhostLifter;
-import vct.col.rewrite.GlobalizeStaticsParameter;
-import vct.col.rewrite.InlinePredicatesRewriter;
-import vct.col.rewrite.JavaEncoder;
-import vct.col.rewrite.KernelRewriter;
-import vct.col.rewrite.OpenMPtoPVL;
-import vct.col.rewrite.OptimizeQuantifiers;
-import vct.col.rewrite.PVLCompiler;
-import vct.col.rewrite.PVLEncoder;
-import vct.col.rewrite.ParallelBlockEncoder;
-import vct.col.rewrite.PropagateInvariants;
-import vct.col.rewrite.PureMethodsAsFunctions;
-import vct.col.rewrite.RandomizedIf;
-import vct.col.rewrite.RecognizeMultiDim;
-import vct.col.rewrite.ReorderAssignments;
-import vct.col.rewrite.RewriteArrayRef;
-import vct.col.rewrite.RewriteSimpleNestedQuant;
-import vct.col.rewrite.RewriteSystem;
-import vct.col.rewrite.SatCheckRewriter;
-import vct.col.rewrite.ScaleAlways;
-import vct.col.rewrite.SetGetIntroduce;
-import vct.col.rewrite.SilverClassReduction;
-import vct.col.rewrite.SilverImplementIdentity;
-import vct.col.rewrite.SilverReorder;
-import vct.col.rewrite.SimplifyCalls;
-import vct.col.rewrite.Standardize;
-import vct.col.rewrite.StripConstructors;
-import vct.col.rewrite.VectorEncode;
-import vct.col.rewrite.VoidCalls;
-import vct.col.rewrite.VoidCallsThrown;
-import vct.col.rewrite.WandEncoder;
 import vct.col.syntax.JavaDialect;
 import vct.col.syntax.JavaSyntax;
 import vct.col.syntax.Syntax;
@@ -279,7 +231,7 @@ public class Main
         cnt++;
       }
       System.err.printf("Parsed %d file(s) in: %dms%n",cnt,System.currentTimeMillis() - startTime);
-  
+
       if (boogie.get() || sequential_spec.get()) {
         program.setSpecificationFormat(SpecificationFormat.Sequential);
       }
@@ -300,6 +252,8 @@ public class Main
       	passes.add("java_resolve"); // inspect class path for retreiving signatures of called methods. Will add files necessary to understand the Java code.
         passes.add("standardize"); // a rewriter s.t. only a subset of col will have to be supported 
         passes.add("check"); // type check col. Add annotations (the types) to the ast.
+        passes.add("rewrite_arrays"); // array generation and various array-related rewrites
+        passes.add("check");
         passes.add("flatten"); // expressions that contain method calls (possibly having side-effects) are put into separate statements.
         passes.add("assign");  // '(x = y ==> assign(x,y);). Has not been merged with standardize because flatten needs to be done first.
         passes.add("finalize_args"); // declare new variables to never have to change the arguments (which isn't allowed in silver)
@@ -358,6 +312,8 @@ public class Main
         
         passes.add("standardize");
         passes.add("java-check"); // marking function: stub
+        passes.add("array_null_values"); // rewrite null values for array types into None
+        passes.add("java-check");
         if (silver.used()){
           // The new encoding does not apply to Chalice yet.
           // Maybe it never will.
@@ -403,7 +359,7 @@ public class Main
             passes.add("standardize");
             passes.add("check");        
           }
-          passes.add("recognize_multidim"); // translate matrices as a flat array (like c does in memory)
+          // passes.add("recognize_multidim"); // translate matrices as a flat array (like c does in memory)
           passes.add("simplify_quant"); // reduce nesting of quantifiers
           if (features.usesSummation()||features.usesIterationContracts()) passes.add("simplify_sums"); // set of rewrite rules for removing summations
           passes.add("standardize");
@@ -472,14 +428,16 @@ public class Main
           passes.add("standardize");
           passes.add("check");
         }
-        
+
+        passes.add("rewrite_arrays"); // array generation and various array-related rewrites
+        passes.add("check");
         passes.add("flatten");
         passes.add("assign");
         passes.add("reorder");
         passes.add("standardize");
         passes.add("check");
-        
-        passes.add("rewrite_arrays"); // col has a 'cell' that can be set and get and has an object data-type. Arrays become sequences of cells. Chalice & Silicon have 'sequence'.
+
+        passes.add("simplify_quant");
         passes.add("standardize");
         passes.add("check");
           
@@ -522,7 +480,7 @@ public class Main
         passes.add("flatten_before_after"); // method calls can have 'before/after' blocks of ghost-code attached. Put it around all method calls.
         if (silver.used()) {
           passes.add("silver-reorder"); // no declarations in branches (only in loops)
-          passes.add("silver-identity"); // identity functions are used to not optimize expressions. Add it to silver.
+          // passes.add("silver-identity"); // identity functions are used to not optimize expressions. Add it to silver.
         }
         passes.add("standardize");
         passes.add("check");
@@ -734,6 +692,11 @@ public class Main
       public ProgramUnit apply(ProgramUnit arg,String ... args){
         new SimpleTypeCheck(arg).check();
         return arg;
+      }
+    });
+    defined_passes.put("array_null_values", new CompilerPass("rewrite null values for arrays to None") {
+      public ProgramUnit apply(ProgramUnit arg, String... args) {
+          return new ArrayNullValues(arg).rewriteAll();
       }
     });
     defined_passes.put("java-check",new CompilerPass("run a Java aware type check"){
@@ -1037,7 +1000,6 @@ public class Main
         ProgramUnit res=trs.normalize(arg);
         // Configuration.getDiagSyntax().print(System.err,res);
         res=RewriteSystems.getRewriteSystem("simplify_quant_pass2").normalize(res);
-        res = new RewriteSimpleNestedQuant(res).rewriteAll();
         return res;
       }
     });
