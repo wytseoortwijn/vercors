@@ -29,9 +29,9 @@
 /** C 2011 grammar built from the C11 Spec */
 grammar C;
 
-@lexer::members{
-  public final static int COMMENT=1;
-  public final static int LINEDIRECTION=2;
+@lexer::members {
+    public static final int CH_COMMENT = 1;
+    public static final int CH_LINEDIRECTION = 2;
 }
 
 primaryExpression
@@ -886,12 +886,12 @@ EmbeddedLatex
 
 LineDirective
     :   '#' Whitespace? DecimalConstant Whitespace? StringLiteral ~[\r\n]*
-        { setChannel(2000000); }
+        { setChannel(CH_LINEDIRECTION); }
     ;
 
 PragmaDirective
     :   '#' Whitespace? 'pragma' Whitespace ~[\r\n]*
-        { setChannel(1000000); }
+        { setChannel(CH_COMMENT); }
     ;
 
 Whitespace
@@ -908,10 +908,10 @@ Newline
 
 BlockComment
     :   '/*' .*? '*/'
-        { setChannel(1000000); }
+        { setChannel(CH_COMMENT); }
     ;
 
 LineComment
     :   '//' ~[\r\n]*
-        { setChannel(1000000); }
+        { setChannel(CH_COMMENT); }
     ;

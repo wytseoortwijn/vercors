@@ -40,6 +40,11 @@
  */
 grammar Java7;
 
+@lexer::members {
+    public static final int CH_COMMENT = 1;
+    public static final int CH_LINEDIRECTION = 2;
+}
+
 // starting point for parsing a java file
 compilationUnit
     :   packageDeclaration? importDeclaration* typeDeclaration* EOF
@@ -1029,15 +1034,15 @@ EmbeddedLatex
     ;
 
 COMMENT
-    :   '/*' .*? '*/' { setChannel(1); }
+    :   '/*' .*? '*/' { setChannel(CH_COMMENT); }
     ;
 
 LINE_COMMENT
-    :   '//' ~[\r\n]* { setChannel(1); }
+    :   '//' ~[\r\n]* { setChannel(CH_COMMENT); }
     ;
 
 FileName : '"' ~[\r\n"]* '"' ;
 
 LINEDIRECTION
-    :   '#' WS? IntegerLiteral WS? FileName ~[\r\n]* { setChannel(2); }
+    :   '#' WS? IntegerLiteral WS? FileName ~[\r\n]* { setChannel(CH_LINEDIRECTION); }
     ;

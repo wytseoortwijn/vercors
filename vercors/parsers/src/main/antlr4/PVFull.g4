@@ -2,9 +2,9 @@ grammar PVFull;
 
 import val;
 
-@lexer::members{
-//  public final static int COMMENT=1;
-  public final static int LINEDIRECTION=2;
+@lexer::members {
+    public static final int CH_COMMENT = 1;
+    public static final int CH_LINEDIRECTION = 2;
 }
 
 expression : expr ;
@@ -173,8 +173,8 @@ identifier : Identifier | valReserved ;
 Identifier  : ('a'..'z'|'A'..'Z') ('a'..'z'|'A'..'Z'|'0'..'9'|'_')*;
 NUMBER : ('0'..'9')+;
 
-COMMENT : '/*' .*? '*/' { setChannel(1); } ;
-LINE_COMMENT : '//' .*? '\n' { setChannel(1); } ;
+COMMENT : '/*' .*? '*/' { setChannel(CH_COMMENT); } ;
+LINE_COMMENT : '//' .*? '\n' { setChannel(CH_COMMENT); } ;
 
 WS  :   (   ' '
         |   '\t'

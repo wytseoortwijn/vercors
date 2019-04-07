@@ -53,6 +53,11 @@ Total lexer+parser time 30844ms.
  */
 grammar Java8;
 
+@lexer::members {
+    public static final int CH_COMMENT = 1;
+    public static final int CH_LINEDIRECTION = 2;
+}
+
 /*
  * Productions from §3 (Lexical Structure)
  */
@@ -1789,9 +1794,9 @@ WS  :  [ \t\r\n\u000C]+ -> skip
     ;
 
 COMMENT
-    :   '/*' .*? '*/' { setChannel(1); }
+    :   '/*' .*? '*/' { setChannel(CH_COMMENT); }
     ;
 
 LINE_COMMENT
-    :   '//' ~[\r\n]* { setChannel(1); }
+    :   '//' ~[\r\n]* { setChannel(CH_COMMENT); }
     ;
