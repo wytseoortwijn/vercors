@@ -418,7 +418,7 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
 
     for(int offset = 0; offset < dims.getChildCount(); offset += 2) {
       if(!match(offset, true, dims, "[", "]")) {
-        throw Failure("unimplemented dims");
+        throw Failure("Unimplemented: has the Java7 grammar related to arrays changed?");
       }
 
       dimCount++;
