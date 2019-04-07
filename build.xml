@@ -11,8 +11,8 @@
     <os family="windows" />
   </condition>
 
-  <condition property="sbtbuild" value="assembly" else="assembly">
-    <os family="windows" />
+  <condition property="fail_on_test" value="true" else="false">
+      <isset property="TRAVIS"/>
   </condition>
 
   <property name="dist" value="${basedir}/dist"/>
@@ -37,7 +37,7 @@
   </target>
 
   <target name="compile">
-    <exec dir="${basedir}/vercors" executable="${sbtcommand}"><arg value="${sbtbuild}" /></exec>
+    <exec dir="${basedir}/vercors" executable="${sbtcommand}" failonerror="${fail_on_test}"><arg value="assembly" /></exec>
   </target>
 
   <target name="doc" depends="compile">
