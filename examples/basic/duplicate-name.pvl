@@ -1,0 +1,10 @@
+// -*- tab-width:4 ; indent-tabs-mode:nil -*-
+//:: cases DuplicateName
+//:: tools silicon
+//:: verdict Error
+
+class DuplicateName {
+    void test(int abc) {
+        int abc;
+    }
+}
