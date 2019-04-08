@@ -1,7 +1,10 @@
 // -*- tab-width:4 ; indent-tabs-mode:nil -*-
 //:: cases DuplicateFieldName
+//:: suite problem-fail
 //:: tools silicon
 //:: verdict Pass
+
+// Tracked at https://github.com/utwente-fmt/vercors/issues/4
 
 public class A {
   int i;
