@@ -197,9 +197,6 @@ public class SilverStatementMap<T,E,S> implements ASTMapping<S>{
     ArrayList<Triple<Origin,String,T>> locals=new ArrayList<Triple<Origin,String,T>>();
     ArrayList<S> stats=new ArrayList<S>();
     VerCorsProgramFactory.split_block(ef, type, this, locals,(BlockStatement) s.getBody(), stats);
-    if(s.getUpdateBlock() != null) {
-      stats.add(s.getUpdateBlock().apply(this));
-    }
     ArrayList<E> invs=new ArrayList<E>();
     for(ASTNode inv:ASTUtils.conjuncts(s.getContract().invariant,StandardOperator.Star)){
       invs.add(inv.apply(expr));

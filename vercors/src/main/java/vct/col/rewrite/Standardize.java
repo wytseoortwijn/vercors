@@ -112,41 +112,45 @@ public class Standardize extends AbstractRewriter {
   
   @Override
   public void visit(OperatorExpression e){
-    switch(e.operator()){
-    case Assign:
-    {
-      ASTNode var=e.arg(0).apply(this);
-      ASTNode val=e.arg(1).apply(this);
-      result=create.assignment(var,val);
-      break;
-    }
-    case PostIncr:
-    case PreIncr:
-    {
-      ASTNode arg=e.arg(0);
-      if (arg instanceof NameExpression){
-        ASTNode incr=create.expression(e.getOrigin(),StandardOperator.Plus,rewrite(arg),create.constant(e.getOrigin(),1));
-        result=create.assignment(rewrite(arg),incr);
-      } else {
-        super.visit(e);
+    if (e.getParent() instanceof BlockStatement){
+      switch(e.operator()){
+      case Assign:
+      {
+        ASTNode var=e.arg(0).apply(this);
+        ASTNode val=e.arg(1).apply(this);
+        result=create.assignment(var,val);
+        break;
       }
-      break;
-    }
-    case PostDecr:
-    case PreDecr:
-    {
-      ASTNode arg=e.arg(0);
-      if (arg instanceof NameExpression){
-        ASTNode incr=create.expression(e.getOrigin(),StandardOperator.Minus,rewrite(arg),create.constant(e.getOrigin(),1));
-        result=create.assignment(rewrite(arg),incr);
-      } else {
-        super.visit(e);
+      case PostIncr:
+      case PreIncr:
+      {
+        ASTNode arg=e.arg(0);
+        if (arg instanceof NameExpression){
+          ASTNode incr=create.expression(e.getOrigin(),StandardOperator.Plus,rewrite(arg),create.constant(e.getOrigin(),1));
+          result=create.assignment(rewrite(arg),incr);
+        } else {
+          super.visit(e);
+        }
+        break;
       }
-      break;
-    }
-    default:
+      case PostDecr:
+      case PreDecr:
+      {
+        ASTNode arg=e.arg(0);
+        if (arg instanceof NameExpression){
+          ASTNode incr=create.expression(e.getOrigin(),StandardOperator.Minus,rewrite(arg),create.constant(e.getOrigin(),1));
+          result=create.assignment(rewrite(arg),incr);
+        } else {
+          super.visit(e);
+        }
+        break;
+      }
+      default:
+        super.visit(e);
+        break;
+      }
+    } else {
       super.visit(e);
-      break;
     }
   }
 }
