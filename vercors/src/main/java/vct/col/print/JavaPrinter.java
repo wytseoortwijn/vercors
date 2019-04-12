@@ -1047,38 +1047,46 @@ public class JavaPrinter extends AbstractPrinter {
     s.body.apply(this);
   }
 
+  private void visitForStatementList(BlockStatement s) {
+    boolean first = true;
+    for(ASTNode n : s){
+      if(!first) {
+        out.printf(", ");
+      }
+
+      nextExpr();
+      n.accept(this);
+
+      first = false;
+    }
+  }
+
   public void visit(LoopStatement s){
     visit(s.getContract());
     ASTNode tmp;
-    if (s.getInitBlock()!=null){
+    if (s.getInitBlock()!=null || s.getUpdateBlock()!=null){
       out.printf("for(");
-      
-       if(s.getInitBlock() instanceof BlockStatement){
-         for(ASTNode n:(BlockStatement)s.getInitBlock()){
-           nextExpr();
-           n.accept(this);
-           out.printf(";");
-         }
-       } else {
-         nextExpr();
-         s.getInitBlock().accept(this);
-         out.printf(";");
-       }
+
+      if(s.getInitBlock() != null) {
+        if (s.getInitBlock() instanceof BlockStatement) {
+          visitForStatementList((BlockStatement) s.getInitBlock());
+        } else {
+          nextExpr();
+          s.getInitBlock().accept(this);
+        }
+      }
+      out.printf(";");
+
       nextExpr();
       s.getEntryGuard().accept(this);
+      out.printf(";");
       
-      if ((s.getUpdateBlock())!=null){
-        
+      if((s.getUpdateBlock())!=null) {
         if(s.getUpdateBlock() instanceof BlockStatement){
-          for(ASTNode n:(BlockStatement)s.getUpdateBlock()){
-            out.printf(";");
-            nextExpr();
-            n.accept(this);
-          }        
+          visitForStatementList((BlockStatement) s.getUpdateBlock());
         } else {
-          out.printf(";");
           nextExpr();
-        	s.getUpdateBlock().accept(this);
+          s.getUpdateBlock().accept(this);
         }
       }
       out.printf(")");
