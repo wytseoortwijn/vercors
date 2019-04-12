@@ -91,14 +91,14 @@ statement
  | 'join' expr ';'
  | 'action' tuple block
  | valStatement 
- | 'if' '(' expr ')' block ( 'else' block )?
+ | 'if' '(' expr ')' statement ( 'else' statement )?
  | 'barrier' '(' identifier ( ';' id_list )? ')' ( '{' contract '}' | contract block )
  | contract 'par' par_unit ( 'and' par_unit )* 
  | 'vec' '(' iter ')' block 
  | 'invariant' identifier '(' expr ')' block 
  | 'atomic' '(' id_list ')' block 
- | invariant 'while' '(' expr ')' block
- | invariant 'for' '(' forStatementList? ';' expr? ';' forStatementList? ')' block
+ | invariant 'while' '(' expr ')' statement
+ | invariant 'for' '(' forStatementList? ';' expr? ';' forStatementList? ')' statement
  | block
  | '{*' expr '*}'
  | 'goto' identifier ';'
