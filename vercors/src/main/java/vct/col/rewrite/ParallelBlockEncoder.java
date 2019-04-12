@@ -82,7 +82,9 @@ public class ParallelBlockEncoder extends AbstractRewriter {
     for (int i = 0; i < iter_decls.length; i++) {
       iter_decls[i] = create.field_decl(iters[i].name(), iters[i].getType());
       //iter_decls_prime[i]=create.field_decl(pb.iters[i].name+"__prime", pb.iters[i].getType());
-      ASTNode tmp = create.expression(StandardOperator.Member, create.local_name(iters[i].name()), iters[i].initJava());
+      ASTNode member = create.local_name(iters[i].name());
+      member.setType(iters[i].getType());
+      ASTNode tmp = create.expression(StandardOperator.Member, member, iters[i].initJava());
       guard_list.add(tmp);
       /*
       check_cb.requires(tmp);
