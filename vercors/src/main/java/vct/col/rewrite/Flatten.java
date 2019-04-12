@@ -199,6 +199,11 @@ public class Flatten extends AbstractRewriter {
   }
 
   private ASTNode add_as_var(ASTNode e){
+    if(e instanceof NameExpression || e instanceof ConstantExpression) {
+      // NameExpression also includes e.g. null
+      return e;
+    }
+
     create.enter();
     create(e);
     String name="__flatten_"+(++counter);
