@@ -70,9 +70,9 @@ class SilverImplementation[O,Err](o:OriginFactory[O])
     Reachable.reachable.clear()
     val verifier=createVerifier(tool_home,settings)
     //println("verifier: "+ verifier);
-    println("running verify");
+    //Progress("running verify");
     val res = verifier.verify(program)
-    println("finished verify");
+    //Progress("finished verify");
     //println("verifier output: "+ res);
     res match {
       case Success =>

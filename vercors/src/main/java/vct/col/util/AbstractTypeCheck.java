@@ -424,7 +424,7 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
     if (val_type==null) Abort("Value has no type has no type.");
     if (loc_type.toString().equals("<<label>>")) return;
 
-    System.out.println(String.format("Comparing %s with %s as %s", loc_type, val, val_type));
+    Debug("Comparing %s with %s as %s", loc_type, val, val_type);
 
     if(loc_type.isPrimitive(PrimitiveSort.Option)) {
       val.setType(loc_type);

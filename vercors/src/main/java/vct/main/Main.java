@@ -4,19 +4,13 @@ package vct.main;
 
 import static hre.lang.System.Abort;
 import static hre.lang.System.Fail;
-import static hre.lang.System.Output;
+import static hre.lang.System.Verdict;
 import static hre.lang.System.Progress;
 import static hre.lang.System.Warning;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.PrintStream;
+import java.io.*;
 import java.lang.reflect.Constructor;
-import java.util.ArrayList;
-import java.util.Deque;
-import java.util.Hashtable;
-import java.util.List;
+import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -61,6 +55,58 @@ import vct.silver.ErrorDisplayVisitor;
 import vct.util.ClassName;
 import vct.util.Configuration;
 
+class ForbiddenOutputStream extends OutputStream {
+  private final PrintStream oldStream;
+  private String buf = "";
+
+  ForbiddenOutputStream(PrintStream oldStream) {
+    this.oldStream = oldStream;
+  }
+
+//  @Override
+//  public void write(int i) throws IOException {
+//    oldStream.println("Forbidden to write to this stream!");
+//    StackTraceElement[] elements = Thread.currentThread().getStackTrace();
+//
+//    for(StackTraceElement element : elements) {
+//      oldStream.println(String.format("at %s:%d", element.getFileName(), element.getLineNumber()));
+//    }
+//
+//    System.exit(1);
+//  }
+
+  private void collect(String data) {
+    buf += data;
+
+    while(buf.contains("\n")) {
+      String[] parts = buf.split("\n", 2);
+      hre.lang.System.Output("%s", parts[0]);
+      buf = parts[1];
+    }
+  }
+
+  @Override
+  public void write(int i) {
+    collect(new String(new byte[]{(byte)i}));
+  }
+
+  @Override
+  public void write(byte[] bytes) {
+    collect(new String(bytes));
+  }
+
+  @Override
+  public void write(byte[] bytes, int start, int end) {
+    collect(new String(bytes, start, end));
+  }
+}
+
+class ForbiddenPrintStream extends PrintStream {
+  ForbiddenPrintStream(PrintStream oldStream) {
+    super(new ForbiddenOutputStream(oldStream));
+  }
+}
+
 /**
  * VerCors Tool main verifier.
  * @author Stefan Blom
@@ -100,8 +146,16 @@ public class Main
     int exit=0;
     long globalStart = System.currentTimeMillis();
     try {
+      hre.lang.System.setOutputStream(System.out, hre.lang.System.LogLevel.Info);
+      hre.lang.System.setErrorStream(System.err, hre.lang.System.LogLevel.Info);
+
       OptionParser clops=new OptionParser();
       clops.add(clops.getHelpOption(),'h',"help");
+
+      BooleanSetting progress = new BooleanSetting(false);
+      clops.add(progress.getEnable("Show progress information"), "progress");
+      BooleanSetting debug = new BooleanSetting(false);
+      clops.add(debug.getEnable("Show debug information"), "debug", 'v') ;
 
       BooleanSetting boogie=new BooleanSetting(false);
       clops.add(boogie.getEnable("select Boogie backend"),"boogie");
@@ -161,25 +215,23 @@ public class Main
       BooleanSetting gui_context=new BooleanSetting(false);
       clops.add(gui_context.getEnable("enable the gui extension of the context"),"gui");
 
-      StringListSetting debug_list=new StringListSetting();
-      clops.add(debug_list.getAppendOption("print debug message for given classes and/or packages"),"debug");
-      BooleanSetting where=new BooleanSetting(false);
-      clops.add(where.getEnable("report which class failed"),"where");
-
-      clops.add(Configuration.progress.getEnable("print progress messages"),"progress");
-
       BooleanSetting sat_check=new BooleanSetting(true);
       clops.add(sat_check.getDisable("Disable checking if method pre-conditions are satisfiable"), "disable-sat");
 
       Configuration.add_options(clops);
 
       String input[]=clops.parse(args);
-      hre.lang.System.setProgressReporting(Configuration.progress.get());
 
-      for(String name:debug_list){
-        hre.lang.System.EnableDebug(name,java.lang.System.err,"vct("+name+")");
+      if(debug.get()) {
+        hre.lang.System.setOutputStream(System.out, hre.lang.System.LogLevel.Debug);
+        hre.lang.System.setErrorStream(System.err, hre.lang.System.LogLevel.Debug);
+      } else if(progress.get()) {
+        hre.lang.System.setOutputStream(System.out, hre.lang.System.LogLevel.Progress);
+        hre.lang.System.setErrorStream(System.err, hre.lang.System.LogLevel.Progress);
       }
-      hre.lang.System.EnableWhere(where.get());
+
+      System.setErr(new ForbiddenPrintStream(System.err));
+      System.setOut(new ForbiddenPrintStream(System.out));
 
       Hashtable<String,CompilerPass> defined_passes=new Hashtable<String,CompilerPass>();
       Hashtable<String,ValidationPass> defined_checks=new Hashtable<String,ValidationPass>();
@@ -230,7 +282,7 @@ public class Main
         program.add(Parsers.parseFile(f.getPath()));
         cnt++;
       }
-      System.err.printf("Parsed %d file(s) in: %dms%n",cnt,System.currentTimeMillis() - startTime);
+      Progress("Parsed %d file(s) in: %dms%n",cnt,System.currentTimeMillis() - startTime);
 
       if (boogie.get() || sequential_spec.get()) {
         program.setSpecificationFormat(SpecificationFormat.Sequential);
@@ -525,6 +577,8 @@ public class Main
         int fatal_errs=0;
         @SuppressWarnings("unused")
         ArrayList<PassReport> reports=new ArrayList<PassReport>();
+        int passCount = passes.size();
+
         while(!passes.isEmpty() && fatal_errs==0){
           String pass=passes.removeFirst();
           String[] pass_args=pass.split("=");
@@ -534,7 +588,6 @@ public class Main
           } else {
             pass_args=pass_args[1].split("\\+");
           }
-          Progress("Pass %s %s ...",pass,new ArrayShow(" ",(Object[])pass_args));
           CompilerPass task=defined_passes.get(pass);
           if (show_before.contains(pass)){
             String name=show_file.get();
@@ -548,12 +601,11 @@ public class Main
             }
           }
           if (task!=null){
-            Progress("Applying %s ...",pass);
             startTime = System.currentTimeMillis();
             report=task.apply_pass(report,pass_args);
             fatal_errs=report.getFatal();
             program=report.getOutput();
-            Progress(" ... pass took %d ms",System.currentTimeMillis()-startTime);
+            Progress("[%02d%%] %s took %d ms",100*(passCount-passes.size())/passCount, pass, System.currentTimeMillis()-startTime);
           } else {
             ValidationPass check=defined_checks.get(pass);
             if (check!=null){
@@ -581,17 +633,17 @@ public class Main
             Fail("exit after pass %s",pass);
           }
         }
-        Output("The final verdict is %s",fatal_errs==0?"Pass":"Fail");
+        Verdict("The final verdict is %s",fatal_errs==0?"Pass":"Fail");
         //report.listFatals();
       }
     } catch (HREExitException e) {
       exit=e.exit;
-      Output("The final verdict is Error");
+      Verdict("The final verdict is Error");
     } catch (Throwable e) {
       e.printStackTrace();
       throw e;
     } finally {
-      Output("entire run took %d ms",System.currentTimeMillis()-globalStart);
+      Progress("entire run took %d ms",System.currentTimeMillis()-globalStart);
       System.exit(exit);
     }
   }

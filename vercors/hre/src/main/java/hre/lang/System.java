@@ -2,6 +2,7 @@ package hre.lang;
 
 import hre.io.MessageStream;
 
+import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.HashMap;
@@ -11,8 +12,72 @@ import java.util.Map;
  * This class provides a way of providing feedback.
  */
 public class System {
+  public enum LogLevel {
+    Quiet(0, null),
+
+    Abort(1, "FATAL"),
+    Result(2, "VERDICT"),
+    Warning(3, "WARN"),
+    Info(4, "INFO"),
+    Progress(5, "PROGRESS"),
+    Debug(6, "DEBUG"),
+
+    All(Integer.MAX_VALUE, null);
+
+    private final int order;
+    private final String shorthand;
+
+    LogLevel(int order, String shorthand) {
+      this.order = order;
+      this.shorthand = shorthand;
+    }
+
+    public int getOrder() {
+      return order;
+    }
+
+    public String getShorthand() {
+      return shorthand;
+    }
+  }
   
-  private static Map<String,MessageStream> debug_map;
+  private static Map<Appendable, LogLevel> outputStreams = new HashMap<>();
+  private static Map<Appendable, LogLevel> errorStreams = new HashMap<>();
+
+  public static void setOutputStream(Appendable a, LogLevel level) {
+    outputStreams.put(a, level);
+  }
+
+  public static void setErrorStream(Appendable a, LogLevel level) {
+    errorStreams.put(a, level);
+  }
+
+  private static void log(LogLevel level, Map<Appendable, LogLevel> outputs, String format, Object... args) {
+    String message = "[" + level.getShorthand() + "] " + String.format(format + "%n", args);
+
+    for(Map.Entry<Appendable, LogLevel> entry : outputs.entrySet()) {
+      if(entry.getValue().order >= level.getOrder()) {
+        try {
+          entry.getKey().append(message);
+        } catch(IOException e) {
+          if(level != LogLevel.Abort) {
+            Abort("IO Error: %s", e);
+          }
+        }
+      }
+    }
+  }
+
+  private static StackTraceElement getCallSite() {
+    StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
+
+    int idx=2;
+    while(stackTraceElements[idx].getClassName().equals("hre.lang.System")){
+      idx++;
+    }
+
+    return stackTraceElements[idx];
+  }
   
   /**
    * Emit an error message, print stack trace and abort.
@@ -23,10 +88,8 @@ public class System {
    * @param format The formatting of the message.
    * @param args The arguments to be formatted.
    */
-  public static void Abort(String format,Object...args){
-    String message=String.format(format,args);
-    java.lang.System.err.printf("%s%n",message);
-    Thread.dumpStack();
+  public static void Abort(String format, Object... args) {
+    log(LogLevel.Abort, errorStreams, format, args);
     throw new HREExitException(1);
   }
   
@@ -36,114 +99,62 @@ public class System {
    * This function is meant to be used for external error conditions,
    * such as bad input.
    */
-  public static void Fail(String format,Object...args){
-    String prefix="";
-    if (where){
-      StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
-      int idx=2;
-      while(stackTraceElements[idx].getMethodName().equals("Fail")){
-        idx++;
-      }
-      String name=stackTraceElements[idx].getClassName();
-      int line=stackTraceElements[idx].getLineNumber();
-      java.lang.System.err.printf("At line %d of %s:%n",line,name);
-      prefix="  ";
-    }
-    String message=String.format(format,args);
-    java.lang.System.err.printf("%s%s%n",prefix,message);
+  public static void Fail(String format, Object... args) {
+    Verdict(format, args);
     throw new HREExitException(1);
   }
-  
-  public static void EnableDebug(String className,PrintStream out,String tag){
-    if (debug_map==null){
-      debug_map=new HashMap<String,MessageStream>();
-    }
-    debug_map.put(className,new MessageStream(out,tag));
+
+  /**
+   * Emit a verdict message, used only for the final verdict.
+   */
+  public static void Verdict(String format, Object... args) {
+    StackTraceElement callSite = getCallSite();
+    log(LogLevel.Debug, outputStreams, "At %s:%d:", callSite.getFileName(), callSite.getLineNumber());
+    log(LogLevel.Result, outputStreams, format, args);
   }
-  
-  public static void DisableDebug(String className){
-    if (debug_map==null){
-      return;
-    }
-    debug_map.remove(className);
-    if (debug_map.size()==0){
-      debug_map=null;
-    }
-  }
-  
+
+
   /**
    * Emit a debug message if the class calling this method is tagged for debugging.
    * 
    */
-  public static boolean Debug(String format,Object...args){
-    if (debug_map==null) return false;
-    StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
-    int idx=2;
-    while(stackTraceElements[idx].getMethodName().equals("Debug")){
-      idx++;
-    }
-    String name=stackTraceElements[idx].getClassName();
-    for(;;){
-      MessageStream out=debug_map.get(name);
-      if (out!=null){
-        out.say(format,args);
-        return true;
-      }
-      int lastdot=name.lastIndexOf(".");
-      if (lastdot<0) return false;
-      name=name.substring(0,lastdot);
-    }
-  }
-  
-  private static boolean progress=true;
-  
-  public static void setProgressReporting(boolean progress){
-    System.progress=progress;
+  public static void Debug(String format, Object... args) {
+    StackTraceElement callSite = getCallSite();
+    log(LogLevel.Debug, errorStreams, "At %s:%d:", callSite.getFileName(), callSite.getLineNumber());
+    log(LogLevel.Debug, errorStreams, format, args);
   }
   
   /**
-   * Emit a progress message, if those messages are enabled.
+   * Emit a progress message.
    */
-  public static void Progress(String format,Object...args){
-    if (progress){
-      String message=String.format(format,args);
-      java.lang.System.err.printf("%s%n",message);
-    }
+  public static void Progress(String format, Object... args) {
+    log(LogLevel.Progress, outputStreams, format, args);
   }
 
   /**
    * Emit an output message.
    */
-  public static void Output(String format,Object...args){
-    String message=String.format(format,args);
-    java.lang.System.out.printf("%s%n",message);    
+  public static void Output(String format, Object... args) {
+    log(LogLevel.Info, outputStreams, format, args);
   }
   
   /**
    * Emit a warning message.
    */
-  public static void Warning(String format,Object...args){
-    String message=String.format(format,args);
-    java.lang.System.err.printf("WARNING: %s%n",message);    
+  public static void Warning(String format, Object... args) {
+    log(LogLevel.Warning, outputStreams, format, args);
   }
 
-  private static boolean where=false;
-  
-  public static void EnableWhere(boolean b) {
-    where=b;
-  }
-  
-  public static Failure Failure(String format,Object...args){
-    String message=String.format(format, args);
-    java.lang.System.err.printf("FAILURE: %s%n",message);    
-    return new Failure(message);
+  public static Failure Failure(String format,Object...args) {
+    StackTraceElement callSite = getCallSite();
+    log(LogLevel.Debug, outputStreams, "At %s:%d:", callSite.getFileName(), callSite.getLineNumber());
+    log(LogLevel.Result, outputStreams, format, args);
+    return new Failure(String.format(format, args));
   }
 
   static {
-    //java.lang.System.err.printf("HRE System loaded%n");
     final UncaughtExceptionHandler parent=Thread.getDefaultUncaughtExceptionHandler();
-    UncaughtExceptionHandler eh=new UncaughtExceptionHandler(){
-
+    UncaughtExceptionHandler eh = new UncaughtExceptionHandler() {
       @Override
       public void uncaughtException(Thread t, Throwable e) {
         if (e instanceof HREExitException){
@@ -151,7 +162,6 @@ public class System {
         }
         parent.uncaughtException(t,e);
       }
-      
     };
     Thread.setDefaultUncaughtExceptionHandler(eh);
   }

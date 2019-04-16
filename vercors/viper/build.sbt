@@ -28,6 +28,7 @@ lazy val carbon = (project in file("carbon"))
 
 lazy val viper_api = (project in file("."))
   .dependsOn(silicon, carbon, silver)
+  .dependsOn(hre)
   .settings(
     name := "viper-api",
     organization := "vercors",

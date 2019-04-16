@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 
+import hre.lang.HREExitException;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
@@ -51,6 +52,8 @@ public class ColPVLParser implements vct.col.util.Parser {
         pu=new PVLPostProcessor(pu).rewriteAll();
         Progress("Post processing pass took %dms",tk.show());
         return pu;
+      } catch(HREExitException e) {
+        throw e;
       } catch (FileNotFoundException e) {
         Fail("File %s has not been found",file_name);
       } catch (Exception e) {

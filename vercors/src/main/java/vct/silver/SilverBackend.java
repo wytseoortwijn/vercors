@@ -126,7 +126,7 @@ public class SilverBackend {
     MessageFactory log=new MessageFactory(new PassAddVisitor(report));
     TaskBegin verification=log.begin("Viper verification");
     ViperAPI<Origin,VerificationError,T,E,S,DFunc,DAxiom,Program> verifier=getVerifier(tool);
-    hre.lang.System.Output("verifying with %s %s backend",
+    hre.lang.System.Progress("verifying with %s %s backend",
             silver_module.used()?silver_module.get():"builtin",tool);
     //verifier.set_detail(Configuration.detailed_errors.get());
     VerCorsViperAPI vercors=VerCorsViperAPI.get();
