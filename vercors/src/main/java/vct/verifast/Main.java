@@ -1,9 +1,6 @@
 package vct.verifast;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.OutputStream;
-import java.io.PrintStream;
+import java.io.*;
 
 import vct.col.ast.ProgramUnit;
 import vct.col.syntax.JavaDialect;
@@ -29,15 +26,15 @@ public class Main {
     try {
       File input_file=File.createTempFile("verifast-input",".java",shell.shell_dir.toFile());
       input_file.deleteOnExit();
-      final PrintStream input;
+      final PrintWriter input;
       
       if (vct.util.Configuration.backend_file.get()==null){
-        input=new PrintStream(input_file);
+        input=new PrintWriter(input_file);
       } else {
         OutputStream temp=new FileOutputStream(input_file);
         File encoded_file=new File(vct.util.Configuration.backend_file.get());
         OutputStream encoded=new FileOutputStream(encoded_file);
-        input=new PrintStream(new SplittingOutputStream(temp,encoded));
+        input=new PrintWriter(new SplittingOutputStream(temp,encoded));
       }
       TrackingOutput vf_input=new TrackingOutput(input,true);
       JavaSyntax syntax=JavaSyntax.getJava(JavaDialect.JavaVeriFast);
@@ -48,8 +45,7 @@ public class Main {
       VeriFastReport output=new VeriFastReport(shell,tree);
       return output;
     } catch (Exception e) {
-      System.out.println("error: ");
-      e.printStackTrace();
+      hre.lang.System.DebugException(e);
       hre.lang.System.Abort("internal error");
       return null;
     }

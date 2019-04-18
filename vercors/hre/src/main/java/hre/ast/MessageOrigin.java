@@ -1,6 +1,8 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 package hre.ast;
 
+import static hre.lang.System.*;
+
 /**
  * Origin that consists of a single text message.
  * @author sccblom
@@ -23,12 +25,12 @@ public class MessageOrigin extends Origin {
       if (level.equals("result")){
         return;
       }
-      System.out.println("=========================================");
-      System.out.printf("%s in %s:",level,this.message);
+      Output("=========================================");
+      Output("%s in %s:",level,this.message);
       for(String line:message){
-        System.out.printf("  %s%n",line);
+        Output("  %s",line);
       }
-      System.out.println("=========================================");
+      Output("=========================================");
     }
 
     @Override
@@ -36,12 +38,12 @@ public class MessageOrigin extends Origin {
       if (level.equals("result")){
         return;
       }
-      System.out.println("=========================================");
-      System.out.printf("%s in %s:",level,this.message);
+      Output("=========================================");
+      Output("%s in %s:",level,this.message);
       for(String line:message){
-        System.out.printf("  %s%n",line);
+        Output("  %s",line);
       }
-      System.out.println("=========================================");
+      Output("=========================================");
     }
 
 }

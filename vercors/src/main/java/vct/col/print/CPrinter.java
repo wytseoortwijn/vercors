@@ -1,11 +1,14 @@
 package vct.col.print;
 
 import java.io.PrintStream;
+import java.io.PrintWriter;
 
 import vct.col.ast.*;
 import vct.col.syntax.CSyntax;
 import hre.ast.TrackingOutput;
 import hre.ast.TrackingTree;
+
+import static hre.lang.System.DebugException;
 
 public class CPrinter extends AbstractPrinter {
 
@@ -189,7 +192,7 @@ public class CPrinter extends AbstractPrinter {
     out.printf("}");
 	}
 
-	public static TrackingTree dump_expr(PrintStream out, ASTNode node) {
+	public static TrackingTree dump_expr(PrintWriter out, ASTNode node) {
 		TrackingOutput track_out = new TrackingOutput(out, false);
 		CPrinter printer = new CPrinter(track_out);
 		printer.setExpr();
@@ -197,7 +200,7 @@ public class CPrinter extends AbstractPrinter {
 		return track_out.close();
 	}
 
-	public static TrackingTree dump(PrintStream out, ProgramUnit program) {
+	public static TrackingTree dump(PrintWriter out, ProgramUnit program) {
 		hre.lang.System.Debug("Dumping C code...");
 		try {
 			TrackingOutput track_out = new TrackingOutput(out, false);
@@ -207,13 +210,12 @@ public class CPrinter extends AbstractPrinter {
 			}
 			return track_out.close();
 		} catch (Exception e) {
-			System.out.println("error: ");
-			e.printStackTrace();
+			DebugException(e);
 			throw new Error("abort");
 		}
 	}
 
-	public static void dump(PrintStream out, ASTNode cl) {
+	public static void dump(PrintWriter out, ASTNode cl) {
 		TrackingOutput track_out = new TrackingOutput(out, false);
 		CPrinter printer = new CPrinter(track_out);
 		cl.accept(printer);

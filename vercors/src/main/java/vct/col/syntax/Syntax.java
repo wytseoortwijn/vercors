@@ -15,6 +15,7 @@ import hre.lang.HREError;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
@@ -284,20 +285,20 @@ public class Syntax {
 
   public ByteArrayOutputStream print(ASTNode n){
     ByteArrayOutputStream res=new ByteArrayOutputStream();
-    print(new PrintStream(res),n);
+    print(new PrintWriter(res),n);
     return res;
   }
   
   public ByteArrayOutputStream print(ProgramUnit program){
     ByteArrayOutputStream res=new ByteArrayOutputStream();
-    print(new PrintStream(res),program);
+    print(new PrintWriter(res),program);
     return res;
   }
   
-  public void print(PrintStream out,ASTNode n){
+  public void print(PrintWriter out, ASTNode n){
     print(new TrackingOutput(out,false),n);
   }
-  public void print(PrintStream outs, ProgramUnit program) {
+  public void print(PrintWriter outs, ProgramUnit program) {
     TrackingOutput out=new TrackingOutput(outs,false);
     print(out,program);
   }

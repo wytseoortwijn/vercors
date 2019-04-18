@@ -601,9 +601,6 @@ public class ParallelBlockEncoder extends AbstractRewriter {
       // create method contract
       //and call the method
 
-      //vct.util.Configuration.getDiagSyntax().print(System.out,e.getArg(0));
-      //System.out.printf("\n");      
-        
       String send_name="send_body_"+N;
       
         ArrayList<DeclarationStatement> send_decl=new ArrayList<DeclarationStatement>();// declaration of parameters for send_check
@@ -656,7 +653,6 @@ public class ParallelBlockEncoder extends AbstractRewriter {
     case Recv:
       // create method contract
       // and call the method
-      // vct.util.Configuration.getDiagSyntax().print(System.out,e.getArg(0));//DRB                       
       if (current_label==null){
         Fail("recv in unlabeled position");
       }
@@ -701,8 +697,6 @@ public class ParallelBlockEncoder extends AbstractRewriter {
         OriginWrapper.wrap(null,recv_body, branch);      
         //Error management  --> line numbers, origins , ...
         
-        //System.out.printf("generated %s at %s%n",recv_body.name,recv_body.getOrigin());
-
         //Check for side conditions
            
       if(!sidecondition_check(e))
@@ -735,7 +729,6 @@ public class ParallelBlockEncoder extends AbstractRewriter {
     loop_invariant=c.invariant;
     ASTNode res=null;
     Hashtable<String,Type> body_vars=free_vars(s.body,c,s.guard);
-    //System.out.printf("free in %s are %s%n",s.body,body_vars);
     //Hashtable<String,Type> iters=new Hashtable<String,Type>();
     Hashtable<String,Type> main_vars=new Hashtable<String, Type>(body_vars);
     for(DeclarationStatement decl:s.decls){

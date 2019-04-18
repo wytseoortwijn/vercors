@@ -42,8 +42,6 @@ public class CommentRewriter extends AbstractRewriter {
           String comment=s.args[0].toString();
           if (comment.startsWith("//@")){
             FileOrigin o=(FileOrigin)s.getOrigin();
-            //System.out.printf("# %d \"%s\"%n",o.getFirstLine(),o.getName());
-            //System.out.println(comment.substring(3));
             parser.ec.mark_ofs(lines,o.getName(),o.getFirstLine()-2);
             out.printf("# %d \"%s\"%n",o.getFirstLine(),o.getName());
             for(int S=3+o.getFirstColumn();S>0;S--){
@@ -59,8 +57,6 @@ public class CommentRewriter extends AbstractRewriter {
               N=2;
             }
             FileOrigin o=(FileOrigin)s.getOrigin();
-            //System.out.printf("# %d \"%s\"%n",o.getFirstLine(),o.getName());
-            //System.out.println(comment.substring(3,comment.length()-N));
             parser.ec.mark_ofs(lines,o.getName(),o.getFirstLine()-2);
             out.printf("# %d \"%s\"%n",o.getFirstLine(),o.getName());
             for(int S=N+o.getFirstColumn();S>0;S--){

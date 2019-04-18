@@ -42,7 +42,7 @@ public class FileContext {
             gui.doc.insertString(pos, line + "\n" ,gui.doc.getStyle("regular"));
           }
           } catch (BadLocationException ble) {
-          System.err.println("Couldn't insert initial text into text pane.");
+            Debug("Couldn't insert initial text into text pane.");
           }
       }
       //gui.paneScrollPane.scrollRectToVisible(aRect);
@@ -66,16 +66,10 @@ public class FileContext {
     
   }
   
-  public void printLines(PrintStream out,int begin,int end){
-    for(int i=begin;i<=end;i++){
-      out.println(getLine(i));
-    }
-  }
-  
   public String getLine(int i){
     return list.get(i-1);
   }
-  public void printContext(PrintStream out,FileOrigin o,int before, int after){
+  public void printContext(FileOrigin o,int before, int after){
     if (gui!=null){
       final StyleContext cont = StyleContext.getDefaultStyleContext();
       final AttributeSet attr = cont.addAttribute(cont.getEmptySet(),
@@ -91,49 +85,53 @@ public class FileContext {
     K=K+after;
     if (K>list.size()) K=list.size();
     int len=1;
+    String currentLine;
     for(int i=N;i<=K;i++){
       String line=getLine(i);
       if (i==o.getFirstLine()){
+        currentLine = "";
         int C=o.getFirstColumn();
-        out.printf("    ");
+        currentLine += "    ";
         int k=1;
         while(k<C) {
-          out.printf(" ");
+          currentLine += " ";
           k++;
         }
-        out.printf("[");
+        currentLine += "[";
         if (o.getLastLine()==i){
           C=o.getLastColumn();
         } else {
           C=line.length();
         }
         while(k<=C){
-          out.printf("-");
+          currentLine += "-";
           k++;         
         }
-        out.printf("%n");
+        Output(currentLine);
       }
-      out.printf("%4d %s%n",i,line);
+      Output("%4d %s",i,line);
       if (line.length()>len) len=line.length();
       if (i==o.getLastLine()){
         int C;
+        currentLine = "";
         if (o.getFirstLine() == i){
           C=o.getFirstColumn();
         } else {
           C=1;
         }
-        out.printf("     ");
+        currentLine += "     ";
         int k=1;
         while(k<C) {
-          out.printf(" ");
+          currentLine += " ";
           k++;
         }
         C=o.getLastColumn();
         while(k<=C){
-          out.printf("-");
+          currentLine += "-";
           k++;         
         }
-        out.printf("]%n");
+        currentLine += "]";
+        Output(currentLine);
       }
     }
   }

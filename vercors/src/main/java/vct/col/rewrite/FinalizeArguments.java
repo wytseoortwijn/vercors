@@ -41,7 +41,6 @@ public class FinalizeArguments extends AbstractRewriter {
         DeclarationStatement args[]=new DeclarationStatement[N];
         BlockStatement block=new BlockStatement();
         block.setOrigin(body);
-        //System.out.printf("%s: origin of create is %s%n",m.name,create.getOrigin());
         create.enter();
         for(int i=0;i<N;i++){
           String old_name=m.getArgument(i);
@@ -56,7 +55,6 @@ public class FinalizeArguments extends AbstractRewriter {
           subst.put(create.local_name(old_name),create.local_name(new_name));
         }
         create.leave();
-        //System.out.printf("%s: origin of create is %s%n",m.name,create.getOrigin());
         Method.Kind kind=m.kind;
         Contract mc=m.getContract();
         Contract c=null;

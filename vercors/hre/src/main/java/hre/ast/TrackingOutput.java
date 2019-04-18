@@ -12,7 +12,7 @@ import java.util.Stack;
  *
  */
 public class TrackingOutput {
-  private PrintStream output;
+  private PrintWriter output;
 //  private boolean show;
 
   private static class Frame {
@@ -54,7 +54,7 @@ public class TrackingOutput {
     }
   }
 
-  public TrackingOutput(PrintStream output,boolean closeout){
+  public TrackingOutput(PrintWriter output,boolean closeout){
     this.closeout=closeout;
     this.output=output;
     frame=new Frame(line,col,new MessageOrigin("unknown"));
@@ -95,7 +95,7 @@ public class TrackingOutput {
 //    if(atnewline && show){
 //      System.err.printf("%4d ",line);
 //    }
-    output.println("");
+    output.append("\n");
 //    if (show) System.err.println("");
     line++;
     atnewline=true;

@@ -34,6 +34,8 @@ import hre.config.StringSetting;
 import hre.util.TestReport.Verdict;
 import vct.util.Configuration;
 
+import static hre.lang.System.Debug;
+
 
 public class CommandLineTesting {
   
@@ -267,9 +269,9 @@ public class CommandLineTesting {
       }
     }
     
-    // if rise4fun configuration is enabled, write the config data as JSON to stdout
+    // if rise4fun configuration is enabled, write the config data as JSON to stderr
     if (rise4fun.get()) {
-    	System.out.printf("%s%n", rise4fun_config.toJson());
+    	Debug("%s%n", rise4fun_config.toJson());
     }
     
     for(;submitted>0;submitted--){

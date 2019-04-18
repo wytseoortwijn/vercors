@@ -1,11 +1,9 @@
 package hre.lang;
 
-import hre.io.MessageStream;
-
-import java.io.IOException;
-import java.io.PrintStream;
+import java.io.*;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
 /**
@@ -13,16 +11,16 @@ import java.util.Map;
  */
 public class System {
   public enum LogLevel {
-    Quiet(0, null),
+    Silent(0, null),
 
-    Abort(1, "FATAL"),
-    Result(2, "VERDICT"),
-    Warning(3, "WARN"),
-    Info(4, "INFO"),
-    Progress(5, "PROGRESS"),
-    Debug(6, "DEBUG"),
+    Abort(1, "ABRT"),     // Internal VerCors Error
+    Result(2, "VERD"),    // The final verdict
+    Warning(3, "WARN"),   // Warnings
+    Info(4, "INFO"),      // User info
+    Progress(5, "PROG"),  // Progress info
+    Debug(6, "DEBG"),     // VerCors development info
 
-    All(Integer.MAX_VALUE, null);
+    All(Integer.MAX_VALUE, "ALL ");
 
     private final int order;
     private final String shorthand;
@@ -40,9 +38,14 @@ public class System {
       return shorthand;
     }
   }
-  
+
   private static Map<Appendable, LogLevel> outputStreams = new HashMap<>();
   private static Map<Appendable, LogLevel> errorStreams = new HashMap<>();
+
+  private static HashSet<String> debugFilterByClassName = new HashSet<>();
+  private static HashSet<String> debugfilterByLine = new HashSet<>();
+
+  private static HashSet<LogWriter> activeLogWriters = new HashSet<>();
 
   public static void setOutputStream(Appendable a, LogLevel level) {
     outputStreams.put(a, level);
@@ -52,12 +55,96 @@ public class System {
     errorStreams.put(a, level);
   }
 
+  private static class LogWriter extends Writer {
+      private String buffer = "";
+      private LogLevel level;
+      private Map<Appendable, LogLevel> outputs;
+
+      LogWriter(LogLevel level, Map<Appendable, LogLevel> outputs) {
+          this.level = level;
+          this.outputs = outputs;
+      }
+
+      @Override
+      public void write(char[] chars, int start, int end) throws IOException {
+          buffer += new String(chars, start, end);
+          writeLines();
+      }
+
+      private void writeLines() {
+          String[] lines = buffer.split("\\r?\\n");
+
+          for(int i = 0; i < lines.length - 1; i++) {
+              System.log(level, outputs, "%s", lines[i]);
+          }
+
+          buffer = lines[lines.length - 1];
+      }
+
+      @Override
+      public void flush() throws IOException {
+          // Refuse, as flushing in this context may cause an additional unwanted newline.
+      }
+
+      @Override
+      public void close() throws IOException {
+          doFlush();
+          activeLogWriters.remove(this);
+      }
+
+      private void doFlush() {
+          if(!buffer.equals("")) {
+              System.log(level, outputs, "%s", buffer);
+              buffer = "";
+          }
+      }
+  }
+
+  private static PrintWriter getLogLevelWriter(LogLevel level, Map<Appendable, LogLevel> outputs) {
+      LogWriter writer = new LogWriter(level, outputs);
+      activeLogWriters.add(writer);
+      return new PrintWriter(writer);
+  }
+
+  public static PrintWriter getLogLevelOutputWriter(LogLevel level) {
+      return getLogLevelWriter(level, outputStreams);
+  }
+
+  public static PrintWriter getLogLevelErrorWriter(LogLevel level) {
+      return getLogLevelWriter(level, errorStreams);
+  }
+
+  /**
+   * Show debug messages from a particular class
+   * @param className The name of the class to filter for
+   */
+  public static void addDebugFilterByClassName(String className) {
+    debugFilterByClassName.add(className);
+  }
+
+  /**
+   * Show debug messages from a particular line in a particular class
+   * @param classLineCombo The class name and line number, in the format Class:no
+   */
+  public static void addDebugFilterByLine(String classLineCombo) {
+    debugfilterByLine.add(classLineCombo);
+  }
+
   private static void log(LogLevel level, Map<Appendable, LogLevel> outputs, String format, Object... args) {
-    String message = "[" + level.getShorthand() + "] " + String.format(format + "%n", args);
+    // Only format the string (expensive) when the message is actually outputted
+    String message = null;
+
+    for(LogWriter writer : activeLogWriters) {
+        writer.doFlush();
+    }
 
     for(Map.Entry<Appendable, LogLevel> entry : outputs.entrySet()) {
       if(entry.getValue().order >= level.getOrder()) {
         try {
+          if(message == null) {
+            message = "[" + level.getShorthand() + "] " + String.format(format + "%n", args);
+          }
+
           entry.getKey().append(message);
         } catch(IOException e) {
           if(level != LogLevel.Abort) {
@@ -72,7 +159,8 @@ public class System {
     StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
 
     int idx=2;
-    while(stackTraceElements[idx].getClassName().equals("hre.lang.System")){
+    while(stackTraceElements[idx].getClassName().equals("hre.lang.System")
+        || stackTraceElements[idx].getClassName().equals("vct.col.ast.ASTFrame")) {
       idx++;
     }
 
@@ -120,10 +208,29 @@ public class System {
    */
   public static void Debug(String format, Object... args) {
     StackTraceElement callSite = getCallSite();
-    log(LogLevel.Debug, errorStreams, "At %s:%d:", callSite.getFileName(), callSite.getLineNumber());
-    log(LogLevel.Debug, errorStreams, format, args);
+
+    if(debugFilterByClassName.contains(callSite.getClassName())
+          || debugfilterByLine.contains(callSite.getClassName() + ":" + callSite.getLineNumber())
+    ) {
+        log(LogLevel.Debug, errorStreams, "At %s:%d: ", callSite.getFileName(), callSite.getLineNumber());
+        log(LogLevel.Debug, errorStreams, format, args);
+    } else {
+        log(LogLevel.All, errorStreams, "At %s:%d: ", callSite.getFileName(), callSite.getLineNumber());
+        log(LogLevel.All, errorStreams, format, args);
+    }
   }
-  
+
+  /**
+   * Emit a stack trace as a debug message
+   */
+  public static void DebugException(Throwable e) {
+    StringWriter sw = new StringWriter();
+    e.printStackTrace(new PrintWriter(sw));
+    for(String line : sw.toString().split("\\r?\\n")) {
+      Debug("%s", line);
+    }
+  }
+
   /**
    * Emit a progress message.
    */
@@ -142,7 +249,7 @@ public class System {
    * Emit a warning message.
    */
   public static void Warning(String format, Object... args) {
-    log(LogLevel.Warning, outputStreams, format, args);
+    log(LogLevel.Warning, errorStreams, format, args);
   }
 
   public static Failure Failure(String format,Object...args) {

@@ -1,6 +1,7 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 package hre.ast;
 
+import static hre.lang.System.*;
 import java.util.ArrayList;
 
 /**
@@ -20,7 +21,7 @@ public class TrackingTree {
     public int first_line, first_col, last_line, last_col;
     public TrackingTree node;
     public void print(String prefix){
-      System.out.printf("%s[%d.%d,%d.%d) -> %s\n",prefix,first_line, first_col, last_line, last_col,node.origin);
+      Output("%s[%d.%d,%d.%d) -> %s",prefix,first_line, first_col, last_line, last_col,node.origin);
       node.print(prefix+"  ");
     }
   }

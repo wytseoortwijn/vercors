@@ -1,6 +1,7 @@
 package vct.silver;
 
 import hre.ast.Origin;
+import static hre.lang.System.Debug;
 import vct.logging.ExceptionMessage;
 import vct.logging.MessageVisitor;
 import vct.logging.TaskBegin;
@@ -48,7 +49,7 @@ public class ErrorDisplayVisitor implements MessageVisitor {
 
   @Override
   public void visit(VerCorsError error) {
-    System.err.printf("reporting %s error%n",error.code);
+    Debug("reporting %s error",error.code);
     error.main.report("error","%s:%s",error.code,error.sub);
     for(Origin o:error.aux){
       o.report("auxiliary","caused by");

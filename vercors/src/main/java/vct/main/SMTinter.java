@@ -20,8 +20,7 @@ public class SMTinter {
 		string2[2] = "q";
 		string2[3] = "Bool";
 		SMTresult resulting = checkTripleZ3(string1,string2,"");
-		System.out.println();
-		System.out.println(resulting.getExample());*/
+		*/
 	}
 	
 	/**
@@ -73,7 +72,6 @@ public class SMTinter {
 		}
 		//getting counter examples
 		if(satisfied){
-			//System.out.println("Satisfied!!");
 			for(int x = 0; variables.length > x; x=x+2){
 				String msg = "(get-value (";
 				msg = msg.concat(variables[x]);

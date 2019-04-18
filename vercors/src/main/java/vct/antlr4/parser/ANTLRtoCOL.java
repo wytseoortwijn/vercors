@@ -435,11 +435,6 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
         String pat[]=syntax.getPattern(op);
         if (pat!=null){
           Debug("Scanning for %s",op);
-          //System.out.printf("pattern of %s:",op);
-          //for(int k=0;k<pat.length;k++){
-          //  System.out.printf(" %s",pat[k]);
-          //}
-          //System.out.printf("%n");
           if (match(ctx,pat)){
             int N=op.arity();
             ASTNode args[]=new ASTNode[N];

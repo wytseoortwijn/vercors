@@ -115,27 +115,22 @@ public class ColJavaParser implements vct.col.util.Parser {
         }
         pu=new FlattenVariableDeclarations(pu).rewriteAll();
         Progress("Flattening variables took %dms",tk.show());
-        //vct.util.Configuration.getDiagSyntax().print(System.out,pu);
         Debug("program after flattening variables:%n%s",pu);
         
         pu=new SpecificationCollector(JavaSyntax.getJava(JavaDialect.JavaVerCors),pu).rewriteAll();
         Progress("Shuffling specifications took %dms",tk.show());        
-        //vct.util.Configuration.getDiagSyntax().print(System.out,pu);
         Debug("program after collecting specs:%n%s",pu);
         
         pu=new JavaPostProcessor(pu).rewriteAll();
         Progress("post processing took %dms",tk.show());        
-        //vct.util.Configuration.getDiagSyntax().print(System.out,pu);
-        
+
         pu=new AnnotationInterpreter(pu).rewriteAll();
         Progress("interpreting annotations took %dms",tk.show());        
-        //vct.util.Configuration.getDiagSyntax().print(System.out,pu);
-        
+
         //cannnot resolve here: other .java files may be needed!
         //pu=new JavaResolver(pu).rewriteAll();
         //Progress("resolving library calls took %dms",tk.show());        
-        //vct.util.Configuration.getDiagSyntax().print(System.out,pu);
-        
+
         pu=new FilterSpecIgnore(pu).rewriteAll();
         Progress("filtering spec_ignore took %dms",tk.show()); 
 
@@ -143,10 +138,10 @@ public class ColJavaParser implements vct.col.util.Parser {
       } catch (FileNotFoundException e) {
         Fail("File %s has not been found",file_name);
       } catch (Exception e) {
-        e.printStackTrace();
+        DebugException(e);
         Abort("Exception %s while parsing %s",e.getClass(),file_name);
       } catch (Throwable e){
-        e.printStackTrace();
+        DebugException(e);
         Warning("Exception %s while parsing %s",e.getClass(),file_name);
         throw e;
       }

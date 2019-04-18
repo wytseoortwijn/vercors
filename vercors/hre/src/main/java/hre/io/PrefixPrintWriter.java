@@ -1,18 +1,18 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 package hre.io;
 
-import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.util.Stack;
 
 /**
- * PrintStream with a stack of prefixes.
+ * PrintWriter with a stack of prefixes.
  * 
  * @author <a href="mailto:sccblom@ewi.utwente.nl">Stefan Blom</a>
  *
  */
-public class PrefixPrintStream {
+public class PrefixPrintWriter {
 
-  private PrintStream out;
+  private PrintWriter out;
   
   private Stack<String> stack=new Stack<String>();
   
@@ -20,7 +20,7 @@ public class PrefixPrintStream {
 
   boolean at_new_line=true;
   
-  public PrefixPrintStream(PrintStream out){
+  public PrefixPrintWriter(PrintWriter out){
     this.out=out;
   }
 
@@ -37,7 +37,7 @@ public class PrefixPrintStream {
     prefix+=s;
   }
 
-  public PrefixPrintStream printf(String format,Object... args){
+  public PrefixPrintWriter printf(String format, Object... args){
     String message=String.format(format,args);
     while(message.length()>0){
       if (at_new_line) out.print(prefix);
@@ -52,6 +52,13 @@ public class PrefixPrintStream {
       }
     }
     return this;
+  }
+
+  /**
+   * Close the underlying stream.
+   */
+  public void close() {
+    out.close();
   }
 }
 

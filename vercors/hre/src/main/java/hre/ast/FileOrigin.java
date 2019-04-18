@@ -2,6 +2,7 @@
 package hre.ast;
 
 import hre.lang.HREError;
+import static hre.lang.System.*;
 
 import java.io.PrintStream;
 import java.util.Hashtable;
@@ -26,16 +27,16 @@ public class FileOrigin extends Origin {
 
   private static Hashtable<String,FileContext> data=new Hashtable<String,FileContext>();
   
-  public void printContext(PrintStream out,int before,int after){
+  public void printContext(int before,int after){
     String file=getName();
     FileContext fc=data.get(file);
     if (fc==null){
-      System.out.println("=========================================");
-      System.out.printf("error at %s: ",this);
+      Output("=========================================");
+      Output("error at %s: ",this);
     } else {
-      out.printf("=== %-30s ===%n",file);
-      fc.printContext(out,this,before,after);
-      System.out.println("-----------------------------------------");
+      Output("=== %-30s ===",file);
+      fc.printContext(this,before,after);
+      Output("-----------------------------------------");
     }
   }
   
@@ -43,11 +44,11 @@ public class FileOrigin extends Origin {
     data.put(file,new FileContext(file,gui));
   }
   public synchronized void report(String level, Iterable<String> message) {
-    printContext(System.out,linesBefore,linesAfter);     
+    printContext(linesBefore,linesAfter);
     for(String line:message){
-      System.out.printf("  %s%n",line);
+      Output("  %s",line);
     }
-    System.out.println("=========================================");
+    Output("=========================================");
   }
   
   public synchronized void report(String level, String ... message) {
@@ -66,11 +67,11 @@ public class FileOrigin extends Origin {
       }
       return;
     }
-    printContext(System.out, linesBefore,linesAfter);     
+    printContext(linesBefore,linesAfter);
     for(String line:message){
-      System.out.printf("  %s%n",line);
+      Output("  %s",line);
     }
-    System.out.println("=========================================");
+    Output("=========================================");
   }
 
     private String file_name;

@@ -2,7 +2,7 @@
 
 package hre.debug;
 
-import hre.io.PrefixPrintStream;
+import hre.io.PrefixPrintWriter;
 
 import java.lang.reflect.Field;
 import java.nio.file.Path;
@@ -41,10 +41,10 @@ public class HeapDump {
    * @param tree The root of the tree that is to be printed.
    * @param base_classes A set of classes that are part of the tree and must be recursively explored.
    */
-  public static void tree_dump(PrefixPrintStream out,Object tree,Class<?> ... base_classes){
+  public static void tree_dump(PrefixPrintWriter out, Object tree, Class<?> ... base_classes){
     tree_dump(out,new HashSet<Object>(),tree,base_classes);
   }
-  private static void tree_dump(PrefixPrintStream out,Set<Object> visited,Object tree,Class<?> ... base_classes){
+  private static void tree_dump(PrefixPrintWriter out, Set<Object> visited, Object tree, Class<?> ... base_classes){
     if (tree instanceof String){
       out.printf("<String>%s</String>%n", tree);
       return;

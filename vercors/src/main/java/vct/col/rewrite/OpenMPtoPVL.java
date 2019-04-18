@@ -17,6 +17,8 @@ import vct.col.ast.ASTSpecial.Kind;
 import vct.col.util.ASTUtils;
 import vct.col.util.FeatureScanner;
 
+import static hre.lang.System.Debug;
+
 interface PPLProgram {
 
   boolean static_schedule();
@@ -99,7 +101,7 @@ class PPLCompose implements PPLProgram {
   }
    @Override
  public void set_section() { //$
-    System.out.println("------------SAeed: set section in PPLCOmpose ");
+    Debug("------------SAeed: set section in PPLCOmpose ");
     isSection=true;
   }
 }

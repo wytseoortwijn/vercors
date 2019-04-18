@@ -1004,10 +1004,6 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
     case NEQ:
     {
       if (!t1.comparableWith(source(),t2)) {
-        //vct.util.Configuration.getDiagSyntax().print(System.out,e.getArg(0));
-        //System.out.print("/");
-        //vct.util.Configuration.getDiagSyntax().print(System.out,e.getArg(1));
-        //System.out.println();
         Fail("Types of left and right-hand side argument are uncomparable: %s/%s",t1,t2);
       }
       e.setType(new PrimitiveType(PrimitiveSort.Boolean));

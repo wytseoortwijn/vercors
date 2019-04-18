@@ -301,8 +301,6 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
         null
     );
     hist_class.add(begin_hist);
-    //System.out.printf("%s%n",Configuration.getDiagSyntax().print(begin_hist));
-
   }
 
   protected void add_split_merge_methods(ASTClass cl) {
@@ -931,7 +929,6 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
         null
     );
     hist_class.add_dynamic(end_hist);
-    //System.out.printf("%s%n",Configuration.getDiagSyntax().print(end_hist));
 
     result=create.invokation(rewrite(model), null ,name,rewrite(effect.getArgs()));
   }
