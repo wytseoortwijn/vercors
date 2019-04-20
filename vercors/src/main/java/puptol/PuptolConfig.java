@@ -14,6 +14,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 
+import static hre.lang.System.*;
+
 class Group {
   final String Type="group";
   final String ToolName;
@@ -64,7 +66,7 @@ class Parameter {
         Params.add(new Parameter("backend","--silver=silicon"));
         break;
       default:
-        System.err.printf("cannot map backend %s%n", backend);
+        Warning("cannot map backend %s%n", backend);
       }
       boolean histcheck=false;
       for (String arg:args){
@@ -74,7 +76,7 @@ class Parameter {
           Params.add(new Parameter("histcheck",arg));
           break;
         default:
-          System.err.printf("cannot map argument %s%n", arg);
+          Warning("cannot map argument %s%n", arg);
         }
       }
       if (!histcheck){
@@ -119,7 +121,7 @@ public class PuptolConfig {
   }
   
   public void update(String configfile){
-    System.err.printf("updating puptol config %s%n",configfile);
+    Progress("updating puptol config %s%n",configfile);
     try {
       GsonBuilder builder = new GsonBuilder();
       builder.setPrettyPrinting().serializeNulls();
@@ -135,22 +137,22 @@ public class PuptolConfig {
         for(JsonElement e:exps){
           jobj=(JsonObject)e;
           String label=((JsonPrimitive)jobj.get("Name")).getAsString();
-          System.err.printf("entry %s%n",label);
+          Debug("entry %s%n",label);
           if (label.equals(key)){
             found=true;
-            System.err.printf("updating %s%n",label);
+            Debug("updating %s%n",label);
             jobj.add("Scenarios",array);
           }
         }
         if (!found){
-          System.err.printf("entry for %s not found%n",key);
+          Warning("entry for %s not found%n",key);
         }
       }
       PrintStream out=new PrintStream(configfile);
       out.printf("%s%n",gson.toJson(element));
       out.close();
     } catch (Exception e){
-      e.printStackTrace();
+      DebugException(e);
     }
   }
 

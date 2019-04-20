@@ -12,6 +12,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
+import static hre.lang.System.Output;
+import static hre.lang.System.Warning;
+
 public class TestcaseVisitor extends SimpleFileVisitor<Path>{
   
   public final HashMap<String,Set<Path>> files_by_name=new HashMap<String,Set<Path>>();
@@ -57,7 +60,6 @@ public class TestcaseVisitor extends SimpleFileVisitor<Path>{
           while((line=is.readLine())!=null){
             line=line.trim();
             if (line.startsWith("//::")){
-              //System.err.printf("%s: %s%n", file, line);
               String cmds[]=line.substring(4).trim().split("[ ]+");
               switch(cmds[0]){
               case "case":
@@ -78,7 +80,7 @@ public class TestcaseVisitor extends SimpleFileVisitor<Path>{
                 for(String test:cases){
                   Testcase tc=testsuite.get(test);
                   if (!tc.tools.isEmpty()){
-                    System.err.printf("%s: tools for test %s already set.%n",file,test);
+                    Output("%s: tools for test %s already set.%n",file,test);
                     delayed_fail=true;
                   }
                   for(int i=1;i<cmds.length;i++) {  
@@ -128,7 +130,7 @@ public class TestcaseVisitor extends SimpleFileVisitor<Path>{
                 }
                 break;
               default:
-                System.err.printf("ignoring %s in %s: %s%n",cmds[0],file,line);
+                Warning("ignoring %s in %s: %s",cmds[0],file,line);
               }
             } else {
               continue;
@@ -140,14 +142,12 @@ public class TestcaseVisitor extends SimpleFileVisitor<Path>{
           }
         }                       
       }
-      //System.err.printf("file: %s (%s/%s)%n", file, type,ext);
       return FileVisitResult.CONTINUE;
   }
   @Override
   public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs)
       throws IOException
   {
-          //System.err.printf("enter folder: %s%n", dir);
           return FileVisitResult.CONTINUE;
   }
   @Override
@@ -155,7 +155,6 @@ public class TestcaseVisitor extends SimpleFileVisitor<Path>{
       throws IOException
   {
       if (e == null) {
-          //System.err.printf("leave folder: %s%n", dir);
           return FileVisitResult.CONTINUE;
       } else {
           // directory iteration failed

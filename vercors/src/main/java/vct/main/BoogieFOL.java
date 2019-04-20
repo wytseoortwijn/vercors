@@ -53,7 +53,8 @@ public class BoogieFOL {
      * Executed when the abstract scanner finds a method.
      */
     public void visit(Method m){
-      PrefixPrintWriter out=new PrefixPrintWriter(hre.lang.System.getLogLevelOutputWriter(hre.lang.System.LogLevel.Info));
+      PrintWriter infoLog = hre.lang.System.getLogLevelOutputWriter(hre.lang.System.LogLevel.Info);
+      PrefixPrintWriter out=new PrefixPrintWriter(infoLog);
       PrintWriter err = hre.lang.System.getLogLevelErrorWriter(hre.lang.System.LogLevel.Info);
       ASTNode body=m.getBody();
       Contract c=m.getContract();
@@ -78,17 +79,17 @@ public class BoogieFOL {
             DeclarationStatement args[]=m.getArgs();
             ASTNode formula=e.arg(0);
             err.printf("checking formula at %s%n",formula.getOrigin());
-            vct.util.Configuration.getDiagSyntax().print(new PrintWriter(System.out),formula);
+            vct.util.Configuration.getDiagSyntax().print(new PrintWriter(infoLog),formula);
             for(ASTNode part:ASTUtils.conjuncts(formula,StandardOperator.And)){
               err.print("conjuct: ");
-              vct.util.Configuration.getDiagSyntax().print(new PrintWriter(System.out),part);
+              vct.util.Configuration.getDiagSyntax().print(new PrintWriter(infoLog),part);
             }
             BoogieReport res=check_boogie(args,formula);
             err.printf("formula at %s: %s%n",e.getOrigin(),res.getVerdict());
             report.addReport(res);
             for(ASTNode part:ASTUtils.conjuncts(formula,StandardOperator.And)){
               err.print("conjuct ");
-              vct.util.Configuration.getDiagSyntax().print(new PrintWriter(System.out),part);
+              vct.util.Configuration.getDiagSyntax().print(new PrintWriter(infoLog),part);
               err.println();
               res=check_boogie(args,part);
             }

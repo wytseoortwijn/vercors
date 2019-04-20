@@ -3,6 +3,8 @@ package vct.main;
 import hre.io.Message;
 import hre.io.MessageProcess;
 
+import static hre.lang.System.Debug;
+
 
 public class Z3FOL {
   
@@ -20,8 +22,7 @@ public class Z3FOL {
     z3.send("(check-sat)");
     for(;;){
       Message res=z3.recv();
-      System.err.printf(res.getFormat(),res.getArgs());
-      System.err.println();
+      Debug(res.getFormat(),res.getArgs());
       // TODO: take unsat and exit possibility into account.
       if (res.getFormat().equals("stdout: %s")){
         if(((String)res.getArg(0)).equals("sat")) break;
@@ -34,8 +35,7 @@ public class Z3FOL {
     z3.send("(exit)");
     for(;;){
       Message res=z3.recv();
-      System.err.printf(res.getFormat(),res.getArgs());
-      System.err.println();
+      Debug(res.getFormat(),res.getArgs());
       if (res.getFormat().equals("exit %d")) break;
     }    
   }

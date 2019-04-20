@@ -2,12 +2,16 @@ package hre.tools;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Comparator;
+
+import static hre.lang.System.Debug;
+import static hre.lang.System.DebugException;
 
 /**
  * Command line tool for generating wrapper classes.
@@ -24,25 +28,28 @@ import java.util.Comparator;
 public class ApiGen {
 
   public static void main(String args[]) throws IOException{
+    hre.lang.System.setOutputStream(System.out, hre.lang.System.LogLevel.);
+    hre.lang.System.setErrorStream(System.err, hre.lang.System.LogLevel.);
+
     Path currentRelativePath = Paths.get("");
     String s = currentRelativePath.toAbsolutePath().toString();
-    System.out.println("Current relative path is: " + s);
+    Debug("Current relative path is: " + s);
     
     Class<?> c;
     try {
       c = Class.forName(args[0]);
-      PrintStream out;
+      PrintWriter out;
       if (args.length>1){
-        out=new PrintStream(args[1]);
+        out=new PrintWriter(args[1]);
       } else {
-        out=System.out;
+        out=hre.lang.System.getLogLevelOutputWriter(hre.lang.System.LogLevel.Info);
       }
       api_gen(out,c);
       if (args.length>1){
         out.close();
       }
     } catch (ClassNotFoundException e) {
-      e.printStackTrace();
+      DebugException(e);
     }
   }
   
@@ -66,7 +73,7 @@ public class ApiGen {
     return res;
   }
 
-  private static void api_gen(PrintStream out,Class<?> cl) throws IOException {
+  private static void api_gen(PrintWriter out,Class<?> cl) throws IOException {
     //PrintStream out=new PrintStream(String.format("src/test/Wrapped%s.java",cl.getSimpleName()));
     out.printf("%s;%n", cl.getPackage());
     out.println("import java.lang.reflect.*;");
