@@ -4,6 +4,8 @@ import java.util.Arrays;
 
 import vct.util.ClassName;
 
+import static hre.lang.System.Debug;
+
 public class ASTSpecial extends ASTDeclaration {
 
   public ASTNode getArg(int i){
@@ -138,7 +140,7 @@ public class ASTSpecial extends ASTDeclaration {
       visitor.visit(this);
     } catch (Throwable t){
       if (thrown.get()!=t){
-        System.err.printf("Triggered by %s:%n",getOrigin());
+        Debug("Triggered by %s:",getOrigin());
         thrown.set(t);
       }
       throw t;
@@ -151,7 +153,7 @@ public class ASTSpecial extends ASTDeclaration {
       return map.map(this);
     } catch (Throwable t){
       if (thrown.get()!=t){
-        System.err.printf("Triggered by %s:%n",getOrigin());
+        Debug("Triggered by %s:",getOrigin());
         thrown.set(t);
       }
       throw t;

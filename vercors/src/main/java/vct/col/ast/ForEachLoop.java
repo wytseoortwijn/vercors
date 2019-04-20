@@ -2,6 +2,8 @@ package vct.col.ast;
 
 import hre.ast.MessageOrigin;
 
+import static hre.lang.System.Debug;
+
 public class ForEachLoop extends ASTNode implements BeforeAfterAnnotations {
 
   public final DeclarationStatement decls[];
@@ -36,7 +38,7 @@ public class ForEachLoop extends ASTNode implements BeforeAfterAnnotations {
       visitor.visit(this);
     } catch (Throwable t){
       if (thrown.get()!=t){
-        System.err.printf("Triggered by %s:%n",getOrigin());
+        Debug("Triggered by %s:",getOrigin());
         thrown.set(t);
      }
       throw t;
@@ -49,7 +51,7 @@ public class ForEachLoop extends ASTNode implements BeforeAfterAnnotations {
       return map.map(this);
     } catch (Throwable t){
       if (thrown.get()!=t){
-        System.err.printf("Triggered by %s:%n",getOrigin());
+        Debug("Triggered by %s:",getOrigin());
         thrown.set(t);
      }
       throw t;

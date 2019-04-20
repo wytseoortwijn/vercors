@@ -1,5 +1,7 @@
 package hre.util;
 
+import static hre.lang.System.Verdict;
+
 /**
  * This class contains a test report for a verification run.
  * 
@@ -34,7 +36,7 @@ public class TestReport {
     if (verdict!=Verdict.Error){
       verdict=Verdict.Fail;
     }
-    System.err.printf("FAIL: "+format+"%n", args);
+    Verdict("FAIL: "+format+"%n", args);
   }
 
 }

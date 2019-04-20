@@ -52,7 +52,7 @@ public class DeriveModifies extends RecursiveVisitor<Object> {
     while(dirty){
       pass++;
       dirty=false;
-      System.err.printf("modifies annotation pass %d%n",pass);
+      Debug("modifies annotation pass %d",pass);
       program.accept(this);
     }
   }

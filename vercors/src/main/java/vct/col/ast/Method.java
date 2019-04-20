@@ -204,7 +204,7 @@ public class Method extends ASTDeclaration {
       visitor.visit(this);
     } catch (Throwable t){
       if (thrown.get()!=t){
-        System.err.printf("Triggered by %s:%n",getOrigin());
+        Debug("Triggered by %s:",getOrigin());
         thrown.set(t);
      }
       throw t;
@@ -217,7 +217,7 @@ public class Method extends ASTDeclaration {
       return map.map(this);
     } catch (Throwable t){
       if (thrown.get()!=t){
-        System.err.printf("Triggered by %s:%n",getOrigin());
+        Debug("Triggered by %s:",getOrigin());
         thrown.set(t);
       }
       throw t;

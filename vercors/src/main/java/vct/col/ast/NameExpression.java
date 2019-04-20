@@ -1,6 +1,8 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 package vct.col.ast;
 
+import static hre.lang.System.Debug;
+
 /** Node that can hold every possible kind of defined name.
  * 
  * @author Stefan Blom
@@ -84,7 +86,7 @@ public class NameExpression extends ASTNode {
       visitor.visit(this);
     } catch (Throwable t){
       if (thrown.get()!=t){
-        System.err.printf("Triggered by %s:%n",getOrigin());
+        Debug("Triggered by %s:",getOrigin());
         thrown.set(t);
      }
       throw t;
@@ -97,7 +99,7 @@ public class NameExpression extends ASTNode {
       return map.map(this);
     } catch (Throwable t){
       if (thrown.get()!=t){
-        System.err.printf("Triggered by %s:%n",getOrigin());
+        Debug("Triggered by %s:",getOrigin());
         thrown.set(t);
      }
       throw t;

@@ -73,7 +73,6 @@ public class TrackingOutput {
       throw new Error("enter/leave mismatch: found "+frame.tree.getOrigin()+", expected: "+origin);
     }
     parent.tree.add(frame.tree,frame.line,frame.col,line,col);
-    //System.err.printf("xxx linking line %d col %d line %d col %d with %s\n",frame.line,frame.col,line,col,origin);
     frame=parent;
   }
   public void incrIndent(){ indent+=2; }
@@ -92,11 +91,7 @@ public class TrackingOutput {
   }
   
   public void newline(){
-//    if(atnewline && show){
-//      System.err.printf("%4d ",line);
-//    }
     output.append("\n");
-//    if (show) System.err.println("");
     line++;
     atnewline=true;
     col=1;
@@ -106,10 +101,8 @@ public class TrackingOutput {
       indent-=2;
     }
     if(atnewline){
-//      if (show) System.err.printf("%4d ",line);
       for(int i=0;i<indent;i++) {
         output.print(" ");
-//        if (show) System.err.print(" ");
       }
       atnewline=false;
       col+=indent;
@@ -123,7 +116,6 @@ public class TrackingOutput {
       col+=indent;
     }
     output.print(s);
-//    if (show) System.err.print(s);
     col+=s.length();
   }
   public void println(String s){

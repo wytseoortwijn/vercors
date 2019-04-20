@@ -9,6 +9,8 @@ import java.util.Map;
 import vct.col.rewrite.AbstractRewriter;
 import vct.col.rewrite.MultiSubstitution;
 
+import static hre.lang.System.Debug;
+
 /**
  * This class represents the usual shorthand for the declaration of multiple variables.
  * The class stores the base type of the operation and for each of the instances
@@ -62,7 +64,7 @@ public class VariableDeclaration extends ASTNode {
       visitor.visit(this);
     } catch (Throwable t){
       if (thrown.get()!=t){
-        System.err.printf("Triggered by %s:%n",getOrigin());
+        Debug("Triggered by %s:",getOrigin());
         thrown.set(t);
       }
       throw t;
@@ -75,7 +77,7 @@ public class VariableDeclaration extends ASTNode {
       return map.map(this);
     } catch (Throwable t){
       if (thrown.get()!=t){
-        System.err.printf("Triggered by %s:%n",getOrigin());
+        Debug("Triggered by %s:",getOrigin());
         thrown.set(t);
       }
       throw t;

@@ -132,7 +132,7 @@ public abstract class GlobalizeStatics extends AbstractRewriter {
     }
     ASTClass cl=(ASTClass)m.getParent();
     if (cl==null){
-      //System.err.printf("no parent for %s%n",m.getName());
+      Debug("no parent for %s%n",m.getName());
       // FIXME: it works, but not for the right reason!
       super.visit(e);
       return;

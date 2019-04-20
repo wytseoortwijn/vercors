@@ -1,9 +1,5 @@
 package vct.antlr4.parser;
 
-import static hre.lang.System.Abort;
-import static hre.lang.System.Debug;
-import static hre.lang.System.Failure;
-import static hre.lang.System.Warning;
 import hre.lang.HREError;
 
 import java.util.ArrayList;
@@ -26,6 +22,8 @@ import vct.col.syntax.Syntax;
 import vct.antlr4.generated.Java8JMLParser.*;
 import vct.antlr4.generated.*;
 import vct.util.Configuration;
+
+import static hre.lang.System.*;
 
 /**
  * Convert JML parse trees to COL.
@@ -271,7 +269,7 @@ public class Java8JMLtoCol extends ANTLRtoCOL implements Java8JMLVisitor<ASTNode
         bases=new ClassType[]{forceClassType(t)};
         ptr++;
       } else {
-        System.err.printf("missing case ???%n");
+        Debug("missing case ???%n");
         throw new Error("missing case");
       }
     }
@@ -279,7 +277,7 @@ public class Java8JMLtoCol extends ANTLRtoCOL implements Java8JMLVisitor<ASTNode
     try {
       scan_body(cl, (ParserRuleContext)ctx.getChild(N-1));
     } catch (Throwable t) {
-      System.err.printf("caught %s%n", t);
+      DebugException(t);
       throw t;
     }
     for(int i=0;i<base;i++){
@@ -765,7 +763,6 @@ public class Java8JMLtoCol extends ANTLRtoCOL implements Java8JMLVisitor<ASTNode
     while(i0<i){
       //add modifiers as annotations.
       ASTNode mod=convert(ctx,i0);
-      //System.err.printf("<modifier! %s = %s%n",ctx.getChild(i0).toStringTree(parser),mod);
       res.attach(mod);
       i0++;
     }
@@ -1112,7 +1109,7 @@ public class Java8JMLtoCol extends ANTLRtoCOL implements Java8JMLVisitor<ASTNode
     if (match(0,true,ctx,"PackageDeclaration")) {
       hre.lang.System.Debug("has package");
       ASTNode pkg=convert((ParserRuleContext)ctx.getChild(0),1);
-      System.err.printf("pkg %s (%s)%n",Configuration.getDiagSyntax().print(pkg),pkg.getClass());
+      Debug("pkg %s (%s)%n",Configuration.getDiagSyntax().print(pkg),pkg.getClass());
       ptr++;
       ns=create.namespace(to_name(pkg));
     } else {

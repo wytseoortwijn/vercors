@@ -2,6 +2,8 @@ package vct.silver;
 
 import hre.ast.Origin;
 import static hre.lang.System.Debug;
+import static hre.lang.System.Progress;
+
 import vct.logging.ExceptionMessage;
 import vct.logging.MessageVisitor;
 import vct.logging.TaskBegin;
@@ -28,8 +30,8 @@ public class ErrorDisplayVisitor implements MessageVisitor {
   @Override
   public void visit(TaskEnd end) {
     long duration=(end.nanoTime()-end.begin.nanoTime())/1000000L;
-    if(Configuration.progress.get() && duration>1L){
-      System.err.printf("task %s took %d ms%n",end.begin.description,duration);
+    if(duration>1L) {
+      Progress("task %s took %d ms%n",end.begin.description,duration);
     }
 
     

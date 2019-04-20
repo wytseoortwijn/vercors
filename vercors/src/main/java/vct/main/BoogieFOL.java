@@ -54,6 +54,7 @@ public class BoogieFOL {
      */
     public void visit(Method m){
       PrefixPrintWriter out=new PrefixPrintWriter(hre.lang.System.getLogLevelOutputWriter(hre.lang.System.LogLevel.Info));
+      PrintWriter err = hre.lang.System.getLogLevelErrorWriter(hre.lang.System.LogLevel.Info);
       ASTNode body=m.getBody();
       Contract c=m.getContract();
       out.printf("starting%n");
@@ -76,30 +77,31 @@ public class BoogieFOL {
             if (e.isSpecial(Kind.Assert)) continue;
             DeclarationStatement args[]=m.getArgs();
             ASTNode formula=e.arg(0);
-            System.err.printf("checking formula at %s%n",formula.getOrigin());
+            err.printf("checking formula at %s%n",formula.getOrigin());
             vct.util.Configuration.getDiagSyntax().print(new PrintWriter(System.out),formula);
             for(ASTNode part:ASTUtils.conjuncts(formula,StandardOperator.And)){
-              System.err.print("conjuct: ");
+              err.print("conjuct: ");
               vct.util.Configuration.getDiagSyntax().print(new PrintWriter(System.out),part);
             }
             BoogieReport res=check_boogie(args,formula);
-            System.err.printf("formula at %s: %s%n",e.getOrigin(),res.getVerdict());
+            err.printf("formula at %s: %s%n",e.getOrigin(),res.getVerdict());
             report.addReport(res);
             for(ASTNode part:ASTUtils.conjuncts(formula,StandardOperator.And)){
-              System.err.print("conjuct ");
+              err.print("conjuct ");
               vct.util.Configuration.getDiagSyntax().print(new PrintWriter(System.out),part);
-              System.err.println();
+              err.println();
               res=check_boogie(args,part);
             }
           }
         }
       } else {
-        System.err.printf("skipping non-block body of method %s at %s%n",m.getName(),m.getOrigin());
+        err.printf("skipping non-block body of method %s at %s%n",m.getName(),m.getOrigin());
       }
       out.printf("begin precondition2%n");
       HeapDump.tree_dump(out,c.pre_condition,ASTNode.class);
       out.printf("end precondition2%n");
-      out.close();  
+      out.close();
+      err.close();
     }
   }
 
@@ -138,7 +140,7 @@ public class BoogieFOL {
         "formula",
         new DeclarationStatement[0],
         body));
-    //hre.debug.HeapDump.tree_dump(new hre.io.PrefixPrintWriter(System.err),program,ASTNode.class);
+    //hre.debug.HeapDump.tree_dump(new hre.io.PrefixPrintWriter(err),program,ASTNode.class);
     ProgramUnit pgm=new ProgramUnit();
     pgm.add(program);
     return vct.boogie.Main.TestBoogie(pgm);

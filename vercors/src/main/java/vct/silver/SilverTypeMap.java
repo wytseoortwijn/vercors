@@ -35,7 +35,6 @@ public class SilverTypeMap<T> implements TypeMapping<T> {
     for (ASTNode a : t.argsJava()) {
       String s=a.getLabel(0).toString();
       if( s.equals(a.toString())){
-        // System.err.printf("detected type var %s%n",s);
         // TODO: properly detect type vars!
         ClassType res=new ClassType(s);
         res.setOrigin(new MessageOrigin("ADT Type Variable"));
@@ -53,14 +52,12 @@ public class SilverTypeMap<T> implements TypeMapping<T> {
     for (ASTNode a : t.argsJava()) {
       String s=a.getLabel(0).toString();
       if( s.toString().equals(a.toString())){
-        // System.err.printf("detected type var %s%n",s);
         // TODO: properly detect type vars!
         map.put(s,create.type_var(s));
       } else {
         map.put(s,((Type)a).apply(this));
       }
     }
-    // System.err.printf("passing map %s to %s%n",map,t.getName());
     return create.domain_type(t.getName(),map);
   }
   

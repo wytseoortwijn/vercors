@@ -163,7 +163,6 @@ public class FileContext {
         // TODO Auto-generated catch block
         e.printStackTrace();
       }
-      System.err.printf("visible %s of %s (%s) %n",r,s,p);
    */
 
 }

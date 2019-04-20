@@ -231,9 +231,7 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
         Fail("%s is not an ADT in %s",e.object,e);
       }
       SilverTypeMap.get_adt_subst(sigma.copy_rw,map,(ClassType)e.object);
-      //System.err.printf("before %s %s %s%n",e.method,map,t);
       e.setType(sigma.rewrite(t));
-      //System.err.printf("result %s after %s%n",e.method,e.getType());
       return;
     }
 

@@ -12,6 +12,8 @@ import vct.logging.MessageFactory;
 import vct.util.Configuration;
 import viper.api.VerificationControl;
 
+import static hre.lang.System.Progress;
+
 public class ViperControl implements VerificationControl<Origin> {
 
   private final ScheduledExecutorService scheduler;
@@ -28,7 +30,7 @@ public class ViperControl implements VerificationControl<Origin> {
       if (old_task==current_task && old_origin==current_origin && old_task!=null){
         int tmp=count+1;
         if (count>0 && (tmp&count)==0){
-          System.err.printf("Verifying %s at %s is taking %d+ ms%n",
+          Progress("Verifying %s at %s is taking %d+ ms%n",
             current_task,current_origin,count*Configuration.profiling.get());
         }
         count=tmp;
@@ -107,7 +109,7 @@ public class ViperControl implements VerificationControl<Origin> {
 
   @Override
   public void progress(String fmt, Object... args) {
-    hre.lang.System.Progress(fmt, args);    
+    Progress(fmt, args);
   }
   
   @Override

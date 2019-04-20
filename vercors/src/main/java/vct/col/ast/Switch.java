@@ -3,6 +3,8 @@ package vct.col.ast;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import static hre.lang.System.Debug;
+
 public class Switch extends ASTNode {
 
   public static class Case {
@@ -22,7 +24,7 @@ public class Switch extends ASTNode {
       visitor.visit(this);
     } catch (Throwable t){
       if (thrown.get()!=t){
-        System.err.printf("Triggered by %s:%n",getOrigin());
+        Debug("Triggered by %s:",getOrigin());
         thrown.set(t);
      }
       throw t;
@@ -35,7 +37,7 @@ public class Switch extends ASTNode {
       return map.map(this);
     } catch (Throwable t){
       if (thrown.get()!=t){
-        System.err.printf("Triggered by %s:%n",getOrigin());
+        Debug("Triggered by %s:",getOrigin());
         thrown.set(t);
     }
       throw t;

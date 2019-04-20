@@ -134,7 +134,7 @@ public class Main {
     int timeout=boogie_timeout.get();
     ModuleShell shell=Configuration.getShell(z3_module.get(),boogie_module.get(),chalice_module.get());
     File shell_dir=shell.shell_dir.toFile();
-    System.err.println("Checking with Chalice");
+    Output("Checking with Chalice");
     try {
       File chalice_input_file=File.createTempFile("chalice-input",".chalice",shell_dir);
       //if (!vct.util.Configuration.keep_temp_files.get()){
@@ -188,7 +188,7 @@ public class Main {
   public static SiliconReport TestSilicon(final ProgramUnit program){
     ModuleShell shell=Configuration.getShell(z3_module.get(),silicon_module.get());
     File shell_dir=shell.shell_dir.toFile();
-    System.err.println("Checking with chalice2sil and silicon");
+    Output("Checking with chalice2sil and silicon");
     try {
       File chalice_input_file=File.createTempFile("chalice-input",".chalice",shell_dir);
       //if (!vct.util.Configuration.keep_temp_files.get()){

@@ -1,6 +1,7 @@
 package vct.col.ast;
 
 import static hre.lang.System.Abort;
+import static hre.lang.System.Debug;
 import static hre.lang.System.Fail;
 
 import java.util.List;
@@ -79,7 +80,7 @@ public final class PrimitiveType extends Type {
       visitor.visit(this);
     } catch (Throwable t){
       if (thrown.get()!=t){
-        System.err.printf("Triggered by %s:%n",getOrigin());
+        Debug("Triggered by %s:",getOrigin());
         thrown.set(t);
      }
       throw t;
@@ -92,7 +93,7 @@ public final class PrimitiveType extends Type {
       return map.map(this);
     } catch (Throwable t){
       if (thrown.get()!=t){
-        System.err.printf("Triggered by %s:%n",getOrigin());
+        Debug("Triggered by %s:",getOrigin());
         thrown.set(t);
     }
       throw t;
@@ -105,7 +106,7 @@ public final class PrimitiveType extends Type {
       return map.map(this);
     } catch (Throwable t){
       if (thrown.get()!=t){
-        System.err.printf("Triggered by %s:%n",getOrigin());
+        Debug("Triggered by %s:",getOrigin());
         thrown.set(t);
      }
       throw t;

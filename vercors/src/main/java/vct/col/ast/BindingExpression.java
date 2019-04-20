@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import static hre.lang.System.Abort;
+import static hre.lang.System.Debug;
 
 public class BindingExpression extends ExpressionNode {
 
@@ -60,7 +61,7 @@ public class BindingExpression extends ExpressionNode {
       visitor.visit(this);
     } catch (Throwable t){
       if (thrown.get()!=t){
-        System.err.printf("Triggered by %s:%n",getOrigin());
+        Debug("Triggered by %s:",getOrigin());
         thrown.set(t);
     }
       throw t;
@@ -73,7 +74,7 @@ public class BindingExpression extends ExpressionNode {
       return map.map(this);
     } catch (Throwable t){
       if (thrown.get()!=t){
-        System.err.printf("Triggered by %s:%n",getOrigin());
+        Debug("Triggered by %s:",getOrigin());
         thrown.set(t);
       }
       throw t;

@@ -221,7 +221,7 @@ public class ASTClass extends ASTDeclaration implements ASTSequence<ASTClass> {
       visitor.visit(this);
     } catch (Throwable t){
       if (thrown.get()!=t){
-        System.err.printf("Triggered by %s:%n",getOrigin());
+        Debug("Triggered by %s:%n",getOrigin());
         thrown.set(t);
      }
       throw t;
@@ -234,7 +234,7 @@ public class ASTClass extends ASTDeclaration implements ASTSequence<ASTClass> {
       return map.map(this);
     } catch (Throwable t){
       if (thrown.get()!=t){
-        System.err.printf("Triggered by %s:%n",getOrigin());
+        Debug("Triggered by %s:%n",getOrigin());
         thrown.set(t);
       }
       throw t;

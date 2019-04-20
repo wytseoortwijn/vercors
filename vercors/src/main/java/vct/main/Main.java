@@ -96,13 +96,13 @@ public class Main
     }
     @Override
     public TestReport call() {
-      System.err.printf("Validating class %s...%n",class_name.toString("."));
+      Progress("Validating class %s...",class_name.toString("."));
       long start=System.currentTimeMillis();
       ProgramUnit task=new FilterClass(program,class_name.name).rewriteAll();
       task=new Standardize(task).rewriteAll();
       new SimpleTypeCheck(task).check();
       TestReport report=vct.boogie.Main.TestChalice(task);
-      System.err.printf("%s: result is %s (%dms)%n",class_name.toString("."),
+      Progress("%s: result is %s (%dms)",class_name.toString("."),
           report.getVerdict(),System.currentTimeMillis()-start);
       return report;
     }
@@ -726,7 +726,7 @@ public class Main
           ArrayList<Future<TestReport>> list=new ArrayList<Future<TestReport>>();
           for(ClassName class_name:arg.classNames()){
               Callable<TestReport> task=new ChaliceTask(arg,class_name);
-              System.err.printf("submitting verification of %s%n",class_name.toString("."));
+              Progress("submitting verification of %s",class_name.toString("."));
               list.add(queue.submit(task));
           }
           queue.shutdown();
@@ -743,12 +743,12 @@ public class Main
               Abort("%s",e);
             }
           }
-          System.err.printf("verification took %dms%n", System.currentTimeMillis()-start);
+          Progress("verification took %dms", System.currentTimeMillis()-start);
           return res;
         } else {
           long start=System.currentTimeMillis();
           TestReport report=vct.boogie.Main.TestChalice(arg);
-          System.err.printf("verification took %dms%n", System.currentTimeMillis()-start);
+          Progress("verification took %dms", System.currentTimeMillis()-start);
           return report;
         }
       }
@@ -1063,7 +1063,6 @@ public class Main
       public ProgramUnit apply(ProgramUnit arg,String ... args){
         RewriteSystem trs=RewriteSystems.getRewriteSystem("simplify_quant_pass1");
         ProgramUnit res=trs.normalize(arg);
-        // Configuration.getDiagSyntax().print(System.err,res);
         res=RewriteSystems.getRewriteSystem("simplify_quant_pass2").normalize(res);
         return res;
       }

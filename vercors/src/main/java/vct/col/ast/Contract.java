@@ -8,6 +8,8 @@ import java.util.HashSet;
 
 import vct.col.util.ASTUtils;
 
+import static hre.lang.System.Debug;
+
 public class Contract extends ASTNode {
 
   @Override
@@ -121,7 +123,7 @@ public class Contract extends ASTNode {
       visitor.visit(this);
     } catch (Throwable t){
       if (thrown.get()!=t){
-        System.err.printf("Triggered by %s:%n",getOrigin());
+        Debug("Triggered by %s:",getOrigin());
         thrown.set(t);
      }
       throw t;
@@ -134,7 +136,7 @@ public class Contract extends ASTNode {
       return map.map(this);
     } catch (Throwable t){
       if (thrown.get()!=t){
-        System.err.printf("Triggered by %s:%n",getOrigin());
+        Debug("Triggered by %s:",getOrigin());
         thrown.set(t);
      }
       throw t;

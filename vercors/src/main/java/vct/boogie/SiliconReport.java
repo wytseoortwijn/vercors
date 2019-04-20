@@ -18,6 +18,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import static hre.lang.System.Output;
 import static hre.lang.System.Progress;
 
 /**
@@ -63,8 +64,7 @@ public class SiliconReport extends hre.util.TestReport {
     for(;;){
       Message msg=shell.recv();
       if (msg.getFormat().equals("exit %d")) break;
-      System.err.printf(msg.getFormat(),msg.getArgs());
-      System.err.println();
+      Output("%s", msg.getFormat(),msg.getArgs());
       if (msg.getFormat().equals("stderr: %s") || msg.getFormat().equals("stdout: %s")){
         line=(String)msg.getArg(0);
       } else {
@@ -95,7 +95,7 @@ public class SiliconReport extends hre.util.TestReport {
 		  int line=Integer.parseInt(error.getAttribute("line"));
 		  int column=Integer.parseInt(error.getAttribute("column"));
 		  Origin o=tree.getOrigin(line,column);
-		  System.err.printf("  %s at %s\n",id,o);
+		  Output("  %s at %s",id,o);
 		  o.report("error", id);
 		}
 	}

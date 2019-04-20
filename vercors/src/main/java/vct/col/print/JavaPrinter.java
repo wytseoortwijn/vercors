@@ -715,7 +715,7 @@ public class JavaPrinter extends AbstractPrinter {
     if (predicate){
       if (contract!=null) {
         out.lnprintf("//ignoring contract of predicate");
-        System.err.println("ignoring contract of predicate"); 
+        Debug("ignoring contract of predicate");
       }
       out.lnprintf("/*@");
       out.incrIndent();

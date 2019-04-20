@@ -241,18 +241,14 @@ public class Syntax {
     syntax_map.put(op,Arrays.copyOf(full_syntax,full_syntax.length));
     associativity_map.put(op,Associativity.None);
     ArrayList<String> pattern=new ArrayList<String>();
-    //System.err.printf("pattern for operator %s is:",op);
     for(int i=0;i<full_syntax.length;i++){
       if (i>0) {
-        //System.err.printf(" null");
         pattern.add(null);
       }
       if (full_syntax[i].length()>0) {
-        //System.err.printf(" \"%s\"",full_syntax[i]);
         pattern.add(full_syntax[i]);
       }
     }
-    //System.err.printf("%n");
     pattern_map.put(op, pattern.toArray(full_syntax));
   }
   

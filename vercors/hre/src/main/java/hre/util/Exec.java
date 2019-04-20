@@ -5,6 +5,8 @@ import hre.lang.HREError;
 import java.io.File;
 import java.io.IOException;
 
+import static hre.lang.System.Debug;
+
 /**
  * Provides methods that can execute an external program.
  * 
@@ -34,7 +36,7 @@ public class Exec {
     try {
       process=runtime.exec(command_line);
     } catch (IOException e){
-      java.lang.System.err.printf("exec yields %s%n",e);
+      Debug("exec yields %s%n",e);
       return -1;
     }
     CopyThread stdin_copy,stdout_copy,stderr_copy;
@@ -46,7 +48,7 @@ public class Exec {
       stderr_copy=new CopyThread(process.getErrorStream(),stderr);
       stderr_copy.start();
     } catch (IOException e){
-      java.lang.System.err.printf("IO setup failed %s%n",e);
+      Debug("IO setup failed %s%n",e);
       return -1;      
     }
     try {

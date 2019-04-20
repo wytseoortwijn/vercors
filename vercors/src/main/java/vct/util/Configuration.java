@@ -213,7 +213,6 @@ public class Configuration {
       if (modules.length==0){
         return new ModuleShell();
       }
-      //System.err.printf("home: %s%ngeneric:%s%nsystem:%s%n",getHome(),generic_deps,system_deps);
       shell = new ModuleShell(getHome().resolve(Paths.get("modules")));
       for (String p:modulepath){
         shell.send("module use %s",p);
@@ -265,6 +264,4 @@ public class Configuration {
   public static Syntax getDiagSyntax(){
     return JavaSyntax.getJava(JavaDialect.JavaVerCors);
   }
-
-  public static BooleanSetting progress = new BooleanSetting(false);
 }

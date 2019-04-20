@@ -905,7 +905,7 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
       ));
     }
     ASTNode temp=rewrite(def.getContract().pre_condition);
-    System.err.printf("REQ %s%n", temp);
+    Debug("REQ %s", temp);
     cb.requires(temp);
     cb.ensures(new_sigma.rewrite(rename_old.rewrite(def.getContract().post_condition)));
     

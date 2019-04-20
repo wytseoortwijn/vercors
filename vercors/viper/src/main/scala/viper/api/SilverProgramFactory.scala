@@ -112,10 +112,8 @@ class SilverProgramFactory[O,Err] extends ProgramFactory[O,Err,Type,Exp,Stmt,
     val out_prog = api.prog.program()
     in_prog.domains.asScala.toList foreach {
       d => {
-//        System.err.printf("%s%n",d.pos);
         val o=get_info(d.info,d.pos,api.origin)
         val name=d.name
-//        System.err.printf("%s%n",d.functions);
         val functions:java.util.List[DFunc2]=(d.functions map {
           x => {
             val o=get_info(x.info,x.pos,api.origin)
@@ -124,7 +122,6 @@ class SilverProgramFactory[O,Err] extends ProgramFactory[O,Err,Type,Exp,Stmt,
             api.prog.dfunc(o,x.name,pars,res,d.name)
           }
         }).asJava
-//        System.err.printf("%s%n",d.axioms);
         val axioms:java.util.List[DAxiom2]=d.axioms.map {
           x => api.prog.daxiom(o,x.name,map_expr(api,x.exp),d.name)
         }.asJava
@@ -317,13 +314,6 @@ class SilverProgramFactory[O,Err] extends ProgramFactory[O,Err,Type,Exp,Stmt,
        case PredicateAccessPredicate(e1,e2) =>  ve.scale_access(o,map_expr(v,e1),map_expr(v,e2))
        case PredicateAccess(args,name) => ve.predicate_call(o,name,map_expr(v,args))
        case DomainFuncApp(name,args,typemap) =>
-         /*System.err.printf("sil2col %s %s %s %s %s %s%n",
-             name,
-             args,
-             typemap,
-             exp.asInstanceOf[DomainFuncApp].typ,
-             exp.asInstanceOf[DomainFuncApp].formalArgs,
-             exp.asInstanceOf[DomainFuncApp].domainName);*/
          ve.domain_call(o,name,map_expr(v,args), map_type_map(v,typemap),
              map_type(v, exp.asInstanceOf[DomainFuncApp].typ),
              map_decls(v,exp.asInstanceOf[DomainFuncApp].formalArgs),
@@ -406,7 +396,6 @@ object Parser extends viper.silver.frontend.SilFrontend {
     parse()         /* Parse into intermediate (mutable) AST */
     typecheck()     /* Resolve and typecheck */
     translate()     /* Convert intermediate AST to final (mainly immutable) AST */
-    //System.err.printf("program is %s%n",_program);
     _program match {
       case Some(Program(domains,fields,functions,predicates,methods)) => 
         val prog=new Prog();

@@ -43,7 +43,7 @@ public class ColCParser extends ColIParser {
             String s;
             try {
               while((s=err.readLine())!=null){
-                System.err.println(s);
+                Output("%s", s);
                 if (s.matches(".*error.*")) err_found=true;
               }
             } catch (IOException e) {

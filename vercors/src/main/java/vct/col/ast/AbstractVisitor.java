@@ -42,7 +42,7 @@ public class AbstractVisitor<T> extends ASTFrame<T> implements ASTVisitor<T> {
  
   private final void visit_any(ASTNode any){
     java.lang.Class<? extends Object> any_class=any.getClass();
-    System.err.printf("for origin %s%n",any.getOrigin());
+    Debug("for origin %s",any.getOrigin());
     throw new Error("missing case or invalid AST: "+any_class.getSimpleName()+" in "+this.getClass().getSimpleName());
   }
   

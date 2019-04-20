@@ -35,7 +35,6 @@ public class ContainerClassLoader extends ClassLoader {
         throw new ClassNotFoundException("IOException: "+e);
       }
       // 3. get bytes for class
-      //System.err.printf("size is %d (%d)%n", entry.getSize(),entry.getCompressedSize());
       byte[] classBytes = new byte[(int) source.size(clsFile)];
       try {
           int read=0;
@@ -44,7 +43,6 @@ public class ContainerClassLoader extends ClassLoader {
             int tmp=is.read(classBytes,read,(expect-read));
             if (tmp==0) Fail("not enough data");
             read+=tmp;
-            //System.err.printf("got %d of %d bytes%n", read,expect);
           }
       } catch (IOException e) {
           Fail("ERROR loading class file: " + e);
@@ -77,7 +75,6 @@ public class ContainerClassLoader extends ClassLoader {
           // delegate to parent if not allowed to load class
           cls = super.loadClass(className, resolve);
       }
-      //System.err.printf("completed loading %s%n",className);
       return cls;
     }
     

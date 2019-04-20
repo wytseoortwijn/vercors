@@ -67,7 +67,6 @@ class SilverExpressionFactory[O] extends ExpressionFactory[O,Type,Exp] with Fact
       }.toMap
       val sargs = args.asScala.toSeq
       val fp = to_decls(o,pars)
-      //System.err.printf("col2sil %s %s %s %s %s %s%n",name,sargs,tm,rt,fp,domain)
       DomainFuncApp(name,sargs.toSeq,tm)(NoPosition,new OriginInfo(o),rt,fp,domain, NoTrafos)
   }
 

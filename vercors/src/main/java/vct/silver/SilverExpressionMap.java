@@ -230,7 +230,6 @@ public class SilverExpressionMap<T,E> implements ASTMapping<E>{
         AxiomaticDataType adt=(AxiomaticDataType)m.getParent();
         HashMap<String, T> dpars=new HashMap<String, T>();
         type.domain_type(dpars,(ClassType)e.object);
-        //System.err.printf("%s expression type %s base %s%n",name,e.getType(),e.object);
         return create.domain_call(o, name, args, dpars, rt, pars, adt.name());
       } else {
         

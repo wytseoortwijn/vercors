@@ -131,7 +131,8 @@ public class ProgramUnit implements ASTSequence<ProgramUnit> {
       if (n instanceof ASTSpecial){
         
       } else {
-        System.err.printf("null named declaration %n%s%n",Configuration.getDiagSyntax().print(n));
+        Debug("null named declaration");
+        Debug("%s", Configuration.getDiagSyntax().print(n));
       }
     } else {
       ClassName n2=n1.prepend(prefix);

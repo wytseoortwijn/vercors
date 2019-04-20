@@ -936,7 +936,7 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
         default: break;
       }
     }
-    System.err.printf("NO MATCH%n%s%n",ctx.toStringTree(parser));
+    Debug("NO MATCH%n%s%n",ctx.toStringTree(parser));
     return null;
   }
 
