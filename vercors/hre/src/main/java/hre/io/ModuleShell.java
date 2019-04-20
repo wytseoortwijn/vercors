@@ -8,6 +8,7 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 
 import static hre.lang.System.Debug;
+import static hre.lang.System.DebugException;
 import static hre.lang.System.Progress;
 
 class RMRF extends Thread {
@@ -47,7 +48,7 @@ class RMRF extends Thread {
     try {
       Files.walkFileTree(path,new Visitor());
     } catch (IOException e) {
-      e.printStackTrace();
+      DebugException(e);
     }
   }
 }

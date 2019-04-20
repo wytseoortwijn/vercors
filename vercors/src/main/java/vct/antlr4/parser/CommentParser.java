@@ -38,7 +38,6 @@ public abstract class CommentParser<Parser extends org.antlr.v4.runtime.Parser,L
     try {
       input = new ANTLRInputStream(fifo);
     } catch (IOException e) {
-      //e.printStackTrace();
       throw Failure("I/O error");
     }
     lexer.reset();
@@ -73,7 +72,6 @@ public abstract class CommentParser<Parser extends org.antlr.v4.runtime.Parser,L
     try {
       input = new ANTLRInputStream(fifo);
     } catch (IOException e) {
-      //e.printStackTrace();
       throw Failure("I/O error");
     }
     lexer.reset();

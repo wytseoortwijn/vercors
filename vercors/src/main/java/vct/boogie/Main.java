@@ -174,7 +174,7 @@ public class Main {
         return output;
     } catch (Exception e) {
       Warning("error: ");
-      e.printStackTrace();
+      DebugException(e);
       return null;
     }
   }
@@ -215,7 +215,7 @@ public class Main {
       return output;
     } catch (Exception e) {
       Warning("error: ");
-      e.printStackTrace();
+      DebugException(e);
       return null;
     }
 

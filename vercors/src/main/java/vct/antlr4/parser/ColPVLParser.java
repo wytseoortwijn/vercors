@@ -57,10 +57,10 @@ public class ColPVLParser implements vct.col.util.Parser {
       } catch (FileNotFoundException e) {
         Fail("File %s has not been found",file_name);
       } catch (Exception e) {
-        e.printStackTrace();
+        DebugException(e);
         Abort("Exception %s while parsing %s",e.getClass(),file_name);
       } catch (Throwable e) {
-        e.printStackTrace();
+        DebugException(e);
         Warning("Exception %s while parsing %s",e.getClass(),file_name);
         throw e;
       }

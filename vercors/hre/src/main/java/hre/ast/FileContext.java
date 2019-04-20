@@ -161,7 +161,6 @@ public class FileContext {
         gui.textPane.scrollRectToVisible(p);
       } catch (BadLocationException e) {
         // TODO Auto-generated catch block
-        e.printStackTrace();
       }
    */
 

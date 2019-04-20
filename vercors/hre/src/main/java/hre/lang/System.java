@@ -134,14 +134,14 @@ public class System {
     // Only format the string (expensive) when the message is actually outputted
     String message = null;
 
-    for(LogWriter writer : activeLogWriters) {
-        writer.doFlush();
-    }
-
     for(Map.Entry<Appendable, LogLevel> entry : outputs.entrySet()) {
       if(entry.getValue().order >= level.getOrder()) {
         try {
           if(message == null) {
+            for(LogWriter writer : activeLogWriters) {
+              writer.doFlush();
+            }
+
             message = "[" + level.getShorthand() + "] " + String.format(format + "%n", args);
           }
 

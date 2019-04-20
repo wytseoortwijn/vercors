@@ -18,6 +18,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import static hre.lang.System.DebugException;
 import static hre.lang.System.Output;
 import static hre.lang.System.Progress;
 
@@ -48,11 +49,11 @@ public class SiliconReport extends hre.util.TestReport {
 			
 
 		}catch(ParserConfigurationException pce) {
-			pce.printStackTrace();
+			DebugException(pce);
 		}catch(SAXException se) {
-			se.printStackTrace();
+			DebugException(se);
 		}catch(IOException ioe) {
-			ioe.printStackTrace();
+			DebugException(ioe);
 		}
 		System.exit(1);
 		return null;

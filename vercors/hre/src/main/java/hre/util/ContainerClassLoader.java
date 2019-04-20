@@ -91,7 +91,7 @@ public class ContainerClassLoader extends ClassLoader {
           Debug("resource %s found.",name);
           return source.read(name);
         } catch (IOException e) {
-          e.printStackTrace();
+          DebugException(e);
           return null;
         }
       } else {

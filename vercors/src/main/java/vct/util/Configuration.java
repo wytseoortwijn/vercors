@@ -1,10 +1,5 @@
 package vct.util;
 
-import static hre.lang.System.Abort;
-import static hre.lang.System.Debug;
-import static hre.lang.System.Progress;
-import static hre.lang.System.Warning;
-
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -23,6 +18,9 @@ import hre.config.StringListSetting;
 import hre.config.StringSetting;
 import hre.io.Message;
 import hre.io.ModuleShell;
+
+import static hre.lang.System.*;
+
 /**
  * This class contains the configuration options of the VerCors library.
  * 
@@ -253,7 +251,7 @@ public class Configuration {
         Abort(msg.getFormat(),msg.getArgs());
       }
     } catch (IOException e) {
-      e.printStackTrace();
+      DebugException(e);
       throw new Error(e.getMessage());
     }
     return shell;

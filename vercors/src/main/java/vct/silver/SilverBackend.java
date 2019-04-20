@@ -28,6 +28,7 @@ import vct.logging.PassReport;
 import vct.logging.TaskBegin;
 import vct.util.Configuration;
 
+import static hre.lang.System.DebugException;
 import static hre.lang.System.Output;
 import static hre.lang.System.Warning;
 
@@ -85,7 +86,7 @@ public class SilverBackend {
       }
       obj=constructors[0].newInstance(new HREOrigins());
     } catch(Exception e) {
-      e.printStackTrace();
+      DebugException(e);
       throw new HREError("Exception %s",e);
     }
     if (!(obj instanceof ViperAPI)){
@@ -139,7 +140,7 @@ public class SilverBackend {
          pw = new java.io.PrintWriter(new java.io.File(fname));
          verifier.write_program(pw,program);
       } catch (FileNotFoundException e) {
-        e.printStackTrace();
+        DebugException(e);
       } finally {
         if (pw!=null) pw.close();
       }

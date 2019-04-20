@@ -19,9 +19,7 @@ import org.xml.sax.SAXException;
 
 import vct.util.Configuration;
 
-import static hre.lang.System.Output;
-import static hre.lang.System.Progress;
-import static hre.lang.System.Warning;
+import static hre.lang.System.*;
 
 /**
  * Create a test report for a Boogie run from the output file.
@@ -49,11 +47,11 @@ public class BoogieReport extends hre.util.TestReport {
 
 
         } catch (ParserConfigurationException pce) {
-            pce.printStackTrace();
+            DebugException(pce);
         } catch (SAXException se) {
-            se.printStackTrace();
+            DebugException(se);
         } catch (IOException ioe) {
-            ioe.printStackTrace();
+            DebugException(ioe);
         }
         System.exit(1);
         return null;

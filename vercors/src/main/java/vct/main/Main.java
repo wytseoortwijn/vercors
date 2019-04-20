@@ -648,7 +648,7 @@ public class Main
       exit=e.exit;
       Verdict("The final verdict is Error");
     } catch (Throwable e) {
-      e.printStackTrace();
+      DebugException(e);
       throw e;
     } finally {
       Progress("entire run took %d ms",System.currentTimeMillis()-globalStart);
@@ -734,12 +734,10 @@ public class Main
             try {
               res.addReport(future.get());
             } catch (InterruptedException e) {
-              // TODO Auto-generated catch block
-              e.printStackTrace();
+              DebugException(e);
               Abort("%s",e);
             } catch (ExecutionException e) {
-              // TODO Auto-generated catch block
-              e.printStackTrace();
+              DebugException(e);
               Abort("%s",e);
             }
           }

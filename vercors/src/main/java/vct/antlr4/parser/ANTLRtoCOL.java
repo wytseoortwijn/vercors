@@ -176,9 +176,9 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
     } catch (NoSuchFieldException e) {
       return false;
     } catch (SecurityException e) {
-      e.printStackTrace();
+      DebugException(e);
     } catch (IllegalArgumentException e) {
-      e.printStackTrace();
+      DebugException(e);
     }
     throw hre.lang.System.Failure("reflection failed to work for field %s",field);
   }
@@ -190,11 +190,11 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
     } catch (NoSuchFieldException e) {
       throw hre.lang.System.Failure("class has no static field %s",field);
     } catch (SecurityException e) {
-      e.printStackTrace();
+      DebugException(e);
     } catch (IllegalArgumentException e) {
-      e.printStackTrace();
+      DebugException(e);
     } catch (IllegalAccessException e) {
-      e.printStackTrace();
+      DebugException(e);
     }
     throw hre.lang.System.Failure("reflection failed to work for field %s",field);
   }
