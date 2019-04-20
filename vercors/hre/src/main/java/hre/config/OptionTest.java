@@ -8,7 +8,9 @@ public class OptionTest {
    * @param args
    */
   public static void main(String[] args) {
-    // TODO Auto-generated method stub
+    setOutputStream(System.out, LogLevel.Info);
+    setErrorStream(System.err, LogLevel.Info);
+
     BooleanSetting var=new BooleanSetting(false);
     OptionParser cli=new OptionParser();
     cli.add(var.getEnable("enable x"),'x');
