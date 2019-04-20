@@ -29,7 +29,7 @@ public class PVLPostProcessor extends AbstractRewriter {
     ASTClass decl=(ASTClass)result;
     boolean withlock=false;
     for(Method m:decl.dynamicMethods()){
-      Debug("%s %s%n", m.kind, m.name());
+      Debug("%s %s", m.kind, m.name());
       if (m.kind==Method.Kind.Predicate && m.name().equals("lock_invariant")){
         if (withlock){
           m.getOrigin().report("error","second declaration of lock_invariant.");

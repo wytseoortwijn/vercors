@@ -597,7 +597,7 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
     if (match(0,true,ctx,"PackageDeclaration")) {
       Debug("has package");
       ASTNode pkg=convert((ParserRuleContext)ctx.getChild(0),1);
-      Debug("pkg %s (%s)%n",Configuration.getDiagSyntax().print(pkg),pkg.getClass());
+      Debug("pkg %s (%s)",Configuration.getDiagSyntax().print(pkg),pkg.getClass());
       ptr++;
       ns=create.namespace(to_name(pkg));
     } else {
@@ -703,7 +703,7 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
         ClassType bases[]=new ClassType[]{(ClassType)type};
         ASTClass cl=create.ast_class("__inline_ext", ClassKind.Plain ,null, bases , null );
         scan_body(cl,(ParserRuleContext)rest_ctx.getChild(1));
-        Debug("cannot attach inline class %s%n", cl);
+        Debug("cannot attach inline class %s", cl);
         return (ASTNode)res;
       }
       Debug("no arguments");

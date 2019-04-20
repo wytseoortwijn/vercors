@@ -211,6 +211,9 @@ public class Main
         case "info":
           level = hre.lang.System.LogLevel.Info;
           break;
+        case "progress":
+          level = hre.lang.System.LogLevel.Progress;
+          break;
         case "debug":
           level = hre.lang.System.LogLevel.Debug;
           break;
@@ -286,7 +289,7 @@ public class Main
         program.add(Parsers.parseFile(f.getPath()));
         cnt++;
       }
-      Progress("Parsed %d file(s) in: %dms%n",cnt,System.currentTimeMillis() - startTime);
+      Progress("Parsed %d file(s) in: %dms",cnt,System.currentTimeMillis() - startTime);
 
       if (boogie.get() || sequential_spec.get()) {
         program.setSpecificationFormat(SpecificationFormat.Sequential);

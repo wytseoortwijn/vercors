@@ -52,9 +52,9 @@ public class ContainerClassLoader extends ClassLoader {
           cls = defineClass(className, classBytes, 0, classBytes.length);
           Package pkg = cls.getPackage();
           if(pkg==null){
-            Debug("class %s has no package%n", className);
+            Debug("class %s has no package", className);
             String pkgName=className.substring(0,className.lastIndexOf('.'));
-            Debug("defining package %s%n", pkgName);
+            Debug("defining package %s", pkgName);
             String name=pkgName;
             String specTitle="specTitle";
             String specVersion="specVersion";

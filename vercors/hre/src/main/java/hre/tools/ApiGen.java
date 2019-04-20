@@ -28,8 +28,8 @@ import static hre.lang.System.DebugException;
 public class ApiGen {
 
   public static void main(String args[]) throws IOException{
-    hre.lang.System.setOutputStream(System.out, hre.lang.System.LogLevel.);
-    hre.lang.System.setErrorStream(System.err, hre.lang.System.LogLevel.);
+    hre.lang.System.setOutputStream(System.out, hre.lang.System.LogLevel.Info);
+    hre.lang.System.setErrorStream(System.err, hre.lang.System.LogLevel.Info);
 
     Path currentRelativePath = Paths.get("");
     String s = currentRelativePath.toAbsolutePath().toString();

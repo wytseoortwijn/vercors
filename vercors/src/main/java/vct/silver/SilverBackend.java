@@ -172,17 +172,17 @@ public class SilverBackend {
             accounted.add(o);
           }
         }
-        Output("method verdict %s %s%n",method,pass?"PASS":"FAIL");
+        Output("method verdict %s %s",method,pass?"PASS":"FAIL");
       }
       for(String method:control.failed_methods){
-        Output("method verdict %s FAIL%n",method);
+        Output("method verdict %s FAIL",method);
         for(Origin o:vercors.refuted.get(method)){
           accounted.add(o);
         }
       }
       for(Origin o:reachable){
         if (!accounted.contains(o)){
-          Warning("unregistered location %s marked reachable%n",o);
+          Warning("unregistered location %s marked reachable",o);
         }
       }
     } catch (Exception e){

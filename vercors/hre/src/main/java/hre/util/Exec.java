@@ -36,7 +36,7 @@ public class Exec {
     try {
       process=runtime.exec(command_line);
     } catch (IOException e){
-      Debug("exec yields %s%n",e);
+      Debug("exec yields %s",e);
       return -1;
     }
     CopyThread stdin_copy,stdout_copy,stderr_copy;
@@ -48,7 +48,7 @@ public class Exec {
       stderr_copy=new CopyThread(process.getErrorStream(),stderr);
       stderr_copy.start();
     } catch (IOException e){
-      Debug("IO setup failed %s%n",e);
+      Debug("IO setup failed %s",e);
       return -1;      
     }
     try {
@@ -57,11 +57,11 @@ public class Exec {
       if (stdin_copy!=null) stdin_copy.join();
       stdout_copy.join();
       if (stdout_copy.getError()!=null) {
-        throw new HREError("stdout error: %s%n",stdout_copy.getError());
+        throw new HREError("stdout error: %s",stdout_copy.getError());
       }
       stderr_copy.join();
       if (stderr_copy.getError()!=null) {
-        throw new HREError("stderr error: %s%n",stderr_copy.getError());
+        throw new HREError("stderr error: %s",stderr_copy.getError());
       }
       return exitcode;
     } catch (InterruptedException e){

@@ -36,7 +36,7 @@ public class TestReport {
     if (verdict!=Verdict.Error){
       verdict=Verdict.Fail;
     }
-    Verdict("FAIL: "+format+"%n", args);
+    Verdict("FAIL: "+format, args);
   }
 
 }

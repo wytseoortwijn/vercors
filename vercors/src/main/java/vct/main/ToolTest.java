@@ -17,7 +17,7 @@ import static hre.lang.System.Verdict;
 public class ToolTest {
 
   public static void fail(VCTResult res,String msg){
-    Verdict("failure: %s%n",msg);
+    Verdict("failure: %s",msg);
     res.verdict=TestReport.Verdict.Error;
   }
   public VCTResult run(String ... args) {

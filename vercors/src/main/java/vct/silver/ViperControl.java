@@ -30,7 +30,7 @@ public class ViperControl implements VerificationControl<Origin> {
       if (old_task==current_task && old_origin==current_origin && old_task!=null){
         int tmp=count+1;
         if (count>0 && (tmp&count)==0){
-          Progress("Verifying %s at %s is taking %d+ ms%n",
+          Progress("Verifying %s at %s is taking %d+ ms",
             current_task,current_origin,count*Configuration.profiling.get());
         }
         count=tmp;

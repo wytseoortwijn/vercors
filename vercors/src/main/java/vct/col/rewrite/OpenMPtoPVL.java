@@ -265,11 +265,11 @@ public class OpenMPtoPVL extends AbstractRewriter {
       ASTNode s=statements[i];
       if(s.isDeclaration(ASTSpecial.Kind.Pragma)){
         String pragma=((ASTSpecial)s).args[0].toString();
-        Debug("pragma [%s]%n",pragma);
+        Debug("pragma [%s]",pragma);
         if (pragma.startsWith("omp")){
           pragma=pragma.substring(3).trim();
           OMPpragma command=OMPParser.parse(pragma);
-          Debug("type is %s%n",command.kind);
+          Debug("type is %s",command.kind);
           switch(command.kind){
           case Parallel:
             if (statements[i+1] instanceof BlockStatement){
@@ -440,7 +440,7 @@ public class OpenMPtoPVL extends AbstractRewriter {
   }
 
   private OMPpragma ParseOMP(String pragma){
-        Debug("pragma [%s]%n",pragma);
+        Debug("pragma [%s]",pragma);
         if (!pragma.startsWith("omp"))
           return null;
         pragma=pragma.substring(3).trim();
@@ -455,7 +455,7 @@ public class OpenMPtoPVL extends AbstractRewriter {
         String pragma=((ASTSpecial)src_block[i]).args[0].toString();
         OMPpragma command = ParseOMP(pragma);
         if(command ==null) {Warning("ignoring statement %d",i);continue;}        
-        Debug("type is %s%n",command.kind);
+        Debug("type is %s",command.kind);
         switch(command.kind){
         case Simd:
           Fail("simd only supported as for simd");

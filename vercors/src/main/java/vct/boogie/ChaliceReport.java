@@ -54,7 +54,7 @@ public class ChaliceReport extends hre.util.TestReport {
               message=line.substring(colon+2);
             }
             message=message.replaceAll(" at [0-9]+[.][0-9]+ "," ");
-            Debug("error at %s: %s%n",origin,message);
+            Debug("error at %s: %s",origin,message);
             if (must_refute.contains(origin)){
               Warning("expected error found: %s",message);
               has_refuted.add(origin);

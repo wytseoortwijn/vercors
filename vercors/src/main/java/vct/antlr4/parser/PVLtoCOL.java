@@ -508,7 +508,7 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
       } else if (match(i,true,flags,"inline")){
         res.setFlag(ASTFlags.INLINE,true);
       } else {
-        Fail("Unknown modifier %s%n",flags.getChild(i).toStringTree());
+        Fail("Unknown modifier %s",flags.getChild(i).toStringTree());
       }
     }
   }

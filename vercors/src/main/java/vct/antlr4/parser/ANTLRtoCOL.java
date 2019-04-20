@@ -246,7 +246,7 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
     try {
       scan_to_rec(unit,tree);
     } catch(MissingCase mc) {
-      Warning("in tree %s:%n%s",tree.toStringTree(parser),mc);
+      Warning("in tree %s: %s",tree.toStringTree(parser),mc);
       throw mc;
     }
   }
@@ -261,7 +261,7 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
           unit.add(n);
         }
       } catch(MissingCase mc) {
-        Warning("in tree %s:%n%s",ctx.getChild(i).toStringTree(parser),mc);
+        Warning("in tree %s: %s",ctx.getChild(i).toStringTree(parser),mc);
         throw mc;
       }
     }
@@ -713,7 +713,7 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
       if (tmp.children.size()==1){
         node=tmp.getChild(0);
       } else {
-        Abort("not a nested identifier%n%s",node.toStringTree(parser));
+        Abort("not a nested identifier: %s",node.toStringTree(parser));
       }
     }
     if (node instanceof TerminalNode){
@@ -936,7 +936,7 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
         default: break;
       }
     }
-    Debug("NO MATCH%n%s%n",ctx.toStringTree(parser));
+    Debug("NO MATCH: %s",ctx.toStringTree(parser));
     return null;
   }
 

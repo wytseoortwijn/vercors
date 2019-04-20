@@ -80,7 +80,7 @@ public class TestcaseVisitor extends SimpleFileVisitor<Path>{
                 for(String test:cases){
                   Testcase tc=testsuite.get(test);
                   if (!tc.tools.isEmpty()){
-                    Output("%s: tools for test %s already set.%n",file,test);
+                    Output("%s: tools for test %s already set.",file,test);
                     delayed_fail=true;
                   }
                   for(int i=1;i<cmds.length;i++) {  

@@ -219,7 +219,7 @@ public class JavaEncoder extends AbstractRewriter {
   
   @Override
   public void visit(ASTClass cl){
-    Debug("class %s%n",cl.name());
+    Debug("class %s",cl.name());
     if (!cl.isValidFlag(ASTFlags.FINAL)){
       cl.setFlag(ASTFlags.FINAL, false);
     }
@@ -399,24 +399,24 @@ public class JavaEncoder extends AbstractRewriter {
       String internal_name=create_method_name(INTERNAL,new ClassType(cls.getFullName()), m);
       boolean isFinal=m.isStatic()||cls.getFlag(ASTFlags.FINAL)||m.getFlag(ASTFlags.FINAL);
       if (isFinal){
-        Debug("  method %s is final%n",m.name());
+        Debug("  method %s is final",m.name());
       } else {
-        Debug("  method %s is not final%n",m.name());
+        Debug("  method %s is not final",m.name());
       }
       boolean isInitial=true;
       Method base=m;
       if (cls.super_classes.length>0){
-        Debug("    super class is %s%n",cls.super_classes[0]);
+        Debug("    super class is %s",cls.super_classes[0]);
         ASTClass parent=source().find(cls.super_classes[0]);
         base=get_initial_definition(m);
         if (base!=m){
           isInitial=false;
-          Debug("    overrides class %s%n",((ASTClass)base.getParent()).getDeclName());
+          Debug("    overrides class %s",((ASTClass)base.getParent()).getDeclName());
         } else {
-          Debug("    initial declaration%n");
+          Debug("    initial declaration");
         }
       } else {
-        Debug("    initial declaration%n");
+        Debug("    initial declaration");
       }
       Contract initial_contract;
       if (base==m){

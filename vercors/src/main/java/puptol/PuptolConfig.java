@@ -66,7 +66,7 @@ class Parameter {
         Params.add(new Parameter("backend","--silver=silicon"));
         break;
       default:
-        Warning("cannot map backend %s%n", backend);
+        Warning("cannot map backend %s", backend);
       }
       boolean histcheck=false;
       for (String arg:args){
@@ -76,7 +76,7 @@ class Parameter {
           Params.add(new Parameter("histcheck",arg));
           break;
         default:
-          Warning("cannot map argument %s%n", arg);
+          Warning("cannot map argument %s", arg);
         }
       }
       if (!histcheck){
@@ -121,7 +121,7 @@ public class PuptolConfig {
   }
   
   public void update(String configfile){
-    Progress("updating puptol config %s%n",configfile);
+    Progress("updating puptol config %s",configfile);
     try {
       GsonBuilder builder = new GsonBuilder();
       builder.setPrettyPrinting().serializeNulls();
@@ -137,15 +137,15 @@ public class PuptolConfig {
         for(JsonElement e:exps){
           jobj=(JsonObject)e;
           String label=((JsonPrimitive)jobj.get("Name")).getAsString();
-          Debug("entry %s%n",label);
+          Debug("entry %s",label);
           if (label.equals(key)){
             found=true;
-            Debug("updating %s%n",label);
+            Debug("updating %s",label);
             jobj.add("Scenarios",array);
           }
         }
         if (!found){
-          Warning("entry for %s not found%n",key);
+          Warning("entry for %s not found",key);
         }
       }
       PrintStream out=new PrintStream(configfile);

@@ -77,11 +77,11 @@ public class SiliconReport extends hre.util.TestReport {
         setVerdict(Verdict.Pass);
       }
     }
-    Progress("parsing %s\n",boogie_xml_file);
+    Progress("parsing %s",boogie_xml_file);
     Document dom=parseXmlFile(boogie_xml_file);
-    Progress("interpreting %s\n",boogie_xml_file);
+    Progress("interpreting %s",boogie_xml_file);
     parseDocument(dom,tree);
-    Progress("finished %s\n",boogie_xml_file);
+    Progress("finished %s",boogie_xml_file);
   }
   
   private void parseDocument(Document dom,TrackingTree tree){

@@ -642,7 +642,7 @@ public class ParallelBlockEncoder extends AbstractRewriter {
       if(!sidecondition_check(e))
       {
           super.visit(e);
-          Fail("\nThe distance of dependence in the \"send\" statement should be positive.");         
+          Fail("The distance of dependence in the \"send\" statement should be positive.");
       }
       ///Check for side conditions              
       
@@ -702,7 +702,7 @@ public class ParallelBlockEncoder extends AbstractRewriter {
       if(!sidecondition_check(e))
       {       
           super.visit(e);
-          Fail("\nThe distance of dependence in the \"recv\" statement should be positive.");         
+          Fail("The distance of dependence in the \"recv\" statement should be positive.");
       }
       ///Check for side conditions        
         currentTargetClass.add_dynamic(recv_body);        

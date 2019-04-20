@@ -613,9 +613,9 @@ public abstract class ASTFrame<T> {
   }
   public void Warning(String format,Object ...args){
     if (current_node()!=null){
-      hre.lang.System.Warning("("+this.getClass()+"):%n  at "+current_node().getOrigin()+":%n    "+format,args);
+      hre.lang.System.Warning("("+this.getClass()+"): at "+current_node().getOrigin()+": "+format, args);
     } else {
-      hre.lang.System.Warning("("+this.getClass()+"):%n  "+format,args);
+      hre.lang.System.Warning("("+this.getClass()+"): "+format, args);
     }
   }
 

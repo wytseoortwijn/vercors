@@ -259,7 +259,7 @@ public class CommandLineTesting {
           cmds.printf("EOF%n");
           continue;
         }
-        Progress("submitting %s/%s:%n",name,tool);
+        Progress("submitting %s/%s:",name,tool);
         Debug("%s", String.join(" ", cmd));
         ecs.submit(new TestResult(cmd,tt,test,name,tool));
         submitted++;
@@ -268,7 +268,7 @@ public class CommandLineTesting {
     
     // if rise4fun configuration is enabled, write the config data as JSON to stderr
     if (rise4fun.get()) {
-    	Debug("%s%n", rise4fun_config.toJson());
+    	Debug("%s", rise4fun_config.toJson());
     }
     
     for(;submitted>0;submitted--){
@@ -313,7 +313,7 @@ public class CommandLineTesting {
             Debug("%s", String.join(" ", tr.command));
           }
         } else {
-          Progress("%4d %s/%s: Fail (%s/%s) %n ",submitted,tr.name,tr.tool,tr.res.verdict,tr.test.verdict);
+          Progress("%4d %s/%s: Fail (%s/%s)",submitted,tr.name,tr.tool,tr.res.verdict,tr.test.verdict);
           Debug("%s", String.join(" ", tr.command));
           failures.put(tr.name+"/"+tr.tool,String.format(
               "verdict is %s instead of %s",tr.res.verdict,tr.test.verdict));
@@ -338,21 +338,21 @@ public class CommandLineTesting {
       }
     }
     if (!untested.isEmpty()){
-      Warning("Warning: the following %d tests have been disabled:%n",untested.size());
+      Warning("Warning: the following %d tests have been disabled:",untested.size());
       for(Entry<String,Testcase> item:untested.entrySet()){
         String name=item.getKey();
         Testcase test=item.getValue();
         String line = "  " + name + " ";
         String before = "(";
         for(Path f:test.files) {
-          line += before + f;
+          line += before + f.toString();
           before = " ";
         }
         line += ")";
         Warning("%s", line);
       }
     }
-    Progress("verification times (ms):");
+    Output("verification times (ms):");
     ArrayList<String> list = new ArrayList<String>(times.keySet());
     Collections.sort(list);
     for(String t:list){

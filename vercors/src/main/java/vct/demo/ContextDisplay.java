@@ -20,7 +20,7 @@ public class ContextDisplay {
     int begin=Integer.parseInt(args[1]);
     int end=Integer.parseInt(args[2]);
     FileOrigin o=new FileOrigin(args[0],begin,1,end,1);
-    Output("origin %s is%n",o);
+    Output("origin %s is",o);
     o.printContext(2,2);
   }
 }

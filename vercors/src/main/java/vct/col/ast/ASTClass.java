@@ -221,7 +221,7 @@ public class ASTClass extends ASTDeclaration implements ASTSequence<ASTClass> {
       visitor.visit(this);
     } catch (Throwable t){
       if (thrown.get()!=t){
-        Debug("Triggered by %s:%n",getOrigin());
+        Debug("Triggered by %s:",getOrigin());
         thrown.set(t);
      }
       throw t;
@@ -234,7 +234,7 @@ public class ASTClass extends ASTDeclaration implements ASTSequence<ASTClass> {
       return map.map(this);
     } catch (Throwable t){
       if (thrown.get()!=t){
-        Debug("Triggered by %s:%n",getOrigin());
+        Debug("Triggered by %s:",getOrigin());
         thrown.set(t);
       }
       throw t;
@@ -290,7 +290,7 @@ public class ASTClass extends ASTDeclaration implements ASTSequence<ASTClass> {
                     continue node;
                   }
                 } else {
-                  Debug("type of argument %d does not match method (cannot pass %s as %s)%n",i,type[i],m_idx_t);
+                  Debug("type of argument %d does not match method (cannot pass %s as %s)",i,type[i],m_idx_t);
                   continue node;
                 }
               }

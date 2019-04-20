@@ -269,7 +269,7 @@ public class Java8JMLtoCol extends ANTLRtoCOL implements Java8JMLVisitor<ASTNode
         bases=new ClassType[]{forceClassType(t)};
         ptr++;
       } else {
-        Debug("missing case ???%n");
+        Debug("missing case ???");
         throw new Error("missing case");
       }
     }
@@ -1109,7 +1109,7 @@ public class Java8JMLtoCol extends ANTLRtoCOL implements Java8JMLVisitor<ASTNode
     if (match(0,true,ctx,"PackageDeclaration")) {
       hre.lang.System.Debug("has package");
       ASTNode pkg=convert((ParserRuleContext)ctx.getChild(0),1);
-      Debug("pkg %s (%s)%n",Configuration.getDiagSyntax().print(pkg),pkg.getClass());
+      Debug("pkg %s (%s)",Configuration.getDiagSyntax().print(pkg),pkg.getClass());
       ptr++;
       ns=create.namespace(to_name(pkg));
     } else {
