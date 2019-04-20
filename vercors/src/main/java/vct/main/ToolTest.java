@@ -51,6 +51,7 @@ public class ToolTest {
       }
       sh=Configuration.getShell();
       res.verdict=null;
+      args[0] += " --progress"; // To capture verification time
       if (CommandLineTesting.savedir.used()){
         Path dir=Paths.get(CommandLineTesting.savedir.get()).toAbsolutePath();
         String ext="";
@@ -139,7 +140,9 @@ public class ToolTest {
         String line=msg.getArgs()[0].toString();
         if (line.matches(".*took.*ms")){
           String split[]=line.split("took|ms");
-          res.times.put(split[0].trim(),Integer.parseInt(split[1].trim()));
+          String key = split[0].replaceAll("\\[[^\\]]*]", "").trim();
+          int value = Integer.parseInt(split[1].trim());
+          res.times.put(key, value);
         }
       }
       res.log.add(msg);

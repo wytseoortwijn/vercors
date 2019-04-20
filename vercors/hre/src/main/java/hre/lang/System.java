@@ -13,14 +13,14 @@ public class System {
   public enum LogLevel {
     Silent(0, null),
 
-    Abort(1, "ABRT"),     // Internal VerCors Error
-    Result(2, "VERD"),    // The final verdict
-    Warning(3, "WARN"),   // Warnings
-    Info(4, "INFO"),      // User info
-    Progress(5, "PROG"),  // Progress info
-    Debug(6, "DEBG"),     // VerCors development info
+    Abort(1, "[abort] "),                   // Internal VerCors Error
+    Result(2, ""),                          // The final verdict
+    Warning(3, "[warning] "),               // Warnings
+    Info(4, ""),                            // User info
+    Progress(5, "[progress] "),             // Progress info
+    Debug(6, "[debug] "),                   // VerCors development info
 
-    All(Integer.MAX_VALUE, "ALL ");
+    All(Integer.MAX_VALUE, "[filtered] ");  // Only visible when verbosity is set to all
 
     private final int order;
     private final String shorthand;
@@ -142,7 +142,7 @@ public class System {
               writer.doFlush();
             }
 
-            message = "[" + level.getShorthand() + "] " + String.format(format + "%n", args);
+            message = level.getShorthand() + String.format(format + "%n", args);
           }
 
           entry.getKey().append(message);
