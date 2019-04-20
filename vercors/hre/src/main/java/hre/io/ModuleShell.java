@@ -71,7 +71,7 @@ public class ModuleShell {
     shell_dir=Files.createTempDirectory("modsh").toRealPath();
     Runtime.getRuntime().addShutdownHook(new RMRF(shell_dir));
     String OS=System.getProperty("os.name");
-    Progress("starting shell on %s in %s",OS,shell_dir);
+    Debug("starting shell on %s in %s",OS,shell_dir);
     if(OS.startsWith("Windows")){
       shell=new MessageProcess(shell_dir,"cmd.exe");
     } else {
@@ -83,7 +83,7 @@ public class ModuleShell {
   public ModuleShell(Path modules_home,Path ... modules_path) throws IOException{
     this(true);
     String OS=System.getProperty("os.name");
-    Progress("starting shell on %s in %s",OS,shell_dir);
+    Debug("starting shell on %s in %s",OS,shell_dir);
     Debug("initializing modules from %s",modules_home);
     if(OS.startsWith("Windows")){
         shell.send("set MODULESHOME=%s",modules_home);
