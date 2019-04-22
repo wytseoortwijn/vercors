@@ -47,34 +47,6 @@ import vct.util.Configuration;
 
 import static hre.lang.System.*;
 
-class ForbiddenOutputStream extends OutputStream {
-  private final PrintStream oldStream;
-
-  ForbiddenOutputStream(PrintStream oldStream) {
-    this.oldStream = oldStream;
-  }
-
-  @Override
-  public void write(int i) throws IOException {
-    oldStream.println("Please do not write to stdout or stderr explicitly! " +
-            "You are welcome to leave debugging information in, but use hre.lang.System.Debug instead. " +
-            "If you must use a stream, use hre.lang.System.getLoggingLevelOutputStream instead.");
-    StackTraceElement[] elements = Thread.currentThread().getStackTrace();
-
-    for(StackTraceElement element : elements) {
-      oldStream.println(String.format("at %s:%d", element.getFileName(), element.getLineNumber()));
-    }
-
-    System.exit(1);
-  }
-}
-
-class ForbiddenPrintStream extends PrintStream {
-  ForbiddenPrintStream(PrintStream oldStream) {
-    super(new ForbiddenOutputStream(oldStream));
-  }
-}
-
 /**
  * VerCors Tool main verifier.
  * @author Stefan Blom
@@ -237,8 +209,8 @@ public class Main
       hre.lang.System.setOutputStream(System.out, level);
       hre.lang.System.setErrorStream(System.err, level);
 
-      System.setErr(new ForbiddenPrintStream(System.err));
-      System.setOut(new ForbiddenPrintStream(System.out));
+      System.setErr(new hre.io.ForbiddenPrintStream(System.err));
+      System.setOut(new hre.io.ForbiddenPrintStream(System.out));
 
       Hashtable<String,CompilerPass> defined_passes=new Hashtable<String,CompilerPass>();
       Hashtable<String,ValidationPass> defined_checks=new Hashtable<String,ValidationPass>();
