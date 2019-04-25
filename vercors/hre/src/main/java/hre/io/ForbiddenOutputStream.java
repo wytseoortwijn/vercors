@@ -7,7 +7,7 @@ import java.io.PrintStream;
 public class ForbiddenOutputStream extends OutputStream {
   private final PrintStream oldStream;
 
-  ForbiddenOutputStream(PrintStream oldStream) {
+  public ForbiddenOutputStream(PrintStream oldStream) {
     this.oldStream = oldStream;
   }
 
