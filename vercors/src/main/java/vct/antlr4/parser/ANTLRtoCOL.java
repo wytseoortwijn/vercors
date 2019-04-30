@@ -122,8 +122,8 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
     this.tokens=tokens;
     this.parser=parser;
     this.id_token=identifier;
-    ch_comment=getStaticInt(lexer_class,"COMMENT");
-    ch_line_direction=getStaticInt(lexer_class,"LINEDIRECTION");
+    ch_comment=getStaticInt(lexer_class,"CH_COMMENT");
+    ch_line_direction=getStaticInt(lexer_class,"CH_LINEDIRECTION");
     Class<?> parser_classes[]=parser.getClass().getDeclaredClasses();
     for(Class<?> cl:parser_classes){
       String name=cl.getName();

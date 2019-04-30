@@ -33,7 +33,7 @@ import vct.util.Configuration;
 public class CMLtoCOL extends ANTLRtoCOL implements CMLVisitor<ASTNode> {
 
   private static <E extends ASTSequence<?>> E convert(E unit,ParseTree tree, String file_name,BufferedTokenStream tokens,org.antlr.v4.runtime.Parser parser) {
-    ANTLRtoCOL visitor=new CMLtoCOL(unit, CSyntax.getCML(),file_name,tokens,parser,CMLLexer.Identifier,CMLLexer.COMMENT);
+    ANTLRtoCOL visitor=new CMLtoCOL(unit, CSyntax.getCML(),file_name,tokens,parser,CMLLexer.Identifier,CMLLexer.CH_COMMENT);
     visitor.scan_to(unit,tree);
     return unit;
   }

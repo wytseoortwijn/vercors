@@ -1,16 +1,13 @@
-grammar Java8JML;
+grammar Java7JML;
 
-import val, Java8;
+import val,Java7;
 
 identifier : javaIdentifier ;
 
 extraIdentifier : valReserved ;
 
-extraType : 'resource' | 'process' | 'frac' | 'zfrac' | identifier typeArgs ;
+extraType : 'resource' | 'process' | 'frac' | 'zfrac' ;
 
-typeArgs : '<' ((expression | type) (',' (expression | type))*)? '>' ;
-
-   
 extraAnnotation
     : 'pure'
     | 'inline'
@@ -30,36 +27,34 @@ extraPrimary
     : Identifier ':' expression // used for witness labels
     | valPrimary
     ;
-    
-expressionList
-    :   labeledExpression (',' labeledExpression)*
-    ;
 
-labeledExpression
-    : ( Identifier ':' )? expression
-    ;
 
 extraDeclaration
     : functionDeclaration
     | axiomDeclaration
+    | valContractClause
     ;
-    
+
+/* We use the elements of the Java 7 grammar to define
+ function and axiom declarations.
+ */
+
 functionDeclaration
-    : methodModifier* methodHeader '=' expression ';'
+    : modifier* type Identifier formalParameters '=' expression ';'
     ;
 
 axiomDeclaration
     : 'axiom' Identifier '{' expression '==' expression '}'
     ;
-    
+
+
+/* The current API has only one category of specifications.
+ * This is the specification sequence
+ */
 specificationSequence : ( classBodyDeclaration | statement )* ;
 
-EmbeddedLatex
-    : '#' ~[\r\n]* '#' -> skip
-    ;
-    
-FileName : '"' ~[\r\n"]* '"' ;
+/* sequence of declarations only */
+javaDeclarations : classBodyDeclaration* ;
 
-LINEDIRECTION
-    :   '#' WS? IntegerLiteral WS? FileName ~[\r\n]* -> channel(LINEDIRECTION)
-    ;
+/* sequence of statements only  */
+javaStatements : statement* ;

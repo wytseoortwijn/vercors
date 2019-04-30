@@ -38,7 +38,12 @@
  *  $ javac *.java
  *  $ grun Java compilationUnit *.java
  */
-grammar Java;
+grammar Java7;
+
+@lexer::members {
+    public static final int CH_COMMENT = 1;
+    public static final int CH_LINEDIRECTION = 2;
+}
 
 // starting point for parsing a java file
 compilationUnit
@@ -63,6 +68,7 @@ typeDeclaration
 
 modifier
     :   classOrInterfaceModifier
+    |   extraAnnotation
     |   (   'native'
         |   'synchronized'
         |   'transient'
@@ -88,7 +94,7 @@ variableModifier
     ;
 
 classDeclaration
-    :   'class' Identifier typeParameters?
+    :   'class' javaIdentifier typeParameters?
         ('extends' type)?
         ('implements' typeList)?
         classBody
@@ -99,7 +105,7 @@ typeParameters
     ;
 
 typeParameter
-    :   Identifier ('extends' typeBound)?
+    :   javaIdentifier ('extends' typeBound)?
     ;
 
 typeBound
@@ -107,7 +113,7 @@ typeBound
     ;
 
 enumDeclaration
-    :   ENUM Identifier ('implements' typeList)?
+    :   ENUM javaIdentifier ('implements' typeList)?
         '{' enumConstants? ','? enumBodyDeclarations? '}'
     ;
 
@@ -116,7 +122,7 @@ enumConstants
     ;
 
 enumConstant
-    :   annotation* Identifier arguments? classBody?
+    :   annotation* javaIdentifier arguments? classBody?
     ;
 
 enumBodyDeclarations
@@ -124,7 +130,7 @@ enumBodyDeclarations
     ;
 
 interfaceDeclaration
-    :   'interface' Identifier typeParameters? ('extends' typeList)? interfaceBody
+    :   'interface' javaIdentifier typeParameters? ('extends' typeList)? interfaceBody
     ;
 
 typeList
@@ -155,6 +161,7 @@ memberDeclaration
     |   annotationTypeDeclaration
     |   classDeclaration
     |   enumDeclaration
+    |   extraDeclaration
     ;
 
 /* We use rule this even for void methods which cannot have [] after parameters.
@@ -163,7 +170,7 @@ memberDeclaration
    for invalid return type after parsing.
  */
 methodDeclaration
-    :   (type|'void') Identifier formalParameters ('[' ']')*
+    :   (type|'void') javaIdentifier formalParameters dims?
         ('throws' qualifiedNameList)?
         (   methodBody
         |   ';'
@@ -175,7 +182,7 @@ genericMethodDeclaration
     ;
 
 constructorDeclaration
-    :   Identifier formalParameters ('throws' qualifiedNameList)?
+    :   javaIdentifier formalParameters ('throws' qualifiedNameList)?
         constructorBody
     ;
 
@@ -207,12 +214,12 @@ constDeclaration
     ;
 
 constantDeclarator
-    :   Identifier ('[' ']')* '=' variableInitializer
+    :   javaIdentifier dims? '=' variableInitializer
     ;
 
 // see matching of [] comment in methodDeclaratorRest
 interfaceMethodDeclaration
-    :   (type|'void') Identifier formalParameters ('[' ']')*
+    :   (type|'void') javaIdentifier formalParameters dims?
         ('throws' qualifiedNameList)?
         ';'
     ;
@@ -230,7 +237,7 @@ variableDeclarator
     ;
 
 variableDeclaratorId
-    :   Identifier ('[' ']')*
+    :   javaIdentifier dims?
     ;
 
 variableInitializer
@@ -243,16 +250,21 @@ arrayInitializer
     ;
 
 enumConstantName
-    :   Identifier
+    :   javaIdentifier
     ;
 
 type
-    :   classOrInterfaceType ('[' ']')*
-    |   primitiveType ('[' ']')*
+    :   classOrInterfaceType dims?
+    |   primitiveType dims?
+    |   extraType
+    ;
+
+dims
+    : '[' ']' ('[' ']')*
     ;
 
 classOrInterfaceType
-    :   Identifier typeArguments? ('.' Identifier typeArguments? )*
+    :   javaIdentifier typeArguments? ('.' javaIdentifier typeArguments? )*
     ;
 
 primitiveType
@@ -305,7 +317,7 @@ constructorBody
     ;
 
 qualifiedName
-    :   Identifier ('.' Identifier)*
+    :   javaIdentifier ('.' javaIdentifier)*
     ;
 
 literal
@@ -330,7 +342,7 @@ elementValuePairs
     ;
 
 elementValuePair
-    :   Identifier '=' elementValue
+    :   javaIdentifier '=' elementValue
     ;
 
 elementValue
@@ -344,7 +356,7 @@ elementValueArrayInitializer
     ;
 
 annotationTypeDeclaration
-    :   '@' 'interface' Identifier annotationTypeBody
+    :   '@' 'interface' javaIdentifier annotationTypeBody
     ;
 
 annotationTypeBody
@@ -370,7 +382,7 @@ annotationMethodOrConstantRest
     ;
 
 annotationMethodRest
-    :   Identifier '(' ')' defaultValue?
+    :   javaIdentifier '(' ')' defaultValue?
     ;
 
 annotationConstantRest
@@ -414,15 +426,16 @@ statement
     |   'synchronized' parExpression block
     |   'return' expression? ';'
     |   'throw' expression ';'
-    |   'break' Identifier? ';'
-    |   'continue' Identifier? ';'
+    |   'break' javaIdentifier? ';'
+    |   'continue' javaIdentifier? ';'
     |   ';'
     |   statementExpression ';'
-    |   Identifier ':' statement
+    |   javaIdentifier ':' statement
+    |   extraStatement
     ;
 
 catchClause
-    :   'catch' '(' variableModifier* catchType Identifier ')' block
+    :   'catch' '(' variableModifier* catchType javaIdentifier ')' block
     ;
 
 catchType
@@ -496,13 +509,14 @@ constantExpression
 
 expression
     :   primary
-    |   expression '.' Identifier
+    |   expression '.' javaIdentifier
     |   expression '.' 'this'
     |   expression '.' 'new' nonWildcardTypeArguments? innerCreator
     |   expression '.' 'super' superSuffix
     |   expression '.' explicitGenericInvocation
     |   expression '[' expression ']'
-    |   expression '(' expressionList? ')'
+    |   expression '->' javaIdentifier arguments
+    |   expression ( '@' javaIdentifier )? arguments
     |   'new' creator
     |   '(' type ')' expression
     |   expression ('++' | '--')
@@ -517,8 +531,9 @@ expression
     |   expression '&' expression
     |   expression '^' expression
     |   expression '|' expression
-    |   expression '&&' expression
+    |   expression ('&&'|'**') expression
     |   expression '||' expression
+    |   expression ('==>'|'-*')  expression
     |   expression '?' expression ':' expression
     |   <assoc=right> expression
         (   '='
@@ -542,10 +557,11 @@ primary
     |   'this'
     |   'super'
     |   literal
-    |   Identifier
+    |   javaIdentifier
     |   type '.' 'class'
     |   'void' '.' 'class'
     |   nonWildcardTypeArguments (explicitGenericInvocationSuffix | 'this' arguments)
+	|   extraPrimary
     ;
 
 creator
@@ -554,12 +570,12 @@ creator
     ;
 
 createdName
-    :   Identifier typeArgumentsOrDiamond? ('.' Identifier typeArgumentsOrDiamond?)*
+    :   javaIdentifier typeArgumentsOrDiamond? ('.' javaIdentifier typeArgumentsOrDiamond?)*
     |   primitiveType
     ;
 
 innerCreator
-    :   Identifier nonWildcardTypeArgumentsOrDiamond? classCreatorRest
+    :   javaIdentifier nonWildcardTypeArgumentsOrDiamond? classCreatorRest
     ;
 
 arrayCreatorRest
@@ -593,16 +609,16 @@ nonWildcardTypeArgumentsOrDiamond
 
 superSuffix
     :   arguments
-    |   '.' Identifier arguments?
+    |   '.' javaIdentifier arguments?
     ;
 
 explicitGenericInvocationSuffix
     :   'super' superSuffix
-    |   Identifier arguments
+    |   javaIdentifier ('@' javaIdentifier )? arguments
     ;
 
 arguments
-    :   '(' expressionList? ')'
+    :   '(' ( expression ( ',' expression )* )? ')'
     ;
 
 // LEXER
@@ -971,6 +987,8 @@ URSHIFT_ASSIGN  : '>>>=';
 
 // §3.8 Identifiers (must appear after all keywords in the grammar)
 
+javaIdentifier : extraIdentifier | Identifier ;
+
 Identifier
     :   JavaLetter JavaLetterOrDigit*
     ;
@@ -1011,10 +1029,20 @@ ELLIPSIS : '...';
 WS  :  [ \t\r\n\u000C]+ -> skip
     ;
 
+EmbeddedLatex
+    : '#' ~[\r\n]* '#' -> skip
+    ;
+
 COMMENT
-    :   '/*' .*? '*/' -> skip
+    :   '/*' .*? '*/' { setChannel(CH_COMMENT); }
     ;
 
 LINE_COMMENT
-    :   '//' ~[\r\n]* -> skip
+    :   '//' ~[\r\n]* { setChannel(CH_COMMENT); }
+    ;
+
+FileName : '"' ~[\r\n"]* '"' ;
+
+LINEDIRECTION
+    :   '#' WS? IntegerLiteral WS? FileName ~[\r\n]* { setChannel(CH_LINEDIRECTION); }
     ;

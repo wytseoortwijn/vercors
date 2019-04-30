@@ -15,13 +15,14 @@
       <isset property="TRAVIS"/>
   </condition>
 
-  	<property name="dist" value="${basedir}/dist"/>
+  <property name="dist" value="${basedir}/dist"/>
   <property environment="env"/>
 
   <target name="clean">
-    <exec dir="${basedir}/vercors" executable="${sbtcommand}"> <arg value="clean" /> </exec>
-    <ant antfile="build.xml" dir="${basedir}/parsers" inheritAll="false" target="clean"/>
-    <ant antfile="build.xml" dir="${basedir}/hre" inheritAll="false" target="clean"/>
+    <exec dir="${basedir}/vercors" executable="${sbtcommand}"><arg value="clean" /><env key="TERM" value="xterm-color" /></exec>
+    <exec dir="${basedir}/vercors/hre" executable="${sbtcommand}"><arg value="clean" /><env key="TERM" value="xterm-color" /></exec>
+    <exec dir="${basedir}/vercors/parsers" executable="${sbtcommand}"><arg value="clean" /><env key="TERM" value="xterm-color" /></exec>
+    <exec dir="${basedir}/vercors/viper" executable="${sbtcommand}"><arg value="clean" /><env key="TERM" value="xterm-color" /></exec>
     <delete dir="${basedir}/doc/api"/>
   </target>
 
@@ -31,25 +32,17 @@
         <attribute name="Main-Class" value="vct.main.Main"/>
         <attribute name="Built-By" value="${user.name}"/>
       </manifest>
-      <fileset dir="hre/bin">
-        <include name="**" />
-      </fileset>
-      <fileset dir="parsers/bin">
-        <include name="**" />
-      </fileset>
       <zipfileset src="vercors/target/scala-2.12/Vercors-assembly-0.1-SNAPSHOT.jar" excludes="META-INF/*" />
     </jar>
   </target>
 
   <target name="compile">
-    <ant antfile="build.xml" dir="${basedir}/hre" inheritAll="false" target="compile"/>
-    <ant antfile="build.xml" dir="${basedir}/parsers" inheritAll="false" target="compile"/>
-    <exec dir="${basedir}/vercors" executable="${sbtcommand}" failonerror="${fail_on_test}"> <arg value="assembly" /> </exec>
+    <exec dir="${basedir}/vercors" executable="${sbtcommand}" failonerror="${fail_on_test}"><arg value="assembly" /></exec>
   </target>
 
   <target name="doc" depends="compile">
     <!-- do not inline! -->
-		<antcall target="javadoc"/>
+	<antcall target="javadoc"/>
   </target>
 
   <target name="javadoc">
@@ -63,13 +56,13 @@
            use="true"
            windowtitle="VerCors Tool API">
 
-      <fileset dir="${basedir}/hre/src" defaultexcludes="yes">
+      <fileset dir="${basedir}/vercors/hre/src" defaultexcludes="yes">
         <include name="**/*.java"/>
       </fileset>
       <fileset dir="${basedir}/vercors/src/main/java" defaultexcludes="yes">
         <include name="**/*.java"/>
       </fileset>
-      <fileset dir="${basedir}/viper/src" defaultexcludes="yes">
+      <fileset dir="${basedir}/vercors/viper/src" defaultexcludes="yes">
         <include name="**/*.java"/>
       </fileset>
 
@@ -117,8 +110,7 @@
       <zipfileset dir="examples" prefix="${prefix}/examples" includes="**/*.java,**/*.pvl,**/*.c,README,**/SEEALSO,backends/**/*" excludes="**/*~" />
 
 			<!-- VerCors and Viper jars -->
-			<zipfileset dir="." prefix="${prefix}"
-        includes="vct-tool.jar" />
+	  <zipfileset dir="." prefix="${prefix}" includes="vct-tool.jar" />
     </zip>
   </target>
 

@@ -1,10 +1,13 @@
 enablePlugins(PackPlugin)
-enablePlugins(Antlr4Plugin)
 
 lazy val viper_api = (project in file("viper"))
+lazy val hre = (project in file("hre"))
+lazy val parsers = (project in file("parsers"))
 
 lazy val vercors = (project in file("."))
   .dependsOn(viper_api)
+  .dependsOn(hre)
+  .dependsOn(parsers)
   .settings(
     name := "Vercors",
     organization := "University of Twente",
@@ -23,29 +26,12 @@ lazy val vercors = (project in file("."))
     scalacOptions += "-unchecked",
     scalacOptions += "-Dscalac.patmat.analysisBudget=off",
 
-    antlr4PackageName in Antlr4 := Some("vct.antlr4.generated"),
-    antlr4GenVisitor in Antlr4 := true,
-    antlr4Version in Antlr4 := "4.5.3",
-
-    // Add dependency to find the Hybrid Runtime Environment.
-    dependencyClasspath in Compile += new File("../hre/bin"),
-    dependencyClasspath in Compile += new File("../parsers/bin"),
-
-    dependencyClasspath in Test += new File("../hre/bin"),
-
     // Make publish-local also create a test artifact, i.e., put a jar-file into the local Ivy
     // repository that contains all classes and resources relevant for testing.
     // Other projects, e.g., Carbon or Silicon, can then depend on the Sil test artifact, which
     // allows them to access the Sil test suite.
 
     publishArtifact in(Test, packageBin) := true,
-
-    sourceGenerators in Compile += sourceManaged in Compile map { dir =>
-      System.err.printf("""generating file""");
-      val file = dir / "demo" / "Test.scala"
-      IO.write(file, """object Test extends App { println("Hi") }""")
-      Seq(file)
-    },
 
     assembly / mainClass := Some("vct.main.Main"),    // Define JAR's entry point
     assemblyMergeStrategy in assembly := {
@@ -54,5 +40,4 @@ lazy val vercors = (project in file("."))
         val oldStrategy = (assemblyMergeStrategy in assembly).value
         oldStrategy(x)
     }
-    
   )
