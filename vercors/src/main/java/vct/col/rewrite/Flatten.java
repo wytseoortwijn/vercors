@@ -199,6 +199,11 @@ public class Flatten extends AbstractRewriter {
   }
 
   private ASTNode add_as_var(ASTNode e){
+    if(e instanceof NameExpression || e instanceof ConstantExpression) {
+      // NameExpression also includes e.g. null
+      return e;
+    }
+
     create.enter();
     create(e);
     String name="__flatten_"+(++counter);
@@ -353,26 +358,34 @@ public class Flatten extends AbstractRewriter {
   
   @Override
   public void visit(LoopStatement s) {
-    //checkPermission(s);
-    LoopStatement res=new LoopStatement();
-    ASTNode tmp;
-    tmp=s.getInitBlock();
-    if (tmp!=null) res.setInitBlock(tmp.apply(copy_pure));
-    tmp=s.getUpdateBlock();
-    if (tmp!=null) res.setUpdateBlock(tmp.apply(copy_pure));
-    tmp=s.getEntryGuard();
-    if (tmp!=null) res.setEntryGuard(tmp.apply(copy_pure));
-    tmp=s.getExitGuard();
-    if (tmp!=null) res.setExitGuard(tmp.apply(copy_pure));
-    for(ASTNode inv:s.getInvariants()){
-      res.appendInvariant(inv.apply(copy_pure));
+    if(s.getInitBlock() != null) {
+      // Flatten the initialization block in the current block: declarations may not overwrite variables in the
+      // surrounding block.
+      visit_body(s.getInitBlock());
     }
-    tmp=s.getBody();
-    res.setBody(tmp.apply(this));
-    res.setOrigin(s.getOrigin());
-    res.set_before(copy_rw.rewrite(s.get_before()));
-    res.set_after(copy_rw.rewrite(s.get_after()));
-    result=res; return ;
+
+    LoopStatement result = new LoopStatement();
+
+    result.setEntryGuard(copy_pure.rewrite(s.getEntryGuard()));
+    result.setExitGuard(copy_pure.rewrite(s.getExitGuard()));
+
+    // Set up a dummy body to be flattened
+    BlockStatement dummyBody = create.block();
+    dummyBody.addStatement(s.getBody());
+
+    if(s.getUpdateBlock() != null) {
+      dummyBody.addStatement(s.getUpdateBlock());
+    }
+
+    result.setBody(rewrite(dummyBody));
+
+    result.setOrigin(s.getOrigin());
+
+    result.set_before(copy_pure.rewrite(s.get_before()));
+    result.set_after(copy_pure.rewrite(s.get_after()));
+    result.appendContract(copy_pure.rewrite(s.getContract()));
+
+    this.result = result;
   }
 
   private boolean simple_expression(ASTNode n){

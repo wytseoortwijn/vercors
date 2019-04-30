@@ -87,21 +87,30 @@ statement
  | 'join' expr ';'
  | 'action' tuple block
  | valStatement
- | 'if' '(' expr ')' block ( 'else' block )?
+ | 'if' '(' expr ')' statement ( 'else' statement )?
  | 'barrier' '(' identifier ( ';' id_list )? ')' ( '{' contract '}' | contract block )
  | contract 'par' par_unit ( 'and' par_unit )*
  | 'vec' '(' iter ')' block
  | 'invariant' identifier '(' expr ')' block
  | 'atomic' '(' id_list ')' block
- | invariant 'while' '(' expr ')' block
- | type identifier ('=' expr | (',' identifier)* ) ';'
- | expr ';'
- | identifier ('++'|'--') ';'
+ | invariant 'while' '(' expr ')' statement
+ | invariant 'for' '(' forStatementList? ';' expr? ';' forStatementList? ')' statement
  | block
- | lexpr '=' expr ';'
  | '{*' expr '*}'
  | 'goto' identifier ';'
  | 'label' identifier ';'
+ | allowedForStatement ';'
+ ;
+
+forStatementList
+ : allowedForStatement (',' allowedForStatement)*
+ ;
+
+allowedForStatement
+ : type identifier ('=' expr | (',' identifier)* )
+ | expr
+ | identifier ('++'|'--')
+ | lexpr '=' expr
  ;
 
 par_unit

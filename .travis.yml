@@ -19,6 +19,12 @@ addons:
       - texlive-latex-recommended
       - texlive-latex-extra
 
+cache:
+  directories:
+   - $HOME/.ivy2
+   - $HOME/Library/Caches/Homebrew
+   - /usr/local/Homebrew
+
 script:
 # Install ant
 - brew install ant

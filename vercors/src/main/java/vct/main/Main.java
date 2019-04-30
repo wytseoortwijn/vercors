@@ -69,7 +69,7 @@ import vct.util.Configuration;
 public class Main
 {
   private static ProgramUnit program=new ProgramUnit();
-  
+
   private static List<ClassName> classes;
 
   static class ChaliceTask implements Callable<TestReport> {
@@ -92,7 +92,7 @@ public class Main
           report.getVerdict(),System.currentTimeMillis()-start);
       return report;
     }
-    
+
   }
 
   public static void main(String[] args) throws Throwable
@@ -102,7 +102,7 @@ public class Main
     try {
       OptionParser clops=new OptionParser();
       clops.add(clops.getHelpOption(),'h',"help");
-      
+
       BooleanSetting boogie=new BooleanSetting(false);
       clops.add(boogie.getEnable("select Boogie backend"),"boogie");
       BooleanSetting chalice=new BooleanSetting(false);
@@ -117,16 +117,16 @@ public class Main
       clops.add(verifast.getEnable("select Verifast backend"),"verifast");
       BooleanSetting dafny=new BooleanSetting(false);
       clops.add(dafny.getEnable("select Dafny backend"),"dafny");
-      
+
       CommandLineTesting.add_options(clops);
-  
+
       final BooleanSetting check_defined=new BooleanSetting(false);
       clops.add(check_defined.getEnable("check if defined processes satisfy their contracts."),"check-defined");
       final BooleanSetting check_axioms=new BooleanSetting(false);
       clops.add(check_axioms.getEnable("check if defined processes satisfy their contracts."),"check-axioms");
       final BooleanSetting check_history=new BooleanSetting(false);
-      clops.add(check_history.getEnable("check if defined processes satisfy their contracts."),"check-history");   
-      
+      clops.add(check_history.getEnable("check if defined processes satisfy their contracts."),"check-history");
+
       final BooleanSetting separate_checks=new BooleanSetting(false);
       clops.add(separate_checks.getEnable("validate classes separately"),"separate");
       BooleanSetting help_passes=new BooleanSetting(false);
@@ -144,50 +144,50 @@ public class Main
       clops.add(show_file.getAssign("redirect show output to files instead of stdout"),"save-show");
       StringListSetting stop_after=new StringListSetting();
       clops.add(stop_after.getAppendOption("Stop after given passes"),"stop-after");
-      
-      
+
+
       BooleanSetting explicit_encoding=new BooleanSetting(false);
       clops.add(explicit_encoding.getEnable("explicit encoding"),"explicit");
-  
+
       clops.add_removed("the inline option was removed in favor of the inline modifer","inline");
-      
+
       BooleanSetting global_with_field=new BooleanSetting(false);
       clops.add(global_with_field.getEnable("Encode global access with a field rather than a parameter. (expert option)"),"global-with-field");
-      
+
       BooleanSetting infer_modifies=new BooleanSetting(false);
       clops.add(infer_modifies.getEnable("infer modifies clauses"),"infer-modifies");
       BooleanSetting no_context=new BooleanSetting(false);
       clops.add(no_context.getEnable("disable printing the context of errors"),"no-context");
       BooleanSetting gui_context=new BooleanSetting(false);
       clops.add(gui_context.getEnable("enable the gui extension of the context"),"gui");
-      
+
       StringListSetting debug_list=new StringListSetting();
       clops.add(debug_list.getAppendOption("print debug message for given classes and/or packages"),"debug");
       BooleanSetting where=new BooleanSetting(false);
       clops.add(where.getEnable("report which class failed"),"where");
-      
+
       clops.add(Configuration.progress.getEnable("print progress messages"),"progress");
-      
+
       BooleanSetting sat_check=new BooleanSetting(true);
       clops.add(sat_check.getDisable("Disable checking if method pre-conditions are satisfiable"), "disable-sat");
-      
+
       Configuration.add_options(clops);
-      
+
       String input[]=clops.parse(args);
       hre.lang.System.setProgressReporting(Configuration.progress.get());
-      
+
       for(String name:debug_list){
         hre.lang.System.EnableDebug(name,java.lang.System.err,"vct("+name+")");
       }
       hre.lang.System.EnableWhere(where.get());
-  
+
       Hashtable<String,CompilerPass> defined_passes=new Hashtable<String,CompilerPass>();
       Hashtable<String,ValidationPass> defined_checks=new Hashtable<String,ValidationPass>();
 
       define_passes(silver, separate_checks, defined_passes, defined_checks);
-      
+
       if (help_passes.get()) {
-        System.out.println("The following passes are available:"); 
+        System.out.println("The following passes are available:");
         for (Entry<String, CompilerPass> entry:defined_passes.entrySet()){
           System.out.printf(" %-12s : %s%n",entry.getKey(),entry.getValue().getDescripion());
         }
@@ -210,7 +210,7 @@ public class Main
           silver.set("silicon");
           break;
         case "silicon":
-        case "carbon": 
+        case "carbon":
           break;
         default:
           Fail("unknown silver backend: %s",silver.get());
@@ -250,7 +250,7 @@ public class Main
       } else if (boogie.get()) {
       	passes=new LinkedBlockingDeque<String>();
       	passes.add("java_resolve"); // inspect class path for retreiving signatures of called methods. Will add files necessary to understand the Java code.
-        passes.add("standardize"); // a rewriter s.t. only a subset of col will have to be supported 
+        passes.add("standardize"); // a rewriter s.t. only a subset of col will have to be supported
         passes.add("check"); // type check col. Add annotations (the types) to the ast.
         passes.add("rewrite_arrays"); // array generation and various array-related rewrites
         passes.add("check");
@@ -267,13 +267,13 @@ public class Main
         passes.add("standardize");
         passes.add("check");
         passes.add("voidcalls"); // all methods in Boogie are void, so use an out parameter instead of 'return..'
-        passes.add("standardize"); 
+        passes.add("standardize");
         passes.add("check");
         passes.add("flatten");
         passes.add("reorder");
         passes.add("standardize");
         passes.add("check");
-        passes.add("strip_constructors"); // somewhere in the parser of Java, constructors are added implicitly. They need to be taken out again. 
+        passes.add("strip_constructors"); // somewhere in the parser of Java, constructors are added implicitly. They need to be taken out again.
         passes.add("standardize");
         passes.add("check");
       	passes.add("boogie"); // run backend
@@ -298,7 +298,7 @@ public class Main
       } else if (silver.used()||chalice.get()||chalice2sil.get()) {
         passes=new LinkedBlockingDeque<String>();
         passes.add("java_resolve");
-        
+
         if (silver.used() &&
            (features.usesSpecial(ASTSpecial.Kind.Lock)
           ||features.usesSpecial(ASTSpecial.Kind.Unlock)
@@ -307,9 +307,9 @@ public class Main
           ||features.usesOperator(StandardOperator.PVLidleToken)
           ||features.usesOperator(StandardOperator.PVLjoinToken)
         )){
-          passes.add("pvl-encode"); // translate built-in statements into methods and fake method calls. 
+          passes.add("pvl-encode"); // translate built-in statements into methods and fake method calls.
         }
-        
+
         passes.add("standardize");
         passes.add("java-check"); // marking function: stub
         passes.add("array_null_values"); // rewrite null values for array types into None
@@ -319,9 +319,9 @@ public class Main
           // Maybe it never will.
           passes.add("java-encode"); // disambiguate overloaded stuff, copy inherited functions and specifications
         }
-        
+
         if (sat_check.get()) passes.add("sat_check"); // sanity check to avoid uncallable methods (where False is required)
-        
+
         if (features.usesIterationContracts()||features.usesPragma("omp")){
           passes.add("openmp2pvl"); // Converts *all* parallel loops! (And their compositions) Into ordered set of parallel blocks in pvl.
           passes.add("standardize");
@@ -330,7 +330,7 @@ public class Main
 
         passes.add("propagate-invariants"); // desugar \invariant (see \invariant documentation)
         passes.add("standardize");
-        passes.add("check");      
+        passes.add("check");
         if (features.usesOperator(StandardOperator.Wand)){
           passes.add("magicwand"); // translate magicwand uses (proof oblications) into method calls
           passes.add("standardize");
@@ -340,24 +340,24 @@ public class Main
         passes.add("inline"); // inline predicates that are marked as inline (so 'fold/unfold' needn't be done)
         passes.add("standardize");
         passes.add("check");
-          
+
         if (features.usesCSL()){
-          passes.add("csl-encode"); // 
+          passes.add("csl-encode"); //
           passes.add("standardize");
           passes.add("check");
         }
-        
+
         if(features.hasVectorBlocks()||features.usesPragma("omp")){
           passes.add("vector-encode"); // vector operations for supporting Saeed's paper
           passes.add("standardize");
           passes.add("check");
         }
-        
+
         if (silver.used()) {
           if (features.usesIterationContracts()||features.usesParallelBlocks()||features.usesCSL()||features.usesPragma("omp")){
             passes.add("parallel_blocks"); // pvl parallel blocks are put in separate methods that can be verified seperately. Method call replaces the contract of this parallel block.
             passes.add("standardize");
-            passes.add("check");        
+            passes.add("check");
           }
           // passes.add("recognize_multidim"); // translate matrices as a flat array (like c does in memory)
           passes.add("simplify_quant"); // reduce nesting of quantifiers
@@ -365,14 +365,14 @@ public class Main
           passes.add("standardize");
           passes.add("check");
         }
-        
+
         if (features.usesKernels()){// 8 feb 2018: is this now dead code (to be)? (SB)
-          passes.add("kernel-split"); 
+          passes.add("kernel-split");
           passes.add("simplify_quant");
           passes.add("standardize");
-          passes.add("check");       
+          passes.add("check");
         }
-              
+
         boolean has_type_adt=false;
         if (silver.used()) {
           if (  features.usesOperator(StandardOperator.Instance)
@@ -382,26 +382,26 @@ public class Main
             passes.add("add-type-adt"); // add java's types of the programs as silicon's axiomatic datatypes
             passes.add("standardize");
             passes.add("check");
-            has_type_adt=true;   
+            has_type_adt=true;
           }
         }
-  
+
         if (!silver.used() && features.usesInheritance()){ // 8 feb 2018: SB nominates this block for removal
         	  // reason: chalice's types and inheritance mechanism isn't the same as Java's, so why not translate everything the same way and ignore chalice's mechanism
           passes.add("standardize");
-          passes.add("check");       
+          passes.add("check");
           passes.add("ds_inherit"); // Use the old inheritance encoding for Chalice.
           passes.add("standardize");
-          passes.add("check");       
+          passes.add("check");
         }
-          
+
         // histories and futures
         // three verification runs:
         // 3) verify program: promises wrt process algebra need to be met
         // 2) verify the process algebra axioms: check whether paralel compositions are 'correct'
         // 1) auxiliarry definitions in the process algebra should match their contracts.
         if (check_defined.get()){
-          passes.add("check-defined"); // add checks 
+          passes.add("check-defined"); // add checks
           passes.add("standardize");
           passes.add("check");
         } else if (check_axioms.get()){
@@ -416,13 +416,13 @@ public class Main
           passes.add("standardize");
           passes.add("check");
         }
-        
+
         if (explicit_encoding.get()){
           passes.add("explicit_encoding"); // magic wand paper: for passing around predicates witnesses. In chalice predicates do not have arguments, except 'this'. So we're making data-types to pass around witnesses. Not necessary for silicon.
           passes.add("standardize");
           passes.add("check");
         }
-        
+
         if (silver.used()) {
           passes.add("current_thread"); // add argument 'current thread' to all methods
           passes.add("standardize");
@@ -440,27 +440,27 @@ public class Main
         passes.add("simplify_quant");
         passes.add("standardize");
         passes.add("check");
-          
+
         if (silver.used()) {
           // Part of this is now done in java-encode
           // The remainder is shifted to silver-class-reduction
           //passes.add("class-conversion");
           //passes.add("standardize");
           //passes.add("check");
-          
+
           passes.add("silver-class-reduction"); // remove the class (since all names are now unique), only one class remains
           passes.add("standardize");
           passes.add("check");
         } else {
-          passes.add("globalize"); // create a separate class to contain all statics (class probably called 'Global', needs to be given as argument to the other methods)  
+          passes.add("globalize"); // create a separate class to contain all statics (class probably called 'Global', needs to be given as argument to the other methods)
           passes.add("standardize");
           passes.add("check");
           passes.add("rm_cons"); // replace constructors by init-methods
           passes.add("standardize");
           passes.add("check");
         }
-        
-        
+
+
         if (has_type_adt){
           passes.add("voidcallsthrown"); // like voidcalls, but also exceptions are put into an out-argument
         } else {
@@ -468,15 +468,15 @@ public class Main
         }
         passes.add("standardize");
         passes.add("check");
-          
+
         if (silver.used()) {
           passes.add("ghost-lift"); // change ghost code into real code so it can is used in the check
           passes.add("standardize");
           passes.add("check");
         }
-        
+
         passes.add("flatten");
-        passes.add("reorder"); // leaves declarations at the top of blocks (within loops and branches) 
+        passes.add("reorder"); // leaves declarations at the top of blocks (within loops and branches)
         passes.add("flatten_before_after"); // method calls can have 'before/after' blocks of ghost-code attached. Put it around all method calls.
         if (silver.used()) {
           passes.add("silver-reorder"); // no declarations in branches (only in loops)
@@ -484,34 +484,34 @@ public class Main
         }
         passes.add("standardize");
         passes.add("check");
-          
-          
+
+
         if (!silver.used())  {
           passes.add("finalize_args");
           passes.add("reorder");
           passes.add("standardize");
           passes.add("check");
         }
-                                
+
         if (silver.used()) {
-          passes.add("scale-always"); // syntax: in silicon [p]predicate() is mandatory, so change pred() to [1]pred() 
+          passes.add("scale-always"); // syntax: in silicon [p]predicate() is mandatory, so change pred() to [1]pred()
           passes.add("silver-optimize"); // rewrite to things that silver likes better
-          passes.add("quant-optimize"); // some illegal-quantifier constructions need to be written differently (plus optimize) 
+          passes.add("quant-optimize"); // some illegal-quantifier constructions need to be written differently (plus optimize)
           passes.add("standardize-functions"); // pure methods do not need to be 'methods', try turning them into functions so silver and chalice can reason more intelligently about them. Pure methods can be used in specifications through this.
           passes.add("standardize");
           passes.add("check");
-          
+
           passes.add("silver");
-        } else { //CHALICE    
+        } else { //CHALICE
           passes.add("chalice-optimize");
           passes.add("standardize-functions");
           passes.add("standardize");
           passes.add("check");
-          
+
           passes.add("chalice-preprocess");
           passes.add("standardize");
           passes.add("check");
-          
+
           if (chalice.get()){
             passes.add("chalice"); // call backend
           } else {
@@ -624,7 +624,7 @@ public class Main
       public ProgramUnit apply(ProgramUnit arg,String ... args){
         return new AddTypeADT(arg).rewriteAll();
       }
-    });   
+    });
     compiler_pass(defined_passes,"access","convert access expressions for histories/futures",AccessIntroduce.class);
     defined_passes.put("assign",new CompilerPass("change inline assignments to statements"){
       public ProgramUnit apply(ProgramUnit arg,String ... args){
@@ -755,7 +755,7 @@ public class Main
         if (dir.exists()){
           if (!dir.isDirectory()){
             report.fatal("%s is not a directory",dir);
-            return arg; 
+            return arg;
           }
         } else {
           if (!dir.mkdirs()){
@@ -784,8 +784,8 @@ public class Main
               break;
             default:
               report.fatal("cannot deal with special %s yet",S.kind);
-              return arg; 
-            }  
+              return arg;
+            }
           } else {
             report.fatal("cannot deal with %s yet",node.getClass());
             return arg;
@@ -793,7 +793,7 @@ public class Main
         }
         return arg;
       }
-    });    
+    });
     defined_passes.put("current_thread",new CompilerPass("Encode references to current thread."){
       public ProgramUnit apply(ProgramUnit arg,String ... args){
         return new CurrentThreadRewriter(arg).rewriteAll();
@@ -810,7 +810,7 @@ public class Main
         arg=new GenericPass1(arg).rewriteAll();
         return arg;
       }
-    });   
+    });
     defined_passes.put("explicit_encoding",new CompilerPass("encode required and ensured permission as ghost arguments"){
       public ProgramUnit apply(ProgramUnit arg,String ... args){
         return new ExplicitPermissionEncoding(arg).rewriteAll();
@@ -1039,14 +1039,14 @@ public class Main
     });
   }
 
-  
+
   private static void branching_pass(Hashtable<String, CompilerPass> defined_passes,
   String key, String description, final Class<? extends AbstractRewriter> class1) {
 try {
   defined_passes.put(key,new CompilerPass(description){
-    
+
     Constructor<? extends AbstractRewriter> cons=class1.getConstructor(ProgramUnit.class,ErrorMapping.class);
-    
+
     @Override
     public PassReport apply_pass(PassReport inrep, String... args) {
       ProgramUnit arg=inrep.getOutput();
@@ -1062,20 +1062,20 @@ try {
       res.setOutput(rw.rewriteAll());
       return res;
     }
-    
+
   });
 } catch (NoSuchMethodException e) {
   Abort("bad rewriter pass %s",key);
 }
 }
-  
+
   private static void compiler_pass(Hashtable<String, CompilerPass> defined_passes,
       String key, String description, final Class<? extends AbstractRewriter> class1) {
     try {
       defined_passes.put(key,new CompilerPass(description){
-        
+
         Constructor<? extends AbstractRewriter> cons=class1.getConstructor(ProgramUnit.class);
-        
+
         @Override
         public ProgramUnit apply(ProgramUnit arg, String... args) {
           AbstractRewriter rw;
@@ -1086,11 +1086,10 @@ try {
           }
           return rw.rewriteAll();
         }
-        
+
       });
     } catch (NoSuchMethodException e) {
       Abort("bad rewriter pass %s",key);
     }
   }
 }
-
