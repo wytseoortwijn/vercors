@@ -8,6 +8,8 @@ import hre.util.TestReport;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import vct.silver.SilverBackend;
 import vct.util.Configuration;
@@ -15,6 +17,7 @@ import vct.util.Configuration;
 import static hre.lang.System.Verdict;
 
 public class ToolTest {
+  private final static Pattern TIME_PATTERN = Pattern.compile("^(\\s*\\[[^\\]]*\\])*\\s*([a-zA-Z_ ]+) took\\s*([0-9]+)\\s*ms$");
 
   public static void fail(VCTResult res,String msg){
     Verdict("failure: %s",msg);
@@ -138,10 +141,10 @@ public class ToolTest {
       }
       if (msg.getFormat().equals("stderr: %s")||msg.getFormat().equals("stdout: %s")){
         String line=msg.getArgs()[0].toString();
-        if (line.matches(".*took.*ms")){
-          String split[]=line.split("took|ms");
-          String key = split[0].replaceAll("\\[[^\\]]*]", "").trim();
-          int value = Integer.parseInt(split[1].trim());
+        Matcher lineMatcher = TIME_PATTERN.matcher(line);
+        if (lineMatcher.find()){
+          String key = lineMatcher.group(2);
+          int value = Integer.parseInt(lineMatcher.group(3));
           res.times.put(key, value);
         }
       }
