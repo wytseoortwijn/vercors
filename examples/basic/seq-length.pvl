@@ -6,7 +6,7 @@
 class Test {
     seq<int> sequence;
 
-    requires Perm(this.sequence, write);
+    requires Perm(this.sequence, read);
     void test() {
         if(sequence.length == 0) {
 
