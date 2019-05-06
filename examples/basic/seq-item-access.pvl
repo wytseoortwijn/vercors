@@ -1,0 +1,18 @@
+// -*- tab-width:4 ; indent-tabs-mode:nil -*-
+//:: cases SeqItemAccess
+//:: tools silicon
+//:: verdict Pass
+
+class Element {
+    int value;
+}
+
+class Test {
+    seq<Element> sequence;
+
+    void test() {
+        if(sequence[0].value == 0) {
+            
+        }
+    }
+}

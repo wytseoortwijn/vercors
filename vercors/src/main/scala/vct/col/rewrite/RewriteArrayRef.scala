@@ -104,7 +104,11 @@ class RewriteArrayRef(source: ProgramUnit) extends AbstractRewriter(source) {
 
   override def visit(dereference: Dereference): Unit = {
     if(dereference.field == "length") {
-      val objType = dereference.obj.getType
+      var objType = dereference.obj.getType
+
+      if(objType.isPrimitive(PrimitiveSort.Cell)) {
+        objType = objType.firstarg.asInstanceOf[Type]
+      }
 
       if(objType.isPrimitive(PrimitiveSort.Array)) {
         result = create.expression(StandardOperator.Length, rewrite(dereference.obj))
