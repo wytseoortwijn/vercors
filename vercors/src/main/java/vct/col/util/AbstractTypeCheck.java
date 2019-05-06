@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import scala.collection.JavaConverters;
+import scala.collection.Seq;
 import vct.col.ast.*;
 import vct.col.ast.NameExpression.Kind;
 import vct.col.rewrite.ArrayNullValues;
@@ -1483,7 +1484,9 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
     super.visit(e);
 
     if(e.obj().isa(StandardOperator.Subscript)) {
-      e.obj().setType(new PrimitiveType(PrimitiveSort.Cell, e.obj().getType()));
+      ASTNode sequenceLike = ((OperatorExpression) e.obj()).first();
+      SequenceUtils.SequenceInfo sequenceInfo = SequenceUtils.getInfoOrFail(sequenceLike, "Expected a sequence type at %s, but got %s");
+      e.obj().setType(sequenceInfo.getSequenceTypeArgument());
     }
 
     Type object_type=e.obj().getType();
