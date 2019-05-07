@@ -1,5 +1,5 @@
 // -*- tab-width:4 ; indent-tabs-mode:nil -*-
-//:: cases SeqItemAccess
+//:: cases SeqImmutable
 //:: tools silicon
 //:: verdict Error
 
