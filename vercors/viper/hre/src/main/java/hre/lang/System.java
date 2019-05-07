@@ -1,5 +1,8 @@
 package hre.lang;
 
+import ch.qos.logback.classic.LoggerContext;
+import org.slf4j.LoggerFactory;
+
 import java.io.*;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.HashMap;

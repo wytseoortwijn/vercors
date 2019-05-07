@@ -22,15 +22,15 @@ linkViper := {
   }
 }
 
-lazy val hre = (project in file("../hre"))
+lazy val hre = (project in file("hre"))
 
 lazy val silver = (project in file("silver"))
 lazy val silicon = (project in file("silicon"))
 lazy val carbon = (project in file("carbon"))
 
 lazy val viper_api = (project in file("."))
-  .dependsOn(hre)
   .dependsOn(silicon, carbon, silver)
+  .dependsOn(hre)
   .settings(
     name := "viper-api",
     organization := "vercors",

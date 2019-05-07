@@ -1,0 +1,6 @@
+<configuration>
+    <appender name="hre" class="hre.io.LogbackAppender"/>
+    <root level="debug">
+        <appender-ref ref="hre"/>
+    </root>
+</configuration>

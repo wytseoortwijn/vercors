@@ -1,12 +1,11 @@
 enablePlugins(PackPlugin)
 
 lazy val viper_api = (project in file("viper"))
-lazy val hre = (project in file("hre"))
+//lazy val hre = (project in file("hre"))
 lazy val parsers = (project in file("parsers"))
 
 lazy val vercors = (project in file("."))
   .dependsOn(viper_api)
-  .dependsOn(hre)
   .dependsOn(parsers)
   .settings(
     name := "Vercors",
@@ -35,7 +34,7 @@ lazy val vercors = (project in file("."))
 
     assembly / mainClass := Some("vct.main.Main"),    // Define JAR's entry point
     assemblyMergeStrategy in assembly := {
-      case "logback.xml" => MergeStrategy.first
+      case "logback-test.xml" => MergeStrategy.first
       case x =>
         val oldStrategy = (assemblyMergeStrategy in assembly).value
         oldStrategy(x)
