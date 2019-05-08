@@ -1,0 +1,57 @@
+// ./unix/bin/vct --silicon --encoded ./examples/verifythis2019/challenge2.vpr ./examples/verifythis2019/challenge2.pvl 
+
+class Challenge2 {
+
+	requires 0 < |xs|;
+	ensures |\result| == |xs| - 1;
+	ensures (\forall int i; 0 <= i && i < |\result|; \result[i] == xs[i]);
+	seq<int> pop(seq<int> xs);
+
+	inline int peek(seq<int> xs) = xs[|xs| - 1];
+
+	seq<int> task1(seq<int> s) {
+		seq<int> stack = seq<int> { };
+		seq<int> left = seq<int> { };
+		int x = 0;
+		
+		loop_invariant 0 <= x && x <= |s|;
+		loop_invariant (\forall int j; 0 <= j && j < |stack|; 0 <= stack[j] && stack[j] < |s|);
+		loop_invariant |left| == x;
+		loop_invariant (\forall int j; 0 <= j && j < |left|; -1 <= left[j] && left[j] < |s|);
+		loop_invariant |stack| <= x;
+		loop_invariant (\forall int j; 0 <= j && j < |stack|; 0 <= stack[j] && stack[j] < x);
+		loop_invariant (\forall int j; 0 <= j && j < |left|; left[j] < j);
+		loop_invariant (\forall int j; 0 <= j && j < |left| && 0 <= left[j]; s[left[j]] < s[j]);
+		loop_invariant (\forall int j; 0 <= j && j < |stack| - 1; stack[j] < stack[j + 1]);
+		loop_invariant (\forall int j; 0 <= j && j < |stack| - 1; s[stack[j]] < s[stack[j + 1]]);
+		loop_invariant 0 < |stack| ==> peek(stack) == x - 1;
+		loop_invariant 0 == |stack| ==> x == 0;
+		while (x < |s|) {
+			
+			loop_invariant 0 <= x && x <= |s|;
+			loop_invariant (\forall int j; 0 <= j && j < |stack|; 0 <= stack[j] && stack[j] < |s|);
+			loop_invariant |left| == x;
+			loop_invariant (\forall int j; 0 <= j && j < |left|; -1 <= left[j] && left[j] < |s|);
+			loop_invariant |stack| <= x;
+			loop_invariant (\forall int j; 0 <= j && j < |stack|; 0 <= stack[j] && stack[j] < x);
+			loop_invariant (\forall int j; 0 <= j && j < |left|; left[j] < j);
+			loop_invariant (\forall int j; 0 <= j && j < |left| && 0 <= left[j]; s[left[j]] < s[j]);
+			loop_invariant (\forall int j; 0 <= j && j < |stack| - 1; stack[j] < stack[j + 1]);
+			loop_invariant (\forall int j; 0 <= j && j < |stack| - 1; s[stack[j]] < s[stack[j + 1]]);
+			while (0 < |stack| && s[peek(stack)] >= s[x]) {
+				stack = pop(stack);
+			}
+			
+			if (|stack| == 0) {
+				left = left + seq<int> { -1 };
+			}
+			else {
+				left = left + seq<int> { peek(stack) };
+			}
+
+			stack = stack + seq<int> { x };
+			
+			x = x + 1;
+		}
+	}
+}

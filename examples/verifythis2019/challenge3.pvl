@@ -1,0 +1,34 @@
+// ./unix/bin/vct --silicon --encoded ./examples/verifythis2019/challenge3.vpr ./examples/verifythis2019/challenge3.pvl 
+
+class Challenge3 {
+	
+	
+	invariant res != null && res.length == msize && |M| == msize;
+	invariant y != null && y.length == N && 0 < N;
+	invariant (\forall int i; 0 <= i && i < |M|; |M[i]| == 3);
+	invariant (\forall int i; 0 <= i && i < |M|; 0 <= M[i][0] && M[i][0] < N);
+	invariant (\forall int i; 0 <= i && i < |M|; 0 <= M[i][1] && M[i][1] < N);
+	invariant |x| == N;
+	requires (\forall* int i; 0 <= i && i < N; Perm(y[i], 1));
+	requires (\forall int i; 0 <= i && i < N; y[i] == 0);
+	requires (\forall* int i; 0 <= i && i < msize; Perm(res[i], 1));
+	requires (\forall int i; 0 <= i && i < msize; res[i] == 0);
+	void mult(seq<seq<int>> M, seq<int> x, int N, int[N] y, int msize, int[msize] res) {
+		
+		invariant atom(
+			y != null ** (\forall* int i; 0 <= i && i < N; Perm(y[i], 1))
+		)
+		{ //;
+			par (int tid = 0 .. msize)
+				context Perm(res[tid], 1);
+				ensures res[tid] == x[M[tid][0]] * M[tid][2];
+				// TODO linking `res` to `y`.
+			{
+				atomic(atom) {
+					res[tid] = x[M[tid][0]] * M[tid][2];
+					y[M[tid][1]] = y[M[tid][1]] + res[tid];
+				}
+			}
+		}
+	}
+}

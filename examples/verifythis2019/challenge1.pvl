@@ -1,0 +1,85 @@
+// ./unix/bin/vct --silicon --encoded ./examples/verifythis2019/challenge1.vpr ./examples/verifythis2019/challenge1.pvl 
+
+class Challenge1 {
+	ensures |xs| + |ys| == |xs + ys|;
+	void lemma_length_app(seq<int> xs, seq<int> ys);
+	
+	invariant 0 < |s|;
+	void partA(seq<int> s) {
+		seq<int> cut = seq<int> { 0 };
+		seq<boolean> direction = seq<boolean> { };
+		
+		int x = 0;
+		int y = 1;
+
+		loop_invariant 0 <= x && x <= |s|;
+		loop_invariant 1 <= y && y <= |s| + 1;
+		loop_invariant x < y;
+		loop_invariant y == x + 1;
+		loop_invariant s == \old(s);
+		loop_invariant \old(x) <= x;
+		loop_invariant 1 == |cut| ==> \old(y) <= y;
+		loop_invariant 1 < |cut| ==> \old(y) < y;
+		loop_invariant 0 < |cut| && cut[0] == 0;
+		loop_invariant (\forall int i; 0 <= i && i < |cut| - 1; cut[i] < cut[i + 1]);
+		loop_invariant (\forall int i; 0 <= i && i < |cut|; 0 <= cut[i] && cut[i] < |s|);
+		loop_invariant |direction| == |cut| - 1;
+		loop_invariant cut[|cut| - 1] == x;
+		loop_invariant (\forall int i; 0 <= i && i < |cut| - 1 && direction[i]; (\forall int j; cut[i] <= j && j < cut[i + 1] - 1; s[j] < s[j + 1]));
+		loop_invariant (\forall int i; 0 <= i && i < |cut| - 1 && !direction[i]; (\forall int j; cut[i] <= j && j < cut[i + 1] - 1; s[j] >= s[j + 1]));
+		loop_invariant (\forall int i; 0 <= i && i < |direction| && direction[i]; s[cut[i + 1] - 1] >= s[cut[i + 1]]);
+		loop_invariant (\forall int i; 0 <= i && i < |direction| && !direction[i]; s[cut[i + 1] - 1] < s[cut[i + 1]]);
+		while (y < |s|) {
+			boolean incr = s[x] < s[y];
+			
+			loop_invariant 0 <= x && x <= |s|;
+			loop_invariant 1 <= y && y <= |s|;
+			loop_invariant x < y;
+			loop_invariant s == \old(s);
+			loop_invariant \old(x) == x;
+			loop_invariant \old(y) <= y;
+			loop_invariant incr ==> (\forall int i; x <= i && i < y - 1; s[i] < s[i + 1]);
+			loop_invariant !incr ==> (\forall int i; x <= i && i < y - 1; s[i] >= s[i + 1]);
+			loop_invariant 0 < |cut| && cut[0] == 0;
+			loop_invariant (\forall int i; 0 <= i && i < |cut| - 1; cut[i] < cut[i + 1]);
+			loop_invariant (\forall int i; 0 <= i && i < |cut|; 0 <= cut[i] && cut[i] < |s|);
+			loop_invariant |direction| == |cut| - 1;
+			loop_invariant cut[|cut| - 1] == x;
+			loop_invariant (\forall int i; 0 <= i && i < |cut| - 1 && direction[i]; (\forall int j; cut[i] <= j && j < cut[i + 1] - 1; s[j] < s[j + 1]));
+			loop_invariant (\forall int i; 0 <= i && i < |cut| - 1 && !direction[i]; (\forall int j; cut[i] <= j && j < cut[i + 1] - 1; s[j] >= s[j + 1]));
+			loop_invariant (\forall int i; 0 <= i && i < |direction| && direction[i]; s[cut[i + 1] - 1] >= s[cut[i + 1]]);
+			loop_invariant (\forall int i; 0 <= i && i < |direction| && !direction[i]; s[cut[i + 1] - 1] < s[cut[i + 1]]);
+			while (y < |s| && incr == s[y - 1] < s[y]) {
+				y = y + 1;
+			}
+
+			cut = cut + seq<int> { y };
+			direction = direction + seq<boolean> { incr };
+			
+			x = y;
+			assert x == \old(y);
+			y = x + 1;
+			assume y == \old(y) + 1; // for some strange reason VerCors has trouble with this.....
+		}
+
+		if (x < |s|) {
+			lemma_length_app(cut, seq<int> { |s| });
+			assert |seq<int> { |s| }| == 1;
+			assert |cut| == |\old(cut)|;
+			cut = cut + seq<int> { |s| };
+			assume |cut| == |\old(cut)| + 1; // for some strange reason VerCors has trouble with this.....
+			assert |direction| == |cut|;
+		}
+		
+		assert |direction| == |cut| - 1 || |direction| == |cut|;
+		assert (\forall int i; 0 <= i && i < |direction| && direction[i]; (\forall int j; cut[i] <= j && j < cut[i + 1] - 1; s[j] < s[j + 1]));
+		assert (\forall int i; 0 <= i && i < |direction| && !direction[i]; (\forall int j; cut[i] <= j && j < cut[i + 1] - 1; s[j] >= s[j + 1]));
+		
+		if (|direction| == |cut|) {
+			assert cut[|cut| - 1] == |s|;
+			assert cut[|cut| - 2] == |s| - 1;
+		}
+		
+		assert cut[|cut| - 1] == |s|;
+	}
+}
