@@ -1,3 +1,9 @@
+// -*- tab-width:2 ; indent-tabs-mode:nil -*-
+//:: cases VerifyThis19One
+//:: tools silicon
+//:: suite medium
+//:: verdict Pass
+
 // ./unix/bin/vct --silicon --encoded ./examples/verifythis2019/challenge1.vpr ./examples/verifythis2019/challenge1.pvl 
 
 class Challenge1 {
