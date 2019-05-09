@@ -476,6 +476,7 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
     String name=m.getName();
     ASTNode body=m.getBody();
     Contract contract=m.getContract();
+
     if (contract!=null){
       if (m.kind==Method.Kind.Predicate){
         ASTNode tt=new ConstantExpression(true);
