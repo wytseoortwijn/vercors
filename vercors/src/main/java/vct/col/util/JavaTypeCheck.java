@@ -1,6 +1,6 @@
 package vct.col.util;
 
-import vct.col.ast.ProgramUnit;
+import vct.col.ast.stmt.decl.ProgramUnit;
 
 /**
  * This class implements type checking of object oriented programs

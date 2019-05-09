@@ -1,9 +1,9 @@
 package vct.col.rewrite;
 
-import vct.col.ast.ASTFlags;
-import vct.col.ast.DeclarationStatement;
-import vct.col.ast.ProgramUnit;
-import vct.col.ast.VariableDeclaration;
+import vct.col.ast.stmt.decl.ASTFlags;
+import vct.col.ast.stmt.decl.DeclarationStatement;
+import vct.col.ast.stmt.decl.ProgramUnit;
+import vct.col.ast.stmt.decl.VariableDeclaration;
 
 public class FlattenVariableDeclarations extends AbstractRewriter {
 

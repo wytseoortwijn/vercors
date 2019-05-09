@@ -3,24 +3,24 @@ package vct.col.rewrite;
 import java.util.HashSet;
 import java.util.Set;
 
-import vct.col.ast.ASTClass;
-import vct.col.ast.ASTDeclaration;
-import vct.col.ast.ASTFlags;
-import vct.col.ast.ASTNode;
-import vct.col.ast.ASTReserved;
-import vct.col.ast.ASTSpecial;
-import vct.col.ast.BlockStatement;
-import vct.col.ast.ClassType;
-import vct.col.ast.Contract;
-import vct.col.ast.ContractBuilder;
-import vct.col.ast.DeclarationStatement;
-import vct.col.ast.Method;
-import vct.col.ast.MethodInvokation;
-import vct.col.ast.NameExpression;
-import vct.col.ast.PrimitiveSort;
-import vct.col.ast.ProgramUnit;
-import vct.col.ast.Type;
-import static vct.col.ast.ASTReserved.*;
+import vct.col.ast.stmt.decl.ASTClass;
+import vct.col.ast.stmt.decl.ASTDeclaration;
+import vct.col.ast.stmt.decl.ASTFlags;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.type.ASTReserved;
+import vct.col.ast.stmt.decl.ASTSpecial;
+import vct.col.ast.stmt.composite.BlockStatement;
+import vct.col.ast.type.ClassType;
+import vct.col.ast.stmt.decl.Contract;
+import vct.col.ast.type.PrimitiveSort;
+import vct.col.ast.util.ContractBuilder;
+import vct.col.ast.stmt.decl.DeclarationStatement;
+import vct.col.ast.stmt.decl.Method;
+import vct.col.ast.expr.MethodInvokation;
+import vct.col.ast.expr.NameExpression;
+import vct.col.ast.stmt.decl.ProgramUnit;
+import vct.col.ast.type.Type;
+import static vct.col.ast.type.ASTReserved.*;
 
 /**
  * Rewrites a program that uses inheritance into a program that does not

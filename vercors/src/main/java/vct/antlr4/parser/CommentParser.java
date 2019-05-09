@@ -5,10 +5,10 @@ import static hre.lang.System.Failure;
 import java.io.IOException;
 import java.io.InputStream;
 
-import vct.col.ast.ASTNode;
-import vct.col.ast.ASTSequence;
-import vct.col.ast.Contract;
-import vct.col.ast.Method;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.generic.ASTSequence;
+import vct.col.ast.stmt.decl.Contract;
+import vct.col.ast.stmt.decl.Method;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;

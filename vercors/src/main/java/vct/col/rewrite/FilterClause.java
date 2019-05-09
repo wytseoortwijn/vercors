@@ -1,9 +1,9 @@
 package vct.col.rewrite;
 
-import vct.col.ast.ASTFrame;
-import vct.col.ast.ASTNode;
-import vct.col.ast.OperatorExpression;
-import vct.col.ast.StandardOperator;
+import vct.col.ast.util.ASTFrame;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.expr.OperatorExpression;
+import vct.col.ast.expr.StandardOperator;
 
 public class FilterClause extends AbstractRewriter {
 

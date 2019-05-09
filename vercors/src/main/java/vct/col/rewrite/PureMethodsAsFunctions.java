@@ -1,8 +1,14 @@
 package vct.col.rewrite;
 
 import hre.lang.HREError;
-import vct.col.ast.*;
-import vct.col.ast.ASTSpecial.Kind;
+import vct.col.ast.expr.StandardOperator;
+import vct.col.ast.stmt.composite.BlockStatement;
+import vct.col.ast.stmt.composite.IfStatement;
+import vct.col.ast.stmt.decl.*;
+import vct.col.ast.stmt.decl.ASTSpecial.Kind;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.stmt.terminal.ReturnStatement;
+import vct.col.ast.type.Type;
 
 /**
  * Transform function definitions written in statement syntax (pure methods)

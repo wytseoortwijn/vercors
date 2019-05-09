@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import hre.util.TestReport;
 import hre.util.TestReport.Verdict;
-import vct.col.ast.ProgramUnit;
+import vct.col.ast.stmt.decl.ProgramUnit;
 
 public class PassReport {
   

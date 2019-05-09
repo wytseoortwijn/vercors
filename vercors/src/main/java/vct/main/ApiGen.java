@@ -1,7 +1,7 @@
 package vct.main;
 
 import vct.antlr4.parser.Parsers;
-import vct.col.ast.ProgramUnit;
+import vct.col.ast.stmt.decl.ProgramUnit;
 import vct.col.syntax.JavaDialect;
 import vct.col.syntax.JavaSyntax;
 

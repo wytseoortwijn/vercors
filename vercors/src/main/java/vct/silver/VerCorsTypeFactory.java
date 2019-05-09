@@ -1,10 +1,10 @@
 package vct.silver;
 
 import hre.ast.MessageOrigin;
-import vct.col.ast.ClassType;
-import vct.col.ast.PrimitiveSort;
-import vct.col.ast.Type;
-import vct.col.ast.TypeVariable;
+import vct.col.ast.type.ClassType;
+import vct.col.ast.type.PrimitiveSort;
+import vct.col.ast.type.Type;
+import vct.col.ast.type.TypeVariable;
 import vct.col.util.ASTFactory;
 import viper.api.TypeFactory;
 

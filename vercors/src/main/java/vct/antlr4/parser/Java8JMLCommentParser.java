@@ -2,7 +2,7 @@ package vct.antlr4.parser;
 
 import org.antlr.v4.runtime.tree.ParseTree;
 
-import vct.col.ast.ASTSequence;
+import vct.col.ast.generic.ASTSequence;
 import vct.antlr4.generated.Java8JMLLexer;
 import vct.antlr4.generated.Java8JMLParser;
 

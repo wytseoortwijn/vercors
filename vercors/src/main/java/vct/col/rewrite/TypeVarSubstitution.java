@@ -2,10 +2,10 @@ package vct.col.rewrite;
 
 import java.util.Map;
 
-import vct.col.ast.ClassType;
-import vct.col.ast.ProgramUnit;
-import vct.col.ast.Type;
-import vct.col.ast.TypeVariable;
+import vct.col.ast.type.ClassType;
+import vct.col.ast.stmt.decl.ProgramUnit;
+import vct.col.ast.type.Type;
+import vct.col.ast.type.TypeVariable;
 
 public class TypeVarSubstitution extends AbstractRewriter {
   Map<String,Type> map;

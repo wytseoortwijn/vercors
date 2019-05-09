@@ -1,7 +1,7 @@
 package vct.col.util;
 
-import vct.col.ast.ASTNode;
-import vct.col.ast.Method;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.stmt.decl.Method;
 import hre.util.Function;
 
 public class MethodFilter implements Function<ASTNode,Method> {

@@ -1,14 +1,14 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 package vct.col.syntax;
 
-import vct.col.ast.ASTDeclaration;
-import vct.col.ast.ASTNode;
-import vct.col.ast.ASTReserved;
-import vct.col.ast.ASTSpecial;
-import vct.col.ast.ASTSpecial.Kind;
-import vct.col.ast.PrimitiveSort;
-import vct.col.ast.ProgramUnit;
-import vct.col.ast.StandardOperator;
+import vct.col.ast.stmt.decl.ASTDeclaration;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.type.ASTReserved;
+import vct.col.ast.stmt.decl.ASTSpecial;
+import vct.col.ast.stmt.decl.ASTSpecial.Kind;
+import vct.col.ast.type.PrimitiveSort;
+import vct.col.ast.stmt.decl.ProgramUnit;
+import vct.col.ast.expr.StandardOperator;
 import vct.col.print.AbstractPrinter;
 import hre.ast.TrackingOutput;
 import hre.lang.HREError;

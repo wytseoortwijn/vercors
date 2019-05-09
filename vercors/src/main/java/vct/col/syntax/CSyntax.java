@@ -1,11 +1,11 @@
 package vct.col.syntax;
 
 import hre.ast.TrackingOutput;
-import vct.col.ast.ASTNode;
-import vct.col.ast.ASTReserved;
-import vct.col.ast.PrimitiveSort;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.type.ASTReserved;
+import vct.col.ast.type.PrimitiveSort;
 import vct.col.print.CPrinter;
-import static vct.col.ast.StandardOperator.*;
+import static vct.col.ast.expr.StandardOperator.*;
 
 public class CSyntax extends Syntax{
   private static Syntax c_syntax;

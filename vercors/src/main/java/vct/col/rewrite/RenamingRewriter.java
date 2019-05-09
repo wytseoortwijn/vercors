@@ -1,10 +1,10 @@
 package vct.col.rewrite;
 
-import vct.col.ast.ASTFrame;
-import vct.col.ast.ASTNode;
-import vct.col.ast.DeclarationStatement;
-import vct.col.ast.NameExpression;
-import vct.col.ast.ProgramUnit;
+import vct.col.ast.util.ASTFrame;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.stmt.decl.DeclarationStatement;
+import vct.col.ast.expr.NameExpression;
+import vct.col.ast.stmt.decl.ProgramUnit;
 
 public class RenamingRewriter extends AbstractRewriter {
 

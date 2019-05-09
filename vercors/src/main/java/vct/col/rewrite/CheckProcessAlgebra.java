@@ -1,12 +1,18 @@
 package vct.col.rewrite;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Hashtable;
 
-import vct.col.ast.*;
-import vct.col.ast.Method.Kind;
+import vct.col.ast.expr.*;
+import vct.col.ast.stmt.decl.*;
+import vct.col.ast.stmt.decl.Method.Kind;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.stmt.composite.BlockStatement;
+import vct.col.ast.type.ASTReserved;
+import vct.col.ast.type.PrimitiveSort;
+import vct.col.ast.type.PrimitiveType;
+import vct.col.ast.util.ContractBuilder;
 import vct.col.util.ASTUtils;
 import vct.util.Configuration;
 
@@ -23,7 +29,7 @@ public class CheckProcessAlgebra extends AbstractRewriter {
   }
 
   private Hashtable<String,String> composite_map;
-  private Hashtable<String,Method> process_map;
+  private Hashtable<String, Method> process_map;
 
   private static ArrayList<ArrayList<String>> permutations(ArrayList<String> list) {
     if (list.size() == 0) {
