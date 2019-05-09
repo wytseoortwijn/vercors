@@ -477,12 +477,6 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
     ASTNode body=m.getBody();
     Contract contract=m.getContract();
 
-    if(m.getKind() == Method.Kind.Constructor) {
-      if(!name.equals(current_class().getName())) {
-        Fail("Constructor has a different name (%s) than the class in which it is defined (%s). Did you mean to add a return type to turn it into a method?", name, current_class().getName());
-      }
-    }
-
     if (contract!=null){
       if (m.kind==Method.Kind.Predicate){
         ASTNode tt=new ConstantExpression(true);

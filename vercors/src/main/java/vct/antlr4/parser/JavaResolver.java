@@ -318,6 +318,17 @@ public class JavaResolver extends AbstractRewriter {
     }
     super.visit(e);
   }
+
+  @Override
+  public void visit(Method m) {
+    if(m.getKind() == Method.Kind.Constructor) {
+      if(!m.getName().equals(current_class().getName())) {
+        Fail("Constructor has a different name (%s) than the class in which it is defined (%s). Did you mean to add a return type to turn it into a method?", m.getName(), current_class().getName());
+      }
+    }
+
+    super.visit(m);
+  }
   
   private Queue<ASTDeclaration> queue=new LinkedList<ASTDeclaration>();
   
@@ -336,5 +347,4 @@ public class JavaResolver extends AbstractRewriter {
     target().index_classes();
     return target();
   }
-
 }
