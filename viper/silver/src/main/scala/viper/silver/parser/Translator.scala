@@ -7,10 +7,11 @@
 package viper.silver.parser
 
 import scala.language.implicitConversions
-import scala.collection.mutable
 import viper.silver.ast._
 import viper.silver.ast.utility._
 import viper.silver.FastMessaging
+import viper.silver.ast.SourcePosition
+import util.parsing.input.NoPosition
 
 /**
  * Takes an abstract syntax tree after parsing is done and translates it into
@@ -48,7 +49,10 @@ case class Translator(program: PProgram, enableFunctionTerminationChecks: Boolea
           methods ++= structureForTermProofs._3
         }
 
-        val finalProgram = Program(domain, fields, functions, predicates, methods)(program)
+        val finalProgram = AssumeRewriter.rewriteAssumes(Program(domain, fields, functions, predicates, methods)(program))
+
+        finalProgram.deepCollect {case fp: ForPerm => Consistency.checkForpermArgUse(fp, finalProgram)}
+        finalProgram.deepCollect {case trig: Trigger => Consistency.checkTriggers(trig, finalProgram)}
 
         if (Consistency.messages.isEmpty) Some(finalProgram) // all error messages generated during translation should be Consistency messages
         else None
@@ -186,8 +190,7 @@ case class Translator(program: PProgram, enableFunctionTerminationChecks: Boolea
         Inhale(exp(e))(pos)
       case assume@PAssume(e) =>
         val sub = exp(e)
-        if(!sub.isPure) { Consistency.messages ++= FastMessaging.message(assume, "assume statements can only have pure parameters, found: " + sub) }
-        Inhale(exp(e))(pos)
+        Assume(exp(e))(pos)
       case PExhale(e) =>
         Exhale(exp(e))(pos)
       case PAssert(e) =>
@@ -363,6 +366,7 @@ case class Translator(program: PProgram, enableFunctionTerminationChecks: Boolea
         FieldAccess(exp(rcv), findField(idn))(pos)
       case PPredicateAccess(args, idn) =>
         PredicateAccess(args map exp, findPredicate(idn).name)(pos)
+      case PMagicWandExp(left, right) => MagicWand(exp(left), exp(right))(pos)
       case pfa@PCall(func, args, _) =>
         members(func.name) match {
           case f: Function => FuncApp(f, args map exp)(pos)
@@ -400,45 +404,40 @@ case class Translator(program: PProgram, enableFunctionTerminationChecks: Boolea
       case PExists(vars, e) =>
         Exists(vars map liftVarDecl, exp(e))(pos)
       case PForall(vars, triggers, e) =>
-        val ts = triggers map (t => Trigger(t.exp map exp)(t))
+        val ts = triggers map (t => Trigger((t.exp map exp) map (e => e match {
+          case PredicateAccessPredicate(inner, _) => inner
+          case _ => e
+        }))(t))
         val fa = Forall(vars map liftVarDecl, ts, exp(e))(pos)
         if (fa.isPure) {
           fa
         } else {
-          val desugaredForalls = QuantifiedPermissions.desugareSourceSyntax(fa)
+          val desugaredForalls = QuantifiedPermissions.desugarSourceQuantifiedPermissionSyntax(fa)
           desugaredForalls.tail.foldLeft(desugaredForalls.head: Exp)((conjuncts, forall) =>
             And(conjuncts, forall)(fa.pos, fa.info, fa.errT))
         }
-      case f@PForPerm(_, args, e) =>
-
-        //val args = fields map findField
-
-        //check that the arguments contain only fields and predicates
-        args.foreach(a => Consistency.checkForPermArguments(members(a.name)))
-
-        val argAccess = mutable.Buffer[Location]()
-        for (a <- args) {
-
-          //we are either dealing with predicates, or fields!
-          members(a.name) match {
-            case f : Field => argAccess += f
-            case p : Predicate => argAccess += p
-            case _ => sys.error("Internal Error: Can only handle fields and predicates in forperm")
-          }
+      case f@PForPerm(vars, res, e) =>
+        val varList = vars map liftVarDecl
+        exp(res) match {
+          case PredicateAccessPredicate(inner, _) => ForPerm(varList, inner, exp(e))(pos)
+          case f : FieldAccess => ForPerm(varList, f, exp(e))(pos)
+          case p : PredicateAccess => ForPerm(varList, p, exp(e))(pos)
+          case w : MagicWand => ForPerm(varList, w, exp(e))(pos)
+          case other =>
+            sys.error(s"Internal Error: Unexpectedly found $other in forperm")
         }
-
-        ForPerm(liftVarDecl(f.variable), argAccess.toList, exp(e))(pos)
       case POld(e) =>
         Old(exp(e))(pos)
       case PLabelledOld(lbl,e) =>
         LabelledOld(exp(e),lbl.name)(pos)
       case PCondExp(cond, thn, els) =>
         CondExp(exp(cond), exp(thn), exp(els))(pos)
-      case PCurPerm(loc) =>
-        exp(loc) match {
-          case PredicateAccessPredicate(inner, _) => CurrentPerm(inner.asInstanceOf[LocationAccess])(pos)
-          case x: FieldAccess => CurrentPerm(x.asInstanceOf[LocationAccess])(pos)
-          case x: PredicateAccess => CurrentPerm(x.asInstanceOf[LocationAccess])(pos)
+      case PCurPerm(res) =>
+        exp(res) match {
+          case PredicateAccessPredicate(inner, _) => CurrentPerm(inner)(pos)
+          case x: FieldAccess => CurrentPerm(x)(pos)
+          case x: PredicateAccess => CurrentPerm(x)(pos)
+          case x: MagicWand => CurrentPerm(x)(pos)
           case other => sys.error(s"Unexpectedly found $other")
         }
       case PNoPerm() =>
@@ -496,17 +495,13 @@ case class Translator(program: PProgram, enableFunctionTerminationChecks: Boolea
     val end = LineColumnPosition(pos.finish.line, pos.finish.column)
     pos.start match {
       case fp: FilePosition => SourcePosition(fp.file, start, end)
-      case _ =>
-        //FIXME Do we really need to construct an instance of SourcePosition with undefined file field?
-        //FIXME One would expect to have a well-defined file path once a position pattern matched this type.
-        //FIXME @see https://bitbucket.org/viperproject/silver/issues/232
-        SourcePosition(null, start, end)
+      case NoPosition => SourcePosition(null, 0, 0)
     }
   }
 
   /** Takes a `PFormalArgDecl` and turns it into a `LocalVar`. */
   private def liftVarDecl(formal: PFormalArgDecl) =
-    LocalVarDecl(formal.idndef.name, ttyp(formal.typ))(formal)
+    LocalVarDecl(formal.idndef.name, ttyp(formal.typ))(formal.idndef)
 
   /** Takes a `PType` and turns it into a `Type`. */
   private def ttyp(t: PType): Type = t match {

@@ -8,9 +8,7 @@ package viper.carbon
 
 import boogie.Namespace
 import modules.impls._
-import viper._
-import viper.silver.ast.{Program,Method}
-import viper.silver.components.StatefulComponent
+import viper.silver.ast.Program
 import viper.silver.utility.Paths
 import viper.silver.verifier.Dependency
 import verifier.{BoogieInterface, Verifier, BoogieDependency}
@@ -115,7 +113,7 @@ case class CarbonVerifier(private var _debugInfo: Seq[(String, Any)] = Nil) exte
     List(new BoogieDependency(boogiePath), new Dependency {
       def name = "Z3"
       def version = {
-        val v = List(z3Path, "-version").lines.to[List]
+        val v = List(z3Path, "-version").lineStream.to[List]
         if (v.size == 1 && v(0).startsWith("Z3 version ")) {
           v(0).substring("Z3 version ".size)
         } else {
@@ -131,6 +129,7 @@ case class CarbonVerifier(private var _debugInfo: Seq[(String, Any)] = Nil) exte
 
     // reset all modules
     allModules map (m => m.reset())
+    heapModule.enableAllocationEncoding = config == null || !config.disableAllocEncoding.supplied // NOTE: config == null happens on the build server / via sbt test
 
     _translated = mainModule.translate(program)
 

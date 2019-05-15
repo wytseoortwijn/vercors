@@ -11,7 +11,7 @@ import viper.silver.cfg.silver.SilverCfg
 import viper.silicon.common.Mergeable
 import viper.silicon.common.collections.immutable.InsertionOrderedSet
 import viper.silicon.decider.RecordedPathConditions
-import viper.silicon.rules.SnapshotMapDefinition
+import viper.silicon.rules.{PermMapDefinition, SnapshotMapDefinition}
 import viper.silicon.state.State.OldHeaps
 import viper.silicon.state.terms.{Term, Var}
 import viper.silicon.supporters.functions.{FunctionRecorder, NoopFunctionRecorder}
@@ -38,6 +38,8 @@ final case class State(g: Store = Store(),
                        recordPossibleTriggers: Boolean = false,
                        possibleTriggers: Map[ast.Exp, Term] = Map(),
 
+                       triggerExp: Boolean = false,
+
                        partiallyConsumedHeap: Option[Heap] = None,
                        permissionScalingFactor: Term = terms.FullPerm(),
 
@@ -54,7 +56,8 @@ final case class State(g: Store = Store(),
                        qpFields: InsertionOrderedSet[ast.Field] = InsertionOrderedSet.empty,
                        qpPredicates: InsertionOrderedSet[ast.Predicate] = InsertionOrderedSet.empty,
                        qpMagicWands: InsertionOrderedSet[MagicWandIdentifier] = InsertionOrderedSet.empty,
-                       smCache: Map[(ast.Field, Seq[QuantifiedBasicChunk]), (SnapshotMapDefinition, Term)] = Map.empty,
+                       smCache: Map[(ast.Resource, Seq[QuantifiedBasicChunk]), (SnapshotMapDefinition, Term)] = Map.empty,
+                       pmCache: Map[(ast.Resource, Seq[QuantifiedBasicChunk]), PermMapDefinition] = Map.empty,
                        smDomainNeeded: Boolean = false,
                        /* TODO: Isn't this data stable, i.e. fully known after a preprocessing step? If so, move it to the appropriate supporter. */
                        predicateSnapMap: Map[ast.Predicate, terms.Sort] = Map.empty,
@@ -131,11 +134,12 @@ object State {
                  functionRecorder1,
                  conservingSnapshotGeneration1,
                  recordPossibleTriggers1, possibleTriggers1,
+                 triggerExp1,
                  partiallyConsumedHeap1,
                  permissionScalingFactor1,
                  reserveHeaps1, reserveCfgs1, conservedPcs1, recordPcs1, exhaleExt1,
                  applyHeuristics1, heuristicsDepth1, triggerAction1,
-                 qpFields1, qpPredicates1, qpMagicWands1, smCache1, smDomainNeeded1,
+                 qpFields1, qpPredicates1, qpMagicWands1, smCache1, pmCache1, smDomainNeeded1,
                  predicateSnapMap1, predicateFormalVarMap1) =>
 
         /* Decompose state s2: most values must match those of s1 */
@@ -151,37 +155,50 @@ object State {
                      functionRecorder2,
                      `conservingSnapshotGeneration1`,
                      `recordPossibleTriggers1`, possibleTriggers2,
+                     triggerExp2,
                      `partiallyConsumedHeap1`,
                      `permissionScalingFactor1`,
                      `reserveHeaps1`, `reserveCfgs1`, `conservedPcs1`, `recordPcs1`, `exhaleExt1`,
                      `applyHeuristics1`, `heuristicsDepth1`, `triggerAction1`,
-                     `qpFields1`, `qpPredicates1`, `qpMagicWands1`, smCache2, `smDomainNeeded1`,
+                     `qpFields1`, `qpPredicates1`, `qpMagicWands1`, smCache2, pmCache2, `smDomainNeeded1`,
                      `predicateSnapMap1`, `predicateFormalVarMap1`) =>
 
             val functionRecorder3 = functionRecorder1.merge(functionRecorder2)
+            val triggerExp3 = triggerExp1 && triggerExp2
             val possibleTriggers3 = possibleTriggers1 ++ possibleTriggers2
             val constrainableARPs3 = constrainableARPs1 ++ constrainableARPs2
 
             val smCache3 =
               viper.silicon.utils.conflictFreeUnion(smCache1, smCache2) match {
-                case Right(m3) => m3
-                case _ =>
-                  /* TODO: Comparing size is not sufficient - we should compare cache entries for
-                   *       equality modulo renaming of FVFs.
-                   *       Even better: when branching (locally/in general?), the fvfCache from the
-                   *       first branch should be made available to the second branch in order to avoid
-                   *       axiomatising a fresh but equivalent FVF.
-                   *       This should be sound because the branch condition (of a local branch?) cannot
-                   *       influence the available chunks.
+                case (m3, conflicts) if conflicts.isEmpty => m3
+                case (m3, conflicts) =>
+                  /* A "conflict" here means that two syntactically different snapshot maps have
+                   * been defined relative to the *same set of chunks*. It is therefore expected
+                   * that the two snapshots maps are semantically equivalent, and that it doesn't
+                   * matter which one is chosen for the merged cache.
+                   *
+                   * TODO: Add a runtime assertion that checks above hypothesis: e.g. check that the
+                   *       two snapshot maps are structurally equivalent modulo renaming.
+                   *
+                   * TODO: A possible optimisation to snapshot map caching might be the following:
+                   *       when branching (locally/in general?), the snapshot map cache from the
+                   *       first branch should be made available to the second branch in order to
+                   *       avoid axiomatising a fresh but equivalent snapshot map. This should be
+                   *       sound because the branch condition (of a local branch?) cannot influence
+                   *       the available chunks.
                    */
-                  assert(smCache1.size == smCache2.size)
-                  smCache1
+
+                  m3 ++ conflicts.map { case (k, (v1, _)) => k -> v1 }
                 }
+
+            val pmCache3 = pmCache1 ++ pmCache2
 
             s1.copy(functionRecorder = functionRecorder3,
                     possibleTriggers = possibleTriggers3,
+                    triggerExp = triggerExp3,
                     constrainableARPs = constrainableARPs3,
-                    smCache = smCache3)
+                    smCache = smCache3,
+                    pmCache = pmCache3)
 
           case _ =>
             sys.error("State merging failed: unexpected mismatch between symbolic states")
@@ -198,7 +215,7 @@ object State {
 
   def conflictFreeUnionOrAbort[K, V](m1: Map[K, V], m2: Map[K, V]): Map[K,V] =
     viper.silicon.utils.conflictFreeUnion(m1, m2) match {
-      case Right(m3) => m3
+      case (m3, conflicts) if conflicts.isEmpty => m3
       case _ => sys.error("Unexpected mismatch between contexts")
     }
 

@@ -9,17 +9,14 @@ package viper.silicon
 import java.text.SimpleDateFormat
 import java.util.concurrent.{Callable, Executors, TimeUnit, TimeoutException}
 
-import scala.collection.immutable
-import scala.language.postfixOps
 import scala.reflect.runtime.universe
 import scala.util.{Left, Right, Try}
 import ch.qos.logback.classic.{Level, Logger}
 import com.typesafe.scalalogging.LazyLogging
 import org.slf4j.LoggerFactory
 import viper.silver.ast
-import viper.silver.ast.NoPosition
 import viper.silver.frontend.{SilFrontend, TranslatorState}
-import viper.silver.reporter.{NoopReporter, Reporter}
+import viper.silver.reporter._
 import viper.silver.verifier.{DefaultDependency => SilDefaultDependency, Failure => SilFailure, Success => SilSuccess, TimeoutOccurred => SilTimeoutOccurred, VerificationResult => SilVerificationResult, Verifier => SilVerifier}
 import viper.silicon.common.config.Version
 import viper.silicon.interfaces.Failure
@@ -96,9 +93,9 @@ class Silicon(val reporter: Reporter, private var debugInfo: Seq[(String, Any)] 
     extends SilVerifier
        with LazyLogging {
 
-  def this(debugInfo: Seq[(String, Any)]) = this(NoopReporter, debugInfo)
+  def this(debugInfo: Seq[(String, Any)]) = this(StdIOReporter(), debugInfo)
 
-  def this() = this(NoopReporter, Nil)
+  def this() = this(StdIOReporter(), Nil)
 
   val name: String = Silicon.name
   val version = Silicon.version
@@ -123,6 +120,7 @@ class Silicon(val reporter: Reporter, private var debugInfo: Seq[(String, Any)] 
 
   private var startTime: Long = _
   private var elapsedMillis: Long = _
+  private def overallTime = System.currentTimeMillis() - startTime
 
   def parseCommandLine(args: Seq[String]) {
     assert(lifetimeState == LifetimeState.Instantiated, "Silicon can only be configured once")
@@ -215,7 +213,8 @@ class Silicon(val reporter: Reporter, private var debugInfo: Seq[(String, Any)] 
           /* An exception's root cause might be an error; the following code takes care of that */
           reporting.exceptionToViperError(exception) match {
             case Right((cause, failure)) =>
-              logger.debug("An exception occurred:", cause) /* Log exception if requested */
+              reporter report ExceptionReport(exception)
+              logger debug ("An exception occurred:", cause) /* Log exception if requested */
               result = Some(failure) /* Return exceptions as regular verification failures */
             case Left(error) =>
               /* Errors are rethrown (see also the try-catch block in object SiliconRunner) */
@@ -242,24 +241,8 @@ class Silicon(val reporter: Reporter, private var debugInfo: Seq[(String, Any)] 
 
     val failures =
       results.flatMap(r => r :: r.allPrevious)
-             .collect{ case f: Failure => f }
-             /* Removes results that have the same textual representation of their
-              * error message.
-              *
-              * TODO: This is not only ugly, and also should not be necessary. It seems
-              *       that malformed predicates are currently reported multiple times,
-              *       once for each fold/unfold and once when they are checked for
-              *       well-formedness.
-              */
-             .reverse
-             .foldLeft((immutable.Set.empty[String], List[Failure]())){
-                case ((ss, rs), f: Failure) =>
-                  if (f.message.pos != NoPosition && ss.contains(f.message.readableMessage)) (ss, rs)
-                  else (ss + f.message.readableMessage, f :: rs)
-                case ((ss, rs), r) => (ss, r :: rs)}
-             ._2
-             /* Order failures according to source position */
-             .sortBy(_.message.pos match {
+             .collect{ case f: Failure => f } /* Ignore successes */
+             .sortBy(_.message.pos match { /* Order failures according to source position */
                 case pos: ast.HasLineColumn => (pos.line, pos.column)
                 case _ => (-1, -1)
              })
@@ -287,9 +270,8 @@ class Silicon(val reporter: Reporter, private var debugInfo: Seq[(String, Any)] 
     }
 
     failures foreach (f => logFailure(f, s => logger.debug(s)))
-
     logger.debug("Verification finished in %s with %s error(s)".format(
-        viper.silicon.common.format.formatMillisReadably(/*verifier.bookkeeper.*/elapsedMillis),
+        viper.silver.reporter.format.formatMillisReadably(/*verifier.bookkeeper.*/elapsedMillis),
         failures.length))
 
     failures
@@ -355,7 +337,7 @@ class SiliconFrontend(override val reporter: Reporter,
   }
 }
 
-object SiliconRunner extends SiliconFrontend(NoopReporter) {
+object SiliconRunner extends SiliconFrontend(StdIOReporter()) {
   def main(args: Array[String]) {
     var exitCode = 1 /* Only 0 indicates no error - we're pessimistic here */
 
@@ -375,13 +357,15 @@ object SiliconRunner extends SiliconFrontend(NoopReporter) {
         reporting.exceptionToViperError(exception) match {
           case Right((cause, failure)) =>
             /* Report exceptions in a user-friendly way */
-            logger.debug("An exception occurred:", cause) /* Log stack trace */
-            printErrors(failure.errors: _*) /* Log verification failure */
-          case Left(error) =>
+            reporter report ExceptionReport(exception)
+            logger debug ("An exception occurred:", cause) /* Log stack trace */
+          case Left(error: Error) =>
             /* Errors are rethrown (see below); for particular ones, additional messages are logged */
             error match {
               case _: NoClassDefFoundError =>
-                logger.error(reporting.noClassDefFoundErrorMessage, error)
+                reporter report InternalWarningMessage(reporting.noClassDefFoundErrorMessage)
+                reporter report ExceptionReport(error)
+                logger error (reporting.noClassDefFoundErrorMessage, error)
               case _ =>
                 /* Don't do anything special */
             }
@@ -390,7 +374,9 @@ object SiliconRunner extends SiliconFrontend(NoopReporter) {
         }
       case error: NoClassDefFoundError =>
         /* Log NoClassDefFoundErrors with an additional message */
-        logger.error(reporting.noClassDefFoundErrorMessage, error)
+        reporter report InternalWarningMessage(reporting.noClassDefFoundErrorMessage)
+        reporter report ExceptionReport(error)
+        logger error (reporting.noClassDefFoundErrorMessage, error)
     } finally {
         siliconInstance.stop()
         /* TODO: This currently seems necessary to make sure that Z3 is terminated

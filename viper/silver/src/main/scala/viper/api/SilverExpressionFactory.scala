@@ -91,8 +91,8 @@ class SilverExpressionFactory[O] extends ExpressionFactory[O,Type,Exp] with Fact
     viper.silver.ast.FieldAccess(obj, f)(NoPosition, info, NoTrafos)
   }
 
-  override def neq(o:O,e1:Exp,e2:Exp) :Exp = NeCmp(e1,e2)(NoPosition,new OriginInfo(o))
-  override def eq(o:O,e1:Exp,e2:Exp) :Exp = EqCmp(e1,e2)(NoPosition,new OriginInfo(o))
+  override def neq(o:O,e1:Exp,e2:Exp) :Exp = NeCmp(e1,e2)(NoPosition, new OriginInfo(o))
+  override def eq(o:O,e1:Exp,e2:Exp) :Exp = EqCmp(e1,e2)(NoPosition, new OriginInfo(o))
   
   override def gt(o:O,e1:Exp,e2:Exp) :Exp = {
     e1 match {
