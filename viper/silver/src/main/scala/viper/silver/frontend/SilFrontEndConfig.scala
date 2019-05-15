@@ -7,26 +7,22 @@
 package viper.silver.frontend
 
 import collection._
-import org.rogach.scallop.LazyScallopConf
+import org.rogach.scallop.ScallopConf
+import org.rogach.scallop.exceptions.{Help, ScallopException, Version}
 
 /**
- * The configuration of a SIL front-end.
+ * The configuration of a Viper front-end.
  */
-class SilFrontendConfig(args: Seq[String], private var projectName: String) extends LazyScallopConf(args) {
+abstract class SilFrontendConfig(args: Seq[String], private var projectName: String) extends ScallopConf(args) {
   /* Attention: projectName must be an explicit field, otherwise it cannot be
-    * used in an interpolated string!
-    */
+   * used in an interpolated string!
+   */
 
   /** None if there has no error occurred during command-line parsing, and an error message otherwise. */
   var error: Option[String] = None
 
   /** True if (after command-line parsing) we should exit. */
   var exit: Boolean = false
-
-  /** Should be true after `LazyScallopConf.initialize` has been called,
-    * i.e., it should be set to true by the closure passed to `LazyScallopConf.initialize`.
-    */
-  var initialized: Boolean = false
 
   val file = trailArg[String]("file", "The file to verify.")/*, (x: String) => {
     val f = new java.io.File(x)
@@ -48,7 +44,7 @@ class SilFrontendConfig(args: Seq[String], private var projectName: String) exte
   )
 
   val methods = opt[String]("methods",
-    descr = "The SIL methods that should be verified. :all means all methods.",
+    descr = "The Viper methods that should be verified. :all means all methods.",
     default = Some(":all"),
     noshort = true,
     hidden = true
@@ -61,34 +57,36 @@ class SilFrontendConfig(args: Seq[String], private var projectName: String) exte
     hidden = true
   )
 
-  val ideMode = opt[Boolean]("ideMode",
-    descr = (  "Used for VS Code IDE. Report errors in json format, and write"
-             + "errors in the format '<file>,<line>:<col>,<line>:<col>,<message>' to"
-             + "a file (see option ideModeErrorFile)."),
+  val disableCaching = opt[Boolean]("disableCaching",
+    descr = (  "Used for ViperServer. Cache verification errors to speed up the"
+      + "verification process"),
     default = Some(false),
     noshort = true,
     hidden = true
   )
 
   val ideModeAdvanced = opt[Boolean]("ideModeAdvanced",
-    descr = (  "Used for VS Code IDE. Write symbolic execution log into .vscode/executionTreeData.js file, "
-            + "write execution tree graph into .vscode/dot_input.dot, "
-            + "and output z3's counter example models."),
+    descr = (  "Used for symbolic execution debugging in ViperIDE. Write symbolic execution log into "
+            + ".vscode/executionTreeData.js file, and output z3's counterexample models."),
     default = Some(false),
     noshort = true,
     hidden = true
   )
 
-  dependsOnAll(ideModeAdvanced, ideMode :: Nil)
-
-  val ideModeErrorFile = opt[String]("ideModeErrorFile",
-    descr = "File to which errors should be written",
-    default = Some("errors.log"),
+  val enableFunctionTerminationChecks = opt[Boolean]("enableFunctionTerminationChecks",
+    descr = "Enable program function termination checks (decreases-clauses)",
+    default = Some(false),
     noshort = true,
-    hidden = true
+    hidden = false
   )
 
-  dependsOnAll(ideModeErrorFile, ideMode :: Nil)
+  val plugin = opt[String]("plugin",
+    descr = "Load plugin(s) with given class name(s). Several plugins can be separated by ':'. " +
+      "The fully qualified class name of the plugin should be specified.",
+    default = None,
+    noshort = true,
+    hidden = false
+  )
 
   validateOpt(file, ignoreFile) {
     case (_, Some(true)) => Right(Unit)
@@ -100,6 +98,17 @@ class SilFrontendConfig(args: Seq[String], private var projectName: String) exte
        * (in which optFile == None) should never occur.
        */
       sys.error(s"Unexpected combination of $optFile and $optIgnoreFile")
+  }
+
+  override def onError(e: Throwable): Unit = {
+    exit = true
+
+    e match {
+      case Version => println(builder.vers.get)
+      case Help(_) => printHelp()
+      case ScallopException(message) => error = Some(message)
+      case unhandled => throw unhandled
+    }
   }
 
   banner(s"""Usage: $projectName [options] <file>

@@ -68,15 +68,15 @@ class SilverExpressionFactory[O] extends ExpressionFactory[O,Type,Exp] with Fact
       val sargs = args.asScala.toSeq
       val fp = to_decls(o,pars)
       //System.err.printf("col2sil %s %s %s %s %s %s%n",name,sargs,tm,rt,fp,domain)
-      DomainFuncApp(name,sargs.toSeq,tm)(NoPosition,new OriginInfo(o),rt,fp,domain)
+      DomainFuncApp(name,sargs.toSeq,tm)(NoPosition,new OriginInfo(o),rt,fp,domain, NoTrafos)
   }
 
   override def let(o:O,n:String,t:Type,e1:Exp,e2:Exp):Exp =
     add(Let(LocalVarDecl(n,t)(NoPosition,new OriginInfo(o)),e1,e2)_,o)
   override def function_call(o: O,name:String,args:List[Exp],rt:Type,pars:List[Triple[O,String,Type]]) : Exp = {
-    FuncApp(name,args.asScala.toSeq)(NoPosition,new OriginInfo(o),rt,to_decls(o,pars))
+    FuncApp(name,args.asScala.toSeq)(NoPosition,new OriginInfo(o),rt,to_decls(o,pars), NoTrafos)
   }
-  override def result(o: O,t:Type) : Exp = Result()(t,null,new OriginInfo(o)) 
+  override def result(o: O,t:Type) : Exp = Result()(t, NoPosition, new OriginInfo(o)) 
   
   override def predicate_call(o: O,name:String,args:List[Exp]) : Exp = {
     val e1=PredicateAccess(args.asScala.toSeq,name)(NoPosition,new OriginInfo(o))
@@ -86,9 +86,9 @@ class SilverExpressionFactory[O] extends ExpressionFactory[O,Type,Exp] with Fact
   }
   
   override def FieldAccess(o:O, obj:Exp, field:String, t:Type):Exp = {
-    val info=new OriginInfo(o)
-    val f=Field(field,t)(null,info)
-    viper.silver.ast.FieldAccess(obj,f)(null,info)
+    val info = new OriginInfo(o)
+    val f = Field(field, t)(NoPosition, info, NoTrafos)
+    viper.silver.ast.FieldAccess(obj, f)(NoPosition, info, NoTrafos)
   }
 
   override def neq(o:O,e1:Exp,e2:Exp) :Exp = NeCmp(e1,e2)(NoPosition,new OriginInfo(o))
@@ -205,7 +205,7 @@ class SilverExpressionFactory[O] extends ExpressionFactory[O,Type,Exp] with Fact
   }
   override def neg(o:O,e1:Exp):Exp = Minus(e1)(NoPosition,new OriginInfo(o))
   
-  override def local_name(o:O,name:String,t:Type):Exp = LocalVar(name)(t,null,new OriginInfo(o))
+  override def local_name(o:O,name:String,t:Type):Exp = LocalVar(name)(t, NoPosition, new OriginInfo(o))
 
   override def null_(o:O):Exp = NullLit()(NoPosition,new OriginInfo(o))
 

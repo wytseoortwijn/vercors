@@ -1,23 +1,22 @@
-/* TODO: add a type argument H to the SymbExLogger. 
- * Importing the type variable H as it is done currently 
- * results in having to cast the argument c at each creation
- * of a Record type, e.g. ConsumeRecord
- */
-
 package viper.silicon
 
 import java.io.File
 import java.nio.file.{Files, Path, Paths}
 
-import state.{DefaultContext, DefaultState, ListBackedHeap, MapBackedStore}
-import viper.silicon.interfaces.state.Heap
-import viper.silver.ast
-import viper.silicon.state.terms._
-import viper.silicon.DefaultVerifier.H
-import viper.silver.verifier.AbstractError
-import viper.silicon.reporting.DefaultStateFormatter
 import scala.annotation.elidable
 import scala.annotation.elidable._
+import viper.silver.ast
+import viper.silver.verifier.AbstractError
+import viper.silicon.common.collections.immutable.InsertionOrderedSet
+import viper.silicon.decider.PathConditionStack
+import viper.silicon.reporting.DefaultStateFormatter
+import viper.silicon.state._
+import viper.silicon.state.terms._
+
+/* TODO: InsertionOrderedSet is used by the logger, but the insertion order is
+ *       probably irrelevant for logging. I.e. it might be ok if these sets were
+ *       traversed in non-deterministic order.
+ */
 
 /*
  *  For instructions on how to use/visualise recording, have a look at
@@ -87,7 +86,7 @@ object SymbExLogger {
   var enabled = false
 
   /** Config of Silicon. Used by StateFormatters. **/
-  private var config: Config = null
+  private var config: Config = _
 
   /** Add a new log for a method, function or predicate (member).
     *
@@ -98,8 +97,8 @@ object SymbExLogger {
     * @param c      Current context.
     */
   @elidable(INFO)
-  def insertMember(member: ast.Member, s: AnyRef, pcs: Set[Term], c: DefaultContext[H]) {
-    memberList = memberList ++ List(new SymbLog(member, s, pcs, c))
+  def insertMember(member: ast.Member, s: State, pcs: PathConditionStack) {
+    memberList = memberList ++ List(new SymbLog(member, s, pcs))
   }
 
   /** Use this method to access the current log, e.g., to access the log of the method
@@ -185,11 +184,7 @@ object SymbExLogger {
   }
 
   protected def getOutputFolder(): String = {
-    if (config.ideMode()) {
-      ".vscode/"
-    } else {
-      "utils/symbolicRecording/"
-    }
+    ""
   }
 
   /** Path to the file that is being executed. Is used for UnitTesting. **/
@@ -226,17 +221,17 @@ object SymbExLogger {
   * Concept: One object of SymbLog per Method/Predicate/Function. SymbLog
   * is used in the SymbExLogger-object.
   */
-class SymbLog(v: ast.Member, s: AnyRef, pcs: Set[Term], c: DefaultContext[H]) {
+class SymbLog(v: ast.Member, s: State, pcs: PathConditionStack) {
   var main = v match {
-    case m: ast.Method => new MethodRecord(m, s, pcs, c)
-    case p: ast.Predicate => new PredicateRecord(p, s, pcs, c)
-    case f: ast.Function => new FunctionRecord(f, s, pcs, c)
+    case m: ast.Method => new MethodRecord(m, s, pcs)
+    case p: ast.Predicate => new PredicateRecord(p, s, pcs)
+    case f: ast.Function => new FunctionRecord(f, s, pcs)
     case default => null
   }
 
   private var stack = List[SymbolicRecord](main)
   private var sepCounter = 0
-  private var sepSet = Set[Int]()
+  private var sepSet = InsertionOrderedSet[Int]()
 
   private def current(): SymbolicRecord = {
     stack.head
@@ -289,7 +284,7 @@ class SymbLog(v: ast.Member, s: AnyRef, pcs: Set[Term], c: DefaultContext[H]) {
     */
   @elidable(INFO)
   def initializeBranching() {
-    sepSet = Set[Int]()
+    sepSet = InsertionOrderedSet[Int]()
   }
 
   /**
@@ -342,7 +337,7 @@ class SymbLog(v: ast.Member, s: AnyRef, pcs: Set[Term], c: DefaultContext[H]) {
   }
 }
 
-object NoopSymbLog extends SymbLog(null, null, null, null) {
+object NoopSymbLog extends SymbLog(null, null, null) {
   override def insert(s: SymbolicRecord): Int = 0
 }
 
@@ -528,10 +523,8 @@ object JsonHelper {
 
 class JSTreeRenderer extends Renderer[String] {
 
-  val stateFormatter: DefaultStateFormatter[MapBackedStore,
-    ListBackedHeap, DefaultState[MapBackedStore, ListBackedHeap]]
-  = new DefaultStateFormatter[MapBackedStore, ListBackedHeap,
-    DefaultState[MapBackedStore, ListBackedHeap]](SymbExLogger.getConfig())
+  val stateFormatter: DefaultStateFormatter
+  = new DefaultStateFormatter()
 
   def render(memberList: List[SymbLog]): String = {
     "var executionTreeData = [\n" + memberList.map(s => renderMember(s)).fold("") { (a, b) => if (a.isEmpty) b else a + ", \n" + b } + "]\n"
@@ -628,7 +621,7 @@ class JSTreeRenderer extends Renderer[String] {
   def printState(s: SymbolicRecord): String = {
     var res = ""
     if (s.state != null) {
-      var σ = s.state.asInstanceOf[DefaultState[MapBackedStore, ListBackedHeap]]
+      var σ = s.state.asInstanceOf[State]
       res = ",\"prestate\":" + JsonHelper.escape(stateFormatter.toJson(σ, s.pcs))
     }
     res
@@ -778,13 +771,13 @@ class TypeTreeRenderer extends Renderer[String] {
 
 sealed trait SymbolicRecord {
   val value: ast.Node
-  val state: AnyRef
+  val state: State
   // TODO: It would be nicer to use the PathConditionStack instead of the
   // Decider's internal representation for the pcs.
   // However, the recording happens to early such that the wrong
   // PathConditionStack Object is stored when using the PathConditionStack
+  // TODO: Oops.
   val pcs: Set[Term]
-  val context: DefaultContext[H]
   var subs = List[SymbolicRecord]()
 
   def toTypeString(): String
@@ -822,11 +815,10 @@ trait MultiChildUnorderedRecord extends MultiChildRecord
 
 trait SequentialRecord extends SymbolicRecord
 
-class MethodRecord(v: ast.Method, s: AnyRef, p: Set[Term], c: DefaultContext[H]) extends MemberRecord {
+class MethodRecord(v: ast.Method, s: State, p: PathConditionStack) extends MemberRecord {
   val value = v
   val state = s
-  val pcs = p
-  val context = c
+  val pcs = if (p != null) p.assumptions else null
 
   def toTypeString(): String = {
     "method"
@@ -843,11 +835,10 @@ class MethodRecord(v: ast.Method, s: AnyRef, p: Set[Term], c: DefaultContext[H])
   }
 }
 
-class PredicateRecord(v: ast.Predicate, s: AnyRef, p: Set[Term], c: DefaultContext[H]) extends MemberRecord {
+class PredicateRecord(v: ast.Predicate, s: State, p: PathConditionStack) extends MemberRecord {
   val value = v
   val state = s
-  val pcs = p
-  val context = c
+  val pcs = if (p != null) p.assumptions else null
 
   def toTypeString(): String = {
     "predicate"
@@ -864,11 +855,10 @@ class PredicateRecord(v: ast.Predicate, s: AnyRef, p: Set[Term], c: DefaultConte
   }
 }
 
-class FunctionRecord(v: ast.Function, s: AnyRef, p: Set[Term], c: DefaultContext[H]) extends MemberRecord {
+class FunctionRecord(v: ast.Function, s: State, p: PathConditionStack) extends MemberRecord {
   val value = v
   val state = s
-  val pcs = p
-  val context = c
+  val pcs = if (p != null) p.assumptions else null
 
   def toTypeString(): String = {
     "function"
@@ -885,11 +875,10 @@ class FunctionRecord(v: ast.Function, s: AnyRef, p: Set[Term], c: DefaultContext
   }
 }
 
-class ExecuteRecord(v: ast.Stmt, s: AnyRef, p: Set[Term], c: DefaultContext[H]) extends SequentialRecord {
+class ExecuteRecord(v: ast.Stmt, s: State, p: PathConditionStack) extends SequentialRecord {
   val value = v
   val state = s
-  val pcs = p
-  val context = c
+  val pcs = if (p != null) p.assumptions else null
 
   def toTypeString(): String = {
     "execute"
@@ -901,11 +890,10 @@ class ExecuteRecord(v: ast.Stmt, s: AnyRef, p: Set[Term], c: DefaultContext[H]) 
   }
 }
 
-class EvaluateRecord(v: ast.Exp, s: AnyRef, p: Set[Term], c: DefaultContext[H]) extends SequentialRecord {
+class EvaluateRecord(v: ast.Exp, s: State, p: PathConditionStack) extends SequentialRecord {
   val value = v
   val state = s
-  val pcs = p
-  val context = c
+  val pcs = if (p != null) p.assumptions else null
 
   def toTypeString(): String = {
     "evaluate"
@@ -917,11 +905,10 @@ class EvaluateRecord(v: ast.Exp, s: AnyRef, p: Set[Term], c: DefaultContext[H]) 
   }
 }
 
-class ProduceRecord(v: ast.Exp, s: AnyRef, p: Set[Term], c: DefaultContext[H]) extends SequentialRecord {
+class ProduceRecord(v: ast.Exp, s: State, p: PathConditionStack) extends SequentialRecord {
   val value = v
   val state = s
-  val pcs = p
-  val context = c
+  val pcs = if (p != null) p.assumptions else null
 
   def toTypeString(): String = {
     "produce"
@@ -933,12 +920,11 @@ class ProduceRecord(v: ast.Exp, s: AnyRef, p: Set[Term], c: DefaultContext[H]) e
   }
 }
 
-class ConsumeRecord(v: ast.Exp, s: AnyRef, p: Set[Term], c: DefaultContext[H])
+class ConsumeRecord(v: ast.Exp, s: State, p: PathConditionStack)
   extends SequentialRecord {
   val value = v
   val state = s
-  val pcs = p
-  val context = c
+  val pcs = if (p != null) p.assumptions else null
 
   def toTypeString(): String = {
     "consume"
@@ -950,13 +936,12 @@ class ConsumeRecord(v: ast.Exp, s: AnyRef, p: Set[Term], c: DefaultContext[H])
   }
 }
 
-class WellformednessCheckRecord(v: Seq[ast.Exp], s: AnyRef, p: Set[Term], c: DefaultContext[H])
+class WellformednessCheckRecord(v: Seq[ast.Exp], s: State, p: PathConditionStack)
   extends MultiChildUnorderedRecord {
   val value = null
   val conditions = v
   val state = s
-  val pcs = p
-  val context = c
+  val pcs = if (p != null) p.assumptions else null
 
   def toTypeString(): String = {
     "WellformednessCheck"
@@ -967,22 +952,21 @@ class WellformednessCheckRecord(v: Seq[ast.Exp], s: AnyRef, p: Set[Term], c: Def
   }
 }
 
-class IfThenElseRecord(v: ast.Exp, s: AnyRef, p: Set[Term], c: DefaultContext[H])
+class IfThenElseRecord(v: ast.Exp, s: State, p: PathConditionStack)
   extends MultiChildUnorderedRecord {
   val value = v
   //meaningless since there is no directly usable if-then-else structure in the AST
   val state = s
-  val pcs = p
-  val context = c
+  val pcs = if (p != null) p.assumptions else null
 
   def toTypeString(): String = {
     "IfThenElse"
   }
 
-  var thnCond: SymbolicRecord = new CommentRecord("Unreachable", null, null, null)
-  var elsCond: SymbolicRecord = new CommentRecord("Unreachable", null, null, null)
-  var thnSubs = List[SymbolicRecord](new CommentRecord("Unreachable", null, null, null))
-  var elsSubs = List[SymbolicRecord](new CommentRecord("Unreachable", null, null, null))
+  var thnCond: SymbolicRecord = new CommentRecord("Unreachable", null, null)
+  var elsCond: SymbolicRecord = new CommentRecord("Unreachable", null, null)
+  var thnSubs = List[SymbolicRecord](new CommentRecord("Unreachable", null, null))
+  var elsSubs = List[SymbolicRecord](new CommentRecord("Unreachable", null, null))
 
   override def toString(): String = {
     "if " + thnCond.toSimpleString()
@@ -1026,22 +1010,21 @@ class IfThenElseRecord(v: ast.Exp, s: AnyRef, p: Set[Term], c: DefaultContext[H]
   }
 }
 
-class CondExpRecord(v: ast.Exp, s: AnyRef, p: Set[Term], c: DefaultContext[H], env: String)
+class CondExpRecord(v: ast.Exp, s: State, p: PathConditionStack, env: String)
   extends MultiChildOrderedRecord {
   val value = v
   val state = s
-  val pcs = p
-  val context = c
+  val pcs = if (p != null) p.assumptions else null
   val environment = env
 
   def toTypeString(): String = {
     "CondExp"
   }
 
-  var cond: SymbolicRecord = new CommentRecord("<missing condition>", null, null, null)
+  var cond: SymbolicRecord = new CommentRecord("<missing condition>", null, null)
   // thn/els Exp is Unreachable by default. If this is not the case, it will be overwritten
-  var thnExp: SymbolicRecord = new CommentRecord("Unreachable", null, null, null)
-  var elsExp: SymbolicRecord = new CommentRecord("Unreachable", null, null, null)
+  var thnExp: SymbolicRecord = new CommentRecord("Unreachable", null, null)
+  var elsExp: SymbolicRecord = new CommentRecord("Unreachable", null, null)
 
   override def toString(): String = {
     if (value != null)
@@ -1084,21 +1067,20 @@ class CondExpRecord(v: ast.Exp, s: AnyRef, p: Set[Term], c: DefaultContext[H], e
   }
 }
 
-class GlobalBranchRecord(v: ast.Exp, s: AnyRef, p: Set[Term], c: DefaultContext[H], env: String)
+class GlobalBranchRecord(v: ast.Exp, s: State, p: PathConditionStack, env: String)
   extends MultiChildUnorderedRecord {
   val value = v
   val state = s
-  val pcs = p
-  val context = c
+  val pcs = if (p != null) p.assumptions else null
   val environment = env
 
   def toTypeString(): String = {
     "GlobalBranch"
   }
 
-  var cond: SymbolicRecord = new CommentRecord("<missing condition>", null, null, null)
-  var thnSubs = List[SymbolicRecord](new CommentRecord("Unreachable", null, null, null))
-  var elsSubs = List[SymbolicRecord](new CommentRecord("Unreachable", null, null, null))
+  var cond: SymbolicRecord = new CommentRecord("<missing condition>", null, null)
+  var thnSubs = List[SymbolicRecord](new CommentRecord("Unreachable", null, null))
+  var elsSubs = List[SymbolicRecord](new CommentRecord("Unreachable", null, null))
 
   override def toSimpleString(): String = {
     if (value != null)
@@ -1138,11 +1120,10 @@ class GlobalBranchRecord(v: ast.Exp, s: AnyRef, p: Set[Term], c: DefaultContext[
   }
 }
 
-class CommentRecord(str: String, s: AnyRef, p: Set[Term], c: DefaultContext[H]) extends SequentialRecord {
+class CommentRecord(str: String, s: State, p: PathConditionStack) extends SequentialRecord {
   val value = null
   val state = s
-  val pcs = p
-  val context = c
+  val pcs = if (p != null) p.assumptions else null
 
   def toTypeString(): String = {
     "Comment"
@@ -1169,20 +1150,19 @@ class CommentRecord(str: String, s: AnyRef, p: Set[Term], c: DefaultContext[H]) 
   }
 }
 
-class MethodCallRecord(v: ast.MethodCall, s: AnyRef, p: Set[Term], c: DefaultContext[H])
+class MethodCallRecord(v: ast.MethodCall, s: State, p: PathConditionStack)
   extends MultiChildOrderedRecord {
   val value = v
   val state = s
-  val pcs = p
-  val context = c
+  val pcs = if (p != null) p.assumptions else null
 
   def toTypeString(): String = {
     "MethodCall"
   }
 
   var parameters = List[SymbolicRecord]()
-  var precondition: SymbolicRecord = new ConsumeRecord(null, null, null, null)
-  var postcondition: SymbolicRecord = new ProduceRecord(null, null, null, null)
+  var precondition: SymbolicRecord = new ConsumeRecord(null, null, null)
+  var postcondition: SymbolicRecord = new ProduceRecord(null, null, null)
 
   override def toString(): String = {
     if (value != null)

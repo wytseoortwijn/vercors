@@ -7,28 +7,22 @@
 package viper.silicon.supporters
 
 import viper.silver.ast
-import viper.silicon.{Map, Set, toMap}
-import viper.silicon.state.{Identifier, SymbolConvert}
+import viper.silicon.rules.functionSupporter
+import viper.silicon.state.Identifier
 import viper.silicon.state.terms._
-import viper.silicon.supporters.functions.FunctionSupporter
 
 trait ExpressionTranslator {
-  val symbolConverter: SymbolConvert
-
   /* TODO: Shares a lot of code with DefaultEvaluator. Unfortunately, it doesn't seem to be easy to
    *       reuse code because the code in DefaultEvaluator uses the state whereas this one here
    *       doesn't. Of course, one could just evaluate the domains using the DefaultEvaluator - which
    *       was done before - but that is less efficient and creates lots of additional noise output
    *       in the prover log.
-   *
-   * TODO: Can't we do without toSort? Or at least with a less type-specific one?
    */
-  protected def translate(toSort: (ast.Type, Map[ast.TypeVar, ast.Type]) => Sort,
-                          qpFields: Set[ast.Field])
+  protected def translate(toSort: ast.Type => Sort)
                          (exp: ast.Exp)
                          : Term = {
 
-    val f = translate(toSort, qpFields) _
+    val f = translate(toSort) _
 
     def translateAnySetUnExp(exp: ast.AnySetUnExp,
                              setTerm: Term => Term,
@@ -71,8 +65,10 @@ trait ExpressionTranslator {
 
         val (eQuant, qantOp, eTriggers) = sourceQuant match {
           case forall: ast.Forall =>
-            val autoTriggeredForall = viper.silicon.utils.ast.autoTrigger(forall, qpFields)
-            (autoTriggeredForall, Forall, autoTriggeredForall.triggers)
+            /* It is expected that quantifiers have already been provided with triggers,
+             * either explicitly or by using a trigger generator.
+             */
+            (forall, Forall, forall.triggers)
           case exists: ast.Exists =>
             (exists, Exists, Seq())
           case _: ast.ForPerm => sys.error(s"Unexpected quantified expression $sourceQuant")
@@ -81,17 +77,17 @@ trait ExpressionTranslator {
         val body = eQuant.exp
         val vars = eQuant.variables map (_.localVar)
 
-        /** IMPORTANT: Keep in sync with [[viper.silicon.DefaultEvaluator.evalTrigger]] */
+        /** IMPORTANT: Keep in sync with [[viper.silicon.rules.evaluator.evalTrigger]] */
         val translatedTriggers = eTriggers map (triggerSet => Trigger(triggerSet.exps map (trigger =>
           f(trigger) match {
             case app @ App(fun: HeapDepFun, _) =>
-              app.copy(applicable = FunctionSupporter.limitedVersion(fun))
+              app.copy(applicable = functionSupporter.limitedVersion(fun))
             case other => other
           }
         )))
 
         Quantification(qantOp,
-                       vars map (v => Var(Identifier(v.name), toSort(v.typ, Map()))),
+                       vars map (v => Var(Identifier(v.name), toSort(v.typ))),
                        f(body),
                        translatedTriggers)
 
@@ -121,13 +117,13 @@ trait ExpressionTranslator {
 
       case _: ast.NullLit => Null()
 
-      case v: ast.AbstractLocalVar => Var(Identifier(v.name), toSort(v.typ, Map()))
+      case v: ast.AbstractLocalVar => Var(Identifier(v.name), toSort(v.typ))
 
-      case ast.DomainFuncApp(funcName, args, typeVarMap) =>
+      case ast.DomainFuncApp(funcName, args, _) =>
         val tArgs = args map f
         val inSorts = tArgs map (_.sort)
-        val outSort = toSort(exp.typ, toMap(typeVarMap))
-        val id = symbolConverter.toSortSpecificId(funcName, inSorts :+ outSort)
+        val outSort = toSort(exp.typ)
+        val id = Identifier(funcName)
         val df = Fun(id, inSorts, outSort)
         App(df, tArgs)
 
@@ -156,7 +152,7 @@ trait ExpressionTranslator {
       case ast.SeqIndex(e0, e1) => SeqAt(f(e0), f(e1))
       case ast.SeqLength(e) => SeqLength(f(e))
       case ast.SeqTake(e0, e1) => SeqTake(f(e0), f(e1))
-      case ast.EmptySeq(typ) => SeqNil(toSort(typ, Map()))
+      case ast.EmptySeq(typ) => SeqNil(toSort(typ))
       case ast.RangeSeq(e0, e1) => SeqRanged(f(e0), f(e1))
       case ast.SeqUpdate(e0, e1, e2) => SeqUpdate(f(e0), f(e1), f(e2))
 
@@ -166,8 +162,8 @@ trait ExpressionTranslator {
 
       /* Sets and multisets */
 
-      case ast.EmptySet(typ) => EmptySet(toSort(typ, Map()))
-      case ast.EmptyMultiset(typ) => EmptyMultiset(toSort(typ, Map()))
+      case ast.EmptySet(typ) => EmptySet(toSort(typ))
+      case ast.EmptyMultiset(typ) => EmptyMultiset(toSort(typ))
 
       case ast.ExplicitSet(es) =>
         es.tail.foldLeft[SetTerm](SingletonSet(f(es.head)))((tSet, e) =>
@@ -179,7 +175,7 @@ trait ExpressionTranslator {
 
       case as: ast.AnySetUnion => translateAnySetBinExp(as, SetUnion, MultisetUnion)
       case as: ast.AnySetIntersection => translateAnySetBinExp(as, SetIntersection, MultisetIntersection)
-      case as: ast.AnySetSubset => translateAnySetBinExp(as, SetSubset, MultisetSubset)
+      case as: ast.AnySetSubset => translateAnySetBinExp(as, SetSubset, MultisetSubset, as.left)
       case as: ast.AnySetMinus => translateAnySetBinExp(as, SetDifference, MultisetDifference)
       case as: ast.AnySetContains => translateAnySetBinExp(as, SetIn, (t0, t1) => MultisetCount(t1, t0), as.right)
       case as: ast.AnySetCardinality => translateAnySetUnExp(as, SetCardinality, MultisetCardinality, as.exp)
@@ -197,6 +193,7 @@ trait ExpressionTranslator {
              | _: ast.FractionalPerm
              | _: ast.Result
              | _: ast.Unfolding
+             | _: ast.Applying
              | _: ast.InhaleExhaleExp
              | _: ast.PredicateAccess
              | _: ast.FuncApp
@@ -205,12 +202,7 @@ trait ExpressionTranslator {
              | _: ast.WildcardPerm
              | _: ast.EpsilonPerm
              | _: ast.ForPerm
-             | _: ast.ApplyOld
              | _: ast.MagicWand
-             | _: ast.FoldingGhostOp
-             | _: ast.UnfoldingGhostOp
-             | _: ast.ApplyingGhostOp
-             | _: ast.PackagingGhostOp
              =>
 
         sys.error(s"Found unexpected expression $exp (${exp.getClass.getName}})")

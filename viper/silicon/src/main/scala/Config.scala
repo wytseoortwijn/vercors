@@ -8,12 +8,19 @@ package viper.silicon
 
 import java.io.File
 import java.nio.file.{Path, Paths}
+import ch.qos.logback.classic.Logger
 import scala.util.Properties._
 import org.rogach.scallop._
+import org.slf4j.LoggerFactory
 import viper.silver.frontend.SilFrontendConfig
 
 class Config(args: Seq[String]) extends SilFrontendConfig(args, "Silicon") {
   import Config._
+
+  /** Attention: Don't use options to compute default values! This will cause
+    * a crash when help is printed (--help) because of the order in which things
+    * are initialised.
+    */
 
   /* Argument converter */
 
@@ -28,7 +35,7 @@ class Config(args: Seq[String]) extends SilFrontendConfig(args, "Silicon") {
         Right(Some(Sink.File, fileName))
 
       case Nil => Right(None)
-      case _ => Left(s"Unexpected arguments")
+      case _ => Left(s"unexpected arguments")
     }
 
     val tag = scala.reflect.runtime.universe.typeTag[(Sink, String)]
@@ -39,7 +46,7 @@ class Config(args: Seq[String]) extends SilFrontendConfig(args, "Silicon") {
     def parse(s: List[(String, List[String])]) = s match {
       case (_, str :: Nil) :: Nil if str.head == '"' && str.last == '"' => Right(Some(str.substring(1, str.length - 1)))
       case Nil => Right(None)
-      case _ => Left(s"Unexpected arguments")
+      case _ => Left(s"unexpected arguments")
     }
 
     val tag = scala.reflect.runtime.universe.typeTag[String]
@@ -59,14 +66,14 @@ class Config(args: Seq[String]) extends SilFrontendConfig(args, "Silicon") {
                 case Array(k, v) =>
                   Some(k -> v)
                 case other =>
-                  return Left(s"Unexpected arguments")
+                  return Left(s"unexpected arguments")
            })
 
         Right(Some(config))
       case Nil =>
         Right(None)
       case _ =>
-        Left(s"Unexpected arguments")
+        Left(s"unexpected arguments")
     }
 
     val tag = scala.reflect.runtime.universe.typeTag[Map[String, String]]
@@ -81,10 +88,42 @@ class Config(args: Seq[String]) extends SilFrontendConfig(args, "Silicon") {
       case (_, pushPopRegex(_) :: Nil) :: Nil => Right(Some(AssertionMode.PushPop))
       case (_, softConstraintsRegex(_) :: Nil) :: Nil => Right(Some(AssertionMode.SoftConstraints))
       case Nil => Right(None)
-      case _ => Left(s"Unexpected arguments")
+      case _ => Left(s"unexpected arguments")
     }
 
     val tag = scala.reflect.runtime.universe.typeTag[AssertionMode]
+    val argType = org.rogach.scallop.ArgType.LIST
+  }
+
+  private val saturationTimeoutWeightsConverter = new ValueConverter[Z3SaturationTimeoutWeights] {
+    def parse(s: List[(String, List[String])]) = s match {
+      case Seq((_, Seq(rawString))) =>
+        val trimmedString = rawString.trim
+        if (!trimmedString.startsWith("[") || !trimmedString.endsWith("]"))
+          Left("weights must be provided inside square brackets")
+        else {
+          val weightsString = trimmedString.tail.init /* Drop leading/trailing '[' and ']' */
+
+          /* Split at commas, try to convert to floats, keep only positive ones */
+          val weights =
+            weightsString.split(',')
+                         .flatMap(s => scala.util.Try(s.toFloat).toOption)
+                         .filter(0 <= _)
+
+          if (weights.length == Z3SaturationTimeoutWeights.numberOfWeights) {
+            val result = Z3SaturationTimeoutWeights.from(weights)
+            require(result.isDefined, "Unexpected mismatch")
+              /* Should always succeed due to above length check */
+            Right(result)
+          } else
+            Left(s"expected ${Z3SaturationTimeoutWeights.numberOfWeights} non-negative floats")
+        }
+
+      case Seq() => Right(None)
+      case _ => Left(s"unexpected arguments")
+    }
+
+    val tag = scala.reflect.runtime.universe.typeTag[Z3SaturationTimeoutWeights]
     val argType = org.rogach.scallop.ArgType.LIST
   }
 
@@ -147,14 +186,6 @@ class Config(args: Seq[String]) extends SilFrontendConfig(args, "Silicon") {
     hidden = Silicon.hideInternalOptions
   )
 
-//  val disableSnapshotCaching = opt[Boolean]("disableSnapshotCaching",
-//    descr = (  "Disable caching of snapshot symbols. "
-//             + "Caching reduces the number of symbols the prover has to work with."),
-//    default = Some(false),
-//    noshort = true,
-//    hidden = Silicon.hideInternalOptions
-//  )
-
   val disableShortCircuitingEvaluations = opt[Boolean]("disableShortCircuitingEvaluations",
     descr = (  "Disable short-circuiting evaluation of AND, OR. If disabled, "
              + "evaluating e.g., i > 0 && f(i), will fail if f's precondition requires i > 0."),
@@ -164,8 +195,8 @@ class Config(args: Seq[String]) extends SilFrontendConfig(args, "Silicon") {
   )
 
   val logLevel = opt[String]("logLevel",
-    descr = "One of the log levels ALL, TRACE, DEBUG, INFO, WARN, ERROR, OFF (default: OFF)",
-    default = Some("WARN"),
+    descr = "One of the log levels ALL, TRACE, DEBUG, INFO, WARN, ERROR, OFF",
+    default = None,
     noshort = true,
     hidden = Silicon.hideInternalOptions
   )(singleArgConverter(level => level.toUpperCase))
@@ -178,18 +209,98 @@ class Config(args: Seq[String]) extends SilFrontendConfig(args, "Silicon") {
 
   val timeout = opt[Int]("timeout",
     descr = ( "Time out after approx. n seconds. The timeout is for the whole verification, "
-            + "not per method or proof obligation (default: 0, i.e., no timeout)."),
+            + "not per method or proof obligation (default: 0, i.e. no timeout)."),
     default = Some(0),
     noshort = true,
     hidden = false
   )
 
   val checkTimeout = opt[Int]("checkTimeout",
-    descr = "Timeout (in ms) per check, usually used to branch over expressions (default: 250).",
-    default = Some(250),
+    descr = (  "Timeout (in ms) per SMT solver check. Solver checks differ from solver asserts "
+             + "in that a failing assert always yields a verification error whereas a failing "
+             + "check doesn't, at least not directly. However, failing checks might result in "
+             + "performance degradation, e.g. when a dead program path is nevertheless explored, "
+             + "and indirectly in verification failures due to incompletenesses, e.g. when "
+             + "the held permission amount is too coarsely underapproximated (default: 10)."),
+    default = Some(10),
     noshort = true,
     hidden = false
   )
+
+  private val rawZ3SaturationTimeout = opt[Int]("z3SaturationTimeout",
+    descr = (  "Timeout (in ms) used for Z3 state saturation calls (default: 100). A timeout of "
+             + "0 disables all saturation checks."),
+    default = Some(100),
+    noshort = true,
+    hidden = Silicon.hideInternalOptions
+  )
+
+  /* Attention: Update companion object if number of weights changes! */
+  case class Z3SaturationTimeoutWeights(afterPreamble: Float = 1,
+                                        afterContract: Float = 0.5f,
+                                        afterUnfold: Float = 0.4f,
+                                        afterInhale: Float = 0.2f,
+                                        beforeRepetition: Float = 0.02f)
+
+  object Z3SaturationTimeoutWeights {
+    val numberOfWeights = 5
+
+    def from(weights: Seq[Float]): Option[Z3SaturationTimeoutWeights] = {
+      weights match {
+        case Seq(w1, w2, w3, w4, w5) => Some(Z3SaturationTimeoutWeights(w1, w2, w3, w4, w5))
+        case _ => None
+      }
+    }
+  }
+
+  private val defaultZ3SaturationTimeoutWeights = Z3SaturationTimeoutWeights()
+
+  private val rawZ3SaturationTimeoutWeights = opt[Z3SaturationTimeoutWeights]("z3SaturationTimeoutWeights",
+    descr = (   "Weights used to compute the effective timeout for Z3 state saturation calls, "
+             +  "which are made at various points during a symbolic execution. The effective "
+             +  "timeouts for a particular saturation call is computed by multiplying the "
+             +  "corresponding weight with the base timeout for saturation calls. "
+             +  "Defaults to the following weights:\n"
+             + s"    after program preamble: ${defaultZ3SaturationTimeoutWeights.afterPreamble}\n"
+             + s"    after inhaling contracts: ${defaultZ3SaturationTimeoutWeights.afterContract}\n"
+             + s"    after unfold: ${defaultZ3SaturationTimeoutWeights.afterUnfold}\n"
+             + s"    after inhale: ${defaultZ3SaturationTimeoutWeights.afterInhale}\n"
+             + s"    before repeated Z3 queries: ${defaultZ3SaturationTimeoutWeights.beforeRepetition}\n"
+             +  "Weights must be non-negative, a weight of 0 disables the corresponding saturation "
+             +  "call and a minimal timeout of 10ms is enforced."),
+    default = Some(defaultZ3SaturationTimeoutWeights),
+    noshort = true,
+    hidden = Silicon.hideInternalOptions
+  )(saturationTimeoutWeightsConverter)
+
+  /* ATTENTION: Don't access the effective weights before the configuration objects has been
+   *  properly initialised, i.e. before `this.verify` has been invoked.
+   */
+  object z3SaturationTimeouts {
+    private def scale(weight: Float, comment: String): Option[Z3StateSaturationTimeout] = {
+      if (weight == 0 || rawZ3SaturationTimeout() == 0) {
+        None
+      } else {
+        Some(Z3StateSaturationTimeout(Math.max(10.0, weight * rawZ3SaturationTimeout()).toInt,
+                                      comment))
+      }
+    }
+
+    val afterPrelude: Option[Z3StateSaturationTimeout] =
+      scale(rawZ3SaturationTimeoutWeights().afterPreamble, "after preamble")
+
+    val afterContract: Option[Z3StateSaturationTimeout] =
+      scale(rawZ3SaturationTimeoutWeights().afterContract, "after contract")
+
+    val afterUnfold: Option[Z3StateSaturationTimeout] =
+      scale(rawZ3SaturationTimeoutWeights().afterUnfold, "after unfold")
+
+    val afterInhale: Option[Z3StateSaturationTimeout] =
+      scale(rawZ3SaturationTimeoutWeights().afterInhale, "after inhale")
+
+    val beforeIteration: Option[Z3StateSaturationTimeout] =
+      scale(rawZ3SaturationTimeoutWeights().beforeRepetition, "before repetition")
+  }
 
   val tempDirectory = opt[String]("tempDirectory",
     descr = "Path to which all temporary data will be written (default: ./tmp)",
@@ -209,14 +320,17 @@ class Config(args: Seq[String]) extends SilFrontendConfig(args, "Silicon") {
   lazy val z3Exe: String = {
     val isWindows = System.getProperty("os.name").toLowerCase.startsWith("windows")
 
-    rawZ3Exe.get.getOrElse(envOrNone(Silicon.z3ExeEnvironmentVariable)
-                .getOrElse("z3" + (if (isWindows) ".exe" else "")))
+    rawZ3Exe.toOption.getOrElse(envOrNone(Silicon.z3ExeEnvironmentVariable)
+                     .getOrElse("z3" + (if (isWindows) ".exe" else "")))
   }
 
-  val defaultRawZ3LogFile = "logfile.smt2"
+  val defaultRawZ3LogFile = "logfile"
+  val z3LogFileExtension = "smt2"
 
   private val rawZ3LogFile = opt[ConfigValue[String]]("z3LogFile",
-    descr = s"Log file containing the interaction with Z3 (default: <tempDirectory>/$defaultRawZ3LogFile)",
+    descr = (  "Log file containing the interaction with Z3, "
+             + s"extension $z3LogFileExtension will be appended. "
+             + s"(default: <tempDirectory>/$defaultRawZ3LogFile.$z3LogFileExtension)"),
     default = Some(DefaultValue(defaultRawZ3LogFile)),
     noshort = true,
     hidden = false
@@ -224,21 +338,21 @@ class Config(args: Seq[String]) extends SilFrontendConfig(args, "Silicon") {
 
   var inputFile: Option[Path] = None
 
-  private lazy val defaultZ3LogFile = Paths.get(tempDirectory(), defaultRawZ3LogFile)
-
-  def z3LogFile: Path = rawZ3LogFile() match {
+  def z3LogFile(suffix: String = ""): Path = rawZ3LogFile() match {
     case UserValue(logfile) =>
       logfile.toLowerCase match {
         case "$infile" =>
-          inputFile.map(f =>
-            common.io.makeFilenameUnique(f.toFile, Some(new File(tempDirectory())), Some("smt2")).toPath
-          ).getOrElse(defaultZ3LogFile)
+          sys.error("Implementation missing")
+//          /* TODO: Reconsider: include suffix; prover started before infile is known */
+//          inputFile.map(f =>
+//            common.io.makeFilenameUnique(f.toFile, Some(new File(tempDirectory())), Some(z3LogFileExtension)).toPath
+//          ).getOrElse(defaultZ3LogFile)
         case _ =>
-          Paths.get(logfile)
+          Paths.get(s"$logfile-$suffix.$z3LogFileExtension")
       }
 
     case DefaultValue(logfile) =>
-      defaultZ3LogFile
+      Paths.get(tempDirectory(), s"$defaultRawZ3LogFile-$suffix.$z3LogFileExtension")
   }
 
   val z3Args = opt[String]("z3Args",
@@ -266,7 +380,7 @@ class Config(args: Seq[String]) extends SilFrontendConfig(args, "Silicon") {
             })
         .orElse{
             val z3TimeoutArg = """-t:(\d+)""".r
-            z3Args.get.flatMap(args => z3TimeoutArg findFirstMatchIn args map(_.group(1).toInt))}
+            z3Args.toOption.flatMap(args => z3TimeoutArg findFirstMatchIn args map(_.group(1).toInt))}
         .getOrElse(0)
 
   val maxHeuristicsDepth = opt[Int]("maxHeuristicsDepth",
@@ -306,21 +420,60 @@ class Config(args: Seq[String]) extends SilFrontendConfig(args, "Silicon") {
     descr = "Disable caching of value maps (context: iterated separating conjunctions).",
     default = Some(false),
     noshort = true,
-    hidden = false //Silicon.hideInternalOptions
+    hidden = Silicon.hideInternalOptions
   )
 
   val disableISCTriggers = opt[Boolean]("disableISCTriggers",
-    descr = "Don't pick triggers for quantifiers, let the SMT solver do it (context: iterated separating conjunctions).",
+    descr = (  "Don't pick triggers for quantifiers, let the SMT solver do it "
+             + "(context: iterated separating conjunctions)."),
     default = Some(false),
     noshort = true,
-    hidden = false //Silicon.hideInternalOptions
+    hidden = Silicon.hideInternalOptions
   )
 
   val disableChunkOrderHeuristics = opt[Boolean]("disableChunkOrderHeuristics",
-    descr = "Disable heuristic ordering of quantified chunks (context: iterated separating conjunctions).",
+    descr = (  "Disable heuristic ordering of quantified chunks "
+             + "(context: iterated separating conjunctions)."),
     default = Some(false),
     noshort = true,
-    hidden = false //Silicon.hideInternalOptions
+    hidden = Silicon.hideInternalOptions
+  )
+
+  val enablePredicateTriggersOnInhale = opt[Boolean]("enablePredicateTriggersOnInhale",
+    descr = (  "Emit predicate-based function trigger on each inhale of a "
+             + "predicate instance (context: heap-dependent functions)."),
+    default = Some(false),
+    noshort = true,
+    hidden = Silicon.hideInternalOptions
+  )
+
+  val enableMoreCompleteExhale = opt[Boolean]("enableMoreCompleteExhale",
+    descr = "Enable a more complete exhale version.",
+    default = Some(false),
+    noshort = true,
+    hidden = Silicon.hideInternalOptions
+  )
+
+  val numberOfParallelVerifiers = opt[Int]("numberOfParallelVerifiers",
+    descr = (  "Number of verifiers run in parallel. This number plus one is the number of provers "
+             + s"run in parallel (default: ${Runtime.getRuntime.availableProcessors()}"),
+    default = Some(Runtime.getRuntime.availableProcessors()),
+    noshort = true,
+    hidden = false
+  )
+
+  val printTranslatedProgram = opt[Boolean]("printTranslatedProgram",
+    descr ="Print the final program that is going to be verified.",
+    default = Some(false),
+    noshort = true,
+    hidden = false
+  )
+
+  val disableCatchingExceptions = opt[Boolean]("disableCatchingExceptions",
+    descr =s"Don't catch exceptions (can be useful for debugging problems with ${Silicon.name})",
+    default = Some(false),
+    noshort = true,
+    hidden = false
   )
 
   /* Option validation */
@@ -329,6 +482,21 @@ class Config(args: Seq[String]) extends SilFrontendConfig(args, "Silicon") {
     case Some(n) if n < 0 => Left(s"Timeout must be non-negative, but $n was provided")
     case _ => Right(Unit)
   }
+
+  validateOpt(ideModeAdvanced, numberOfParallelVerifiers) {
+    case (Some(false), _) =>
+      Right(Unit)
+    case (Some(true), Some(n)) =>
+      if (n == 1)
+        Right(Unit)
+      else
+        Left(  s"Option ${ideModeAdvanced.name} requires setting "
+             + s"${numberOfParallelVerifiers.name} to 1")
+    case other =>
+      sys.error(s"Unexpected combination: $other")
+  }
+
+  verify()
 }
 
 object Config {
@@ -355,4 +523,6 @@ object Config {
     case object PushPop extends AssertionMode
     case object SoftConstraints extends AssertionMode
   }
+
+  case class Z3StateSaturationTimeout(timeout: Int, comment: String)
 }

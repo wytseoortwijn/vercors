@@ -708,6 +708,9 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
   public ASTNode neq(ASTNode e1,ASTNode e2){
   	return create.expression(StandardOperator.NEQ,e1,e2);
   }
+  public ASTNode eq(ASTNode e1,ASTNode e2){
+    return create.expression(StandardOperator.EQ,e1,e2);
+  }
   public ASTNode star(ASTNode e1,ASTNode e2){
   	return create.expression(StandardOperator.Star,e1,e2);
   }

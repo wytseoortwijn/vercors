@@ -38,10 +38,10 @@ object Nodes {
       case m: Member =>
         m match {
           case Field(name, typ) => Nil
-          case Function(name, formalArgs, typ, pres, posts, body) =>
-            formalArgs ++ pres ++ posts ++ body
-          case Method(name, formalArgs, formalReturns, pres, posts, locals, body) =>
-            formalArgs ++ formalReturns ++ pres ++ posts ++ locals ++ Seq(body)
+          case Function(name, formalArgs, typ, pres, posts, decs, body) =>
+            formalArgs ++ pres ++ posts ++ decs ++ body
+          case Method(name, formalArgs, formalReturns, pres, posts, body) =>
+            formalArgs ++ formalReturns ++ pres ++ posts ++ body.toSeq
           case Predicate(name, formalArg, body) => formalArg ++ body.toSeq
           case Domain(name, functions, axioms, typVars) =>
             functions ++ axioms ++ typVars
@@ -58,21 +58,24 @@ object Nodes {
           case FieldAssign(lhs, rhs) => Seq(lhs, rhs)
           case Fold(e) => Seq(e)
           case Unfold(e) => Seq(e)
-          case Package(e) => Seq(e)
+          case Package(e, proofScript) => Seq(e, proofScript)
           case Apply(e) => Seq(e)
           case Inhale(e) => Seq(e)
           case Exhale(e) => Seq(e)
           case Assert(e) => Seq(e)
           case MethodCall(mname, args, targets) => args ++ targets
-          case Seqn(ss) => ss
-          case While(cond, invs, locals, body) => Seq(cond) ++ invs ++ locals ++ Seq(body)
+          case Seqn(ss, scopedDecls) => ss ++ scopedDecls.collect {case l: LocalVarDecl => l} //skip labels because they are already part of ss
+          case While(cond, invs, body) => Seq(cond) ++ invs ++ Seq(body)
           case If(cond, thn, els) => Seq(cond, thn, els)
           case Label(name, invs) => invs
           case Goto(target) => Nil
           case Fresh(vars) => vars
           case Constraining(vars, body) => vars ++ Seq(body)
+          case LocalVarDeclStmt(decl) => Seq(decl)
         }
       case vd: LocalVarDecl => Nil
+      case dc: DecTuple => dc.e
+      case ds: DecStar => Nil
       case e: Exp =>
         // Note: If you have to update this pattern match to make it exhaustive, it
         // might also be necessary to update the PrettyPrinter.toParenDoc method.
@@ -81,11 +84,9 @@ object Nodes {
           case _: AbstractLocalVar => Nil
           case FieldAccess(rcv, field) => Seq(rcv)
           case PredicateAccess(params, _) => params
+          case PredicateAccessPredicate(pred_acc, perm) => Seq(pred_acc, perm)
           case Unfolding(acc, body) => Seq(acc, body)
-          case UnfoldingGhostOp(acc, body) => Seq(acc, body)
-          case FoldingGhostOp(acc, body) => Seq(acc, body)
-          case ApplyingGhostOp(wand, in) => Seq(wand, in)
-          case PackagingGhostOp(wand, in) => Seq(wand, in)
+          case Applying(wand, body) => Seq(wand, body)
           case Old(exp) => Seq(exp)
           case CondExp(cond, thn, els) => Seq(cond, thn, els)
           case Let(v, exp, body) => Seq(v, exp, body)

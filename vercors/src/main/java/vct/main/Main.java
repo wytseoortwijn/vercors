@@ -412,7 +412,7 @@ public class Main
             passes.add("standardize");
             passes.add("check");        
           }
-          passes.add("recognize_multidim"); // translate matrices as a flat array (like c does in memory)
+          // passes.add("recognize_multidim"); // translate matrices as a flat array (like c does in memory)
           passes.add("simplify_quant"); // reduce nesting of quantifiers
           if (features.usesSummation()||features.usesIterationContracts()) passes.add("simplify_sums"); // set of rewrite rules for removing summations
           passes.add("standardize");
@@ -489,6 +489,7 @@ public class Main
         passes.add("check");
         
         passes.add("rewrite_arrays"); // col has a 'cell' that can be set and get and has an object data-type. Arrays become sequences of cells. Chalice & Silicon have 'sequence'.
+        passes.add("simplify_quant");
         passes.add("standardize");
         passes.add("check");
           
@@ -531,7 +532,7 @@ public class Main
         passes.add("flatten_before_after"); // method calls can have 'before/after' blocks of ghost-code attached. Put it around all method calls.
         if (silver.used()) {
           passes.add("silver-reorder"); // no declarations in branches (only in loops)
-          passes.add("silver-identity"); // identity functions are used to not optimize expressions. Add it to silver.
+          // passes.add("silver-identity"); // identity functions are used to not optimize expressions. Add it to silver.
         }
         passes.add("standardize");
         passes.add("check");

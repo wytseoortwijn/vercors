@@ -7,10 +7,10 @@
 package viper.silicon.interfaces
 
 import viper.silver.ast
-import viper.silicon.interfaces.state.Heap
-import viper.silicon.state.DefaultContext
+import viper.silicon.state.State
+import viper.silver.components.StatefulComponent
 
-trait VerificationUnit[H <: Heap[H], U <: ast.Node] extends PreambleEmitter {
+trait VerificationUnit[U <: ast.Node] extends StatefulComponent {
   def units: Seq[U]
-  def verify(unit: U, c: DefaultContext[H]): Seq[VerificationResult]
+  def verify(s: State, unit: U): Seq[VerificationResult]
 }

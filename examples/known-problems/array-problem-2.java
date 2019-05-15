@@ -3,13 +3,7 @@
 //:: cases ArrayProblem2Full
 //:: suite problem-fail
 //:: tools silicon
-//:: verdict Pass
-
-//:: cases ArrayProblem2Good
-//:: suite problem-pass
-//:: tools silicon
-//:: verdict Pass
-//:: options --skip test1
+//:: verdict Fail test1 test2
 
 class C {
 

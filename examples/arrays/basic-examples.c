@@ -11,8 +11,10 @@
 */
 
 /*@
-  invariant matrix != NULL && M>0 && N > 0 ;
+  invariant matrix != NULL && M > 0 && N > 0;
+	invariant \length(matrix) == M * N;
   context  (\forall* int i1 ; 0 <= i1 && i1 < M ;
+             matrix[i1] != NULL ** 
              (\forall* int j1 ; 0 <= j1 && j1 < N ;
                Perm(matrix[i1][j1],write)));
   ensures  (\forall int i3 ; 0 <= i3 && i3 < M ;
@@ -23,6 +25,7 @@ void zero_matrix(int M,int N,int matrix[M][N]){
   for(int i=0;i<M;i++){
     for(int j=0;j<N;j++)
       /*@
+        context matrix[i] != NULL;
         context Perm(matrix[i][j],write);
         ensures matrix[i][j]==0;
       @*/
@@ -123,11 +126,11 @@ void forward_drf(int a[],int b[],int c[],int N){
     a[i]=b[i]+1;
     /*@
       S1:if (i< N-1) {
-        send Perm(a[i],1/2) to S2,1;
+        send 0 <= i ** i < N - 1 ** Perm(a[i],1/2) to S2,1;
       }
     @*/
     S2:if (i>0) {
-      //@ recv Perm(a[i-1],1/2) from S1,1;
+      //@ recv 0 < i ** i < N ** Perm(a[i-1],1/2) from S1,1;
       c[i]=a[i-1]+2;
     }
   }
@@ -158,11 +161,11 @@ void forward_full(int a[],int b[],int c[],int len){
     a[i]=b[i]+1;
     /*@
       FS1:if (i< len-1) {
-        send Perm(a[i],1/2) ** a[i]==i+1 to FS2,1;
+        send 0 <= i ** i < len - 1 ** Perm(a[i],1/2) ** a[i]==i+1 to FS2,1;
       }
     @*/
     FS2:if (i>0) {
-      //@ recv Perm(a[i-1],1/2) ** a[i-1]==i from FS1,1;
+      //@ recv 0 < i ** i < len ** Perm(a[i-1],1/2) ** a[i-1]==i from FS1,1;
       c[i]=a[i-1]+2;
     }
   }
@@ -187,13 +190,13 @@ void backward_drf(int a[],int b[],int c[],int N){
     {
     /*@
       T1:if (i>0) {
-        recv Perm(a[i],1/2) from T2,1;
+        recv 0 < i ** i < N ** Perm(a[i],1/2) from T2,1;
       }
     @*/
     a[i]=b[i]+1;
     T2:if (i < N-1) {
       c[i]=a[i+1]+2;
-      //@ send Perm(a[i+1],1/2) to T1,1;
+      //@ send 0 <= i ** i < N - 1 ** Perm(a[i+1],1/2) to T1,1;
     }
   }
 }
@@ -231,13 +234,13 @@ void backward_full(int a[],int b[],int c[],int len){
     {
     /*@
       FT1:if (i>0) {
-        recv i == (i-1)+1 ** \length(a)==len ** Perm(a[i],1/2) from FT2,1;
+        recv 0 < i ** i < len ** i == (i-1)+1 ** \length(a)==len ** Perm(a[i],1/2) from FT2,1;
       }
     @*/
     a[i]=b[i]+1;
     FT2:if (i < len-1) {
       c[i]=a[i+1]+2;
-      //@ send \length(a)==len ** Perm(a[i+1],1/2) to FT1,1;
+      //@ send 0 <= i ** i < len - 1 ** \length(a)==len ** Perm(a[i+1],1/2) to FT1,1;
     }
   }
 }

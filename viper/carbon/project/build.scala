@@ -1,21 +1,21 @@
 import sbt._
 import Keys._
-import sbtassembly.Plugin._
-import AssemblyKeys._
+import sbtassembly.AssemblyPlugin.autoImport._
+import com.typesafe.sbt.packager.archetypes.JavaAppPackaging
 
 object CarbonBuild extends Build {
-  lazy val baseSettings = (
-       Defaults.defaultSettings
-    ++ Seq(
-          organization := "viper",
-          version := "1.0-SNAPSHOT",
-          scalaVersion := "2.11.7",
-          scalacOptions in Compile ++= Seq("-deprecation", "-unchecked", "-feature"),
-          dependencyClasspath in Compile += new File("../viper-api/bin"), /* add VerCors/Viper interface */
-          libraryDependencies += "org.rogach" %% "scallop" % "0.9.5",
-          libraryDependencies += "org.jgrapht" % "jgrapht-core" % "0.9.0"
-       )
-  )
+  lazy val baseSettings = Seq(
+      organization := "viper",
+      version := "1.0-SNAPSHOT",
+      scalaVersion := "2.11.8",
+      scalacOptions in Compile ++= Seq("-deprecation", "-unchecked", "-feature"),
+			dependencyClasspath in Compile += new File("../viper-api/bin"), /* add VerCors/Viper interface */
+      excludeFilter in unmanagedResources := {
+        new SimpleFileFilter(_.getCanonicalPath endsWith "logback.xml")
+      },
+      libraryDependencies += "org.rogach" %% "scallop" % "2.0.7",
+      libraryDependencies += "org.jgrapht" % "jgrapht-core" % "0.9.1"
+   )
 
   lazy val carbon = {
     var p = Project(
@@ -23,24 +23,22 @@ object CarbonBuild extends Build {
       base = file("."),
       settings = (
            baseSettings
-        ++ assemblySettings
         ++ Seq(
               name := "Carbon",
               jarName in assembly := "carbon.jar",
               test in assembly := {},
-              //javaOptions in Test += "-Xss128m",
               testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-oD"),
               traceLevel := 20,
               maxErrors := 6,
               classDirectory in Test <<= classDirectory in Compile,
-              libraryDependencies ++= externalDep
+              libraryDependencies ++= externalDep//,
               //fork in Test := true
            ))
     )
     for (dep <- internalDep) {
       p = p.dependsOn(dep)
     }
-    p
+    p.enablePlugins(JavaAppPackaging)
   }
 
   // On the build-server, we cannot have all project in the same directory, and thus we use the publish-local mechanism for dependencies.

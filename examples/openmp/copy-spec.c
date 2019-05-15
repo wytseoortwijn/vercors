@@ -10,7 +10,7 @@
 #include <omp.h>
 
 /*@
-  invariant a != NULL && b != NULL && len>0 && \length(a)==len;
+  invariant a != NULL && b != NULL && len>0 && \length(a)==len && \length(b) == len;
   context   (\forall* int k;0 <= k && k < len ; Perm(a[k],1));
   context   (\forall* int k;0 <= k && k < len ; Perm(b[k],1/2));
   ensures   (\forall  int k;0 <= k && k < len ; a[k]==b[k]);

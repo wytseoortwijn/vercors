@@ -7,7 +7,7 @@
 package viper.silicon.interfaces.decider
 
 import viper.silver.components.StatefulComponent
-import viper.silicon.Map
+import viper.silicon.{Config, Map}
 import viper.silicon.state.terms._
 
 sealed abstract class Result
@@ -15,15 +15,20 @@ object Sat extends Result
 object Unsat extends Result
 object Unknown extends Result
 
-trait Prover extends StatefulComponent {
-  def termConverter: TermConverter[String, String, String] /* TODO: Should be type-parametric */
-  def emit(content: String) /* TODO: Should be type-parametric */
+/* TODO: Should be generic, not hardcoded to Strings */
+trait ProverLike {
+  def emit(content: String): Unit
+  def emit(contents: Iterable[String]): Unit = { contents foreach emit }
   def assume(term: Term)
+  def declare(decl: Decl): Unit
+  def comment(content: String): Unit
+  def saturate(timeout: Int, comment: String): Unit
+  def saturate(data: Option[Config.Z3StateSaturationTimeout]): Unit
+}
+
+trait Prover extends ProverLike with StatefulComponent {
   def assert(goal: Term, timeout: Option[Int] = None): Boolean
   def check(timeout: Option[Int] = None): Result
-  def logComment(str: String)
   def fresh(id: String, argSorts: Seq[Sort], resultSort: Sort): Function
-  def declare(decl: Decl)
   def statistics(): Map[String, String]
-  def proverRunStarts()
 }
