@@ -1493,7 +1493,9 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
   public void visit(Dereference e){
     super.visit(e);
 
-    if(e.obj().isa(StandardOperator.Subscript)) {
+    if(e.obj().isa(StandardOperator.Subscript) && e.field().equals("item")) {
+      // In the case that the underlying object is a subscript of a sequence, we need to restore the original cell type
+      // when the dereference is to the item of the cell.
       ASTNode sequenceLike = ((OperatorExpression) e.obj()).first();
       SequenceUtils.SequenceInfo sequenceInfo = SequenceUtils.getInfoOrFail(sequenceLike, "Expected a sequence type at %s, but got %s");
       e.obj().setType(sequenceInfo.getSequenceTypeArgument());
