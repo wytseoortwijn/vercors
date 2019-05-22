@@ -1,6 +1,8 @@
-/* * Sequential Nested DFS */
-
-// run with `./unix/bin/vct --silicon VT2.pvl`
+// -*- tab-width:2 ; indent-tabs-mode:nil -*-
+//:: cases VerifyThis19TwoB
+//:: tools silicon
+//:: suite medium
+//:: verdict Pass
 
 class CartTree {
   
