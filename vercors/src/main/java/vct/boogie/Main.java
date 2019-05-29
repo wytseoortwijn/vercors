@@ -10,7 +10,7 @@ import hre.io.SplittingOutputStream;
 
 import java.io.*;
 
-import vct.col.ast.*;
+import vct.col.ast.stmt.decl.ProgramUnit;
 import vct.util.*;
 import static hre.lang.System.*;
 

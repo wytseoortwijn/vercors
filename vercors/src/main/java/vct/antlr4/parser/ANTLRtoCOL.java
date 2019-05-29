@@ -20,27 +20,26 @@ import org.antlr.v4.runtime.tree.ParseTreeVisitor;
 import org.antlr.v4.runtime.tree.RuleNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
-import vct.col.ast.ASTNode;
-import vct.col.ast.ASTReserved;
-import vct.col.ast.ASTSequence;
-import vct.col.ast.ASTSpecial.Kind;
-import vct.col.ast.ASTSpecial;
-import vct.col.ast.BlockStatement;
-import vct.col.ast.ClassType;
-import vct.col.ast.Contract;
-import vct.col.ast.ContractBuilder;
-import vct.col.ast.DeclarationStatement;
-import vct.col.ast.NameExpression;
-import vct.col.ast.PrimitiveType;
-import vct.col.ast.PrimitiveSort;
-import vct.col.ast.StandardOperator;
-import vct.col.ast.Type;
-import vct.col.ast.VariableDeclaration;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.type.ASTReserved;
+import vct.col.ast.generic.ASTSequence;
+import vct.col.ast.stmt.decl.ASTSpecial.Kind;
+import vct.col.ast.stmt.decl.ASTSpecial;
+import vct.col.ast.stmt.composite.BlockStatement;
+import vct.col.ast.type.ClassType;
+import vct.col.ast.stmt.decl.Contract;
+import vct.col.ast.util.ContractBuilder;
+import vct.col.ast.stmt.decl.DeclarationStatement;
+import vct.col.ast.expr.NameExpression;
+import vct.col.ast.type.PrimitiveSort;
+import vct.col.ast.expr.StandardOperator;
+import vct.col.ast.type.Type;
+import vct.col.ast.stmt.decl.VariableDeclaration;
 import vct.col.syntax.Syntax;
 import vct.col.util.ASTFactory;
 import static hre.lang.System.*;
-import static vct.col.ast.ASTSpecial.Kind.*;
-import static vct.col.ast.StandardOperator.*;
+import static vct.col.ast.stmt.decl.ASTSpecial.Kind.*;
+import static vct.col.ast.expr.StandardOperator.*;
 
 /**
  * Convert common parts of all ANTLR parse trees to COL.
@@ -228,8 +227,8 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
   public void leave(ParseTree node, ASTNode res) {
     /* no longer needed because specifications are gathered in
      * a follow up pass.
-    if (//res instanceof vct.col.ast.MethodInvokation ||
-        res instanceof vct.col.ast.LoopStatement){
+    if (//res instanceof vct.col.ast.expr.MethodInvokation ||
+        res instanceof vct.col.ast.stmt.composite.LoopStatement){
       BeforeAfterAnnotations loc=(BeforeAfterAnnotations)res;
       BlockStatement block;
       block=loc.get_before();

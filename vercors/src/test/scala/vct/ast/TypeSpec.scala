@@ -2,6 +2,8 @@ package vct.ast
 
 import org.scalatest._
 import vct.col.ast._
+import vct.col.ast.`type`.{PrimitiveSort, PrimitiveType}
+import vct.col.ast.generic.ASTNode
 import vct.mock.TypeMock
 
 class TypeSpec extends FlatSpec with Matchers {

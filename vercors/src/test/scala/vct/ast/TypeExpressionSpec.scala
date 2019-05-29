@@ -2,6 +2,7 @@ package vct.ast
 
 import org.scalatest._
 import vct.col.ast._
+import vct.col.ast.`type`.{ClassType, Type, TypeExpression, TypeOperator}
 
 class TypeExpressionSpec extends FlatSpec with Matchers {
   

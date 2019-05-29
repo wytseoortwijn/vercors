@@ -6,11 +6,24 @@ import java.util.List;
 
 import hre.ast.Origin;
 import hre.lang.HREError;
-import vct.col.ast.*;
+
 import static hre.lang.System.Abort;
+
+import vct.col.ast.expr.*;
+import vct.col.ast.expr.constant.BooleanValue;
+import vct.col.ast.expr.constant.ConstantExpression;
+import vct.col.ast.expr.constant.IntegerValue;
+import vct.col.ast.expr.constant.StructValue;
+import vct.col.util.ASTMapping;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.stmt.composite.*;
+import vct.col.ast.stmt.decl.*;
+import vct.col.ast.stmt.terminal.AssignmentStatement;
+import vct.col.ast.stmt.terminal.ReturnStatement;
+import vct.col.ast.type.*;
 import viper.api.*;
 
-public class SilverExpressionMap<T,E> implements ASTMapping<E>{
+public class SilverExpressionMap<T,E> implements ASTMapping<E> {
 
   public boolean failure=false;
   
@@ -453,7 +466,7 @@ public class SilverExpressionMap<T,E> implements ASTMapping<E>{
   }
 
   @Override
-  public E map(FieldAccess a) { 
+  public E map(FieldAccess a) {
     return null;
   }
 

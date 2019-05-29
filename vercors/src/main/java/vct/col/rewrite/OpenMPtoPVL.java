@@ -12,8 +12,16 @@ import vct.antlr4.parser.OMPParser;
 import vct.antlr4.parser.OMPoption;
 import vct.antlr4.parser.OMPpragma;
 
-import vct.col.ast.*;
-import vct.col.ast.ASTSpecial.Kind;
+import vct.col.ast.expr.OperatorExpression;
+import vct.col.ast.expr.StandardOperator;
+import vct.col.ast.stmt.composite.BlockStatement;
+import vct.col.ast.stmt.composite.LoopStatement;
+import vct.col.ast.stmt.composite.ParallelBlock;
+import vct.col.ast.stmt.decl.*;
+import vct.col.ast.stmt.decl.ASTSpecial.Kind;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.type.PrimitiveSort;
+import vct.col.ast.util.ContractBuilder;
 import vct.col.util.ASTUtils;
 import vct.col.util.FeatureScanner;
 

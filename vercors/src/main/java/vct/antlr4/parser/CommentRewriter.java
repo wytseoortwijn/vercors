@@ -7,11 +7,16 @@ import java.io.InputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
 
-import vct.col.ast.*;
-import vct.col.ast.ASTSpecial.Kind;
+import vct.col.ast.expr.constant.ConstantExpression;
+import vct.col.ast.stmt.composite.BlockStatement;
+import vct.col.ast.stmt.composite.LoopStatement;
+import vct.col.ast.stmt.decl.*;
+import vct.col.ast.stmt.decl.ASTSpecial.Kind;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.util.ContractBuilder;
 import vct.col.rewrite.AbstractRewriter;
 import static hre.lang.System.*;
-import static vct.col.ast.ASTSpecial.Kind.Comment;
+import static vct.col.ast.stmt.decl.ASTSpecial.Kind.Comment;
 
 /**
  * Rewrite an AST with specifications in the form of comments
@@ -169,8 +174,8 @@ public class CommentRewriter extends AbstractRewriter {
     filter(s,new_before,new_after,new_after,old_after);
   }
   
-  private void filter(LoopStatement s,BlockStatement new_before, BlockStatement new_after,
-      BlockStatement new_current, BlockStatement old_current)
+  private void filter(LoopStatement s, BlockStatement new_before, BlockStatement new_after,
+                      BlockStatement new_current, BlockStatement old_current)
   {
     for(ASTNode n:old_current){
       n.clearParent();

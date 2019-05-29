@@ -14,8 +14,21 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 import org.antlr.v4.runtime.Parser;
 import org.apache.commons.lang3.StringEscapeUtils;
 
-import vct.col.ast.*;
-import vct.col.ast.ASTSpecial.Kind;
+import vct.col.ast.expr.Dereference;
+import vct.col.ast.expr.MethodInvokation;
+import vct.col.ast.expr.NameExpression;
+import vct.col.ast.expr.StandardOperator;
+import vct.col.ast.stmt.composite.BlockStatement;
+import vct.col.ast.stmt.composite.LoopStatement;
+import vct.col.ast.stmt.composite.TryCatchBlock;
+import vct.col.ast.stmt.decl.*;
+import vct.col.ast.stmt.decl.ASTSpecial.Kind;
+import vct.col.ast.generic.ASTList;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.generic.ASTSequence;
+import vct.col.ast.stmt.terminal.ReturnStatement;
+import vct.col.ast.type.*;
+import vct.col.ast.util.ContractBuilder;
 import vct.col.syntax.JavaDialect;
 import vct.col.syntax.JavaSyntax;
 import vct.col.syntax.Syntax;
@@ -32,7 +45,7 @@ import static hre.lang.System.*;
 */
 public class Java8JMLtoCol extends ANTLRtoCOL implements Java8JMLVisitor<ASTNode> {
 
-  private static <E extends ASTSequence<?>> E convert(E unit,ParseTree tree, String file_name,BufferedTokenStream tokens,Parser parser){
+  private static <E extends ASTSequence<?>> E convert(E unit, ParseTree tree, String file_name, BufferedTokenStream tokens, Parser parser){
     ANTLRtoCOL visitor=new Java8JMLtoCol(unit,JavaSyntax.getJava(JavaDialect.JavaVerCors),file_name,tokens,parser);
     visitor.scan_to(unit,tree);
     return unit;
@@ -547,7 +560,7 @@ public class Java8JMLtoCol extends ANTLRtoCOL implements Java8JMLVisitor<ASTNode
       return res;
     }
     if (match(ctx,"Expression",";")){
-      return create.special(ASTSpecial.Kind.Expression,convert(ctx,0)); 
+      return create.special(ASTSpecial.Kind.Expression,convert(ctx,0));
     }
     if (match(ctx,"StatementExpression",";")){
       return create.special(ASTSpecial.Kind.Expression,convert((ParserRuleContext)ctx.getChild(0),0)); 

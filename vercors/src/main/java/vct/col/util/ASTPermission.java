@@ -3,7 +3,7 @@ package vct.col.util;
 import java.util.HashSet;
 import java.util.Set;
 
-import vct.col.ast.ASTNode;
+import vct.col.ast.generic.ASTNode;
 
 /**
  * This class manages a set of valid ASTNode classes.

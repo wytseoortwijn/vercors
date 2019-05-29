@@ -1,8 +1,10 @@
 package vct.ast
 
 import org.scalatest._
+
 import scala.collection.JavaConverters._
 import vct.col.ast._
+import vct.col.ast.`type`.{PrimitiveSort, PrimitiveType, RecordType, RecordTypeEntry}
 
 class RecordTypeSpec extends FlatSpec with Matchers {
   

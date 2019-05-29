@@ -1,16 +1,16 @@
 package vct.col.rewrite;
 
 import hre.ast.MessageOrigin;
-import vct.col.ast.ASTClass;
-import vct.col.ast.ASTClass.ClassKind;
-import vct.col.ast.AxiomaticDataType;
-import vct.col.ast.ClassType;
-import vct.col.ast.DeclarationStatement;
-import vct.col.ast.Dereference;
-import vct.col.ast.Method;
-import vct.col.ast.MethodInvokation;
-import vct.col.ast.ProgramUnit;
-import vct.col.ast.StructValue;
+import vct.col.ast.stmt.decl.ASTClass;
+import vct.col.ast.stmt.decl.ASTClass.ClassKind;
+import vct.col.ast.stmt.decl.AxiomaticDataType;
+import vct.col.ast.type.ClassType;
+import vct.col.ast.stmt.decl.DeclarationStatement;
+import vct.col.ast.expr.Dereference;
+import vct.col.ast.stmt.decl.Method;
+import vct.col.ast.expr.MethodInvokation;
+import vct.col.ast.stmt.decl.ProgramUnit;
+import vct.col.ast.expr.constant.StructValue;
 import vct.util.ClassName;
 
 /**

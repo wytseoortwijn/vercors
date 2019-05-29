@@ -6,10 +6,10 @@ import hre.lang.HREError;
 
 import java.io.File;
 
-import vct.col.ast.ASTClass;
-import vct.col.ast.ASTNode;
-import vct.col.ast.DeclarationStatement;
-import vct.col.ast.ProgramUnit;
+import vct.col.ast.stmt.decl.ASTClass;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.stmt.decl.DeclarationStatement;
+import vct.col.ast.stmt.decl.ProgramUnit;
 import vct.error.VerificationError;
 import viper.api.ViperAPI;
 

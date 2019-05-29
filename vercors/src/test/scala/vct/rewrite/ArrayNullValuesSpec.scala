@@ -1,6 +1,10 @@
 package vct.rewrite
 
 import vct.col.ast._
+import vct.col.ast.`type`.{ASTReserved, PrimitiveSort}
+import vct.col.ast.expr.StandardOperator
+import vct.col.ast.generic.ASTNode
+import vct.col.ast.stmt.decl.ProgramUnit
 import vct.col.rewrite.ArrayNullValues
 import vct.col.util.AbstractTypeCheck
 

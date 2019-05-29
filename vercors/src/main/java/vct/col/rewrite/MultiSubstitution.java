@@ -1,8 +1,8 @@
 package vct.col.rewrite;
 
-import vct.col.ast.ClassType;
-import vct.col.ast.ProgramUnit;
-import vct.col.ast.Type;
+import vct.col.ast.type.ClassType;
+import vct.col.ast.stmt.decl.ProgramUnit;
+import vct.col.ast.type.Type;
 
 import java.util.Map;
 

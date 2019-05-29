@@ -5,9 +5,17 @@ import java.util.HashMap;
 import java.util.Map;
 
 import scala.collection.JavaConverters;
-import vct.col.ast.*;
-import vct.col.ast.NameExpression.Kind;
-import vct.col.rewrite.ArrayNullValues;
+import vct.col.ast.expr.NameExpression.Kind;
+import vct.col.ast.expr.*;
+import vct.col.ast.expr.constant.ConstantExpression;
+import vct.col.ast.expr.constant.StructValue;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.stmt.composite.*;
+import vct.col.ast.stmt.decl.*;
+import vct.col.ast.stmt.terminal.AssignmentStatement;
+import vct.col.ast.stmt.terminal.ReturnStatement;
+import vct.col.ast.type.*;
+import vct.col.ast.util.RecursiveVisitor;
 import vct.col.rewrite.MultiSubstitution;
 import vct.col.rewrite.TypeVarSubstitution;
 import vct.silver.SilverTypeMap;
@@ -447,6 +455,15 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
       return;
     }
     s.location().accept(this);
+
+    if(s.location().isa(StandardOperator.Subscript)) {
+      // Need to check that the sequence is assignable
+      OperatorExpression location = (OperatorExpression) s.location();
+      SequenceUtils.SequenceInfo seqInfo = SequenceUtils.getTypeInfo(location.first().getType());
+      if(!seqInfo.isAssignable()) {
+        Fail("Elements of %s, which is of type %s, are immutable.", location.first(), location.first().getType());
+      }
+    }
     check_loc_val(s.location().getType(),s.expression());
   }
 
@@ -464,6 +481,7 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
     String name=m.getName();
     ASTNode body=m.getBody();
     Contract contract=m.getContract();
+
     if (contract!=null){
       if (m.kind==Method.Kind.Predicate){
         ASTNode tt=new ConstantExpression(true);
@@ -1476,8 +1494,12 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
   public void visit(Dereference e){
     super.visit(e);
 
-    if(e.obj().isa(StandardOperator.Subscript)) {
-      e.obj().setType(new PrimitiveType(PrimitiveSort.Cell, e.obj().getType()));
+    if(e.obj().isa(StandardOperator.Subscript) && e.field().equals("item")) {
+      // In the case that the underlying object is a subscript of a sequence, we need to restore the original cell type
+      // when the dereference is to the item of the cell.
+      ASTNode sequenceLike = ((OperatorExpression) e.obj()).first();
+      SequenceUtils.SequenceInfo sequenceInfo = SequenceUtils.getInfoOrFail(sequenceLike, "Expected a sequence type at %s, but got %s");
+      e.obj().setType(sequenceInfo.getSequenceTypeArgument());
     }
 
     Type object_type=e.obj().getType();

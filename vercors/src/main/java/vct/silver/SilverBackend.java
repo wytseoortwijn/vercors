@@ -1,5 +1,6 @@
 package vct.silver;
 
+import vct.col.ast.stmt.decl.ProgramUnit;
 import viper.api.*;
 
 import java.io.File;
@@ -14,13 +15,10 @@ import hre.ast.Origin;
 import hre.config.IntegerSetting;
 import hre.config.StringSetting;
 import hre.io.Container;
-import hre.io.DirContainer;
 import hre.io.JarContainer;
-import hre.io.UnionContainer;
 import hre.lang.HREError;
 import hre.lang.HREException;
 import hre.util.ContainerClassLoader;
-import vct.col.ast.*;
 import vct.error.VerificationError;
 import vct.logging.MessageFactory;
 import vct.logging.PassAddVisitor;

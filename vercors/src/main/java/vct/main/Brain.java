@@ -2,8 +2,8 @@ package vct.main;
 
 import java.util.*;
 
-import vct.col.ast.ASTClass;
-import vct.col.ast.ASTNode;
+import vct.col.ast.stmt.decl.ASTClass;
+import vct.col.ast.generic.ASTNode;
 
 @SuppressWarnings("all")
 public class Brain {

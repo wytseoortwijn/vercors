@@ -5,7 +5,14 @@ import java.util.HashSet;
 import java.util.Set;
 
 import hre.ast.MessageOrigin;
-import vct.col.ast.*;
+import vct.col.ast.expr.OperatorExpression;
+import vct.col.ast.expr.StandardOperator;
+import vct.col.ast.stmt.composite.BlockStatement;
+import vct.col.ast.stmt.decl.*;
+import vct.col.ast.type.ASTReserved;
+import vct.col.ast.type.ClassType;
+import vct.col.ast.type.PrimitiveSort;
+import vct.col.ast.util.ContractBuilder;
 
 public class AddTypeADT extends AbstractRewriter {
 

@@ -14,7 +14,7 @@ import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.tree.ParseTree;
 
 import vct.antlr4.generated.*;
-import vct.col.ast.ProgramUnit;
+import vct.col.ast.stmt.decl.ProgramUnit;
 import vct.col.rewrite.AnnotationInterpreter;
 import vct.col.rewrite.FilterSpecIgnore;
 import vct.col.rewrite.FlattenVariableDeclarations;

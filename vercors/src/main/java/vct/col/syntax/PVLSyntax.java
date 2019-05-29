@@ -1,15 +1,15 @@
 package vct.col.syntax;
 
 
-import vct.col.syntax.Syntax;
-import vct.col.ast.ASTReserved;
-import vct.col.ast.PrimitiveSort;
-import static vct.col.ast.StandardOperator.*;
-import static vct.col.ast.ASTReserved.FullPerm;
-import static vct.col.ast.ASTReserved.NoPerm;
-import static vct.col.ast.ASTReserved.ReadPerm;
-import static vct.col.ast.ASTReserved.EmptyProcess;
-import static vct.col.ast.ASTReserved.CurrentThread;
+import vct.col.ast.type.ASTReserved;
+import vct.col.ast.type.PrimitiveSort;
+
+import static vct.col.ast.expr.StandardOperator.*;
+import static vct.col.ast.type.ASTReserved.FullPerm;
+import static vct.col.ast.type.ASTReserved.NoPerm;
+import static vct.col.ast.type.ASTReserved.ReadPerm;
+import static vct.col.ast.type.ASTReserved.EmptyProcess;
+import static vct.col.ast.type.ASTReserved.CurrentThread;
 
 /**
  * Defines the syntax of common types and operations of  

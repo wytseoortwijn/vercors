@@ -1,8 +1,8 @@
 package vct.col.util;
 
-import vct.col.ast.OperatorExpression;
-import vct.col.ast.ProgramUnit;
-import vct.col.ast.RecursiveVisitor;
+import vct.col.ast.expr.OperatorExpression;
+import vct.col.ast.stmt.decl.ProgramUnit;
+import vct.col.ast.util.RecursiveVisitor;
 
 public class WandScanner extends RecursiveVisitor<Object> {
 

@@ -12,10 +12,25 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 import org.antlr.v4.runtime.Parser;
 import org.apache.commons.lang3.StringEscapeUtils;
 
-import vct.col.ast.*;
-import vct.col.ast.ASTClass.ClassKind;
-import vct.col.ast.ASTSpecial.Kind;
-import vct.col.ast.Switch.Case;
+import vct.col.ast.expr.Dereference;
+import vct.col.ast.expr.MethodInvokation;
+import vct.col.ast.expr.NameExpression;
+import vct.col.ast.expr.StandardOperator;
+import vct.col.ast.generic.ASTList;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.generic.ASTSequence;
+import vct.col.ast.generic.BeforeAfterAnnotations;
+import vct.col.ast.stmt.composite.BlockStatement;
+import vct.col.ast.stmt.composite.ForEachLoop;
+import vct.col.ast.stmt.composite.LoopStatement;
+import vct.col.ast.stmt.composite.TryCatchBlock;
+import vct.col.ast.stmt.decl.*;
+import vct.col.ast.stmt.decl.ASTClass.ClassKind;
+import vct.col.ast.stmt.decl.ASTSpecial.Kind;
+import vct.col.ast.stmt.composite.Switch.Case;
+import vct.col.ast.stmt.terminal.ReturnStatement;
+import vct.col.ast.type.*;
+import vct.col.ast.util.ContractBuilder;
 import vct.col.syntax.JavaDialect;
 import vct.col.syntax.JavaSyntax;
 import vct.col.syntax.Syntax;
@@ -32,7 +47,7 @@ import static hre.lang.System.*;
 */
 public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode> {
 
-  private static <E extends ASTSequence<?>> E convert(E unit,ParseTree tree, String file_name,BufferedTokenStream tokens,Parser parser){
+  private static <E extends ASTSequence<?>> E convert(E unit, ParseTree tree, String file_name, BufferedTokenStream tokens, Parser parser){
     Java7JMLtoCol visitor=new Java7JMLtoCol(unit,JavaSyntax.getJava(JavaDialect.JavaVerCors),file_name,tokens,parser);
     visitor.scan_to(unit,tree);
     return unit;

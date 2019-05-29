@@ -2,10 +2,10 @@ package vct.col.util;
 
 import java.util.Set;
 
-import vct.col.ast.ASTClass;
-import vct.col.ast.ASTFrame;
-import vct.col.ast.Method;
-import vct.col.ast.RecursiveVisitor;
+import vct.col.ast.stmt.decl.ASTClass;
+import vct.col.ast.util.ASTFrame;
+import vct.col.ast.stmt.decl.Method;
+import vct.col.ast.util.RecursiveVisitor;
 import vct.util.ClassName;
 
 /**

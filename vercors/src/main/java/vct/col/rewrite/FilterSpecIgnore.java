@@ -1,7 +1,11 @@
 package vct.col.rewrite;
 
-import vct.col.ast.*;
-import static vct.col.ast.ASTSpecial.Kind.*;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.stmt.composite.BlockStatement;
+import vct.col.ast.stmt.decl.Method;
+import vct.col.ast.stmt.decl.ProgramUnit;
+
+import static vct.col.ast.stmt.decl.ASTSpecial.Kind.*;
 
 public class FilterSpecIgnore extends AbstractRewriter {
 
@@ -38,7 +42,7 @@ public class FilterSpecIgnore extends AbstractRewriter {
 
   @Override
   public void visit(Method m){
-    Contract c=m.getContract();
+    vct.col.ast.stmt.decl.Contract c=m.getContract();
     if (c!=null && (c.pre_condition.isConstant(false) || c.pre_condition.isName("false"))){
       Warning("ignoring %s", m.name());
       result=null;
