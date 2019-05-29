@@ -251,17 +251,7 @@ public class Flatten extends AbstractRewriter {
       BlockStatement s=(BlockStatement)body;
       int N=s.getLength();
       for(int i=0;i<N;i++){
-        ASTNode stat=s.getStatement(i);
-        if (stat instanceof ReturnStatement){
-          // TODO: properly implement this with exec before and exec after.
-          ASTNode last=stat.apply(this);
-          for(i++;i<N;i++){
-            visit_body(s.getStatement(i));
-          }
-          current_block.addStatement(last);
-        } else {
-          visit_body(s.getStatement(i));
-        }
+        visit_body(s.getStatement(i));
       }
     } else {
       current_block.addStatement(body.apply(this));
