@@ -18,6 +18,10 @@ addons:
       - texlive
       - texlive-latex-recommended
       - texlive-latex-extra
+  sonarcloud:
+    organization: utwente-fmt
+    token:
+      secure:"M1tIAuJumiKtVVjZTSY4HzBNVBlSotCuFqr8uSRqG/bR6RPF0dldG0soZppu5Pu7IhnBvGQBZsEAgIseFGuu/iCGie+WbrAE9cVrjp89bqaovbSwp2RS+B5O8o/OlTYGNWGrMOwz1D6nZdpkoVwC7YnohFgOE1zp7XJ4v3erHGBcFIHK6IYRUosG7M5B6oKkSl1JqFfmvocKhrQWINW400C04vzj5e0OovabEwUfNfareC31DnB+P89brK0DRyWDvT1h4ESP4ypLGipxnRcqtSP42Na/n1hsJMc41EeG9b0VBXsSAPuHozhFr1izSmT72Nug6NEMFNgpQP4atnafawpWgWWVQwSaI7W9PXS+T8kyIt6EPOxiIQDVlze3FsYanEn2DK4zSXkjRZ7E5zd6EWM9b032BKK8jKY4EQoiuWxuWlrI2RyCWmI6az0Kpd1qs2EFMEsm/vz1EDms/ZM+ayx/dJtalxtc1KSm51nIhnzlQVGmvg65IyW0b9Qph8fiYsS5tG7TMwgaW9qKwkAVt5+BURlQRc1SyX8Lx0Yr0melN4ssvG0tsEoiFj/je+ybU9TBpt3g8ueAGx4WDspj8I1NXeBo1slIi1xKqMQY3Si3OLsybnMApyraoVggtRP5WfS5Y7dcIVNpcf3Uv3dFMfP8YkudJNknrnrEwtvQIcg="
 
 cache:
   directories:
@@ -34,6 +38,8 @@ script:
 - vct --silicon $TRAVIS_BUILD_DIR/examples/manual/fibonacci.pvl
 # Test the remaining examples while hiding messages
 - vct --tool=silicon --lang=java,pvl --exclude-suite=slow,medium,problem-fail,skip-travis --test=$TRAVIS_BUILD_DIR/examples
+# Run the Sonar scanner
+- sonar-scanner
 
 #deploy:
 #  provider: releases
