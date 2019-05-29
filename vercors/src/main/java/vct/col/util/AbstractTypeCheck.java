@@ -239,9 +239,7 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
         Fail("%s is not an ADT in %s",e.object,e);
       }
       SilverTypeMap.get_adt_subst(sigma.copy_rw,map,(ClassType)e.object);
-      //System.err.printf("before %s %s %s%n",e.method,map,t);
       e.setType(sigma.rewrite(t));
-      //System.err.printf("result %s after %s%n",e.method,e.getType());
       return;
     }
 
@@ -432,7 +430,7 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
     if (val_type==null) Abort("Value has no type has no type.");
     if (loc_type.toString().equals("<<label>>")) return;
 
-    System.out.println(String.format("Comparing %s with %s as %s", loc_type, val, val_type));
+    Debug("Comparing %s with %s as %s", loc_type, val, val_type);
 
     if(loc_type.isPrimitive(PrimitiveSort.Option)) {
       val.setType(loc_type);
@@ -1022,10 +1020,6 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
     case NEQ:
     {
       if (!t1.comparableWith(source(),t2)) {
-        //vct.util.Configuration.getDiagSyntax().print(System.out,e.getArg(0));
-        //System.out.print("/");
-        //vct.util.Configuration.getDiagSyntax().print(System.out,e.getArg(1));
-        //System.out.println();
         Fail("Types of left and right-hand side argument are uncomparable: %s/%s",t1,t2);
       }
       e.setType(new PrimitiveType(PrimitiveSort.Boolean));

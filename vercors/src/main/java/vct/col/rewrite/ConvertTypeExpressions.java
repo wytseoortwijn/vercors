@@ -70,7 +70,7 @@ public class ConvertTypeExpressions extends AbstractRewriter {
         Fail("cannot deal with type operator %s", e.operator());
       }
     }
-    System.err.printf("remaining type of %s is %s%n",m.getReturnType(),t);
+    Debug("remaining type of %s is %s",m.getReturnType(),t);
     Method out=create.method_decl(
         t,
         copy_rw.rewrite(res.getContract()),

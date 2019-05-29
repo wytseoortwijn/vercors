@@ -1,5 +1,7 @@
 package vct.col.rewrite;
 
+import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -585,9 +587,12 @@ public class KernelRewriter extends AbstractRewriter {
                 if (Configuration.auto_barrier.get()){
                   Fail("%s: resource in requires clause while using auto barriers.",claim.getOrigin());
                 }
-                System.out.printf("skipping:");
-                vct.util.Configuration.getDiagSyntax().print(System.out,claim);
-                System.out.printf("%n");
+                PrintWriter outputWriter = hre.lang.System.getLogLevelOutputWriter(hre.lang.System.LogLevel.Info);
+                outputWriter.print("skipping:");
+                vct.util.Configuration.getDiagSyntax().print(outputWriter, claim);
+                outputWriter.print("%n");
+                outputWriter.close();
+
                 continue;
               }
               if (ASTUtils.find_name(claim,"lid")){

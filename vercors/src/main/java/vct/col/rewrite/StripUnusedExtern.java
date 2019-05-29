@@ -99,7 +99,7 @@ public class StripUnusedExtern extends AbstractRewriter {
     for(DeclarationStatement d:src.fields()){
       DeclarationStatement old=vars.get(d.name());
       if (d.isValidFlag(ASTFlags.EXTERN)){
-        System.err.printf("extern var %s%n", d.name());
+        Debug("extern var %s", d.name());
         if (old != null){
           Fail("double declaration of %s", d.name());
         }

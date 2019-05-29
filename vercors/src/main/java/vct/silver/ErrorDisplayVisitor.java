@@ -1,6 +1,9 @@
 package vct.silver;
 
 import hre.ast.Origin;
+import static hre.lang.System.Debug;
+import static hre.lang.System.Progress;
+
 import vct.logging.ExceptionMessage;
 import vct.logging.MessageVisitor;
 import vct.logging.TaskBegin;
@@ -27,8 +30,8 @@ public class ErrorDisplayVisitor implements MessageVisitor {
   @Override
   public void visit(TaskEnd end) {
     long duration=(end.nanoTime()-end.begin.nanoTime())/1000000L;
-    if(Configuration.progress.get() && duration>1L){
-      System.err.printf("task %s took %d ms%n",end.begin.description,duration);
+    if(duration>1L) {
+      Progress("task %s took %d ms",end.begin.description,duration);
     }
 
     
@@ -48,7 +51,7 @@ public class ErrorDisplayVisitor implements MessageVisitor {
 
   @Override
   public void visit(VerCorsError error) {
-    System.err.printf("reporting %s error%n",error.code);
+    Debug("reporting %s error",error.code);
     error.main.report("error","%s:%s",error.code,error.sub);
     for(Origin o:error.aux){
       o.report("auxiliary","caused by");

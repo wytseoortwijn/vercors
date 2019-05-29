@@ -2,21 +2,9 @@
 
 package vct.main;
 
-import static hre.lang.System.Abort;
-import static hre.lang.System.Fail;
-import static hre.lang.System.Output;
-import static hre.lang.System.Progress;
-import static hre.lang.System.Warning;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.PrintStream;
+import java.io.*;
 import java.lang.reflect.Constructor;
-import java.util.ArrayList;
-import java.util.Deque;
-import java.util.Hashtable;
-import java.util.List;
+import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -26,13 +14,9 @@ import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingDeque;
 
 import hre.ast.FileOrigin;
-import hre.config.BooleanSetting;
-import hre.config.Option;
-import hre.config.OptionParser;
-import hre.config.StringListSetting;
-import hre.config.StringSetting;
+import hre.config.*;
 import hre.debug.HeapDump;
-import hre.io.PrefixPrintStream;
+import hre.io.PrefixPrintWriter;
 import hre.lang.HREError;
 import hre.lang.HREExitException;
 import hre.util.CompositeReport;
@@ -61,6 +45,8 @@ import vct.silver.ErrorDisplayVisitor;
 import vct.util.ClassName;
 import vct.util.Configuration;
 
+import static hre.lang.System.*;
+
 /**
  * VerCors Tool main verifier.
  * @author Stefan Blom
@@ -82,13 +68,13 @@ public class Main
     }
     @Override
     public TestReport call() {
-      System.err.printf("Validating class %s...%n",class_name.toString("."));
+      Progress("Validating class %s...",class_name.toString("."));
       long start=System.currentTimeMillis();
       ProgramUnit task=new FilterClass(program,class_name.name).rewriteAll();
       task=new Standardize(task).rewriteAll();
       new SimpleTypeCheck(task).check();
       TestReport report=vct.boogie.Main.TestChalice(task);
-      System.err.printf("%s: result is %s (%dms)%n",class_name.toString("."),
+      Progress("%s: result is %s (%dms)",class_name.toString("."),
           report.getVerdict(),System.currentTimeMillis()-start);
       return report;
     }
@@ -100,8 +86,19 @@ public class Main
     int exit=0;
     long globalStart = System.currentTimeMillis();
     try {
+      hre.lang.System.setOutputStream(System.out, hre.lang.System.LogLevel.Info);
+      hre.lang.System.setErrorStream(System.err, hre.lang.System.LogLevel.Info);
+
       OptionParser clops=new OptionParser();
       clops.add(clops.getHelpOption(),'h',"help");
+
+      ChoiceSetting logLevel = new ChoiceSetting(new String[] {"silent", "abort", "result", "warning", "info", "progress", "debug", "all"}, "info");
+      clops.add(logLevel.getSetOption("Set the logging level"), "verbosity");
+      clops.add(logLevel.getExplicitOption("progress", "Show progress through the passes"), "progress", 'v');
+      clops.add(logLevel.getExplicitOption("silent", "Never output anything"), "silent", 'q');
+
+      CollectSetting debugFilters = new CollectSetting();
+      clops.add(debugFilters.getAddOption("Add a class to debug, or specify a line with Class:lineno"), "debug");
 
       BooleanSetting boogie=new BooleanSetting(false);
       clops.add(boogie.getEnable("select Boogie backend"),"boogie");
@@ -161,25 +158,59 @@ public class Main
       BooleanSetting gui_context=new BooleanSetting(false);
       clops.add(gui_context.getEnable("enable the gui extension of the context"),"gui");
 
-      StringListSetting debug_list=new StringListSetting();
-      clops.add(debug_list.getAppendOption("print debug message for given classes and/or packages"),"debug");
-      BooleanSetting where=new BooleanSetting(false);
-      clops.add(where.getEnable("report which class failed"),"where");
-
-      clops.add(Configuration.progress.getEnable("print progress messages"),"progress");
-
       BooleanSetting sat_check=new BooleanSetting(true);
       clops.add(sat_check.getDisable("Disable checking if method pre-conditions are satisfiable"), "disable-sat");
 
       Configuration.add_options(clops);
 
       String input[]=clops.parse(args);
-      hre.lang.System.setProgressReporting(Configuration.progress.get());
 
-      for(String name:debug_list){
-        hre.lang.System.EnableDebug(name,java.lang.System.err,"vct("+name+")");
+      hre.lang.System.LogLevel level = hre.lang.System.LogLevel.Info;
+
+      switch(logLevel.get()) {
+        case "silent":
+          level = hre.lang.System.LogLevel.Silent;
+          break;
+        case "abort":
+          level = hre.lang.System.LogLevel.Abort;
+          break;
+        case "result":
+          level = hre.lang.System.LogLevel.Result;
+          break;
+        case "warning":
+          level = hre.lang.System.LogLevel.Warning;
+          break;
+        case "info":
+          level = hre.lang.System.LogLevel.Info;
+          break;
+        case "progress":
+          level = hre.lang.System.LogLevel.Progress;
+          break;
+        case "debug":
+          level = hre.lang.System.LogLevel.Debug;
+          break;
+        case "all":
+          level = hre.lang.System.LogLevel.All;
+          break;
       }
-      hre.lang.System.EnableWhere(where.get());
+
+      if(!debugFilters.get().isEmpty() && level.getOrder() < hre.lang.System.LogLevel.Debug.getOrder()) {
+        level = hre.lang.System.LogLevel.Debug;
+      }
+
+      for(String filter : debugFilters.get().keySet()) {
+        if(filter.contains(":") /* With line number */) {
+          hre.lang.System.addDebugFilterByLine(filter);
+        } else {
+          hre.lang.System.addDebugFilterByClassName(filter);
+        }
+      }
+
+      hre.lang.System.setOutputStream(System.out, level);
+      hre.lang.System.setErrorStream(System.err, level);
+
+      System.setErr(new hre.io.ForbiddenPrintStream(System.err));
+      System.setOut(new hre.io.ForbiddenPrintStream(System.out));
 
       Hashtable<String,CompilerPass> defined_passes=new Hashtable<String,CompilerPass>();
       Hashtable<String,ValidationPass> defined_checks=new Hashtable<String,ValidationPass>();
@@ -187,12 +218,12 @@ public class Main
       define_passes(silver, separate_checks, defined_passes, defined_checks);
 
       if (help_passes.get()) {
-        System.out.println("The following passes are available:");
+        Output("The following passes are available:");
         for (Entry<String, CompilerPass> entry:defined_passes.entrySet()){
-          System.out.printf(" %-12s : %s%n",entry.getKey(),entry.getValue().getDescripion());
+          Output(" %-12s : %s",entry.getKey(),entry.getValue().getDescripion());
         }
         for (Entry<String, ValidationPass> entry:defined_checks.entrySet()){
-          System.out.printf(" %-12s : %s%n",entry.getKey(),entry.getValue().getDescripion());
+          Output(" %-12s : %s",entry.getKey(),entry.getValue().getDescripion());
         }
         throw new HREExitException(0);
       }
@@ -230,7 +261,7 @@ public class Main
         program.add(Parsers.parseFile(f.getPath()));
         cnt++;
       }
-      System.err.printf("Parsed %d file(s) in: %dms%n",cnt,System.currentTimeMillis() - startTime);
+      Progress("Parsed %d file(s) in: %dms",cnt,System.currentTimeMillis() - startTime);
 
       if (boogie.get() || sequential_spec.get()) {
         program.setSpecificationFormat(SpecificationFormat.Sequential);
@@ -525,6 +556,8 @@ public class Main
         int fatal_errs=0;
         @SuppressWarnings("unused")
         ArrayList<PassReport> reports=new ArrayList<PassReport>();
+        int passCount = passes.size();
+
         while(!passes.isEmpty() && fatal_errs==0){
           String pass=passes.removeFirst();
           String[] pass_args=pass.split("=");
@@ -534,26 +567,26 @@ public class Main
           } else {
             pass_args=pass_args[1].split("\\+");
           }
-          Progress("Pass %s %s ...",pass,new ArrayShow(" ",(Object[])pass_args));
           CompilerPass task=defined_passes.get(pass);
           if (show_before.contains(pass)){
             String name=show_file.get();
             if (name!=null){
               String file=String.format(name, pass);
-              PrintStream out=new PrintStream(new FileOutputStream(file));
+              PrintWriter out=new PrintWriter(new FileOutputStream(file));
               vct.util.Configuration.getDiagSyntax().print(out,program);
               out.close();
             } else {
-              vct.util.Configuration.getDiagSyntax().print(System.out,program);
+              PrintWriter out = hre.lang.System.getLogLevelOutputWriter(hre.lang.System.LogLevel.Info);
+              vct.util.Configuration.getDiagSyntax().print(out, program);
+              out.close();
             }
           }
           if (task!=null){
-            Progress("Applying %s ...",pass);
             startTime = System.currentTimeMillis();
             report=task.apply_pass(report,pass_args);
             fatal_errs=report.getFatal();
             program=report.getOutput();
-            Progress(" ... pass took %d ms",System.currentTimeMillis()-startTime);
+            Progress("[%02d%%] %s took %d ms",100*(passCount-passes.size())/passCount, pass, System.currentTimeMillis()-startTime);
           } else {
             ValidationPass check=defined_checks.get(pass);
             if (check!=null){
@@ -570,28 +603,30 @@ public class Main
             String name=show_file.get();
             if (name!=null){
               String file=String.format(name, pass);
-              PrintStream out=new PrintStream(new FileOutputStream(file));
+              PrintWriter out=new PrintWriter(new FileOutputStream(file));
               vct.util.Configuration.getDiagSyntax().print(out,program);
               out.close();
             } else {
-              vct.util.Configuration.getDiagSyntax().print(System.out,program);
+              PrintWriter out = hre.lang.System.getLogLevelOutputWriter(hre.lang.System.LogLevel.Info);
+              vct.util.Configuration.getDiagSyntax().print(out,program);
+              out.close();
             }
           }
           if (stop_after.contains(pass)){
             Fail("exit after pass %s",pass);
           }
         }
-        Output("The final verdict is %s",fatal_errs==0?"Pass":"Fail");
+        Verdict("The final verdict is %s",fatal_errs==0?"Pass":"Fail");
         //report.listFatals();
       }
     } catch (HREExitException e) {
       exit=e.exit;
-      Output("The final verdict is Error");
+      Verdict("The final verdict is Error");
     } catch (Throwable e) {
-      e.printStackTrace();
+      DebugException(e);
       throw e;
     } finally {
-      Output("entire run took %d ms",System.currentTimeMillis()-globalStart);
+      Progress("entire run took %d ms",System.currentTimeMillis()-globalStart);
       System.exit(exit);
     }
   }
@@ -603,20 +638,25 @@ public class Main
       Hashtable<String, ValidationPass> defined_checks) {
     defined_passes.put("java",new CompilerPass("print AST in java syntax"){
         public ProgramUnit apply(ProgramUnit arg,String ... args){
-          JavaSyntax.getJava(JavaDialect.JavaVerCors).print(System.out,arg);
+          PrintWriter out = hre.lang.System.getLogLevelOutputWriter(hre.lang.System.LogLevel.Info);
+          JavaSyntax.getJava(JavaDialect.JavaVerCors).print(out,arg);
+          out.close();
           return arg;
         }
       });
     defined_passes.put("c",new CompilerPass("print AST in C syntax"){
         public ProgramUnit apply(ProgramUnit arg,String ... args){
-          vct.col.print.CPrinter.dump(System.out,arg);
+          PrintWriter out = hre.lang.System.getLogLevelOutputWriter(hre.lang.System.LogLevel.Info);
+          vct.col.print.CPrinter.dump(out,arg);
+          out.close();
           return arg;
         }
       });
     defined_passes.put("dump",new CompilerPass("dump AST"){
       public ProgramUnit apply(ProgramUnit arg,String ... args){
-        PrefixPrintStream out=new PrefixPrintStream(System.out);
+        PrefixPrintWriter out=new PrefixPrintWriter(hre.lang.System.getLogLevelOutputWriter(hre.lang.System.LogLevel.Info));
         HeapDump.tree_dump(out,arg,ASTNode.class);
+        out.close();
         return arg;
       }
     });
@@ -661,7 +701,7 @@ public class Main
           ArrayList<Future<TestReport>> list=new ArrayList<Future<TestReport>>();
           for(ClassName class_name:arg.classNames()){
               Callable<TestReport> task=new ChaliceTask(arg,class_name);
-              System.err.printf("submitting verification of %s%n",class_name.toString("."));
+              Progress("submitting verification of %s",class_name.toString("."));
               list.add(queue.submit(task));
           }
           queue.shutdown();
@@ -669,21 +709,19 @@ public class Main
             try {
               res.addReport(future.get());
             } catch (InterruptedException e) {
-              // TODO Auto-generated catch block
-              e.printStackTrace();
+              DebugException(e);
               Abort("%s",e);
             } catch (ExecutionException e) {
-              // TODO Auto-generated catch block
-              e.printStackTrace();
+              DebugException(e);
               Abort("%s",e);
             }
           }
-          System.err.printf("verification took %dms%n", System.currentTimeMillis()-start);
+          Progress("verification took %dms", System.currentTimeMillis()-start);
           return res;
         } else {
           long start=System.currentTimeMillis();
           TestReport report=vct.boogie.Main.TestChalice(arg);
-          System.err.printf("verification took %dms%n", System.currentTimeMillis()-start);
+          Progress("verification took %dms", System.currentTimeMillis()-start);
           return report;
         }
       }
@@ -766,9 +804,9 @@ public class Main
         Syntax syntax=JavaSyntax.getJava(JavaDialect.JavaVerCors);
         for(ASTNode node:arg){
           if (node instanceof ASTClass){
-            PrintStream out;
+            PrintWriter out;
             try {
-              out = new PrintStream(new FileOutputStream(new File(dir,((ASTClass)node).name() + ".java")));
+              out = new PrintWriter(new FileOutputStream(new File(dir,((ASTClass)node).name() + ".java")));
             } catch (FileNotFoundException e) {
               report.add(new ExceptionMessage(e));
               return arg;
@@ -998,7 +1036,6 @@ public class Main
       public ProgramUnit apply(ProgramUnit arg,String ... args){
         RewriteSystem trs=RewriteSystems.getRewriteSystem("simplify_quant_pass1");
         ProgramUnit res=trs.normalize(arg);
-        // Configuration.getDiagSyntax().print(System.err,res);
         res=RewriteSystems.getRewriteSystem("simplify_quant_pass2").normalize(res);
         return res;
       }
@@ -1021,7 +1058,9 @@ public class Main
     });
     defined_checks.put("verifast",new ValidationPass("verify with VeriFast"){
       public TestReport apply(ProgramUnit arg,String ... args){
-        vct.col.print.JavaPrinter.dump(System.out,JavaDialect.JavaVeriFast,arg);
+        PrintWriter out = hre.lang.System.getLogLevelOutputWriter(hre.lang.System.LogLevel.Info);
+        vct.col.print.JavaPrinter.dump(out,JavaDialect.JavaVeriFast,arg);
+        out.close();
         return vct.verifast.Main.TestVerifast(arg);
       }
     });

@@ -89,7 +89,7 @@ public class ColIParser implements vct.col.util.Parser {
     } catch (FileNotFoundException e) {
       Fail("File %s has not been found",file_name);
     } catch (Exception e) {
-      e.printStackTrace();
+      DebugException(e);
       Abort("Exception %s while parsing %s",e.getClass(),file_name);
     }
     return null;

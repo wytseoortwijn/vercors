@@ -243,7 +243,6 @@ public class SilverExpressionMap<T,E> implements ASTMapping<E> {
         AxiomaticDataType adt=(AxiomaticDataType)m.getParent();
         HashMap<String, T> dpars=new HashMap<String, T>();
         type.domain_type(dpars,(ClassType)e.object);
-        //System.err.printf("%s expression type %s base %s%n",name,e.getType(),e.object);
         return create.domain_call(o, name, args, dpars, rt, pars, adt.name());
       } else {
         
@@ -308,7 +307,7 @@ public class SilverExpressionMap<T,E> implements ASTMapping<E> {
     switch (e.binder) {
     case Star:
       if ((e.main instanceof BindingExpression)||e.getDeclarations().length>1){
-        hre.lang.System.Warning("Simplification failure:%n%s",e);
+        hre.lang.System.Warning("Simplification failure: %s",e);
         failure=true;
       } else {
         boolean good=false;
@@ -325,7 +324,7 @@ public class SilverExpressionMap<T,E> implements ASTMapping<E> {
           }
         }
         if(!good){
-          hre.lang.System.Warning("Possible simplification failure: %n%s",e);
+          hre.lang.System.Warning("Possible simplification failure: %s",e);
         }
       }
     case Forall:

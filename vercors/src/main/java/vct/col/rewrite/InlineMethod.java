@@ -37,8 +37,8 @@ public class InlineMethod extends Substitution {
     create.setOrigin(m.getOrigin());
     map.clear();
     NameExpression n=create.reserved_name(ASTReserved.This);
-    if (n==null) System.err.println("1");
-    if (object==null) System.err.println("2");
+    if (n==null) Debug("1");
+    if (object==null) Debug("2");
     map.put(n,object);
     prefix="inline_"+count.incrementAndGet()+"_";
     DeclarationStatement decls[]=m.getArgs();

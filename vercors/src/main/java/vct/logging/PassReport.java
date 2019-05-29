@@ -6,6 +6,8 @@ import hre.util.TestReport;
 import hre.util.TestReport.Verdict;
 import vct.col.ast.stmt.decl.ProgramUnit;
 
+import static hre.lang.System.Output;
+
 public class PassReport {
   
   private ArrayList<Message> entries=new ArrayList<Message>();
@@ -52,7 +54,7 @@ public class PassReport {
   }
   
   public void fatal(String format,Object ... args){
-    System.err.printf(format+"%n",args);
+    Output(format, args);
     fatal++;
   }
   
@@ -66,11 +68,11 @@ public class PassReport {
   }
 
   public void listFatals() {
-    System.err.printf("fatal count is %d%n",fatal);
+    Output("fatal count is %d",fatal);
     for(Message m:entries){
       if (m.isFatal()){
-        System.err.printf("fatal entry %s%n",m.getClass());
-        System.err.printf("fatal entry %s%n",m);
+        Output("fatal entry %s",m.getClass());
+        Output("fatal entry %s",m);
       }
     }
   }

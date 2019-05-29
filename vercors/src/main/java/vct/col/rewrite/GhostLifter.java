@@ -115,7 +115,7 @@ public class GhostLifter extends AbstractRewriter {
           arg=rewrite(decl.initJava());
         }
         if (arg==null){
-          System.err.printf("key set %s%n",arg_map.keySet());
+          Debug("key set %s",arg_map.keySet());
           Fail("argument %s is missing", decl.name());
         }
         args.add(arg);

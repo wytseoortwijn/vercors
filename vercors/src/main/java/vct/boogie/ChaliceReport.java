@@ -39,10 +39,8 @@ public class ChaliceReport extends hre.util.TestReport {
           continue;
         }
         if (line.startsWith("  ")){
-          //System.out.println("processing:"+line);
           int dot=line.indexOf(".");
           int colon=line.indexOf(":");
-          //System.out.printf("[%s][%s]\n",line.substring(2,dot),line.substring(dot+1,colon));
           int line_no=Integer.parseInt(line.substring(2,dot));
           int col_no=Integer.parseInt(line.substring(dot+1,colon));
           Origin origin=tree.getOrigin(line_no,col_no);
@@ -56,7 +54,7 @@ public class ChaliceReport extends hre.util.TestReport {
               message=line.substring(colon+2);
             }
             message=message.replaceAll(" at [0-9]+[.][0-9]+ "," ");
-            Debug("error at %s: %s%n",origin,message);
+            Debug("error at %s: %s",origin,message);
             if (must_refute.contains(origin)){
               Warning("expected error found: %s",message);
               has_refuted.add(origin);
@@ -69,7 +67,6 @@ public class ChaliceReport extends hre.util.TestReport {
             ArrayList<String> error=new ArrayList<String>();
             String parts[]=line.substring(colon+2).split("[0-9]+[.][0-9]+");
             error.add(parts[0]);
-            //System.out.printf
             Debug("error at %s: %s",origin,parts[0]);
             int current=colon+2+parts[0].length();
             for(int i=1;i<parts.length;i++){
@@ -78,13 +75,10 @@ public class ChaliceReport extends hre.util.TestReport {
               line_no=Integer.parseInt(line.substring(current,dot));
               col_no=Integer.parseInt(line.substring(dot+1,end));
               Origin msg_origin=tree.getOrigin(line_no,col_no);
-              //System.out.printf("[%d.%d/%s]%s",line_no,col_no,msg_origin,parts[i]);
-              //System.out.printf
               Debug("%s%s",msg_origin,parts[i]);
               error.add(msg_origin+parts[i]);
               current=end+parts[i].length();
             }
-            //System.out.println("")
             if (must_refute.contains(origin)){
               Warning("expected error found: %s",error);
               has_refuted.add(origin);

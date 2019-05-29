@@ -8,6 +8,8 @@ import vct.col.ast.stmt.composite.Hole;
 import vct.col.ast.type.ASTReserved;
 import vct.col.ast.util.ASTVisitor;
 
+import static hre.lang.System.Debug;
+
 /** Node that can hold every possible kind of defined name.
  * 
  * @author Stefan Blom
@@ -91,7 +93,7 @@ public class NameExpression extends ASTNode {
       visitor.visit(this);
     } catch (Throwable t){
       if (thrown.get()!=t){
-        System.err.printf("Triggered by %s:%n",getOrigin());
+        Debug("Triggered by %s:",getOrigin());
         thrown.set(t);
      }
       throw t;
@@ -104,7 +106,7 @@ public class NameExpression extends ASTNode {
       return map.map(this);
     } catch (Throwable t){
       if (thrown.get()!=t){
-        System.err.printf("Triggered by %s:%n",getOrigin());
+        Debug("Triggered by %s:",getOrigin());
         thrown.set(t);
      }
       throw t;

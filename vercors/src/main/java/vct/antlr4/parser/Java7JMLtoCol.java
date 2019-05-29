@@ -610,13 +610,13 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
     NameSpace ns;
     int ptr=0;
     if (match(0,true,ctx,"PackageDeclaration")) {
-      hre.lang.System.Debug("has package");
+      Debug("has package");
       ASTNode pkg=convert((ParserRuleContext)ctx.getChild(0),1);
-      System.err.printf("pkg %s (%s)%n",Configuration.getDiagSyntax().print(pkg),pkg.getClass());
+      Debug("pkg %s (%s)",Configuration.getDiagSyntax().print(pkg),pkg.getClass());
       ptr++;
       ns=create.namespace(to_name(pkg));
     } else {
-      hre.lang.System.Debug("does not have package");
+      Debug("does not have package");
       ns=create.namespace(NameSpace.NONAME);
     }
     while(match(ptr,true,ctx,"ImportDeclaration")){
@@ -718,7 +718,7 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
         ClassType bases[]=new ClassType[]{(ClassType)type};
         ASTClass cl=create.ast_class("__inline_ext", ClassKind.Plain ,null, bases , null );
         scan_body(cl,(ParserRuleContext)rest_ctx.getChild(1));
-        System.err.printf("cannot attach inline class %s%n", cl);
+        Debug("cannot attach inline class %s", cl);
         return (ASTNode)res;
       }
       Debug("no arguments");
@@ -1085,7 +1085,6 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
     while(i0<i){
       //add modifiers as annotations.
       ASTNode mod=convert(ctx,i0);
-      //System.err.printf("<modifier! %s = %s%n",ctx.getChild(i0).toStringTree(parser),mod);
       res.attach(mod);
       i0++;
     }
@@ -1389,7 +1388,7 @@ public class Java7JMLtoCol extends ANTLRtoCOL implements Java7JMLVisitor<ASTNode
           DeclarationStatement decls[]=new DeclarationStatement[]{create.field_decl(var, t,collection)};
           ForEachLoop res=create.foreach(decls, create.constant(true), body);
           scan_comments_after(res.get_after(), ctx.getChild(3));
-          System.err.printf("%s%n",res);
+          Debug("%s",res);
           return res;
         }
       } else {

@@ -135,8 +135,6 @@ public abstract class ASTNode implements ASTFlags {
     if (this.origin!=null) throw new Error("origin already set");
     if (origin==null) {
       this.origin=new MessageOrigin("NULL ORIGIN");
-      //System.err.printf("Illegal null origin for %s%n",Configuration.getDiagSyntax().print(this));
-      //throw new Error("illegal null origin");
     }
     this.origin=origin;
   }
@@ -175,7 +173,7 @@ public abstract class ASTNode implements ASTFlags {
       visitor.post_visit(this);
     } catch (Throwable t){
       if (thrown.get()!=t){
-        System.err.printf("Triggered by %s:%n",getOrigin());
+        Debug("Triggered by %s:",getOrigin());
         thrown.set(t);
       }
       throw t;
@@ -192,7 +190,7 @@ public abstract class ASTNode implements ASTFlags {
       return map.post_map(this, res);  
     } catch (Throwable t){
       if (thrown.get()!=t){
-        System.err.printf("Triggered by %s:%n",getOrigin());
+        Debug("Triggered by %s:",getOrigin());
         thrown.set(t);
       }
       throw t;
@@ -209,7 +207,7 @@ public abstract class ASTNode implements ASTFlags {
       return map.post_map(this, res,arg);
     } catch (Throwable t){
       if (thrown.get()!=t){
-        System.err.printf("Triggered by %s:%n",getOrigin());
+        Debug("Triggered by %s:",getOrigin());
         thrown.set(t);
       }
       throw t;

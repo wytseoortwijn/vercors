@@ -14,6 +14,8 @@ import vct.col.ast.util.ASTVisitor;
 import vct.col.ast.util.ContractBuilder;
 import vct.col.util.ASTUtils;
 
+import static hre.lang.System.Debug;
+
 public class LoopStatement extends ASTNode implements BeforeAfterAnnotations {
 
   @Override
@@ -94,7 +96,7 @@ public class LoopStatement extends ASTNode implements BeforeAfterAnnotations {
       visitor.visit(this);
     } catch (Throwable t){
       if (thrown.get()!=t){
-        System.err.printf("Triggered by %s:%n",getOrigin());
+        Debug("Triggered by %s:",getOrigin());
         thrown.set(t);
      }
       throw t;
@@ -107,7 +109,7 @@ public class LoopStatement extends ASTNode implements BeforeAfterAnnotations {
       return map.map(this);
     } catch (Throwable t){
       if (thrown.get()!=t){
-        System.err.printf("Triggered by %s:%n",getOrigin());
+        Debug("Triggered by %s:",getOrigin());
         thrown.set(t);
      }
       throw t;

@@ -1,7 +1,7 @@
 package vct.main;
 
 import hre.debug.HeapDump;
-import hre.io.PrefixPrintStream;
+import hre.io.PrefixPrintWriter;
 import hre.util.CompositeReport;
 import hre.util.TestReport;
 import vct.boogie.BoogieReport;
@@ -21,6 +21,8 @@ import vct.col.ast.expr.StandardOperator;
 import vct.col.rewrite.AbstractRewriter;
 import vct.col.util.ASTFactory;
 import vct.col.util.ASTUtils;
+
+import java.io.PrintWriter;
 
 /**
  * This class scans a given AST for assertions and checks each assertion as if it were
@@ -51,7 +53,9 @@ public class BoogieFOL {
      * Executed when the abstract scanner finds a method.
      */
     public void visit(Method m){
-      PrefixPrintStream out=new PrefixPrintStream(System.out);
+      PrintWriter infoLog = hre.lang.System.getLogLevelOutputWriter(hre.lang.System.LogLevel.Info);
+      PrefixPrintWriter out=new PrefixPrintWriter(infoLog);
+      PrintWriter err = hre.lang.System.getLogLevelErrorWriter(hre.lang.System.LogLevel.Info);
       ASTNode body=m.getBody();
       Contract c=m.getContract();
       out.printf("starting%n");
@@ -74,29 +78,31 @@ public class BoogieFOL {
             if (e.isSpecial(Kind.Assert)) continue;
             DeclarationStatement args[]=m.getArgs();
             ASTNode formula=e.arg(0);
-            System.err.printf("checking formula at %s%n",formula.getOrigin());
-            vct.util.Configuration.getDiagSyntax().print(System.out,formula);
+            err.printf("checking formula at %s%n",formula.getOrigin());
+            vct.util.Configuration.getDiagSyntax().print(new PrintWriter(infoLog),formula);
             for(ASTNode part:ASTUtils.conjuncts(formula,StandardOperator.And)){
-              System.err.print("conjuct: ");
-              vct.util.Configuration.getDiagSyntax().print(System.out,part);
+              err.print("conjuct: ");
+              vct.util.Configuration.getDiagSyntax().print(new PrintWriter(infoLog),part);
             }
             BoogieReport res=check_boogie(args,formula);
-            System.err.printf("formula at %s: %s%n",e.getOrigin(),res.getVerdict());
+            err.printf("formula at %s: %s%n",e.getOrigin(),res.getVerdict());
             report.addReport(res);
             for(ASTNode part:ASTUtils.conjuncts(formula,StandardOperator.And)){
-              System.err.print("conjuct ");
-              vct.util.Configuration.getDiagSyntax().print(System.out,part);
-              System.err.println();
+              err.print("conjuct ");
+              vct.util.Configuration.getDiagSyntax().print(new PrintWriter(infoLog),part);
+              err.println();
               res=check_boogie(args,part);
             }
           }
         }
       } else {
-        System.err.printf("skipping non-block body of method %s at %s%n",m.getName(),m.getOrigin());
+        err.printf("skipping non-block body of method %s at %s%n",m.getName(),m.getOrigin());
       }
       out.printf("begin precondition2%n");
       HeapDump.tree_dump(out,c.pre_condition,ASTNode.class);
       out.printf("end precondition2%n");
+      out.close();
+      err.close();
     }
   }
 
@@ -135,7 +141,7 @@ public class BoogieFOL {
         "formula",
         new DeclarationStatement[0],
         body));
-    //hre.debug.HeapDump.tree_dump(new hre.io.PrefixPrintStream(System.err),program,ASTNode.class);
+    //hre.debug.HeapDump.tree_dump(new hre.io.PrefixPrintWriter(err),program,ASTNode.class);
     ProgramUnit pgm=new ProgramUnit();
     pgm.add(program);
     return vct.boogie.Main.TestBoogie(pgm);

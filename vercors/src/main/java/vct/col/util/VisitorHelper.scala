@@ -1,6 +1,7 @@
 package vct.col.util
 
 import hre.ast.Origin
+import hre.lang.System.Debug
 import vct.col.ast.generic.ASTNode
 
 trait VisitorHelper {
@@ -12,7 +13,7 @@ trait VisitorHelper {
    */
   def handle_throwable(t:Throwable) = {
     if (ASTNode.thrown.get() != t) {
-      System.err.printf("Triggered by %s:%n", getOrigin())
+      Debug("Triggered by %s:", getOrigin())
       ASTNode.thrown.set(t)
     }
 		throw t

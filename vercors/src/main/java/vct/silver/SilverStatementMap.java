@@ -175,7 +175,6 @@ public class SilverStatementMap<T,E,S> implements ASTMapping<S> {
 
   public S assignment(Origin origin, ASTNode location, ASTNode expression) {
     if (expression.isa(StandardOperator.NewSilver)){
-      //Configuration.getDiagSyntax().print(System.err, s);
       ArrayList<String> names=new ArrayList<String>();
       ArrayList<T> types=new ArrayList<T>();
       

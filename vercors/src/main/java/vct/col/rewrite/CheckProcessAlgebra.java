@@ -1,5 +1,6 @@
 package vct.col.rewrite;
 
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -198,13 +199,17 @@ public class CheckProcessAlgebra extends AbstractRewriter {
 
 
   private ASTNode normalize_body(ASTNode m_body) {
-    System.err.print("normalize input: ");
-    Configuration.getDiagSyntax().print(System.err,m_body);
-    System.err.println();
+    PrintWriter out = hre.lang.System.getLogLevelErrorWriter(hre.lang.System.LogLevel.Debug);
+
+    out.print("normalize input: ");
+    Configuration.getDiagSyntax().print(out,m_body);
+    out.println();
     m_body=expand_unguarded(m_body);
-    System.err.print("guarded rewrite: ");
-    Configuration.getDiagSyntax().print(System.err,m_body);
-    System.err.println();
+    out.print("guarded rewrite: ");
+    Configuration.getDiagSyntax().print(out,m_body);
+    out.println();
+
+    out.close();
     return m_body;
   }
 

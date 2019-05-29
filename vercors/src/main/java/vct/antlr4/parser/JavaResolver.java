@@ -55,7 +55,7 @@ public class JavaResolver extends AbstractRewriter {
       ClassName cln=new ClassName(name);
       String cl_name=cln.toString();
       Class<?> cl=path.loadClass(cl_name);
-      System.err.printf("loading %s%n",cl_name);
+      Debug("loading %s",cl_name);
       create.enter();
       create.setOrigin(new MessageOrigin("library class %s",cl_name));
       ASTClass res=create.new_class(ClassName.toString(name,FQN_SEP),null,null);

@@ -14,6 +14,8 @@ import vct.col.ast.stmt.decl.DeclarationStatement;
 import vct.col.ast.util.ASTVisitor;
 import vct.util.ClassName;
 
+import static hre.lang.System.Debug;
+
 public class NameSpace extends ASTDeclaration implements ASTSequence<NameSpace> {
 
   public static class Import {
@@ -59,7 +61,7 @@ public class NameSpace extends ASTDeclaration implements ASTSequence<NameSpace> 
       return map.map(this,arg);
     } catch (Throwable t){
       if (thrown.get()!=t){
-        System.err.printf("Triggered by %s:%n",getOrigin());
+        Debug("Triggered by %s:",getOrigin());
         thrown.set(t);
      }
       throw t;
@@ -72,7 +74,7 @@ public class NameSpace extends ASTDeclaration implements ASTSequence<NameSpace> 
       visitor.visit(this);
     } catch (Throwable t){
       if (thrown.get()!=t){
-        System.err.printf("Triggered by %s:%n",getOrigin());
+        Debug("Triggered by %s:",getOrigin());
         thrown.set(t);
      }
       throw t;
@@ -85,7 +87,7 @@ public class NameSpace extends ASTDeclaration implements ASTSequence<NameSpace> 
       return map.map(this);
     } catch (Throwable t){
       if (thrown.get()!=t){
-        System.err.printf("Triggered by %s:%n",getOrigin());
+        Debug("Triggered by %s:",getOrigin());
         thrown.set(t);
       }
       throw t;

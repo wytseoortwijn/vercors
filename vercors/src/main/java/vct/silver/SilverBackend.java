@@ -26,6 +26,10 @@ import vct.logging.PassReport;
 import vct.logging.TaskBegin;
 import vct.util.Configuration;
 
+import static hre.lang.System.DebugException;
+import static hre.lang.System.Output;
+import static hre.lang.System.Warning;
+
 public class SilverBackend {
   
   public static StringSetting silver_module=new StringSetting(null);
@@ -50,7 +54,6 @@ public class SilverBackend {
     }
     File jarfile;
     jarfile=Configuration.getToolHome().resolve(silver_module.get()+"/"+tool+".jar").toFile();
-    //System.err.printf("adding jar %s to path%n",jarfile);
     Container container;
 
       container=new JarContainer(jarfile);
@@ -62,11 +65,9 @@ public class SilverBackend {
       //TODO: InputStream is=loader.getResourceAsStream("silver.hglog");
       //TODO: silver_props.load(is);
       //TODO: is.close();
-      //TODO: System.err.printf("silver properties: %s%n", silver_props);
       //TODO: is=loader.getResourceAsStream("verifier.hglog");
       //TODO: verifier_props.load(is);
       //TODO: is.close();
-      //TODO: System.err.printf("verifier properties: %s%n", verifier_props);
       Class<?> v_class;
       if (parser) {
         v_class=loader.loadClass("viper.api.SilverImplementation");
@@ -83,7 +84,7 @@ public class SilverBackend {
       }
       obj=constructors[0].newInstance(new HREOrigins());
     } catch(Exception e) {
-      e.printStackTrace();
+      DebugException(e);
       throw new HREError("Exception %s",e);
     }
     if (!(obj instanceof ViperAPI)){
@@ -124,7 +125,7 @@ public class SilverBackend {
     MessageFactory log=new MessageFactory(new PassAddVisitor(report));
     TaskBegin verification=log.begin("Viper verification");
     ViperAPI<Origin,VerificationError,T,E,S,DFunc,DAxiom,Program> verifier=getVerifier(tool);
-    hre.lang.System.Output("verifying with %s %s backend",
+    hre.lang.System.Progress("verifying with %s %s backend",
             silver_module.used()?silver_module.get():"builtin",tool);
     //verifier.set_detail(Configuration.detailed_errors.get());
     VerCorsViperAPI vercors=VerCorsViperAPI.get();
@@ -137,7 +138,7 @@ public class SilverBackend {
          pw = new java.io.PrintWriter(new java.io.File(fname));
          verifier.write_program(pw,program);
       } catch (FileNotFoundException e) {
-        e.printStackTrace();
+        DebugException(e);
       } finally {
         if (pw!=null) pw.close();
       }
@@ -169,27 +170,17 @@ public class SilverBackend {
             accounted.add(o);
           }
         }
-        System.err.printf("method verdict %s %s%n",method,pass?"PASS":"FAIL");
+        Output("method verdict %s %s",method,pass?"PASS":"FAIL");
       }
       for(String method:control.failed_methods){
-        System.err.printf("method verdict %s FAIL%n",method);
+        Output("method verdict %s FAIL",method);
         for(Origin o:vercors.refuted.get(method)){
           accounted.add(o);
         }
       }
-      /*
-      System.err.printf("accounted: %n");
-      for(Origin o:accounted){
-        System.err.printf("  %s%n",o);
-      }
-      System.err.printf("reachable: %n");
-      for(Origin o:reachable){
-        System.err.printf("  %s%n",o);
-      }
-      */
       for(Origin o:reachable){
         if (!accounted.contains(o)){
-          System.err.printf("unregistered location %s marked reachable%n",o);
+          Warning("unregistered location %s marked reachable",o);
         }
       }
     } catch (Exception e){
