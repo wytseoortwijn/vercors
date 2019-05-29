@@ -2,7 +2,17 @@ package vct.col.print;
 
 import java.io.PrintStream;
 
-import vct.col.ast.*;
+import vct.col.ast.expr.NameExpression;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.stmt.composite.BlockStatement;
+import vct.col.ast.stmt.composite.IfStatement;
+import vct.col.ast.stmt.composite.LoopStatement;
+import vct.col.ast.stmt.decl.*;
+import vct.col.ast.stmt.terminal.AssignmentStatement;
+import vct.col.ast.stmt.terminal.ReturnStatement;
+import vct.col.ast.type.PrimitiveSort;
+import vct.col.ast.type.PrimitiveType;
+import vct.col.ast.type.Type;
 import vct.col.syntax.CSyntax;
 import hre.ast.TrackingOutput;
 import hre.ast.TrackingTree;

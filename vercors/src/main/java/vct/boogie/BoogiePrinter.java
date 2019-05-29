@@ -2,7 +2,11 @@
 package vct.boogie;
 
 import hre.ast.TrackingOutput;
-import vct.col.ast.*;
+import vct.col.ast.expr.NameExpression;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.stmt.decl.*;
+import vct.col.ast.type.PrimitiveSort;
+import vct.col.ast.type.Type;
 
 /**
  * This class contains a pretty printer for Boogie programs.
@@ -11,7 +15,7 @@ import vct.col.ast.*;
  *
  */
 public class BoogiePrinter extends AbstractBoogiePrinter {
-  
+
   public BoogiePrinter(TrackingOutput out){
     super(BoogieSyntax.getBoogie(),out,true);
   }

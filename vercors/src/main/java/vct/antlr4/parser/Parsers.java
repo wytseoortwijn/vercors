@@ -4,7 +4,7 @@ import hre.config.IntegerSetting;
 
 import java.io.File;
 
-import vct.col.ast.ProgramUnit;
+import vct.col.ast.stmt.decl.ProgramUnit;
 import vct.col.util.Parser;
 import vct.silver.ColSilverParser;
 import static hre.lang.System.Fail;

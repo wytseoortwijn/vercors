@@ -10,11 +10,11 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
-import vct.col.ast.ASTNode;
-import vct.col.ast.Axiom;
-import vct.col.ast.Method;
-import vct.col.ast.ProgramUnit;
-import vct.col.ast.Type;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.stmt.decl.Axiom;
+import vct.col.ast.stmt.decl.Method;
+import vct.col.ast.stmt.decl.ProgramUnit;
+import vct.col.ast.type.Type;
 import vct.col.util.ASTFactory;
 import vct.error.VerificationError;
 import viper.api.VerificationControl;

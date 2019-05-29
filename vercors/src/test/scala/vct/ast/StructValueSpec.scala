@@ -2,6 +2,8 @@ package vct.ast
 
 import org.scalatest._
 import vct.col.ast._
+import vct.col.ast.`type`.ClassType
+import vct.col.ast.expr.constant.StructValue
 
 class StructValueSpec extends FlatSpec with Matchers {
   

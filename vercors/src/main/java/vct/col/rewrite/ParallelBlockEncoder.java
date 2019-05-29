@@ -9,9 +9,18 @@ import java.util.Hashtable;
 import java.util.Stack;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import vct.col.ast.*;
-import vct.col.ast.ASTSpecial.Kind;
-import vct.col.ast.Binder;
+import vct.col.ast.expr.*;
+import vct.col.ast.expr.constant.ConstantExpression;
+import vct.col.ast.expr.constant.IntegerValue;
+import vct.col.ast.stmt.composite.*;
+import vct.col.ast.stmt.decl.*;
+import vct.col.ast.stmt.decl.ASTSpecial.Kind;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.type.ASTReserved;
+import vct.col.ast.type.ClassType;
+import vct.col.ast.type.PrimitiveSort;
+import vct.col.ast.type.Type;
+import vct.col.ast.util.ContractBuilder;
 import vct.col.util.ASTUtils;
 import vct.col.util.NameScanner;
 import vct.col.util.OriginWrapper;
@@ -148,7 +157,7 @@ public class ParallelBlockEncoder extends AbstractRewriter {
     BlockStatement res = rewrite(pb.body());
     ContractBuilder main_cb=new ContractBuilder();
     ContractBuilder check_cb=new ContractBuilder();
-    Hashtable<String,Type> main_vars=free_vars(pb);
+    Hashtable<String, Type> main_vars=free_vars(pb);
     Hashtable<String,Type> check_vars=new Hashtable<String, Type>(main_vars);
     ParallelBlock blk=null;
     for(ParallelBlock b:blocks){
@@ -534,7 +543,7 @@ public class ParallelBlockEncoder extends AbstractRewriter {
   
   private int ConstantExpToInt(ConstantExpression e)
   { 
-    return ((IntegerValue)e.value()).value();         
+    return ((IntegerValue)e.value()).value();
     
   }  
   private boolean sidecondition_check(ASTSpecial e)  {

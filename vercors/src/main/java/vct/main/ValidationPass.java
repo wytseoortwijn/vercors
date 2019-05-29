@@ -1,6 +1,6 @@
 package vct.main;
 
-import vct.col.ast.ProgramUnit;
+import vct.col.ast.stmt.decl.ProgramUnit;
 import vct.logging.ExceptionMessage;
 import vct.logging.PassAddVisitor;
 import vct.logging.PassReport;

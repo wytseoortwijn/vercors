@@ -2,16 +2,16 @@ package vct.col.rewrite;
 
 import java.util.HashMap;
 
-import vct.col.ast.ASTFlags;
-import vct.col.ast.ASTNode;
-import vct.col.ast.BlockStatement;
-import vct.col.ast.Contract;
-import vct.col.ast.DeclarationStatement;
-import vct.col.ast.Method;
-import vct.col.ast.NameExpression;
-import vct.col.ast.OperatorExpression;
-import vct.col.ast.ProgramUnit;
-import vct.col.ast.Type;
+import vct.col.ast.stmt.decl.ASTFlags;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.stmt.composite.BlockStatement;
+import vct.col.ast.stmt.decl.Contract;
+import vct.col.ast.stmt.decl.DeclarationStatement;
+import vct.col.ast.stmt.decl.Method;
+import vct.col.ast.expr.NameExpression;
+import vct.col.ast.expr.OperatorExpression;
+import vct.col.ast.stmt.decl.ProgramUnit;
+import vct.col.ast.type.Type;
 
 /**
  * This rewriter converts all method argument to final arguments.

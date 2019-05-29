@@ -2,6 +2,9 @@ package vct.ast
 
 import org.scalatest._
 import vct.col.ast._
+import vct.col.ast.expr.{OperatorExpression, StandardOperator}
+import vct.col.ast.expr.constant.ConstantExpression
+import vct.col.ast.generic.ASTNode
 
 class OperatorExpressionSpec extends FlatSpec with Matchers {
   

@@ -1,9 +1,9 @@
 package vct.col.rewrite;
 
-import vct.col.ast.ASTSpecial;
-import vct.col.ast.OperatorExpression;
-import vct.col.ast.ProgramUnit;
-import vct.col.ast.StandardOperator;
+import vct.col.ast.stmt.decl.ASTSpecial;
+import vct.col.ast.expr.OperatorExpression;
+import vct.col.ast.stmt.decl.ProgramUnit;
+import vct.col.ast.expr.StandardOperator;
 
 /**
  * This rewriter changes assignment expressions to assignment statements.

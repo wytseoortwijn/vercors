@@ -5,7 +5,15 @@ import java.util.HashSet;
 
 import hre.ast.Origin;
 import hre.ast.TrackingOutput;
-import vct.col.ast.*;
+import vct.col.ast.expr.*;
+import vct.col.ast.expr.constant.StructValue;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.stmt.composite.BlockStatement;
+import vct.col.ast.stmt.decl.*;
+import vct.col.ast.type.ClassType;
+import vct.col.ast.type.PrimitiveSort;
+import vct.col.ast.type.PrimitiveType;
+import vct.col.ast.type.Type;
 import vct.col.util.ASTUtils;
 
 /**

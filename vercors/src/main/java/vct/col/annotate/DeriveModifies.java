@@ -2,14 +2,14 @@ package vct.col.annotate;
 
 import java.util.HashSet;
 
-import vct.col.ast.ASTClass;
-import vct.col.ast.ASTNode;
-import vct.col.ast.ASTVisitor;
-import vct.col.ast.Contract;
-import vct.col.ast.ContractBuilder;
-import vct.col.ast.Method;
-import vct.col.ast.ProgramUnit;
-import vct.col.ast.RecursiveVisitor;
+import vct.col.ast.stmt.decl.ASTClass;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.util.ASTVisitor;
+import vct.col.ast.stmt.decl.Contract;
+import vct.col.ast.util.ContractBuilder;
+import vct.col.ast.stmt.decl.Method;
+import vct.col.ast.stmt.decl.ProgramUnit;
+import vct.col.ast.util.RecursiveVisitor;
 
 /**
  * This rewriter adds modifies clauses to all method contracts.

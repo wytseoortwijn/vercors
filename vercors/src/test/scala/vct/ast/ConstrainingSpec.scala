@@ -2,6 +2,9 @@ package vct.ast
 
 import org.scalatest._
 import vct.col.ast._
+import vct.col.ast.`type`.ASTReserved
+import vct.col.ast.expr.NameExpression
+import vct.col.ast.stmt.composite.{BlockStatement, Constraining}
 
 class ConstrainingSpec extends FlatSpec with Matchers {
   

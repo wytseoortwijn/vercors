@@ -1,8 +1,12 @@
 package vct.col.rewrite
 
 import hre.ast.MessageOrigin
-import vct.col.ast
-import vct.col.ast._
+import vct.col.ast.`type`.{ASTReserved, PrimitiveSort, PrimitiveType, Type}
+import vct.col.ast.expr.constant.StructValue
+import vct.col.ast.expr.{Dereference, OperatorExpression, StandardOperator}
+import vct.col.ast.generic.ASTNode
+import vct.col.ast.stmt.decl.{DeclarationStatement, ProgramUnit}
+import vct.col.ast.util.ContractBuilder
 import vct.col.util.SequenceUtils
 
 import scala.collection.mutable

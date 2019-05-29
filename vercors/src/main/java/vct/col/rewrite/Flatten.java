@@ -4,7 +4,19 @@ import hre.ast.MessageOrigin;
 
 import java.util.Stack;
 
-import vct.col.ast.*;
+import vct.col.ast.expr.*;
+import vct.col.ast.expr.constant.ConstantExpression;
+import vct.col.ast.expr.constant.StructValue;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.stmt.composite.BlockStatement;
+import vct.col.ast.stmt.composite.IfStatement;
+import vct.col.ast.stmt.composite.LoopStatement;
+import vct.col.ast.stmt.decl.*;
+import vct.col.ast.stmt.terminal.AssignmentStatement;
+import vct.col.ast.stmt.terminal.ReturnStatement;
+import vct.col.ast.type.ClassType;
+import vct.col.ast.type.PrimitiveSort;
+import vct.col.ast.type.Type;
 
 public class Flatten extends AbstractRewriter {
 

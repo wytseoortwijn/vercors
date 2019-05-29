@@ -1,8 +1,12 @@
 package vct.ast
 
 import org.scalatest._
+
 import scala.collection.JavaConverters._
 import vct.col.ast._
+import vct.col.ast.`type`.{ClassType, PrimitiveSort, PrimitiveType}
+import vct.col.ast.generic.ASTNode
+import vct.col.ast.stmt.decl.ProgramUnit
 
 class ClassTypeSpec extends FlatSpec with Matchers {
  

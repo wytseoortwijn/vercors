@@ -1,31 +1,30 @@
 package vct.col.rewrite;
 
 import java.util.ArrayList;
-import vct.col.ast.ASTClass;
-import vct.col.ast.ASTClass.ClassKind;
-import vct.col.ast.ASTFlags;
-import vct.col.ast.ASTNode;
-import vct.col.ast.ASTSpecial;
-import vct.col.ast.BlockStatement;
-import vct.col.ast.BooleanValue;
-import vct.col.ast.ClassType;
-import vct.col.ast.ConstantExpression;
-import vct.col.ast.Contract;
-import vct.col.ast.ContractBuilder;
-import vct.col.ast.DeclarationStatement;
-import vct.col.ast.Dereference;
-import vct.col.ast.LoopStatement;
-import vct.col.ast.Method;
-import vct.col.ast.MethodInvokation;
-import vct.col.ast.NameExpression;
-import vct.col.ast.OperatorExpression;
-import vct.col.ast.PrimitiveType;
-import vct.col.ast.PrimitiveSort;
-import vct.col.ast.ProgramUnit;
-import vct.col.ast.StandardOperator;
-import vct.col.ast.Type;
+import vct.col.ast.stmt.decl.ASTClass;
+import vct.col.ast.stmt.decl.ASTClass.ClassKind;
+import vct.col.ast.stmt.decl.ASTFlags;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.stmt.decl.ASTSpecial;
+import vct.col.ast.stmt.composite.BlockStatement;
+import vct.col.ast.expr.constant.BooleanValue;
+import vct.col.ast.type.ClassType;
+import vct.col.ast.expr.constant.ConstantExpression;
+import vct.col.ast.stmt.decl.Contract;
+import vct.col.ast.type.PrimitiveSort;
+import vct.col.ast.util.ContractBuilder;
+import vct.col.ast.stmt.decl.DeclarationStatement;
+import vct.col.ast.expr.Dereference;
+import vct.col.ast.stmt.composite.LoopStatement;
+import vct.col.ast.stmt.decl.Method;
+import vct.col.ast.expr.MethodInvokation;
+import vct.col.ast.expr.NameExpression;
+import vct.col.ast.expr.OperatorExpression;
+import vct.col.ast.stmt.decl.ProgramUnit;
+import vct.col.ast.expr.StandardOperator;
+import vct.col.ast.type.Type;
 import vct.util.Configuration;
-import static vct.col.ast.ASTReserved.*;
+import static vct.col.ast.type.ASTReserved.*;
 
 /**
  * Explicit permission encoding.

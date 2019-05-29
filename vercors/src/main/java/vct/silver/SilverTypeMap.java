@@ -6,7 +6,9 @@ import java.util.Map;
 import hre.ast.MessageOrigin;
 import hre.ast.Origin;
 import hre.lang.HREError;
-import vct.col.ast.*;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.type.*;
+import vct.col.ast.util.TypeMapping;
 import vct.col.rewrite.AbstractRewriter;
 import viper.api.*;
 

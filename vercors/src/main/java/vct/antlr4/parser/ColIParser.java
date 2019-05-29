@@ -13,7 +13,7 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 
 import vct.antlr4.generated.*;
-import vct.col.ast.ProgramUnit;
+import vct.col.ast.stmt.decl.ProgramUnit;
 import vct.col.rewrite.ConvertTypeExpressions;
 import vct.col.rewrite.EncodeAsClass;
 import vct.col.rewrite.FilterSpecIgnore;

@@ -1,10 +1,15 @@
 package vct.col.rewrite;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Stack;
 
-import vct.col.ast.*;
+import vct.col.ast.expr.StandardOperator;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.stmt.composite.*;
+import vct.col.ast.stmt.decl.Contract;
+import vct.col.ast.stmt.decl.Method;
+import vct.col.ast.stmt.decl.ProgramUnit;
+import vct.col.ast.util.ContractBuilder;
 
 public class PropagateInvariants extends AbstractRewriter {
 

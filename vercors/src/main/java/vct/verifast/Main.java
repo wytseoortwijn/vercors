@@ -5,7 +5,7 @@ import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 
-import vct.col.ast.ProgramUnit;
+import vct.col.ast.stmt.decl.ProgramUnit;
 import vct.col.syntax.JavaDialect;
 import vct.col.syntax.JavaSyntax;
 import vct.util.Configuration;

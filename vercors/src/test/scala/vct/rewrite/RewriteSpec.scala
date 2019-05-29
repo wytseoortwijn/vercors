@@ -2,7 +2,8 @@ package vct.rewrite
 
 import org.scalatest.matchers.{MatchResult, Matcher}
 import org.scalatest.{FlatSpec, Matchers}
-import vct.col.ast.{ASTFrame, ASTNode, ASTVisitor}
+import vct.col.ast.util.{ASTFrame, ASTVisitor}
+import vct.col.ast.generic.ASTNode
 import vct.col.rewrite.AbstractRewriter
 import vct.col.util.ASTFactory
 

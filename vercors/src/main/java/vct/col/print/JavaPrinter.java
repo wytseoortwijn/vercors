@@ -6,13 +6,21 @@ import hre.ast.TrackingTree;
 import hre.lang.HREError;
 
 import java.io.PrintStream;
-import java.util.List;
-import java.util.Map.Entry;
 
 import org.apache.commons.lang3.StringEscapeUtils;
 
-import vct.col.ast.*;
-import vct.col.ast.Switch.Case;
+import vct.col.ast.stmt.composite.Switch.Case;
+import vct.col.ast.expr.*;
+import vct.col.ast.expr.constant.ConstantExpression;
+import vct.col.ast.expr.constant.StringValue;
+import vct.col.ast.expr.constant.StructValue;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.generic.BeforeAfterAnnotations;
+import vct.col.ast.stmt.composite.*;
+import vct.col.ast.stmt.decl.*;
+import vct.col.ast.stmt.terminal.AssignmentStatement;
+import vct.col.ast.stmt.terminal.ReturnStatement;
+import vct.col.ast.type.*;
 import vct.col.syntax.JavaDialect;
 import vct.col.syntax.JavaSyntax;
 import vct.col.util.ASTUtils;

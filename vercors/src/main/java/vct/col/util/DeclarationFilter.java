@@ -1,7 +1,7 @@
 package vct.col.util;
 
-import vct.col.ast.ASTNode;
-import vct.col.ast.DeclarationStatement;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.stmt.decl.DeclarationStatement;
 import hre.util.Function;
 
 public class DeclarationFilter implements Function<ASTNode,DeclarationStatement> {

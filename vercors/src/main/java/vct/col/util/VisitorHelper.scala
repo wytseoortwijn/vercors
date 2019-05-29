@@ -1,7 +1,7 @@
 package vct.col.util
 
 import hre.ast.Origin
-import vct.col.ast.ASTNode
+import vct.col.ast.generic.ASTNode
 
 trait VisitorHelper {
   def getOrigin() : Origin

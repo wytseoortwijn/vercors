@@ -6,8 +6,23 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 
-import scala.collection.Seq;
-import vct.col.ast.*;
+import vct.col.ast.expr.OperatorExpression;
+import vct.col.ast.expr.StandardOperator;
+import vct.col.ast.expr.constant.ConstantExpression;
+import vct.col.ast.expr.NameExpression;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.stmt.composite.BlockStatement;
+import vct.col.ast.stmt.composite.VectorBlock;
+import vct.col.ast.stmt.decl.ASTClass;
+import vct.col.ast.stmt.decl.DeclarationStatement;
+import vct.col.ast.stmt.decl.Method;
+import vct.col.ast.stmt.decl.ProgramUnit;
+import vct.col.ast.stmt.terminal.AssignmentStatement;
+import vct.col.ast.type.ASTReserved;
+import vct.col.ast.type.PrimitiveSort;
+import vct.col.ast.type.PrimitiveType;
+import vct.col.ast.type.Type;
+import vct.col.ast.util.ContractBuilder;
 import vct.col.util.SequenceUtils;
 
 import static vct.col.rewrite.VectorEncode.Op.*;
@@ -36,7 +51,7 @@ public class VectorEncode extends AbstractRewriter {
     }
   }
 
-  private static String name(Pair<Op,Type> p){
+  private static String name(Pair<Op, Type> p){
     return "Vector_"+p.e1.toString()+"_"+p.e2.toString();
   }
   

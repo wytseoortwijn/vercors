@@ -1,8 +1,10 @@
 package vct.col.rewrite;
 
 import hre.ast.MessageOrigin;
-import vct.col.ast.*;
-import vct.col.ast.ASTClass.ClassKind;
+import vct.col.ast.stmt.decl.*;
+import vct.col.ast.stmt.decl.ASTClass.ClassKind;
+import vct.col.ast.type.Type;
+import vct.col.ast.type.TypeExpression;
 
 public class ConvertTypeExpressions extends AbstractRewriter {
 
@@ -22,7 +24,7 @@ public class ConvertTypeExpressions extends AbstractRewriter {
   @Override
   public void visit(DeclarationStatement d){
     boolean extern=false;
-    Type t=d.getType(); 
+    Type t=d.getType();
     while(t instanceof TypeExpression){
       TypeExpression e=(TypeExpression)t;
       switch (e.operator()) {
