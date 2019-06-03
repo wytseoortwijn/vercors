@@ -6,22 +6,27 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import vct.col.ast.*;
-import vct.col.ast.ASTSpecial.Kind;
-import vct.col.ast.Binder;
+import vct.col.ast.expr.*;
+import vct.col.ast.stmt.composite.BlockStatement;
+import vct.col.ast.stmt.decl.*;
+import vct.col.ast.stmt.decl.ASTSpecial.Kind;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.stmt.composite.ActionBlock;
+import vct.col.ast.type.*;
+import vct.col.ast.util.ContractBuilder;
 import vct.logging.ErrorMapping;
 import vct.logging.VerCorsError.ErrorCode;
 import vct.util.Configuration;
-import static vct.col.ast.StandardOperator.Perm;
-import static vct.col.ast.StandardOperator.PointsTo;
-import static vct.col.ast.StandardOperator.EQ;
-import static vct.col.ast.StandardOperator.Old;
-import static vct.col.ast.ASTReserved.FullPerm;
+import static vct.col.ast.expr.StandardOperator.Perm;
+import static vct.col.ast.expr.StandardOperator.PointsTo;
+import static vct.col.ast.expr.StandardOperator.EQ;
+import static vct.col.ast.expr.StandardOperator.Old;
+import static vct.col.ast.type.ASTReserved.FullPerm;
 
 public class CheckHistoryAlgebra extends AbstractRewriter {
   
   public static final String ASSIGN_HIST="assign_hist";
-  
+
   private AtomicInteger count=new AtomicInteger();
   
   public static enum Mode { AxiomVerification, ProgramVerification };
@@ -301,8 +306,6 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
         null
     );
     hist_class.add(begin_hist);
-    //System.out.printf("%s%n",Configuration.getDiagSyntax().print(begin_hist));
-
   }
 
   protected void add_split_merge_methods(ASTClass cl) {
@@ -907,7 +910,7 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
       ));
     }
     ASTNode temp=rewrite(def.getContract().pre_condition);
-    System.err.printf("REQ %s%n", temp);
+    Debug("REQ %s", temp);
     cb.requires(temp);
     cb.ensures(new_sigma.rewrite(rename_old.rewrite(def.getContract().post_condition)));
     
@@ -931,7 +934,6 @@ public class CheckHistoryAlgebra extends AbstractRewriter {
         null
     );
     hist_class.add_dynamic(end_hist);
-    //System.out.printf("%s%n",Configuration.getDiagSyntax().print(end_hist));
 
     result=create.invokation(rewrite(model), null ,name,rewrite(effect.getArgs()));
   }

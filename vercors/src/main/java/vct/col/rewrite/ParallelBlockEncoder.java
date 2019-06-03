@@ -9,9 +9,18 @@ import java.util.Hashtable;
 import java.util.Stack;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import vct.col.ast.*;
-import vct.col.ast.ASTSpecial.Kind;
-import vct.col.ast.Binder;
+import vct.col.ast.expr.*;
+import vct.col.ast.expr.constant.ConstantExpression;
+import vct.col.ast.expr.constant.IntegerValue;
+import vct.col.ast.stmt.composite.*;
+import vct.col.ast.stmt.decl.*;
+import vct.col.ast.stmt.decl.ASTSpecial.Kind;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.type.ASTReserved;
+import vct.col.ast.type.ClassType;
+import vct.col.ast.type.PrimitiveSort;
+import vct.col.ast.type.Type;
+import vct.col.ast.util.ContractBuilder;
 import vct.col.util.ASTUtils;
 import vct.col.util.NameScanner;
 import vct.col.util.OriginWrapper;
@@ -148,7 +157,7 @@ public class ParallelBlockEncoder extends AbstractRewriter {
     BlockStatement res = rewrite(pb.body());
     ContractBuilder main_cb=new ContractBuilder();
     ContractBuilder check_cb=new ContractBuilder();
-    Hashtable<String,Type> main_vars=free_vars(pb);
+    Hashtable<String, Type> main_vars=free_vars(pb);
     Hashtable<String,Type> check_vars=new Hashtable<String, Type>(main_vars);
     ParallelBlock blk=null;
     for(ParallelBlock b:blocks){
@@ -534,7 +543,7 @@ public class ParallelBlockEncoder extends AbstractRewriter {
   
   private int ConstantExpToInt(ConstantExpression e)
   { 
-    return ((IntegerValue)e.value()).value();         
+    return ((IntegerValue)e.value()).value();
     
   }  
   private boolean sidecondition_check(ASTSpecial e)  {
@@ -601,9 +610,6 @@ public class ParallelBlockEncoder extends AbstractRewriter {
       // create method contract
       //and call the method
 
-      //vct.util.Configuration.getDiagSyntax().print(System.out,e.getArg(0));
-      //System.out.printf("\n");      
-        
       String send_name="send_body_"+N;
       
         ArrayList<DeclarationStatement> send_decl=new ArrayList<DeclarationStatement>();// declaration of parameters for send_check
@@ -645,7 +651,7 @@ public class ParallelBlockEncoder extends AbstractRewriter {
       if(!sidecondition_check(e))
       {
           super.visit(e);
-          Fail("\nThe distance of dependence in the \"send\" statement should be positive.");         
+          Fail("The distance of dependence in the \"send\" statement should be positive.");
       }
       ///Check for side conditions              
       
@@ -656,7 +662,6 @@ public class ParallelBlockEncoder extends AbstractRewriter {
     case Recv:
       // create method contract
       // and call the method
-      // vct.util.Configuration.getDiagSyntax().print(System.out,e.getArg(0));//DRB                       
       if (current_label==null){
         Fail("recv in unlabeled position");
       }
@@ -701,14 +706,12 @@ public class ParallelBlockEncoder extends AbstractRewriter {
         OriginWrapper.wrap(null,recv_body, branch);      
         //Error management  --> line numbers, origins , ...
         
-        //System.out.printf("generated %s at %s%n",recv_body.name,recv_body.getOrigin());
-
         //Check for side conditions
            
       if(!sidecondition_check(e))
       {       
           super.visit(e);
-          Fail("\nThe distance of dependence in the \"recv\" statement should be positive.");         
+          Fail("The distance of dependence in the \"recv\" statement should be positive.");
       }
       ///Check for side conditions        
         currentTargetClass.add_dynamic(recv_body);        
@@ -735,7 +738,6 @@ public class ParallelBlockEncoder extends AbstractRewriter {
     loop_invariant=c.invariant;
     ASTNode res=null;
     Hashtable<String,Type> body_vars=free_vars(s.body,c,s.guard);
-    //System.out.printf("free in %s are %s%n",s.body,body_vars);
     //Hashtable<String,Type> iters=new Hashtable<String,Type>();
     Hashtable<String,Type> main_vars=new Hashtable<String, Type>(body_vars);
     for(DeclarationStatement decl:s.decls){

@@ -2,9 +2,9 @@ package vct.col.rewrite;
 
 import hre.ast.InlineOrigin;
 import hre.ast.Origin;
-import vct.col.ast.ASTNode;
-import vct.col.ast.ProgramUnit;
-import vct.col.ast.RecursiveVisitor;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.stmt.decl.ProgramUnit;
+import vct.col.ast.util.RecursiveVisitor;
 
 public class InlineMarking extends RecursiveVisitor<Object> {
 

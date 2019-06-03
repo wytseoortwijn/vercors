@@ -5,10 +5,17 @@ import java.util.HashMap;
 import java.util.Map;
 
 import scala.collection.JavaConverters;
-import scala.collection.Seq;
-import vct.col.ast.*;
-import vct.col.ast.NameExpression.Kind;
-import vct.col.rewrite.ArrayNullValues;
+import vct.col.ast.expr.NameExpression.Kind;
+import vct.col.ast.expr.*;
+import vct.col.ast.expr.constant.ConstantExpression;
+import vct.col.ast.expr.constant.StructValue;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.stmt.composite.*;
+import vct.col.ast.stmt.decl.*;
+import vct.col.ast.stmt.terminal.AssignmentStatement;
+import vct.col.ast.stmt.terminal.ReturnStatement;
+import vct.col.ast.type.*;
+import vct.col.ast.util.RecursiveVisitor;
 import vct.col.rewrite.MultiSubstitution;
 import vct.col.rewrite.TypeVarSubstitution;
 import vct.silver.SilverTypeMap;
@@ -232,9 +239,7 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
         Fail("%s is not an ADT in %s",e.object,e);
       }
       SilverTypeMap.get_adt_subst(sigma.copy_rw,map,(ClassType)e.object);
-      //System.err.printf("before %s %s %s%n",e.method,map,t);
       e.setType(sigma.rewrite(t));
-      //System.err.printf("result %s after %s%n",e.method,e.getType());
       return;
     }
 
@@ -425,7 +430,7 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
     if (val_type==null) Abort("Value has no type has no type.");
     if (loc_type.toString().equals("<<label>>")) return;
 
-    System.out.println(String.format("Comparing %s with %s as %s", loc_type, val, val_type));
+    Debug("Comparing %s with %s as %s", loc_type, val, val_type);
 
     if(loc_type.isPrimitive(PrimitiveSort.Option)) {
       val.setType(loc_type);
@@ -1015,10 +1020,6 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
     case NEQ:
     {
       if (!t1.comparableWith(source(),t2)) {
-        //vct.util.Configuration.getDiagSyntax().print(System.out,e.getArg(0));
-        //System.out.print("/");
-        //vct.util.Configuration.getDiagSyntax().print(System.out,e.getArg(1));
-        //System.out.println();
         Fail("Types of left and right-hand side argument are uncomparable: %s/%s",t1,t2);
       }
       e.setType(new PrimitiveType(PrimitiveSort.Boolean));
@@ -1493,7 +1494,9 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
   public void visit(Dereference e){
     super.visit(e);
 
-    if(e.obj().isa(StandardOperator.Subscript)) {
+    if(e.obj().isa(StandardOperator.Subscript) && e.field().equals("item")) {
+      // In the case that the underlying object is a subscript of a sequence, we need to restore the original cell type
+      // when the dereference is to the item of the cell.
       ASTNode sequenceLike = ((OperatorExpression) e.obj()).first();
       SequenceUtils.SequenceInfo sequenceInfo = SequenceUtils.getInfoOrFail(sequenceLike, "Expected a sequence type at %s, but got %s");
       e.obj().setType(sequenceInfo.getSequenceTypeArgument());

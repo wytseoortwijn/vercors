@@ -4,7 +4,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Hashtable;
 
-import vct.col.ast.*;
+import vct.col.ast.expr.MethodInvokation;
+import vct.col.ast.expr.NameExpression;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.stmt.composite.BlockStatement;
+import vct.col.ast.stmt.decl.*;
+import vct.col.ast.stmt.terminal.AssignmentStatement;
+import vct.col.ast.util.ContractBuilder;
 
 public class GhostLifter extends AbstractRewriter {
 
@@ -20,7 +26,7 @@ public class GhostLifter extends AbstractRewriter {
     for(DeclarationStatement arg:m.getArgs()){
       args.add(rewrite(arg));
     }
-    Hashtable<String,ASTNode> yielded=new Hashtable<String, ASTNode>();
+    Hashtable<String, ASTNode> yielded=new Hashtable<String, ASTNode>();
     if (c!=null){
       for(DeclarationStatement arg:c.given){
         args.add(rewrite(arg));
@@ -109,7 +115,7 @@ public class GhostLifter extends AbstractRewriter {
           arg=rewrite(decl.initJava());
         }
         if (arg==null){
-          System.err.printf("key set %s%n",arg_map.keySet());
+          Debug("key set %s",arg_map.keySet());
           Fail("argument %s is missing", decl.name());
         }
         args.add(arg);

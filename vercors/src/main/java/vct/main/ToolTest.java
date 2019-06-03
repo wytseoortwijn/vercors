@@ -3,20 +3,25 @@ package vct.main;
 import hre.io.Message;
 import hre.io.MessageProcess;
 import hre.io.ModuleShell;
-import hre.util.TestReport.Verdict;
+import hre.util.TestReport;
 
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import vct.silver.SilverBackend;
 import vct.util.Configuration;
 
+import static hre.lang.System.Verdict;
+
 public class ToolTest {
+  private final static Pattern TIME_PATTERN = Pattern.compile("^(\\s*\\[[^\\]]*\\])*\\s*([a-zA-Z_ ]+) took\\s*([0-9]+)\\s*ms$");
 
   public static void fail(VCTResult res,String msg){
-    System.err.printf("failure: %s%n",msg);
-    res.verdict=Verdict.Error;
+    Verdict("failure: %s",msg);
+    res.verdict=TestReport.Verdict.Error;
   }
   public VCTResult run(String ... args) {
     StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
@@ -26,10 +31,8 @@ public class ToolTest {
     }
     idx++;
     String test_name=stackTraceElements[idx].getMethodName();
-    //System.err.printf("test name is %s%n", test_name);
     VCTResult res=new VCTResult();
     Path f=Configuration.getHome();
-    //System.err.printf("home is %s%n", f);
     String OS=System.getProperty("os.name");
     for(int i=1;i<args.length;i++){
       if (args[i].startsWith("//")){
@@ -38,7 +41,7 @@ public class ToolTest {
     }
     MessageProcess p=null;
     ModuleShell sh=null;
-    res.verdict=Verdict.Inconclusive;
+    res.verdict=TestReport.Verdict.Inconclusive;
     switch(args[0]){
     case "vct":
       if (args[1].equals("--syntax")){
@@ -51,6 +54,7 @@ public class ToolTest {
       }
       sh=Configuration.getShell();
       res.verdict=null;
+      args[0] += " --progress"; // To capture verification time
       if (CommandLineTesting.savedir.used()){
         Path dir=Paths.get(CommandLineTesting.savedir.get()).toAbsolutePath();
         String ext="";
@@ -110,12 +114,10 @@ public class ToolTest {
         because Chalice assumes that every argument that starts with / is an option,
         we translate absolute path to relative paths.
        */
-      //System.err.printf("shell dir is %s %n", sh.shell_dir);
       for(int i=1;i<args.length;i++){
         if (args[i].startsWith("/") && new File(args[i]).isFile()){
           Path path=sh.shell_dir.relativize(Paths.get(args[i]));
           args[i]=path.toString();
-          //System.err.printf("relative argument is %s %n", args[i]);
         }
       }
       break;
@@ -139,32 +141,28 @@ public class ToolTest {
       }
       if (msg.getFormat().equals("stderr: %s")||msg.getFormat().equals("stdout: %s")){
         String line=msg.getArgs()[0].toString();
-        if (line.matches(".*took.*ms")){
-          String split[]=line.split("took|ms");
-          res.times.put(split[0].trim(),Integer.parseInt(split[1].trim()));
+        Matcher lineMatcher = TIME_PATTERN.matcher(line);
+        if (lineMatcher.find()){
+          String key = lineMatcher.group(2);
+          int value = Integer.parseInt(lineMatcher.group(3));
+          res.times.put(key, value);
         }
       }
       res.log.add(msg);
-      /*
-      synchronized(sem){
-        System.err.printf(msg.getFormat(), msg.getArgs());
-        System.err.println();
-      }
-      */
       if (msg.getFormat().equals("exit %d")){
         int n=(Integer)msg.getArg(0);
         if (n>0){
-          res.verdict=Verdict.Error;
+          res.verdict=TestReport.Verdict.Error;
         }
         break;
       }
       if (((String)msg.getArg(0)).contains("The final verdict is Pass")){
-        if (res.verdict!=null && res.verdict != Verdict.Pass) fail(res,"inconsistent repeated verdict ("+res.verdict+")");
-        else res.verdict=Verdict.Pass;
+        if (res.verdict!=null && res.verdict != TestReport.Verdict.Pass) fail(res,"inconsistent repeated verdict ("+res.verdict+")");
+        else res.verdict=TestReport.Verdict.Pass;
       }
       if (((String)msg.getArg(0)).contains("The final verdict is Fail")){
-        if (res.verdict!=null && res.verdict != Verdict.Fail) fail(res,"inconsistent repeated verdict ("+res.verdict+")");
-        else res.verdict=Verdict.Fail;
+        if (res.verdict!=null && res.verdict != TestReport.Verdict.Fail) fail(res,"inconsistent repeated verdict ("+res.verdict+")");
+        else res.verdict=TestReport.Verdict.Fail;
       }
       if (((String)msg.getArg(0)).startsWith("method verdict")){
         String line[]=((String)msg.getArg(0)).split(" ");
@@ -181,14 +179,6 @@ public class ToolTest {
       }
     }
     if (res.verdict==null) fail(res,"missing verdict");
-    /*
-    synchronized(sem){
-      System.err.printf("%s:%n",test_name);
-      for (String key:res.times.keySet()){
-        System.err.printf("  %s took %d %n",key,res.times.get(key));
-      }
-    }
-    */
     return res;
   }
 

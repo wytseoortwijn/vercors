@@ -4,15 +4,15 @@ import hre.lang.HREError;
 
 import java.util.ArrayList;
 
-import vct.col.ast.ASTFlags;
-import vct.col.ast.ASTNode;
-import vct.col.ast.ASTReserved;
-import vct.col.ast.ContractBuilder;
-import vct.col.ast.DeclarationStatement;
-import vct.col.ast.Method;
-import vct.col.ast.NameExpression;
-import vct.col.ast.ProgramUnit;
-import vct.col.ast.Type;
+import vct.col.ast.stmt.decl.ASTFlags;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.type.ASTReserved;
+import vct.col.ast.util.ContractBuilder;
+import vct.col.ast.stmt.decl.DeclarationStatement;
+import vct.col.ast.stmt.decl.Method;
+import vct.col.ast.expr.NameExpression;
+import vct.col.ast.stmt.decl.ProgramUnit;
+import vct.col.ast.type.Type;
 
 public class AnnotationInterpreter extends AbstractRewriter {
 

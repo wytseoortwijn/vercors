@@ -1,6 +1,11 @@
 package vct.col.util;
 
-import vct.col.ast.*;
+import vct.col.ast.expr.StandardOperator;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.type.ASTReserved;
+import vct.col.ast.type.PrimitiveSort;
+import vct.col.ast.type.PrimitiveType;
+import vct.col.ast.type.Type;
 
 import java.util.function.Consumer;
 

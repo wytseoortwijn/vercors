@@ -1,6 +1,11 @@
 package vct.col.rewrite;
 
-import vct.col.ast.*;
+import vct.col.ast.expr.NameExpression;
+import vct.col.ast.expr.OperatorExpression;
+import vct.col.ast.expr.StandardOperator;
+import vct.col.ast.stmt.decl.ProgramUnit;
+import vct.col.ast.type.ASTReserved;
+import vct.col.ast.type.PrimitiveSort;
 
 /**
  * Rewrite pass that rewrites null values to none where they should be converted. This happens when e.g. null is

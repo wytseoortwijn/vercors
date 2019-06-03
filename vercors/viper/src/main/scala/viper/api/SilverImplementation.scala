@@ -12,6 +12,7 @@ import viper.silver.ast.SeqAppend
 import java.nio.file.Path
 import viper.silver.parser.PLocalVarDecl
 import scala.collection.mutable.WrappedArray
+import hre.lang.System.Output
 
 class SilverImplementation[O,Err](o:OriginFactory[O])
   extends viper.api.ViperAPI[O,Err,Type,Exp,Stmt,DomainFunc,DomainAxiom,Prog](o,
@@ -70,15 +71,15 @@ class SilverImplementation[O,Err](o:OriginFactory[O])
     Reachable.reachable.clear()
     val verifier=createVerifier(tool_home,settings)
     //println("verifier: "+ verifier);
-    println("running verify");
+    //Progress("running verify");
     val res = verifier.verify(program)
-    println("finished verify");
+    //Progress("finished verify");
     //println("verifier output: "+ res);
     res match {
       case Success =>
-        println("Success!")
+        Output("Success!")
       case Failure(errors) =>
-        println("Errors! ("+errors.length+")")
+        Output("Errors! (%d)", errors.length.asInstanceOf[java.lang.Integer])
         errors foreach { e =>
           if (detail) show("error", e)
           e match {

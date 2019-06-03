@@ -43,7 +43,7 @@ public class ClassDefinition extends AnyDefinition {
     if (res==null){
       res=new FieldDefinition(name,is_static,this);
       field_map.put(name,res);
-      Debug("new field %s.%s\n",this.fullName(),name);
+      Debug("new field %s.%s",this.fullName(),name);
     }
   }
 
@@ -52,7 +52,7 @@ public class ClassDefinition extends AnyDefinition {
     if (res==null){
       res=new MethodDefinition(name);
       method_map.put(name,res);
-      Debug("new method %s.%s\n",this.fullName(),name);
+      Debug("new method %s.%s",this.fullName(),name);
     }
   }
   
@@ -61,7 +61,7 @@ public class ClassDefinition extends AnyDefinition {
     if(res==null){
       res=new ClassDefinition(name,this);
       child_map.put(name,res);
-      Debug("new package or class %s\n",res.fullName());
+      Debug("new package or class %s",res.fullName());
     }
     return res;
   }

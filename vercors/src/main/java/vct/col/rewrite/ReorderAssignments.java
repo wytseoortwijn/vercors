@@ -2,10 +2,10 @@ package vct.col.rewrite;
 
 import java.util.HashSet;
 
-import vct.col.ast.Method;
-import vct.col.ast.BlockStatement;
-import vct.col.ast.DeclarationStatement;
-import vct.col.ast.ProgramUnit;
+import vct.col.ast.stmt.decl.Method;
+import vct.col.ast.stmt.composite.BlockStatement;
+import vct.col.ast.stmt.decl.DeclarationStatement;
+import vct.col.ast.stmt.decl.ProgramUnit;
 
 public class ReorderAssignments extends AbstractRewriter {
   private HashSet<String> argumentNames = new HashSet<String>();

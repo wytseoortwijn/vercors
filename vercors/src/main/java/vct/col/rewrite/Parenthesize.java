@@ -1,13 +1,13 @@
 package vct.col.rewrite;
 
-import vct.col.ast.ASTNode;
-import vct.col.ast.ClassType;
-import vct.col.ast.Contract;
-import vct.col.ast.ContractBuilder;
-import vct.col.ast.DeclarationStatement;
-import vct.col.ast.OperatorExpression;
-import vct.col.ast.ProgramUnit;
-import vct.col.ast.StandardOperator;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.type.ClassType;
+import vct.col.ast.stmt.decl.Contract;
+import vct.col.ast.util.ContractBuilder;
+import vct.col.ast.stmt.decl.DeclarationStatement;
+import vct.col.ast.expr.OperatorExpression;
+import vct.col.ast.stmt.decl.ProgramUnit;
+import vct.col.ast.expr.StandardOperator;
 import vct.col.syntax.Syntax;
 import vct.col.syntax.Syntax.Associativity;
 

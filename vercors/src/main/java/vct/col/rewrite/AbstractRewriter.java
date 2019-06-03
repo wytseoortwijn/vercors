@@ -8,13 +8,24 @@ import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import hre.ast.MessageOrigin;
 import hre.ast.Origin;
-import vct.col.ast.*;
-import vct.col.ast.ASTSpecial.Kind;
-import vct.col.ast.Switch.Case;
+import vct.col.ast.expr.*;
+import vct.col.ast.expr.constant.ConstantExpression;
+import vct.col.ast.expr.constant.StructValue;
+import vct.col.ast.stmt.composite.*;
+import vct.col.ast.stmt.decl.*;
+import vct.col.ast.stmt.decl.ASTSpecial.Kind;
+import vct.col.ast.stmt.composite.Switch.Case;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.generic.ASTSequence;
+import vct.col.ast.stmt.terminal.AssignmentStatement;
+import vct.col.ast.stmt.terminal.ReturnStatement;
+import vct.col.ast.type.*;
+import vct.col.ast.util.ASTFrame;
+import vct.col.ast.util.AbstractVisitor;
+import vct.col.ast.util.ContractBuilder;
 import vct.col.util.ASTFactory;
 import vct.col.util.ASTUtils;
 import vct.col.util.LambdaHelper;
@@ -29,7 +40,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
 
   private static ThreadLocal<AbstractRewriter> tl=new ThreadLocal<AbstractRewriter>();
 
-  public static <R extends ASTNode> Hashtable<String,Type> free_vars(List<R> nodes) {
+  public static <R extends ASTNode> Hashtable<String, Type> free_vars(List<R> nodes) {
     Hashtable<String,Type> vars = new Hashtable<String,Type>();
     NameScanner scanner = new NameScanner(vars);
     for (R n : nodes) {
@@ -201,7 +212,7 @@ public class AbstractRewriter extends AbstractVisitor<ASTNode> {
     }
     in_ensures=false;
     if (c.signals!=null) for(DeclarationStatement decl:c.signals){
-      cb.signals((ClassType)rewrite(decl.getType()), decl.name(), rewrite(decl.initJava()));      
+      cb.signals((ClassType)rewrite(decl.getType()), decl.name(), rewrite(decl.initJava()));
     }
     //cb.requires(rewrite(c.pre_condition));
     //cb.ensures(rewrite(c.post_condition));

@@ -19,31 +19,31 @@ import vct.antlr4.generated.PVFullParser;
 import vct.antlr4.generated.PVFullParser.*;
 import vct.antlr4.generated.PVFullVisitor;
 
-import vct.col.ast.ASTClass;
-import vct.col.ast.ASTFlags;
-import vct.col.ast.ASTNode;
-import vct.col.ast.ASTReserved;
-import vct.col.ast.ASTSequence;
-import vct.col.ast.ASTSpecial;
-import vct.col.ast.BeforeAfterAnnotations;
-import vct.col.ast.BlockStatement;
-import vct.col.ast.Contract;
-import vct.col.ast.ContractBuilder;
-import vct.col.ast.DeclarationStatement;
-import vct.col.ast.Dereference;
-import vct.col.ast.Method;
-import vct.col.ast.NameExpression;
-import vct.col.ast.ParallelBlock;
-import vct.col.ast.ProgramUnit;
-import vct.col.ast.StandardOperator;
-import vct.col.ast.Type;
-import vct.col.ast.ASTClass.ClassKind;
-import vct.col.ast.Method.Kind;
-import vct.col.ast.PrimitiveSort;
-import vct.col.ast.VariableDeclaration;
+import vct.col.ast.stmt.decl.ASTClass;
+import vct.col.ast.stmt.decl.ASTFlags;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.type.ASTReserved;
+import vct.col.ast.generic.ASTSequence;
+import vct.col.ast.stmt.decl.ASTSpecial;
+import vct.col.ast.generic.BeforeAfterAnnotations;
+import vct.col.ast.stmt.composite.BlockStatement;
+import vct.col.ast.stmt.decl.Contract;
+import vct.col.ast.type.PrimitiveSort;
+import vct.col.ast.util.ContractBuilder;
+import vct.col.ast.stmt.decl.DeclarationStatement;
+import vct.col.ast.expr.Dereference;
+import vct.col.ast.stmt.decl.Method;
+import vct.col.ast.expr.NameExpression;
+import vct.col.ast.stmt.composite.ParallelBlock;
+import vct.col.ast.stmt.decl.ProgramUnit;
+import vct.col.ast.expr.StandardOperator;
+import vct.col.ast.type.Type;
+import vct.col.ast.stmt.decl.ASTClass.ClassKind;
+import vct.col.ast.stmt.decl.Method.Kind;
+import vct.col.ast.stmt.decl.VariableDeclaration;
 import vct.col.syntax.PVLSyntax;
 import vct.col.syntax.Syntax;
-import static vct.col.ast.ASTReserved.*;
+import static vct.col.ast.type.ASTReserved.*;
 
 /**
  * Convert ANTLR parse trees for PVL to COL.
@@ -508,7 +508,7 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
       } else if (match(i,true,flags,"inline")){
         res.setFlag(ASTFlags.INLINE,true);
       } else {
-        Fail("Unknown modifier %s%n",flags.getChild(i).toStringTree());
+        Fail("Unknown modifier %s",flags.getChild(i).toStringTree());
       }
     }
   }

@@ -1,7 +1,15 @@
 package vct.col.rewrite;
 
 import hre.ast.MessageOrigin;
-import vct.col.ast.*;
+import vct.col.ast.expr.Binder;
+import vct.col.ast.expr.BindingExpression;
+import vct.col.ast.expr.NameExpression;
+import vct.col.ast.expr.OperatorExpression;
+import vct.col.ast.stmt.decl.DeclarationStatement;
+import vct.col.ast.stmt.decl.Method;
+import vct.col.ast.stmt.decl.ProgramUnit;
+import vct.col.ast.type.PrimitiveSort;
+import vct.col.ast.type.Type;
 
 public class SilverImplementIdentity extends AbstractRewriter {
 
