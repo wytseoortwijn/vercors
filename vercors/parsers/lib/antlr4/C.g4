@@ -529,9 +529,16 @@ externalDeclaration
 
 specificationDeclaration : Placeholder ;
 
+/* The declarationSpecifiers contain the base type, declarator contains a pointer?, identifier and parameters and
+ * compoundStatement is the function body. declarationList is used only in this syntax, which is unsupported, but valid.
+ * int add1(arg)
+ * int arg;
+ * { return arg + 1; }
+ */
 functionDefinition
-    :   declarationSpecifiers? declarator declarationList? compoundStatement
+    :   declarationSpecifiers declarator declarationList? compoundStatement
     ;
+
 
 declarationList
     :   declaration
