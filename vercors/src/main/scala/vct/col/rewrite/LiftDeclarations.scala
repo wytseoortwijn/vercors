@@ -11,6 +11,8 @@ import scala.collection.JavaConversions._
 import scala.collection.mutable.ListBuffer
 
 class LiftDeclarations(arg: ProgramUnit) extends AbstractRewriter(arg) {
+  var renameArguments: Boolean = false
+
   override def visit(decl: DeclarationStatement): Unit = {
     Debug("%s %s", decl.`type`, decl.name)
     val newType = SequenceUtils.optArrayCell(create, decl.`type`)
@@ -39,15 +41,25 @@ class LiftDeclarations(arg: ProgramUnit) extends AbstractRewriter(arg) {
 
     for(arg <- method.getArgs) {
       args += create.field_decl(arg.getOrigin, "__arg_" + arg.name, arg.`type`)
-      body += create.field_decl(arg.getOrigin, arg.name, SequenceUtils.optArrayCell(create, arg.`type`))
-      body += create.assignment(SequenceUtils.access(create, create.unresolved_name(arg.name), create.constant(0)), create.unresolved_name("__arg_" + arg.name))
+      body += create.field_decl(
+        arg.getOrigin,
+        arg.name,
+        SequenceUtils.optArrayCell(create, arg.`type`),
+        create.expression(StandardOperator.OptionSome,
+          create.struct_value(SequenceUtils.arrayCell(create, arg.`type`), null,
+            create.unresolved_name("__arg_"+arg.name)))
+      )
     }
 
     body += rewrite(method.getBody)
 
+    renameArguments = true
+    val newContract = rewrite(method.getContract)
+    renameArguments = false
+
     result = create.method_decl(
       method.getReturnType,
-      rewrite(method.getContract),
+      newContract,
       method.getName,
       args,
       create.block(body:_*)
@@ -55,6 +67,18 @@ class LiftDeclarations(arg: ProgramUnit) extends AbstractRewriter(arg) {
   }
 
   override def visit(name: NameExpression): Unit = {
-    result = SequenceUtils.access(create, create.unresolved_name(name.getName), create.constant(0))
+    if(name.getKind == NameExpression.Kind.Argument) {
+      if(renameArguments) {
+        // Within contracts
+        result = create.argument_name("__arg_" + name.getName)
+      } else {
+        // Otherwise, re-resolve the name to the masking argument
+        result = SequenceUtils.access(create, create.unresolved_name(name.getName), create.constant(0))
+      }
+    } else if(name.getKind != NameExpression.Kind.Reserved) {
+      result = SequenceUtils.access(create, name, create.constant(0))
+    } else {
+      super.visit(name)
+    }
   }
 }

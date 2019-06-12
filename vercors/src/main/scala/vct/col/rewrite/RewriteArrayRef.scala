@@ -114,6 +114,11 @@ class RewriteArrayRef(source: ProgramUnit) extends AbstractRewriter(source) {
         val size0 = rewrite(operator.arg(1))
         val size1 = rewrite(operator.arg(2))
         result = validMatrixFor(matrix, t, size0, size1)
+      case StandardOperator.ValidPointer =>
+        val t = operator.arg(0).getType
+        val array = rewrite(operator.arg(0))
+        val size = rewrite(operator.arg(1))
+        result = validPointerFor(array, t, size)
       case StandardOperator.Drop =>
         val seqInfo = SequenceUtils.getInfoOrFail(operator.arg(0), "Expected a sequence type at %s, but got %s")
         if(seqInfo.getSequenceSort == PrimitiveSort.Array) {
@@ -297,6 +302,32 @@ class RewriteArrayRef(source: ProgramUnit) extends AbstractRewriter(source) {
     conditions.reduce(and _)
   }
 
+  def validPointerFor(input: ASTNode, t: Type, size: ASTNode): ASTNode = {
+    val conditions: mutable.ListBuffer[ASTNode] = mutable.ListBuffer()
+    val seqInfo = SequenceUtils.expectArrayType(t, "Expected an array type here, but got %s")
+
+    if(!seqInfo.isOpt || !seqInfo.isCell) {
+      Fail("Expected a pointer type here, but got %s", t)
+    }
+
+    var value = input
+
+    conditions += neq(value, create.reserved_name(ASTReserved.OptionNone))
+    value = create.expression(StandardOperator.OptionGet, value)
+
+    conditions += lte(size, create.expression(StandardOperator.Length, value))
+
+    conditions += create.starall(
+      and(lte(constant(0), name("i")), less(name("i"), size)),
+      create.expression(StandardOperator.Perm,
+        create.dereference(create.expression(StandardOperator.Subscript, value, name("i")), "item"),
+        create.reserved_name(ASTReserved.FullPerm)),
+      List(new DeclarationStatement("i", create.primitive_type(PrimitiveSort.Integer))):_*
+    )
+
+    conditions.reduce(star _)
+  }
+
   def validMatrixFor(input: ASTNode, t: Type, size0: ASTNode, size1: ASTNode): ASTNode = {
     val conditions: mutable.ListBuffer[ASTNode] = mutable.ListBuffer()
     val seqInfo0 = SequenceUtils.expectArrayType(t, "Expected a matrix type here, but got %s")
@@ -409,27 +440,6 @@ class RewriteArrayRef(source: ProgramUnit) extends AbstractRewriter(source) {
 
     var eqLeft: ASTNode = create.expression(StandardOperator.Subscript, array, create.expression(StandardOperator.Plus, i, from))
     var eqRight: ASTNode = create.expression(StandardOperator.Subscript, result, i)
-
-    if(seqInfo.isCell) {
-      eqLeft = create.dereference(eqLeft, "item")
-      eqRight = create.dereference(eqRight, "item")
-
-      contract.requires(create.starall(
-        and(lte(from, i), less(i, to)),
-        create.expression(StandardOperator.Perm,
-          create.dereference(create.expression(StandardOperator.Subscript, array, i), "item"),
-          create.reserved_name(ASTReserved.FullPerm)),
-        iDecl:_*
-      ))
-
-      contract.ensures(create.starall(
-        and(lte(constant(0), i), less(i, create.expression(StandardOperator.Minus, to, from))),
-        create.expression(StandardOperator.Perm,
-          create.dereference(create.expression(StandardOperator.Subscript, result, i), "item"),
-          create.reserved_name(ASTReserved.FullPerm)),
-        iDecl:_*
-      ))
-    }
 
     contract.ensures(create.starall(
       and(lte(constant(0), i), less(i, create.expression(StandardOperator.Minus, to, from))),

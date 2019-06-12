@@ -272,6 +272,10 @@ public enum StandardOperator {
    */
   ValidMatrix(3),
   /**
+   * Declares the first argument to be a valid pointer to at least the given size of memory
+   */
+  ValidPointer(2),
+  /**
    * Get the values from an array as a sequence form a start upto an end
    */
   Values(3),

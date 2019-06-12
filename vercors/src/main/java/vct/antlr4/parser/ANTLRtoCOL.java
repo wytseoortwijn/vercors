@@ -1032,6 +1032,9 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
     if (match(ctx,"*")){
       return create.reserved_name(ASTReserved.Any);
     }
+    if(match(ctx, "\\pointer", "(", null, ",", null, ")")) {
+      return create.expression(StandardOperator.ValidPointer, convert(ctx, 2), convert(ctx, 4));
+    }
     throw new HREError("missing case for VAL primary expression: %s",ctx.toStringTree(parser));
   }
 

@@ -82,6 +82,7 @@ valPrimary
     | '\\typeof' '(' expression ')'
     | '\\matrix' '(' expression ',' expression ',' expression ')'
     | '\\array'  '(' expression ',' expression ')'
+    | '\\pointer' '(' expression ',' expression ')'
     | '\\sum' '(' expression ',' expression ')'
     | '\\vcmp' '(' expression ',' expression ')'
     | '\\vrep' '(' expression ')'

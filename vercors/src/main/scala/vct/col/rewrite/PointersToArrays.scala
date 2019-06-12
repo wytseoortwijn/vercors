@@ -57,6 +57,8 @@ class PointersToArrays(source: ProgramUnit) extends AbstractRewriter(source) {
         } else {
           throw Failure("Argument to AddrOf (&) was not a pointer at %s", expr.getOrigin)
         }
+      case StandardOperator.Indirection =>
+        create.expression(StandardOperator.Subscript, args.get(0), create.constant(0))
       case otherOp =>
         create.expression(otherOp, args:_*)
     }
