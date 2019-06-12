@@ -333,7 +333,8 @@ declarator
 
 directDeclarator
     :   clangIdentifier
-    |   '(' declarator ')'
+    // |   '(' declarator ')'
+    // Unsupported: this mixes with function calls really poorly: e.g. int(x); is a valid declaration of x as type int.
     |   directDeclarator '[' typeQualifierList? assignmentExpression? ']'
     |   directDeclarator '[' 'static' typeQualifierList? assignmentExpression ']'
     |   directDeclarator '[' typeQualifierList 'static' assignmentExpression ']'

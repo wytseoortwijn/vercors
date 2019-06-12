@@ -1,6 +1,7 @@
 package vct.antlr4.parser;
 
 import java.util.ArrayList;
+import java.util.Stack;
 
 import hre.lang.Failure;
 
@@ -102,14 +103,35 @@ public class CMLtoCOL extends ANTLRtoCOL implements CMLVisitor<ASTNode> {
     }
   }
 
-  private Type getPointer(Type t,ParserRuleContext ctx){
-    if(match(ctx,"*")){
-      return create.primitive_type(PrimitiveSort.Pointer,t);
-    }
+  private ASTDeclaration getPointer(ASTDeclaration decl, ParserRuleContext ctx){
     if(match(ctx,"*",null)){
-      t=getPointer(t,(ParserRuleContext)ctx.getChild(1));
-      return create.primitive_type(PrimitiveSort.Pointer,t);
+      decl = getPointer(decl,(ParserRuleContext)ctx.getChild(1));
     }
+
+    if(decl instanceof DeclarationStatement) {
+      DeclarationStatement result = new DeclarationStatement(
+              decl.name(),
+              create.primitive_type(PrimitiveSort.Pointer, ((DeclarationStatement) decl).type()),
+              ((DeclarationStatement) decl).init()
+      );
+
+      result.setOrigin(decl.getOrigin());
+      return result;
+    } else if(decl instanceof Method) {
+      Method result = new Method(
+              ((Method) decl).getKind(),
+              ((Method) decl).getName(),
+              create.primitive_type(PrimitiveSort.Pointer, ((Method) decl).getReturnType()),
+              ((Method) decl).getContract(),
+              ((Method) decl).getArgs(),
+              ((Method) decl).usesVarArgs(),
+              ((Method) decl).getBody()
+      );
+
+      result.setOrigin(decl.getOrigin());
+      return result;
+    }
+
     return null;
   }
 
@@ -378,9 +400,10 @@ public class CMLtoCOL extends ANTLRtoCOL implements CMLVisitor<ASTNode> {
   @Override
   public ASTNode visitDeclarator(DeclaratorContext ctx) {
     if (match(ctx,"Pointer",null)){
-      DeclarationStatement d=(DeclarationStatement)convert(ctx,1);
-      Type t=getPointer(d.getType(),(ParserRuleContext)ctx.getChild(0));
-      return create.field_decl(d.name(), t);//create.primitive_type(Sort.Pointer,d.getType()));
+      ASTDeclaration innerDeclarator = (ASTDeclaration) convert(ctx,1);
+      return getPointer(innerDeclarator, (ParserRuleContext)ctx.getChild(0));
+    } else if(match(ctx, "DirectDeclarator")) {
+      return convert(ctx, 0);
     }
     return null;
   }
@@ -529,42 +552,17 @@ public class CMLtoCOL extends ANTLRtoCOL implements CMLVisitor<ASTNode> {
 
   @Override
   public ASTNode visitFunctionDefinition(FunctionDefinitionContext ctx) {
-    int ofs;
-    Type t;
-    if (match(0,true,ctx,"DeclaratorContext")) {
-      t=create.primitive_type(PrimitiveSort.Integer);
-      ofs=0;
-    } else {
-      t=(Type)convert(ctx,0);
-      ofs=1;
+    if(!match(ctx, "DeclarationSpecifiers", "Declarator", "CompoundStatement")) {
+      throw new Failure("Declaring parameters types after the method declaration is unsupported.");
     }
-    String name=null;
-    ArrayList<DeclarationStatement> args=new ArrayList<DeclarationStatement>();
-    if (match((DeclaratorContext)ctx.getChild(ofs),"DirectDeclaratorContext")){
-      DirectDeclaratorContext decl_ctx=(DirectDeclaratorContext)((DeclaratorContext)ctx.getChild(ofs)).getChild(0);
-      if (match(decl_ctx,null,"(","ParameterTypeListContext",")")){
-        enter(decl_ctx);
-        name=getIdentifier(decl_ctx, 0);
-        ParserRuleContext arg_ctx=(ParserRuleContext)decl_ctx.getChild(2);
-        
-        convert_parameters(args, arg_ctx);
-        leave(decl_ctx,null);
-      } else if (match(decl_ctx,null,"(",")")) {
-        name=getIdentifier(decl_ctx, 0);
-      } else {
-        return null;
-      }
-    } else {
-      throw hre.lang.System.Failure("unknown declarator%ntree: %s",ctx.getChild(ofs).toStringTree(parser));
-    }
-    ofs++;
-    ASTNode body;
-    if (match(ofs,false,ctx,(String)null)){
-      body=convert(ctx,ofs);
-    } else {
-      return null;
-    }
-    return create.method_decl(t, null, name, args.toArray(new DeclarationStatement[0]), body);
+
+    Type declSpec = (Type)convert(ctx,0);
+    Method declaration = (Method) convert(ctx, 1);
+    declaration.setBody(convert(ctx, 2));
+
+    VariableDeclaration result = create.variable_decl(declSpec);;
+    result.add(declaration);
+    return result;
   }
 
   @Override

@@ -223,4 +223,16 @@ public class SequenceUtils {
             cb.accept(create.expression(StandardOperator.NEQ, seq, create.reserved_name(ASTReserved.OptionNone)));
         }
     }
+
+    public static Type optArrayCell(ASTFactory<?> create, Type elementType) {
+        return create.primitive_type(PrimitiveSort.Option, arrayCell(create, elementType));
+    }
+
+    public static Type arrayCell(ASTFactory<?> create, Type elementType) {
+        return create.primitive_type(PrimitiveSort.Array,
+            create.primitive_type(PrimitiveSort.Cell,
+                elementType
+            )
+        );
+    }
 }

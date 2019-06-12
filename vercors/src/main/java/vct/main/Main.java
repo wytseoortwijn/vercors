@@ -329,6 +329,7 @@ public class Main
       } else if (silver.used()||chalice.get()||chalice2sil.get()) {
         passes=new LinkedBlockingDeque<String>();
         passes.add("java_resolve");
+        passes.add("flatten_variable_declarations");
 
         if (silver.used() &&
            (features.usesSpecial(ASTSpecial.Kind.Lock)
@@ -343,6 +344,16 @@ public class Main
 
         passes.add("standardize");
         passes.add("java-check"); // marking function: stub
+        passes.add("flatten");
+        passes.add("java-check");
+
+        if(features.usesOperator(StandardOperator.AddrOf)) {
+          passes.add("lift_declarations");
+        }
+
+        passes.add("java-check");
+        passes.add("pointers_to_arrays");
+        passes.add("java-check");
         passes.add("array_null_values"); // rewrite null values for array types into None
         passes.add("java-check");
         if (silver.used()){
@@ -737,6 +748,17 @@ public class Main
           return new ArrayNullValues(arg).rewriteAll();
       }
     });
+    defined_passes.put("pointers_to_arrays", new CompilerPass("rewrite pointers to arrays") {
+      public ProgramUnit apply(ProgramUnit arg, String... args) {
+        return new PointersToArrays(arg).rewriteAll();
+      }
+    });
+    defined_passes.put("lift_declarations", new CompilerPass("lift declarations to cell of the declared types, to treat locals as heap locations.") {
+      @Override
+      public ProgramUnit apply(ProgramUnit arg, String... args) {
+        return new LiftDeclarations(arg).rewriteAll();
+      }
+    });
     defined_passes.put("java-check",new CompilerPass("run a Java aware type check"){
       public ProgramUnit apply(ProgramUnit arg,String ... args){
         new JavaTypeCheck(arg).check();
@@ -883,6 +905,9 @@ public class Main
       public ProgramUnit apply(ProgramUnit arg,String ... args){
         return new FlattenBeforeAfter(arg).rewriteAll();
       }
+    });
+    defined_passes.put("flatten_variable_declarations", new CompilerPass("put the base type in declarations") {
+      public ProgramUnit apply(ProgramUnit arg, String... args) { return new FlattenVariableDeclarations(arg).rewriteAll(); }
     });
     defined_passes.put("inline",new CompilerPass("Inline all methods marked as inline"){
       public ProgramUnit apply(ProgramUnit arg,String ... args){

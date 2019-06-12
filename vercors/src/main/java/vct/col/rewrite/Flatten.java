@@ -254,7 +254,12 @@ public class Flatten extends AbstractRewriter {
         visit_body(s.getStatement(i));
       }
     } else {
-      current_block.addStatement(body.apply(this));
+      ASTNode statement = body.apply(this);
+      if(!(statement instanceof NameExpression)) {
+        /* invokations of methods that return something are flattened, but we want to ignore this value when the
+         method is instead used as a statement.*/
+        current_block.addStatement(statement);
+      }
     }
   }
   

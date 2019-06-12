@@ -1272,7 +1272,7 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
     case Drop:
     case Take:
     {
-      if (!t1.isPrimitive(PrimitiveSort.Sequence)) Fail("base must be sequence type.");
+      SequenceUtils.getTypeInfoOrFail(t1, "base must be sequence type");
       if (!t2.isInteger()) {
         Fail("count has type %s rather than integer",t2);
       }
@@ -1375,6 +1375,13 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
       Type t=e.arg(0).getType();
       if (t==null) Fail("type of argument is unknown at %s",e.getOrigin());
       e.setType(t);
+      break;
+    }
+    case AddrOf: {
+      Type t = e.arg(0).getType();
+      if(t == null) Fail("type of argument to AddrOf operator is unknown at %s", e.getOrigin());
+      // TODO: determine whether type checking is necessary here.
+      e.setType(new PrimitiveType(PrimitiveSort.Pointer, e.arg(0).getType()));
       break;
     }
     default:
