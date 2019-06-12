@@ -1,8 +1,8 @@
 package vct.col.rewrite
 
-import vct.col.ast.stmt.decl.{DeclarationStatement, Method, ProgramUnit}
-import hre.lang.System.{Abort, Debug, DebugException, Fail, Output, Warning, Failure}
-import vct.col.ast.`type`.PrimitiveSort
+import vct.col.ast.stmt.decl.{ASTSpecial, DeclarationStatement, Method, ProgramUnit}
+import hre.lang.System.{Abort, Debug, DebugException, Fail, Failure, Output, Warning}
+import vct.col.ast.`type`.{ASTReserved, PrimitiveSort}
 import vct.col.ast.expr.{MethodInvokation, NameExpression, OperatorExpression, StandardOperator}
 import vct.col.ast.generic.ASTNode
 import vct.col.util.SequenceUtils
@@ -52,6 +52,15 @@ class LiftDeclarations(arg: ProgramUnit) extends AbstractRewriter(arg) {
     }
 
     body += rewrite(method.getBody)
+
+    for(arg <- method.getArgs) {
+      body += create.special(arg.getOrigin, ASTSpecial.Kind.Exhale,
+        create.expression(StandardOperator.Perm,
+          SequenceUtils.access(create, create.unresolved_name(arg.name), constant(0)),
+          create.reserved_name(ASTReserved.FullPerm)
+        )
+      )
+    }
 
     renameArguments = true
     val newContract = rewrite(method.getContract)

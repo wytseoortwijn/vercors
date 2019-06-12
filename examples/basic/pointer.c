@@ -22,5 +22,22 @@ ensures \result == 1;
 int returnsOne() {
     int result;
     setOne(&result);
+    // destroyPermission(&result);
     return result;
 }
+
+void destroyArgument(int x) {
+    destroyPermission(&x);
+}
+
+/*@
+requires \pointer(a, 1);
+@*/
+void destroyPermission(int *a) {
+
+}
+
+// void arrayPointers() {
+//     int x[4];
+//     destroyPermission(&x[0]);
+// }

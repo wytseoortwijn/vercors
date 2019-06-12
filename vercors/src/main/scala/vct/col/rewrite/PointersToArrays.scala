@@ -17,7 +17,11 @@ class PointersToArrays(source: ProgramUnit) extends AbstractRewriter(source) {
           create.primitive_type(PrimitiveSort.Cell,
             visitType(t.firstarg.asInstanceOf[Type]))))
     } else if(t.isInstanceOf[PrimitiveType]) {
-      create.primitive_type(t.asInstanceOf[PrimitiveType].sort, t.args.map((node: ASTNode) => visitType(node.asInstanceOf[Type])):_*)
+      create.primitive_type(t.asInstanceOf[PrimitiveType].sort, t.args.map((node: ASTNode) =>
+        node match {
+          case t: Type => visitType(t)
+          case other => other
+        }):_*)
     } else {
       t
     }
