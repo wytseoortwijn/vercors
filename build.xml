@@ -7,17 +7,15 @@
     <available file="${basedir}/deps" type="dir"/>
   </condition>
   
-  <condition property="sbtcommand" value="${basedir}/windows/bin/vct-sbt.cmd"
-                                    else="${basedir}/unix/bin/vct-sbt">
+  <condition property="sbtcommand" value="${basedir}/windows/bin/vct-sbt.cmd" else="${basedir}/unix/bin/vct-sbt">
     <os family="windows" />
   </condition>  
 
-  <condition property="sbtbuild" value="assembly"
-                                    else="packCopyDependencies">
+  <condition property="sbtbuild" value="assembly" else="packCopyDependencies">
     <os family="windows" />
   </condition>  
 
-	<property name="dist"         value="${basedir}/dist"/>
+	<property name="dist" value="${basedir}/dist"/>
   <property environment="env"/>
 
   <target name="clean">
@@ -37,24 +35,27 @@
         <attribute name="Main-Class" value="vct.main.Main"/>
         <attribute name="Built-By" value="${user.name}"/>
       </manifest>
-		  <fileset dir="hre/bin">
-		  	<include name="**" />
-		  </fileset>
-		  <fileset dir="parsers/bin">
-		  	<include name="**" />
-		  </fileset>
-		  <fileset dir="vercors/target/scala-2.11/classes">
-		  	<include name="**" />
-		  </fileset>
-		  <fileset dir="viper/viper-api/bin">
-		  	<include name="**" />
-		  </fileset>
-		  <zipfileset src="vercors/target/lib/antlr4-runtime-4.5.3.jar" excludes="META-INF/*" />
-		  <zipfileset src="vercors/target/lib/commons-lang3-3.1.jar" excludes="META-INF/*" />
-		  <zipfileset src="vercors/target/lib/commons-io-2.4.jar" excludes="META-INF/*" />
-		  <zipfileset src="vercors/target/lib/gson-2.8.0.jar" excludes="META-INF/*" />
-		  <zipfileset src="vercors/target/lib/scala-library-2.11.7.jar" excludes="META-INF/*" />
-		</jar>
+      <fileset dir="hre/bin">
+        <include name="**" />
+      </fileset>
+      <fileset dir="parsers/bin">
+        <include name="**" />
+      </fileset>
+      <fileset dir="vercors/target/scala-2.12/classes">
+        <include name="**" />
+      </fileset>
+      <fileset dir="viper/viper-api/bin">
+        <include name="**" />
+      </fileset>
+      <fileset dir="viper/silicon/src/main/resources">
+        <include name="**" />
+      </fileset>
+      <zipfileset src="vercors/target/lib/antlr4-runtime-4.5.3.jar" excludes="META-INF/*" />
+      <zipfileset src="vercors/target/lib/commons-lang3-3.1.jar" excludes="META-INF/*" />
+      <zipfileset src="vercors/target/lib/commons-io-2.4.jar" excludes="META-INF/*" />
+      <zipfileset src="vercors/target/lib/gson-2.8.0.jar" excludes="META-INF/*" />
+      <zipfileset src="vercors/target/lib/scala-library-2.12.7.jar" excludes="META-INF/*" />
+    </jar>
   </target>
   
   <target name="compile">
@@ -108,73 +109,40 @@
     </javadoc>
   </target>  
 
-<!-- 
-  <target name="tutorial">
-    <exec dir="${basedir}/tex" executable="pdflatex">
-      <env key="TEXINPUTS" value=".:${basedir}/examples//::"/>
-      <arg value="tutorial.tex"/>
-    </exec>
-    <exec dir="${basedir}/tex" executable="pdflatex">
-      <env key="TEXINPUTS" value=".:${basedir}/examples//::"/>
-      <arg value="tutorial.tex"/>
-    </exec>
-  </target>
--->
-  
-  <target name="dist" depends="assembly,doc">
-	  <exec executable="git"
-	        failonerror="true"
-	        outputproperty="gitversion"
-	        dir="${basedir}">
-      <arg value="describe"/>
-      <arg value="--tags"/>
-    </exec>
-    <property name="prefix" value="vercors-${gitversion}"/>
-
+	<!-- Generates a ZIP file with the VerCors jar from the assembly target,
+	 		 together with all the requires dependencies to run VerCors. -->
+  <target name="dist" depends="assembly">
+    <property name="prefix" value="vercors-dist"/>
     <mkdir dir="${dist}"/>
-    <zip destfile="${dist}/vercors-${gitversion}.zip" >
+    <zip destfile="${dist}/vercors-dist.zip" >
+			<!-- Z3 modules -->
       <zipfileset dir="${deps}/modules/z3" prefix="${prefix}/deps/modules/z3" excludes="**/*~" />
       <zipfileset dir="${deps}/z3" prefix="${prefix}/deps/z3" excludes="**/*~,**/*.cmd,**/*.exe,**/bin/*" />
       <zipfileset dir="${deps}/z3" prefix="${prefix}/deps/z3" filemode="755" excludes="**/*~" includes="**/*.cmd,**/*.exe,**/bin/*" />
-
+			
+			<!-- Boogie modules -->
       <zipfileset dir="${deps}/modules/boogie" prefix="${prefix}/deps/modules/boogie" excludes="**/*~" />
       <zipfileset dir="${deps}/boogie" prefix="${prefix}/deps/boogie" excludes="**/*~,**/*.cmd,**/*.exe,**/bin/*" />
       <zipfileset dir="${deps}/boogie" prefix="${prefix}/deps/boogie" filemode="755" excludes="**/*~" includes="**/*.cmd,**/*.exe,**/bin/*" />
-      
+ 
+ 		 <!-- Chalice modules -->
       <zipfileset dir="${deps}/modules/chalice" prefix="${prefix}/deps/modules/chalice" excludes="**/*~" />
       <zipfileset dir="${deps}/chalice" prefix="${prefix}/deps/chalice" excludes="**/*~,**/*.cmd,**/*.exe,**/bin/*" />
       <zipfileset dir="${deps}/chalice" prefix="${prefix}/deps/chalice" filemode="755" excludes="**/*~" includes="**/*.cmd,**/*.exe,**/bin/*" />
       
-      <zipfileset dir="." prefix="${prefix}"
-        includes="README,INSTALL"
-      />
-      <zipfileset dir="unix" prefix="${prefix}/unix"
-        excludes="*~" filemode="755"
-      />
-      <zipfileset dir="windows" prefix="${prefix}/windows"
-        excludes="*~" filemode="755"
-      />
-      <zipfileset dir="config" prefix="${prefix}/config"
-        excludes="*~" filemode="755"
-      />
-      <zipfileset dir="libs" prefix="${prefix}/libs"/>
-      <zipfileset dir="core/libs" prefix="${prefix}/core/libs"/>
-      <zipfileset dir="doc" prefix="${prefix}/doc"/>
-      <zipfileset dir="modules" prefix="${prefix}/modules" filemode="755"
-        excludes="**/*~,.git,init/*sh,init/perl,init/python,init/lisp,init/modulerc"
-      />
-      <zipfileset dir="examples" prefix="${prefix}/examples"
-        includes="**/*.java,**/*.pvl,**/*.c,README,**/SEEALSO,backends/**/*"
-        excludes="**/*~"
-      />
-      <zipfileset dir="." prefix="${prefix}"
-        includes="hre/hre.jar,core/vct-core.jar,main/vct-tool.jar,
-                  viper/silicon/target/scala-2.11/silicon.jar,
-                  viper/carbon/target/scala-2.11/carbon.jar"
-      />
+			<!-- Binaries, configs, examples, libraries -->
+      <zipfileset dir="." prefix="${prefix}" includes="README,INSTALL" />
+      <zipfileset dir="config" prefix="${prefix}/config" excludes="*~" filemode="755" />
+      <zipfileset dir="libs" prefix="${prefix}/libs" />
+      <zipfileset dir="modules" prefix="${prefix}/modules" filemode="755" excludes="**/*~,.git,init/*sh,init/perl,init/python,init/lisp,init/modulerc" />
+      <zipfileset dir="examples" prefix="${prefix}/examples" includes="**/*.java,**/*.pvl,**/*.c,README,**/SEEALSO,backends/**/*" excludes="**/*~" />
+      
+			<!-- VerCors and Viper jars -->
+			<zipfileset dir="." prefix="${prefix}"
+        includes="vct-tool.jar,
+                  viper/silicon/target/scala-2.12/silicon.jar,
+                  viper/carbon/target/scala-2.12/carbon.jar" />
     </zip>
-    <symlink action="delete" link="${dist}/vercors-latest.zip"/>
-    <symlink link="${dist}/vercors-latest.zip" resource="${dist}/vercors-${gitversion}.zip"/> 
   </target>
 
 </project>

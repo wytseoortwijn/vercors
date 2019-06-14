@@ -1,16 +1,24 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
+
 package viper.silver.parser
 
 import java.nio.file.{Files, Path}
 
-import scala.language.{implicitConversions, reflectiveCalls}
 import scala.util.parsing.input.{NoPosition, Position}
 import fastparse.core.Parsed
-import viper.silver.ast.SourcePosition
+import fastparse.all
+import viper.silver.ast.{SourcePosition, LineCol}
 import viper.silver.FastPositions
 import viper.silver.ast.utility.Rewriter.{PartialContextC, StrategyBuilder}
 import viper.silver.parser.Transformer.ParseTreeDuplicationError
 import viper.silver.plugin.SilverPluginManager
 import viper.silver.verifier.ParseError
+
+import scala.collection.mutable
 
 case class ParseException(msg: String, pos: scala.util.parsing.input.Position) extends Exception
 
@@ -18,67 +26,67 @@ case class SuffixedExpressionGenerator[E <: PExp](func: PExp => E) extends (PExp
   override def apply(v1: PExp): E = func(v1)
 }
 
-object FastParser extends PosParser {
+object FastParser extends PosParser[Char, String] {
 
   var _lines: Array[Int] = null
 
-  /** Set of already imported files.
-    *
-    * Only absolute paths should be recorded in order to prevent that different relative paths
-    * (referencing the same file) result in importing files more than once.
-    * Hence, the two methods [[isAlreadyImported]] and [[addToImported]] below.
-    */
-  private val _imported = collection.mutable.Set.empty[Path]
-
-  private def isAlreadyImported(path: Path): Boolean =
-    _imported.contains(path.toAbsolutePath)
-
-  private def addToImported(path: Path): Boolean =
-    _imported.add(path.toAbsolutePath)
-
   def parse(s: String, f: Path, plugins: Option[SilverPluginManager] = None) = {
-    _file = f
+    _file = f.toAbsolutePath
     val lines = s.linesWithSeparators
     _lines = lines.map(_.length).toArray
 
     // Strategy to handle imports
     // Idea: Import every import reference and merge imported methods, functions, imports, .. into current program
     //       iterate until no new imports are present.
-    val importer = StrategyBuilder.Slim[PProgram]({
-      case p: PProgram =>
-        val firstImport = p.imports.headOption
 
-        if (firstImport.isEmpty) {
-          p
-        } else {
-          val toImport = firstImport.get
-          if (addToImported(pathFromImport(toImport))) {
-            val newProg = importProgram(toImport, plugins)
+    def resolveImports(p: PProgram) = {
+        val pathsToImport = new mutable.ArrayBuffer[Path]()
+        val pathImportStatements = new mutable.HashMap[Path, PImport]()
+        pathsToImport.append(f.toAbsolutePath)
 
-            PProgram(
-              p.imports.drop(1) ++ newProg.imports,
-              p.macros ++ newProg.macros,
-              p.domains ++ newProg.domains,
-              p.fields ++ newProg.fields,
-              p.functions ++ newProg.functions,
-              p.predicates ++ newProg.predicates,
-              p.methods ++ newProg.methods,
-              p.errors ++ newProg.errors)
-          } else {
-            PProgram(p.imports.drop(1), p.macros, p.domains, p.fields, p.functions, p.predicates, p.methods, p.errors)
+        var macros = p.macros
+        var domains = p.domains
+        var fields = p.fields
+        var functions = p.functions
+        var methods = p.methods
+        var predicates = p.predicates
+        var errors = p.errors
+        for (ip <- p.imports) {
+          val importedPath = f.toAbsolutePath.getParent.resolve(ip.file)
+          if (!(pathsToImport.contains(importedPath))) {
+            pathsToImport.append(importedPath)
+            pathImportStatements.update(importedPath, ip)
           }
         }
-        // Stop recursion at the program node already. Nodes other than PProgram are not
-        // interesting for our transformation
-    }).recurseFunc({ case p: PProgram => Seq() }).repeat
+        var i = 1
+        while (i < pathsToImport.length) {
+          val current = pathsToImport(i)
+          val newProg = importProgram(current, pathImportStatements.get(current).get, plugins)
+          macros ++= newProg.macros
+          domains ++= newProg.domains
+          fields ++= newProg.fields
+          functions ++= newProg.functions
+          methods ++= newProg.methods
+          predicates ++= newProg.predicates
+          errors ++= newProg.errors
+          for (ip <- newProg.imports) {
+            val importedPath = current.getParent.resolve(ip.file)
+            if (!(pathsToImport.contains(importedPath))) {
+              pathsToImport.append(importedPath)
+              pathImportStatements.update(importedPath, ip)
+            }
+          }
+          i += 1
+        }
+        PProgram(Seq(), macros, domains, fields, functions, predicates, methods, errors)
+    }
+
 
     try {
       val rp = RecParser(f).parses(s)
       rp match {
         case Parsed.Success(program@PProgram(_, _, _, _, _, _, _, errors), e) =>
-          _imported.clear() // Don't keep state in between parsing programs (same parse instance might be reused)
-          addToImported(f) // Add the current program to already imported
-          val importedProgram = importer.execute[PProgram](program) // Import programs
+          val importedProgram = resolveImports(program) // Import programs
           val expandedProgram = expandDefines(importedProgram) // Expand macros
           Parsed.Success(expandedProgram, e)
         case _ => rp
@@ -138,12 +146,11 @@ object FastParser extends PosParser {
   /**
     * Function that parses a file and converts it into a program
     *
+    * @param path Path of the file to be imported
     * @param importStmt Import statement.
     * @return `PProgram` node corresponding to the imported program.
     */
-  def importProgram(importStmt: PImport, plugins: Option[SilverPluginManager]): PProgram = {
-    val path = pathFromImport(importStmt)
-
+  def importProgram(path: Path, importStmt: PImport, plugins: Option[SilverPluginManager]): PProgram = {
     if (java.nio.file.Files.notExists(path))
       throw ParseException(s"""file "$path" does not exist""", FastPositions.getStart(importStmt))
 
@@ -168,7 +175,10 @@ object FastParser extends PosParser {
     val p = RecParser(path).parses(transformed_source)
     p match {
       case fastparse.core.Parsed.Success(prog, _) => prog
-      case fastparse.core.Parsed.Failure(msg, next, extra) => throw ParseException(s"Expected $msg", FilePosition(path, extra.line, extra.col))
+      case fail @ fastparse.core.Parsed.Failure(_, index, extra) =>
+        val msg = all.ParseError(fail).getMessage()
+        val (line, col) = LineCol(extra.input, index)
+        throw ParseException(s"Expected $msg", FilePosition(path, line, col))
     }
   }
 
@@ -299,7 +309,7 @@ object FastParser extends PosParser {
       }
     }
 
-    // Create a map that maps the formal parameters to the actual parameters of a macro call
+    // Create a map that maps the formal parameters to the actual arguments of a macro call
     def mapParamsToArgs(params: Seq[PIdnDef], args: Seq[PExp]): Map[String, PExp] = {
       params.map(_.name).zip(args).toMap
     }
@@ -336,40 +346,54 @@ object FastParser extends PosParser {
 
     /**** Expand macros ****/
 
-    // Strategy that replaces every formal parameter occurrence in the macro body with the corresponding actual parameter
-    // Also makes the macro call hygienic by creating a unique variable name for every newly declared variable
-    val replacer = StrategyBuilder.Context[PNode, ReplaceContext]({
-      case (varDecl: PIdnDef, ctxt) =>
-        /* We found a locally-bound variable (e.g. by a quantifier) */
+    // Strategy to rename variables declared in macro's body if their names are already used in
+    // the scope where the macro is being expanded, avoiding name clashes (hygienic macro expansion)
+    val renamer = StrategyBuilder.Context[PNode, ReplaceContext]({
 
+      // Declared variable: either local or bound
+      case (varDecl: PIdnDef, ctxt) =>
+
+        // If variable name is already used in scope
         if (namesCurrentlyInScope.contains(varDecl.name)) {
-          /* Rename locally bound variable to avoid name clashes */
+
+          // Rename variable
           val freshName = getFreshVar(ctxt.c, varDecl.name)
           val freshDecl = PIdnDef(freshName)
 
+          // Update scope
           freshNames += varDecl.name -> freshName
           namesCurrentlyInScope += freshName
 
+          // Preserve positions
           adaptPositions(freshDecl, varDecl)
 
+          // Return renamed variable
           freshDecl
         } else {
-          /* Record locally-bound variable as in scope */
+
+          // Update scope
           namesCurrentlyInScope += varDecl.name
 
+          // Return same variable
           varDecl
         }
 
-      case (ident: PIdnUse, ctxt) if ctxt.c.formalArgumentSubstitutions.contains(ident.name) =>
-        /* Replace formal with actual argument */
-        val replaceParam = ctxt.c.formalArgumentSubstitutions(ident.name)
-        replaceParam
+      // Variable use: update variable's name according to its declaration
+      // Macro's parameters are not renamed, since they will be replaced by
+      // their respective arguments in the following steps
+      case (varUse: PIdnUse, ctxt) if freshNames.contains(varUse.name) &&
+                                      !ctxt.c.formalArgumentSubstitutions.contains(varUse.name) =>
+        PIdnUse(freshNames(varUse.name))
 
-      case (ident: PIdnUse, ctxt) if freshNames.contains(ident.name) =>
-        /* Rename occurrence of a variable whose declaration has been renamed (case for PIdnDef
-         * above) to avoid name clashes
-         */
-        PIdnUse(freshNames(ident.name))
+    }, ReplaceContext()).duplicateEverything // Duplicate everything to avoid type checker bug with sharing (#191)
+
+    // Strategy to replace macro's parameters by their respective arguments
+    val replacer = StrategyBuilder.Context[PNode, ReplaceContext]({
+
+      // Macro parameter
+      case (varUse: PIdnUse, ctxt) if ctxt.c.formalArgumentSubstitutions.contains(varUse.name) =>
+        ctxt.c.formalArgumentSubstitutions(varUse.name)
+
     }, ReplaceContext()).duplicateEverything // Duplicate everything to avoid type checker bug with sharing (#191)
 
     val replacerContextUpdater: PartialFunction[(PNode, ReplaceContext), ReplaceContext] = {
@@ -384,16 +408,25 @@ object FastParser extends PosParser {
     // Replace variables in macro body, adapt positions correctly (same line number as macro call)
     def replacerOnBody(body: PNode, p2a: Map[String, PExp], pos: FastPositioned): PNode = {
       /* TODO: It would be best if the context updater function were passed as another argument
-       *       to the replacer above. That is already possible, but when the replacer is executed
+       *       to the hyginizer above. That is already possible, but when the replacer is executed
        *       and an initial context is passed, that initial context's updater function (which
        *       defaults to "never update", if left unspecified) replaces the updater function that
-       *       was initially passed to replacer.
+       *       was initially passed to renamer.
        */
-      val context =
-        new PartialContextC[PNode, ReplaceContext](ReplaceContext(p2a), replacerContextUpdater)
-      val res = replacer.execute[PNode](body, context)
-      adaptPositions(res, pos)
-      res
+
+      // Create context
+      val context = new PartialContextC[PNode, ReplaceContext](ReplaceContext(p2a), replacerContextUpdater)
+
+      // Rename variables in macro's body
+      val renamedVarsMacro = renamer.execute[PNode](body, context)
+      adaptPositions(renamedVarsMacro, pos)
+
+      // Replace macro's parameters by their respective arguments
+      val expandedMacro = replacer.execute[PNode](renamedVarsMacro, context)
+      adaptPositions(expandedMacro, pos)
+
+      // Return expanded macro's body
+      expandedMacro
     }
 
     /* Strategy that checks macro applications for legality and then expands them.
@@ -507,7 +540,9 @@ object FastParser extends PosParser {
 
   lazy val unExp: P[PUnExp] = P((CharIn("-!+").! ~ suffixExpr).map { case (a, b) => PUnExp(a, b) })
 
-  lazy val integer: P[PIntLit] = P(CharIn('0' to '9').rep(1)).!.map { s => PIntLit(BigInt(s)) }
+  lazy val strInteger: P[String] = P(CharIn('0' to '9').rep(1)).!
+
+  lazy val integer: P[PIntLit] = strInteger.filter(s => !s.contains(' ')).map { s => PIntLit(BigInt(s)) }
 
   lazy val booltrue: P[PBoolLit] = P(keyword("true")).map(_ => PBoolLit(b = true))
 
@@ -527,10 +562,11 @@ object FastParser extends PosParser {
   lazy val old: P[PExp] = P(StringIn("old") ~ (parens(exp).map(POld) | ("[" ~ oldLabel ~ "]" ~ parens(exp)).map { case (a, b) => PLabelledOld(a, b) }))
 
   lazy val magicWandExp: P[PExp] = P(orExp ~ ("--*".! ~ exp).?).map { case (a, b) => b match {
-    case Some(c) => PBinExp(a, c._1, c._2)
+    case Some(c) => PMagicWandExp(a, c._2)
     case None => a
-  }
-  }
+  }}
+
+  lazy val realMagicWandExp: P[PMagicWandExp] = P(orExp ~ "--*".! ~ exp).map { case (a,_,c) => PMagicWandExp(a,c)}
 
   lazy val implExp: P[PExp] = P(magicWandExp ~ (StringIn("==>").! ~ implExp).?).map { case (a, b) => b match {
     case Some(c) => PBinExp(a, c._1, c._2)
@@ -551,8 +587,8 @@ object FastParser extends PosParser {
 
   lazy val suffix: fastparse.noApi.Parser[SuffixedExpressionGenerator[PExp]] =
     P(("." ~ idnuse).map { id => SuffixedExpressionGenerator[PExp]((e: PExp) => PFieldAccess(e, id)) } |
-      ("[.." ~/ exp ~ "]").map { n => SuffixedExpressionGenerator[PExp]((e: PExp) => PSeqTake(e, n)) } |
-      ("[" ~ exp ~ "..]").map { n => SuffixedExpressionGenerator[PExp]((e: PExp) => PSeqDrop(e, n)) } |
+      ("[" ~ Pass ~ ".." ~/ exp ~ "]").map { n => SuffixedExpressionGenerator[PExp]((e: PExp) => PSeqTake(e, n)) } |
+      ("[" ~ exp ~ ".." ~ Pass ~ "]").map { n => SuffixedExpressionGenerator[PExp]((e: PExp) => PSeqDrop(e, n)) } |
       ("[" ~ exp ~ ".." ~ exp ~ "]").map { case (n, m) => SuffixedExpressionGenerator[PExp]((e: PExp) => PSeqDrop(PSeqTake(e, m), n)) } |
       ("[" ~ exp ~ "]").map { e1 => SuffixedExpressionGenerator[PExp]((e0: PExp) => PSeqIndex(e0, e1)) } |
       ("[" ~ exp ~ ":=" ~ exp ~ "]").map { case (i, v) => SuffixedExpressionGenerator[PExp]((e: PExp) => PSeqUpdate(e, i, v)) })
@@ -614,10 +650,12 @@ object FastParser extends PosParser {
     }
   })
 
+  lazy val resAcc: P[PResourceAccess] = P(locAcc | realMagicWandExp)
+
   lazy val locAcc: P[PLocationAccess] = P(fieldAcc | predAcc)
 
   lazy val fieldAcc: P[PFieldAccess] =
-    P(realSuffixExpr.filter(isFieldAccess).map {
+    P(NoCut(realSuffixExpr.filter(isFieldAccess)).map {
       case fa: PFieldAccess => fa
       case other => sys.error(s"Unexpectedly found $other")
     })
@@ -628,8 +666,9 @@ object FastParser extends PosParser {
 
   lazy val inhaleExhale: P[PExp] = P("[" ~ exp ~ "," ~ exp ~ "]").map { case (a, b) => PInhaleExhaleExp(a, b) }
 
-  lazy val perm: P[PExp] = P(keyword("none").map(_ => PNoPerm()) | keyword("wildcard").map(_ => PWildcard()) | keyword("write").map(_ => PFullPerm())
-    | keyword("epsilon").map(_ => PEpsilon()) | ("perm" ~ parens(locAcc)).map(PCurPerm))
+  lazy val perm: P[PExp] =
+    P(keyword("none").map(_ => PNoPerm()) | keyword("wildcard").map(_ => PWildcard()) | keyword("write").map(_ => PFullPerm())
+    | keyword("epsilon").map(_ => PEpsilon()) | ("perm" ~ parens(resAcc)).map(PCurPerm))
 
   lazy val let: P[PExp] = P(
     ("let" ~/ idndef ~ "==" ~ "(" ~ exp ~ ")" ~ "in" ~ exp).map { case (id, exp1, exp2) =>
@@ -669,10 +708,10 @@ object FastParser extends PosParser {
   lazy val primitiveTyp: P[PType] = P(keyword("Rational").map { case _ => PPrimitiv("Perm") }
     | (StringIn("Int", "Bool", "Perm", "Ref") ~~ !identContinues).!.map(PPrimitiv))
 
-  lazy val trigger: P[PTrigger] = P("{" ~/ exp.rep(sep = ",", min = 1) ~ "}").map(s => PTrigger(s))
+  lazy val trigger: P[PTrigger] = P("{" ~/ exp.rep(sep = ",") ~ "}").map(s => PTrigger(s))
 
-  lazy val forperm: P[PExp] = P(keyword("forperm") ~ "[" ~ idnuse.rep(sep = ",") ~ "]" ~ idndef ~ "::" ~/ exp).map {
-    case (ids, id, body) => PForPerm(PFormalArgDecl(id, PPrimitiv("Ref")), ids, body)
+  lazy val forperm: P[PExp] = P(keyword("forperm") ~ nonEmptyFormalArgList ~ "[" ~ resAcc ~ "]" ~ "::" ~/ exp).map {
+    case (args, res, body) => PForPerm(args, res, body)
   }
 
   lazy val unfolding: P[PExp] = P(keyword("unfolding") ~/ predicateAccessPred ~ "in" ~ exp).map { case (a, b) => PUnfolding(a, b) }
@@ -749,7 +788,7 @@ object FastParser extends PosParser {
     * This parser is wrapped in another parser because otherwise the position
     * in rules like [[block.?]] are not set properly.
     */
-  lazy val block: P[PSeqn] = P(P("{" ~ stmts ~ "}").map(PSeqn))
+  lazy val block: P[PSeqn] = P(P("{" ~/ stmts ~ "}").map(PSeqn))
 
   lazy val stmts: P[Seq[PStmt]] = P(stmt ~/ ";".?).rep
 

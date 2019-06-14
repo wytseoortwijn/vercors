@@ -15,8 +15,16 @@ import hre.lang.HREError;
 import hre.lang.HREExitException;
 import hre.util.CompositeReport;
 import hre.util.TestReport;
+import static hre.lang.System.Abort;
+import static hre.lang.System.Fail;
+import static hre.lang.System.Output;
+import static hre.lang.System.Progress;
+import static hre.lang.System.Warning;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Deque;
@@ -30,10 +38,27 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingDeque;
 
+import hre.ast.FileOrigin;
+import hre.config.BooleanSetting;
+import hre.config.Option;
+import hre.config.OptionParser;
+import hre.config.StringListSetting;
+import hre.config.StringSetting;
+import hre.debug.HeapDump;
+import hre.io.PrefixPrintStream;
+import hre.lang.HREError;
+import hre.lang.HREExitException;
+import hre.util.CompositeReport;
+import hre.util.TestReport;
 import vct.antlr4.parser.JavaResolver;
 import vct.antlr4.parser.Parsers;
 import vct.col.annotate.DeriveModifies;
-import vct.col.ast.*;
+import vct.col.ast.ASTClass;
+import vct.col.ast.ASTNode;
+import vct.col.ast.ASTSpecial;
+import vct.col.ast.ProgramUnit;
+import vct.col.ast.SpecificationFormat;
+import vct.col.ast.StandardOperator;
 import vct.col.rewrite.AbstractRewriter;
 import vct.col.rewrite.AccessIntroduce;
 import vct.col.rewrite.AddSimpleTriggers;
@@ -71,6 +96,7 @@ import vct.col.rewrite.RecognizeMultiDim;
 import vct.col.rewrite.ReorderAssignments;
 import vct.col.rewrite.RewriteArrayRef;
 import vct.col.rewrite.RewriteComplexUnitSubscripts;
+import vct.col.rewrite.RewriteSimpleNestedQuant;
 import vct.col.rewrite.RewriteSystem;
 import vct.col.rewrite.SatCheckRewriter;
 import vct.col.rewrite.ScaleAlways;
@@ -97,7 +123,6 @@ import vct.logging.PassReport;
 import vct.silver.ErrorDisplayVisitor;
 import vct.util.ClassName;
 import vct.util.Configuration;
-import static hre.lang.System.*;
 
 /**
  * VerCors Tool main verifier.
@@ -696,7 +721,7 @@ public class Main
         if (separate_checks.get()) {
           long start=System.currentTimeMillis();
           CompositeReport res=new CompositeReport();
-          ExecutorService queue=Executors.newFixedThreadPool(4);
+          ExecutorService queue=Executors.newFixedThreadPool(1);
           ArrayList<Future<TestReport>> list=new ArrayList<Future<TestReport>>();
           for(ClassName class_name:arg.classNames()){
               Callable<TestReport> task=new ChaliceTask(arg,class_name);
@@ -1034,6 +1059,7 @@ public class Main
         ProgramUnit res=trs.normalize(arg);
         // Configuration.getDiagSyntax().print(System.err,res);
         res=RewriteSystems.getRewriteSystem("simplify_quant_pass2").normalize(res);
+        res = new RewriteSimpleNestedQuant(res).rewriteAll();
         return res;
       }
     });

@@ -1,5 +1,6 @@
 package vct.col.rewrite;
 
+import hre.ast.MessageOrigin;
 import vct.col.ast.*;
 import vct.col.ast.Method.Kind;
 
@@ -13,6 +14,11 @@ public class RandomizedIf extends AbstractRewriter {
   public void visit(ASTClass cl){
     DeclarationStatement args[]=new DeclarationStatement[0];
     Method if_any_method=create.method_decl(create.primitive_type(PrimitiveSort.Boolean), null, "if_any_random", args, null);
+    
+    if (if_any_method.getOrigin() == null) {
+    	if_any_method.setOrigin(new MessageOrigin("Default origin"));
+    }
+    
     super.visit(cl);
     cl=(ASTClass)result;
     cl.add(if_any_method);

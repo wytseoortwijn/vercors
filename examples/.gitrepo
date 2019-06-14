@@ -6,6 +6,6 @@
 [subrepo]
 	remote = ssh://vcs@vcs.utwente.nl/diffusion/VCTEX/vercors-examples.git
 	branch = public
-	commit = 75b6ae2ee3e1abcc2922f01c56ca91db39ffa3ec
-	parent = a2f042ced7df2fd1f6a29647796c952c25466164
+	commit = 34e12d25e5931efa4162dbbef822aea33d7e5573
+	parent = 5d0acd6e878bce8f1b7242118ce024fbaa7870a8
 	cmdver = 0.3.0
