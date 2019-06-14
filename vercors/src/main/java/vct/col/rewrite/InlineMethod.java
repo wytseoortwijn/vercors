@@ -6,8 +6,16 @@ import hre.ast.Origin;
 import java.util.Hashtable;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import vct.col.ast.*;
-import vct.col.ast.ASTSpecial.Kind;
+import vct.col.ast.expr.NameExpression;
+import vct.col.ast.stmt.composite.BlockStatement;
+import vct.col.ast.stmt.decl.ASTSpecial;
+import vct.col.ast.stmt.decl.ASTSpecial.Kind;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.stmt.decl.DeclarationStatement;
+import vct.col.ast.stmt.decl.Method;
+import vct.col.ast.stmt.decl.ProgramUnit;
+import vct.col.ast.stmt.terminal.ReturnStatement;
+import vct.col.ast.type.ASTReserved;
 import vct.col.util.OriginWrapper;
 
 public class InlineMethod extends Substitution {
@@ -22,15 +30,15 @@ public class InlineMethod extends Substitution {
 
   private static AtomicInteger count=new AtomicInteger();
   
-  public void inline(BlockStatement block, String return_name, String return_label, Method m,ASTNode object, ASTNode[] args,Origin source) {
+  public void inline(BlockStatement block, String return_name, String return_label, Method m, ASTNode object, ASTNode[] args, Origin source) {
     create.enter();
     BranchOrigin branch=new BranchOrigin("inlined code at "+source,source);
     ASTNode tmp;
     create.setOrigin(m.getOrigin());
     map.clear();
     NameExpression n=create.reserved_name(ASTReserved.This);
-    if (n==null) System.err.println("1");
-    if (object==null) System.err.println("2");
+    if (n==null) Debug("1");
+    if (object==null) Debug("2");
     map.put(n,object);
     prefix="inline_"+count.incrementAndGet()+"_";
     DeclarationStatement decls[]=m.getArgs();

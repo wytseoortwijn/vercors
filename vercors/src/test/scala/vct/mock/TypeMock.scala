@@ -1,6 +1,11 @@
 package vct.mock
 
 import vct.col.ast._
+import vct.col.ast.`type`.Type
+import vct.col.ast.generic.ASTNode
+import vct.col.ast.stmt.decl.ProgramUnit
+import vct.col.ast.util.{ASTVisitor, TypeMapping}
+import vct.col.util.{ASTMapping, ASTMapping1}
 
 class TypeMock(val _args:List[ASTNode]) extends Type(_args) {
   override def accept_simple[T,A](m:ASTMapping1[T,A], arg:A) = throw new Exception()

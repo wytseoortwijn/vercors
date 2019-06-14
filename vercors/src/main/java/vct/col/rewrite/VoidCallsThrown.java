@@ -1,26 +1,26 @@
 package vct.col.rewrite;
 
 import java.util.concurrent.atomic.AtomicInteger;
-import vct.col.ast.ASTFlags;
-import vct.col.ast.ASTNode;
-import vct.col.ast.ASTReserved;
-import vct.col.ast.ASTSpecial;
-import vct.col.ast.AssignmentStatement;
-import vct.col.ast.BlockStatement;
-import vct.col.ast.CatchClause;
-import vct.col.ast.ContractBuilder;
-import vct.col.ast.DeclarationStatement;
-import vct.col.ast.IfStatement;
-import vct.col.ast.Method;
-import vct.col.ast.MethodInvokation;
-import vct.col.ast.NameExpression;
-import vct.col.ast.PrimitiveSort;
-import vct.col.ast.PrimitiveType;
-import vct.col.ast.ProgramUnit;
-import vct.col.ast.ReturnStatement;
-import vct.col.ast.StandardOperator;
-import vct.col.ast.TryCatchBlock;
-import vct.col.ast.ASTSpecial.Kind;
+
+import vct.col.ast.stmt.composite.IfStatement;
+import vct.col.ast.stmt.decl.ASTFlags;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.type.ASTReserved;
+import vct.col.ast.stmt.decl.ASTSpecial;
+import vct.col.ast.stmt.terminal.AssignmentStatement;
+import vct.col.ast.stmt.composite.BlockStatement;
+import vct.col.ast.stmt.composite.CatchClause;
+import vct.col.ast.type.PrimitiveSort;
+import vct.col.ast.util.ContractBuilder;
+import vct.col.ast.stmt.decl.DeclarationStatement;
+import vct.col.ast.stmt.decl.Method;
+import vct.col.ast.expr.MethodInvokation;
+import vct.col.ast.expr.NameExpression;
+import vct.col.ast.stmt.decl.ProgramUnit;
+import vct.col.ast.stmt.terminal.ReturnStatement;
+import vct.col.ast.expr.StandardOperator;
+import vct.col.ast.stmt.composite.TryCatchBlock;
+import vct.col.ast.stmt.decl.ASTSpecial.Kind;
 
 public class VoidCallsThrown extends AbstractRewriter {
 

@@ -1,7 +1,7 @@
 package vct.col.rewrite;
 
-import vct.col.ast.Method;
-import vct.col.ast.ProgramUnit;
+import vct.col.ast.stmt.decl.Method;
+import vct.col.ast.stmt.decl.ProgramUnit;
 
 public class StripConstructors extends AbstractRewriter {
 

@@ -1,21 +1,21 @@
 package vct.col.util;
 
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashSet;
-import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import vct.col.ast.ASTNode;
-import vct.col.ast.BooleanValue;
-import vct.col.ast.ConstantExpression;
-import vct.col.ast.DeclarationStatement;
-import vct.col.ast.MethodInvokation;
-import vct.col.ast.NameExpression;
-import vct.col.ast.OperatorExpression;
-import vct.col.ast.ProgramUnit;
-import vct.col.ast.RecursiveVisitor;
-import vct.col.ast.StandardOperator;
+import vct.col.ast.expr.MethodInvokation;
+import vct.col.ast.expr.NameExpression;
+import vct.col.ast.expr.OperatorExpression;
+import vct.col.ast.expr.StandardOperator;
+import vct.col.ast.expr.constant.BooleanValue;
+import vct.col.ast.expr.constant.ConstantExpression;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.stmt.decl.DeclarationStatement;
+import vct.col.ast.stmt.decl.ProgramUnit;
+import vct.col.ast.util.RecursiveVisitor;
 import vct.col.rewrite.AbstractRewriter;
 
 public class ASTUtils {

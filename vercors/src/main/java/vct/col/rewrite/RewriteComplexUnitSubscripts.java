@@ -2,16 +2,16 @@ package vct.col.rewrite;
 
 import java.util.HashSet;
 
-import vct.col.ast.ASTNode;
-import vct.col.ast.BindingExpression;
-import vct.col.ast.ConstantExpression;
-import vct.col.ast.DeclarationStatement;
-import vct.col.ast.NameExpression;
-import vct.col.ast.OperatorExpression;
-import vct.col.ast.PrimitiveSort;
-import vct.col.ast.ProgramUnit;
-import vct.col.ast.RecursiveVisitor;
-import vct.col.ast.StandardOperator;
+import vct.col.ast.expr.BindingExpression;
+import vct.col.ast.expr.NameExpression;
+import vct.col.ast.expr.OperatorExpression;
+import vct.col.ast.expr.StandardOperator;
+import vct.col.ast.expr.constant.ConstantExpression;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.stmt.decl.DeclarationStatement;
+import vct.col.ast.stmt.decl.ProgramUnit;
+import vct.col.ast.type.PrimitiveSort;
+import vct.col.ast.util.RecursiveVisitor;
 import vct.col.util.ASTUtils;
 
 public class RewriteComplexUnitSubscripts extends AbstractRewriter {

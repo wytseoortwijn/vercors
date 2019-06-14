@@ -4,14 +4,14 @@ package vct.col.syntax;
 
 import hre.ast.TrackingOutput;
 import hre.lang.HREError;
-import vct.col.ast.ASTNode;
-import vct.col.ast.ASTReserved;
-import vct.col.ast.ASTSpecial;
-import vct.col.ast.PrimitiveSort;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.type.ASTReserved;
+import vct.col.ast.stmt.decl.ASTSpecial;
+import vct.col.ast.type.PrimitiveSort;
 import vct.col.print.JavaPrinter;
 import vct.col.rewrite.Parenthesize;
-import static vct.col.ast.StandardOperator.*;
-import static vct.col.ast.ASTReserved.*;
+import static vct.col.ast.expr.StandardOperator.*;
+import static vct.col.ast.type.ASTReserved.*;
 
 /**
  * Create a Syntax object for Java.

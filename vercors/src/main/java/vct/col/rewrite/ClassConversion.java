@@ -3,8 +3,17 @@ package vct.col.rewrite;
 import java.util.ArrayList;
 import java.util.Stack;
 
-import vct.col.ast.*;
-import vct.col.ast.Method.Kind;
+import vct.col.ast.expr.MethodInvokation;
+import vct.col.ast.expr.NameExpression;
+import vct.col.ast.expr.StandardOperator;
+import vct.col.ast.expr.constant.StructValue;
+import vct.col.ast.stmt.decl.*;
+import vct.col.ast.stmt.decl.Method.Kind;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.type.ASTReserved;
+import vct.col.ast.type.ClassType;
+import vct.col.ast.type.Type;
+import vct.col.ast.util.ContractBuilder;
 
 /**
  * This rewriter converts a program with classes into

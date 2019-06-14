@@ -1,6 +1,6 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 //:: cases ZeroKernel
-//:: tools silcion
+//:: tools silicon
 //:: verdict Pass
 
 class Ref {

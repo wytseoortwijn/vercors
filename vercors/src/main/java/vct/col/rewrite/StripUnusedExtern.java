@@ -3,7 +3,11 @@ package vct.col.rewrite;
 import java.util.HashMap;
 import java.util.HashSet;
 
-import vct.col.ast.*;
+import vct.col.ast.expr.MethodInvokation;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.stmt.decl.*;
+import vct.col.ast.util.ContractBuilder;
+import vct.col.ast.util.RecursiveVisitor;
 
 
 /**
@@ -19,9 +23,9 @@ public class StripUnusedExtern extends AbstractRewriter {
     super(source);
   }
   
-  private static HashMap<String,DeclarationStatement> vars=new HashMap<String, DeclarationStatement>();
+  private static HashMap<String, DeclarationStatement> vars=new HashMap<String, DeclarationStatement>();
   
-  private static HashMap<String,Method> externs=new HashMap<String, Method>();
+  private static HashMap<String, Method> externs=new HashMap<String, Method>();
 
   private static HashSet<String> used_externs=new HashSet<String>();
   
@@ -95,7 +99,7 @@ public class StripUnusedExtern extends AbstractRewriter {
     for(DeclarationStatement d:src.fields()){
       DeclarationStatement old=vars.get(d.name());
       if (d.isValidFlag(ASTFlags.EXTERN)){
-        System.err.printf("extern var %s%n", d.name());
+        Debug("extern var %s", d.name());
         if (old != null){
           Fail("double declaration of %s", d.name());
         }

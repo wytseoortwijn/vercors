@@ -34,6 +34,8 @@ import hre.config.StringSetting;
 import hre.util.TestReport.Verdict;
 import vct.util.Configuration;
 
+import static hre.lang.System.*;
+
 
 public class CommandLineTesting {
   
@@ -48,7 +50,7 @@ public class CommandLineTesting {
     TestcaseVisitor tv=new TestcaseVisitor();
     for(String dir:selftest){
       if (dir.equals("")){
-        System.err.println("Testing backends.");
+        Progress("Testing backends.");
         res=runtest(tt,Verdict.Inconclusive,"z3","-smt2","//examples/backends/test-sat.smt");
         res.mustSay("p true");
         res.mustSay("q true");
@@ -104,7 +106,7 @@ public class CommandLineTesting {
         EnumSet<FileVisitOption> opts = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
         Files.walkFileTree(Paths.get(dir),opts,10,tv);
       } catch (IOException e) {
-        e.printStackTrace();
+        DebugException(e);
       }
     }
     if (tv.delayed_fail) System.exit(1);
@@ -187,7 +189,7 @@ public class CommandLineTesting {
         if (rise4fun.get()) {
         	// for now we only support single-file example programs 
         	if (test.files.size() != 1) {
-        		System.err.printf("cannot configure %s/%s in rise4fun: too many files%n", name, tool);
+        		Output("cannot configure %s/%s in rise4fun: too many files", name, tool);
         		continue;
         	}
         	
@@ -204,18 +206,18 @@ public class CommandLineTesting {
         
         if (puptol_file.used()){
           if (test.files.size()!=1){
-            System.err.printf("cannot configure %s/%s in puptol: too many files%n",
+            Output("cannot configure %s/%s in puptol: too many files",
                 name,tool);
             continue;
           }
           Path file=null;
           for(Path f:test.files) file=f;
-          System.err.printf("test %s/%s%n",name,tool);
+          Progress("test %s/%s",name,tool);
           Iterator<Path> iter=file.iterator();
           try {
             while(!iter.next().toString().equals("shared")) {}
           } catch (NoSuchElementException e){
-            System.err.printf("path element shared not found%n");
+            Warning("path element shared not found");
             continue;
           }
           String experiment=iter.next().toString();
@@ -225,12 +227,12 @@ public class CommandLineTesting {
             path.add(filename);
             filename=iter.next().toString();
           }
-          System.err.printf("  path: %s%n",path);
-          System.err.printf("  file: %s%n",filename);
+          Debug("  path: %s",path);
+          Debug("  file: %s",filename);
           for(String opt:test.options){
-            System.err.printf("  option: %s%n",opt);
+            Debug("  option: %s",opt);
           }
-          System.err.printf("to be added to %s%n",experiment);
+          Debug("to be added to %s",experiment);
           puptol_config.add(experiment,path,name,tool,filename,test.options);
           continue;
         }
@@ -251,25 +253,22 @@ public class CommandLineTesting {
           for(String s:cmd){
             testcmd+=" "+s;
           }
-          System.err.printf("test %s/%s : %s%n",name,tool,testcmd);
+          Progress("test %s/%s : %s",name,tool,testcmd);
           cmds.printf("test %s::%s << EOF%n", name,tool);
           cmds.printf("%s%n",testcmd);
           cmds.printf("EOF%n");
           continue;
         }
-        System.err.printf("submitting %s/%s:%n",name,tool);
-        for(String s:cmd){
-          System.err.printf(" %s",s);
-        }
-        System.err.printf("%n");
+        Progress("submitting %s/%s:",name,tool);
+        Debug("%s", String.join(" ", cmd));
         ecs.submit(new TestResult(cmd,tt,test,name,tool));
         submitted++;
       }
     }
     
-    // if rise4fun configuration is enabled, write the config data as JSON to stdout
+    // if rise4fun configuration is enabled, write the config data as JSON to stderr
     if (rise4fun.get()) {
-    	System.out.printf("%s%n", rise4fun_config.toJson());
+    	Debug("%s", rise4fun_config.toJson());
     }
     
     for(;submitted>0;submitted--){
@@ -307,26 +306,20 @@ public class CommandLineTesting {
             }
           }
           if (ok) {
-            System.err.printf("%4d %s/%s: Pass %n",submitted,tr.name,tr.tool);
+            Progress("%4d %s/%s: Pass",submitted,tr.name,tr.tool);
             successes++;
           } else {
-            System.err.printf("%4d %s/%s: Fail (method list) %n ",submitted,tr.name,tr.tool);
-            for(String s:tr.command){
-              System.err.printf(" %s",s);
-            }
-            System.err.println();           
+            Progress("%4d %s/%s: Fail (method list)",submitted,tr.name,tr.tool);
+            Debug("%s", String.join(" ", tr.command));
           }
         } else {
-          System.err.printf("%4d %s/%s: Fail (%s/%s) %n ",submitted,tr.name,tr.tool,tr.res.verdict,tr.test.verdict);
-          for(String s:tr.command){
-            System.err.printf(" %s",s);
-          }
-          System.err.println();
+          Progress("%4d %s/%s: Fail (%s/%s)",submitted,tr.name,tr.tool,tr.res.verdict,tr.test.verdict);
+          Debug("%s", String.join(" ", tr.command));
           failures.put(tr.name+"/"+tr.tool,String.format(
               "verdict is %s instead of %s",tr.res.verdict,tr.test.verdict));
         }
       } catch (Exception e) {
-        e.printStackTrace();
+        DebugException(e);
         System.exit(1);
       }
     }
@@ -338,48 +331,48 @@ public class CommandLineTesting {
     for (String file:tv.files_by_name.keySet()){
       Set<Path> items=tv.files_by_name.get(file);
       if (items.size()>1){
-        System.err.printf("Warning: there are multiple instance of %s:%n ",file);
+        Warning("Warning: there are multiple instance of %s:",file);
         for(Path p:items){
-          System.err.printf(" %s",p);
+          Warning(" %s",p);
         }
-        System.err.printf("%n");
       }
     }
     if (!untested.isEmpty()){
-      System.err.printf("Warning: the following %d tests have been disabled:%n",untested.size());
+      Warning("Warning: the following %d tests have been disabled:",untested.size());
       for(Entry<String,Testcase> item:untested.entrySet()){
         String name=item.getKey();
         Testcase test=item.getValue();
-        System.err.printf("  %s ",name);
-        String sep="(";
+        String line = "  " + name + " ";
+        String before = "(";
         for(Path f:test.files) {
-          System.err.printf("%s%s",sep,f.toString());
-          sep=" ";
+          line += before + f.toString();
+          before = " ";
         }
-        System.err.printf(")%n");
+        line += ")";
+        Warning("%s", line);
       }
     }
-    System.err.printf("verification times (ms):%n");
+    Output("verification times (ms):");
     ArrayList<String> list = new ArrayList<String>(times.keySet());
     Collections.sort(list);
     for(String t:list){
-      System.err.printf("%35s: %10d%n",t,times.get(t));
+      Output("%35s: %10d",t,times.get(t));
     }
     if(failures.isEmpty()){
-      System.err.printf("all %d tests passed%n",successes);
+      Verdict("all %d tests passed",successes);
     } else {
       pass=false;
-      System.err.printf("the following tests failed%n");
+      Output("the following tests failed");
       for(Entry<String,String> t:failures.entrySet()){
-        System.err.printf("  %s: %s%n",t.getKey(),t.getValue());
+        Output("  %s: %s",t.getKey(),t.getValue());
       }
-      System.err.printf("total %s successes and %d failures%n",successes,failures.size());
+      Verdict("total %s successes and %d failures",successes,failures.size());
     }
     if (tv.unmarked.size()>0){
       pass=false;
-      System.err.printf("there were %d unmarked files:%n",tv.unmarked.size());
+      Warning("there were %d unmarked files:",tv.unmarked.size());
       for(Path p: tv.unmarked){
-        System.err.printf("  %s%n",p);
+        Warning("  %s",p);
       }
     }
     if(pass){
@@ -415,22 +408,19 @@ public class CommandLineTesting {
 
   private static void check(VCTResult res,String tool,String test) {
     if (res.verdict !=Verdict.Pass) {
-      System.err.printf("%s did not pass the %s test%s",tool,test);
-      System.exit(1);
+      Fail("%s did not pass the %s test%s",tool,test);
     }
   }
 
   private static VCTResult runtest(ToolTest tt,Verdict expect,String ... args) {
-    System.err.printf("executing");
-    for(String s:args) System.err.printf(" %s",s);
-    System.err.println();
+    Progress("executing");
+    for(String s:args) Debug(" %s",s);
     VCTResult res;
     res=tt.run(args);  
     if (res.verdict==expect){
       res.verdict=Verdict.Pass;
     } else {
-      System.err.printf("%s did not execute properly%n",args[0]);
-      System.exit(1);
+      Fail("%s did not execute properly",args[0]);
     }
     return res;
   }
@@ -439,6 +429,7 @@ public class CommandLineTesting {
   private static Option include_option;
   private static StringListSetting excludes=new StringListSetting();
   private static Option exclude_option;
+  
   
   private static StringListSetting langs=new StringListSetting();
   private static Option lang_option;

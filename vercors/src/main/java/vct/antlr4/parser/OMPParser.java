@@ -74,8 +74,7 @@ class ConversionVisitor implements ompVisitor<OMPelement> {
 
   @Override
   public OMPelement visitOmp_pragma(Omp_pragmaContext ctx) {
-    //System.err.printf("pragma %s%n",ctx.toStringTree());
-    return ctx.getChild(0).accept(this); 
+    return ctx.getChild(0).accept(this);
    }
 
   @Override

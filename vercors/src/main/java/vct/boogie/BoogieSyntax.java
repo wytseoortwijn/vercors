@@ -2,14 +2,14 @@
 package vct.boogie;
 
 import hre.ast.TrackingOutput;
-import vct.col.ast.ASTNode;
-import vct.col.ast.ProgramUnit;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.stmt.decl.ProgramUnit;
 import vct.col.rewrite.Parenthesize;
 import vct.col.rewrite.Standardize;
 import vct.col.syntax.Syntax;
 import vct.col.util.SimpleTypeCheck;
-import static vct.col.ast.StandardOperator.*;
-import static vct.col.ast.ASTReserved.*;
+import static vct.col.ast.expr.StandardOperator.*;
+import static vct.col.ast.type.ASTReserved.*;
 
 /**
  * Create Syntax objects for Boogie and Chalice.

@@ -3,17 +3,19 @@ package vct.col.rewrite;
 import hre.ast.MessageOrigin;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Stack;
+import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import vct.antlr4.parser.Parsers;
-import vct.col.ast.*;
-import vct.col.ast.Method.Kind;
+import vct.col.ast.expr.*;
+import vct.col.ast.stmt.decl.Method.Kind;
+import vct.col.util.ASTMapping;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.stmt.decl.*;
+import vct.col.ast.type.*;
+import vct.col.ast.util.ContractBuilder;
+import vct.col.ast.util.UndefinedMapping;
 import vct.col.util.ASTUtils;
 import vct.util.Configuration;
 
@@ -415,12 +417,15 @@ public class SilverClassReduction extends AbstractRewriter {
       Type t0=e.arg(1).getType();
       ASTNode object=rewrite(e.arg(1));
       Type t=(Type)e.arg(0);
-      if (t.isPrimitive(PrimitiveSort.Float)){
-        if (t0.isPrimitive(PrimitiveSort.Integer)){
-          result=create.domain_call("VCTFloat","ffromint",object);
+      if (t.isPrimitive(PrimitiveSort.Float)) {
+        if (t0.isPrimitive(PrimitiveSort.Integer)) {
+          result = create.domain_call("VCTFloat", "ffromint", object);
         } else {
-          Fail("cannot convert %s to float yet.",t0);
+          Fail("cannot convert %s to float yet.", t0);
         }
+      } else if(t.isPrimitive(PrimitiveSort.Option)) {
+        // Type marker, ignore.
+        result = rewrite(e.arg(1));
       } else {
         ASTNode condition=create.invokation(null, null,"instanceof",
             create.domain_call("TYPE","type_of",object),
@@ -589,8 +594,16 @@ public class SilverClassReduction extends AbstractRewriter {
       }
       for(Entry<String,String> entry:option_get.entrySet()){
         create.enter();
-        create.setOrigin(new MessageOrigin("Generated OptionGet code"));
         Type t=rewrite(option_get_type.get(entry.getKey()));
+        String extraMessage;
+
+        if(t.firstarg() instanceof ClassType && ((ClassType) t.firstarg()).getFullName().equals("VCTArray")) {
+          extraMessage = "Array access to value which may be null";
+        } else {
+          extraMessage = "Value may be None";
+        }
+
+        create.setOrigin(new MessageOrigin("Generated OptionGet code: " + extraMessage));
         Type returns=(Type)((ClassType)t).firstarg();
         String name=entry.getValue();
         ContractBuilder cb=new ContractBuilder();
@@ -608,7 +621,7 @@ public class SilverClassReduction extends AbstractRewriter {
     }
     HashSet<String> names=new HashSet<String>();
     for(ASTNode n:res){
-      if (n instanceof ASTDeclaration){
+      if (n instanceof ASTDeclaration && !(n instanceof ASTSpecial)){
         ASTDeclaration d=(ASTDeclaration)n;
         if (names.contains(d.name())){
           Warning("name %s declared more than once",d.name());
@@ -618,7 +631,6 @@ public class SilverClassReduction extends AbstractRewriter {
     }
     return res;
   }
-  
   
   @Override
   public void visit(MethodInvokation s){

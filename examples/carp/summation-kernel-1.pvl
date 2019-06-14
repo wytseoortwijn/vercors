@@ -4,12 +4,6 @@
 //:: verdict Pass
 
 class Ref {
-	
-	requires 0 < n;
-	requires a <= b;
-	ensures \result;
-	ensures a*n <= b*n;
-	pure boolean lemma_mult_n(int a, int b, int n) = true;
 
   int res;
 
@@ -24,7 +18,6 @@ class Ref {
       Perm(res,write)
     ){
       par kern(int g = 0 .. M)
-				context lemma_mult_n(g+1, M, N);
         context (\forall* int k ; 0 <= k && k < N ; Perm(ar[g*N+k],1/4));
       {
         int[1] temp=new int[1];
@@ -43,7 +36,6 @@ class Ref {
           par group(int t = 0 .. N)
             context \array(contrib,N);
 						invariant 0 <= g && g < M;
-						invariant lemma_mult_n(g+1, M, N);
             requires PointsTo(contrib[t],1/2,0);
             requires Perm(ar[g*N+t],1/4);
             ensures t==0 ==> (\forall* int k; 0 <= k && k < N ; Perm(ar[g*N+k],1/4));
@@ -56,7 +48,6 @@ class Ref {
               context  \array(contrib,N);
 							context 0 <= t && t < N;
 							context 0 <= g && g < M;
-							context lemma_mult_n(g+1, M, N);
               requires Perm(ar[g*N+t],1/4);
               requires PointsTo(contrib[t],1/2,ar[g*N+t]);
               ensures  t==0 ==> (\forall* int k; 0 <= k && k < N ; Perm(ar[g*N+k],1/4));

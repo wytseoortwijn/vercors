@@ -3,24 +3,24 @@ package vct.col.util;
 import java.util.EnumSet;
 import java.util.HashSet;
 
-import vct.col.ast.ASTClass;
-import vct.col.ast.ASTNode;
-import vct.col.ast.ASTSpecial;
-import vct.col.ast.ASTSpecial.Kind;
-import vct.col.ast.Binder;
-import vct.col.ast.BindingExpression;
-import vct.col.ast.Contract;
-import vct.col.ast.ForEachLoop;
-import vct.col.ast.LoopStatement;
-import vct.col.ast.Method;
-import vct.col.ast.OperatorExpression;
-import vct.col.ast.ParallelBlock;
-import vct.col.ast.ParallelInvariant;
-import vct.col.ast.PrimitiveSort;
-import vct.col.ast.RecursiveVisitor;
-import vct.col.ast.StandardOperator;
-import vct.col.ast.Type;
-import vct.col.ast.VectorBlock;
+import vct.col.ast.stmt.decl.ASTClass;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.stmt.decl.ASTSpecial;
+import vct.col.ast.stmt.decl.ASTSpecial.Kind;
+import vct.col.ast.expr.Binder;
+import vct.col.ast.expr.BindingExpression;
+import vct.col.ast.stmt.decl.Contract;
+import vct.col.ast.stmt.composite.ForEachLoop;
+import vct.col.ast.stmt.composite.LoopStatement;
+import vct.col.ast.stmt.decl.Method;
+import vct.col.ast.expr.OperatorExpression;
+import vct.col.ast.stmt.composite.ParallelBlock;
+import vct.col.ast.stmt.composite.ParallelInvariant;
+import vct.col.ast.type.PrimitiveSort;
+import vct.col.ast.util.RecursiveVisitor;
+import vct.col.ast.expr.StandardOperator;
+import vct.col.ast.type.Type;
+import vct.col.ast.stmt.composite.VectorBlock;
 
 public class FeatureScanner extends RecursiveVisitor<Object> {
 

@@ -1,10 +1,10 @@
 package vct.col.rewrite;
 
-import vct.col.ast.ASTNode;
-import vct.col.ast.BeforeAfterAnnotations;
-import vct.col.ast.BlockStatement;
-import vct.col.ast.MethodInvokation;
-import vct.col.ast.ProgramUnit;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.generic.BeforeAfterAnnotations;
+import vct.col.ast.stmt.composite.BlockStatement;
+import vct.col.ast.expr.MethodInvokation;
+import vct.col.ast.stmt.decl.ProgramUnit;
 
 public class FlattenBeforeAfter extends AbstractRewriter {
 

@@ -12,9 +12,19 @@ import org.antlr.v4.runtime.Vocabulary;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
-import vct.col.ast.*;
-import vct.col.ast.ASTClass.ClassKind;
-import vct.col.ast.ASTSpecial.Kind;
+import vct.col.ast.expr.NameExpression;
+import vct.col.ast.expr.OperatorExpression;
+import vct.col.ast.expr.StandardOperator;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.generic.ASTSequence;
+import vct.col.ast.stmt.composite.BlockStatement;
+import vct.col.ast.stmt.composite.LoopStatement;
+import vct.col.ast.stmt.decl.*;
+import vct.col.ast.stmt.decl.ASTClass.ClassKind;
+import vct.col.ast.stmt.decl.ASTSpecial.Kind;
+import vct.col.ast.type.PrimitiveSort;
+import vct.col.ast.type.Type;
+import vct.col.ast.type.TypeOperator;
 import vct.col.syntax.CSyntax;
 import vct.col.syntax.Syntax;
 import vct.antlr4.generated.*;
@@ -32,13 +42,13 @@ import vct.util.Configuration;
 */
 public class CMLtoCOL extends ANTLRtoCOL implements CMLVisitor<ASTNode> {
 
-  private static <E extends ASTSequence<?>> E convert(E unit,ParseTree tree, String file_name,BufferedTokenStream tokens,org.antlr.v4.runtime.Parser parser) {
-    ANTLRtoCOL visitor=new CMLtoCOL(unit, CSyntax.getCML(),file_name,tokens,parser,CMLLexer.Identifier,CMLLexer.COMMENT);
+  private static <E extends ASTSequence<?>> E convert(E unit, ParseTree tree, String file_name, BufferedTokenStream tokens, org.antlr.v4.runtime.Parser parser) {
+    ANTLRtoCOL visitor=new CMLtoCOL(unit, CSyntax.getCML(),file_name,tokens,parser,CMLLexer.Identifier,CMLLexer.CH_COMMENT);
     visitor.scan_to(unit,tree);
     return unit;
   }
   
-  public static ProgramUnit convert_pu(ParseTree tree, String file_name,BufferedTokenStream tokens,org.antlr.v4.runtime.Parser parser) {
+  public static ProgramUnit convert_pu(ParseTree tree, String file_name, BufferedTokenStream tokens, org.antlr.v4.runtime.Parser parser) {
     return convert(new ProgramUnit(),tree,file_name,tokens,parser);
   }
   
@@ -74,7 +84,7 @@ public class CMLtoCOL extends ANTLRtoCOL implements CMLVisitor<ASTNode> {
       
   }
 
-  private void doblock(BlockStatement block, ParserRuleContext ctx) {  
+  private void doblock(BlockStatement block, ParserRuleContext ctx) {
     if (match(ctx,"BlockItemContext")){
         //hre.System.Warning("%s",ctx.getChild(0).toStringTree(parser));
         ASTNode temp = convert(ctx,0);

@@ -3,17 +3,17 @@ package vct.col.util;
 import java.util.HashSet;
 import java.util.Hashtable;
 
-import vct.col.ast.ASTNode;
-import vct.col.ast.BindingExpression;
-import vct.col.ast.BlockStatement;
-import vct.col.ast.DeclarationStatement;
-import vct.col.ast.ForEachLoop;
-import vct.col.ast.LoopStatement;
-import vct.col.ast.NameExpression;
-import vct.col.ast.ParallelBlock;
-import vct.col.ast.RecursiveVisitor;
-import vct.col.ast.Type;
-import vct.col.ast.VectorBlock;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.expr.BindingExpression;
+import vct.col.ast.stmt.composite.BlockStatement;
+import vct.col.ast.stmt.decl.DeclarationStatement;
+import vct.col.ast.stmt.composite.ForEachLoop;
+import vct.col.ast.stmt.composite.LoopStatement;
+import vct.col.ast.expr.NameExpression;
+import vct.col.ast.stmt.composite.ParallelBlock;
+import vct.col.ast.util.RecursiveVisitor;
+import vct.col.ast.type.Type;
+import vct.col.ast.stmt.composite.VectorBlock;
 
 
 public class NameScanner extends RecursiveVisitor<Object> {

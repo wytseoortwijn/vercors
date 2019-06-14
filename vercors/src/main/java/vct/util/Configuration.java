@@ -1,10 +1,5 @@
 package vct.util;
 
-import static hre.lang.System.Abort;
-import static hre.lang.System.Debug;
-import static hre.lang.System.Progress;
-import static hre.lang.System.Warning;
-
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -23,6 +18,9 @@ import hre.config.StringListSetting;
 import hre.config.StringSetting;
 import hre.io.Message;
 import hre.io.ModuleShell;
+
+import static hre.lang.System.*;
+
 /**
  * This class contains the configuration options of the VerCors library.
  * 
@@ -213,7 +211,6 @@ public class Configuration {
       if (modules.length==0){
         return new ModuleShell();
       }
-      //System.err.printf("home: %s%ngeneric:%s%nsystem:%s%n",getHome(),generic_deps,system_deps);
       shell = new ModuleShell(getHome().resolve(Paths.get("modules")));
       for (String p:modulepath){
         shell.send("module use %s",p);
@@ -254,7 +251,7 @@ public class Configuration {
         Abort(msg.getFormat(),msg.getArgs());
       }
     } catch (IOException e) {
-      e.printStackTrace();
+      DebugException(e);
       throw new Error(e.getMessage());
     }
     return shell;
@@ -265,6 +262,4 @@ public class Configuration {
   public static Syntax getDiagSyntax(){
     return JavaSyntax.getJava(JavaDialect.JavaVerCors);
   }
-
-  public static BooleanSetting progress = new BooleanSetting(false);
 }

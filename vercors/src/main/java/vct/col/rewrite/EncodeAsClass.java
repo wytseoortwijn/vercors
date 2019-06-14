@@ -1,7 +1,11 @@
 package vct.col.rewrite;
 
 import hre.ast.MessageOrigin;
-import vct.col.ast.*;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.stmt.decl.ASTClass;
+import vct.col.ast.stmt.decl.ASTDeclaration;
+import vct.col.ast.stmt.decl.ASTFlags;
+import vct.col.ast.stmt.decl.ProgramUnit;
 
 public class EncodeAsClass extends AbstractRewriter {
 

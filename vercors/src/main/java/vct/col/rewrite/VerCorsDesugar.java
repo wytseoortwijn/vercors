@@ -3,7 +3,11 @@ package vct.col.rewrite;
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import vct.col.ast.*;
+import vct.col.ast.expr.OperatorExpression;
+import vct.col.ast.expr.StandardOperator;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.stmt.decl.ProgramUnit;
+import vct.col.ast.type.PrimitiveSort;
 
 public class VerCorsDesugar extends AbstractRewriter {
 

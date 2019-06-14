@@ -44,7 +44,7 @@ public final class ErrorCounter implements ANTLRErrorListener {
     }
     String fname=file.get(i);
     int fofs=arg2-ofs.get(i)+src.get(i);
-    hre.lang.System.Warning("%s, %d:%d %s%n",fname,fofs,arg3,arg4);
+    hre.lang.System.Warning("%s, %d:%d %s",fname,fofs,arg3,arg4);
     count.incrementAndGet();
   }
 

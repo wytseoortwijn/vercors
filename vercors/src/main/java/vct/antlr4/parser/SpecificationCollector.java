@@ -1,8 +1,14 @@
 package vct.antlr4.parser;
 
 
-import vct.col.ast.*;
-import vct.col.ast.ASTSpecial.Kind;
+import vct.col.ast.expr.MethodInvokation;
+import vct.col.ast.expr.StandardOperator;
+import vct.col.ast.stmt.composite.BlockStatement;
+import vct.col.ast.stmt.composite.LoopStatement;
+import vct.col.ast.stmt.decl.*;
+import vct.col.ast.stmt.decl.ASTSpecial.Kind;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.util.ContractBuilder;
 import vct.col.rewrite.AbstractRewriter;
 import vct.col.syntax.Syntax;
 

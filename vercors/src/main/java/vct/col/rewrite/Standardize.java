@@ -1,17 +1,16 @@
 package vct.col.rewrite;
 
-import vct.col.ast.ASTNode;
-import vct.col.ast.ASTReserved;
-import vct.col.ast.AxiomaticDataType;
-import vct.col.ast.BlockStatement;
-import vct.col.ast.Method;
-import vct.col.ast.MethodInvokation;
-import vct.col.ast.NameExpression;
-import vct.col.ast.PrimitiveType;
-import vct.col.ast.PrimitiveSort;
-import vct.col.ast.OperatorExpression;
-import vct.col.ast.ProgramUnit;
-import vct.col.ast.StandardOperator;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.type.ASTReserved;
+import vct.col.ast.stmt.decl.AxiomaticDataType;
+import vct.col.ast.stmt.composite.BlockStatement;
+import vct.col.ast.stmt.decl.Method;
+import vct.col.ast.expr.MethodInvokation;
+import vct.col.ast.expr.NameExpression;
+import vct.col.ast.expr.OperatorExpression;
+import vct.col.ast.stmt.decl.ProgramUnit;
+import vct.col.ast.expr.StandardOperator;
+import vct.col.ast.type.PrimitiveSort;
 import vct.util.ClassName;
 
 /**
@@ -47,8 +46,6 @@ public class Standardize extends AbstractRewriter {
       Method m=source().find_adt(e.method);
       if (m!=null){
         String adt = ((AxiomaticDataType)m.getParent()).name();
-        //System.err.printf("%s is an ADT method from %s%n", e.method,);
-        //object=create.name(Kind.ADT, null,adt);
         object=create.class_type(adt);
       }
     }

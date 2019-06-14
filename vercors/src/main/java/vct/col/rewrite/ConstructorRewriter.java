@@ -1,6 +1,14 @@
 package vct.col.rewrite;
 
-import vct.col.ast.*;
+import vct.col.ast.expr.MethodInvokation;
+import vct.col.ast.expr.StandardOperator;
+import vct.col.ast.expr.constant.StructValue;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.stmt.decl.*;
+import vct.col.ast.stmt.terminal.AssignmentStatement;
+import vct.col.ast.type.ClassType;
+import vct.col.ast.type.PrimitiveSort;
+import vct.col.ast.util.ContractBuilder;
 
 public class ConstructorRewriter extends AbstractRewriter {
 
@@ -11,7 +19,7 @@ public class ConstructorRewriter extends AbstractRewriter {
   public void visit(MethodInvokation e){
     if (e.getDefinition()==null){
       Warning("method invokation (%s) without definition",e.method);
-    } else if (e.getDefinition().kind==Method.Kind.Constructor) {
+    } else if (e.getDefinition().kind== Method.Kind.Constructor) {
       Fail("%s cannot deal with instantiation that is not an assignment at %s",getClass(),e.getOrigin());
     }
     super.visit(e);

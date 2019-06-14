@@ -2,75 +2,47 @@
 
 <project name="VerCors Tool" default="compile">
 
-  <!-- the dependencies are either in the deps sub-directory or two levels up -->  
+  <!-- the dependencies are either in the deps sub-directory or two levels up -->
   <condition property="deps" value="${basedir}/deps" else="${basedir}/../..">
     <available file="${basedir}/deps" type="dir"/>
   </condition>
-  
+
   <condition property="sbtcommand" value="${basedir}/windows/bin/vct-sbt.cmd" else="${basedir}/unix/bin/vct-sbt">
     <os family="windows" />
-  </condition>  
+  </condition>
 
-  <condition property="sbtbuild" value="assembly" else="packCopyDependencies">
-    <os family="windows" />
-  </condition>  
+  <condition property="fail_on_test" value="true" else="false">
+      <isset property="TRAVIS"/>
+  </condition>
 
-	<property name="dist" value="${basedir}/dist"/>
+  <property name="dist" value="${basedir}/dist"/>
   <property environment="env"/>
 
   <target name="clean">
-    <ant antfile="build.xml" dir="${basedir}/viper/viper-api" inheritAll="false" target="clean"/>
-    <exec dir="${basedir}/vercors" executable="${sbtcommand}"> <arg value="clean" /> </exec>
-    <exec dir="${basedir}/viper/silver" executable="${sbtcommand}"> <arg value="clean" /> </exec>
-    <exec dir="${basedir}/viper/silicon" executable="${sbtcommand}"> <arg value="clean" /> </exec>
-    <exec dir="${basedir}/viper/carbon" executable="${sbtcommand}"> <arg value="clean" /> </exec>
-    <ant antfile="build.xml" dir="${basedir}/parsers" inheritAll="false" target="clean"/>
-    <ant antfile="build.xml" dir="${basedir}/hre" inheritAll="false" target="clean"/>
+    <exec dir="${basedir}/vercors" executable="${sbtcommand}"><arg value="clean" /><env key="TERM" value="xterm-color" /></exec>
+    <exec dir="${basedir}/vercors/hre" executable="${sbtcommand}"><arg value="clean" /><env key="TERM" value="xterm-color" /></exec>
+    <exec dir="${basedir}/vercors/parsers" executable="${sbtcommand}"><arg value="clean" /><env key="TERM" value="xterm-color" /></exec>
+    <exec dir="${basedir}/vercors/viper" executable="${sbtcommand}"><arg value="clean" /><env key="TERM" value="xterm-color" /></exec>
     <delete dir="${basedir}/doc/api"/>
   </target>
-  
+
   <target name="assembly" depends="compile">
   	<jar destfile="vct-tool.jar" >
       <manifest>
         <attribute name="Main-Class" value="vct.main.Main"/>
         <attribute name="Built-By" value="${user.name}"/>
       </manifest>
-      <fileset dir="hre/bin">
-        <include name="**" />
-      </fileset>
-      <fileset dir="parsers/bin">
-        <include name="**" />
-      </fileset>
-      <fileset dir="vercors/target/scala-2.12/classes">
-        <include name="**" />
-      </fileset>
-      <fileset dir="viper/viper-api/bin">
-        <include name="**" />
-      </fileset>
-      <fileset dir="viper/silicon/src/main/resources">
-        <include name="**" />
-      </fileset>
-      <zipfileset src="vercors/target/lib/antlr4-runtime-4.5.3.jar" excludes="META-INF/*" />
-      <zipfileset src="vercors/target/lib/commons-lang3-3.1.jar" excludes="META-INF/*" />
-      <zipfileset src="vercors/target/lib/commons-io-2.4.jar" excludes="META-INF/*" />
-      <zipfileset src="vercors/target/lib/gson-2.8.0.jar" excludes="META-INF/*" />
-      <zipfileset src="vercors/target/lib/scala-library-2.12.7.jar" excludes="META-INF/*" />
+      <zipfileset src="vercors/target/scala-2.12/Vercors-assembly-0.1-SNAPSHOT.jar" excludes="META-INF/*" />
     </jar>
   </target>
-  
+
   <target name="compile">
-    <ant antfile="build.xml" dir="${basedir}/viper/viper-api" inheritAll="false" target="compile"/>
-    <ant antfile="build.xml" dir="${basedir}/hre" inheritAll="false" target="compile"/>
-    <ant antfile="build.xml" dir="${basedir}/parsers" inheritAll="false" target="compile"/>
-    <exec dir="${basedir}/vercors" executable="${sbtcommand}"> <arg value="${sbtbuild}" /> </exec>
-    <exec dir="${basedir}/viper/silver" executable="${sbtcommand}"> <arg value="compile" /> </exec>
-    <exec dir="${basedir}/viper/silicon" executable="${sbtcommand}"> <arg value="assembly" /> </exec>
-    <exec dir="${basedir}/viper/carbon" executable="${sbtcommand}"> <arg value="assembly" /> </exec>
+    <exec dir="${basedir}/vercors" executable="${sbtcommand}" failonerror="${fail_on_test}"><arg value="assembly" /></exec>
   </target>
 
   <target name="doc" depends="compile">
     <!-- do not inline! -->
-		<antcall target="javadoc"/>
+	<antcall target="javadoc"/>
   </target>
 
   <target name="javadoc">
@@ -84,13 +56,13 @@
            use="true"
            windowtitle="VerCors Tool API">
 
-      <fileset dir="${basedir}/hre/src" defaultexcludes="yes">
+      <fileset dir="${basedir}/vercors/hre/src" defaultexcludes="yes">
         <include name="**/*.java"/>
       </fileset>
       <fileset dir="${basedir}/vercors/src/main/java" defaultexcludes="yes">
         <include name="**/*.java"/>
       </fileset>
-      <fileset dir="${basedir}/viper/viper-api/src" defaultexcludes="yes">
+      <fileset dir="${basedir}/vercors/viper/src" defaultexcludes="yes">
         <include name="**/*.java"/>
       </fileset>
 
@@ -100,14 +72,14 @@
       <group title="Provers and Exports" packages="vct.boogie:vct.java.printer"/>
       <group title="Hybrid Runtime Environment" packages="hre*"/>
       <!--
-      <tag name="todo" scope="all" description="To do:"/> 
+      <tag name="todo" scope="all" description="To do:"/>
       <group title="Group 1 Packages" packages="com.dummy.test.a*"/>
       <group title="Group 2 Packages" packages="com.dummy.test.b*:com.dummy.test.c*"/>
       <link offline="true" href="http://download.oracle.com/javase/6/docs/api/" packagelistLoc="C:\tmp"/>
       <link href="http://developer.java.sun.com/developer/products/xml/docs/api/"/>
       -->
     </javadoc>
-  </target>  
+  </target>
 
 	<!-- Generates a ZIP file with the VerCors jar from the assembly target,
 	 		 together with all the requires dependencies to run VerCors. -->
@@ -119,32 +91,27 @@
       <zipfileset dir="${deps}/modules/z3" prefix="${prefix}/deps/modules/z3" excludes="**/*~" />
       <zipfileset dir="${deps}/z3" prefix="${prefix}/deps/z3" excludes="**/*~,**/*.cmd,**/*.exe,**/bin/*" />
       <zipfileset dir="${deps}/z3" prefix="${prefix}/deps/z3" filemode="755" excludes="**/*~" includes="**/*.cmd,**/*.exe,**/bin/*" />
-			
+
 			<!-- Boogie modules -->
       <zipfileset dir="${deps}/modules/boogie" prefix="${prefix}/deps/modules/boogie" excludes="**/*~" />
       <zipfileset dir="${deps}/boogie" prefix="${prefix}/deps/boogie" excludes="**/*~,**/*.cmd,**/*.exe,**/bin/*" />
       <zipfileset dir="${deps}/boogie" prefix="${prefix}/deps/boogie" filemode="755" excludes="**/*~" includes="**/*.cmd,**/*.exe,**/bin/*" />
- 
+
  		 <!-- Chalice modules -->
       <zipfileset dir="${deps}/modules/chalice" prefix="${prefix}/deps/modules/chalice" excludes="**/*~" />
       <zipfileset dir="${deps}/chalice" prefix="${prefix}/deps/chalice" excludes="**/*~,**/*.cmd,**/*.exe,**/bin/*" />
       <zipfileset dir="${deps}/chalice" prefix="${prefix}/deps/chalice" filemode="755" excludes="**/*~" includes="**/*.cmd,**/*.exe,**/bin/*" />
-      
+
 			<!-- Binaries, configs, examples, libraries -->
       <zipfileset dir="." prefix="${prefix}" includes="README,INSTALL" />
       <zipfileset dir="config" prefix="${prefix}/config" excludes="*~" filemode="755" />
       <zipfileset dir="libs" prefix="${prefix}/libs" />
       <zipfileset dir="modules" prefix="${prefix}/modules" filemode="755" excludes="**/*~,.git,init/*sh,init/perl,init/python,init/lisp,init/modulerc" />
       <zipfileset dir="examples" prefix="${prefix}/examples" includes="**/*.java,**/*.pvl,**/*.c,README,**/SEEALSO,backends/**/*" excludes="**/*~" />
-      
+
 			<!-- VerCors and Viper jars -->
-			<zipfileset dir="." prefix="${prefix}"
-        includes="vct-tool.jar,
-                  viper/silicon/target/scala-2.12/silicon.jar,
-                  viper/carbon/target/scala-2.12/carbon.jar" />
+	  <zipfileset dir="." prefix="${prefix}" includes="vct-tool.jar" />
     </zip>
   </target>
 
 </project>
-
-

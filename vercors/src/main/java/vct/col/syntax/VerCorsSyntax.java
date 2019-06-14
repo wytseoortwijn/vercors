@@ -1,16 +1,17 @@
 package vct.col.syntax;
 
-import vct.col.ast.ASTReserved;
-import vct.col.ast.ASTSpecial;
-import vct.col.ast.PrimitiveSort;
-import vct.col.ast.StandardOperator;
-import static vct.col.ast.ASTReserved.Any;
-import static vct.col.ast.ASTReserved.FullPerm;
-import static vct.col.ast.ASTReserved.NoPerm;
-import static vct.col.ast.ASTReserved.Pure;
-import static vct.col.ast.ASTReserved.ReadPerm;
-import static vct.col.ast.ASTReserved.Result;
-import static vct.col.ast.StandardOperator.*;
+import vct.col.ast.type.ASTReserved;
+import vct.col.ast.stmt.decl.ASTSpecial;
+import vct.col.ast.expr.StandardOperator;
+import vct.col.ast.type.PrimitiveSort;
+
+import static vct.col.ast.type.ASTReserved.Any;
+import static vct.col.ast.type.ASTReserved.FullPerm;
+import static vct.col.ast.type.ASTReserved.NoPerm;
+import static vct.col.ast.type.ASTReserved.Pure;
+import static vct.col.ast.type.ASTReserved.ReadPerm;
+import static vct.col.ast.type.ASTReserved.Result;
+import static vct.col.ast.expr.StandardOperator.*;
 
 public class VerCorsSyntax {
 

@@ -2,39 +2,36 @@ package vct.main;
 
 import hre.ast.FileOrigin;
 import hre.ast.Origin;
-import hre.io.PrefixPrintStream;
+import hre.io.PrefixPrintWriter;
 
+import java.io.PrintWriter;
 import java.lang.reflect.Field;
 import java.util.*;
 
-import vct.col.ast.ASTClass;
-import vct.col.ast.ASTNode;
-import vct.col.ast.ASTSpecial.Kind;
-import vct.col.ast.AbstractVisitor;
-import vct.col.ast.AssignmentStatement;
-import vct.col.ast.BindingExpression;
-import vct.col.ast.BlockStatement;
-import vct.col.ast.ClassType;
-import vct.col.ast.ConstantExpression;
-import vct.col.ast.Contract;
-import vct.col.ast.DeclarationStatement;
-import vct.col.ast.FunctionType;
-import vct.col.ast.IfStatement;
-import vct.col.ast.LoopStatement;
-import vct.col.ast.Method;
-import vct.col.ast.MethodInvokation;
-import vct.col.ast.NameExpression;
-import vct.col.ast.OperatorExpression;
-import vct.col.ast.PrimitiveType;
-import vct.col.ast.RecordType;
-import vct.col.ast.RecursiveVisitor;
-import vct.col.ast.ReturnStatement;
-import vct.col.ast.StandardOperator;
-import vct.col.ast.StandardProcedure;
-import vct.col.ast.Type;
+import vct.col.ast.stmt.composite.IfStatement;
+import vct.col.ast.stmt.decl.ASTClass;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.stmt.decl.ASTSpecial.Kind;
+import vct.col.ast.type.*;
+import vct.col.ast.util.AbstractVisitor;
+import vct.col.ast.stmt.terminal.AssignmentStatement;
+import vct.col.ast.expr.BindingExpression;
+import vct.col.ast.stmt.composite.BlockStatement;
+import vct.col.ast.expr.constant.ConstantExpression;
+import vct.col.ast.stmt.decl.Contract;
+import vct.col.ast.stmt.decl.DeclarationStatement;
+import vct.col.ast.stmt.composite.LoopStatement;
+import vct.col.ast.stmt.decl.Method;
+import vct.col.ast.expr.MethodInvokation;
+import vct.col.ast.expr.NameExpression;
+import vct.col.ast.expr.OperatorExpression;
+import vct.col.ast.util.RecursiveVisitor;
+import vct.col.ast.stmt.terminal.ReturnStatement;
+import vct.col.ast.expr.StandardOperator;
+import vct.col.ast.expr.StandardProcedure;
 import vct.col.rewrite.Substitution;
 import vct.col.util.ASTFactory;
-import vct.col.ast.ASTSpecial;
+import vct.col.ast.stmt.decl.ASTSpecial;
 
 /**
  * @author Remco Swenker
@@ -49,7 +46,7 @@ public class Translator {
 	private List<String> variablelenLijst;
 	private List<String> hoareTriple;
 	
-  private PrefixPrintStream outputToString;
+  private PrefixPrintWriter outputToString;
 	private int currentWorkingTriple;
 	public boolean abort=false;
 	private int currentSet = 0;
@@ -95,7 +92,8 @@ public class Translator {
 		}else{
 			throw new Error("I do not understand: "+state.toString());
 		}
-		outputToString = new PrefixPrintStream(System.out);
+		PrintWriter out = hre.lang.System.getLogLevelOutputWriter(hre.lang.System.LogLevel.Info);
+		outputToString = new PrefixPrintWriter(out);
 		variablelenLijst = new ArrayList<String>();
 		hoareTriple = new ArrayList<String>();
 		currentWorkingTriple = 0;
@@ -122,17 +120,14 @@ public class Translator {
 		if(contract == null){
 			ans = ans && !thisParent.checkWithZ3(makeReadyForZ3(), variablelenLijst, state);
 		}
-		/*for(int i = 0; hoareTriple.size() > i; i++){
-			System.out.println(hoareTriple.get(i));
-		}
-		for(int i = 0; variablelenLijst.size() > i; i++){
-			System.out.println(variablelenLijst.get(i));
-		}*/
+
 		if(ans){
-			System.out.println();
-			System.out.printf("No errors were found in: %s%n",m.getOrigin());
-			System.out.println();
+			out.println();
+			out.printf("No errors were found in: %s%n",m.getOrigin());
+			out.println();
 		}
+
+		out.close();
 		return ans;
 	}
 	
@@ -589,7 +584,7 @@ public class Translator {
 	     * Executed when the abstract scanner finds a method.
 	     */
 		public void visit(Method m){
-			PrefixPrintStream out=new PrefixPrintStream(System.out);
+			PrefixPrintWriter out=new PrefixPrintWriter(hre.lang.System.getLogLevelOutputWriter(hre.lang.System.LogLevel.Info));
 			ASTNode body=m.getBody();
 			Contract c=m.getContract();
 			out.printf("starting%n");
@@ -623,6 +618,7 @@ public class Translator {
 			out.printf("=====begin postcondition=====%n");
 			printTree(out,c.post_condition,ASTNode.class);
 			out.printf("+++++end postcondition+++++%n");
+			out.close();
 		}
 	}
 	
@@ -632,7 +628,7 @@ public class Translator {
 		private List<String> variablelenLijst;
 		private List<String> hoareTriple;
 		private AssignmentStatement assignment;
-		private PrefixPrintStream outputToString;
+		private PrefixPrintWriter outputToString;
 		private String setting;
 		public void setResult(Boolean b){
 			abort=b.booleanValue();
@@ -854,7 +850,9 @@ public class Translator {
 
 		@Override
 		public void visit(Method m) {
-			outputToString = new PrefixPrintStream(System.out);
+			PrintWriter out = hre.lang.System.getLogLevelOutputWriter(hre.lang.System.LogLevel.Info);
+
+			outputToString = new PrefixPrintWriter(out);
 			variablelenLijst = new ArrayList<String>();
 			hoareTriple = new ArrayList<String>();
 			currentWorkingTriple = 0;
@@ -908,11 +906,13 @@ public class Translator {
 		    }
 			//thisParent.checkWithZ3(hoareTriple, variablelenLijst);
 		    for(int i = 0; variablelenLijst.size() > i; i++){
-		    	System.out.println(variablelenLijst.get(i));
+		    	out.println(variablelenLijst.get(i));
 		    }
 		    for(int i = 0; hoareTriple.size() > i;i++){
-		    	System.out.println(hoareTriple.get(i));
+		    	out.println(hoareTriple.get(i));
 		    }
+
+		    out.close();
 		}
 		private String getZ3Type(Type type) {
 			String ans = "";
@@ -999,11 +999,11 @@ public class Translator {
 	  
 	public static void printTree(){}
 		
-	public static void printTree(PrefixPrintStream out,Object tree,Class ... base_classes){
+	public static void printTree(PrefixPrintWriter out, Object tree, Class ... base_classes){
 		printTree(out,new HashSet<Object>(),tree,base_classes);
 	}
 	
-	private static void printTree(PrefixPrintStream out,Set<Object> visited,Object tree,Class ... base_classes){
+	private static void printTree(PrefixPrintWriter out, Set<Object> visited, Object tree, Class ... base_classes){
 			if (visited.contains(tree)) return;
 		    visited.add(tree);
 		    Class tree_class=tree.getClass();
