@@ -1,6 +1,9 @@
 package vct.col.rewrite;
 
-import vct.col.ast.*;
+import vct.col.ast.expr.OperatorExpression;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.stmt.decl.*;
+import vct.col.ast.type.ClassType;
 
 public class PVLCompiler extends AbstractRewriter {
 

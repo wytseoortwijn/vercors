@@ -5,7 +5,18 @@ import hre.ast.WrappingOrigin;
 
 import java.util.ArrayList;
 
-import vct.col.ast.*;
+import vct.col.ast.expr.MethodInvokation;
+import vct.col.ast.expr.NameExpression;
+import vct.col.ast.expr.StandardOperator;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.stmt.decl.ASTFlags;
+import vct.col.ast.stmt.decl.DeclarationStatement;
+import vct.col.ast.stmt.decl.Method;
+import vct.col.ast.stmt.decl.ProgramUnit;
+import vct.col.ast.type.ASTReserved;
+import vct.col.ast.type.PrimitiveSort;
+import vct.col.ast.type.Type;
+import vct.col.ast.util.ContractBuilder;
 import vct.col.util.OriginWrapper;
 
 class IllegalThreadLocalOrigin extends WrappingOrigin {

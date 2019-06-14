@@ -2,12 +2,12 @@ package vct.learn;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import vct.col.ast.ASTNode;
-import vct.col.ast.BindingExpression;
-import vct.col.ast.DeclarationStatement;
-import vct.col.ast.OperatorExpression;
-import vct.col.ast.ProgramUnit;
-import vct.col.ast.RecursiveVisitor;
+import vct.col.ast.expr.BindingExpression;
+import vct.col.ast.expr.OperatorExpression;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.stmt.decl.DeclarationStatement;
+import vct.col.ast.stmt.decl.ProgramUnit;
+import vct.col.ast.util.RecursiveVisitor;
 import vct.col.util.ASTUtils;
 
 public class NonLinCountVisitor extends TypesCountVisitor {

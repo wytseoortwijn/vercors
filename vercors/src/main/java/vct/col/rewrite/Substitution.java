@@ -2,9 +2,9 @@ package vct.col.rewrite;
 
 import java.util.Map;
 
-import vct.col.ast.ASTNode;
-import vct.col.ast.NameExpression;
-import vct.col.ast.ProgramUnit;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.expr.NameExpression;
+import vct.col.ast.stmt.decl.ProgramUnit;
 
 public class Substitution extends AbstractRewriter {
   Map<NameExpression,ASTNode> map;

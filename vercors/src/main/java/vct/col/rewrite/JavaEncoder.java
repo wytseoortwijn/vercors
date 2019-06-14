@@ -5,26 +5,22 @@ import java.util.Hashtable;
 import java.util.List;
 
 import hre.lang.HREError;
-import vct.col.ast.ASTClass;
-import vct.col.ast.ASTClass.ClassKind;
-import vct.col.ast.ASTFlags;
-import vct.col.ast.ASTReserved;
-import vct.col.ast.ASTSpecial;
-import vct.col.ast.AxiomaticDataType;
-import vct.col.ast.BlockStatement;
-import vct.col.ast.Contract;
-import vct.col.ast.Dereference;
-import vct.col.ast.Method.Kind;
-import vct.col.ast.PrimitiveType;
-import vct.col.ast.PrimitiveSort;
-import vct.col.ast.StandardOperator;
-import vct.col.ast.Type;
-import vct.col.ast.ASTNode;
-import vct.col.ast.ClassType;
-import vct.col.ast.DeclarationStatement;
-import vct.col.ast.Method;
-import vct.col.ast.MethodInvokation;
-import vct.col.ast.ProgramUnit;
+import vct.col.ast.stmt.decl.ASTClass;
+import vct.col.ast.stmt.decl.ASTClass.ClassKind;
+import vct.col.ast.stmt.decl.ASTFlags;
+import vct.col.ast.type.*;
+import vct.col.ast.stmt.decl.ASTSpecial;
+import vct.col.ast.stmt.decl.AxiomaticDataType;
+import vct.col.ast.stmt.composite.BlockStatement;
+import vct.col.ast.stmt.decl.Contract;
+import vct.col.ast.expr.Dereference;
+import vct.col.ast.stmt.decl.Method.Kind;
+import vct.col.ast.expr.StandardOperator;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.stmt.decl.DeclarationStatement;
+import vct.col.ast.stmt.decl.Method;
+import vct.col.ast.expr.MethodInvokation;
+import vct.col.ast.stmt.decl.ProgramUnit;
 import vct.col.util.ASTUtils;
 
 public class JavaEncoder extends AbstractRewriter {
@@ -187,14 +183,11 @@ public class JavaEncoder extends AbstractRewriter {
   
   @Override
   public void visit(Dereference d){
-    if (d.field().equals("length")){
-      if (d.obj().getType().isPrimitive(PrimitiveSort.Array)){
-        result=create.expression(StandardOperator.Length,rewrite(d.obj()));
-      } else {
-        result=create.expression(StandardOperator.Size,rewrite(d.obj()));
-      }
+    if(d.field().equals("length")) {
+      super.visit(d);
       return;
     }
+
     ClassType t;
     if (d.obj() instanceof ClassType){
       t=(ClassType)d.obj();
@@ -222,7 +215,7 @@ public class JavaEncoder extends AbstractRewriter {
   
   @Override
   public void visit(ASTClass cl){
-    System.err.printf("class %s%n",cl.name());
+    Debug("class %s",cl.name());
     if (!cl.isValidFlag(ASTFlags.FINAL)){
       cl.setFlag(ASTFlags.FINAL, false);
     }
@@ -402,24 +395,24 @@ public class JavaEncoder extends AbstractRewriter {
       String internal_name=create_method_name(INTERNAL,new ClassType(cls.getFullName()), m);
       boolean isFinal=m.isStatic()||cls.getFlag(ASTFlags.FINAL)||m.getFlag(ASTFlags.FINAL);
       if (isFinal){
-        System.err.printf("  method %s is final%n",m.name());
+        Debug("  method %s is final",m.name());
       } else {
-        System.err.printf("  method %s is not final%n",m.name());
+        Debug("  method %s is not final",m.name());
       }
       boolean isInitial=true;
       Method base=m;
       if (cls.super_classes.length>0){
-        System.err.printf("    super class is %s%n",cls.super_classes[0]);
+        Debug("    super class is %s",cls.super_classes[0]);
         ASTClass parent=source().find(cls.super_classes[0]);
         base=get_initial_definition(m);
         if (base!=m){
           isInitial=false;
-          System.err.printf("    overrides class %s%n",((ASTClass)base.getParent()).getDeclName());
+          Debug("    overrides class %s",((ASTClass)base.getParent()).getDeclName());
         } else {
-          System.err.printf("    initial declaration%n");
+          Debug("    initial declaration");
         }
       } else {
-        System.err.printf("    initial declaration%n");
+        Debug("    initial declaration");
       }
       Contract initial_contract;
       if (base==m){

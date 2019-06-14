@@ -11,9 +11,14 @@ import hre.ast.FileOrigin;
 import hre.ast.MessageOrigin;
 import hre.ast.Origin;
 import hre.lang.HREError;
-import vct.col.ast.*;
-import vct.col.ast.Method.Kind;
-import vct.col.ast.NameSpace.Import;
+import vct.col.ast.expr.NameExpression;
+import vct.col.ast.stmt.decl.Method.Kind;
+import vct.col.ast.stmt.decl.NameSpace.Import;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.stmt.decl.*;
+import vct.col.ast.type.ClassType;
+import vct.col.ast.type.PrimitiveSort;
+import vct.col.ast.type.Type;
 import vct.col.rewrite.AbstractRewriter;
 import vct.col.util.Parser;
 import vct.util.ClassName;
@@ -50,7 +55,7 @@ public class JavaResolver extends AbstractRewriter {
       ClassName cln=new ClassName(name);
       String cl_name=cln.toString();
       Class<?> cl=path.loadClass(cl_name);
-      System.err.printf("loading %s%n",cl_name);
+      Debug("loading %s",cl_name);
       create.enter();
       create.setOrigin(new MessageOrigin("library class %s",cl_name));
       ASTClass res=create.new_class(ClassName.toString(name,FQN_SEP),null,null);
@@ -318,6 +323,17 @@ public class JavaResolver extends AbstractRewriter {
     }
     super.visit(e);
   }
+
+  @Override
+  public void visit(Method m) {
+    if(m.getKind() == Method.Kind.Constructor) {
+      if(!m.getName().equals(current_class().getName())) {
+        Fail("Constructor has a different name (%s) than the class in which it is defined (%s). Did you mean to add a return type to turn it into a method?", m.getName(), current_class().getName());
+      }
+    }
+
+    super.visit(m);
+  }
   
   private Queue<ASTDeclaration> queue=new LinkedList<ASTDeclaration>();
   
@@ -336,5 +352,4 @@ public class JavaResolver extends AbstractRewriter {
     target().index_classes();
     return target();
   }
-
 }

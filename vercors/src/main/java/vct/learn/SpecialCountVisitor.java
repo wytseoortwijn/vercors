@@ -1,6 +1,6 @@
 package vct.learn;
 
-import vct.col.ast.ProgramUnit;
+import vct.col.ast.stmt.decl.ProgramUnit;
 
 public class SpecialCountVisitor extends CountVisitor {
   

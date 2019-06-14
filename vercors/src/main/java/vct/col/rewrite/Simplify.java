@@ -1,11 +1,11 @@
 package vct.col.rewrite;
 
-import vct.col.ast.ASTFrame;
-import vct.col.ast.ASTNode;
-import vct.col.ast.ASTReserved;
-import vct.col.ast.Dereference;
-import vct.col.ast.FieldAccess;
-import vct.col.ast.MethodInvokation;
+import vct.col.ast.util.ASTFrame;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.type.ASTReserved;
+import vct.col.ast.expr.Dereference;
+import vct.col.ast.expr.FieldAccess;
+import vct.col.ast.expr.MethodInvokation;
 
 public class Simplify extends AbstractRewriter {
   

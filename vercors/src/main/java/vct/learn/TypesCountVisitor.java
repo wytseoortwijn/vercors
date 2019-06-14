@@ -1,12 +1,12 @@
 package vct.learn;
 
-import vct.col.ast.ClassType;
-import vct.col.ast.FunctionType;
-import vct.col.ast.PrimitiveType;
-import vct.col.ast.ProgramUnit;
-import vct.col.ast.RecordType;
-import vct.col.ast.TupleType;
-import vct.col.ast.TypeExpression;
+import vct.col.ast.stmt.decl.ProgramUnit;
+import vct.col.ast.type.ClassType;
+import vct.col.ast.type.FunctionType;
+import vct.col.ast.type.PrimitiveType;
+import vct.col.ast.type.RecordType;
+import vct.col.ast.type.TupleType;
+import vct.col.ast.type.TypeExpression;
 
 public class TypesCountVisitor extends SpecialCountVisitor {
   

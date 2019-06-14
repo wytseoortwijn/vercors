@@ -1,15 +1,14 @@
 package vct.boogie;
 
 import hre.ast.TrackingOutput;
-import vct.col.ast.ASTClass;
-import vct.col.ast.ASTFlags;
-import vct.col.ast.ASTNode;
-import vct.col.ast.Contract;
-import vct.col.ast.DeclarationStatement;
-import vct.col.ast.Method;
-import vct.col.ast.PrimitiveSort;
-import vct.col.ast.PrimitiveType;
-import vct.col.ast.Type;
+import vct.col.ast.stmt.decl.ASTClass;
+import vct.col.ast.stmt.decl.ASTFlags;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.stmt.decl.Contract;
+import vct.col.ast.stmt.decl.DeclarationStatement;
+import vct.col.ast.stmt.decl.Method;
+import vct.col.ast.type.PrimitiveSort;
+import vct.col.ast.type.Type;
 
 public class DafnyPrinter extends AbstractBoogiePrinter {
 

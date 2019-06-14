@@ -7,11 +7,16 @@ import java.io.InputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
 
-import vct.col.ast.*;
-import vct.col.ast.ASTSpecial.Kind;
+import vct.col.ast.expr.constant.ConstantExpression;
+import vct.col.ast.stmt.composite.BlockStatement;
+import vct.col.ast.stmt.composite.LoopStatement;
+import vct.col.ast.stmt.decl.*;
+import vct.col.ast.stmt.decl.ASTSpecial.Kind;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.util.ContractBuilder;
 import vct.col.rewrite.AbstractRewriter;
 import static hre.lang.System.*;
-import static vct.col.ast.ASTSpecial.Kind.Comment;
+import static vct.col.ast.stmt.decl.ASTSpecial.Kind.Comment;
 
 /**
  * Rewrite an AST with specifications in the form of comments
@@ -42,8 +47,6 @@ public class CommentRewriter extends AbstractRewriter {
           String comment=s.args[0].toString();
           if (comment.startsWith("//@")){
             FileOrigin o=(FileOrigin)s.getOrigin();
-            //System.out.printf("# %d \"%s\"%n",o.getFirstLine(),o.getName());
-            //System.out.println(comment.substring(3));
             parser.ec.mark_ofs(lines,o.getName(),o.getFirstLine()-2);
             out.printf("# %d \"%s\"%n",o.getFirstLine(),o.getName());
             for(int S=3+o.getFirstColumn();S>0;S--){
@@ -59,8 +62,6 @@ public class CommentRewriter extends AbstractRewriter {
               N=2;
             }
             FileOrigin o=(FileOrigin)s.getOrigin();
-            //System.out.printf("# %d \"%s\"%n",o.getFirstLine(),o.getName());
-            //System.out.println(comment.substring(3,comment.length()-N));
             parser.ec.mark_ofs(lines,o.getName(),o.getFirstLine()-2);
             out.printf("# %d \"%s\"%n",o.getFirstLine(),o.getName());
             for(int S=N+o.getFirstColumn();S>0;S--){
@@ -173,8 +174,8 @@ public class CommentRewriter extends AbstractRewriter {
     filter(s,new_before,new_after,new_after,old_after);
   }
   
-  private void filter(LoopStatement s,BlockStatement new_before, BlockStatement new_after,
-      BlockStatement new_current, BlockStatement old_current)
+  private void filter(LoopStatement s, BlockStatement new_before, BlockStatement new_after,
+                      BlockStatement new_current, BlockStatement old_current)
   {
     for(ASTNode n:old_current){
       n.clearParent();

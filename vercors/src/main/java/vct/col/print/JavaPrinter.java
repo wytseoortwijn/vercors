@@ -6,18 +6,31 @@ import hre.ast.TrackingTree;
 import hre.lang.HREError;
 
 import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.util.List;
 import java.util.Map.Entry;
 
 import org.apache.commons.lang3.StringEscapeUtils;
 
-import vct.col.ast.*;
-import vct.col.ast.Switch.Case;
+import vct.col.ast.stmt.composite.Switch.Case;
+import vct.col.ast.expr.*;
+import vct.col.ast.expr.constant.ConstantExpression;
+import vct.col.ast.expr.constant.StringValue;
+import vct.col.ast.expr.constant.StructValue;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.generic.BeforeAfterAnnotations;
+import vct.col.ast.stmt.composite.*;
+import vct.col.ast.stmt.decl.*;
+import vct.col.ast.stmt.terminal.AssignmentStatement;
+import vct.col.ast.stmt.terminal.ReturnStatement;
+import vct.col.ast.type.*;
 import vct.col.syntax.JavaDialect;
 import vct.col.syntax.JavaSyntax;
 import vct.col.util.ASTUtils;
 import vct.col.util.LambdaHelper;
 import vct.util.*;
+
+import static hre.lang.System.DebugException;
 
 /** 
  * This class contains a pretty printer for Java code.
@@ -712,7 +725,7 @@ public class JavaPrinter extends AbstractPrinter {
     if (predicate){
       if (contract!=null) {
         out.lnprintf("//ignoring contract of predicate");
-        System.err.println("ignoring contract of predicate"); 
+        Debug("ignoring contract of predicate");
       }
       out.lnprintf("/*@");
       out.incrIndent();
@@ -1047,38 +1060,46 @@ public class JavaPrinter extends AbstractPrinter {
     s.body.apply(this);
   }
 
+  private void visitForStatementList(BlockStatement s) {
+    boolean first = true;
+    for(ASTNode n : s){
+      if(!first) {
+        out.printf(", ");
+      }
+
+      nextExpr();
+      n.accept(this);
+
+      first = false;
+    }
+  }
+
   public void visit(LoopStatement s){
     visit(s.getContract());
     ASTNode tmp;
-    if (s.getInitBlock()!=null){
+    if (s.getInitBlock()!=null || s.getUpdateBlock()!=null){
       out.printf("for(");
-      
-       if(s.getInitBlock() instanceof BlockStatement){
-         for(ASTNode n:(BlockStatement)s.getInitBlock()){
-           nextExpr();
-           n.accept(this);
-           out.printf(";");
-         }
-       } else {
-         nextExpr();
-         s.getInitBlock().accept(this);
-         out.printf(";");
-       }
+
+      if(s.getInitBlock() != null) {
+        if (s.getInitBlock() instanceof BlockStatement) {
+          visitForStatementList((BlockStatement) s.getInitBlock());
+        } else {
+          nextExpr();
+          s.getInitBlock().accept(this);
+        }
+      }
+      out.printf(";");
+
       nextExpr();
       s.getEntryGuard().accept(this);
+      out.printf(";");
       
-      if ((s.getUpdateBlock())!=null){
-        
+      if((s.getUpdateBlock())!=null) {
         if(s.getUpdateBlock() instanceof BlockStatement){
-          for(ASTNode n:(BlockStatement)s.getUpdateBlock()){
-            out.printf(";");
-            nextExpr();
-            n.accept(this);
-          }        
+          visitForStatementList((BlockStatement) s.getUpdateBlock());
         } else {
-          out.printf(";");
           nextExpr();
-        	s.getUpdateBlock().accept(this);
+          s.getUpdateBlock().accept(this);
         }
       }
       out.printf(")");
@@ -1157,7 +1178,7 @@ public class JavaPrinter extends AbstractPrinter {
   }
 
 
-  public static TrackingTree dump_expr(PrintStream out,JavaDialect dialect,ASTNode node){
+  public static TrackingTree dump_expr(PrintWriter out, JavaDialect dialect, ASTNode node){
     TrackingOutput track_out=new TrackingOutput(out,false);
     JavaPrinter printer=new JavaPrinter(track_out, dialect);
     printer.setExpr();
@@ -1165,7 +1186,7 @@ public class JavaPrinter extends AbstractPrinter {
     return track_out.close();
   }
 
-  public static TrackingTree dump(PrintStream out,JavaDialect dialect,ProgramUnit program){
+  public static TrackingTree dump(PrintWriter out,JavaDialect dialect,ProgramUnit program){
     hre.lang.System.Debug("Dumping Java code...");
     try {
       TrackingOutput track_out=new TrackingOutput(out,false);
@@ -1175,13 +1196,12 @@ public class JavaPrinter extends AbstractPrinter {
       }
       return track_out.close();
     } catch (Exception e) {
-      System.out.println("error: ");
-      e.printStackTrace();
+      DebugException(e);
       throw new Error("abort");
     }
   }
 
-  public static void dump(PrintStream out,JavaDialect dialect, ASTNode cl) {
+  public static void dump(PrintWriter out,JavaDialect dialect, ASTNode cl) {
     TrackingOutput track_out=new TrackingOutput(out,false);
     JavaPrinter printer=new JavaPrinter(track_out,dialect);
     cl.accept(printer);

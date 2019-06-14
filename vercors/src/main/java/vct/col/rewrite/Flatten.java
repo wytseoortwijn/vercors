@@ -4,7 +4,19 @@ import hre.ast.MessageOrigin;
 
 import java.util.Stack;
 
-import vct.col.ast.*;
+import vct.col.ast.expr.*;
+import vct.col.ast.expr.constant.ConstantExpression;
+import vct.col.ast.expr.constant.StructValue;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.stmt.composite.BlockStatement;
+import vct.col.ast.stmt.composite.IfStatement;
+import vct.col.ast.stmt.composite.LoopStatement;
+import vct.col.ast.stmt.decl.*;
+import vct.col.ast.stmt.terminal.AssignmentStatement;
+import vct.col.ast.stmt.terminal.ReturnStatement;
+import vct.col.ast.type.ClassType;
+import vct.col.ast.type.PrimitiveSort;
+import vct.col.ast.type.Type;
 
 public class Flatten extends AbstractRewriter {
 
@@ -199,6 +211,11 @@ public class Flatten extends AbstractRewriter {
   }
 
   private ASTNode add_as_var(ASTNode e){
+    if(e instanceof NameExpression || e instanceof ConstantExpression) {
+      // NameExpression also includes e.g. null
+      return e;
+    }
+
     create.enter();
     create(e);
     String name="__flatten_"+(++counter);
@@ -234,17 +251,7 @@ public class Flatten extends AbstractRewriter {
       BlockStatement s=(BlockStatement)body;
       int N=s.getLength();
       for(int i=0;i<N;i++){
-        ASTNode stat=s.getStatement(i);
-        if (stat instanceof ReturnStatement){
-          // TODO: properly implement this with exec before and exec after.
-          ASTNode last=stat.apply(this);
-          for(i++;i<N;i++){
-            visit_body(s.getStatement(i));
-          }
-          current_block.addStatement(last);
-        } else {
-          visit_body(s.getStatement(i));
-        }
+        visit_body(s.getStatement(i));
       }
     } else {
       current_block.addStatement(body.apply(this));
@@ -303,29 +310,84 @@ public class Flatten extends AbstractRewriter {
     }
     result=res;
   }
+
+  public ASTNode transformStructValue(Type t, StructValue v) {
+    String name = "__flatten_" + (++counter);
+    declaration_block.addStatement(create.field_decl(name, t));
+
+    if(t.isPrimitive(PrimitiveSort.Option)) {
+      current_block.addStatement(create.assignment(
+              create.local_name(name),
+              create.expression(StandardOperator.OptionSome, transformStructValue((Type) t.firstarg(), v))
+      ));
+    } else if(t.isPrimitive(PrimitiveSort.Array)) {
+      Type arg = (Type) t.firstarg();
+
+      current_block.addStatement(create.assignment(
+              create.local_name(name),
+              create.invokation(null, null, RewriteArrayRef.getArrayConstructor(t, 1), constant(v.valuesLength()))
+      ));
+
+      boolean derefItem = false;
+
+      if(arg.isPrimitive(PrimitiveSort.Cell)) {
+        arg = (Type) arg.firstarg();
+        derefItem = true;
+      }
+
+      for(int i = 0; i < v.valuesLength(); i++) {
+        ASTNode target = create.expression(StandardOperator.Subscript, create.local_name(name), constant(i));
+        if(derefItem) target = create.dereference(target, "item");
+        current_block.addStatement(create.assignment(target, rewrite(v.value(i))));
+      }
+    } else if(t.isPrimitive(PrimitiveSort.Sequence) || t.isPrimitive(PrimitiveSort.Set) || t.isPrimitive(PrimitiveSort.Bag)) {
+        // The SilverExpressionMap has separate constructs for explicit seq, set & bag expressions, so we do not rewrite
+        // it here.
+        current_block.addStatement(create.assignment(
+                create.local_name(name),
+                v
+        ));
+    } else {
+      Fail("Don't know how to assign a StructValue to %s", t);
+    }
+
+    return create.local_name(name);
+  }
+
+  public void visit(StructValue s) {
+    result = transformStructValue(s.getType(), s);
+  }
   
   @Override
   public void visit(LoopStatement s) {
-    //checkPermission(s);
-    LoopStatement res=new LoopStatement();
-    ASTNode tmp;
-    tmp=s.getInitBlock();
-    if (tmp!=null) res.setInitBlock(tmp.apply(copy_pure));
-    tmp=s.getUpdateBlock();
-    if (tmp!=null) res.setUpdateBlock(tmp.apply(copy_pure));
-    tmp=s.getEntryGuard();
-    if (tmp!=null) res.setEntryGuard(tmp.apply(copy_pure));
-    tmp=s.getExitGuard();
-    if (tmp!=null) res.setExitGuard(tmp.apply(copy_pure));
-    for(ASTNode inv:s.getInvariants()){
-      res.appendInvariant(inv.apply(copy_pure));
+    if(s.getInitBlock() != null) {
+      // Flatten the initialization block in the current block: declarations may not overwrite variables in the
+      // surrounding block.
+      visit_body(s.getInitBlock());
     }
-    tmp=s.getBody();
-    res.setBody(tmp.apply(this));
-    res.setOrigin(s.getOrigin());
-    res.set_before(copy_rw.rewrite(s.get_before()));
-    res.set_after(copy_rw.rewrite(s.get_after()));
-    result=res; return ;
+
+    LoopStatement result = new LoopStatement();
+
+    result.setEntryGuard(copy_pure.rewrite(s.getEntryGuard()));
+    result.setExitGuard(copy_pure.rewrite(s.getExitGuard()));
+
+    // Set up a dummy body to be flattened
+    BlockStatement dummyBody = create.block();
+    dummyBody.addStatement(s.getBody());
+
+    if(s.getUpdateBlock() != null) {
+      dummyBody.addStatement(s.getUpdateBlock());
+    }
+
+    result.setBody(rewrite(dummyBody));
+
+    result.setOrigin(s.getOrigin());
+
+    result.set_before(copy_pure.rewrite(s.get_before()));
+    result.set_after(copy_pure.rewrite(s.get_after()));
+    result.appendContract(copy_pure.rewrite(s.getContract()));
+
+    this.result = result;
   }
 
   private boolean simple_expression(ASTNode n){

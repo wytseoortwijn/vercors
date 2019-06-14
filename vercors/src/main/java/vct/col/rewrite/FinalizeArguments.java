@@ -2,16 +2,16 @@ package vct.col.rewrite;
 
 import java.util.HashMap;
 
-import vct.col.ast.ASTFlags;
-import vct.col.ast.ASTNode;
-import vct.col.ast.BlockStatement;
-import vct.col.ast.Contract;
-import vct.col.ast.DeclarationStatement;
-import vct.col.ast.Method;
-import vct.col.ast.NameExpression;
-import vct.col.ast.OperatorExpression;
-import vct.col.ast.ProgramUnit;
-import vct.col.ast.Type;
+import vct.col.ast.stmt.decl.ASTFlags;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.stmt.composite.BlockStatement;
+import vct.col.ast.stmt.decl.Contract;
+import vct.col.ast.stmt.decl.DeclarationStatement;
+import vct.col.ast.stmt.decl.Method;
+import vct.col.ast.expr.NameExpression;
+import vct.col.ast.expr.OperatorExpression;
+import vct.col.ast.stmt.decl.ProgramUnit;
+import vct.col.ast.type.Type;
 
 /**
  * This rewriter converts all method argument to final arguments.
@@ -41,7 +41,6 @@ public class FinalizeArguments extends AbstractRewriter {
         DeclarationStatement args[]=new DeclarationStatement[N];
         BlockStatement block=new BlockStatement();
         block.setOrigin(body);
-        //System.out.printf("%s: origin of create is %s%n",m.name,create.getOrigin());
         create.enter();
         for(int i=0;i<N;i++){
           String old_name=m.getArgument(i);
@@ -56,7 +55,6 @@ public class FinalizeArguments extends AbstractRewriter {
           subst.put(create.local_name(old_name),create.local_name(new_name));
         }
         create.leave();
-        //System.out.printf("%s: origin of create is %s%n",m.name,create.getOrigin());
         Method.Kind kind=m.kind;
         Contract mc=m.getContract();
         Contract c=null;

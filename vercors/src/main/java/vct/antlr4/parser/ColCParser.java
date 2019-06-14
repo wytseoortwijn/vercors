@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 
 import vct.util.Configuration;
-import vct.col.ast.ProgramUnit;
+import vct.col.ast.stmt.decl.ProgramUnit;
 
 /**
  * Parse specified code and convert the contents to COL. 
@@ -43,11 +43,11 @@ public class ColCParser extends ColIParser {
             String s;
             try {
               while((s=err.readLine())!=null){
-                System.err.println(s);
+                Output("%s", s);
                 if (s.matches(".*error.*")) err_found=true;
               }
             } catch (IOException e) {
-              e.printStackTrace();
+              DebugException(e);
               err_found=true;
             }
             if (err_found){
@@ -61,7 +61,7 @@ public class ColCParser extends ColIParser {
       } catch (FileNotFoundException e) {
         Fail("File %s has not been found",file_name);
       } catch (Exception e) {
-        e.printStackTrace();
+        DebugException(e);
         Abort("Exception %s while parsing %s",e.getClass(),file_name);
       }
     return null;

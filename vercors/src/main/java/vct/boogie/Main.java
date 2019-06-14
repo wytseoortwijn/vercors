@@ -10,7 +10,7 @@ import hre.io.SplittingOutputStream;
 
 import java.io.*;
 
-import vct.col.ast.*;
+import vct.col.ast.stmt.decl.ProgramUnit;
 import vct.util.*;
 import static hre.lang.System.*;
 
@@ -54,15 +54,15 @@ public class Main {
     try {
       File boogie_input_file=File.createTempFile("boogie-input",".bpl",shell.shell_dir.toFile());
       boogie_input_file.deleteOnExit();
-      final PrintStream boogie_input;
+      final PrintWriter boogie_input;
       
       if (vct.util.Configuration.backend_file.get()==null){
-        boogie_input=new PrintStream(boogie_input_file);
+        boogie_input=new PrintWriter(boogie_input_file);
       } else {
         OutputStream temp=new FileOutputStream(boogie_input_file);
         File encoded_file=new File(vct.util.Configuration.backend_file.get());
         OutputStream encoded=new FileOutputStream(encoded_file);
-        boogie_input=new PrintStream(new SplittingOutputStream(temp,encoded));
+        boogie_input=new PrintWriter(new SplittingOutputStream(temp,encoded));
       }
       TrackingOutput boogie_code=new TrackingOutput(boogie_input,true);
       BoogieSyntax.getBoogie().print(boogie_code,arg);
@@ -78,8 +78,7 @@ public class Main {
       BoogieReport output=new BoogieReport("Boogie",shell,boogie_xml_file,tree);
       return output;
     } catch (Exception e) {
-      System.out.println("error: ");
-      e.printStackTrace();
+      DebugException(e);
       hre.lang.System.Abort("internal error");
       return null;
     }
@@ -95,15 +94,15 @@ public class Main {
     try {
       File boogie_input_file=File.createTempFile("dafny-input",".dfy",shell.shell_dir.toFile());
       boogie_input_file.deleteOnExit();
-      final PrintStream boogie_input;
+      final PrintWriter boogie_input;
       
       if (vct.util.Configuration.backend_file.get()==null){
-        boogie_input=new PrintStream(boogie_input_file);
+        boogie_input=new PrintWriter(boogie_input_file);
       } else {
         OutputStream temp=new FileOutputStream(boogie_input_file);
         File encoded_file=new File(vct.util.Configuration.backend_file.get());
         OutputStream encoded=new FileOutputStream(encoded_file);
-        boogie_input=new PrintStream(new SplittingOutputStream(temp,encoded));
+        boogie_input=new PrintWriter(new SplittingOutputStream(temp,encoded));
       }
       TrackingOutput boogie_code=new TrackingOutput(boogie_input,true);
       BoogieSyntax.getDafny().print(boogie_code,arg);
@@ -120,8 +119,7 @@ public class Main {
       DafnyReport output=new DafnyReport(shell,tree);
       return output;
     } catch (Exception e) {
-      System.out.println("error: ");
-      e.printStackTrace();
+      DebugException(e);
       hre.lang.System.Abort("internal error");
       return null;
     }
@@ -136,21 +134,21 @@ public class Main {
     int timeout=boogie_timeout.get();
     ModuleShell shell=Configuration.getShell(z3_module.get(),boogie_module.get(),chalice_module.get());
     File shell_dir=shell.shell_dir.toFile();
-    System.err.println("Checking with Chalice");
+    Output("Checking with Chalice");
     try {
       File chalice_input_file=File.createTempFile("chalice-input",".chalice",shell_dir);
       //if (!vct.util.Configuration.keep_temp_files.get()){
         chalice_input_file.deleteOnExit();
       //}
-      final PrintStream chalice_input;
+      final PrintWriter chalice_input;
       
       if (vct.util.Configuration.backend_file.get()==null){
-        chalice_input=new PrintStream(chalice_input_file);
+        chalice_input=new PrintWriter(chalice_input_file);
       } else {
         OutputStream temp=new FileOutputStream(chalice_input_file);
         File encoded_file=new File(vct.util.Configuration.backend_file.get());
         OutputStream encoded=new FileOutputStream(encoded_file);
-        chalice_input=new PrintStream(new SplittingOutputStream(temp,encoded));
+        chalice_input=new PrintWriter(new SplittingOutputStream(temp,encoded));
       }
       final TrackingOutput chalice_code=new TrackingOutput(chalice_input,true);
       AbstractBoogiePrinter printer=BoogieSyntax.getChalice().print(chalice_code, program);
@@ -176,7 +174,7 @@ public class Main {
         return output;
     } catch (Exception e) {
       Warning("error: ");
-      e.printStackTrace();
+      DebugException(e);
       return null;
     }
   }
@@ -190,21 +188,21 @@ public class Main {
   public static SiliconReport TestSilicon(final ProgramUnit program){
     ModuleShell shell=Configuration.getShell(z3_module.get(),silicon_module.get());
     File shell_dir=shell.shell_dir.toFile();
-    System.err.println("Checking with chalice2sil and silicon");
+    Output("Checking with chalice2sil and silicon");
     try {
       File chalice_input_file=File.createTempFile("chalice-input",".chalice",shell_dir);
       //if (!vct.util.Configuration.keep_temp_files.get()){
         chalice_input_file.deleteOnExit();
       //}
-      final PrintStream chalice_input;
+      final PrintWriter chalice_input;
       
       if (vct.util.Configuration.backend_file.get()==null){
-        chalice_input=new PrintStream(chalice_input_file);
+        chalice_input=new PrintWriter(chalice_input_file);
       } else {
         OutputStream temp=new FileOutputStream(chalice_input_file);
         File encoded_file=new File(vct.util.Configuration.backend_file.get());
         OutputStream encoded=new FileOutputStream(encoded_file);
-        chalice_input=new PrintStream(new SplittingOutputStream(temp,encoded));
+        chalice_input=new PrintWriter(new SplittingOutputStream(temp,encoded));
       }
       final TrackingOutput chalice_code=new TrackingOutput(chalice_input,true);
       BoogieSyntax.getChalice().print(chalice_code, program);
@@ -217,7 +215,7 @@ public class Main {
       return output;
     } catch (Exception e) {
       Warning("error: ");
-      e.printStackTrace();
+      DebugException(e);
       return null;
     }
 

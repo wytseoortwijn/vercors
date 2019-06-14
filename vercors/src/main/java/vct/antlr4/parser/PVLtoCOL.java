@@ -19,31 +19,31 @@ import vct.antlr4.generated.PVFullParser;
 import vct.antlr4.generated.PVFullParser.*;
 import vct.antlr4.generated.PVFullVisitor;
 
-import vct.col.ast.ASTClass;
-import vct.col.ast.ASTFlags;
-import vct.col.ast.ASTNode;
-import vct.col.ast.ASTReserved;
-import vct.col.ast.ASTSequence;
-import vct.col.ast.ASTSpecial;
-import vct.col.ast.BeforeAfterAnnotations;
-import vct.col.ast.BlockStatement;
-import vct.col.ast.Contract;
-import vct.col.ast.ContractBuilder;
-import vct.col.ast.DeclarationStatement;
-import vct.col.ast.Dereference;
-import vct.col.ast.Method;
-import vct.col.ast.NameExpression;
-import vct.col.ast.ParallelBlock;
-import vct.col.ast.ProgramUnit;
-import vct.col.ast.StandardOperator;
-import vct.col.ast.Type;
-import vct.col.ast.ASTClass.ClassKind;
-import vct.col.ast.Method.Kind;
-import vct.col.ast.PrimitiveSort;
-import vct.col.ast.VariableDeclaration;
+import vct.col.ast.stmt.decl.ASTClass;
+import vct.col.ast.stmt.decl.ASTFlags;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.type.ASTReserved;
+import vct.col.ast.generic.ASTSequence;
+import vct.col.ast.stmt.decl.ASTSpecial;
+import vct.col.ast.generic.BeforeAfterAnnotations;
+import vct.col.ast.stmt.composite.BlockStatement;
+import vct.col.ast.stmt.decl.Contract;
+import vct.col.ast.type.PrimitiveSort;
+import vct.col.ast.util.ContractBuilder;
+import vct.col.ast.stmt.decl.DeclarationStatement;
+import vct.col.ast.expr.Dereference;
+import vct.col.ast.stmt.decl.Method;
+import vct.col.ast.expr.NameExpression;
+import vct.col.ast.stmt.composite.ParallelBlock;
+import vct.col.ast.stmt.decl.ProgramUnit;
+import vct.col.ast.expr.StandardOperator;
+import vct.col.ast.type.Type;
+import vct.col.ast.stmt.decl.ASTClass.ClassKind;
+import vct.col.ast.stmt.decl.Method.Kind;
+import vct.col.ast.stmt.decl.VariableDeclaration;
 import vct.col.syntax.PVLSyntax;
 import vct.col.syntax.Syntax;
-import static vct.col.ast.ASTReserved.*;
+import static vct.col.ast.type.ASTReserved.*;
 
 /**
  * Convert ANTLR parse trees for PVL to COL.
@@ -178,6 +178,26 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
   public ASTNode visitExpr(ExprContext ctx) {
     return doExpr(ctx);
   }
+
+  public ASTNode add_new_dims(Type type, New_dimsContext ctx) {
+    type = create.primitive_type(PrimitiveSort.Cell, type);
+    ASTNode[] newArrayArgs = new ASTNode[ctx.getChildCount() / 3];
+
+    for(int i = 0; i < ctx.getChildCount();) {
+      if(match(i, true, ctx, "[", "Expr", "]")) {
+        // The lengths are included in a bare type, but that is just a marker in order to generate the zero value of
+        // declared variables. The length has no bearing on the actual type.
+        type = create.primitive_type(PrimitiveSort.Array, type);
+        newArrayArgs[i / 3] = convert(ctx, 1);
+        i += 3;
+      } else {
+        Fail("Unimplemented: has the grammar of PVL related to arrays changed?");
+      }
+    }
+
+    type = create.primitive_type(PrimitiveSort.Option, type);
+    return create.expression(StandardOperator.NewArray, type, newArrayArgs);
+  }
   
   public ASTNode doExpr(ParserRuleContext ctx){
     if (ctx.children.size()==1){
@@ -281,10 +301,9 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
       String name=getIdentifier(ctx,1);
       return create.new_object(create.class_type(name), args);
     }
-    if (match(ctx,"new",null,"[",null,"]")){
-      Type t=checkType(convert(ctx,1));
-      ASTNode size=convert(ctx,3);
-      return create.new_array(t,size);
+    if (match(ctx,"new",null,"New_dims")){
+      Type t = checkType(convert(ctx,1));
+      return add_new_dims(t, (New_dimsContext) ctx.getChild(2));
     }
     if (match(ctx,null,":",null)){
       ASTNode res=convert(ctx,2);
@@ -327,7 +346,35 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
   }
 
   @Override
-  public ASTNode visitType(TypeContext ctx) {
+  public ASTNode visitNew_dims(New_dimsContext ctx) {
+    return null;
+  }
+
+  private ASTNode add_dims(ASTNode type, Type_dimsContext ctx) {
+    if(ctx.getChildCount() == 0) {
+      return type;
+    }
+
+    type = create.primitive_type(PrimitiveSort.Cell, type);
+
+    for(int i = 0; i < ctx.getChildCount();) {
+      if(match(i, true, ctx, "[", "Expr", "]")) {
+        type = create.primitive_type(PrimitiveSort.Array, type);
+        i += 3;
+      } else if(match(i, true, ctx, "[", "]")) {
+        type = create.primitive_type(PrimitiveSort.Array, type);
+        i += 2;
+      } else {
+        Fail("Unimplemented: has the grammar of PVL related to arrays changed?");
+      }
+    }
+
+    type = create.primitive_type(PrimitiveSort.Option, type);
+    return type;
+  }
+
+  @Override
+  public ASTNode visitNon_array_type(Non_array_typeContext ctx) {
     ASTNode res=null;
     if (match(ctx,"option","<",null,">")){
       Type t=checkType(convert(ctx,2));
@@ -369,20 +416,18 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
     } else {
       Fail("unknown type %s",ctx.toStringTree(parser));
     }
-    int N=ctx.children.size();
-    int i=1;
-    while(i<N){
-      if (match(i,true,ctx,"[","ExprContext","]")){
-        res=create.primitive_type(PrimitiveSort.Array,res,convert(ctx.children.get(i+1)));
-        i+=3;
-      } else if (match(i,true,ctx,"[","]")) {
-        res=create.primitive_type(PrimitiveSort.Array,res);
-        i+=2;
-      } else {
-        Fail("unknown type %s",ctx.toStringTree());
-      }
-    }
+
     return res;
+  }
+
+  @Override
+  public ASTNode visitType(TypeContext ctx) {
+    return add_dims(convert(ctx, 0), (Type_dimsContext) ctx.getChild(1));
+  }
+
+  @Override
+  public ASTNode visitType_dims(Type_dimsContext ctx) {
+    return null;
   }
 
   @Override
@@ -463,7 +508,7 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
       } else if (match(i,true,flags,"inline")){
         res.setFlag(ASTFlags.INLINE,true);
       } else {
-        Fail("Unknown modifier %s%n",flags.getChild(i).toStringTree());
+        Fail("Unknown modifier %s",flags.getChild(i).toStringTree());
       }
     }
   }
@@ -511,9 +556,6 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
   
   @Override
   public ASTNode visitStatement(StatementContext ctx) {
-    if (match(ctx,null,"=",null,";")){
-      return create.assignment(convert(ctx,0),convert(ctx,2));
-    }
     if (match(ctx,"vec","(",null,")",null)){
       DeclarationStatement iter=(DeclarationStatement)convert(ctx,2);
       BlockStatement block=(BlockStatement)convert(ctx,4);
@@ -555,12 +597,6 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
     if (match(ctx,"return",null,";")){
       return create.return_statement(convert(ctx,1));
     }
-    if (match(ctx,type_expr,null,";")){
-      return create.field_decl(getIdentifier(ctx,1),(Type)convert(ctx,0));
-    }
-    if (match(ctx,type_expr,null,"=",null,";")){
-      return create.field_decl(getIdentifier(ctx,1),(Type)convert(ctx,0),convert(ctx,3));
-    }
     if (match(ctx,"if","(",null,")",null)){
       return create.ifthenelse(convert(ctx,2),convert(ctx,4));
     }
@@ -576,15 +612,21 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
       }
       return create.while_loop(convert(ctx,3),convert(ctx,5),invs);
     }
-    
-    // the (postfix) incremental statement
-    if (match(ctx, null, "++", ";")) {
-      return create.postfix_increment(getIdentifier(ctx, 0));
-    }
-    
-    // the (postfix) decremental statement
-    if (match(ctx, null, "--", ";")) {
-      return create.postfix_decrement(getIdentifier(ctx, 0));
+    if (match(ctx, null, "for", "(", null, ";", null, ";", null, ")", null)) {
+      PVFullParser.InvariantContext invariantContext = (PVFullParser.InvariantContext)ctx.children.get(0);
+      int invariantCount = (invariantContext.children == null) ? 0 : invariantContext.children.size() / 3;
+      ASTNode invariants[] = new ASTNode[invariantCount];
+
+      for(int i = 0; i < invariantCount; i++) {
+        invariants[i] = convert(invariantContext, 3*i + 1);
+      }
+
+      ASTNode init = convert(ctx.children.get(3));
+      ASTNode condition = convert(ctx.children.get(5));
+      ASTNode action = convert(ctx.children.get(7));
+      ASTNode body = convert(ctx.children.get(9));
+
+      return create.for_loop(init, condition, action, body, invariants);
     }
     
     if (match(ctx,"action",tuple,null)){
@@ -628,9 +670,6 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
     if (match(ctx,"goto",null,";")){
       return create.special(ASTSpecial.Kind.Goto,convert(ctx,1));
     }
-    if (match(ctx,"ExprContext",";")){
-      return convert(ctx,0);
-    }
     if (match(0,true,ctx,"barrier","(",null)){
       String name=getIdentifier(ctx, 2);
       ArrayList<String> invs=new ArrayList<String>();
@@ -656,6 +695,46 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
         return create.barrier(name,c,invs,body);
       }
     }
+    if (match(ctx, "AllowedForStatementContext", ";")) {
+      return convert(ctx, 0);
+    }
+    return visit(ctx);
+  }
+
+  @Override
+  public ASTNode visitForStatementList(ForStatementListContext ctx) {
+    ArrayList<ASTNode> statementList = new ArrayList<ASTNode>();
+
+    for(int i = 0; i < ctx.children.size(); i += 2) {
+      statementList.add(convert(ctx, i));
+    }
+
+    return create.block(statementList.toArray(new ASTNode[0]));
+  }
+
+  @Override
+  public ASTNode visitAllowedForStatement(AllowedForStatementContext ctx) {
+    if (match(ctx,type_expr,null)){
+      return create.field_decl(getIdentifier(ctx,1),(Type)convert(ctx,0));
+    }
+    if (match(ctx,type_expr,null,"=",null)){
+      return create.field_decl(getIdentifier(ctx,1),(Type)convert(ctx,0),convert(ctx,3));
+    }
+    if (match(ctx,"ExprContext")){
+      return convert(ctx,0);
+    }
+    // the (postfix) incremental statement
+    if (match(ctx, null, "++")) {
+      return create.postfix_increment(getIdentifier(ctx, 0));
+    }
+    // the (postfix) decremental statement
+    if (match(ctx, null, "--")) {
+      return create.postfix_decrement(getIdentifier(ctx, 0));
+    }
+    if (match(ctx,null,"=",null)){
+      return create.assignment(convert(ctx,0),convert(ctx,2));
+    }
+
     return visit(ctx);
   }
 
@@ -719,7 +798,6 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
 
   @Override
   public ASTNode visitInvariant(InvariantContext ctx) {
-    
     return null;
   }
 
@@ -727,18 +805,25 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
   public ASTNode visitLexpr(LexprContext ctx) {
     ASTNode res=convert(ctx,0);
     int N=ctx.children.size();
-    for(int i=1;i<N;){
-      if (match(i,true,ctx,".",null)){
-        res=create.dereference(res,getGeneralizedIdentifier(ctx,i+1));
-        i+=2;
-      } else if(match(i,true,ctx,"[",null,"]")){
-        res=create.expression(StandardOperator.Subscript,res,convert(ctx,i+1));
-        i+=3;
+
+    for(int i=1; i<N; i++) {
+      Lexpr_accessContext access = (Lexpr_accessContext) ctx.getChild(i);
+
+      if (match(access,".",null)){
+        res=create.dereference(res,getGeneralizedIdentifier(access,1));
+      } else if(match(access,"[",null,"]")){
+        res=create.expression(StandardOperator.Subscript,res,convert(access,1));
       } else {
         Fail("unknown lexpr");
       }
     }
+
     return res;
+  }
+
+  @Override
+  public ASTNode visitLexpr_access(Lexpr_accessContext ctx) {
+    return null;
   }
 
   @Override
@@ -1008,5 +1093,4 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
   public ASTNode visitValPrimary(ValPrimaryContext ctx) {
     return getValPrimary(ctx);
   }
-
 }

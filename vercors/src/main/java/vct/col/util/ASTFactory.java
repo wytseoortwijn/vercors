@@ -7,11 +7,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import vct.col.ast.*;
-import vct.col.ast.ASTClass.ClassKind;
-import vct.col.ast.ASTSpecial.Kind;
-import vct.col.ast.Binder;
-import vct.col.ast.Switch.Case;
+import vct.col.ast.expr.*;
+import vct.col.ast.expr.constant.ConstantExpression;
+import vct.col.ast.expr.constant.StructValue;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.stmt.composite.*;
+import vct.col.ast.stmt.decl.*;
+import vct.col.ast.stmt.decl.ASTClass.ClassKind;
+import vct.col.ast.stmt.decl.ASTSpecial.Kind;
+import vct.col.ast.stmt.composite.Switch.Case;
+import vct.col.ast.stmt.terminal.AssignmentStatement;
+import vct.col.ast.stmt.terminal.ReturnStatement;
+import vct.col.ast.type.*;
+import vct.col.ast.util.ASTVisitor;
+import vct.col.ast.util.ContractBuilder;
 import vct.col.rewrite.AbstractRewriter;
 import vct.util.ClassName;
 import viper.api.Triple;
@@ -20,7 +29,7 @@ import hre.util.FrameControl;
 import hre.util.FrameReference;
 
 import static hre.lang.System.*;
-import static vct.col.ast.ASTReserved.Null;
+import static vct.col.ast.type.ASTReserved.Null;
 
 /**
  * This class provides a factory for ASTNodes, that can be
@@ -77,7 +86,7 @@ public class ASTFactory<E> implements FrameControl {
   /**
    * Create a new abstract class.
    */
-  public ASTClass abstract_class(String name,DeclarationStatement parameters[],ClassType super_class,ClassType ... supports) {
+  public ASTClass abstract_class(String name, DeclarationStatement parameters[], ClassType super_class, ClassType ... supports) {
     ClassType bases[]={super_class};
     if (super_class==null) bases=null;
     return ast_class(name,ClassKind.Abstract,parameters,bases,supports);
@@ -184,7 +193,7 @@ public class ASTFactory<E> implements FrameControl {
     return res;    
   }
   
-  public ParallelBarrier barrier(String label,Contract c,ArrayList<String> fences, BlockStatement body){
+  public ParallelBarrier barrier(String label, Contract c, ArrayList<String> fences, BlockStatement body){
      return barrier(origin_stack.get(),label,c,fences,body);
    }
   
@@ -201,7 +210,7 @@ public class ASTFactory<E> implements FrameControl {
   /**
    * Create a new binding expression.
    */
-  public ASTNode binder(Binder b,Type result_type,DeclarationStatement decls[],ASTNode triggers[][],ASTNode selection,ASTNode main) {
+  public ASTNode binder(Binder b, Type result_type, DeclarationStatement decls[], ASTNode triggers[][], ASTNode selection, ASTNode main) {
     ASTNode res=new BindingExpression(b,result_type,decls,triggers,selection,main);
     res.setOrigin(origin_stack.get());
     res.accept_if(post);
@@ -270,7 +279,7 @@ public BlockStatement block(Origin origin, ASTNode ... args) {
     return class_type(origin_stack.get(), name, args);
   }
   public ASTSpecial comment(String text) {
-    return special(vct.col.ast.ASTSpecial.Kind.Comment,constant(text));
+    return special(ASTSpecial.Kind.Comment,constant(text));
   }
 
   public ConstantExpression constant(boolean b) {
@@ -350,7 +359,7 @@ public BlockStatement block(Origin origin, ASTNode ... args) {
    
   /** Create a dereference expression.
    */
-  public Dereference dereference(ASTNode object,String field){
+  public Dereference dereference(ASTNode object, String field){
     Dereference res=new Dereference(object,field);
     res.setOrigin(origin_stack.get());
     res.accept_if(post);
@@ -650,7 +659,7 @@ public BlockStatement block(Origin origin, ASTNode ... args) {
   public void leave(){
     origin_stack.leave();
   }
-  public ASTNode lemma(vct.col.ast.BlockStatement block) {
+  public ASTNode lemma(BlockStatement block) {
     ASTNode res=new Lemma(block);
     res.setOrigin(origin_stack.get());
     res.accept_if(post);
@@ -961,22 +970,22 @@ public ASTFactory<E> setOrigin(Origin origin) {
   this.origin_stack.set(origin);
   return this;
 }
-public ASTSpecial special(Origin origin, vct.col.ast.ASTSpecial.Kind kind, ASTNode ... args) {
+public ASTSpecial special(Origin origin, ASTSpecial.Kind kind, ASTNode ... args) {
   ASTSpecial res=new ASTSpecial(kind,args);
   res.setOrigin(origin);
   res.accept_if(post);
   return res;
 }
- public ASTSpecial special(vct.col.ast.ASTSpecial.Kind kind, ASTNode ... args) {
+ public ASTSpecial special(ASTSpecial.Kind kind, ASTNode ... args) {
   return special(origin_stack.get(),kind,args);
 }
- public ASTSpecial special_decl(Origin origin, vct.col.ast.ASTSpecial.Kind kind, ASTNode ... args) {
+ public ASTSpecial special_decl(Origin origin, ASTSpecial.Kind kind, ASTNode ... args) {
    ASTSpecial res=new ASTSpecial(kind,args);
    res.setOrigin(origin);
    res.accept_if(post);
    return res;
  }
-  public ASTSpecial special_decl(vct.col.ast.ASTSpecial.Kind kind, ASTNode ... args) {
+  public ASTSpecial special_decl(ASTSpecial.Kind kind, ASTNode ... args) {
    return special_decl(origin_stack.get(),kind,args);
  }
 
@@ -1152,14 +1161,14 @@ public ASTNode new_array(Type t, ASTNode size) {
   return expression(StandardOperator.NewArray,t,size);
 }
 
-public AxiomaticDataType adt(String name,DeclarationStatement ... pars) {
+public AxiomaticDataType adt(String name, DeclarationStatement ... pars) {
   AxiomaticDataType res=new AxiomaticDataType(name,pars);
   res.setOrigin(origin_stack.get());
   res.accept_if(post);
   return res;
 }
 
-public Axiom axiom(String name,ASTNode exp){
+public Axiom axiom(String name, ASTNode exp){
   Axiom res=new Axiom(name,exp);
   res.setOrigin(origin_stack.get());
   res.accept_if(post);
@@ -1227,7 +1236,7 @@ public Axiom axiom(String name,ASTNode exp){
     return type_expression(TypeOperator.Long,type);
   }
 
-  public ForEachLoop foreach(DeclarationStatement[] decls,ASTNode guard, ASTNode body) {
+  public ForEachLoop foreach(DeclarationStatement[] decls, ASTNode guard, ASTNode body) {
     ForEachLoop res=new ForEachLoop(decls,guard,body);
     res.setOrigin(origin_stack.get());
     res.accept_if(post);
@@ -1259,7 +1268,7 @@ public Axiom axiom(String name,ASTNode exp){
     return res;
   }
 
-  public FieldAccess set_field(Origin o,ClassName claz,ASTNode obj,String name,ASTNode val){
+  public FieldAccess set_field(Origin o, ClassName claz, ASTNode obj, String name, ASTNode val){
     FieldAccess res=new FieldAccess(claz, obj, name, val);
     res.setOrigin(o);
     res.accept_if(post);    
@@ -1300,7 +1309,11 @@ public Axiom axiom(String name,ASTNode exp){
     res.accept_if(post);
     return res;
   }
-  
+
+    public ASTNode expression(StandardOperator op, ASTNode n,java.util.List<ASTNode> ns) {
+        return expression(op,n,ns.toArray(new ASTNode[ns.size()]));
+    }
+
   public ParallelRegion region(Origin origin, Contract c, List<ParallelBlock> blocks) {
     ParallelRegion res=new ParallelRegion(c, blocks);
 	res.setOrigin(origin);
@@ -1315,10 +1328,6 @@ public Axiom axiom(String name,ASTNode exp){
   public Method function_decl(Type t, Contract contract, String name,
       java.util.List<DeclarationStatement> args, ASTNode body) {
     return function_decl(t,contract,name,args.toArray(new DeclarationStatement[args.size()]),body);
-  }
-
-  public ASTNode expression(StandardOperator op, ASTNode n,java.util.List<ASTNode> ns) {
-    return expression(op,n,ns.toArray(new ASTNode[ns.size()]));
   }
 
   public ClassType class_type(String name, Map<String, Type> args) {
@@ -1362,7 +1371,7 @@ public Axiom axiom(String name,ASTNode exp){
     return special(kind,args.toArray(new ASTNode[args.size()]));
   }
   
-  public StructValue struct_value(Origin o,Type type,Map<String, Integer> map, ASTNode ... values) {
+  public StructValue struct_value(Origin o, Type type, Map<String, Integer> map, ASTNode ... values) {
 	if (map == null) {
 	  map = new java.util.Hashtable<String, Integer>();
 	}
@@ -1391,7 +1400,7 @@ public Axiom axiom(String name,ASTNode exp){
     return res;
   }
 
-  public Constraining constraining(BlockStatement block,NameExpression ... vars) {
+  public Constraining constraining(BlockStatement block, NameExpression ... vars) {
     return constraining(origin_stack.get(),block,vars);
   }
 

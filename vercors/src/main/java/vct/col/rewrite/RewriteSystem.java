@@ -13,7 +13,16 @@ import java.util.Hashtable;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import vct.col.ast.*;
+import vct.col.ast.expr.*;
+import vct.col.ast.expr.constant.ConstantExpression;
+import vct.col.ast.expr.constant.StructValue;
+import vct.col.util.ASTMapping1;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.stmt.composite.*;
+import vct.col.ast.stmt.decl.*;
+import vct.col.ast.stmt.terminal.AssignmentStatement;
+import vct.col.ast.stmt.terminal.ReturnStatement;
+import vct.col.ast.type.*;
 import vct.col.util.ASTUtils;
 import vct.util.Configuration;
 
@@ -440,7 +449,7 @@ class MatchSubstitution extends AbstractRewriter {
       }
       decls[i]=create.field_decl(dref.name(), rewrite(dref.getType()), rewrite(decls[i].initJava()));
     }
-    if (e.binder==Binder.Let){
+    if (e.binder== Binder.Let){
       HashMap<NameExpression, ASTNode> map=new HashMap<NameExpression, ASTNode>();
       for(int i=0;i<decls.length;i++){
         map.put(create.local_name(decls[i].name()), rewrite(decls[i].initJava()));

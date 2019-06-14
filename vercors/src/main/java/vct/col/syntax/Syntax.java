@@ -1,20 +1,21 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 package vct.col.syntax;
 
-import vct.col.ast.ASTDeclaration;
-import vct.col.ast.ASTNode;
-import vct.col.ast.ASTReserved;
-import vct.col.ast.ASTSpecial;
-import vct.col.ast.ASTSpecial.Kind;
-import vct.col.ast.PrimitiveSort;
-import vct.col.ast.ProgramUnit;
-import vct.col.ast.StandardOperator;
+import vct.col.ast.stmt.decl.ASTDeclaration;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.type.ASTReserved;
+import vct.col.ast.stmt.decl.ASTSpecial;
+import vct.col.ast.stmt.decl.ASTSpecial.Kind;
+import vct.col.ast.type.PrimitiveSort;
+import vct.col.ast.stmt.decl.ProgramUnit;
+import vct.col.ast.expr.StandardOperator;
 import vct.col.print.AbstractPrinter;
 import hre.ast.TrackingOutput;
 import hre.lang.HREError;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
@@ -240,18 +241,14 @@ public class Syntax {
     syntax_map.put(op,Arrays.copyOf(full_syntax,full_syntax.length));
     associativity_map.put(op,Associativity.None);
     ArrayList<String> pattern=new ArrayList<String>();
-    //System.err.printf("pattern for operator %s is:",op);
     for(int i=0;i<full_syntax.length;i++){
       if (i>0) {
-        //System.err.printf(" null");
         pattern.add(null);
       }
       if (full_syntax[i].length()>0) {
-        //System.err.printf(" \"%s\"",full_syntax[i]);
         pattern.add(full_syntax[i]);
       }
     }
-    //System.err.printf("%n");
     pattern_map.put(op, pattern.toArray(full_syntax));
   }
   
@@ -284,20 +281,20 @@ public class Syntax {
 
   public ByteArrayOutputStream print(ASTNode n){
     ByteArrayOutputStream res=new ByteArrayOutputStream();
-    print(new PrintStream(res),n);
+    print(new PrintWriter(res),n);
     return res;
   }
   
   public ByteArrayOutputStream print(ProgramUnit program){
     ByteArrayOutputStream res=new ByteArrayOutputStream();
-    print(new PrintStream(res),program);
+    print(new PrintWriter(res),program);
     return res;
   }
   
-  public void print(PrintStream out,ASTNode n){
+  public void print(PrintWriter out, ASTNode n){
     print(new TrackingOutput(out,false),n);
   }
-  public void print(PrintStream outs, ProgramUnit program) {
+  public void print(PrintWriter outs, ProgramUnit program) {
     TrackingOutput out=new TrackingOutput(outs,false);
     print(out,program);
   }

@@ -1,6 +1,5 @@
 package vct.silver;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -8,12 +7,21 @@ import java.util.List;
 
 import hre.ast.Origin;
 import hre.lang.HREError;
-import vct.col.ast.*;
+import vct.col.ast.expr.*;
+import vct.col.ast.expr.constant.ConstantExpression;
+import vct.col.ast.expr.constant.StructValue;
+import vct.col.util.ASTMapping;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.stmt.composite.*;
+import vct.col.ast.stmt.decl.*;
+import vct.col.ast.stmt.terminal.AssignmentStatement;
+import vct.col.ast.stmt.terminal.ReturnStatement;
+import vct.col.ast.type.*;
 import vct.col.util.ASTUtils;
 import static hre.lang.System.Abort;
 import viper.api.*;
 
-public class SilverStatementMap<T,E,S> implements ASTMapping<S>{
+public class SilverStatementMap<T,E,S> implements ASTMapping<S> {
 
   public final StatementFactory<Origin,T,E,S> create;
   public final ExpressionFactory<Origin,T,E> ef;
@@ -167,7 +175,6 @@ public class SilverStatementMap<T,E,S> implements ASTMapping<S>{
 
   public S assignment(Origin origin, ASTNode location, ASTNode expression) {
     if (expression.isa(StandardOperator.NewSilver)){
-      //Configuration.getDiagSyntax().print(System.err, s);
       ArrayList<String> names=new ArrayList<String>();
       ArrayList<T> types=new ArrayList<T>();
       

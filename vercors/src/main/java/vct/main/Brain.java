@@ -2,8 +2,8 @@ package vct.main;
 
 import java.util.*;
 
-import vct.col.ast.ASTClass;
-import vct.col.ast.ASTNode;
+import vct.col.ast.stmt.decl.ASTClass;
+import vct.col.ast.generic.ASTNode;
 
 @SuppressWarnings("all")
 public class Brain {
@@ -34,7 +34,6 @@ public class Brain {
 			smtTriple[i] = smtTriple[i].concat(assertions.get(i));
 			smtTriple[i] = smtTriple[i].concat(")");
 			smtTriple[i] = smtTriple[i].replaceAll("\\\\", "");
-			//System.out.println(smtTriple[i]);
 		}
 		results = smtinter.checkTripleZ3(smtTriple, variables, "");
 		if(results.getSatisfying() && results.gotAnswer()){
@@ -51,7 +50,6 @@ public class Brain {
 				}
 			}
 			node.getOrigin().report("error", assist);
-			//System.out.println(temp);
 			ans = true;
 		}
 		currentSet = assertions.size();

@@ -2,13 +2,26 @@ package vct.col.rewrite;
 
 import java.util.HashSet;
 
-import vct.col.ast.BlockStatement;
-import vct.col.ast.DeclarationStatement;
-import vct.col.ast.ProgramUnit;
+import vct.col.ast.stmt.decl.Method;
+import vct.col.ast.stmt.composite.BlockStatement;
+import vct.col.ast.stmt.decl.DeclarationStatement;
+import vct.col.ast.stmt.decl.ProgramUnit;
 
 public class ReorderAssignments extends AbstractRewriter {
+  private HashSet<String> argumentNames = new HashSet<String>();
+
   public ReorderAssignments(ProgramUnit source) {
     super(source);
+  }
+
+  public void visit(Method method) {
+      for(DeclarationStatement decl : method.getArgs()) {
+          argumentNames.add(decl.name());
+      }
+
+      super.visit(method);
+
+      argumentNames.clear();
   }
 
   public void visit(BlockStatement s){
@@ -20,6 +33,11 @@ public class ReorderAssignments extends AbstractRewriter {
       if (s.getStatement(i) instanceof DeclarationStatement){
         DeclarationStatement decl=(DeclarationStatement)s.getStatement(i);
         String name = decl.name();
+
+        if(argumentNames.contains(name)) {
+            Abort("Variable %s is already declared as an argument in this method", name);
+        }
+
         if (names.contains(name)){
           Abort("variable %s was declared twice",name);
         }

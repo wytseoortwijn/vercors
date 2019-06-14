@@ -3,7 +3,16 @@ package vct.col.util;
 import java.util.HashSet;
 import java.util.Set;
 
-import vct.col.ast.*;
+import vct.col.ast.expr.MethodInvokation;
+import vct.col.ast.expr.OperatorExpression;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.stmt.composite.*;
+import vct.col.ast.stmt.decl.ASTSpecial;
+import vct.col.ast.stmt.decl.DeclarationStatement;
+import vct.col.ast.stmt.decl.Method;
+import vct.col.ast.stmt.decl.ProgramUnit;
+import vct.col.ast.stmt.terminal.AssignmentStatement;
+import vct.col.ast.util.RecursiveVisitor;
 
 public class ControlFlowAnalyzer extends RecursiveVisitor<Set<ASTNode>> {
 
