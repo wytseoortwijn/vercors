@@ -367,19 +367,19 @@ public class Flatten extends AbstractRewriter {
 
       current_block.addStatement(create.assignment(
               create.local_name(name),
-              create.expression(StandardOperator.NewArray, t, constant(v.valuesLength()))
+              create.invokation(null, null, RewriteArrayRef.getArrayConstructor(t, 1), constant(v.valuesLength()))
       ));
 
-//      boolean derefItem = false;
-//
-//      if(arg.isPrimitive(PrimitiveSort.Cell)) {
-//        arg = (Type) arg.firstarg();
-//        derefItem = true;
-//      }
+      boolean derefItem = false;
+
+      if(arg.isPrimitive(PrimitiveSort.Cell)) {
+        arg = (Type) arg.firstarg();
+        derefItem = true;
+      }
 
       for(int i = 0; i < v.valuesLength(); i++) {
         ASTNode target = create.expression(StandardOperator.Subscript, create.local_name(name), constant(i));
-//        if(derefItem) target = create.dereference(target, "item");
+        if(derefItem) target = create.dereference(target, "item");
         current_block.addStatement(create.assignment(target, rewrite(v.value(i))));
       }
     } else if(t.isPrimitive(PrimitiveSort.Sequence) || t.isPrimitive(PrimitiveSort.Set) || t.isPrimitive(PrimitiveSort.Bag)) {

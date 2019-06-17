@@ -17,11 +17,15 @@ class LiftDeclarations(arg: ProgramUnit) extends AbstractRewriter(arg) {
     Debug("%s %s", decl.`type`, decl.name)
     val newType = SequenceUtils.optArrayCell(create, decl.`type`)
     val newStructType = SequenceUtils.arrayCell(create, decl.`type`)
+    val initVal = decl.init match {
+      case Some(x) => rewrite(x)
+      case None => decl.`type`.zero
+    }
 
     result = DeclarationStatement(
       decl.name,
       newType,
-      Some(create.expression(StandardOperator.OptionSome, create.struct_value(newStructType, null, decl.`type`.zero)))
+      Some(create.expression(StandardOperator.OptionSome, create.struct_value(newStructType, null, initVal)))
     )
     result.setOrigin(decl.getOrigin)
   }
