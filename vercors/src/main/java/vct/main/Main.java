@@ -593,7 +593,6 @@ public class Main
           }
           if (task!=null){
             startTime = System.currentTimeMillis();
-            report.getOutput().toString();
             report=task.apply_pass(report,pass_args);
             fatal_errs=report.getFatal();
             program=report.getOutput();

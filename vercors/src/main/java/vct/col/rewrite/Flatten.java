@@ -2,6 +2,8 @@ package vct.col.rewrite;
 
 import hre.ast.MessageOrigin;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Stack;
 
 import vct.col.ast.expr.*;
@@ -15,6 +17,7 @@ import vct.col.ast.stmt.terminal.ReturnStatement;
 import vct.col.ast.type.ClassType;
 import vct.col.ast.type.PrimitiveSort;
 import vct.col.ast.type.Type;
+import vct.col.util.LambdaHelper;
 
 public class Flatten extends AbstractRewriter {
 
@@ -153,6 +156,22 @@ public class Flatten extends AbstractRewriter {
             rewrite(pb.deps())
     );
     result=res;
+  }
+
+  @Override
+  public void visit(ActionBlock actionBlock) {
+    Map<String,ASTNode> map = new HashMap<String,ASTNode>();
+    actionBlock.foreach(LambdaHelper.fun((key, val) -> map.put(key, rewrite(val))));
+
+    // rewrite all other components of `actionBlock`
+    result = create.action_block(
+            rewrite(actionBlock.history()),
+            rewrite(actionBlock.fraction()),
+            rewrite(actionBlock.process()),
+            copy_pure.rewrite(actionBlock.action()),
+            map,
+            rewrite(actionBlock.block())
+    );
   }
   
   public void visit(DeclarationStatement s){
