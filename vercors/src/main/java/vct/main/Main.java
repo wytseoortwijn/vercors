@@ -329,7 +329,6 @@ public class Main
       } else if (silver.used()||chalice.get()||chalice2sil.get()) {
         passes=new LinkedBlockingDeque<String>();
         passes.add("java_resolve");
-        passes.add("flatten_variable_declarations");
 
         if (silver.used() &&
            (features.usesSpecial(ASTSpecial.Kind.Lock)
@@ -594,6 +593,7 @@ public class Main
           }
           if (task!=null){
             startTime = System.currentTimeMillis();
+            report.getOutput().toString();
             report=task.apply_pass(report,pass_args);
             fatal_errs=report.getFatal();
             program=report.getOutput();

@@ -8,9 +8,7 @@ import vct.col.ast.expr.*;
 import vct.col.ast.expr.constant.ConstantExpression;
 import vct.col.ast.expr.constant.StructValue;
 import vct.col.ast.generic.ASTNode;
-import vct.col.ast.stmt.composite.BlockStatement;
-import vct.col.ast.stmt.composite.IfStatement;
-import vct.col.ast.stmt.composite.LoopStatement;
+import vct.col.ast.stmt.composite.*;
 import vct.col.ast.stmt.decl.*;
 import vct.col.ast.stmt.terminal.AssignmentStatement;
 import vct.col.ast.stmt.terminal.ReturnStatement;
@@ -135,6 +133,26 @@ public class Flatten extends AbstractRewriter {
       super.visit(e);
       return;
     }
+  }
+
+  @Override
+  public void visit(VectorBlock vectorBlock) {
+    result = create.vector_block(
+            copy_pure.rewrite(vectorBlock.iter()),
+            rewrite(vectorBlock.block())
+    );
+  }
+
+  @Override
+  public void visit(ParallelBlock pb){
+    ParallelBlock res=create.parallel_block(
+            pb.label(),
+            rewrite(pb.contract()),
+            copy_pure.rewrite(pb.itersJava()),
+            rewrite(pb.block()),
+            rewrite(pb.deps())
+    );
+    result=res;
   }
   
   public void visit(DeclarationStatement s){
@@ -330,19 +348,19 @@ public class Flatten extends AbstractRewriter {
 
       current_block.addStatement(create.assignment(
               create.local_name(name),
-              create.invokation(null, null, RewriteArrayRef.getArrayConstructor(t, 1), constant(v.valuesLength()))
+              create.expression(StandardOperator.NewArray, t, constant(v.valuesLength()))
       ));
 
-      boolean derefItem = false;
-
-      if(arg.isPrimitive(PrimitiveSort.Cell)) {
-        arg = (Type) arg.firstarg();
-        derefItem = true;
-      }
+//      boolean derefItem = false;
+//
+//      if(arg.isPrimitive(PrimitiveSort.Cell)) {
+//        arg = (Type) arg.firstarg();
+//        derefItem = true;
+//      }
 
       for(int i = 0; i < v.valuesLength(); i++) {
         ASTNode target = create.expression(StandardOperator.Subscript, create.local_name(name), constant(i));
-        if(derefItem) target = create.dereference(target, "item");
+//        if(derefItem) target = create.dereference(target, "item");
         current_block.addStatement(create.assignment(target, rewrite(v.value(i))));
       }
     } else if(t.isPrimitive(PrimitiveSort.Sequence) || t.isPrimitive(PrimitiveSort.Set) || t.isPrimitive(PrimitiveSort.Bag)) {

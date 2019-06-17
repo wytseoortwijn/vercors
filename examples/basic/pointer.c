@@ -27,7 +27,7 @@ int returnsOne() {
 }
 
 void destroyArgument(int x) {
-    destroyPermission(&x);
+    // destroyPermission(&x);
 }
 
 /*@
@@ -37,7 +37,23 @@ void destroyPermission(int *a) {
 
 }
 
-// void arrayPointers() {
-//     int x[4];
-//     destroyPermission(&x[0]);
-// }
+/*@
+@*/
+void merge(int *left, int leftLen, int *right, int rightLen) {
+
+}
+
+/*@
+requires len > 0;
+context \pointer(data, len);
+@*/
+void sort(int *data, int len) {
+    if(len <= 1) {
+        return;
+    } else {
+        int mid = len / 2;
+        sort(data, mid);
+        sort(&data[mid], len-mid);
+        merge(data, mid, &data[mid], len-mid);
+    }
+}

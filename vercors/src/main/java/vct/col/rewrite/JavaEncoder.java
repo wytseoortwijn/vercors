@@ -184,7 +184,7 @@ public class JavaEncoder extends AbstractRewriter {
   
   @Override
   public void visit(Dereference d){
-    if(d.field().equals("length")) {
+    if(d.field().equals("length") || d.field().equals("item")) {
       super.visit(d);
       return;
     }
