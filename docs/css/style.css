@@ -15,6 +15,12 @@ and (max-device-width : 480px) {
   }
 }
 
+.blank_row
+{
+    height: 30px !important; /* overwrites any other rules */
+    background-color: #FFFFFF;
+}
+
 body {
 		background: #222833;
 	}
