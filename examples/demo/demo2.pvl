@@ -27,17 +27,4 @@ class Clear {
 		}
 	}
 
-	invariant A != null;
-	requires A.length > 1;
-	context (\forall* int j; 0 <= j && j < A.length; Perm(A[j], write));
-	ensures (\forall int j; 0 <= j && j < A.length; A[j] == 0);
-	void clearPar2(int[] A) {
-		par (int tid = 0 .. A.length/2)
-			requires Perm(A[tid], write) ** Perm(A[tid + A.length/2], write);
-			ensures Perm(A[tid], write) ** Perm(A[tid + A.length/2], write);
-			ensures A[tid] == 0;
-		{
-			A[tid] = 0;
-		}
-	}
 }
