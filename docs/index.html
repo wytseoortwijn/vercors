@@ -4,7 +4,7 @@ title: VerCors Tool FMT | Utwente
 ---
 
 <style type="text/css">
-  table {
+  table#t01 {
     width: 100%;
     margin: 0;
     padding: 0;
@@ -12,17 +12,17 @@ title: VerCors Tool FMT | Utwente
     border-spacing: 0;
   }
 
-  table tr {
-    padding: 5px;
+  table#t01 tr {
+    padding: 15px;
   }
 
-  table th, table td {
-    padding: 10px;
+  table#t01 th, table td {
+    padding: 25px;
     text-align: center;
     width: 33%;
   }
 
-  table th {
+  table#t01 th {
     text-transform: uppercase;
     font-size: 14px;
     letter-spacing: 1px;
@@ -30,32 +30,32 @@ title: VerCors Tool FMT | Utwente
 
   @media screen and (max-width: 840px) {
 
-    table {
+    table#t01 {
       border: 0;
     }
 
-    table thead {
+    table#t01 thead {
       display: none;
     }
 
-    table tr {
+    table#t01 tr {
       margin-bottom: 10px;
       display: block;
-      border-bottom: 2px solid #ddd;
+      /* border-bottom: 22px solid #222233; */
     }
 
-    table td {
+    table#t01 td {
       display: block;
       text-align: center;
       width: 100%;
-      /* border-bottom: 1px dotted #ccc; */
+      border-bottom: 2px dotted #ccc;
     }
 
-    /* table td:last-child {
+    /* table#t01 td:last-child {
       border-bottom: 0;
     } */
 
-    /* table td:before {
+    /* table#t01 td:before {
       content: attr(data-label);
       float: left;
       text-transform: uppercase;
@@ -95,7 +95,7 @@ title: VerCors Tool FMT | Utwente
         <h2>The VerCors Tool Overview</h2>
         <span class="byline"></span>
       </header>
-			<table style="width:100%; border-collapse:separate; border-spacing: 30px 15px">
+			<table id="t01">
 				<tr>
           <td >
             <p style="text-align:justify">
@@ -122,47 +122,38 @@ title: VerCors Tool FMT | Utwente
 			</table>
   </section>
   </div>
+
   <!-- Main -->
   <div id="main" class="wrapper style1">
     <section class="container">
-      <div class="row">
-        <!-- Content -->
-        <div class="6u">
-          <section>
-            <ul class="style">
-              <li>
-                <span class="fa fa-wrench"></span>
-                <h2>Tool Installation</h2>
-                <span style="text-align:justify">The VerCors toolset can be installed on macOSX, Linux and Windows (via Cygwin). Follow the complete installation guidelines <a href= "TryOnline.html#install" class="url">here</a>.</span>
-              </li>
-              <li>
-                <span class="fa fa-cloud"></span>
-                <h2>Latest Publications</h2>
-                <p>A complete list of publications is listed <a href= "https://research.utwente.nl/en/searchAll/index/?search=VerCors&pageSize=25&showAdvanced=false&allConcepts=true&inferConcepts=true&searchBy=PartOfNameOrTitle&ordering=publicationYearThenTitle&descending=true" class="url" target="_blank">here</a>.</p>
-              </li>
-            </ul>
-          </section>
-        </div>
-        <div class="6u">
-          <section>
-            <ul class="style">
-              <li>
-                <span class="fa fa-cogs"></span>
-                <h3>Report a Bug</h3>
-                <p>For bug reports and feature requests,<br>visit <a href='https://github.com/utwente-fmt/vercors/issues' target='_blank' class='url'>https://github.com/utwente-fmt/vercors/issues</a>.
-                  <br>
-                  For questions and support, email to <a href='mailto:VERCORS@LISTS.utwente.nl' target='_blank' class=''>VERCORS@LISTS.utwente.nl</a>
-              </li>
-              </p>
-              <li>
-                <span class="fa fa-leaf"></span>
-                <h3>Latest Release</h3>
-                <span>VerCors version 1.0 is released.<img src="{{ "/images/release.png" | prepend: site.baseurl }}" width="10%" height="10%" alt="Release"> <button><strong> Download here! </strong> </button> </span>
-              </li>
-            </ul>
-          </section>
-        </div>
-      </div>
+      <table id="t01" text-align="left">
+        <tr>
+          <!-- The ul here is just to be able to see nice buttons (dont know how to do it otherwise) -->
+          <td style="text-align: left;"><ul class="style"> 
+            <span class="fa fa-wrench"></span>
+            <h2>Tool Installation</h2>
+            <span style="text-align:justify">The VerCors toolset can be installed on macOSX, Linux and Windows (via Cygwin). Follow the complete installation guidelines <a href= "TryOnline.html#install" class="url">here</a>.</span>
+          </ul></td>
+          <td style="text-align: left;"><ul class="style"> 
+              <span class="fa fa-cloud"></span>
+            <h2>Latest Publications</h2>
+            <p>A complete list of publications is listed <a href= "https://research.utwente.nl/en/searchAll/index/?search=VerCors&pageSize=25&showAdvanced=false&allConcepts=true&inferConcepts=true&searchBy=PartOfNameOrTitle&ordering=publicationYearThenTitle&descending=true" class="url" target="_blank">here</a>.</p>
+          </ul></td>
+        </tr>
+        <tr>
+          <td style="text-align: left;"><ul class="style"> 
+            <span class="fa fa-cogs"></span>
+            <h2>Report a Bug</h2>
+            <p>For bug reports and feature requests,<br>visit <a href='https://github.com/utwente-fmt/vercors/issues' target='_blank' class='url'>https://github.com/utwente-fmt/vercors/issues</a>.    
+              For questions and support, email to <a href='mailto:VERCORS@LISTS.utwente.nl' target='_blank' class=''>VERCORS@LISTS.utwente.nl</a></p>
+          </ul></td>
+          <td style="text-align: left;"><ul class="style"> 
+            <span class="fa fa-leaf"></span>
+            <h2>Latest Release</h2>
+            <p>VerCors version 1.0 has been released. <button><img src="{{ '/images/release.png' | prepend: site.baseurl }}" width="5%" height="5%" alt="Release"></button></p>
+          </ul></td>
+        </tr>>
+      </table>
     </section>
   </div>
 </body>
