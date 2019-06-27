@@ -56,7 +56,12 @@
 
 <h2 class="section__title">Building:</h2>
 
-<p>For a basic build of VerCors the following steps should be taken:</p><ol start='' ><li>Clone the VerCors repository using <code>$ git clone https://github.com/utwente-fmt/vercors.git</code> and move into the cloned directory, <code>$ cd vercors</code> </li><li>Build VerCors with Ant by running <code>$ ant clean</code> followed by <code>$ ant</code> </li><li>Test whether the build was successful by running <code>$ ./unix/bin/vct --test=examples/manual --tool=silicon --lang=pvl,java</code></li></ol><p>The last command tests the VerCors installation by verifying a large collection of examples (from the <em>./examples</em> directory). This command should eventually report that <code>$ all ? tests passed </code></p>
+<p>For a basic build of VerCors the following steps should be taken:</p><ol start='' ><li>Clone the VerCors repository using <code>$ git clone https://github.com/utwente-fmt/vercors.git</code> and move into the cloned directory, <code>$ cd vercors</code> </li>
+	<li>Create symbolic links to link the Viper modules, as described on the <a href="https://github.com/utwente-fmt/vercors/tree/master/vercors/viper">vercors/viper page</a>. Users with a Unix system can also use the travis_build.sh script to create symbolic links and install VerCors by running <code>$ sh travis_build.sh</code> from the project's root directory.</li>	
+	<li>Build VerCors with Ant by running <code>$ ant clean</code> followed by <code>$ ant</code> </li>
+	<li>Test whether the build was successful by running <code>$ ./unix/bin/vct --test=examples/manual --tool=silicon --lang=pvl,java</code></li>
+</ol>
+<p>The last command tests the VerCors installation by verifying a large collection of examples (from the <em>./examples</em> directory). This command should eventually report that <code>$ all ? tests passed </code></p>
 </code>
 
 <code class="tab__pane win">
@@ -64,7 +69,13 @@ The VerCors toolset can be installed on Windows (via Cygwin). When using Windows
 </code>
 
  <code class="tab__pane linux">
- <p>For a basic build of VerCors the following steps should be taken:</p><ol start='' ><li>Clone the VerCors repository using <code>$ git clone https://github.com/utwente-fmt/vercors.git</code> and move into the cloned directory, <code>$ cd vercors</code> </li><li>Build VerCors with Ant by running <code>$ ant clean</code> followed by <code>$ ant</code> </li><li>Test whether the build was successful by running <code>$ ./unix/bin/vct --test=examples/manual --tool=silicon --lang=pvl,java</code></li></ol><p>The last command tests the VerCors installation by verifying a large collection of examples (from the <em>./examples</em> directory). This command should eventually report that <code>$ all ? tests passed </code></p>
+ <p>For a basic build of VerCors the following steps should be taken:</p><ol start='' >
+	 <li>Clone the VerCors repository using <code>$ git clone https://github.com/utwente-fmt/vercors.git</code> and move into the cloned directory, <code>$ cd vercors</code> </li>
+	 <li>Create symbolic links to the viper modules by running <code>$ sh travis_build.sh</code> from the project's root directory.</li>
+	 <li>Build VerCors with Ant by running <code>$ ant clean</code> followed by <code>$ ant</code> </li>
+	 <li>Test whether the build was successful by running <code>$ ./unix/bin/vct --test=examples/manual --tool=silicon --lang=pvl,java</code></li>
+ </ol>
+ <p>The last command tests the VerCors installation by verifying a large collection of examples (from the <em>./examples</em> directory). This command should eventually report that <code>$ all ? tests passed </code></p>
 								</code>
             
           </pre>
