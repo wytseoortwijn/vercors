@@ -10,13 +10,14 @@ title: VerCors Tool FMT | Utwente
     padding: 0;
     border-collapse: collapse;
     border-spacing: 0;
+    table-layout: fi
   }
 
   table#t01 tr {
     padding: 15px;
   }
 
-  table#t01 th, table td {
+  table#t01 th, table#t01 td {
     padding: 25px;
     text-align: center;
     width: 33%;
@@ -49,6 +50,7 @@ title: VerCors Tool FMT | Utwente
       text-align: center;
       width: 100%;
       border-bottom: 2px dotted #ccc;
+      align-content: top;
     }
 
     /* table#t01 td:last-child {
@@ -63,7 +65,6 @@ title: VerCors Tool FMT | Utwente
     } */
   }
 
-
 	@media screen and (min-width: 840px) {
     #fakeheader {
         display: none !important;
@@ -72,14 +73,85 @@ title: VerCors Tool FMT | Utwente
     }
   }
 
-  .layer {
-    background-color: rgba(248, 247, 216, 0.7);
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-  }
+/* Slideshow box for news */
+
+/* Slideshow container */
+.slideshow-container {
+  position: relative;
+  background: #f1f1f1f1;
+}
+
+/* Slides */
+.mySlides {
+  display: none;
+  padding: 20%;
+  text-align: center;
+}
+
+/* Next & previous buttons */
+.prev, .next {
+  cursor: pointer;
+  position: absolute;
+  top: 50%;
+  width: auto;
+  margin-top: -30px;
+  padding: 16px;
+  color: #888;
+  font-weight: bold;
+  font-size: 20px;
+  border-radius: 0 3px 3px 0;
+  user-select: none;
+}
+
+/* Position the "prev button" to the left */
+.prev {
+  position: absolute;
+  left: 0;
+  border-radius: 3px 0 0 3px;
+}
+
+/* Position the "next button" to the right */
+.next {
+  position: absolute;
+  right: 0;
+  border-radius: 3px 0 0 3px;
+}
+
+/* On hover, add a black background color with a little bit see-through */
+.prev:hover, .next:hover {
+  background-color: rgba(0,0,0,0.8);
+  color: white;
+}
+
+/* The dot/bullet/indicator container */
+.dot-container {
+    text-align: center;
+    padding: 20px;
+    background: #ddd;
+}
+
+/* The dots/bullets/indicators */
+.dot {
+  cursor: pointer;
+  height: 15px;
+  width: 15px;
+  margin: 0 2px;
+  background-color: #bbb;
+  border-radius: 50%;
+  display: inline-block;
+  transition: background-color 0.6s ease;
+}
+
+/* Add a background color to the active dot/circle */
+.active, .dot:hover {
+  background-color: #717171;
+}
+
+/* Add an italic font style to all quotes */
+q {font-style: italic;}
+
+/* Add a blue color to the author */
+.author {color: cornflowerblue;}
 
 </style>
 
@@ -131,12 +203,10 @@ title: VerCors Tool FMT | Utwente
   <!-- Featured -->
   <div class="wrapper style2">
     <section class="container">
-      <header class="major" id="overview">
-        <h2>The VerCors Tool Overview</h2>
-        <span class="byline"></span>
-      </header>
+
 			<table id="t01">
 				<tr>
+
           <td >
             <p style="text-align:justify">
               <a href="#" class="image feature"><img src= "{{ "/images/VerCors2.png" | prepend: site.baseurl }}" alt="The VerCors Tool Architecture"></a>
@@ -144,22 +214,48 @@ title: VerCors Tool FMT | Utwente
               <strong style="color:#3ac984"> The VerCors Tool Architecture</strong><br> VerCors transforms the verification problem of programs written in a high-level programming language into a verification problem in the intermediate language of Viper... <a href="{{ "/VerCorsArchitecture.html" | prepend: site.baseurl }}"class="btn btn-default"><button href= "{{ "/VerCorsArchitecture.html" | prepend: site.baseurl }}">ReadMore>></button>
             </p>
           </td>
+
           <td >
             <p style="text-align:justify">
+              <p>
               <a href="#" class="image feature"><img src="{{ "/images/PA.png" | prepend: site.baseurl }}" alt="Program verification with Abstraction"></a>
+              </p>
               <br>
               <strong style="color:#3ac984"> Formal Program Verification with Abstractions</strong><br> VerCors combines data abstraction with process algebra and allows you to reason about abstract model by defining corresponding actions & processes with contracts... <a href="{{ "/VerCorsArchitecture.html" | prepend: site.baseurl }}"class="btn btn-default"><button href= "{{ "/VerCorsArchitecture.html" | prepend: site.baseurl }}">ReadMore>></button>
             </p>
           </td>
-          <td >
-            <p style="text-align:justify">
-              <a href="#" class="image feature"><img src="images/Vercors_Original.jpg" alt=""><img src="images/eclipse.png" alt=""></a>
-              <br>
-              <strong style="color:#3ac984">VerCors with Eclipse</strong><br>If you have <em>eclipse</em> installed, you could also configure VerCors. Install the Scala IDE plugin for Eclipse. Download and installation instructions...<a href="doc.html#eclipse" class="btn btn-default"><button href= "{{ "/doc.html#eclipse" | prepend: site.baseurl }}">ReadMore>></button>
-            </p>
-          </td>
 				</tr>
-			</table>
+      </table>
+
+    </section>
+  </div>
+     
+  <div class="wrapper style2" style="background-color: #f1f1f1f1;">
+      <section class="container">
+        
+      <header class="major" id="overview">
+          <h2>News</h2>
+          <span class="byline"></span>
+      </header>
+
+      <p style="text-align:justify;">
+        <div style="height:400px;width:100%;overflow:auto;background-color:#f1f1f1f1;color:back;scrollbar-base-color:gold;font-family:sans-serif;padding:10px;">
+          <div class="blog-posts">
+            {% for post in site.posts %}
+              <div class="blog-post spacing" style="padding-left: 10%; padding-right: 10%;">
+                <h3><a href="{{ post.url }}">{{ post.title }}</a></h3>
+                <p class="summary">
+                  {{ post.category }}
+                  <span class="date">
+                    {{ post.date | date: '%B %d, %Y' }}
+                  </span>
+                </p>
+                {{ post.excerpt }}
+              </div>
+            {% endfor %}
+          </div></div>
+        </p>
+
   </section>
   </div>
 
@@ -198,4 +294,5 @@ title: VerCors Tool FMT | Utwente
       </table>
     </section>
   </div>
+
 </body>
