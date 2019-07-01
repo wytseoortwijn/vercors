@@ -169,10 +169,12 @@ hr {
 }
 
 /* menu */
+/*
 nav {
   display: grid;
   grid-template-columns: 70px auto;
 }
+
 
 .menu {
   margin: 0;
@@ -234,6 +236,7 @@ nav {
 .menu__item.toggle {
   display: none;
 }
+*/
 
 /* table */
 table {
@@ -262,6 +265,7 @@ table td:first-child {
 }
 
 @media screen and (max-width: 600px) {
+  
   nav {
     grid-template-columns: 70px auto;
   }
@@ -295,12 +299,7 @@ table td:first-child {
   width: 70%;
 }
 
-.footer {
-  text-align: center;
-  background-color: var(--primary-color);
-  padding: 2rem;
-  color: white;
-}
+
 
 @keyframes fadeUp {
   0% {
