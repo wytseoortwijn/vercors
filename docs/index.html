@@ -62,25 +62,6 @@ title: VerCors Tool FMT | Utwente
       font-weight: bold;
     } */
   }
-
-
-	@media screen and (min-width: 840px) {
-    #fakeheader {
-        display: none !important;
-        padding: 20px;
-        border: 20px;
-    }
-  }
-
-  .layer {
-    background-color: rgba(248, 247, 216, 0.7);
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-  }
-
 </style>
 
 <body class="homepage">
@@ -107,27 +88,6 @@ title: VerCors Tool FMT | Utwente
   </div>
   </div> <!-- FIXME: why this two last /div here? -->
   </div>
-
-  <!-- Banner -->
-  <div id="fakeheader">
-      <section style="text-align: center; padding:5%; color:#eee; background-image: url(images/Vercors_Original.jpg); background-repeat: no-repeat; background-size: cover; box-shadow: inset 0 0 0 1000px rgba(0,0,0,.2);">
-        <header class="major">
-          <h2>Verification of Parallel and Concurrent Software</h2>
-          <span class="byline">
-            &hellip; a static formal verifcation tool that provides you program 
-            correctness under different concurrency models, written in high-level 
-            programming languages, e.g. in Java, OpenCL and OpenMP; and reason 
-            not only about <strong>race freedom</strong> and <strong>memory 
-            safety</strong>, but also about <strong>functional 
-            correctness</strong>! <br />Released for free under the License 
-            <a href="https://fmt.ewi.utwente.nl">Formal Methods and Tools, 
-            University of Twente </a> 
-          </span>
-        </header>
-        <a href="https://github.com/utwente-fmt/vercors" class="button alt" target="_blank">View on Github</a>
-      </section>
-  </div>
-
   <!-- Featured -->
   <div class="wrapper style2">
     <section class="container">
@@ -141,14 +101,14 @@ title: VerCors Tool FMT | Utwente
             <p style="text-align:justify">
               <a href="#" class="image feature"><img src= "{{ "/images/VerCors2.png" | prepend: site.baseurl }}" alt="The VerCors Tool Architecture"></a>
               <br>
-              <strong style="color:#3ac984"> The VerCors Tool Architecture</strong><br> VerCors transforms the verification problem of programs written in a high-level programming language into a verification problem in the intermediate language of Viper... <a href="{{ "/VerCorsArchitecture.html" | prepend: site.baseurl }}"class="btn btn-default"><button href= "{{ "/VerCorsArchitecture.html" | prepend: site.baseurl }}">ReadMore>></button>
+              <strong style="color:#3ac984"> The VerCors Tool Architecture</strong><br> VerCors transforms the verification problem of programs written in a high-level programming language into a verification problem in the intermediate language of Viper... <a href="{{ "/VerCorsArchitecture.html" | prepend: site.baseurl }}" target="_blank"class="btn btn-default"><button href= "{{ "/VerCorsArchitecture.html" | prepend: site.baseurl }}">ReadMore>></button>
             </p>
           </td>
           <td >
             <p style="text-align:justify">
               <a href="#" class="image feature"><img src="{{ "/images/PA.png" | prepend: site.baseurl }}" alt="Program verification with Abstraction"></a>
               <br>
-              <strong style="color:#3ac984"> Formal Program Verification with Abstractions</strong><br> VerCors combines data abstraction with process algebra and allows you to reason about abstract model by defining corresponding actions & processes with contracts... <a href="{{ "/VerCorsArchitecture.html" | prepend: site.baseurl }}"class="btn btn-default"><button href= "{{ "/VerCorsArchitecture.html" | prepend: site.baseurl }}">ReadMore>></button>
+              <strong style="color:#3ac984"> Formal Program Verification with Abstractions</strong><br> VerCors combines data abstraction with process algebra and allows you to reason about abstract model by defining corresponding actions & processes with contracts... <a href="{{ "/VerCorswith Abstraction.html" | prepend: site.baseurl }}" target= "_blank" class="btn btn-default"><button href= "{{ "/VerCorswith Abstraction.html" | prepend: site.baseurl }}">ReadMore>></button>
             </p>
           </td>
           <td >
