@@ -73,86 +73,14 @@ title: VerCors Tool FMT | Utwente
     }
   }
 
-/* Slideshow box for news */
-
-/* Slideshow container */
-.slideshow-container {
-  position: relative;
-  background: #f1f1f1f1;
-}
-
-/* Slides */
-.mySlides {
-  display: none;
-  padding: 20%;
-  text-align: center;
-}
-
-/* Next & previous buttons */
-.prev, .next {
-  cursor: pointer;
-  position: absolute;
-  top: 50%;
-  width: auto;
-  margin-top: -30px;
-  padding: 16px;
-  color: #888;
-  font-weight: bold;
-  font-size: 20px;
-  border-radius: 0 3px 3px 0;
-  user-select: none;
-}
-
-/* Position the "prev button" to the left */
-.prev {
-  position: absolute;
-  left: 0;
-  border-radius: 3px 0 0 3px;
-}
-
-/* Position the "next button" to the right */
-.next {
-  position: absolute;
-  right: 0;
-  border-radius: 3px 0 0 3px;
-}
-
-/* On hover, add a black background color with a little bit see-through */
-.prev:hover, .next:hover {
-  background-color: rgba(0,0,0,0.8);
-  color: white;
-}
-
-/* The dot/bullet/indicator container */
-.dot-container {
-    text-align: center;
-    padding: 20px;
-    background: #ddd;
-}
-
-/* The dots/bullets/indicators */
-.dot {
-  cursor: pointer;
-  height: 15px;
-  width: 15px;
-  margin: 0 2px;
-  background-color: #bbb;
-  border-radius: 50%;
-  display: inline-block;
-  transition: background-color 0.6s ease;
-}
-
-/* Add a background color to the active dot/circle */
-.active, .dot:hover {
-  background-color: #717171;
-}
-
-/* Add an italic font style to all quotes */
-q {font-style: italic;}
-
-/* Add a blue color to the author */
-.author {color: cornflowerblue;}
-
+  .layer {
+    background-color: rgba(248, 247, 216, 0.7);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
 
 </style>
 
@@ -169,9 +97,8 @@ q {font-style: italic;}
 						programming languages, e.g. in Java, OpenCL and OpenMP; and reason 
 						not only about <strong>race freedom</strong> and <strong>memory 
 						safety</strong>, but also about <strong>functional 
-						correctness</strong>! <br />Released for free under the License 
-						<a href="https://fmt.ewi.utwente.nl">Formal Methods and Tools, 
-						University of Twente </a> 
+						correctness</strong>! <br />Released for free under the Mozilla Public
+            License Version 2.0 </a> 
           </span>
         </header>
         <a href="https://github.com/utwente-fmt/vercors" class="button alt" target="_blank">View on Github</a>
@@ -180,6 +107,32 @@ q {font-style: italic;}
   </div>
   </div> <!-- FIXME: why this two last /div here? -->
   </div>
+
+
+
+    <!-- Banner -->
+    <div id="fakeheader">
+      <section style="text-align: center; padding:5%; color:#eee; background-image: url(images/Vercors_Original.jpg); background-repeat: no-repeat; background-size: cover; box-shadow: inset 0 0 0 1000px rgba(0,0,0,.2);">
+        <header class="major">
+          <h2>Verification of Parallel and Concurrent Software</h2>
+          <span class="byline">
+            &hellip; a static formal verifcation tool that provides you program 
+            correctness under different concurrency models, written in high-level 
+            programming languages, e.g. in Java, OpenCL and OpenMP; and reason 
+            not only about <strong>race freedom</strong> and <strong>memory 
+            safety</strong>, but also about <strong>functional 
+            correctness</strong>! <br />Released for free under the License 
+            <a href="https://fmt.ewi.utwente.nl">Formal Methods and Tools, 
+            University of Twente </a> 
+          </span>
+        </header>
+        <a href="https://github.com/utwente-fmt/vercors" class="button alt" target="_blank">View on Github</a>
+      </section>
+    </div>
+
+
+
+
   <!-- Featured -->
   <div class="wrapper style2">
     <section class="container">
@@ -197,9 +150,7 @@ q {font-style: italic;}
 
           <td >
             <p style="text-align:justify">
-              <p>
               <a href="#" class="image feature"><img src="{{ "/images/PA.png" | prepend: site.baseurl }}" alt="Program verification with Abstraction"></a>
-              </p>
               <br>
               <strong style="color:#3ac984"> Formal Program Verification with Abstractions</strong><br> VerCors combines data abstraction with process algebra and allows you to reason about abstract model by defining corresponding actions & processes with contracts... <a href="{{ "/VercorsWithAbstraction.html" | prepend: site.baseurl }}" target= "_blank" class="btn btn-default"><button href= "{{ "/VercorsWithAbstraction.html" | prepend: site.baseurl }}">ReadMore>></button>
             </p>
@@ -253,17 +204,15 @@ q {font-style: italic;}
             <span style="text-align:justify">The VerCors toolset can be installed on macOSX, Linux and Windows (via Cygwin). Follow the complete installation guidelines <a href= "TryOnline.html#install" class="url">here</a>.</span>
             </p>
           </ul></td>
-          <td style="text-align: left;"><ul class="style"> 
-	<a href="https://research.utwente.nl/en/searchAll/index/?search=VerCors&pageSize=25&showAdvanced=false&allConcepts=true&inferConcepts=true&searchBy=PartOfNameOrTitle&ordering=publicationYearThenTitle&descending=true" target="_blank" class="link link--dark">
+          <td style="text-align: left;"><ul class="style"> <a href="https://research.utwente.nl/en/searchAll/index/?search=VerCors&pageSize=25&showAdvanced=false&allConcepts=true&inferConcepts=true&searchBy=PartOfNameOrTitle&ordering=publicationYearThenTitle&descending=true" target="_blank" class="link link--dark">
             <span class="fa fa-cloud"></span>
-	</a>
+        	</a>
             <h2>Latest Publications</h2>
             <p>A complete list of publications is listed <a href= "https://research.utwente.nl/en/searchAll/index/?search=VerCors&pageSize=25&showAdvanced=false&allConcepts=true&inferConcepts=true&searchBy=PartOfNameOrTitle&ordering=publicationYearThenTitle&descending=true" class="url" target="_blank">here</a>.</p>
           </ul></td>
         </tr>
         <tr>
-          <td style="text-align: left;"><ul class="style"> 
-	<a href="https://github.com/utwente-fmt/vercors/issues" target="_blank" class="link link--dark">
+          <td style="text-align: left;"><ul class="style"><a href="https://github.com/utwente-fmt/vercors/issues" target="_blank" class="link link--dark">
             <span class="fa fa-cogs"></span>
 	</a>
             <h2>Report a Bug</h2>
