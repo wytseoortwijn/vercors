@@ -265,9 +265,10 @@ table td:first-child {
   font-weight: 600;
 }
 
+/*
 @media screen and (max-width: 600px) {
   
-  /*
+ 
   nav {
     grid-template-columns: 70px auto;
   }
@@ -293,6 +294,7 @@ table td:first-child {
     display: block;
     padding: 0 0 0.5rem 0;
   }
+  
 }
   */
 
