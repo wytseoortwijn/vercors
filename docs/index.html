@@ -153,6 +153,7 @@ q {font-style: italic;}
 /* Add a blue color to the author */
 .author {color: cornflowerblue;}
 
+
 </style>
 
 <body class="homepage">
@@ -179,27 +180,6 @@ q {font-style: italic;}
   </div>
   </div> <!-- FIXME: why this two last /div here? -->
   </div>
-
-  <!-- Banner -->
-  <div id="fakeheader">
-      <section style="text-align: center; padding:5%; color:#eee; background-image: url(images/Vercors_Original.jpg); background-repeat: no-repeat; background-size: cover; box-shadow: inset 0 0 0 1000px rgba(0,0,0,.2);">
-        <header class="major">
-          <h2>Verification of Parallel and Concurrent Software</h2>
-          <span class="byline">
-            &hellip; a static formal verifcation tool that provides you program 
-            correctness under different concurrency models, written in high-level 
-            programming languages, e.g. in Java, OpenCL and OpenMP; and reason 
-            not only about <strong>race freedom</strong> and <strong>memory 
-            safety</strong>, but also about <strong>functional 
-            correctness</strong>! <br />Released for free under the License 
-            <a href="https://fmt.ewi.utwente.nl">Formal Methods and Tools, 
-            University of Twente </a> 
-          </span>
-        </header>
-        <a href="https://github.com/utwente-fmt/vercors" class="button alt" target="_blank">View on Github</a>
-      </section>
-  </div>
-
   <!-- Featured -->
   <div class="wrapper style2">
     <section class="container">
@@ -211,7 +191,7 @@ q {font-style: italic;}
             <p style="text-align:justify">
               <a href="#" class="image feature"><img src= "{{ "/images/VerCors2.png" | prepend: site.baseurl }}" alt="The VerCors Tool Architecture"></a>
               <br>
-              <strong style="color:#3ac984"> The VerCors Tool Architecture</strong><br> VerCors transforms the verification problem of programs written in a high-level programming language into a verification problem in the intermediate language of Viper... <a href="{{ "/VerCorsArchitecture.html" | prepend: site.baseurl }}"class="btn btn-default"><button href= "{{ "/VerCorsArchitecture.html" | prepend: site.baseurl }}">ReadMore>></button>
+              <strong style="color:#3ac984"> The VerCors Tool Architecture</strong><br> VerCors transforms the verification problem of programs written in a high-level programming language into a verification problem in the intermediate language of Viper... <a href="{{ "/VerCorsArchitecture.html" | prepend: site.baseurl }}" target="_blank"class="btn btn-default"><button href= "{{ "/VerCorsArchitecture.html" | prepend: site.baseurl }}">ReadMore>></button>
             </p>
           </td>
 
@@ -221,12 +201,11 @@ q {font-style: italic;}
               <a href="#" class="image feature"><img src="{{ "/images/PA.png" | prepend: site.baseurl }}" alt="Program verification with Abstraction"></a>
               </p>
               <br>
-              <strong style="color:#3ac984"> Formal Program Verification with Abstractions</strong><br> VerCors combines data abstraction with process algebra and allows you to reason about abstract model by defining corresponding actions & processes with contracts... <a href="{{ "/VerCorsArchitecture.html" | prepend: site.baseurl }}"class="btn btn-default"><button href= "{{ "/VerCorsArchitecture.html" | prepend: site.baseurl }}">ReadMore>></button>
+              <strong style="color:#3ac984"> Formal Program Verification with Abstractions</strong><br> VerCors combines data abstraction with process algebra and allows you to reason about abstract model by defining corresponding actions & processes with contracts... <a href="{{ "/VercorsWithAbstraction.html" | prepend: site.baseurl }}" target= "_blank" class="btn btn-default"><button href= "{{ "/VercorsWithAbstraction.html" | prepend: site.baseurl }}">ReadMore>></button>
             </p>
           </td>
 				</tr>
       </table>
-
     </section>
   </div>
      
@@ -266,29 +245,41 @@ q {font-style: italic;}
         <tr>
           <!-- The ul here is just to be able to see nice buttons (dont know how to do it otherwise) -->
           <td style="text-align: left;"><ul class="style"> 
+	   <a href="TryOnline.html#install" target="_blank" class="link link--dark">
             <span class="fa fa-wrench"></span>
-            <h2>Tool Installation</h2>
+             </a>
+		<h2>Tool Installation</h2>
             <p>
             <span style="text-align:justify">The VerCors toolset can be installed on macOSX, Linux and Windows (via Cygwin). Follow the complete installation guidelines <a href= "TryOnline.html#install" class="url">here</a>.</span>
             </p>
           </ul></td>
           <td style="text-align: left;"><ul class="style"> 
+	<a href="https://research.utwente.nl/en/searchAll/index/?search=VerCors&pageSize=25&showAdvanced=false&allConcepts=true&inferConcepts=true&searchBy=PartOfNameOrTitle&ordering=publicationYearThenTitle&descending=true" target="_blank" class="link link--dark">
             <span class="fa fa-cloud"></span>
+	</a>
             <h2>Latest Publications</h2>
             <p>A complete list of publications is listed <a href= "https://research.utwente.nl/en/searchAll/index/?search=VerCors&pageSize=25&showAdvanced=false&allConcepts=true&inferConcepts=true&searchBy=PartOfNameOrTitle&ordering=publicationYearThenTitle&descending=true" class="url" target="_blank">here</a>.</p>
           </ul></td>
         </tr>
         <tr>
           <td style="text-align: left;"><ul class="style"> 
+	<a href="https://github.com/utwente-fmt/vercors/issues" target="_blank" class="link link--dark">
             <span class="fa fa-cogs"></span>
+	</a>
             <h2>Report a Bug</h2>
             <p>For bug reports and feature requests,<br>visit <a href='https://github.com/utwente-fmt/vercors/issues' target='_blank' class='url'>https://github.com/utwente-fmt/vercors/issues</a>.    
-              For questions and support, email to <a href='mailto:VERCORS@LISTS.utwente.nl' target='_blank' class=''>VERCORS@LISTS.utwente.nl</a></p>
+              For questions and support, email to <a href='mailto:VERCORS@LISTS.utwente.nl' target='_blank' class=''>vercors@lists.utwente.nl</a></p>
           </ul></td>
           <td style="text-align: left;"><ul class="style"> 
-            <span class="fa fa-leaf"></span>
+            <a href="https://surfdrive.surf.nl/files/index.php/s/ImxHX0lJyBRgd60" target="_blank" class="link link--dark">
+		<span class="fa fa-leaf"></span>
+	</a>
             <h2>Latest Release</h2>
-            <p>VerCors version 1.0 has been released. <button><img src="{{ '/images/release.png' | prepend: site.baseurl }}" width="5%" height="5%" alt="Release"></button></p>
+            <p>VerCors version 1.0 has been released. 
+		       <a href="https://surfdrive.surf.nl/files/index.php/s/ImxHX0lJyBRgd60" target="_blank" class="link link--dark">
+		  <button>
+		 <img src="{{ '/images/release.png' | prepend: site.baseurl }}" width="5%" height="5%" alt="Release"></button></p>
+		    </a>
           </ul></td>
         </tr>>
       </table>
