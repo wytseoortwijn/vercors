@@ -151,6 +151,7 @@ hr {
 }
 
 /* links */
+/*
 .link {
   text-decoration: none;
   transition: all 0.3s ease-out;
@@ -167,7 +168,7 @@ hr {
 .link--light {
   color: var(--accent-color);
 }
-
+*/
 /* menu */
 /*
 nav {
@@ -266,6 +267,7 @@ table td:first-child {
 
 @media screen and (max-width: 600px) {
   
+  /*
   nav {
     grid-template-columns: 70px auto;
   }
@@ -292,6 +294,7 @@ table td:first-child {
     padding: 0 0 0.5rem 0;
   }
 }
+  */
 
 /* layout */
 .wrapper {
