@@ -1,5 +1,5 @@
 ---
-layout: default
+layout: default2
 title: Tutorials
 pagination: true
 ---
@@ -39,52 +39,7 @@ pagination: true
 
 <body>
 
-<!-- Banner -->
-<div id="banner">
-    <div class="container">
-      <section>
-        <header class="major">
-          <h2>Verification of Concurrent and Distributed Software</h2>
-          <span class="byline">
-						&hellip; a static formal verifcation tool that provides you program 
-						correctness under different concurrency models, written in high-level 
-						programming languages, e.g. in Java, OpenCL and OpenMP; and reason 
-						not only about <strong>race freedom</strong> and <strong>memory 
-						safety</strong>, but also about <strong>functional 
-						correctness</strong>! <br />Released for free under the Mozilla Public
-            License Version 2.0 ** </a> 
-          </span>
-        </header>
-        <a href="https://github.com/utwente-fmt/vercors" class="button alt" target="_blank">View on Github</a>
-      </section>
-    </div>
-  </div>
-  </div> <!-- FIXME: why this two last /div here? -->
-  </div>
-
-
-
-    <!-- Fake Banner for small screens -->
-    <div id="fakeheader">
-      <section style="text-align: center; padding:5%; color:#eee; background-image: url(images/Vercors_Original.jpg); background-repeat: no-repeat; background-size: cover; box-shadow: inset 0 0 0 1000px rgba(0,0,0,.2);">
-        <header class="major">
-          <h2>Verification of Concurrent and Distributed Software</h2>
-          <span class="byline">
-            &hellip; a static formal verifcation tool that provides you program 
-            correctness under different concurrency models, written in high-level 
-            programming languages, e.g. in Java, OpenCL and OpenMP; and reason 
-            not only about <strong>race freedom</strong> and <strong>memory 
-            safety</strong>, but also about <strong>functional 
-            correctness</strong>! <br />Released for free under the License 
-            <a href="https://fmt.ewi.utwente.nl">Formal Methods and Tools, 
-            University of Twente </a> 
-          </span>
-        </header>
-        <a href="https://github.com/utwente-fmt/vercors" class="button alt" target="_blank">View on Github</a>
-      </section>
-    </div>
-
-    <section style="background-color: azure; text-align: center; align-content: center;">
+    <section style="background-color: #f1f1f1f1; text-align: center; align-content: center;">
       <div style="text-align: center; padding:10px;">
           <h2 style="color:#3ac984; font-size:50px;" >VerCors Tutorials</h2>
       <ul id='li0' style="text-align: center; align-content: center;">
@@ -112,27 +67,5 @@ pagination: true
       </ul>
     </div>
     </section>
-
-    <!-- <section>
-      <div id="main" class="wrapper style2">
-        <div class="container">
-          <h2 class="spacing" style="color: #3ac984; font-size: 50px">VerCors Tutorials</h2>
-        
-          <div class="blog-posts">
-            {% for post in site.posts %}
-              <div class="blog-post spacing">
-                <h3><a href="{{ post.url }}">{{ post.title }}</a></h3>
-
-                {{ post.excerpt }}
-              </div>
-            {% endfor %}
-          </div>
-        </div>
-        <!-- post list -->
-        {% for post in paginator.posts %}
-        <li><a href="{{post.url | prepend: site.baseurl}}"><h3>{{post.title}}</h3></a></li>
-        {% endfor %}
-        </div>>
-    </section> -->
 
 </body>
