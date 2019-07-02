@@ -5,10 +5,11 @@
   margin: 1rem 0 0 1rem;
 }
 
+/*
 nav {
   background-color: var(--bg-color);
 }
-
+*/
 /* hero section */
 .hero {
   text-align: center;
@@ -92,12 +93,12 @@ nav {
   right: 4rem;
   top: -2rem;
   background-color: white;
-  padding: 0 0.5rem;
+  padding: 0 1rem;
 }
 
 .keybinding__detail:last-child .keybinding__title {
   position: absolute;
-  left: 0.5rem;
+  left: 2rem;
   top: -2rem;
   background-color: white;
   padding: 0 0.5rem;
