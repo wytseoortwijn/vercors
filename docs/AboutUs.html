@@ -1,23 +1,86 @@
 ---
-layout: default2
+layout: default
 title: VerCors - About Us
 ---
 
 <style type="text/css">
-   td
+   td#td01
    {
        padding:0 15px 0 15px;
    }
 
-   li
+   li#li01
    {
       margin: 60px 10px;
    }
+
+	@media screen and (min-width: 840px) {
+    #fakeheader {
+        display: none !important;
+        padding: 20px;
+        border: 20px;
+    }
+  }
+
+  .layer {
+    background-color: rgba(248, 247, 216, 0.7);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
+
 </style>
 
 
+<body>
+
+  <!-- Banner -->
+  <div id="banner">
+   <div class="container">
+     <section>
+       <header class="major">
+         <h2>Verification of Parallel and Concurrent Software</h2>
+         <span class="byline">
+                 &hellip; a static formal verifcation tool that provides you program 
+                 correctness under different concurrency models, written in high-level 
+                 programming languages, e.g. in Java, OpenCL and OpenMP; and reason 
+                 not only about <strong>race freedom</strong> and <strong>memory 
+                 safety</strong>, but also about <strong>functional 
+                 correctness</strong>! <br />Released for free under the Mozilla Public
+           License Version 2.0 ** </a> 
+         </span>
+       </header>
+       <a href="https://github.com/utwente-fmt/vercors" class="button alt" target="_blank">View on Github</a>
+     </section>
+   </div>
+</div>
+</div> <!-- FIXME: why this two last /div here? -->
+</div>
+
+   <!-- Fake Banner for small screens -->
+   <div id="fakeheader">
+     <section style="text-align: center; padding:5%; color:#eee; background-image: url(images/Vercors_Original.jpg); background-repeat: no-repeat; background-size: cover; box-shadow: inset 0 0 0 1000px rgba(0,0,0,.2);">
+       <header class="major">
+         <h2>Verification of Parallel and Concurrent Software</h2>
+         <span class="byline">
+           &hellip; a static formal verifcation tool that provides you program 
+           correctness under different concurrency models, written in high-level 
+           programming languages, e.g. in Java, OpenCL and OpenMP; and reason 
+           not only about <strong>race freedom</strong> and <strong>memory 
+           safety</strong>, but also about <strong>functional 
+           correctness</strong>! <br />Released for free under the License 
+           <a href="https://fmt.ewi.utwente.nl">Formal Methods and Tools, 
+           University of Twente </a> 
+         </span>
+       </header>
+       <a href="https://github.com/utwente-fmt/vercors" class="button alt" target="_blank">View on Github</a>
+     </section>
+   </div>
 
 
+<section>
 <!-- Main -->
 <div id="main" class="wrapper style1">
    <div class="container">
@@ -167,3 +230,6 @@ title: VerCors - About Us
       </section>
    </div>
 </div>
+</section>
+
+</body>
