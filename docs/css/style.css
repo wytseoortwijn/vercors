@@ -1,13 +1,27 @@
 ---
 ---
 @import url("font-awesome.min.css");
-@import url("http://fonts.googleapis.com/css?family=Raleway:100,200,300,400,500,600,700,800,900");
+@import url("https://fonts.googleapis.com/css?family=Raleway:100,200,300,400,500,600,700,800,900");
 
 
 
 /* Basic */
 
-	body {
+@media only screen 
+and (min-device-width : 320px) 
+and (max-device-width : 480px) {
+   body {
+      background: #222833 !important;
+  }
+}
+
+.blank_row
+{
+    height: 30px !important; /* overwrites any other rules */
+    background-color: #FFFFFF;
+}
+
+body {
 		background: #222833;
 	}
 
@@ -479,7 +493,7 @@
 /* Header */
 
 	#header {
-		background: #333333 url("{{ "/images/Vercors_Original.jpg" | prepend: site.baseurl }}") no-repeat;
+		background: #7a5757 url("{{ '/images/Vercors_Original.jpg' | prepend: site.baseurl }}") no-repeat;
 		background-size: cover;
 		color: #fff;
 		padding: 4em 0;
@@ -561,8 +575,8 @@
 	}
 
 		.dropotron > li {
-			line-height: 1em;
-			padding: 0 1em;
+			line-height: 0.5em;
+			padding: 0.5em 1em;
 		}
 
 			.dropotron > li > a {
