@@ -63,6 +63,10 @@ class PointersToArrays(source: ProgramUnit) extends AbstractRewriter(source) {
         }
       case StandardOperator.Indirection =>
         create.expression(StandardOperator.Subscript, args.get(0), create.constant(0))
+      case StandardOperator.Plus
+        if expr.arg(0).getType.isPrimitive(PrimitiveSort.Pointer)
+          || (expr.arg(0).getType.isPrimitive(PrimitiveSort.Option) && expr.arg(0).getType.firstarg.asInstanceOf[Type].isPrimitive(PrimitiveSort.Array)) =>
+        create.expression(StandardOperator.Drop, args.get(0), args.get(1))
       case otherOp =>
         create.expression(otherOp, args:_*)
     }

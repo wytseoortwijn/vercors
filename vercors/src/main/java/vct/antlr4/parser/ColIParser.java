@@ -43,6 +43,7 @@ public class ColIParser implements vct.col.util.Parser {
     Debug("parser got: %s",tree.toStringTree(parser));
 
     ProgramUnit pu=CMLtoCOL.convert_pu(tree,file_name,tokens,parser);
+    pu.setLanguageFlag(ProgramUnit.LanguageFlag.SeparateArrayLocations, false);
     Progress("AST conversion took %dms",tk.show());
     Debug("after conversion %s",pu);
     

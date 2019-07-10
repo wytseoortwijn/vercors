@@ -144,24 +144,40 @@ public class SequenceUtils {
         return result;
     }
 
-    public static SequenceInfo expectArray(ASTNode node, String message) {
+    public static SequenceInfo expectSort(ASTNode node, String message, PrimitiveSort sort) {
         SequenceInfo result = getInfoOrFail(node, message);
 
-        if(result.getSequenceSort() != PrimitiveSort.Array) {
+        if(result.getSequenceSort() != sort) {
             Fail(message, node, node.getType());
         }
 
         return result;
     }
 
-    public static SequenceInfo expectArrayType(Type type, String message) {
+    public static SequenceInfo expectSortType(Type type, String message, PrimitiveSort sort) {
         SequenceInfo result = getTypeInfoOrFail(type, message);
 
-        if(result.getSequenceSort() != PrimitiveSort.Array) {
+        if(result.getSequenceSort() != sort) {
             Fail(message, type);
         }
 
         return result;
+    }
+
+    public static SequenceInfo expectArray(ASTNode node, String message) {
+        return expectSort(node, message, PrimitiveSort.Array);
+    }
+
+    public static SequenceInfo expectArrayType(Type type, String message) {
+        return expectSortType(type, message, PrimitiveSort.Array);
+    }
+
+    public static SequenceInfo expectSequence(ASTNode node, String message) {
+        return expectSort(node, message, PrimitiveSort.Sequence);
+    }
+
+    public static SequenceInfo expectSequenceType(Type t, String message) {
+        return expectSortType(t, message, PrimitiveSort.Sequence);
     }
 
     /**
@@ -230,6 +246,18 @@ public class SequenceUtils {
 
     public static Type arrayCell(ASTFactory<?> create, Type elementType) {
         return create.primitive_type(PrimitiveSort.Array,
+            create.primitive_type(PrimitiveSort.Cell,
+                elementType
+            )
+        );
+    }
+
+    public static Type optSeqCell(ASTFactory<?> create, Type elementType) {
+        return create.primitive_type(PrimitiveSort.Option, seqCell(create, elementType));
+    }
+
+    public static Type seqCell(ASTFactory<?> create, Type elementType) {
+        return create.primitive_type(PrimitiveSort.Sequence,
             create.primitive_type(PrimitiveSort.Cell,
                 elementType
             )

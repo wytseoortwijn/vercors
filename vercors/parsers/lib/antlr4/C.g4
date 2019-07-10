@@ -32,7 +32,7 @@ grammar C;
 @lexer::members {
     public static final int CH_COMMENT = 1;
     public static final int CH_LINEDIRECTION = 2;
-}
+}   
 
 primaryExpression
     :   clangIdentifier
@@ -372,6 +372,9 @@ nestedParenthesesBlock
 pointer
     :   '*' typeQualifierList?
     |   '*' typeQualifierList? pointer
+    // ** is tokenized separately as separating conjunction
+    |   '**' typeQualifierList?
+    |   '**' typeQualifierList? pointer
     |   '^' typeQualifierList? // Blocks language extension
     |   '^' typeQualifierList? pointer // Blocks language extension
     ;

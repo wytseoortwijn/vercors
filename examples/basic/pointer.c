@@ -15,7 +15,7 @@ int *returnPointer(int *x) {
 }
 
 /*@
-context \pointer(location, 1);
+context \pointer(location, 1, write);
 ensures location[0] == 1;
 @*/
 void setOne(int *location) {
@@ -37,29 +37,51 @@ void destroyArgument(int x) {
 }
 
 /*@
-requires \pointer(a, 1);
+requires \pointer(a, 1, write);
 @*/
 void destroyPermission(int *a) {
 
 }
 
-// /*@
-// @*/
-// void merge(int *left, int leftLen, int *right, int rightLen) {
-//
-// }
-//
-// /*@
-// requires len > 0;
-// context \pointer(data, len);
-// @*/
-// void sort(int *data, int len) {
-//     if(len <= 1) {
-//         return;
-//     } else {
-//         int mid = len / 2;
-//         sort(data, mid);
-//         sort(&data[mid], len-mid);
-//         merge(data, mid, &data[mid], len-mid);
-//     }
-// }
+/*@
+context a != b ==> \pointer(a, 1, write) ** \pointer(b, 1, write);
+context a == b ==> \pointer(a, 1, write);
+ensures *a == \old(*b);
+ensures *b == \old(*a);
+@*/
+void swap(int *a, int *b) {
+    int tmp = *a;
+    *a = *b;
+    *b = tmp;
+}
+
+void swapSame() {
+    int a = 1;
+    swap(&a, &a);
+    //@ assert a == 1;
+}
+
+/*@
+requires leftLen > 0;
+requires rightLen > 0;
+context \pointer(left, leftLen, write);
+context \pointer(right, rightLen, write);
+@*/
+void merge(int *left, int leftLen, int *right, int rightLen) {
+
+}
+
+/*@
+requires len > 0;
+context \pointer(data, len, write);
+@*/
+void sort(int *data, int len) {
+    if(len <= 1) {
+        return;
+    } else {
+        int mid = len / 2;
+        sort(data, mid);
+        sort(data+mid, len-mid);
+        merge(data, mid, &data[mid], len-mid);
+    }
+}

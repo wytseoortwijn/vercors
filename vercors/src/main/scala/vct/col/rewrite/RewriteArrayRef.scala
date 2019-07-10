@@ -5,7 +5,7 @@ import vct.col.ast.`type`.{ASTReserved, PrimitiveSort, PrimitiveType, Type}
 import vct.col.ast.expr.constant.StructValue
 import vct.col.ast.expr.{Dereference, OperatorExpression, StandardOperator}
 import vct.col.ast.generic.ASTNode
-import vct.col.ast.stmt.decl.{DeclarationStatement, ProgramUnit}
+import vct.col.ast.stmt.decl.{DeclarationStatement, Method, ProgramUnit}
 import vct.col.ast.util.ContractBuilder
 import vct.col.util.SequenceUtils
 import vct.col.util.SequenceUtils.SequenceInfo
@@ -118,7 +118,8 @@ class RewriteArrayRef(source: ProgramUnit) extends AbstractRewriter(source) {
         val t = operator.arg(0).getType
         val array = rewrite(operator.arg(0))
         val size = rewrite(operator.arg(1))
-        result = validPointerFor(array, t, size)
+        val perm = rewrite(operator.arg(2))
+        result = validPointerFor(array, t, size, perm)
       case StandardOperator.Drop =>
         val seqInfo = SequenceUtils.getInfoOrFail(operator.arg(0), "Expected a sequence type at %s, but got %s")
         if(seqInfo.getSequenceSort == PrimitiveSort.Array) {
@@ -131,6 +132,8 @@ class RewriteArrayRef(source: ProgramUnit) extends AbstractRewriter(source) {
             properArray = create.expression(StandardOperator.OptionGet, properArray)
           }
           result = create.invokation(null, null, RewriteArrayRef.getSubArray(seqInfo.getCompleteType), array, dropCount, create.expression(StandardOperator.Length, properArray))
+        } else {
+          super.visit(operator)
         }
       case _ =>
         super.visit(operator)
@@ -302,7 +305,7 @@ class RewriteArrayRef(source: ProgramUnit) extends AbstractRewriter(source) {
     conditions.reduce(and _)
   }
 
-  def validPointerFor(input: ASTNode, t: Type, size: ASTNode): ASTNode = {
+  def validPointerFor(input: ASTNode, t: Type, size: ASTNode, perm: ASTNode): ASTNode = {
     val conditions: mutable.ListBuffer[ASTNode] = mutable.ListBuffer()
     val seqInfo = SequenceUtils.expectArrayType(t, "Expected an array type here, but got %s")
 
@@ -318,11 +321,11 @@ class RewriteArrayRef(source: ProgramUnit) extends AbstractRewriter(source) {
     conditions += lte(size, create.expression(StandardOperator.Length, value))
 
     conditions += create.starall(
-      and(lte(constant(0), name("i")), less(name("i"), size)),
+      and(lte(constant(0), name("__i")), less(name("__i"), size)),
       create.expression(StandardOperator.Perm,
-        create.dereference(create.expression(StandardOperator.Subscript, value, name("i")), "item"),
-        create.reserved_name(ASTReserved.FullPerm)),
-      List(new DeclarationStatement("i", create.primitive_type(PrimitiveSort.Integer))):_*
+        create.dereference(create.expression(StandardOperator.Subscript, value, name("__i")), "item"),
+        perm),
+      List(new DeclarationStatement("__i", create.primitive_type(PrimitiveSort.Integer))):_*
     )
 
     conditions.reduce(star _)
@@ -441,11 +444,18 @@ class RewriteArrayRef(source: ProgramUnit) extends AbstractRewriter(source) {
     var eqLeft: ASTNode = create.expression(StandardOperator.Subscript, array, create.expression(StandardOperator.Plus, i, from))
     var eqRight: ASTNode = create.expression(StandardOperator.Subscript, result, i)
 
-    contract.ensures(create.starall(
+    contract.ensures(create.forall(
       and(lte(constant(0), i), less(i, create.expression(StandardOperator.Minus, to, from))),
       eq(eqLeft, eqRight),
       iDecl:_*
     ))
+
+    contract.ensures(
+      create.expression(StandardOperator.Implies,
+        and(eq(from, constant(0)), eq(to, create.expression(StandardOperator.Length, array))),
+        eq(result, array)
+      )
+    )
 
     val arguments = Array(
       new DeclarationStatement("array", t),
@@ -453,7 +463,7 @@ class RewriteArrayRef(source: ProgramUnit) extends AbstractRewriter(source) {
       new DeclarationStatement("to", create.primitive_type(PrimitiveSort.Integer))
     )
 
-    val declaration = create.method_decl(t, contract.getContract, methodName, arguments, null)
+    val declaration = create.method_kind(Method.Kind.Pure, t, contract.getContract, methodName, arguments, false, null)
     declaration.setStatic(true)
     declaration
   }

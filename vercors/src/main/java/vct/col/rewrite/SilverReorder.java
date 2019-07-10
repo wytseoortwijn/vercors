@@ -3,8 +3,10 @@ package vct.col.rewrite;
 import java.util.Iterator;
 
 import hre.util.MultiNameSpace;
+import scala.reflect.internal.Trees;
 import vct.col.ast.expr.BindingExpression;
 import vct.col.ast.expr.NameExpression;
+import vct.col.ast.expr.OperatorExpression;
 import vct.col.ast.stmt.composite.BlockStatement;
 import vct.col.ast.stmt.composite.IfStatement;
 import vct.col.ast.stmt.composite.LoopStatement;
@@ -112,7 +114,9 @@ public class SilverReorder extends AbstractRewriter {
   public void visit(BindingExpression e){
     BlockStatement tmp=main_block;
     main_block=null;
+    locals.enter();
     super.visit(e);
+    locals.leave();
     main_block=tmp;
   }
   

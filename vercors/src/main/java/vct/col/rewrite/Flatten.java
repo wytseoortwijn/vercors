@@ -353,6 +353,10 @@ public class Flatten extends AbstractRewriter {
     result=res;
   }
 
+  public void visit(BindingExpression expr) {
+    result = copy_rw.rewrite(expr);
+  }
+
   public ASTNode transformStructValue(Type t, StructValue v) {
     String name = "__flatten_" + (++counter);
     declaration_block.addStatement(create.field_decl(name, t));
