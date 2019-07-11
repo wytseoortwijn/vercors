@@ -1,7 +1,7 @@
 // -*- tab-width:2 ; indent-tabs-mode:nil -*-
 //:: cases demo3a-func
 //:: tools silicon
-//:: verdict Fail
+//:: verdict Error
 
 class ArraySum {
 	int sum;
