@@ -1,3 +1,8 @@
+// -*- tab-width:2 ; indent-tabs-mode:nil -*-
+//:: cases demo2
+//:: tools silicon
+//:: verdict Pass
+
 class Clear {
 
 	invariant A != null;

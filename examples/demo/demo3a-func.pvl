@@ -1,13 +1,18 @@
+// -*- tab-width:2 ; indent-tabs-mode:nil -*-
+//:: cases demo3a-func
+//:: tools silicon
+//:: verdict Fail
+
 class ArraySum {
 	int sum;
 
-        requires A != null;
+    requires A != null;
 	requires 0 <= i && i <= A.length;
-        requires (\forall* int j; 0 <= j && j < A.length; Perm(A[j], 1/2));
+    requires (\forall* int j; 0 <= j && j < A.length; Perm(A[j], 1/2));
 	pure int sum_contrib(int[] A, int i) =
 	  (i == A.length) ? 0 : A[i] + sum_contrib(A, i + 1);
 
-        given int[A.length] contrib;
+    given int[A.length] contrib;
 	invariant A != null;
 	invariant contrib != null;
 	invariant contrib.length == A.length;
