@@ -1,4 +1,8 @@
-// ./unix/bin/vct --silicon --check-history demo.pvl
+// -*- tab-width:2 ; indent-tabs-mode:nil -*-
+//:: cases demo3d
+//:: tools silicon
+//:: options --check-history
+//:: verdict Pass
 
 class Future {
 	int sum;
