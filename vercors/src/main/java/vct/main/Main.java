@@ -624,6 +624,10 @@ public class Main
       Verdict("The final verdict is Error");
     } catch (Throwable e) {
       DebugException(e);
+      Verdict("An unexpected error occured in VerCors! " +
+              "Please report an issue at https://github.com/utwente-fmt/vercors/issues/new. " +
+              "You can see the full exception by adding '--debug vct.main.Main' to the flags.");
+      Verdict("The final verdict is Error");
       throw e;
     } finally {
       Progress("entire run took %d ms",System.currentTimeMillis()-globalStart);
