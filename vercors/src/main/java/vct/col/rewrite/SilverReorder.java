@@ -1,18 +1,16 @@
 package vct.col.rewrite;
 
-import java.util.Iterator;
-
 import hre.util.MultiNameSpace;
-import scala.reflect.internal.Trees;
 import vct.col.ast.expr.BindingExpression;
 import vct.col.ast.expr.NameExpression;
-import vct.col.ast.expr.OperatorExpression;
 import vct.col.ast.stmt.composite.BlockStatement;
 import vct.col.ast.stmt.composite.IfStatement;
 import vct.col.ast.stmt.composite.LoopStatement;
 import vct.col.ast.stmt.decl.DeclarationStatement;
 import vct.col.ast.stmt.decl.Method;
 import vct.col.ast.stmt.decl.ProgramUnit;
+
+import java.util.Iterator;
 
 public class SilverReorder extends AbstractRewriter {
 

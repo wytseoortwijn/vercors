@@ -1047,7 +1047,7 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
       e.setType(new PrimitiveType(PrimitiveSort.Boolean));
       break;
     }
-    case ValidPointer:{
+    case ValidPointer:
       if(!t2.isIntegerType()) {
         Fail("The second argument to \\pointer should be an integer at %s", e.arg(1).getOrigin());
       }
@@ -1060,7 +1060,6 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
 
       e.setType(new PrimitiveType(PrimitiveSort.Resource));
       break;
-    }
     case Values:{
       Type t=e.arg(0).getType();
 //      if (!t.isPrimitive(PrimitiveSort.Array)){
@@ -1394,34 +1393,29 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
       break;
     }
     case Get:{
-      Type t=e.arg(0).getType();
-      if (t==null) Fail("type of argument is unknown at %s",e.getOrigin());
-      e.setType(t);
+      if (t1==null) Fail("type of argument is unknown at %s",e.getOrigin());
+      e.setType(t1);
       break;
     }
-    case AddrOf: {
-      Type t = e.arg(0).getType();
-      if(t == null) Fail("type of argument to AddrOf operator (&) is unknown at %s", e.getOrigin());
+    case AddrOf:
+      if(t1 == null) Fail("type of argument to AddrOf operator (&) is unknown at %s", e.getOrigin());
       // TODO: determine whether type checking is necessary here.
       e.setType(new PrimitiveType(PrimitiveSort.Pointer, e.arg(0).getType()));
       break;
-    }
-    case Indirection:{
-      Type t = e.arg(0).getType();
-      if(t == null) Fail("type of argument to Indirection operator (*) is unknown at %s", e.getOrigin());
+    case Indirection:
+      if(t1 == null) Fail("type of argument to Indirection operator (*) is unknown at %s", e.getOrigin());
 
       Type elementType;
 
-      if(!t.isPrimitive(PrimitiveSort.Pointer)) {
+      if(!t1.isPrimitive(PrimitiveSort.Pointer)) {
         SequenceUtils.SequenceInfo seqInfo = SequenceUtils.expectArray(e.arg(0), "The first argument to the indirection operator (*) should be a pointer, but was of type %s");
         elementType = seqInfo.getElementType();
       } else {
-        elementType = (Type) t.firstarg();
+        elementType = (Type) t1.firstarg();
       }
 
       e.setType(elementType);
       break;
-    }
     default:
       Abort("missing case of operator %s",op);
       break;

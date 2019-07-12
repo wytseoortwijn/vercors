@@ -68,7 +68,7 @@ public class ProgramUnit implements ASTSequence<ProgramUnit> {
     library.put(name,cl);
   }
 
-  private HashMap<LanguageFlag, Boolean> languageFlags = new HashMap<>();
+  private EnumMap<LanguageFlag, Boolean> languageFlags = new EnumMap<>(LanguageFlag.class);
 
   /**
    * A program is made up of declarations.
@@ -299,7 +299,7 @@ public class ProgramUnit implements ASTSequence<ProgramUnit> {
   public void addFlags(ProgramUnit other) {
     for(Map.Entry<LanguageFlag, Boolean> entry : other.languageFlags.entrySet()) {
       if(this.languageFlags.containsKey(entry.getKey())) {
-        if(this.languageFlags.get(entry.getKey()) != entry.getValue()) {
+        if(this.languageFlags.get(entry.getKey()).booleanValue() != entry.getValue().booleanValue()) {
           Fail(String.format(
                   "Irreconcilable language flags: the flag %s was already set to %s, but was set to %s in a new entry.",
                   entry.getKey(),

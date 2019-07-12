@@ -1,18 +1,12 @@
 package vct.antlr4.parser;
 
-import java.util.ArrayList;
-import java.util.Stack;
-
 import hre.lang.Failure;
-
-import org.antlr.v4.runtime.BufferedTokenStream;
-import org.antlr.v4.runtime.Parser;
-import org.antlr.v4.runtime.ParserRuleContext;
-import org.antlr.v4.runtime.Token;
-import org.antlr.v4.runtime.Vocabulary;
+import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
-
+import vct.antlr4.generated.CMLLexer;
+import vct.antlr4.generated.CMLParser.*;
+import vct.antlr4.generated.CMLVisitor;
 import vct.col.ast.expr.NameExpression;
 import vct.col.ast.expr.OperatorExpression;
 import vct.col.ast.expr.StandardOperator;
@@ -28,10 +22,10 @@ import vct.col.ast.type.Type;
 import vct.col.ast.type.TypeOperator;
 import vct.col.syntax.CSyntax;
 import vct.col.syntax.Syntax;
-import vct.antlr4.generated.*;
-import vct.antlr4.generated.CMLParser.*;
 import vct.col.util.SequenceUtils;
 import vct.util.Configuration;
+
+import java.util.ArrayList;
 
 import static hre.lang.System.Debug;
 
@@ -583,7 +577,7 @@ public class CMLtoCOL extends ANTLRtoCOL implements CMLVisitor<ASTNode> {
     Method declaration = (Method) convert(ctx, 1);
     declaration.setBody(convert(ctx, 2));
 
-    VariableDeclaration result = create.variable_decl(declSpec);;
+    VariableDeclaration result = create.variable_decl(declSpec);
     result.add(declaration);
     return result;
   }
