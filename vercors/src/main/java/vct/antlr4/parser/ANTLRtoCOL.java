@@ -8,6 +8,7 @@ import java.util.List;
 
 import hre.ast.FileOrigin;
 import hre.ast.Origin;
+import hre.lang.Failure;
 import hre.lang.HREError;
 
 import org.antlr.v4.runtime.BufferedTokenStream;
@@ -942,10 +943,13 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
   public ASTNode getValPrimary(ParserRuleContext ctx){
     int N=ctx.getChildCount();
     if (N>=3 && match(1,true,ctx,"(") && match(N-1,true,ctx,")")){
-      StandardOperator op=syntax.parseFunction(getIdentifier(ctx,0));
+      String functionName = getIdentifier(ctx,0);
+      StandardOperator op=syntax.parseFunction(functionName);
       if (op!=null){
         ASTNode args[]=convert_list(ctx,2,N-1,",");
         return create.expression(op, args);
+      } else {
+        Abort("No such function: %s", functionName);
       }
     }
     if (N>=3 && match(0,true,ctx,"Type","{") && match(N-1,true,ctx,"}")){
