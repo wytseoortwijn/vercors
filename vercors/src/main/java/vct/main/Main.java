@@ -263,6 +263,8 @@ public class Main
       }
       Progress("Parsed %d file(s) in: %dms",cnt,System.currentTimeMillis() - startTime);
 
+      program.dump();
+
       if (boogie.get() || sequential_spec.get()) {
         program.setSpecificationFormat(SpecificationFormat.Sequential);
       }
