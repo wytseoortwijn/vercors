@@ -29,11 +29,13 @@ public class ColIParser implements vct.col.util.Parser {
 
   protected ProgramUnit parse(String file_name,InputStream stream) throws IOException{
     TimeKeeper tk=new TimeKeeper();
+    ErrorCounter ec=new ErrorCounter(file_name);
 
     ANTLRInputStream input = new ANTLRInputStream(stream);
     CMLLexer lexer = new CMLLexer(input);
+    lexer.removeErrorListeners();
+    lexer.addErrorListener(ec);
     CommonTokenStream tokens = new CommonTokenStream(lexer);
-    ErrorCounter ec=new ErrorCounter(file_name);
     CMLParser parser = new CMLParser(tokens);
     parser.removeErrorListeners();
     parser.addErrorListener(ec);
