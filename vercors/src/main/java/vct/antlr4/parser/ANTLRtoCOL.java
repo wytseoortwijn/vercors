@@ -403,7 +403,7 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
     if (arg0 instanceof ParserRuleContext){
       Debug("Scanning using Syntax");
       ParserRuleContext ctx=(ParserRuleContext)arg0;
-      if (ctx.children.size()==1){
+      if (ctx.children != null && ctx.children.size()==1){
         ParseTree tmp=ctx.getChild(0);
         if (tmp instanceof ParserRuleContext) {
           return convert(tmp);
