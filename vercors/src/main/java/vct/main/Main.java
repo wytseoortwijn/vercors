@@ -213,8 +213,8 @@ public class Main
       hre.lang.System.setOutputStream(System.out, level);
       hre.lang.System.setErrorStream(System.err, level);
 
-//      System.setErr(new hre.io.ForbiddenPrintStream(System.err));
-//      System.setOut(new hre.io.ForbiddenPrintStream(System.out));
+      System.setErr(new hre.io.ForbiddenPrintStream(System.err));
+      System.setOut(new hre.io.ForbiddenPrintStream(System.out));
 
       Hashtable<String,CompilerPass> defined_passes=new Hashtable<String,CompilerPass>();
       Hashtable<String,ValidationPass> defined_checks=new Hashtable<String,ValidationPass>();

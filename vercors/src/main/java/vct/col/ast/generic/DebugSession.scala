@@ -70,7 +70,7 @@ case class DebugSession() {
 
   private def getShortcut[T1, T2](obj: AnyRef): String = obj match {
     case null => "null"
-    case node: DebugNode if isOnlyShortcut(node) => "(" + first_line(node) + ")"
+    case node: DebugNode if isOnlyShortcut(node) => "(" + firstLine(node) + ")"
     case s: String => s
     case map: util.HashMap[T1, T2] if map.isEmpty => "{}"
     case arr: Array[T1] if arr.isEmpty => "[]"
@@ -86,12 +86,7 @@ case class DebugSession() {
     obj match {
       case node: DebugNode =>
         dumpNode(indent, node, prefix)
-      case map: util.HashMap[T1, T2] =>
-        Output("%s", indent_str(indent) + prefix + "Map")
-        for (entry <- map.entrySet().asScala) {
-          dump(indent + 1, entry.getValue.asInstanceOf[Object], "- " + entry.getKey.toString + ": ")
-        }
-      case map: util.Hashtable[T1, T2] =>
+      case map: util.Map[T1, T2] =>
         Output("%s", indent_str(indent) + prefix + "Map")
         for (entry <- map.entrySet().asScala) {
           dump(indent + 1, entry.getValue.asInstanceOf[Object], "- " + entry.getKey.toString + ": ")
@@ -125,28 +120,28 @@ case class DebugSession() {
     }
   }
 
-  private def first_line(obj: DebugNode): String = {
-    var first_line = obj.getClass.getSimpleName
+  private def firstLine(obj: DebugNode): String = {
+    var firstLine = obj.getClass.getSimpleName
 
     for(property <- obj.debugTreePropertyFields) {
-      first_line += " " + property + "="
+      firstLine += " " + property + "="
       val value = getField(obj, property)
       if(value == null) {
-        first_line += "null"
+        firstLine += "null"
       } else {
-        first_line += value.toString.replace("\n", "\\n")
+        firstLine += value.toString.replace("\n", "\\n")
       }
     }
 
     for(property <- obj.debugTreeChildrenFields) {
       val value = getField(obj, property)
       if(shouldBeShortcut(value)) {
-        first_line += " " + property + "="
-        first_line += getShortcut(value)
+        firstLine += " " + property + "="
+        firstLine += getShortcut(value)
       }
     }
 
-    first_line
+    firstLine
   }
 
   def dumpNode(indent: Int, obj: DebugNode, prefix: String = ""): Unit = {
@@ -157,7 +152,7 @@ case class DebugSession() {
 
     seen.add(obj)
 
-    Output(indent_str(indent) + prefix + first_line(obj))
+    Output(indent_str(indent) + prefix + firstLine(obj))
 
     for(property <- obj.debugTreeChildrenFields) {
       val value = getField(obj, property)
