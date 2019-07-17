@@ -177,7 +177,7 @@ public class System {
 
         int idx = 2;
         while (stackTraceElements[idx].getClassName().equals("hre.lang.System")
-                || stackTraceElements[idx].getClassName().equals("vct.col.ast.ASTFrame")) {
+                || stackTraceElements[idx].getClassName().equals("vct.col.ast.util.ASTFrame")) {
             idx++;
         }
 
