@@ -161,6 +161,9 @@ public class Main
       BooleanSetting sat_check=new BooleanSetting(true);
       clops.add(sat_check.getDisable("Disable checking if method pre-conditions are satisfiable"), "disable-sat");
 
+      IntegerSetting trigger_generation = new IntegerSetting(0);
+      clops.add(trigger_generation.getOptionalAssign("Try to simplify universal quantifiers and generate triggers for them."), "triggers");
+      
       Configuration.add_options(clops);
 
       String input[]=clops.parse(args);
@@ -487,6 +490,10 @@ public class Main
           //passes.add("standardize");
           //passes.add("check");
 
+          if(trigger_generation.get() > 0) {
+            passes.add("simple_triggers=" + trigger_generation.get());
+            passes.add("check");
+          }
           passes.add("silver-class-reduction"); // remove the class (since all names are now unique), only one class remains
           passes.add("standardize");
           passes.add("check");
@@ -1100,6 +1107,23 @@ public class Main
     defined_passes.put("chalice-preprocess",new CompilerPass("Pre processing for chalice"){
       public ProgramUnit apply(ProgramUnit arg,String ... args){
         return new ChalicePreProcess(arg).rewriteAll();
+      }
+    });
+    defined_passes.put("simple_triggers", new CompilerPass("Add triggers to quantifiers if possible"){
+      public ProgramUnit apply(ProgramUnit arg,String ... args){
+        ProgramUnit res = arg;
+        int val = Integer.valueOf(args[0]);
+        // First gather quantified variables for quantifiers without triggers.
+        res = new OptimizeQuantifiers(res).rewriteAll();
+        // For quantifiers without triggers, and complex subscripts not containing quantified variables, add quantifier variable equal to the complex subscript.
+        if((val & 2) > 0) {
+          res = new RewriteComplexUnitSubscripts(res).rewriteAll();
+        }
+        // Try to add triggers for the now possibly simplified quantifiers.
+        if((val & 1) > 0) {
+          res = new AddSimpleTriggers(res).rewriteAll();
+        }
+        return  res;
       }
     });
   }
