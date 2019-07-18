@@ -23,6 +23,9 @@ import com.google.gson.stream.JsonReader;
 
 import vct.util.Configuration;
 
+import static hre.lang.System.DebugException;
+import static hre.lang.System.Warning;
+
 public class Oracle {
   
   private static final double learn_factor = 0.25;
@@ -63,8 +66,7 @@ public class Oracle {
         }.getType();
         result = gson.fromJson(r, t);
       } catch (FileNotFoundException e) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
+        DebugException(e);
       }
     }
     if (result == null) {
@@ -82,13 +84,14 @@ public class Oracle {
       Path p = Configuration.getHome().resolve(".learn").resolve(name + ".json");
       File f = p.toFile();
       if (!f.exists()) {
-        f.getParentFile().mkdirs();
-        f.createNewFile();
+        if(!f.getParentFile().mkdirs() || !f.createNewFile()) {
+          throw new IOException();
+        }
       }
       Files.write(p, lines, Charset.forName("UTF-8"));
     } catch (IOException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
+      DebugException(e);
+      Warning("Could not save learned times to .learn/%s.json", name);
     }
   }
   
