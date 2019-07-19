@@ -9,41 +9,18 @@ scalaVersion := "2.12.7"
 lazy val linkViper = taskKey[Unit]("Create symbolic links to link the Viper modules")
 
 lazy val hre = project in file("hre")
-lazy val silicon = ProjectRef(uri("hg:https://bitbucket.org/viperproject/silicon/"), "silicon")
-lazy val carbon = ProjectRef(uri("hg:https://bitbucket.org/viperproject/carbon/"), "carbon")
-lazy val silver = ProjectRef(uri("hg:https://bitbucket.org/viperproject/silver/"), "silver")
+
+lazy val silver_ref = ProjectRef(uri("hg:https://bitbucket.org/viperproject/silver"), "silver")
+lazy val carbon_ref = ProjectRef(uri("hg:https://bitbucket.org/viperproject/carbon"), "carbon")
+lazy val silicon_ref = ProjectRef(uri("hg:https://bitbucket.org/viperproject/silicon"), "silicon")
 
 lazy val viper_api = (project in file("."))
-  .dependsOn(silver)
-  .dependsOn(silicon, carbon)
+  .dependsOn(silver_ref, silicon_ref, carbon_ref)
   .dependsOn(hre)
   .settings(
     name := "viper-api",
     organization := "vercors",
     version := "1.0-SNAPSHOT",
-
-    linkViper := {
-      val log = streams.value.log
-      val carbonLink = (baseDirectory in carbon).value.toPath.resolve("silver")
-      val siliconLink = (baseDirectory in silicon).value.toPath.resolve("silver")
-      val silverPath = (baseDirectory in silver).value.toPath
-      log.info(carbonLink.toString)
-      log.info(siliconLink.toString)
-      log.info(silverPath.toString)
-      try {
-        Files.walk(carbonLink).sorted(Comparator.reverseOrder()).forEach((p: Path) => p.toFile.delete())
-        Files.createSymbolicLink(carbonLink, silverPath)
-        Files.walk(siliconLink).sorted(Comparator.reverseOrder()).forEach((p: Path) => p.toFile.delete())
-        Files.createSymbolicLink(siliconLink, silverPath)
-      } catch {
-        case e: Exception => {
-          println("Unable to find or create symbolic links for Viper. Please create the links manually as explained in vercors/viper/README.md")
-          e.printStackTrace()
-        }
-      }
-    },
-
-    linkViper := (linkViper triggeredBy update).value,
 
     assemblyMergeStrategy in assembly := {
       case "logback.xml" => MergeStrategy.first
