@@ -163,6 +163,11 @@ public final class PrimitiveType extends Type {
         // fallthrough
       case Array:
         return t.isPrimitive(this.sort) && firstarg().equals(((PrimitiveType) t).firstarg());
+      case Pointer:
+        if(t.isNull()) {
+          return true;
+        }
+        break;
     }
     if (t instanceof PrimitiveType){
       PrimitiveType pt=(PrimitiveType)t;
@@ -289,6 +294,8 @@ public final class PrimitiveType extends Type {
       return new StructValue(this);
     case Option:
       return new NameExpression(ASTReserved.OptionNone);
+    case Pointer:
+      return new NameExpression(ASTReserved.Null);
     default:
       return super.zero();
     }

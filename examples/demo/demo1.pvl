@@ -1,3 +1,8 @@
+// -*- tab-width:2 ; indent-tabs-mode:nil -*-
+//:: cases demo1
+//:: tools silicon
+//:: verdict Fail
+
 class Counter {
 	int count;
 	
