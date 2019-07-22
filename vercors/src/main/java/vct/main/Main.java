@@ -133,13 +133,13 @@ public class Main
       StringListSetting pass_list=new StringListSetting();
       Option pass_list_option=pass_list.getAppendOption("add to the custom list of compilation passes");
       clops.add(pass_list_option,"passes");
-      StringListSetting show_before=new StringListSetting();
+      StringListSetting show_before = new StringListSetting();
       clops.add(show_before.getAppendOption("Show source code before given passes"),"show-before");
-      StringListSetting show_after=new StringListSetting();
+      StringListSetting show_after = new StringListSetting();
       clops.add(show_after.getAppendOption("Show source code after given passes"),"show-after");
-      StringSetting show_file=new StringSetting(null);
+      StringSetting show_file = new StringSetting(null);
       clops.add(show_file.getAssign("redirect show output to files instead of stdout"),"save-show");
-      StringListSetting stop_after=new StringListSetting();
+      StringListSetting stop_after = new StringListSetting();
       clops.add(stop_after.getAppendOption("Stop after given passes"),"stop-after");
 
 
@@ -244,7 +244,7 @@ public class Main
         case "carbon":
           break;
         default:
-          Fail("unknown silver backend: %s",silver.get());
+          Fail("unknown silver backend: %s", silver.get());
         }
       }
       Progress("parsing inputs...");
@@ -553,27 +553,27 @@ public class Main
       	Abort("no back-end or passes specified");
       }
       {
-        int fatal_errs=0;
+        int fatal_errs = 0;
         @SuppressWarnings("unused")
-        ArrayList<PassReport> reports=new ArrayList<PassReport>();
+        ArrayList<PassReport> reports = new ArrayList<PassReport>();
         int passCount = passes.size();
 
         while(!passes.isEmpty() && fatal_errs==0){
-          String pass=passes.removeFirst();
-          String[] pass_args=pass.split("=");
-          pass=pass_args[0];
-          if (pass_args.length==1){
-            pass_args=new String[0];
+          String pass = passes.removeFirst();
+          String[] pass_args = pass.split("=");
+          pass = pass_args[0];
+          if (pass_args.length == 1){
+            pass_args = new String[0];
           } else {
-            pass_args=pass_args[1].split("\\+");
+            pass_args = pass_args[1].split("\\+");
           }
-          CompilerPass task=defined_passes.get(pass);
+          CompilerPass task = defined_passes.get(pass);
           if (show_before.contains(pass)){
-            String name=show_file.get();
-            if (name!=null){
-              String file=String.format(name, pass);
-              PrintWriter out=new PrintWriter(new FileOutputStream(file));
-              vct.util.Configuration.getDiagSyntax().print(out,program);
+            String name = show_file.get();
+            if (name != null){
+              String file = String.format(name, pass);
+              PrintWriter out = new PrintWriter(new FileOutputStream(file));
+              vct.util.Configuration.getDiagSyntax().print(out, program);
               out.close();
             } else {
               PrintWriter out = hre.lang.System.getLogLevelOutputWriter(hre.lang.System.LogLevel.Info);
@@ -581,22 +581,22 @@ public class Main
               out.close();
             }
           }
-          if (task!=null){
+          if (task != null){
             startTime = System.currentTimeMillis();
-            report=task.apply_pass(report,pass_args);
-            fatal_errs=report.getFatal();
-            program=report.getOutput();
-            Progress("[%02d%%] %s took %d ms",100*(passCount-passes.size())/passCount, pass, System.currentTimeMillis()-startTime);
+            report = task.apply_pass(report, pass_args);
+            fatal_errs = report.getFatal();
+            program = report.getOutput();
+            Progress("[%02d%%] %s took %d ms", 100*(passCount-passes.size())/passCount, pass, System.currentTimeMillis()-startTime);
           } else {
             ValidationPass check=defined_checks.get(pass);
-            if (check!=null){
+            if (check != null){
               Progress("Applying %s ...", pass);
               startTime = System.currentTimeMillis();
-              report=check.apply_pass(report,pass_args);
-              fatal_errs=report.getFatal();
-              Progress(" ... pass took %d ms",System.currentTimeMillis()-startTime);
+              report = check.apply_pass(report,pass_args);
+              fatal_errs = report.getFatal();
+              Progress(" ... pass took %d ms", System.currentTimeMillis()-startTime);
             } else {
-              Fail("unknown pass %s",pass);
+              Fail("unknown pass %s", pass);
             }
           }
           if (show_after.contains(pass)){
@@ -616,7 +616,7 @@ public class Main
             Fail("exit after pass %s",pass);
           }
         }
-        Verdict("The final verdict is %s",fatal_errs==0?"Pass":"Fail");
+        Verdict("The final verdict is %s", fatal_errs == 0? "Pass": "Fail");
         //report.listFatals();
       }
     } catch (HREExitException e) {
@@ -801,7 +801,7 @@ public class Main
             return arg;
           }
         }
-        Syntax syntax=JavaSyntax.getJava(JavaDialect.JavaVerCors);
+        Syntax syntax = JavaSyntax.getJava(JavaDialect.JavaVerCors);
         for(ASTNode node:arg){
           if (node instanceof ASTClass){
             PrintWriter out;
@@ -839,13 +839,13 @@ public class Main
     });
     defined_passes.put("java-encode",new CompilerPass("Encode Java overloading and inheritance"){
       public ProgramUnit apply(ProgramUnit arg,String ... args){
-        arg=new JavaEncoder(arg).rewriteAll();
+        arg = new JavaEncoder(arg).rewriteAll();
         return arg;
       }
     });
     defined_passes.put("erase",new CompilerPass("Erase generic types"){
       public ProgramUnit apply(ProgramUnit arg,String ... args){
-        arg=new GenericPass1(arg).rewriteAll();
+        arg = new GenericPass1(arg).rewriteAll();
         return arg;
       }
     });
@@ -999,7 +999,7 @@ public class Main
         return new SilverReorder(arg).rewriteAll();
       }
     });
-    defined_passes.put("scale-always",new CompilerPass("scale every predicate invokation"){
+    defined_passes.put("scale-always",new CompilerPass("scale every predicate invocation"){
       public ProgramUnit apply(ProgramUnit arg,String ... args){
         return new ScaleAlways(arg).rewriteAll();
       }
