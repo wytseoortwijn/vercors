@@ -80,7 +80,7 @@ public class StringListSetting implements Iterable<String> {
   }
 
   /**
-   * Test if an item is present in the list.
+   * Test is an item is present in the list.
    * @param item Item.
    * @return
    */

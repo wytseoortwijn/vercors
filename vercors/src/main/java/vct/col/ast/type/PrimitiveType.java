@@ -129,7 +129,6 @@ public final class PrimitiveType extends Type {
 
   @SuppressWarnings("incomplete-switch")
   public boolean supertypeof(ProgramUnit context, Type t) {
-//    hre.lang.System.Output("I am at [0].");
     switch(this.sort) {
       case CVarArgs:
         return true;
@@ -154,12 +153,9 @@ public final class PrimitiveType extends Type {
         }
         // fallthrough
       case Sequence:
-//        hre.lang.System.Output("I am at [1]. " + this.toString() + " " + t.toString());
-        return firstarg().equals(((PrimitiveType) t));
-
-//        if (t.isNull()) {
-//          return true;
-//        }
+        if (t.isNull()) {
+          return true;
+        }
         // fallthrough
       case Array:
         return t.isPrimitive(this.sort) && firstarg().equals(((PrimitiveType) t).firstarg());

@@ -57,7 +57,7 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
   protected final Syntax syntax;
   /** Factory for COL AST nodes. */
   protected final ASTFactory<ParseTree> create=new ASTFactory<ParseTree>();
-  /** Reference to the token stream, needed to access comments and other hidden tokens. */
+  /** Reference to the token stream, needed to access comments and otehr hidden tokens. */
   protected final BufferedTokenStream tokens;
 
   /** Name of the file that was parsed. */

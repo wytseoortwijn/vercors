@@ -61,14 +61,9 @@ abstract class Type(val args:List[ASTNode]) extends ASTNode {
     map.post_map(this, result)
   }
   
-  def comparableWith(context:ProgramUnit, t:Type):Boolean = {
-
-//    hre.lang.System.Output(this.hasArguments.toString())
-//
-//    hre.lang.System.Output("This: " + this.args(0).toString + ". And the tother: " + t.toString)
-
+  def comparableWith(context:ProgramUnit, t:Type) = {
     if (isNumeric) t.isNumeric
-    else equals(t) || supertypeof(context, t) || t.supertypeof(context, this) //|| (this.isPrimitive(PrimitiveSort.Sequence) && this.hasArguments && t.comparableWith(context, this.args(0).getType()))
+    else equals(t) || supertypeof(context, t) || t.supertypeof(context, this)
   }
   
   /** Yields a comma-separated string of type arguments */
