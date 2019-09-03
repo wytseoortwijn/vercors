@@ -1,4 +1,5 @@
 import java.nio.file.{Files, Path, Paths}
+import java.net.URL
 import java.util.Comparator
 
 scalaVersion := "2.12.7"
@@ -10,9 +11,9 @@ lazy val linkViper = taskKey[Unit]("Create symbolic links to link the Viper modu
 
 lazy val hre = project in file("hre")
 
-lazy val silver_ref = ProjectRef(uri("hg:https://bitbucket.org/viperproject/silver"), "silver")
-lazy val carbon_ref = ProjectRef(uri("hg:https://bitbucket.org/viperproject/carbon"), "carbon")
-lazy val silicon_ref = ProjectRef(uri("hg:https://bitbucket.org/viperproject/silicon"), "silicon")
+lazy val silver_ref = ProjectRef(uri("hg:https://bitbucket.org/viperproject/silver#1e36f47912275ee796a5af38d0eabb5fc83d1c71"), "silver")
+lazy val carbon_ref = ProjectRef(uri("hg:https://bitbucket.org/viperproject/carbon#4343ff7170839272392b94b4fe1ef4eb7712d598"), "carbon")
+lazy val silicon_ref = ProjectRef(uri("hg:https://bitbucket.org/viperproject/silicon#8d3234adca7278e90f594ac760518cafb26b0404"), "silicon")
 
 lazy val viper_api = (project in file("."))
   .dependsOn(silver_ref, silicon_ref, carbon_ref)
