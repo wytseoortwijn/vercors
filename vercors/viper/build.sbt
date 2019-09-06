@@ -3,6 +3,7 @@ import java.net.URL
 import java.util.Comparator
 import sbt.internal._
 
+// To update viper, replace the hash with the commit hash that you want to point to.
 val silver_url = uri("hg:https://bitbucket.org/viperproject/silver#1e36f47912275ee796a5af38d0eabb5fc83d1c71")
 val carbon_url = uri("hg:https://bitbucket.org/viperproject/carbon#4343ff7170839272392b94b4fe1ef4eb7712d598")
 val silicon_url = uri("hg:https://bitbucket.org/viperproject/silicon#8d3234adca7278e90f594ac760518cafb26b0404")
