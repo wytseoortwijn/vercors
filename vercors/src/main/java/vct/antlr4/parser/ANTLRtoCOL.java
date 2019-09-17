@@ -942,6 +942,19 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
 
   public ASTNode getValPrimary(ParserRuleContext ctx){
     int N=ctx.getChildCount();
+    if (match(ctx,"Reducible","(",null,",",null,")")){
+      String op=ctx.getChild(4).getText();
+      switch(op){
+        case "+":
+          return create.expression(StandardOperator.ReducibleSum,convert(ctx,2));
+        case "min":
+          return create.expression(StandardOperator.ReducibleMin,convert(ctx,2));
+        case "max":
+          return create.expression(StandardOperator.ReducibleMax,convert(ctx,2));
+        default:
+          throw new HREError("unknown reduction operator %s",op);
+      }
+    }
     if (N>=3 && match(1,true,ctx,"(") && match(N-1,true,ctx,")")){
       String functionName = getIdentifier(ctx,0);
       StandardOperator op=syntax.parseFunction(functionName);
@@ -995,19 +1008,6 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
           checkType(convert(ctx,2)),
           convert(ctx,5));
       return create.let_expr(decl, convert(ctx,7));
-    }
-    if (match(ctx,"Reducible","(",null,",",null,")")){
-      String op=ctx.getChild(4).getText();
-      switch(op){
-      case "+":
-        return create.expression(StandardOperator.ReducibleSum,convert(ctx,2));
-      case "min":
-        return create.expression(StandardOperator.ReducibleMin,convert(ctx,2));
-      case "max":
-        return create.expression(StandardOperator.ReducibleMax,convert(ctx,2));
-      default:
-        throw new HREError("unknown reduction operator %s",op);
-      }
     }
     if (match(ctx,"[",null,"]",null)){
       return create.expression(Scale,convert(ctx,1),convert(ctx,3));
