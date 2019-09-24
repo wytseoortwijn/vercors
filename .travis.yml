@@ -31,25 +31,25 @@ cache:
 
 script:
 # Install ant
-- echo "travis_fold:start:install_ant"
+- echo -en "travis_fold:start:install_ant\\r"
 - brew install ant
-- echo "travis_fold:end:install_ant"
+- echo -en "travis_fold:end:install_ant\\r"
 # Compile the tool
-- echo "travis_fold:start:build"
+- echo -en "travis_fold:start:build\\r"
 - sh travis_build.sh
-- echo "travis_fold:end:build"
+- echo -en "travis_fold:end:build\\r"
 # Test one example that shows all error messages
-- echo "travis_fold:start:fibonacci"
+- echo -en "travis_fold:start:fibonacci\\r"
 - vct --silicon $TRAVIS_BUILD_DIR/examples/manual/fibonacci.pvl
-- echo "travis_fold:end:fibonacci"
+- echo -en "travis_fold:end:fibonacci\\r"
 # Test the remaining examples while hiding messages
-- echo "travis_fold:start:test_suite"
+- echo -en "travis_fold:start:test_suite\\r"
 - vct --tool=silicon --exclude-suite=slow,medium,problem-fail,skip-travis --test=$TRAVIS_BUILD_DIR/examples --progress
-- echo "travis_fold:end:test_suite"
+- echo -en "travis_fold:end:test_suite\\r"
 # Run the Sonar scanner
-- echo "travis_fold:start:sonar"
+- echo -en "travis_fold:start:sonar\\r"
 - sonar-scanner
-- echo "travsi_fold:end:sonar"
+- echo -en "travsi_fold:end:sonar\\r"
 
 #deploy:
 #  provider: releases
