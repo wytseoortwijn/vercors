@@ -139,6 +139,10 @@ public class Main
       clops.add(show_after.getAppendOption("Show source code after given passes"),"show-after");
       StringSetting show_file=new StringSetting(null);
       clops.add(show_file.getAssign("redirect show output to files instead of stdout"),"save-show");
+      CollectSetting debugBefore = new CollectSetting();
+      CollectSetting debugAfter = new CollectSetting();
+      clops.add(debugBefore.getAddOption("Dump the COL AST before a pass is run"), "debug-before");
+      clops.add(debugAfter.getAddOption("Dump the COL AST after a pass is run"), "debug-after");
       StringListSetting stop_after=new StringListSetting();
       clops.add(stop_after.getAppendOption("Stop after given passes"),"stop-after");
 
@@ -576,6 +580,9 @@ public class Main
             pass_args=pass_args[1].split("\\+");
           }
           CompilerPass task=defined_passes.get(pass);
+          if(debugBefore.has(pass)) {
+            program.dump();
+          }
           if (show_before.contains(pass)){
             String name=show_file.get();
             if (name!=null){
@@ -606,6 +613,9 @@ public class Main
             } else {
               Fail("unknown pass %s",pass);
             }
+          }
+          if(debugAfter.has(pass)) {
+            program.dump();
           }
           if (show_after.contains(pass)){
             String name=show_file.get();
