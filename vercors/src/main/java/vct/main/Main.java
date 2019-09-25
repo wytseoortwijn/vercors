@@ -38,6 +38,9 @@ import vct.col.syntax.Syntax;
 import vct.col.util.FeatureScanner;
 import vct.col.util.JavaTypeCheck;
 import vct.col.util.SimpleTypeCheck;
+import vct.learn.SpecialCountVisitor;
+import vct.learn.NonLinCountVisitor;
+import vct.learn.Oracle;
 import vct.logging.ErrorMapping;
 import vct.logging.ExceptionMessage;
 import vct.logging.PassReport;
@@ -57,6 +60,8 @@ public class Main
   private static ProgramUnit program=new ProgramUnit();
 
   private static List<ClassName> classes;
+  
+  private static Map<String, SpecialCountVisitor> counters = new HashMap<String, SpecialCountVisitor>();
 
   static class ChaliceTask implements Callable<TestReport> {
     private ClassName class_name;
@@ -139,6 +144,10 @@ public class Main
       clops.add(show_after.getAppendOption("Show source code after given passes"),"show-after");
       StringSetting show_file=new StringSetting(null);
       clops.add(show_file.getAssign("redirect show output to files instead of stdout"),"save-show");
+      CollectSetting debugBefore = new CollectSetting();
+      CollectSetting debugAfter = new CollectSetting();
+      clops.add(debugBefore.getAddOption("Dump the COL AST before a pass is run"), "debug-before");
+      clops.add(debugAfter.getAddOption("Dump the COL AST after a pass is run"), "debug-after");
       StringListSetting stop_after=new StringListSetting();
       clops.add(stop_after.getAppendOption("Stop after given passes"),"stop-after");
 
@@ -160,7 +169,10 @@ public class Main
 
       BooleanSetting sat_check=new BooleanSetting(true);
       clops.add(sat_check.getDisable("Disable checking if method pre-conditions are satisfiable"), "disable-sat");
-
+      
+      BooleanSetting learn = new BooleanSetting(false);
+      clops.add(learn.getEnable("Learn unit times for AST nodes."), "learn");
+      
       Configuration.add_options(clops);
 
       String input[]=clops.parse(args);
@@ -560,6 +572,10 @@ public class Main
       } else {
       	Abort("no back-end or passes specified");
       }
+      if(learn.get()) {
+        passes.addFirst("count=" + silver.get() + "_before_rewrite");
+        passes.add("learn=" + globalStart);
+      }
       {
         int fatal_errs=0;
         @SuppressWarnings("unused")
@@ -576,6 +592,9 @@ public class Main
             pass_args=pass_args[1].split("\\+");
           }
           CompilerPass task=defined_passes.get(pass);
+          if(debugBefore.has(pass)) {
+            program.dump();
+          }
           if (show_before.contains(pass)){
             String name=show_file.get();
             if (name!=null){
@@ -606,6 +625,9 @@ public class Main
             } else {
               Fail("unknown pass %s",pass);
             }
+          }
+          if(debugAfter.has(pass)) {
+            program.dump();
           }
           if (show_after.contains(pass)){
             String name=show_file.get();
@@ -1100,6 +1122,32 @@ public class Main
     defined_passes.put("chalice-preprocess",new CompilerPass("Pre processing for chalice"){
       public ProgramUnit apply(ProgramUnit arg,String ... args){
         return new ChalicePreProcess(arg).rewriteAll();
+      }
+    });
+    defined_passes.put("count",new CompilerPass("Count nodes."){
+      public ProgramUnit apply(ProgramUnit arg,String ... args){
+        NonLinCountVisitor cv = new NonLinCountVisitor(arg);
+        cv.count();
+        if(args.length == 1) {
+          counters.put(args[0], cv);
+        } else {
+          Abort("Learn is used without an oracle");
+        }
+        return arg;
+      }
+    });
+    defined_passes.put("learn",new CompilerPass("Learn unit times from counted AST nodes."){
+      public ProgramUnit apply(ProgramUnit arg,String ... args){
+        if(args.length == 1) {
+          long start_time = Long.valueOf(args[0]);
+          long time = System.currentTimeMillis() - start_time;
+          for(Map.Entry<String, SpecialCountVisitor> entry: counters.entrySet()) {
+            Oracle.tell(entry.getKey(), entry.getValue(), time);
+          }
+        } else {
+          Abort("Learn is used without a starting time.");
+        }
+        return arg;
       }
     });
   }

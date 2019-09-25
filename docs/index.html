@@ -13,6 +13,10 @@ title: VerCors Tool FMT | Utwente
     table-layout: fi
   }
 
+  container{
+      color: aquamarine;
+  }
+
   table#t01 tr {
     padding: 15px;
   }
@@ -85,30 +89,40 @@ title: VerCors Tool FMT | Utwente
 </style>
 
 <body class="homepage">
-  <!-- Banner -->
-  <div id="banner">
-    <div class="container">
-      <section>
-        <header class="major">
-          <h2>Verification of Concurrent and Distributed Software</h2>
-          <span class="byline">
-						&hellip; a static formal verifcation tool that provides you program 
-						correctness under different concurrency models, written in high-level 
-						programming languages, e.g. in Java, OpenCL and OpenMP; and reason 
-						not only about <strong>race freedom</strong> and <strong>memory 
-						safety</strong>, but also about <strong>functional 
-						correctness</strong>! <br />Released for free under the Mozilla Public
-            License Version 2.0 ** </a> 
-          </span>
-        </header>
-        <a href="https://github.com/utwente-fmt/vercors" class="button alt" target="_blank">View on Github</a>
-      </section>
+  
+
+    <div id="header">
+        <div class="container">
+                
+            <!-- Logo -->
+            <h1><a href="{{ "/index.html" | prepend: site.baseurl }}" id="logo">The VerCors Verifier</a></h1>
+            
+            <!-- Nav -->
+        ​	 {% include nav.html %}
+            
+            <!-- Banner -->
+            <div id="banner">
+                <div class="container">
+                <section>
+                    <header class="major">
+                    <h2>Verification of Concurrent and Distributed Software</h2>
+                    <span class="byline">
+                        &hellip; a static formal verifcation tool that provides you program 
+                        correctness under different concurrency models, written in high-level 
+                        programming languages, e.g. in Java, OpenCL and OpenMP; and reason 
+                        not only about <strong>race freedom</strong> and <strong>memory 
+                        safety</strong>, but also about <strong>functional 
+                        correctness</strong>! <br />Released for free under the Mozilla Public
+                        License Version 2.0 ** </a> 
+                    </span>
+                    </header>
+                    <a href="https://github.com/utwente-fmt/vercors" class="button alt" target="_blank">View on Github</a>
+                </section>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
-  </div> <!-- FIXME: why this two last /div here? -->
-  </div>
-
-
+    
 
     <!-- Fake Banner for small screens -->
     <div id="fakeheader">
@@ -129,51 +143,27 @@ title: VerCors Tool FMT | Utwente
         <a href="https://github.com/utwente-fmt/vercors" class="button alt" target="_blank">View on Github</a>
       </section>
     </div>
-
-
-
-
-  <!-- Featured -->
-  <div class="wrapper style2">
-    <section class="container">
-
-			<table id="t01">
-				<tr>
-
-          <td >
-            <p style="text-align:justify">
-              <a href="#" class="image feature"><img src= "{{ "/images/VerCors2.png" | prepend: site.baseurl }}" alt="The VerCors Tool Architecture"></a>
-              <br>
-              <strong style="color:#3ac984"> The VerCors Tool Architecture</strong><br> VerCors transforms the verification problem of programs written in a high-level programming language into a verification problem in the intermediate language of Viper... <a href="{{ "/VerCorsArchitecture.html" | prepend: site.baseurl }}" target="_blank"class="btn btn-default"><button href= "{{ "/VerCorsArchitecture.html" | prepend: site.baseurl }}">ReadMore>></button>
-            </p>
-          </td>
-
-          <td >
-            <p style="text-align:justify">
-              <a href="#" class="image feature"><img src="{{ "/images/PA.png" | prepend: site.baseurl }}" alt="Program verification with Abstraction"></a>
-              <br>
-              <strong style="color:#3ac984"> Formal Program Verification with Abstractions</strong><br> VerCors combines data abstraction with process algebra and allows you to reason about abstract model by defining corresponding actions & processes with contracts... <a href="{{ "/VercorsWithAbstraction.html" | prepend: site.baseurl }}" target= "_blank" class="btn btn-default"><button href= "{{ "/VercorsWithAbstraction.html" | prepend: site.baseurl }}">ReadMore>></button>
-            </p>
-          </td>
-				</tr>
-      </table>
-    </section>
-  </div>
      
-  <div class="wrapper style2" style="background-color: #f1f1f1f1;">
+
+    <!-- NEWS -->
+    <div class="wrapper style2" style="background-color: #f1f1f1f1;">
       <section class="container">
         
       <header class="major" id="overview">
-          <h2>News</h2>
+          <h2>Latest News</h2>
           <span class="byline"></span>
       </header>
 
       <p style="text-align:justify;">
         <div style="height:400px;width:100%;overflow:auto;background-color:#f1f1f1f1;color:back;scrollbar-base-color:gold;font-family:sans-serif;padding:10px;">
           <div class="blog-posts">
-            {% for post in site.posts %}
+            {% for post in site.posts limit:5 %}
               <div class="blog-post spacing" style="padding-left: 10%; padding-right: 10%;">
-                <h3><a href="{{ post.url }}">{{ post.title }}</a></h3>
+                {% if post.external_url %}
+                <h3><a href="{{ post.external_url }}" target='_blank'>{{ post.title }}</a></h3>
+                {% else %}
+                <h3>{{ post.title }}</h3>
+                {% endif %}
                 <p class="summary">
                   {{ post.category }}
                   <span class="date">
@@ -183,9 +173,13 @@ title: VerCors Tool FMT | Utwente
                 {{ post.excerpt }}
               </div>
             {% endfor %}
-          </div></div>
+          </div>
+          <a href="{{ "/News.html" | prepend: site.baseurl }}" class="button alt" target="_blank">More news</a>
+        </div>
         </p>
 
+
+      
   </section>
   </div>
 
@@ -208,7 +202,7 @@ title: VerCors Tool FMT | Utwente
             <span class="fa fa-cloud"></span>
         	</a>
             <h2>Latest Publications</h2>
-            <p>A complete list of publications is listed <a href="{{ "/Publications.html" | prepend: site.baseurl }}" class="url" target="_blank">here</a>.</p>
+            <p>A complete list of publications is listed <a href="{{ "/Publications.html" | prepend: site.baseurl }}" class="url" target="_self">here</a>.</p>
           </ul></td>
         </tr>
         <tr>
