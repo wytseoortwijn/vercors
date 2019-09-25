@@ -1,5 +1,5 @@
 #!/bin/bash
-set -ev
+set -e
 
 printf "\033[0Ktravis_fold:start:$1\r"
 printf "\033[0K$2\n"
