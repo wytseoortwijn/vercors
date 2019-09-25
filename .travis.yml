@@ -10,6 +10,28 @@ jdk:
 
 env:
   - PATH=$TRAVIS_BUILD_DIR/unix/bin:$PATH
+  matrix:
+    - SPLIT=0/20
+    - SPLIT=1/20
+    - SPLIT=2/20
+    - SPLIT=3/20
+    - SPLIT=4/20
+    - SPLIT=5/20
+    - SPLIT=6/20
+    - SPLIT=7/20
+    - SPLIT=8/20
+    - SPLIT=9/20
+    - SPLIT=10/20
+    - SPLIT=11/20
+    - SPLIT=12/20
+    - SPLIT=13/20
+    - SPLIT=14/20
+    - SPLIT=15/20
+    - SPLIT=16/20
+    - SPLIT=17/20
+    - SPLIT=18/20
+    - SPLIT=19/20
+
 
 addons:
   apt:
