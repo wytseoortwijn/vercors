@@ -5,7 +5,7 @@ scala:
 - 2.11.7
 
 jdk:
-- oraclejdk8
+- openjdk11
 
 env:
   - SPLIT=0/20 PATH=$TRAVIS_BUILD_DIR/unix/bin:$PATH
