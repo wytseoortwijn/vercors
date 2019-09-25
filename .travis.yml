@@ -48,15 +48,30 @@ cache:
    - $HOME/Library/Caches/Homebrew
    - /usr/local/Homebrew
 
-script:
-# Compile the tool
-- ./travis_fold.sh build "Building VerCors" "sh travis_build.sh"
-# Test one example that shows all error messages
-- ./travis_fold.sh fibonacci "Checking manual example" "vct --silicon $TRAVIS_BUILD_DIR/examples/manual/fibonacci.pvl"
-# Test the remaining examples while hiding messages
-- ./travis_fold.sh test "Executing tests" "vct --tool=silicon --exclude-suite=slow,medium,problem-fail,skip-travis --test=$TRAVIS_BUILD_DIR/examples --progress"
-# Run the Sonar scanner
-- ./travis_fold.sh sonar "Sonar" "sonar-scanner"
+matrix:
+  include:
+    - script:
+      - ./travis_fold.sh sonar "Sonar" "sonar-scanner"
+    - script:
+      - ./travis_fold.sh build "Building VerCors" "sh travis_build.sh"
+      - ./travis_fold.sh fibonacci "Checking manual example" "vct --silicon $TRAVIS_BUILD_DIR/examples/manual/fibonacci.pvl"
+      - SPLIT=0/5 ./travis_fold.sh test "Executing tests" "vct --tool=silicon --exclude-suite=slow,medium,problem-fail,skip-travis --test=$TRAVIS_BUILD_DIR/examples --progress"
+    - script:
+      - ./travis_fold.sh build "Building VerCors" "sh travis_build.sh"
+      - ./travis_fold.sh fibonacci "Checking manual example" "vct --silicon $TRAVIS_BUILD_DIR/examples/manual/fibonacci.pvl"
+      - SPLIT=1/5 ./travis_fold.sh test "Executing tests" "vct --tool=silicon --exclude-suite=slow,medium,problem-fail,skip-travis --test=$TRAVIS_BUILD_DIR/examples --progress"
+    - script:
+      - ./travis_fold.sh build "Building VerCors" "sh travis_build.sh"
+      - ./travis_fold.sh fibonacci "Checking manual example" "vct --silicon $TRAVIS_BUILD_DIR/examples/manual/fibonacci.pvl"
+      - SPLIT=2/5 ./travis_fold.sh test "Executing tests" "vct --tool=silicon --exclude-suite=slow,medium,problem-fail,skip-travis --test=$TRAVIS_BUILD_DIR/examples --progress"
+    - script:
+      - ./travis_fold.sh build "Building VerCors" "sh travis_build.sh"
+      - ./travis_fold.sh fibonacci "Checking manual example" "vct --silicon $TRAVIS_BUILD_DIR/examples/manual/fibonacci.pvl"
+      - SPLIT=3/5 ./travis_fold.sh test "Executing tests" "vct --tool=silicon --exclude-suite=slow,medium,problem-fail,skip-travis --test=$TRAVIS_BUILD_DIR/examples --progress"
+    - script:
+      - ./travis_fold.sh build "Building VerCors" "sh travis_build.sh"
+      - ./travis_fold.sh fibonacci "Checking manual example" "vct --silicon $TRAVIS_BUILD_DIR/examples/manual/fibonacci.pvl"
+      - SPLIT=4/5 ./travis_fold.sh test "Executing tests" "vct --tool=silicon --exclude-suite=slow,medium,problem-fail,skip-travis --test=$TRAVIS_BUILD_DIR/examples --progress"
 
 #deploy:
 #  provider: releases
