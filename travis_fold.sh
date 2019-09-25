@@ -1,11 +1,11 @@
 #!/bin/bash
 
-echo -en "\\e[0Ktravis_fold:start:$1\\r"
-echo -e "\\e[0K$2"
+printf "\033[0Ktravis_fold:start:$1\r"
+printf "\033[0K$2\n"
 
 eval $3
 code=$?
 
-echo -en "travis_fold:end:$1\\r"
+printf "travis_fold:end:$1\r"
 
 exit $code
