@@ -26,7 +26,7 @@ then
 	ln -s ../silver silver
 fi
 # Return to root directory
-cd ../../..
+cd ../..
 
 # Compile the toolset
-ant compile -DTRAVIS=1
+sbt assembly

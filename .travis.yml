@@ -1,5 +1,4 @@
-os: osx
-osx_image: xcode9.3
+dist: xenial
 
 language: scala
 scala:
@@ -50,8 +49,6 @@ cache:
    - /usr/local/Homebrew
 
 script:
-# Install ant
-- ./travis_fold.sh install_ant "Installing Ant" "brew install ant"
 # Compile the tool
 - ./travis_fold.sh build "Building VerCors" "sh travis_build.sh"
 # Test one example that shows all error messages
