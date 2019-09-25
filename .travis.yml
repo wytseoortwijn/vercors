@@ -32,8 +32,6 @@ cache:
 matrix:
   include:
     - script:
-      - ./travis_fold.sh sonar "Sonar" "sonar-scanner"
-    - script:
       - ./travis_fold.sh build "Building VerCors" "sh travis_build.sh"
       - ./travis_fold.sh fibonacci "Checking manual example" "vct --silicon $TRAVIS_BUILD_DIR/examples/manual/fibonacci.pvl"
       - SPLIT=0/5 ./travis_fold.sh test "Executing tests" "vct --tool=silicon --exclude-suite=slow,medium,problem-fail,skip-travis --test=$TRAVIS_BUILD_DIR/examples --progress"
@@ -53,6 +51,8 @@ matrix:
       - ./travis_fold.sh build "Building VerCors" "sh travis_build.sh"
       - ./travis_fold.sh fibonacci "Checking manual example" "vct --silicon $TRAVIS_BUILD_DIR/examples/manual/fibonacci.pvl"
       - SPLIT=4/5 ./travis_fold.sh test "Executing tests" "vct --tool=silicon --exclude-suite=slow,medium,problem-fail,skip-travis --test=$TRAVIS_BUILD_DIR/examples --progress"
+    - script:
+      - ./travis_fold.sh sonar "Sonar" "sonar-scanner"
 
 #deploy:
 #  provider: releases
