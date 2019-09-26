@@ -5,7 +5,7 @@ scala:
 - 2.11.7
 
 jdk:
-- openjdk11
+- openjdk8
 
 env:
   - PATH=$TRAVIS_BUILD_DIR/unix/bin:$PATH
