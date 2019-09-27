@@ -19,7 +19,8 @@ addons:
 
 cache:
   directories:
-   - ~/.ivy2
+   - ~/.cache/coursier
+   - ~/.ivy2/cache
    - ~/.sbt
 
 matrix:
