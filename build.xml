@@ -7,7 +7,7 @@
     <available file="${basedir}/deps" type="dir"/>
   </condition>
 
-  <condition property="sbtcommand" value="${basedir}/windows/bin/vct-sbt.cmd" else="${basedir}/unix/bin/vct-sbt">
+  <condition property="sbtcommand" value="${basedir}/windows/bin/vct-sbt.cmd" else="sbt">
     <os family="windows" />
   </condition>
 
