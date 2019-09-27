@@ -1131,47 +1131,49 @@ public class Main
         return new ChalicePreProcess(arg).rewriteAll();
       }
     });
-    defined_passes.put("simple_triggers", new CompilerPass("Add triggers to quantifiers if possible"){
-      public ProgramUnit apply(ProgramUnit arg,String ... args){
+    defined_passes.put("simple_triggers", new CompilerPass("Add triggers to quantifiers if possible") {
+      public ProgramUnit apply(ProgramUnit arg, String... args) {
         ProgramUnit res = arg;
         int val = Integer.valueOf(args[0]);
         // First gather quantified variables for quantifiers without triggers.
         res = new OptimizeQuantifiers(res).rewriteAll();
         // For quantifiers without triggers, and complex subscripts not containing quantified variables, add quantifier variable equal to the complex subscript.
-        if((val & 2) > 0) {
+        if ((val & 2) > 0) {
           res = new RewriteComplexUnitSubscripts(res).rewriteAll();
         }
         // Try to add triggers for the now possibly simplified quantifiers.
-        if((val & 1) > 0) {
+        if ((val & 1) > 0) {
           res = new AddSimpleTriggers(res).rewriteAll();
         }
-        return  res;
+        return res;
+      }
+    });
     defined_passes.put("count",new CompilerPass("Count nodes."){
-      public ProgramUnit apply(ProgramUnit arg,String ... args){
-        NonLinCountVisitor cv = new NonLinCountVisitor(arg);
-        cv.count();
-        if(args.length == 1) {
-          counters.put(args[0], cv);
-        } else {
-          Abort("Learn is used without an oracle");
-        }
-        return arg;
-      }
-    });
-    defined_passes.put("learn",new CompilerPass("Learn unit times from counted AST nodes."){
-      public ProgramUnit apply(ProgramUnit arg,String ... args){
-        if(args.length == 1) {
-          long start_time = Long.valueOf(args[0]);
-          long time = System.currentTimeMillis() - start_time;
-          for(Map.Entry<String, SpecialCountVisitor> entry: counters.entrySet()) {
-            Oracle.tell(entry.getKey(), entry.getValue(), time);
+        public ProgramUnit apply(ProgramUnit arg,String ... args){
+          NonLinCountVisitor cv = new NonLinCountVisitor(arg);
+          cv.count();
+          if(args.length == 1) {
+            counters.put(args[0], cv);
+          } else {
+            Abort("Learn is used without an oracle");
           }
-        } else {
-          Abort("Learn is used without a starting time.");
+          return arg;
         }
-        return arg;
-      }
-    });
+      });
+    defined_passes.put("learn",new CompilerPass("Learn unit times from counted AST nodes."){
+        public ProgramUnit apply(ProgramUnit arg,String ... args){
+          if(args.length == 1) {
+            long start_time = Long.valueOf(args[0]);
+            long time = System.currentTimeMillis() - start_time;
+            for(Map.Entry<String, SpecialCountVisitor> entry: counters.entrySet()) {
+              Oracle.tell(entry.getKey(), entry.getValue(), time);
+            }
+          } else {
+            Abort("Learn is used without a starting time.");
+          }
+          return arg;
+        }
+      });
   }
 
 
