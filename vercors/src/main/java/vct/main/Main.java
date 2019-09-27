@@ -169,6 +169,9 @@ public class Main
 
       BooleanSetting sat_check=new BooleanSetting(true);
       clops.add(sat_check.getDisable("Disable checking if method pre-conditions are satisfiable"), "disable-sat");
+
+      IntegerSetting trigger_generation = new IntegerSetting(0);
+      clops.add(trigger_generation.getOptionalAssign("Try to simplify universal quantifiers and generate triggers for them."), "triggers");
       
       BooleanSetting learn = new BooleanSetting(false);
       clops.add(learn.getEnable("Learn unit times for AST nodes."), "learn");
@@ -499,6 +502,10 @@ public class Main
           //passes.add("standardize");
           //passes.add("check");
 
+          if(trigger_generation.get() > 0) {
+            passes.add("simple_triggers=" + trigger_generation.get());
+            passes.add("check");
+          }
           passes.add("silver-class-reduction"); // remove the class (since all names are now unique), only one class remains
           passes.add("standardize");
           passes.add("check");
@@ -1124,32 +1131,49 @@ public class Main
         return new ChalicePreProcess(arg).rewriteAll();
       }
     });
+    defined_passes.put("simple_triggers", new CompilerPass("Add triggers to quantifiers if possible") {
+      public ProgramUnit apply(ProgramUnit arg, String... args) {
+        ProgramUnit res = arg;
+        int val = Integer.valueOf(args[0]);
+        // First gather quantified variables for quantifiers without triggers.
+        res = new OptimizeQuantifiers(res).rewriteAll();
+        // For quantifiers without triggers, and complex subscripts not containing quantified variables, add quantifier variable equal to the complex subscript.
+        if ((val & 2) > 0) {
+          res = new RewriteComplexUnitSubscripts(res).rewriteAll();
+        }
+        // Try to add triggers for the now possibly simplified quantifiers.
+        if ((val & 1) > 0) {
+          res = new AddSimpleTriggers(res).rewriteAll();
+        }
+        return res;
+      }
+    });
     defined_passes.put("count",new CompilerPass("Count nodes."){
-      public ProgramUnit apply(ProgramUnit arg,String ... args){
-        NonLinCountVisitor cv = new NonLinCountVisitor(arg);
-        cv.count();
-        if(args.length == 1) {
-          counters.put(args[0], cv);
-        } else {
-          Abort("Learn is used without an oracle");
-        }
-        return arg;
-      }
-    });
-    defined_passes.put("learn",new CompilerPass("Learn unit times from counted AST nodes."){
-      public ProgramUnit apply(ProgramUnit arg,String ... args){
-        if(args.length == 1) {
-          long start_time = Long.valueOf(args[0]);
-          long time = System.currentTimeMillis() - start_time;
-          for(Map.Entry<String, SpecialCountVisitor> entry: counters.entrySet()) {
-            Oracle.tell(entry.getKey(), entry.getValue(), time);
+        public ProgramUnit apply(ProgramUnit arg,String ... args){
+          NonLinCountVisitor cv = new NonLinCountVisitor(arg);
+          cv.count();
+          if(args.length == 1) {
+            counters.put(args[0], cv);
+          } else {
+            Abort("Learn is used without an oracle");
           }
-        } else {
-          Abort("Learn is used without a starting time.");
+          return arg;
         }
-        return arg;
-      }
-    });
+      });
+    defined_passes.put("learn",new CompilerPass("Learn unit times from counted AST nodes."){
+        public ProgramUnit apply(ProgramUnit arg,String ... args){
+          if(args.length == 1) {
+            long start_time = Long.valueOf(args[0]);
+            long time = System.currentTimeMillis() - start_time;
+            for(Map.Entry<String, SpecialCountVisitor> entry: counters.entrySet()) {
+              Oracle.tell(entry.getKey(), entry.getValue(), time);
+            }
+          } else {
+            Abort("Learn is used without a starting time.");
+          }
+          return arg;
+        }
+      });
   }
 
 
