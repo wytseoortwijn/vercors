@@ -20,6 +20,7 @@ addons:
 cache:
   directories:
    - ~/.ivy2
+   - ~/.sbt
 
 matrix:
   include:
