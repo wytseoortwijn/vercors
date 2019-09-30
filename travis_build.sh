@@ -1,3 +1,4 @@
-#!/bin/sh
-# Compile the toolset
-ant compile -DTRAVIS=1
+#!/bin/bash
+
+cd vercors
+sbt assembly
