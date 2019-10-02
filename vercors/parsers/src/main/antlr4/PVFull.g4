@@ -146,7 +146,8 @@ lexpr : ('this' | '\\result' | identifier ) lexpr_access* ;
 
 lexpr_access
  : '.' gen_id
- | '[' expr ']'
+ | '[' '..' expr ']'
+ | '[' expr ('..' expr?)? ']'
  ;
 
 non_array_type

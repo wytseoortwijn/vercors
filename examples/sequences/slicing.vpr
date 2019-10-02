@@ -1,0 +1,78 @@
+method method_Test_test1(diz: Ref, current_thread_id: Int, globals: Ref)
+  requires diz != null
+  requires 0 <= current_thread_id
+{
+  var xs__1: Seq[Int]
+  var __flatten_1__2: Seq[Int]
+  var __flatten_5__3: Seq[Int]
+  // refuteassert !false
+  __flatten_5__3 := Seq(1, 2, 3, 4, 5)
+  __flatten_1__2 := __flatten_5__3
+  xs__1 := __flatten_1__2
+  // assertassert xs__1[1] == 2
+  // assertassert xs__1[4] == 5
+}
+
+method method_Test_test2(diz: Ref, current_thread_id: Int, globals: Ref)
+  requires diz != null
+  requires 0 <= current_thread_id
+{
+  var xs__4: Seq[Int]
+  var __flatten_2__5: Seq[Int]
+  var __flatten_6__6: Seq[Int]
+  // refuteassert !false
+  __flatten_6__6 := Seq(1, 2, 3, 4, 5)
+  __flatten_2__5 := __flatten_6__6
+  xs__4 := __flatten_2__5
+  // assertassert xs__4[1..] == Seq(2, 3, 4, 5)
+  // assertassert xs__4[1..][2..] == xs__4[3..]
+}
+
+method method_Test_test3(diz: Ref, current_thread_id: Int, globals: Ref)
+  requires diz != null
+  requires 0 <= current_thread_id
+{
+  var xs__7: Seq[Int]
+  var __flatten_3__8: Seq[Int]
+  var __flatten_7__9: Seq[Int]
+  // refuteassert !false
+  __flatten_7__9 := Seq(1, 2, 3, 4, 5)
+  __flatten_3__8 := __flatten_7__9
+  xs__7 := __flatten_3__8
+  // assertassert xs__7[..2] == Seq(1, 2)
+  // assertassert xs__7[..3][..2] == Seq(1, 2)
+}
+
+method method_Test_test4__Integer(diz: Ref, current_thread_id: Int, globals: Ref, i: Int)
+  requires diz != null
+  requires 0 <= current_thread_id
+{
+  var xs__10: Seq[Int]
+  var __flatten_4__11: Seq[Int]
+  var __flatten_8__12: Seq[Int]
+  // refuteassert !false
+  __flatten_8__12 := Seq(1, 2, 3, 4, 5)
+  __flatten_4__11 := __flatten_8__12
+  xs__10 := __flatten_4__11
+  // assertassert xs__10[1..][..3 - 1] == Seq(2, 3)
+  // assertassert xs__10[1..][..3 - 1] == xs__10[1..][..3 - 1]
+  // assertassert xs__10[2..][..2 - 2] == Seq[Int]()
+}
+
+method constructor_Test_Test(current_thread_id: Int, globals: Ref) returns (sys__result: Ref)
+  requires 0 <= current_thread_id
+  ensures sys__result != null
+{
+  var diz__13: Ref
+  diz__13 := new()
+  // refuteassert !false
+  sys__result := diz__13
+  // assertassert sys__result != null
+  inhale false
+}
+
+method array_new_Sequence_Integer_(size0: Int) returns (sys__result: Seq[Int])
+  ensures (forall i0: Int :: 0 <= i0 && i0 < size0 ==> sys__result == Seq[Int]())
+{
+  inhale false
+}
