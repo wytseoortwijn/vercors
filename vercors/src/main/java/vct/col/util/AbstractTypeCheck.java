@@ -1293,14 +1293,20 @@ public class AbstractTypeCheck extends RecursiveVisitor<Type> {
     case Drop:
     case Take:
     {
+      if (!t1.isPrimitive(PrimitiveSort.Sequence)) {
+        Fail("base must be of sequence type");
+      }
       if (!t2.isInteger()) {
-        Fail("count has type %s rather than integer",t2);
+        Fail("count has type %s rather than integer", t2);
       }
       e.setType(t1);
       break;
     }
     case Slice:
     {
+      if (!t1.isPrimitive(PrimitiveSort.Sequence)) {
+        Fail("base must be of sequence type");
+      }
       if (!t2.isInteger()) {
         Fail("left count has type %s rather than integer", t2);
       }

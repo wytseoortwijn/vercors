@@ -25,3 +25,4 @@ class Test {
 		assert xs[2..2] == seq<int> { };
 	}
 }
+
