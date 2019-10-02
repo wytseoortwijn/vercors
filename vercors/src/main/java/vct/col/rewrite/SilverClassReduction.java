@@ -3,17 +3,19 @@ package vct.col.rewrite;
 import hre.ast.MessageOrigin;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Stack;
+import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import vct.antlr4.parser.Parsers;
-import vct.col.ast.*;
-import vct.col.ast.Method.Kind;
+import vct.col.ast.expr.*;
+import vct.col.ast.stmt.decl.Method.Kind;
+import vct.col.util.ASTMapping;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.stmt.decl.*;
+import vct.col.ast.type.*;
+import vct.col.ast.util.ContractBuilder;
+import vct.col.ast.util.UndefinedMapping;
 import vct.col.util.ASTUtils;
 import vct.util.Configuration;
 
@@ -191,10 +193,13 @@ public class SilverClassReduction extends AbstractRewriter {
   
   private boolean options=false;
   
+  private boolean arrays = false;
+  
   private boolean floats=false;
   
   private AtomicInteger option_count=new AtomicInteger();
-  private HashMap<Type,String> option_get=new HashMap<Type,String>();
+  private HashMap<String, String> option_get = new HashMap<String, String>();
+  private HashMap<String, Type> option_get_type = new HashMap<String, Type>();
   
   @Override
   public void visit(PrimitiveType t){
@@ -214,6 +219,15 @@ public class SilverClassReduction extends AbstractRewriter {
       List<ASTNode> args = rewrite(((PrimitiveType)t).argsJava());
       args.get(0).addLabel(create.label("T"));
       result=create.class_type("VCTOption",args);
+      break;
+    }
+    case Array:{
+      arrays = true;
+      ASTNode ct = rewrite(t.firstarg());
+      if(!ct.hasLabel("CT")) {
+        ct.addLabel(create.label("CT"));
+      }
+      result = create.class_type("VCTArray", ct);
       break;
     }
     default:
@@ -284,7 +298,7 @@ public class SilverClassReduction extends AbstractRewriter {
     if (t.isPrimitive(PrimitiveSort.Cell)){
       PrimitiveType tt=(PrimitiveType)t;
       Type type=(Type)rewrite(tt.firstarg());
-      String name=type.toString();
+      String name=silverTypeString(type);
       ref_items.add(type);
       result=create.dereference(rewrite(e.obj()), name+SEP+e.field());
     } else {
@@ -403,12 +417,15 @@ public class SilverClassReduction extends AbstractRewriter {
       Type t0=e.arg(1).getType();
       ASTNode object=rewrite(e.arg(1));
       Type t=(Type)e.arg(0);
-      if (t.isPrimitive(PrimitiveSort.Float)){
-        if (t0.isPrimitive(PrimitiveSort.Integer)){
-          result=create.domain_call("VCTFloat","ffromint",object);
+      if (t.isPrimitive(PrimitiveSort.Float)) {
+        if (t0.isPrimitive(PrimitiveSort.Integer)) {
+          result = create.domain_call("VCTFloat", "ffromint", object);
         } else {
-          Fail("cannot convert %s to float yet.",t0);
+          Fail("cannot convert %s to float yet.", t0);
         }
+      } else if(t.isPrimitive(PrimitiveSort.Option)) {
+        // Type marker, ignore.
+        result = rewrite(e.arg(1));
       } else {
         ASTNode condition=create.invokation(null, null,"instanceof",
             create.domain_call("TYPE","type_of",object),
@@ -420,16 +437,42 @@ public class SilverClassReduction extends AbstractRewriter {
       }
       break;
     }
+    case Subscript:{
+      if(e.first().getType().isPrimitive(PrimitiveSort.Array)) {
+        arrays = true;
+        ASTNode type = rewrite(e.first().getType());
+        List<ASTNode> args = rewrite(e.argsJava());
+        result = create.invokation(type, null, "loc", args);
+      } else {
+        super.visit(e);
+      }
+      break;
+    }
+    case Length:{
+      if(e.first().getType().isPrimitive(PrimitiveSort.Array)) {
+        arrays = true;
+        ASTNode type = rewrite(e.first().getType());
+        List<ASTNode> args = rewrite(e.argsJava());
+        result = create.invokation(type, null, "alen", args);
+      } else {
+        super.visit(e);
+      }
+      break;
+    }
     default:
       super.visit(e);
     }
   }
   
-  private String optionGet(Type t) {
+  private String optionGet(Type type) {
+    // Somehow different Scala types are not distinguished in HashMaps.
+    // Therefore they're distinguished by name.
+    String t = type.toString();
     String method=option_get.get(t);
     if (method==null){
       method="getVCTOption"+option_count.incrementAndGet();
       option_get.put(t, method);
+      option_get_type.put(t,  type);
     }
     return method;
   }
@@ -523,11 +566,12 @@ public class SilverClassReduction extends AbstractRewriter {
   public ProgramUnit rewriteAll(){
     ProgramUnit res=super.rewriteAll();
     for(Type t:ref_items){
-      String s=t.toString();
+      String s=silverTypeString(t);
       ref_class.add_dynamic(create.field_decl(s+SEP+"item",t));
     }
-    if (options || floats){
-      File file=new File(new File(Configuration.getHome().toFile(),"config"),"prelude.sil");
+    if (options || floats || arrays){
+      String preludeFile = source().hasLanguageFlag(ProgramUnit.LanguageFlag.SeparateArrayLocations) ? "prelude.sil" : "prelude_C.sil";
+      File file=new File(new File(Configuration.getHome().toFile(),"config"),preludeFile);
       ProgramUnit prelude=Parsers.getParser("sil").parse(file);
       for(ASTNode n:prelude){
         if (n instanceof AxiomaticDataType){
@@ -543,13 +587,24 @@ public class SilverClassReduction extends AbstractRewriter {
           case "VCTFloat":
             if (floats) res.add(n);
             break;
+          case "VCTArray":
+            if (arrays) res.add(n);
+            break;
           }
         }
       }
-      for(Entry<Type,String> entry:option_get.entrySet()){
+      for(Entry<String,String> entry:option_get.entrySet()){
         create.enter();
-        create.setOrigin(new MessageOrigin("Generated OptionGet code"));
-        Type t=rewrite(entry.getKey());
+        Type t=rewrite(option_get_type.get(entry.getKey()));
+        String extraMessage;
+
+        if(t.firstarg() instanceof ClassType && ((ClassType) t.firstarg()).getFullName().equals("VCTArray")) {
+          extraMessage = "Array access to value which may be null";
+        } else {
+          extraMessage = "Value may be None";
+        }
+
+        create.setOrigin(new MessageOrigin("Generated OptionGet code: " + extraMessage));
         Type returns=(Type)((ClassType)t).firstarg();
         String name=entry.getValue();
         ContractBuilder cb=new ContractBuilder();
@@ -567,7 +622,7 @@ public class SilverClassReduction extends AbstractRewriter {
     }
     HashSet<String> names=new HashSet<String>();
     for(ASTNode n:res){
-      if (n instanceof ASTDeclaration){
+      if (n instanceof ASTDeclaration && !(n instanceof ASTSpecial)){
         ASTDeclaration d=(ASTDeclaration)n;
         if (names.contains(d.name())){
           Warning("name %s declared more than once",d.name());
@@ -577,7 +632,6 @@ public class SilverClassReduction extends AbstractRewriter {
     }
     return res;
   }
-  
   
   @Override
   public void visit(MethodInvokation s){
@@ -628,6 +682,16 @@ public class SilverClassReduction extends AbstractRewriter {
     res.set_before(rewrite(s.get_before()));
     res.set_after(rewrite(s.get_after()));
     result=res;
+  }
+  
+  private String silverTypeString(Type type) {
+    String res = "";
+    List<ASTNode> args = type.argsJava();
+    for(ASTNode n: args) {
+      res += "_"+n.toString();
+    }
+    res = type.toString().replaceAll("[<>, ]", "_");
+    return res;
   }
 
 }

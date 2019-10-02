@@ -1,11 +1,19 @@
 package vct.col.rewrite;
 
 import hre.util.SingleNameSpace;
-import vct.col.ast.*;
+import vct.col.ast.expr.MethodInvokation;
+import vct.col.ast.expr.StandardOperator;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.stmt.decl.*;
+import vct.col.ast.type.ASTReserved;
+import vct.col.ast.type.ClassType;
+import vct.col.ast.type.PrimitiveSort;
+import vct.col.ast.type.Type;
+import vct.col.ast.util.ContractBuilder;
 
 public class GenericPass1 extends AbstractRewriter {
 
-  private SingleNameSpace<String,Type> map = new SingleNameSpace<String,Type>();
+  private SingleNameSpace<String, Type> map = new SingleNameSpace<String,Type>();
   private MultiSubstitution sigma = new MultiSubstitution(null,map);
 
   public GenericPass1(ProgramUnit source) {

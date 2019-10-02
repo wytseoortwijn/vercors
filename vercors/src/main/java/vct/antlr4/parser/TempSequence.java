@@ -3,8 +3,8 @@ package vct.antlr4.parser;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import vct.col.ast.ASTNode;
-import vct.col.ast.ASTSequence;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.generic.ASTSequence;
 
 public class TempSequence implements ASTSequence<TempSequence> {
 

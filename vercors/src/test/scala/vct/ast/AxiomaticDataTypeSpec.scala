@@ -2,6 +2,10 @@ package vct.ast
 
 import org.scalatest._
 import vct.col.ast._
+import vct.col.ast.`type`.{PrimitiveSort, PrimitiveType}
+import vct.col.ast.expr.constant.IntegerValue
+import vct.col.ast.expr.constant.{ConstantExpression, IntegerValue}
+import vct.col.ast.stmt.decl.{AxiomaticDataType, DeclarationStatement}
 
 class AxiomaticDataTypeSpec extends FlatSpec with Matchers {
   

@@ -21,9 +21,6 @@ class VCTResult {
     verdict=Verdict.Fail;
     //fail("expected output "+string+" not found");
   };
-  public void checkVerdict(Verdict res){
-    if (verdict != res) System.err.println("bad result : "+verdict);
-  }
   public final HashSet<String> pass_methods=new HashSet<String>();
   public final HashSet<String> fail_methods=new HashSet<String>();
 }

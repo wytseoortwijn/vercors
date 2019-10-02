@@ -1,10 +1,10 @@
 package vct.col.rewrite;
 
-import vct.col.ast.ASTNode;
-import vct.col.ast.ClassType;
-import vct.col.ast.MethodInvokation;
-import vct.col.ast.NameExpression;
-import vct.col.ast.ProgramUnit;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.type.ClassType;
+import vct.col.ast.expr.MethodInvokation;
+import vct.col.ast.expr.NameExpression;
+import vct.col.ast.stmt.decl.ProgramUnit;
 import vct.util.ClassName;
 
 public class SimplifyCalls extends AbstractRewriter {

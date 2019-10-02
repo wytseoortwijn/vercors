@@ -1,12 +1,19 @@
 package vct.col.rewrite;
 
+import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Hashtable;
 
-import vct.col.ast.*;
-import vct.col.ast.Method.Kind;
+import vct.col.ast.expr.*;
+import vct.col.ast.stmt.decl.*;
+import vct.col.ast.stmt.decl.Method.Kind;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.stmt.composite.BlockStatement;
+import vct.col.ast.type.ASTReserved;
+import vct.col.ast.type.PrimitiveSort;
+import vct.col.ast.type.PrimitiveType;
+import vct.col.ast.util.ContractBuilder;
 import vct.col.util.ASTUtils;
 import vct.util.Configuration;
 
@@ -23,7 +30,7 @@ public class CheckProcessAlgebra extends AbstractRewriter {
   }
 
   private Hashtable<String,String> composite_map;
-  private Hashtable<String,Method> process_map;
+  private Hashtable<String, Method> process_map;
 
   private static ArrayList<ArrayList<String>> permutations(ArrayList<String> list) {
     if (list.size() == 0) {
@@ -192,13 +199,17 @@ public class CheckProcessAlgebra extends AbstractRewriter {
 
 
   private ASTNode normalize_body(ASTNode m_body) {
-    System.err.print("normalize input: ");
-    Configuration.getDiagSyntax().print(System.err,m_body);
-    System.err.println();
+    PrintWriter out = hre.lang.System.getLogLevelErrorWriter(hre.lang.System.LogLevel.Debug);
+
+    out.print("normalize input: ");
+    Configuration.getDiagSyntax().print(out,m_body);
+    out.println();
     m_body=expand_unguarded(m_body);
-    System.err.print("guarded rewrite: ");
-    Configuration.getDiagSyntax().print(System.err,m_body);
-    System.err.println();
+    out.print("guarded rewrite: ");
+    Configuration.getDiagSyntax().print(out,m_body);
+    out.println();
+
+    out.close();
     return m_body;
   }
 

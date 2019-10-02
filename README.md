@@ -5,6 +5,8 @@ This repository hosts VerCors, a toolset for the verification of concurrent and 
 
 A list of verified examples and case studies is maintained online and can be found [here](http://ctit-vm2.ewi.utwente.nl). This webpage also contains an online interface for VerCors and allows to try VerCors online.
 
+The latest release of VerCors (as a collection of JARs) can be downloaded [here](https://surfdrive.surf.nl/files/index.php/s/ImxHX0lJyBRgd60).
+
 Installation Instructions
 -------------
 
@@ -31,8 +33,9 @@ If you have these requirements, proceed to ['Building'](#building). On MacOS X, 
 For a basic build of VerCors the following steps should be taken:
 
 1. Clone the VerCors repository using `git clone https://github.com/utwente-fmt/vercors.git` and move into the cloned directory, `cd vercors`.
-2. Build VerCors with Ant by running `ant clean`, followed by `ant`.
-3. Test whether the build was successful by running `./unix/bin/vct --test=examples/manual --tool=silicon --lang=pvl,java`.
+2. Create symbolic links to link the Viper modules, as described on the [vercors/viper page](https://github.com/utwente-fmt/vercors/tree/master/vercors/viper). Users with a Unix system can also use the travis_build.sh script to create the symbolic links and install VerCors by running 'sh travis_build.sh' from the project's root directory.
+3. Build VerCors with Ant by running `ant clean`, followed by `ant`.
+4. Test whether the build was successful by running `./unix/bin/vct --test=examples/manual --tool=silicon --lang=pvl,java`.
 
 The last command tests the VerCors installation by verifying a large collection of examples (from the `./examples` directory). This command should eventually report that `all ? tests passed`.
 
@@ -45,7 +48,7 @@ The VerCors toolset can be used from the main directory by running `./unix/bin/v
 
 ## Contact
 
-- For questions and support, email to <w.h.m.oortwijn@utwente.nl>.
+- For questions and support, email to <vercors@lists.utwente.nl>.
 - For bug reports and feature requests, visit <https://github.com/utwente-fmt/vercors/issues>.
 
 ## Related papers

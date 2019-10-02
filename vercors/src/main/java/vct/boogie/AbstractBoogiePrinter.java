@@ -4,7 +4,19 @@ package vct.boogie;
 import java.util.HashMap;
 
 import hre.ast.TrackingOutput;
-import vct.col.ast.*;
+import vct.col.ast.expr.*;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.stmt.composite.BlockStatement;
+import vct.col.ast.stmt.composite.IfStatement;
+import vct.col.ast.stmt.composite.LoopStatement;
+import vct.col.ast.stmt.decl.ASTFlags;
+import vct.col.ast.stmt.decl.ASTSpecial;
+import vct.col.ast.stmt.decl.Contract;
+import vct.col.ast.stmt.decl.DeclarationStatement;
+import vct.col.ast.stmt.terminal.AssignmentStatement;
+import vct.col.ast.stmt.terminal.ReturnStatement;
+import vct.col.ast.type.ClassType;
+import vct.col.ast.type.PrimitiveType;
 import vct.col.print.AbstractPrinter;
 import vct.col.syntax.Syntax;
 import vct.col.util.ASTUtils;
@@ -185,7 +197,7 @@ public abstract class AbstractBoogiePrinter extends AbstractPrinter {
     if (contract.pre_condition.getOrigin()==null) {
       throw new Error("pre condition has no origin");
     }
-    for (ASTNode clause:ASTUtils.conjuncts(contract.pre_condition,StandardOperator.And)){
+    for (ASTNode clause:ASTUtils.conjuncts(contract.pre_condition, StandardOperator.And)){
       out.printf("requires ");
       nextExpr();
       current_precedence=0;

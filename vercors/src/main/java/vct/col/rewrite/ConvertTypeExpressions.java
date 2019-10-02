@@ -1,8 +1,10 @@
 package vct.col.rewrite;
 
 import hre.ast.MessageOrigin;
-import vct.col.ast.*;
-import vct.col.ast.ASTClass.ClassKind;
+import vct.col.ast.stmt.decl.*;
+import vct.col.ast.stmt.decl.ASTClass.ClassKind;
+import vct.col.ast.type.Type;
+import vct.col.ast.type.TypeExpression;
 
 public class ConvertTypeExpressions extends AbstractRewriter {
 
@@ -22,7 +24,7 @@ public class ConvertTypeExpressions extends AbstractRewriter {
   @Override
   public void visit(DeclarationStatement d){
     boolean extern=false;
-    Type t=d.getType(); 
+    Type t=d.getType();
     while(t instanceof TypeExpression){
       TypeExpression e=(TypeExpression)t;
       switch (e.operator()) {
@@ -68,12 +70,14 @@ public class ConvertTypeExpressions extends AbstractRewriter {
         Fail("cannot deal with type operator %s", e.operator());
       }
     }
-    System.err.printf("remaining type of %s is %s%n",m.getReturnType(),t);
-    Method out=create.method_decl(
+    Debug("remaining type of %s is %s",m.getReturnType(),t);
+    Method out=create.method_kind(
+        res.getKind(),
         t,
         copy_rw.rewrite(res.getContract()),
         res.name(),
         copy_rw.rewrite(res.getArgs()),
+        res.usesVarArgs(),
         copy_rw.rewrite(res.getBody()));
     out.copyMissingFlags(res);
     if(kernel){

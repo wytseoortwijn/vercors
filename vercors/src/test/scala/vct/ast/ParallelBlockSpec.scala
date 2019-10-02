@@ -2,6 +2,10 @@ package vct.ast
 
 import org.scalatest._
 import vct.col.ast._
+import vct.col.ast.generic.ASTNode
+import vct.col.ast.stmt.composite.{BlockStatement, ParallelBlock}
+import vct.col.ast.stmt.decl.DeclarationStatement
+import vct.col.ast.util.ContractBuilder
 
 class ParallelBlockSpec extends FlatSpec with Matchers {
   

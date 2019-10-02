@@ -8,6 +8,7 @@ import java.util.List;
 
 import hre.ast.FileOrigin;
 import hre.ast.Origin;
+import hre.lang.Failure;
 import hre.lang.HREError;
 
 import org.antlr.v4.runtime.BufferedTokenStream;
@@ -20,27 +21,26 @@ import org.antlr.v4.runtime.tree.ParseTreeVisitor;
 import org.antlr.v4.runtime.tree.RuleNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
-import vct.col.ast.ASTNode;
-import vct.col.ast.ASTReserved;
-import vct.col.ast.ASTSequence;
-import vct.col.ast.ASTSpecial.Kind;
-import vct.col.ast.ASTSpecial;
-import vct.col.ast.BlockStatement;
-import vct.col.ast.ClassType;
-import vct.col.ast.Contract;
-import vct.col.ast.ContractBuilder;
-import vct.col.ast.DeclarationStatement;
-import vct.col.ast.NameExpression;
-import vct.col.ast.PrimitiveType;
-import vct.col.ast.PrimitiveSort;
-import vct.col.ast.StandardOperator;
-import vct.col.ast.Type;
-import vct.col.ast.VariableDeclaration;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.type.ASTReserved;
+import vct.col.ast.generic.ASTSequence;
+import vct.col.ast.stmt.decl.ASTSpecial.Kind;
+import vct.col.ast.stmt.decl.ASTSpecial;
+import vct.col.ast.stmt.composite.BlockStatement;
+import vct.col.ast.type.ClassType;
+import vct.col.ast.stmt.decl.Contract;
+import vct.col.ast.util.ContractBuilder;
+import vct.col.ast.stmt.decl.DeclarationStatement;
+import vct.col.ast.expr.NameExpression;
+import vct.col.ast.type.PrimitiveSort;
+import vct.col.ast.expr.StandardOperator;
+import vct.col.ast.type.Type;
+import vct.col.ast.stmt.decl.VariableDeclaration;
 import vct.col.syntax.Syntax;
 import vct.col.util.ASTFactory;
 import static hre.lang.System.*;
-import static vct.col.ast.ASTSpecial.Kind.*;
-import static vct.col.ast.StandardOperator.*;
+import static vct.col.ast.stmt.decl.ASTSpecial.Kind.*;
+import static vct.col.ast.expr.StandardOperator.*;
 
 /**
  * Convert common parts of all ANTLR parse trees to COL.
@@ -122,8 +122,8 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
     this.tokens=tokens;
     this.parser=parser;
     this.id_token=identifier;
-    ch_comment=getStaticInt(lexer_class,"COMMENT");
-    ch_line_direction=getStaticInt(lexer_class,"LINEDIRECTION");
+    ch_comment=getStaticInt(lexer_class,"CH_COMMENT");
+    ch_line_direction=getStaticInt(lexer_class,"CH_LINEDIRECTION");
     Class<?> parser_classes[]=parser.getClass().getDeclaredClasses();
     for(Class<?> cl:parser_classes){
       String name=cl.getName();
@@ -176,9 +176,9 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
     } catch (NoSuchFieldException e) {
       return false;
     } catch (SecurityException e) {
-      e.printStackTrace();
+      DebugException(e);
     } catch (IllegalArgumentException e) {
-      e.printStackTrace();
+      DebugException(e);
     }
     throw hre.lang.System.Failure("reflection failed to work for field %s",field);
   }
@@ -190,11 +190,11 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
     } catch (NoSuchFieldException e) {
       throw hre.lang.System.Failure("class has no static field %s",field);
     } catch (SecurityException e) {
-      e.printStackTrace();
+      DebugException(e);
     } catch (IllegalArgumentException e) {
-      e.printStackTrace();
+      DebugException(e);
     } catch (IllegalAccessException e) {
-      e.printStackTrace();
+      DebugException(e);
     }
     throw hre.lang.System.Failure("reflection failed to work for field %s",field);
   }
@@ -228,8 +228,8 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
   public void leave(ParseTree node, ASTNode res) {
     /* no longer needed because specifications are gathered in
      * a follow up pass.
-    if (//res instanceof vct.col.ast.MethodInvokation ||
-        res instanceof vct.col.ast.LoopStatement){
+    if (//res instanceof vct.col.ast.expr.MethodInvokation ||
+        res instanceof vct.col.ast.stmt.composite.LoopStatement){
       BeforeAfterAnnotations loc=(BeforeAfterAnnotations)res;
       BlockStatement block;
       block=loc.get_before();
@@ -246,7 +246,7 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
     try {
       scan_to_rec(unit,tree);
     } catch(MissingCase mc) {
-      Warning("in tree %s:%n%s",tree.toStringTree(parser),mc);
+      Warning("in tree %s: %s",tree.toStringTree(parser),mc);
       throw mc;
     }
   }
@@ -261,7 +261,7 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
           unit.add(n);
         }
       } catch(MissingCase mc) {
-        Warning("in tree %s:%n%s",ctx.getChild(i).toStringTree(parser),mc);
+        Warning("in tree %s: %s",ctx.getChild(i).toStringTree(parser),mc);
         throw mc;
       }
     }
@@ -404,7 +404,7 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
     if (arg0 instanceof ParserRuleContext){
       Debug("Scanning using Syntax");
       ParserRuleContext ctx=(ParserRuleContext)arg0;
-      if (ctx.children.size()==1){
+      if (ctx.children != null && ctx.children.size()==1){
         ParseTree tmp=ctx.getChild(0);
         if (tmp instanceof ParserRuleContext) {
           return convert(tmp);
@@ -435,11 +435,6 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
         String pat[]=syntax.getPattern(op);
         if (pat!=null){
           Debug("Scanning for %s",op);
-          //System.out.printf("pattern of %s:",op);
-          //for(int k=0;k<pat.length;k++){
-          //  System.out.printf(" %s",pat[k]);
-          //}
-          //System.out.printf("%n");
           if (match(ctx,pat)){
             int N=op.arity();
             ASTNode args[]=new ASTNode[N];
@@ -718,7 +713,7 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
       if (tmp.children.size()==1){
         node=tmp.getChild(0);
       } else {
-        Abort("not a nested identifier%n%s",node.toStringTree(parser));
+        Abort("not a nested identifier: %s",node.toStringTree(parser));
       }
     }
     if (node instanceof TerminalNode){
@@ -941,17 +936,33 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
         default: break;
       }
     }
-    System.err.printf("NO MATCH%n%s%n",ctx.toStringTree(parser));
+    Debug("NO MATCH: %s",ctx.toStringTree(parser));
     return null;
   }
 
   public ASTNode getValPrimary(ParserRuleContext ctx){
     int N=ctx.getChildCount();
+    if (match(ctx,"Reducible","(",null,",",null,")")){
+      String op=ctx.getChild(4).getText();
+      switch(op){
+        case "+":
+          return create.expression(StandardOperator.ReducibleSum,convert(ctx,2));
+        case "min":
+          return create.expression(StandardOperator.ReducibleMin,convert(ctx,2));
+        case "max":
+          return create.expression(StandardOperator.ReducibleMax,convert(ctx,2));
+        default:
+          throw new HREError("unknown reduction operator %s",op);
+      }
+    }
     if (N>=3 && match(1,true,ctx,"(") && match(N-1,true,ctx,")")){
-      StandardOperator op=syntax.parseFunction(getIdentifier(ctx,0));
+      String functionName = getIdentifier(ctx,0);
+      StandardOperator op=syntax.parseFunction(functionName);
       if (op!=null){
         ASTNode args[]=convert_list(ctx,2,N-1,",");
         return create.expression(op, args);
+      } else {
+        Abort("No such function: %s", functionName);
       }
     }
     if (N>=3 && match(0,true,ctx,"Type","{") && match(N-1,true,ctx,"}")){
@@ -998,19 +1009,6 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
           convert(ctx,5));
       return create.let_expr(decl, convert(ctx,7));
     }
-    if (match(ctx,"Reducible","(",null,",",null,")")){
-      String op=ctx.getChild(4).getText();
-      switch(op){
-      case "+":
-        return create.expression(StandardOperator.ReducibleSum,convert(ctx,2));
-      case "min":
-        return create.expression(StandardOperator.ReducibleMin,convert(ctx,2));
-      case "max":
-        return create.expression(StandardOperator.ReducibleMax,convert(ctx,2));
-      default:
-        throw new HREError("unknown reduction operator %s",op);
-      }
-    }
     if (match(ctx,"[",null,"]",null)){
       return create.expression(Scale,convert(ctx,1),convert(ctx,3));
     }
@@ -1037,6 +1035,9 @@ public class ANTLRtoCOL implements ParseTreeVisitor<ASTNode> {
     }
     if (match(ctx,"*")){
       return create.reserved_name(ASTReserved.Any);
+    }
+    if(match(ctx, "\\pointer", "(", null, ",", null, ",", null, ")")) {
+      return create.expression(StandardOperator.ValidPointer, convert(ctx, 2), convert(ctx, 4), convert(ctx, 6));
     }
     throw new HREError("missing case for VAL primary expression: %s",ctx.toStringTree(parser));
   }

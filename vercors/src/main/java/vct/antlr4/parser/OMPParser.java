@@ -41,6 +41,8 @@ public class OMPParser {
     CommonTokenStream tokens = new CommonTokenStream(lexer);
     ErrorCounter ec=new ErrorCounter(pragma);
     ompParser parser = new ompParser(tokens);
+    lexer.removeErrorListeners();
+    lexer.addErrorListener(ec);
     parser.removeErrorListeners();
     parser.addErrorListener(ec);
     ParseTree tree = parser.omp_pragma();
@@ -74,8 +76,7 @@ class ConversionVisitor implements ompVisitor<OMPelement> {
 
   @Override
   public OMPelement visitOmp_pragma(Omp_pragmaContext ctx) {
-    //System.err.printf("pragma %s%n",ctx.toStringTree());
-    return ctx.getChild(0).accept(this); 
+    return ctx.getChild(0).accept(this);
    }
 
   @Override

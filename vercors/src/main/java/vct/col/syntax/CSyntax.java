@@ -1,11 +1,11 @@
 package vct.col.syntax;
 
 import hre.ast.TrackingOutput;
-import vct.col.ast.ASTNode;
-import vct.col.ast.ASTReserved;
-import vct.col.ast.PrimitiveSort;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.type.ASTReserved;
+import vct.col.ast.type.PrimitiveSort;
 import vct.col.print.CPrinter;
-import static vct.col.ast.StandardOperator.*;
+import static vct.col.ast.expr.StandardOperator.*;
 
 public class CSyntax extends Syntax{
   private static Syntax c_syntax;
@@ -16,7 +16,6 @@ public class CSyntax extends Syntax{
   }
 
   public static void setCommon(Syntax syntax){
-    
     syntax.addOperator(Subscript,160,"","[","]");
     syntax.addLeftFix(StructSelect,".",160);
     syntax.addLeftFix(StructDeref,"->",160);
@@ -74,6 +73,8 @@ public class CSyntax extends Syntax{
     syntax.addRightFix(ShrAssign,">>=",30);
 
     syntax.addFunction(SizeOf, "sizeof");
+    syntax.addFunction(ValidPointer, "\\pointer");
+    syntax.addFunction(Values, "\\values");
     
     syntax.addPrimitiveType(PrimitiveSort.Double,"double");
     syntax.addPrimitiveType(PrimitiveSort.Integer,"int");

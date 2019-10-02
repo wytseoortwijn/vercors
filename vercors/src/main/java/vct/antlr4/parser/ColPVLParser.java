@@ -6,13 +6,14 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 
+import hre.lang.HREExitException;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 
 import vct.antlr4.generated.PVFullLexer;
 import vct.antlr4.generated.PVFullParser;
-import vct.col.ast.ProgramUnit;
+import vct.col.ast.stmt.decl.ProgramUnit;
 import vct.col.rewrite.FlattenVariableDeclarations;
 import vct.col.syntax.PVLSyntax;
 
@@ -26,11 +27,14 @@ public class ColPVLParser implements vct.col.util.Parser {
     String file_name=file.toString();
       try {
         TimeKeeper tk=new TimeKeeper();
+        ErrorCounter ec=new ErrorCounter(file_name);
+
         ANTLRInputStream input = new ANTLRInputStream(new FileInputStream(file));
         PVFullLexer lexer = new PVFullLexer(input);
+        lexer.removeErrorListeners();
+        lexer.addErrorListener(ec);
         CommonTokenStream tokens = new CommonTokenStream(lexer);
         PVFullParser parser = new PVFullParser(tokens);
-        ErrorCounter ec=new ErrorCounter(file_name);
         parser.removeErrorListeners();
         parser.addErrorListener(ec);
         ParseTree tree = parser.program();
@@ -51,13 +55,15 @@ public class ColPVLParser implements vct.col.util.Parser {
         pu=new PVLPostProcessor(pu).rewriteAll();
         Progress("Post processing pass took %dms",tk.show());
         return pu;
+      } catch(HREExitException e) {
+        throw e;
       } catch (FileNotFoundException e) {
         Fail("File %s has not been found",file_name);
       } catch (Exception e) {
-        e.printStackTrace();
+        DebugException(e);
         Abort("Exception %s while parsing %s",e.getClass(),file_name);
       } catch (Throwable e) {
-        e.printStackTrace();
+        DebugException(e);
         Warning("Exception %s while parsing %s",e.getClass(),file_name);
         throw e;
       }

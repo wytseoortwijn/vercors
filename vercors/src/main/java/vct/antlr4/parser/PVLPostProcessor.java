@@ -2,15 +2,15 @@ package vct.antlr4.parser;
 
 
 import hre.ast.BranchOrigin;
-import vct.col.ast.ASTClass;
-import vct.col.ast.ASTClass.ClassKind;
-import vct.col.ast.ASTSpecial.Kind;
-import vct.col.ast.ASTFlags;
-import vct.col.ast.ASTNode;
-import vct.col.ast.ASTSpecial;
-import vct.col.ast.BlockStatement;
-import vct.col.ast.Method;
-import vct.col.ast.ProgramUnit;
+import vct.col.ast.stmt.decl.ASTClass;
+import vct.col.ast.stmt.decl.ASTClass.ClassKind;
+import vct.col.ast.stmt.decl.ASTSpecial.Kind;
+import vct.col.ast.stmt.decl.ASTFlags;
+import vct.col.ast.generic.ASTNode;
+import vct.col.ast.stmt.decl.ASTSpecial;
+import vct.col.ast.stmt.composite.BlockStatement;
+import vct.col.ast.stmt.decl.Method;
+import vct.col.ast.stmt.decl.ProgramUnit;
 import vct.col.rewrite.AbstractRewriter;
 
 /**
@@ -29,7 +29,7 @@ public class PVLPostProcessor extends AbstractRewriter {
     ASTClass decl=(ASTClass)result;
     boolean withlock=false;
     for(Method m:decl.dynamicMethods()){
-      System.err.printf("%s %s%n", m.kind, m.name());
+      Debug("%s %s", m.kind, m.name());
       if (m.kind==Method.Kind.Predicate && m.name().equals("lock_invariant")){
         if (withlock){
           m.getOrigin().report("error","second declaration of lock_invariant.");

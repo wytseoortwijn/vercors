@@ -6,7 +6,9 @@
 /*@
   given seq<seq<int> > data;
   given frac p;
-  invariant p!=none && M>0 && N > 0 && P > 0 && step >= N && \matrix(matrix,M,N) && \array(hist,P);
+  invariant p!=none && M>0 && N > 0 && P > 0 && step >= N;
+  invariant \matrix(matrix,M,N) ** \array(hist,P);
+  invariant |data| == M && (\forall int i; 0<=i && i<|data|; |data[i]| == N);
 
   context (\forall* int i1 ; 0 <= i1 && i1 < M ;
              (\forall* int j1 ; 0 <= j1 && j1 < N ;
@@ -39,8 +41,7 @@ void histogram(int M,int N,int step,int matrix[M][step],int P,int hist[P]){
       /*@
         requires (\forall* int k; 0 <= k && k < P ; Reducible(hist[k],+));
         context  Perm(matrix[ii][jj],p);
-        context  0 <= matrix[ii][jj] ** matrix[ii][jj] < P ; // can be proven.
-        //context 0 <= matrix[ii][jj] && matrix[ii][jj] < P ; // equivalent but cannot be proven.
+        context 0 <= matrix[ii][jj] && matrix[ii][jj] < P ;
         context  matrix[ii][jj]==data[ii][jj];
         ensures  (\forall* int k; 0 <= k && k < P ; Contribution(hist[k],data[ii][jj]==k?1:0));
       @*/

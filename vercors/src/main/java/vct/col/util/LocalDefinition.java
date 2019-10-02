@@ -1,7 +1,7 @@
 package vct.col.util;
 
-import vct.col.ast.NameExpression.Kind;
-import vct.col.ast.Type;
+import vct.col.ast.expr.NameExpression.Kind;
+import vct.col.ast.type.Type;
 
 public class LocalDefinition extends AnyDefinition{
 

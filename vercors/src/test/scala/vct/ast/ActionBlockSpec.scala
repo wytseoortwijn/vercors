@@ -2,6 +2,9 @@ package vct.ast
 
 import org.scalatest._
 import vct.col.ast._
+import vct.col.ast.`type`.ClassType
+import vct.col.ast.generic.ASTNode
+import vct.col.ast.stmt.composite.ActionBlock
 
 class ActionBlockSpec extends FlatSpec with Matchers {
   
