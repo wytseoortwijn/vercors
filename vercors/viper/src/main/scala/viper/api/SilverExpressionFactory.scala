@@ -51,6 +51,10 @@ class SilverExpressionFactory[O] extends ExpressionFactory[O,Type,Exp] with Fact
     SeqTake(drop, sub)(NoPosition, new OriginInfo(o))
   }
 
+  override def seq_update(o: O, e1: Exp, e2: Exp, e3: Exp): Exp = {
+    SeqUpdate(e1, e2, e3)(NoPosition, new OriginInfo(o))
+  }
+
   override def size(o:O,e1:Exp) :Exp = {
       e1.typ match {
         case SeqType(_) => SeqLength(e1)(NoPosition,new OriginInfo(o))

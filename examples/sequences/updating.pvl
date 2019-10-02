@@ -1,0 +1,13 @@
+class Test {
+
+	void test1() {
+		seq<int> xs = seq<int> { 1, 2, 3, 4, 5 };
+		assert xs[2 -> 42] == seq<int> { 1, 2, 42, 4, 5 };
+		assert xs[2 -> 42][2] == 42;
+	}
+	
+	void test2() {
+		seq<int> xs = seq<int> { 1 };
+		assert xs[0 -> 1][0 -> 2][0 -> 3][0] == 3;
+	}
+}

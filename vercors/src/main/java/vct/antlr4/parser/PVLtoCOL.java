@@ -835,6 +835,11 @@ public class PVLtoCOL extends ANTLRtoCOL implements PVFullVisitor<ASTNode> {
         res = create.expression(StandardOperator.Slice, res, convert(access,1), convert(access,3));
       }
 
+      // matching a sequence updating operation (for example `xs[2 -> 43]`)
+      else if (match(access, "[", null, "->", null, "]")) {
+        res = create.expression(StandardOperator.SeqUpdate, res, convert(access,1), convert(access,3));
+      }
+
       // fail on all other patterns
       else {
         Fail("unknown lexpr");

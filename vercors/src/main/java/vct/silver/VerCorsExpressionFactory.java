@@ -498,6 +498,14 @@ public class VerCorsExpressionFactory implements
   }
 
   @Override
+  public ASTNode seq_update(Origin o, ASTNode e1, ASTNode e2, ASTNode e3) {
+    enter(o);
+    ASTNode res = create.expression(StandardOperator.SeqUpdate, e1, e2, e3);
+    leave();
+    return res;
+  }
+
+  @Override
   public ASTNode unfolding_in(Origin o, ASTNode e1, ASTNode e2) {
     enter(o);
     ASTNode res=create.expression(StandardOperator.Unfolding,e1,e2);

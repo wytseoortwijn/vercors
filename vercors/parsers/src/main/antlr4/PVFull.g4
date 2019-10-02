@@ -148,6 +148,7 @@ lexpr_access
  : '.' gen_id
  | '[' '..' expr ']'
  | '[' expr ('..' expr?)? ']'
+ | '[' expr '->' expr ']'
  ;
 
 non_array_type

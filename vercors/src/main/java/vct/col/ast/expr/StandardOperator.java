@@ -167,8 +167,10 @@ public enum StandardOperator {
   Drop(2),
   /** Take elements from a list  (for example `xs[..3]`) */
   Take(2),
-  /** Take a slice from a list  (for example `xs[1..3]`) */
+  /** Taking a slice from a list  (for example `xs[1..3]`) */
   Slice(3),
+  /** Updating a single element in a sequence (for example `xs[1 -> 12]`). */
+  SeqUpdate(3),
   /** append two lists */
   Append(2),
   /** check if an element is a member of a container. */
@@ -177,7 +179,7 @@ public enum StandardOperator {
   SizeOf(1),
   /** head of a list. */
   Head(1),
-  /** PVLidleToken of a list. */
+  /** tail of a list. */
   Tail(1),
   /** Bind an output argument of a method to this pattern.
    *  E.g. <code>?x</code> and <code>?(x,y)M</code>. 

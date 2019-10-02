@@ -110,6 +110,7 @@ public class SilverExpressionMap<T,E> implements ASTMapping<E> {
     case Drop: return create.drop(o, e1, e2);
     case Take: return create.take(o, e1, e2);
     case Slice: return create.slice(o, e1, e2, e3);
+    case SeqUpdate: return create.seq_update(o, e1, e2, e3);
     case Member: {
       if (e.arg(1).getType().isPrimitive(PrimitiveSort.Sequence)){
         return create.seq_contains(o,e1,e2);
